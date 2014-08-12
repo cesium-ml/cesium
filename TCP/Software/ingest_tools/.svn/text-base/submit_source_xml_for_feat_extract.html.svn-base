@@ -1,0 +1,16 @@
+<html><head>
+</head>
+<body>
+
+<table border="1">
+<tr><td><b>Populate Feature DB using VOSource XML</b><br>Enter a VOSource URL</td></tr>
+<tr>
+
+<form action="http://lyra.berkeley.edu/~jbloom/dstarr/execute_feature_extract.php" method="post">
+<td>Source-id (integer):<input type="text" name="srcid" value="9026" size=12></td>
+<td>VOSource URL:<input type="text" name="xml_url" value="http://lyra.berkeley.edu/tutor/pub/vosource.php?Source_ID=9026" size=60></td>
+<td><input type="submit" name="submit_test" value="Execute"><br></td>
+</form>
+</tr>
+</table>
+</body></html>

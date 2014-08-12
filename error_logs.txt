@@ -1,0 +1,31 @@
+## Performing a multi-file (with metadata file) prediction via the browser (7/18/14 - and the next several attempts executed flawlessly):
+
+Job@57d:a1f36:999ac:
+Process Process-1:
+Traceback (most recent call last):
+  File "/home/arien/anaconda/lib/python2.7/multiprocessing/process.py", line 258, in _bootstrap
+    self.run()
+  File "/home/arien/anaconda/lib/python2.7/multiprocessing/process.py", line 114, in run
+    self._target(*self._args, **self._kwargs)
+  File "flask_app.py", line 1688, in prediction_proc
+    results_dict = predict.predict(newpred_file_path=newpred_file_path,model_name=model_name,model_type=model_type,featset_key=featset_key,sepr=sep,n_cols_html_table=n_cols_html_table,custom_features_script=custom_features_script,metadata_file_path=metadata_file)
+  File "/home/arien/Dropbox/work_etc/mlweb/predict_class.py", line 90, in predict
+    big_features_and_tsdata_dict = parallel_processing.featurize_prediction_data_in_parallel(newpred_file_path=newpred_file_path, featset_key=featset_key, sep=sep, custom_features_script=custom_features_script,meta_features=meta_features)
+  File "/home/arien/Dropbox/work_etc/mlweb/parallel_processing.py", line 316, in featurize_prediction_data_in_parallel
+    disco_iterator = process_prediction_data_featurization_with_disco(input_list=[f.name],params=params,partitions=4)
+  File "/home/arien/Dropbox/work_etc/mlweb/parallel_processing.py", line 284, in process_prediction_data_featurization_with_disco
+    result = result_iterator(job.wait(show=True))
+  File "/home/arien/.local/lib/python2.7/site-packages/disco/core.py", line 367, in wait
+    event_monitor.refresh()
+  File "/home/arien/.local/lib/python2.7/site-packages/disco/eventmonitor.py", line 184, in refresh
+    status = self.status
+  File "/home/arien/.local/lib/python2.7/site-packages/disco/eventmonitor.py", line 175, in status
+    .format(tuple(self.stats)))
+  File "/home/arien/.local/lib/python2.7/site-packages/disco/eventmonitor.py", line 166, in stats
+    first = pipeline[0]
+IndexError: list index out of range
+
+
+
+
+

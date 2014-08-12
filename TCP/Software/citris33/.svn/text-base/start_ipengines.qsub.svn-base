@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#PBS -N ipengines_pwise
+#PBS -l nodes=12:ppn=8
+#PBS -l walltime=48:00:00
+#PBS -o outfile
+#PBS -e errfile
+#PBS -M dstarr@astro.berkeley.edu
+#PBS -m abe
+#PBS -q long
+#
+# Export all my environment variables to the job
+#PBS -V
+#
+#
+## Run my parallel job
+##cd /global/home/users/kmuriki/sample_executables/mpi/matrixmult
+cd /global/home/users/dstarr/src/TCP/Software/citris33
+
+cat $PBS_NODEFILE
+. /usr/Modules/init/bash
+
+module load intel/11.1.072
+module load gcc
+module list
+
+### full = 74mins per node.  112 nodes (14*8)  :: 12*8 =96
+mpiexec -n 96 ipengine --mpi=mpi4py
+
+##### /global/home/users/dstarr/src/install/epd-6.2-2-rh5-x86_64/lib/python2.6/pdb.py test_pairwise_on_citris33_ipython.py --pairwise_classifier_pkl_fpath=$HOME/scratch/pairwise_classifier__debosscher_table3.pkl.gz --use_hardcoded_sciclass_lookup
+##### qsub -I -V -X -l walltime=24:00:00,nodes=1:ppn=1 -q normal
+##### qdel 6366.perceus-citris.banatao.berkeley.edu
+##### qstat -a
+##### qsub start_ipengines.qsub

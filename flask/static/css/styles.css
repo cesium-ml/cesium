@@ -1,0 +1,318 @@
+
+
+.centered .ui-tabs-nav {
+    height: 2.25em;
+    text-align: center;
+}
+.centered .ui-tabs-nav li {
+    display: inline-block;
+    float: none;
+    margin: 0em;
+}
+
+
+@font-face {
+    font-family: 'FFTisa'; 
+    src: url('/static/fonts/FFTisa/TisaPro-Regular.otf');
+}
+
+
+
+th{
+	padding-right: 8px;
+	padding-left: 8px;
+	padding-bottom: 8px;
+	padding-top: 8px;
+}
+
+.small{
+	display:block;
+	font-size:0.8em;
+	font-weight:normal;
+	text-align:left;
+}
+
+
+.small-inline{
+	display:inline-block;
+	font-size:0.8em;
+	font-weight:normal;
+	text-align:left;
+}
+
+
+.features_dialog{
+	overflow-y:auto;
+	height:500px;
+	margin-top:20px;
+}
+
+
+.feature_selection_dialog{
+	overflow-y:auto;
+	height:500px;
+	margin-top:20px;
+}
+
+.editDeleteResultsDialog{
+	font-size:1.0em
+}
+
+body{
+	font-family: Verdana,FFTisa,sans-serif,Arial !important; 
+	font-size: 9pt; 
+}
+
+h2{
+	
+	
+	color: #555;
+	
+}
+
+
+div.ui-tooltip {
+    font-size: 0.8em;
+}
+
+
+
+
+
+svg {
+  font: 10px FFTisa,sans-serif;
+  padding: 10px;
+}
+
+.axis,
+.frame {
+  shape-rendering: crispEdges;
+}
+
+.axis line {
+  stroke: #ddd;
+}
+
+.axis path {
+  display: none;
+}
+
+.frame {
+  fill: none;
+  stroke: #aaa;
+}
+
+circle {
+  fill-opacity: .7;
+}
+
+circle.hidden {
+  fill: #ccc !important;
+}
+
+circle.hidden-temp {
+  fill: #ccc !important;
+}
+
+.extent {
+  fill: #000;
+  fill-opacity: .125;
+  stroke: #fff;
+}
+
+
+
+table.pred_results{
+	
+	
+}
+
+tr.pred_results{
+	
+	
+	
+}
+
+td.pred_results{
+	
+	
+}
+
+th.pred_results{
+	padding: 5px;
+}
+
+
+.legend rect {
+  fill:white;
+  stroke:black;
+  opacity:0.8;}
+
+
+
+td.source_details{
+	width:500px; 
+	text-align:center;
+	vertical-align:top;
+	padding-bottom:50px;
+}
+
+
+
+div.source_details{
+
+	margin: 0px auto;
+	
+}
+
+
+table.source_details{
+
+	margin: 0px auto;
+	
+}
+
+
+/* styles for layout: */
+
+
+/*
+
+
+#wrap
+{
+  min-height: 100%;  
+}
+
+#main
+{
+    overflow:auto;
+    padding-bottom:150px; 
+}
+
+.footer 
+{
+    position: relative;
+	margin-top: -140px; 
+	height: 140px;
+	clear:both;
+    padding-top:20px;
+    color:#fff;
+} 
+*/
+
+
+html,body
+{
+    height:100%;
+    margin:0px 0px; padding:0px;
+    text-align:center;
+}
+
+#content
+{
+	 overflow:auto;
+	 min-height:75%;
+     height:auto !important;
+}
+
+.footer 
+{
+    height:20%;
+    position:relative;
+}
+
+.hover_bgcolor_div{
+	background:white;
+}
+
+.hover_bgcolor_div:hover{
+	background:#BBBBBB;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+original/modified taken from web:
+
+
+
+
+
+body{
+font-family:"Lucida Grande", "Lucida Sans Unicode", Verdana, Arial, Helvetica, sans-serif;
+font-size:12px;
+}
+p, h1, form, button{border:0; margin:0; padding:0;}
+.spacer{clear:both; height:1px;}
+
+.myform{
+margin:0 auto;
+width:80%;
+padding:14px;
+}
+
+
+#stylized{
+border:solid 2px #b7ddf2;
+background:#ebf4fb;
+}
+#stylized h1 {
+font-size:14px;
+font-weight:bold;
+margin-bottom:8px;
+}
+#stylized p{
+font-size:11px;
+color:#666666;
+margin-bottom:20px;
+border-bottom:solid 1px #b7ddf2;
+padding-bottom:10px;
+}
+#stylized label{
+display:block;
+font-weight:bold;
+text-align:right;
+width:200px;
+float:left;
+}
+#stylized .small{
+color:#666666;
+display:block;
+font-size:11px;
+font-weight:normal;
+text-align:right;
+width:200px;
+}
+#stylized .stylized_input{
+float:right;
+display:inline;
+font-size:12px;
+padding:4px 2px;
+border:solid 1px #aacfe4;
+width:200px;
+margin:2px 0 20px 10px;
+}
+#stylized .submit_button{
+margin-left:10px;
+width:165px;
+height:31px;
+background:#028;
+text-align:center;
+line-height:31px;
+color:#FFF;
+font-size:15px;
+font-weight:bold;
+}
+
+
+*/

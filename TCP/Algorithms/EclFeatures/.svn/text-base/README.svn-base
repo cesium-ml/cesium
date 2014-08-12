@@ -1,0 +1,34 @@
+
+1. Compile polyfit, a stand-along command line code that fits periodic polynomials piecewise.
+
+ # You'll need GSL!
+gcc -L/usr/local/lib polyfit.c -lgsl -lgslcblas -lm -o polyfit
+
+# you also need Phoebe: http://phoebe.fiz.uni-lj.si (tried: phoebe lib 0.31a +)
+
+
+ # optional: make the shared library
+gcc -L/usr/local/lib polyfit.c -lgsl -lgslcblas -lm -c polyfit.c -fPIC
+gcc -shared -Wl -o polyfit.so polyfit.o -lc -lgsl -lgslcblas -lm
+
+
+On citris33:   
+  gcc -L /global/home/users/dstarr/local/lib/ -I /global/home/users/dstarr/local/include polyfit.c -lgsl -lgslcblas -lm -o polyfit
+    - where /global/home/users/dstarr/local/lib/ contains libgsl.so
+  gcc -L /global/home/users/dstarr/local/lib/ -I /global/home/users/dstarr/local/include polyfit.c -lgsl -lgslcblas -lm -c polyfit.c -fPIC
+  gcc -L /global/home/users/dstarr/local/lib/ -I /global/home/users/dstarr/local/include -shared -Wl -o polyfit.so polyfit.o -lc -lgsl -lgslcblas -lm
+
+
+
+2. test out using ipython:
+ ipython --pylab
+ >> run eclipse_features.py
+ >> test2()
+ >> test()
+
+This will show you how to get "new" features back. 
+
+One trick is that if you already know the period of the source (like an RRL) you can avoid having to call LS again: 
+
+ …fix_initial_period=True,initial_period=0.4422664540092584
+

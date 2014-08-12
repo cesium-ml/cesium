@@ -1,0 +1,7 @@
+python starvars_feature_generation_L.py 8
+python starvars_feature_generation_L.py 9
+python starvars_feature_generation_L.py 10
+python starvars_feature_generation_L.py 11
+python starvars_feature_generation_L.py 12
+python starvars_feature_generation_L.py 13
+python starvars_feature_generation_L.py 14

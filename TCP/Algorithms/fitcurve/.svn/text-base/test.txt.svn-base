@@ -1,0 +1,231 @@
+Check that you can query the mysql db to get the harmonic's data rather than running this code:
+
+
+
+Source RA, DEC = (188.70795310,8.83488902)
+
+src_id = 456785,  may
+
+primary:
+f = 2.8966
+amp = 0.906
+offset = -0.163985
+
+second:
+f = 2.95511
+amp = .0010337
+offset = -0.0084599
+
+third = 
+f= 2.8966
+amp = 0.00105
+offset = -0.0431
+
+fourth:
+f = 2.95511
+amp = .001337
+offset = -0.0084599
+
+----------------
+potential first frequency: 386, 692
+
+Corresponding mysql query:
+feat_id, feat_name in feat_lookup where filter_id=8
++---------+-------------------------------------------+
+| feat_id | feat_name                                 |
++---------+-------------------------------------------+
+|    1056 | amplitude                                 | 
+|     282 | beyond1std                                | 
+|     435 | chi2                                      | 
+|    1218 | chi2_per_deg                              | 
+|    1074 | closest_in_light                          | 
+|     588 | closest_in_light_absolute_bmag            | 
+|    1425 | closest_in_light_angle_from_major_axis    | 
+|    1740 | closest_in_light_angular_offset_in_arcmin | 
+|     120 | closest_in_light_dm                       | 
+|      57 | closest_in_light_physical_offset_in_kpc   | 
+|     363 | closest_in_light_ttype                    | 
+|     183 | dc                                        | 
+|     777 | distance_in_arcmin_to_nearest_galaxy      | 
+|    1578 | distance_in_kpc_to_nearest_galaxy         | 
+|     714 | dist_from_u                               | 
+|     372 | ecpb                                      | 
+|    1506 | ecpl                                      | 
+|    1641 | first_lomb                                | 
+|     147 | fourier                                   | 
+|     606 | freq1                                     | 
+|    1020 | freq1_harmonics_amplitude_0               | 
+|     273 | freq1_harmonics_amplitude_1               | 
+|     480 | freq1_harmonics_amplitude_2               | 
+|     651 | freq1_harmonics_amplitude_3               | 
+|     426 | freq1_harmonics_amplitude_error_0         | 
+|     210 | freq1_harmonics_amplitude_error_1         | 
+|    1083 | freq1_harmonics_amplitude_error_2         | 
+|    1200 | freq1_harmonics_amplitude_error_3         | 
+|    1713 | freq1_harmonics_freq_0                    | 
+|     417 | freq1_harmonics_freq_1                    | 
+|    1533 | freq1_harmonics_freq_2                    | 
+|    1434 | freq1_harmonics_freq_3                    | 
+|     660 | freq1_harmonics_moments_0                 | 
+|    1182 | freq1_harmonics_moments_1                 | 
+|     903 | freq1_harmonics_moments_2                 | 
+|    1335 | freq1_harmonics_moments_3                 | 
+|     219 | freq1_harmonics_moments_err_0             | 
+|    1092 | freq1_harmonics_moments_err_1             | 
+|    1362 | freq1_harmonics_moments_err_2             | 
+|    1551 | freq1_harmonics_moments_err_3             | 
+|     525 | freq1_harmonics_nharm                     | 
+|     246 | freq1_harmonics_peak2peak_flux            | 
+|    1272 | freq1_harmonics_peak2peak_flux_error      | 
+|    1254 | freq1_harmonics_rel_phase_0               | 
+|     804 | freq1_harmonics_rel_phase_1               | 
+|     552 | freq1_harmonics_rel_phase_2               | 
+|     615 | freq1_harmonics_rel_phase_3               | 
+|     381 | freq1_harmonics_rel_phase_error_0         | 
+|     696 | freq1_harmonics_rel_phase_error_1         | 
+|     732 | freq1_harmonics_rel_phase_error_2         | 
+|    1623 | freq1_harmonics_rel_phase_error_3         | 
+|     327 | freq1_harmonics_signif                    | 
+|    1686 | freq1_signif                              | 
+|     894 | freq2                                     | 
+|     633 | freq2_harmonics_amplitude_0               | 
+|    1524 | freq2_harmonics_amplitude_1               | 
+|     912 | freq2_harmonics_amplitude_2               | 
+|     237 | freq2_harmonics_amplitude_3               | 
+|    1704 | freq2_harmonics_amplitude_error_0         | 
+|     174 | freq2_harmonics_amplitude_error_1         | 
+|     723 | freq2_harmonics_amplitude_error_2         | 
+|    1299 | freq2_harmonics_amplitude_error_3         | 
+|    1515 | freq2_harmonics_freq_0                    | 
+|    1614 | freq2_harmonics_freq_1                    | 
+|     795 | freq2_harmonics_freq_2                    | 
+|      48 | freq2_harmonics_freq_3                    | 
+|    1038 | freq2_harmonics_moments_0                 | 
+|    1461 | freq2_harmonics_moments_1                 | 
+|      12 | freq2_harmonics_moments_2                 | 
+|     786 | freq2_harmonics_moments_3                 | 
+|     165 | freq2_harmonics_moments_err_0             | 
+|     858 | freq2_harmonics_moments_err_1             | 
+|    1119 | freq2_harmonics_moments_err_2             | 
+|      21 | freq2_harmonics_moments_err_3             | 
+|    1659 | freq2_harmonics_nharm                     | 
+|     759 | freq2_harmonics_peak2peak_flux            | 
+|    1245 | freq2_harmonics_peak2peak_flux_error      | 
+|    1146 | freq2_harmonics_rel_phase_0               | 
+|    1290 | freq2_harmonics_rel_phase_1               | 
+|      93 | freq2_harmonics_rel_phase_2               | 
+|     111 | freq2_harmonics_rel_phase_3               | 
+|    1668 | freq2_harmonics_rel_phase_error_0         | 
+|    1317 | freq2_harmonics_rel_phase_error_1         | 
+|    1650 | freq2_harmonics_rel_phase_error_2         | 
+|    1029 | freq2_harmonics_rel_phase_error_3         | 
+|     822 | freq2_harmonics_signif                    | 
+|      39 | freq2_signif                              | 
+|    1416 | freq3                                     | 
+|     939 | freq3_harmonics_amplitude_0               | 
+|     390 | freq3_harmonics_amplitude_1               | 
+|     336 | freq3_harmonics_amplitude_2               | 
+|    1695 | freq3_harmonics_amplitude_3               | 
+|     444 | freq3_harmonics_amplitude_error_0         | 
+|     399 | freq3_harmonics_amplitude_error_1         | 
+|     102 | freq3_harmonics_amplitude_error_2         | 
+|     813 | freq3_harmonics_amplitude_error_3         | 
+|      84 | freq3_harmonics_freq_0                    | 
+|    1587 | freq3_harmonics_freq_1                    | 
+|    1209 | freq3_harmonics_freq_2                    | 
+|    1002 | freq3_harmonics_freq_3                    | 
+|     318 | freq3_harmonics_moments_0                 | 
+|     687 | freq3_harmonics_moments_1                 | 
+|     291 | freq3_harmonics_moments_2                 | 
+|     975 | freq3_harmonics_moments_3                 | 
+|      75 | freq3_harmonics_moments_err_0             | 
+|     561 | freq3_harmonics_moments_err_1             | 
+|    1155 | freq3_harmonics_moments_err_2             | 
+|     750 | freq3_harmonics_moments_err_3             | 
+|    1371 | freq3_harmonics_nharm                     | 
+|     264 | freq3_harmonics_peak2peak_flux            | 
+|    1497 | freq3_harmonics_peak2peak_flux_error      | 
+|    1128 | freq3_harmonics_rel_phase_0               | 
+|     768 | freq3_harmonics_rel_phase_1               | 
+|     570 | freq3_harmonics_rel_phase_2               | 
+|    1227 | freq3_harmonics_rel_phase_3               | 
+|    1389 | freq3_harmonics_rel_phase_error_0         | 
+|     948 | freq3_harmonics_rel_phase_error_1         | 
+|     849 | freq3_harmonics_rel_phase_error_2         | 
+|     624 | freq3_harmonics_rel_phase_error_3         | 
+|     597 | freq3_harmonics_signif                    | 
+|    1452 | freq3_signif                              | 
+|    1677 | freq_searched_max                         | 
+|    1101 | freq_searched_min                         | 
+|    1560 | galb                                      | 
+|    1137 | gall                                      | 
+|    1470 | interng                                   | 
+|     885 | intersdss                                 | 
+|     876 | linear                                    | 
+|    1326 | lomb                                      | 
+|     300 | lomb_scargle                              | 
+|     471 | max                                       | 
+|     516 | max_slope                                 | 
+|     579 | median                                    | 
+|     993 | median_buffer_range_percentage            | 
+|    1344 | min                                       | 
+|     642 | n_points                                  | 
+|     543 | pair_slope_trend                          | 
+|       3 | percent_amplitude                         | 
+|     498 | position_intermediate                     | 
+|     930 | power                                     | 
+|    1479 | power_spectrum                            | 
+|    1542 | ratio21                                   | 
+|     129 | ratio31                                   | 
+|     138 | ratio32                                   | 
+|    1731 | sdss_best_dm                              | 
+|     669 | sdss_best_offset_in_kpc                   | 
+|     309 | sdss_best_offset_in_petro_g               | 
+|     354 | sdss_best_z                               | 
+|     489 | sdss_best_zerr                            | 
+|    1353 | sdss_chicago_class                        | 
+|    1596 | sdss_dered_g                              | 
+|     741 | sdss_dered_i                              | 
+|     984 | sdss_dered_r                              | 
+|    1632 | sdss_dered_u                              | 
+|    1605 | sdss_dered_z                              | 
+|    1488 | sdss_dist_arcmin                          | 
+|    1164 | sdss_first_flux_in_mjy                    | 
+|     534 | sdss_first_offset_in_arcsec               | 
+|    1236 | sdss_in_footprint                         | 
+|     507 | sdss_nearest_obj_type                     | 
+|     867 | sdss_petro_radius_g                       | 
+|     831 | sdss_petro_radius_g_err                   | 
+|    1173 | sdss_photo_rest_abs_g                     | 
+|    1722 | sdss_photo_rest_abs_i                     | 
+|     966 | sdss_photo_rest_abs_r                     | 
+|    1398 | sdss_photo_rest_abs_u                     | 
+|    1065 | sdss_photo_rest_abs_z                     | 
+|     957 | sdss_photo_rest_gr                        | 
+|    1443 | sdss_photo_rest_iz                        | 
+|      66 | sdss_photo_rest_ri                        | 
+|     255 | sdss_photo_rest_ug                        | 
+|    1380 | sdss_photo_z_pztype                       | 
+|     921 | sdss_rosat_flux_in_mJy                    | 
+|     201 | sdss_rosat_log_xray_luminosity            | 
+|     705 | sdss_rosat_offset_in_arcsec               | 
+|    1407 | sdss_rosat_offset_in_sigma                | 
+|     345 | sdss_spec_confidence                      | 
+|    1110 | second_lomb                               | 
+|     462 | sine_fit                                  | 
+|     678 | sine_leastsq                              | 
+|    1191 | sine_lomb                                 | 
+|     192 | skew                                      | 
+|    1308 | std                                       | 
+|    1569 | stdvs_from_u                              | 
+|     408 | tmpned                                    | 
+|    1011 | weighted_average                          | 
+|     453 | wei_av_uncertainty                        | 
+|     156 | ws_variability_bv                         | 
+|    1047 | ws_variability_gr                         | 
+|    1281 | ws_variability_iz                         | 
+|    1263 | ws_variability_ri                         | 
+|      30 | ws_variability_ru                         | 
+|     228 | ws_variability_self                       | 
+|     840 | ws_variability_ug                         | 
++---------+-------------------------------------------+

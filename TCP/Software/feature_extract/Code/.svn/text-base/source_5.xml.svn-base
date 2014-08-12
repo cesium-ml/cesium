@@ -1,0 +1,238 @@
+<?xml version="1.0"?>
+<VOSOURCE version="0.01">
+	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+	<history>
+		<created datetime="2007-08-09 00:39:32.815724" codebase="db_importer.py" codebase_version="7-Aug-2007"/>
+	</history>
+	<ID>5</ID>
+	<WhereWhen>
+		<Description>Best positional information of the source</Description>
+		<Position2D unit='deg'>
+			<Value2>
+				<c1>49.599486</c1>
+				<c2>-1.005111</c2>
+			</Value2>
+			<Error2>
+				<c1>0.000125</c1>
+				<c2>0.000066</c2>
+			</Error2>
+		</Position2D>
+	</WhereWhen>
+	<VOTIMESERIES version="0.01">
+		<TIMESYS>
+		<TimeType ucd="frame.time.system?">MJD</TimeType> 
+		<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+		<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+		<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+</TIMESYS>
+
+		<RESOURCE name='db photometry'>
+			<TABLE name='sdss-i'>
+				<FIELD name='t' ID='col1' system='TIMESYS' datatype='float' unit='day'/>
+				<FIELD name='m' ID='col2' ucd='phot.mag;em.opt.i' datatype='float' unit='mag'/>
+				<FIELD name='m_err' ID='col3' ucd='stat.error;phot.mag;em.opt.i' datatype='float' unit='mag'/>
+				<DATA>
+					<TABLEDATA>
+					<TR row='1'><TD>53270.411341</TD><TD>17.685700</TD><TD>0.041329</TD></TR>
+					<TR row='2'><TD>53272.461311</TD><TD>17.666300</TD><TD>0.046804</TD></TR>
+					<TR row='3'><TD>53286.430030</TD><TD>17.712300</TD><TD>0.032254</TD></TR>
+					<TR row='4'><TD>53288.388524</TD><TD>17.686700</TD><TD>0.051716</TD></TR>
+					<TR row='5'><TD>53294.436197</TD><TD>17.722900</TD><TD>0.040919</TD></TR>
+					<TR row='6'><TD>53296.383179</TD><TD>17.693100</TD><TD>0.044321</TD></TR>
+					<TR row='7'><TD>53296.383180</TD><TD>17.741100</TD><TD>0.041375</TD></TR>
+					<TR row='8'><TD>53298.432973</TD><TD>17.688400</TD><TD>0.042116</TD></TR>
+					<TR row='9'><TD>53302.384194</TD><TD>17.684300</TD><TD>0.030654</TD></TR>
+					<TR row='10'><TD>53312.339704</TD><TD>17.689900</TD><TD>0.034576</TD></TR>
+					<TR row='11'><TD>53314.340923</TD><TD>17.693100</TD><TD>0.056407</TD></TR>
+					<TR row='12'><TD>53319.328722</TD><TD>17.681000</TD><TD>0.046264</TD></TR>
+					<TR row='13'><TD>53616.445275</TD><TD>17.688200</TD><TD>0.040836</TD></TR>
+					<TR row='14'><TD>53635.414954</TD><TD>18.045400</TD><TD>0.040259</TD></TR>
+					<TR row='15'><TD>53639.453564</TD><TD>17.644700</TD><TD>0.043643</TD></TR>
+					<TR row='16'><TD>53644.400611</TD><TD>17.658600</TD><TD>0.034638</TD></TR>
+					<TR row='17'><TD>53657.411614</TD><TD>17.695900</TD><TD>0.049311</TD></TR>
+					<TR row='18'><TD>53663.396163</TD><TD>17.665900</TD><TD>0.031594</TD></TR>
+					<TR row='19'><TD>53665.374135</TD><TD>17.676900</TD><TD>0.058743</TD></TR>
+					<TR row='20'><TD>53668.385765</TD><TD>18.101800</TD><TD>0.043119</TD></TR>
+					<TR row='21'><TD>53669.473373</TD><TD>17.686000</TD><TD>0.041188</TD></TR>
+					<TR row='22'><TD>53670.390616</TD><TD>17.664500</TD><TD>0.036046</TD></TR>
+					<TR row='23'><TD>53673.358603</TD><TD>17.683500</TD><TD>0.041370</TD></TR>
+					<TR row='24'><TD>53673.358604</TD><TD>17.689700</TD><TD>0.057846</TD></TR>
+					<TR row='25'><TD>53675.355491</TD><TD>17.695000</TD><TD>0.030486</TD></TR>
+					<TR row='26'><TD>53676.475141</TD><TD>17.695200</TD><TD>0.063373</TD></TR>
+					<TR row='27'><TD>53680.363189</TD><TD>17.685900</TD><TD>0.053413</TD></TR>
+					<TR row='28'><TD>53683.421739</TD><TD>17.734000</TD><TD>0.047263</TD></TR>
+					<TR row='29'><TD>53683.421739</TD><TD>17.662000</TD><TD>0.044193</TD></TR>
+					<TR row='30'><TD>53686.362620</TD><TD>17.701200</TD><TD>0.044801</TD></TR>
+					<TR row='31'><TD>53686.362620</TD><TD>17.701400</TD><TD>0.044801</TD></TR>
+					<TR row='32'><TD>53687.420003</TD><TD>17.644000</TD><TD>0.047445</TD></TR>
+					<TR row='33'><TD>53704.348399</TD><TD>17.674900</TD><TD>0.033465</TD></TR>
+					<TR row='34'><TD>53989.444422</TD><TD>17.653100</TD><TD>0.034296</TD></TR>
+					</TABLEDATA>
+				</DATA>
+			</TABLE>
+			<TABLE name='sdss-r'>
+				<FIELD name='t' ID='col1' system='TIMESYS' datatype='float' unit='day'/>
+				<FIELD name='m' ID='col2' ucd='phot.mag;em.opt.r' datatype='float' unit='mag'/>
+				<FIELD name='m_err' ID='col3' ucd='stat.error;phot.mag;em.opt.r' datatype='float' unit='mag'/>
+				<DATA>
+					<TABLEDATA>
+					<TR row='1'><TD>53270.410511</TD><TD>19.250700</TD><TD>0.038969</TD></TR>
+					<TR row='2'><TD>53272.460481</TD><TD>19.248200</TD><TD>0.055625</TD></TR>
+					<TR row='3'><TD>53286.429201</TD><TD>19.286100</TD><TD>0.038094</TD></TR>
+					<TR row='4'><TD>53288.387695</TD><TD>19.279500</TD><TD>0.040437</TD></TR>
+					<TR row='5'><TD>53294.435367</TD><TD>19.329200</TD><TD>0.052702</TD></TR>
+					<TR row='6'><TD>53296.382350</TD><TD>19.336400</TD><TD>0.047206</TD></TR>
+					<TR row='7'><TD>53296.382351</TD><TD>19.314700</TD><TD>0.059881</TD></TR>
+					<TR row='8'><TD>53298.432144</TD><TD>19.258400</TD><TD>0.044873</TD></TR>
+					<TR row='9'><TD>53302.383365</TD><TD>19.252600</TD><TD>0.047807</TD></TR>
+					<TR row='10'><TD>53312.338875</TD><TD>19.254300</TD><TD>0.049523</TD></TR>
+					<TR row='11'><TD>53314.340094</TD><TD>19.262300</TD><TD>0.046755</TD></TR>
+					<TR row='12'><TD>53319.327893</TD><TD>19.338100</TD><TD>0.045264</TD></TR>
+					<TR row='13'><TD>53616.444446</TD><TD>19.277600</TD><TD>0.045162</TD></TR>
+					<TR row='14'><TD>53635.414125</TD><TD>19.588500</TD><TD>0.059270</TD></TR>
+					<TR row='15'><TD>53639.452735</TD><TD>19.289000</TD><TD>0.040322</TD></TR>
+					<TR row='16'><TD>53644.399781</TD><TD>19.276200</TD><TD>0.043673</TD></TR>
+					<TR row='17'><TD>53657.410785</TD><TD>19.229100</TD><TD>0.050465</TD></TR>
+					<TR row='18'><TD>53663.395333</TD><TD>19.280400</TD><TD>0.068624</TD></TR>
+					<TR row='19'><TD>53665.373306</TD><TD>19.314900</TD><TD>0.046510</TD></TR>
+					<TR row='20'><TD>53668.384935</TD><TD>19.733500</TD><TD>0.066961</TD></TR>
+					<TR row='21'><TD>53669.472544</TD><TD>19.275100</TD><TD>0.060263</TD></TR>
+					<TR row='22'><TD>53670.389786</TD><TD>19.264000</TD><TD>0.076813</TD></TR>
+					<TR row='23'><TD>53673.357774</TD><TD>19.172300</TD><TD>0.045211</TD></TR>
+					<TR row='24'><TD>53673.357775</TD><TD>19.268400</TD><TD>0.042855</TD></TR>
+					<TR row='25'><TD>53675.354661</TD><TD>19.320700</TD><TD>0.046379</TD></TR>
+					<TR row='26'><TD>53676.474311</TD><TD>19.322400</TD><TD>0.130695</TD></TR>
+					<TR row='27'><TD>53680.362359</TD><TD>19.253200</TD><TD>0.042119</TD></TR>
+					<TR row='28'><TD>53683.420909</TD><TD>19.166800</TD><TD>0.075298</TD></TR>
+					<TR row='29'><TD>53683.420910</TD><TD>19.245600</TD><TD>0.075562</TD></TR>
+					<TR row='30'><TD>53686.361790</TD><TD>19.275000</TD><TD>0.057835</TD></TR>
+					<TR row='31'><TD>53686.361790</TD><TD>19.273600</TD><TD>0.057799</TD></TR>
+					<TR row='32'><TD>53687.419173</TD><TD>19.342600</TD><TD>0.151653</TD></TR>
+					<TR row='33'><TD>53704.347570</TD><TD>19.253800</TD><TD>0.057007</TD></TR>
+					<TR row='34'><TD>53989.443593</TD><TD>19.250100</TD><TD>0.051050</TD></TR>
+					</TABLEDATA>
+				</DATA>
+			</TABLE>
+			<TABLE name='sdss-u'>
+				<FIELD name='t' ID='col1' system='TIMESYS' datatype='float' unit='day'/>
+				<FIELD name='m' ID='col2' ucd='phot.mag;em.opt.u' datatype='float' unit='mag'/>
+				<FIELD name='m_err' ID='col3' ucd='stat.error;phot.mag;em.opt.u' datatype='float' unit='mag'/>
+				<DATA>
+					<TABLEDATA>
+					<TR row='1'><TD>53270.412170</TD><TD>23.249800</TD><TD>1.143020</TD></TR>
+					<TR row='2'><TD>53272.462140</TD><TD>22.685100</TD><TD>0.938187</TD></TR>
+					<TR row='3'><TD>53286.430860</TD><TD>23.559800</TD><TD>3.048710</TD></TR>
+					<TR row='4'><TD>53288.389354</TD><TD>23.146500</TD><TD>1.323180</TD></TR>
+					<TR row='5'><TD>53294.437026</TD><TD>23.153500</TD><TD>1.677210</TD></TR>
+					<TR row='6'><TD>53296.384008</TD><TD>23.581800</TD><TD>2.352370</TD></TR>
+					<TR row='7'><TD>53296.384010</TD><TD>23.494300</TD><TD>2.635590</TD></TR>
+					<TR row='8'><TD>53298.433803</TD><TD>24.625500</TD><TD>4.984090</TD></TR>
+					<TR row='9'><TD>53302.385023</TD><TD>24.039900</TD><TD>4.001130</TD></TR>
+					<TR row='10'><TD>53312.340534</TD><TD>22.594700</TD><TD>1.484760</TD></TR>
+					<TR row='11'><TD>53314.341753</TD><TD>24.317200</TD><TD>5.074530</TD></TR>
+					<TR row='12'><TD>53616.446104</TD><TD>23.250800</TD><TD>1.963430</TD></TR>
+					<TR row='13'><TD>53639.454393</TD><TD>22.854100</TD><TD>1.478390</TD></TR>
+					<TR row='14'><TD>53644.401440</TD><TD>23.184800</TD><TD>1.147320</TD></TR>
+					<TR row='15'><TD>53657.412443</TD><TD>22.784300</TD><TD>1.750640</TD></TR>
+					<TR row='16'><TD>53665.374964</TD><TD>21.779500</TD><TD>0.651994</TD></TR>
+					<TR row='17'><TD>53668.386594</TD><TD>23.027700</TD><TD>2.455680</TD></TR>
+					<TR row='18'><TD>53669.474202</TD><TD>21.949300</TD><TD>1.303060</TD></TR>
+					<TR row='19'><TD>53673.359432</TD><TD>22.905400</TD><TD>1.052870</TD></TR>
+					<TR row='20'><TD>53673.359433</TD><TD>22.828900</TD><TD>0.969334</TD></TR>
+					<TR row='21'><TD>53675.356320</TD><TD>23.433400</TD><TD>1.927450</TD></TR>
+					<TR row='22'><TD>53676.475970</TD><TD>22.614100</TD><TD>4.844550</TD></TR>
+					<TR row='23'><TD>53680.364018</TD><TD>24.060900</TD><TD>2.865830</TD></TR>
+					<TR row='24'><TD>53687.420832</TD><TD>22.463300</TD><TD>3.738140</TD></TR>
+					<TR row='25'><TD>53704.349229</TD><TD>23.284500</TD><TD>2.433910</TD></TR>
+					</TABLEDATA>
+				</DATA>
+			</TABLE>
+			<TABLE name='sdss-z'>
+				<FIELD name='t' ID='col1' system='TIMESYS' datatype='float' unit='day'/>
+				<FIELD name='m' ID='col2' ucd='phot.mag;em.opt.z' datatype='float' unit='mag'/>
+				<FIELD name='m_err' ID='col3' ucd='stat.error;phot.mag;em.opt.z' datatype='float' unit='mag'/>
+				<DATA>
+					<TABLEDATA>
+					<TR row='1'><TD>53270.412999</TD><TD>16.800200</TD><TD>0.027766</TD></TR>
+					<TR row='2'><TD>53272.462969</TD><TD>16.791400</TD><TD>0.049898</TD></TR>
+					<TR row='3'><TD>53286.431689</TD><TD>16.820200</TD><TD>0.040585</TD></TR>
+					<TR row='4'><TD>53288.390183</TD><TD>16.799900</TD><TD>0.063134</TD></TR>
+					<TR row='5'><TD>53294.437855</TD><TD>16.754400</TD><TD>0.050145</TD></TR>
+					<TR row='6'><TD>53296.384838</TD><TD>16.838100</TD><TD>0.049485</TD></TR>
+					<TR row='7'><TD>53296.384839</TD><TD>16.831800</TD><TD>0.052168</TD></TR>
+					<TR row='8'><TD>53298.434632</TD><TD>16.818600</TD><TD>0.033707</TD></TR>
+					<TR row='9'><TD>53302.385853</TD><TD>16.799800</TD><TD>0.038331</TD></TR>
+					<TR row='10'><TD>53312.341363</TD><TD>16.813500</TD><TD>0.037141</TD></TR>
+					<TR row='11'><TD>53314.342582</TD><TD>16.789700</TD><TD>0.033297</TD></TR>
+					<TR row='12'><TD>53319.330381</TD><TD>16.821800</TD><TD>0.050019</TD></TR>
+					<TR row='13'><TD>53616.446934</TD><TD>16.832700</TD><TD>0.051908</TD></TR>
+					<TR row='14'><TD>53635.416612</TD><TD>17.212000</TD><TD>0.043513</TD></TR>
+					<TR row='15'><TD>53639.455223</TD><TD>16.785200</TD><TD>0.033824</TD></TR>
+					<TR row='16'><TD>53644.402269</TD><TD>16.811700</TD><TD>0.030515</TD></TR>
+					<TR row='17'><TD>53657.413273</TD><TD>16.824100</TD><TD>0.043399</TD></TR>
+					<TR row='18'><TD>53663.397821</TD><TD>16.832000</TD><TD>0.033884</TD></TR>
+					<TR row='19'><TD>53665.375794</TD><TD>16.800100</TD><TD>0.033699</TD></TR>
+					<TR row='20'><TD>53668.387423</TD><TD>17.245000</TD><TD>0.053306</TD></TR>
+					<TR row='21'><TD>53669.475032</TD><TD>16.822000</TD><TD>0.041048</TD></TR>
+					<TR row='22'><TD>53670.392274</TD><TD>16.803000</TD><TD>0.053379</TD></TR>
+					<TR row='23'><TD>53673.360262</TD><TD>16.777600</TD><TD>0.046923</TD></TR>
+					<TR row='24'><TD>53673.360263</TD><TD>16.791200</TD><TD>0.056218</TD></TR>
+					<TR row='25'><TD>53675.357149</TD><TD>16.819600</TD><TD>0.051289</TD></TR>
+					<TR row='26'><TD>53676.476799</TD><TD>16.779900</TD><TD>0.070141</TD></TR>
+					<TR row='27'><TD>53680.364847</TD><TD>16.821700</TD><TD>0.033354</TD></TR>
+					<TR row='28'><TD>53683.423397</TD><TD>16.751700</TD><TD>0.049551</TD></TR>
+					<TR row='29'><TD>53683.423398</TD><TD>16.764500</TD><TD>0.045812</TD></TR>
+					<TR row='30'><TD>53686.364278</TD><TD>16.804200</TD><TD>0.032167</TD></TR>
+					<TR row='31'><TD>53686.364278</TD><TD>16.804500</TD><TD>0.032169</TD></TR>
+					<TR row='32'><TD>53687.421661</TD><TD>16.836000</TD><TD>0.117574</TD></TR>
+					<TR row='33'><TD>53704.350058</TD><TD>16.802800</TD><TD>0.041088</TD></TR>
+					<TR row='34'><TD>53989.446081</TD><TD>16.779800</TD><TD>0.042455</TD></TR>
+					</TABLEDATA>
+				</DATA>
+			</TABLE>
+			<TABLE name='sdss-g'>
+				<FIELD name='t' ID='col1' system='TIMESYS' datatype='float' unit='day'/>
+				<FIELD name='m' ID='col2' ucd='phot.mag;em.opt.g' datatype='float' unit='mag'/>
+				<FIELD name='m_err' ID='col3' ucd='stat.error;phot.mag;em.opt.g' datatype='float' unit='mag'/>
+				<DATA>
+					<TABLEDATA>
+					<TR row='1'><TD>53270.413828</TD><TD>20.890500</TD><TD>0.107877</TD></TR>
+					<TR row='2'><TD>53272.463798</TD><TD>20.697400</TD><TD>0.109803</TD></TR>
+					<TR row='3'><TD>53286.432518</TD><TD>20.800000</TD><TD>0.106505</TD></TR>
+					<TR row='4'><TD>53288.391012</TD><TD>20.718100</TD><TD>0.082267</TD></TR>
+					<TR row='5'><TD>53294.438684</TD><TD>20.808500</TD><TD>0.083916</TD></TR>
+					<TR row='6'><TD>53296.385667</TD><TD>20.822600</TD><TD>0.098285</TD></TR>
+					<TR row='7'><TD>53296.385668</TD><TD>20.830100</TD><TD>0.102414</TD></TR>
+					<TR row='8'><TD>53298.435461</TD><TD>20.793500</TD><TD>0.087782</TD></TR>
+					<TR row='9'><TD>53302.386682</TD><TD>20.763100</TD><TD>0.128557</TD></TR>
+					<TR row='10'><TD>53312.342192</TD><TD>20.776200</TD><TD>0.140037</TD></TR>
+					<TR row='11'><TD>53314.343411</TD><TD>20.867300</TD><TD>0.114967</TD></TR>
+					<TR row='12'><TD>53319.331210</TD><TD>20.861100</TD><TD>0.127806</TD></TR>
+					<TR row='13'><TD>53616.447763</TD><TD>20.836400</TD><TD>0.112060</TD></TR>
+					<TR row='14'><TD>53635.417442</TD><TD>21.370500</TD><TD>0.259291</TD></TR>
+					<TR row='15'><TD>53639.456052</TD><TD>20.833600</TD><TD>0.122020</TD></TR>
+					<TR row='16'><TD>53644.403098</TD><TD>20.801700</TD><TD>0.078068</TD></TR>
+					<TR row='17'><TD>53657.414102</TD><TD>20.769300</TD><TD>0.126028</TD></TR>
+					<TR row='18'><TD>53663.398650</TD><TD>20.881700</TD><TD>0.252847</TD></TR>
+					<TR row='19'><TD>53665.376623</TD><TD>20.887900</TD><TD>0.148609</TD></TR>
+					<TR row='20'><TD>53668.388252</TD><TD>21.330300</TD><TD>0.236375</TD></TR>
+					<TR row='21'><TD>53669.475861</TD><TD>20.885800</TD><TD>0.187625</TD></TR>
+					<TR row='22'><TD>53670.393103</TD><TD>20.672800</TD><TD>0.114803</TD></TR>
+					<TR row='23'><TD>53673.361091</TD><TD>20.826700</TD><TD>0.101058</TD></TR>
+					<TR row='24'><TD>53673.361092</TD><TD>20.853100</TD><TD>0.102847</TD></TR>
+					<TR row='25'><TD>53675.357978</TD><TD>20.849700</TD><TD>0.101587</TD></TR>
+					<TR row='26'><TD>53676.477628</TD><TD>20.702200</TD><TD>0.262899</TD></TR>
+					<TR row='27'><TD>53680.365676</TD><TD>20.810100</TD><TD>0.086217</TD></TR>
+					<TR row='28'><TD>53683.424226</TD><TD>20.602500</TD><TD>0.145086</TD></TR>
+					<TR row='29'><TD>53683.424227</TD><TD>20.589600</TD><TD>0.145704</TD></TR>
+					<TR row='30'><TD>53686.365107</TD><TD>20.875500</TD><TD>0.188344</TD></TR>
+					<TR row='31'><TD>53686.365107</TD><TD>20.879900</TD><TD>0.188345</TD></TR>
+					<TR row='32'><TD>53687.422491</TD><TD>20.640300</TD><TD>0.437927</TD></TR>
+					<TR row='33'><TD>53704.350887</TD><TD>20.835700</TD><TD>0.112867</TD></TR>
+					<TR row='34'><TD>53989.446910</TD><TD>20.845500</TD><TD>0.187559</TD></TR>
+					</TABLEDATA>
+				</DATA>
+			</TABLE>
+		</RESOURCE>
+	</VOTIMESERIES>
+</VOSOURCE>

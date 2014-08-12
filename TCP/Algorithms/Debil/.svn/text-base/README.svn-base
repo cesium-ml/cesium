@@ -1,0 +1,68 @@
+## compile debil
+gcc debil.c -o debil -Wall -lm -O4
+
+# on a mac, you might need to comment out the line: #include <values.h> // For MAXFLOAT
+
+
+## preparing the photometry file for Debil
+
+import fiteb
+e = fiteb.EB()
+e._make_intable(int(dotastroid))
+
+## this will make a file called Phot/dotastro<dotastroid>.dat
+## see Phot/dotastro220107.dat
+## the format is time (UJD)  mag mag_err
+
+
+## then prepare a script with:
+## filename   period
+## e.g. cat test.in:
+## Phot/dotastro220107.dat 2.43648439
+
+
+## then run debil
+./debil test.in test.out test.err 8000
+
+
+bloom@betsy:~/TCP/Algorithms/Debil$ more test.out 
+Phot/dotastro220107.dat 2.436484390000 0.544444 0.530424 0.219584 0.024751 0.113447 0.053615 9.677479 0.460442 12.926126 1.845579 0.997124 0.007358 0.757538 1.419207 263.872047 510.914472 433 8 3.095258 9.934767 2.702335 7.100380 0.963495 -0.149294 0.5126
+8 0.301985 0.123077 0.264675 2.183931
+
+
+Here's the explanation of the output in test.out:
+cols = [("fname", "File name (with full path if not in local directory)"),
+("p","Period (in days)"),
+("e", "Orbital eccentricity"),
+("e_err", "Absolute uncertainty in (3)"),
+("r1", "Radius of large star (in units of semimajor axis)"),
+("r1_err","Absolute uncertainty in (5)"),
+("r2","Radius of small star (in units of semimajor axis)"),
+("r2_err","Absolute uncertainty in (7)"),
+("b1", "Brightness of large star (magnitudes)"),
+("b1_err","Absolute uncertainty in (9)"),
+("b2", "Brightness of small star (magnitudes)"),
+("br_err","Absolute uncertainty in (11)"),
+("sini", "Sine of inclination, sin(i)"),
+("sini_err","Absolute uncertainty in (13)"),
+("periep", "Phased epoch of periastron"),
+("periep_err","Absolute uncertainty in (15)"),
+("perarg","Argument of periastron (in degrees)"),
+("perarg_err","Absolute uncertainty in (17)"),
+("Npoints", "Number of used data points (not including outliers)"),
+("Nbad", "Number of outliers"),
+("chibest", "Reduced chi squared of the best-fit model"),
+("chiavg", "Reduced chi squared of the average value"),
+("chispline", "Reduced chi squared of a second order spline (parabolic fit within a sliding window)"),
+("chisine", "Reduced chi squared of the sinusoidal best-fit"),
+("sig_2d", "Significance of the secondary dip depth (in sigma)"),
+("sig_h", "Significance of the hump height (at midpoint between dips, in sigma)"),
+("sig_hdiff", "Significance of the hump difference between the two humps (in sigma)"),
+("wave", "Waviness (see paper appendix for definition)"),
+("score", "Scatter score (see paper appendix for definition)"),
+("rho_avg","Mean density (in grams per cm^3 ; see paper appendix for definition)"),
+("rho_max", "Max density (in grams per cm^3 ; see paper appendix for definition)")]
+
+
+There's a .data and .fit file written to the top directory with the phased data and the resultant fit:
+d = csv2rec("dotastro220107.dat.data",names=("ph","mag","merr","tmp"),delimiter=" ")

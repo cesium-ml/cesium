@@ -1,0 +1,79 @@
+{% extends "index.html" %}
+
+{% block title %}Source details for {{ source_fname }} {% block subtitle%} {% endblock %} {% endblock %}
+
+
+
+{% block script %}
+
+
+
+{% endblock %}
+
+{% block content %}
+
+	{% block tabs %} 
+	{% endblock %}
+
+	{% block results %}
+		<table class="source_details">
+			<tr>
+				<th colspan=3>
+					<div>
+						<h3>Source details for {{ source_fname }}:</h3>
+					</div>
+				</th>
+			</tr>
+			<tr>
+				<td colspan=3>
+					<label>Select an area on the chart to zoom in; right-click anywhere on the chart to reset.</label>
+				</td>
+			
+			<tr>
+				<td class="source_details">
+					
+					<div id="ts_data_plot_div">
+					</div>
+				</td>
+				<td class="source_details">
+					<div id="ts_data_folded_plot_div">
+					</div>
+				</td>
+			</tr>
+			<tr>
+				
+				<td class="source_details">
+					<div id="pred_results_bar_chart_div" style="height:200px; max-width:500px; display:inline-block;">
+					</div>
+				</td>
+				<td class="source_details">
+					<div id="extracted_features_div" style="max-height:200px; width:350px; overflow:auto; display:inline-block;">
+						<table id="features_table">
+							<tbody>
+								<tr>
+									<th colspan=2>Computed features</th>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</td>
+				
+			</tr>
+			
+			
+		</table>
+	{% endblock %}
+
+{% endblock %}
+
+{% block bodyscript %}
+	
+	<script type="text/javascript">
+		
+		google.load("visualization", "1", {packages:["corechart"]});
+		google.setOnLoadCallback(function(){ draw_charts_and_plots("{{ prediction_entry_key }}", "{{ source_fname }}"); });
+		
+	
+	</script>
+	
+{% endblock %}
