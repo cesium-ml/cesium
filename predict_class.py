@@ -59,12 +59,6 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 	print "predict_class - predict() called."
 	
 	
-	###############################################################################
-	1/0
-	raise Exception("This an exception than I'm intentionally raising for testing purposes...")
-	###############################################################################
-	
-	
 	if metadata_file_path is not None:
 		meta_features = {}
 		with open(metadata_file_path) as f:

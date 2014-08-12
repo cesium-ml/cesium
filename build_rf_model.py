@@ -88,11 +88,6 @@ def build_model(featureset_name,featureset_key,model_type="RF"):
 		model_type: (string) abbreviation of the type of classifier to be created. Default is "RF"
 	'''
 	
-	###############################################################################
-	1/0
-	raise Exception("This an exception than I'm intentionally raising for testing purposes...")
-	###############################################################################
-	
 	all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 	
 	features_to_use = all_features_list
@@ -258,11 +253,6 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 	'''
 	if "/" not in headerfile_path:
 		headerfile_path = os.path.join(cfg.UPLOAD_FOLDER,headerfile_path)
-	
-	###############################################################################
-	#raise Exception("This an exception than I'm intentionally raising for testing purposes...")
-	1/0
-	###############################################################################
 	
 	if zipfile_path is not None and "/" not in zipfile_path:
 		zipfile_path = os.path.join(cfg.UPLOAD_FOLDER,zipfile_path)
