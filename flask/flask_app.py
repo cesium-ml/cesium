@@ -100,7 +100,7 @@ app.config['UPLOAD_FOLDER'] = cfg.UPLOAD_FOLDER
 
 logging.basicConfig(filename=cfg.ERR_LOG_PATH,level=logging.WARNING)
 
-logging.warning("SSS")
+#logging.warning("SSS")
 
 
 # RethinkDB config:
