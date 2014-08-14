@@ -802,10 +802,26 @@ def delete_project(project_name):
 		if len(delete_features_keys) > 0:
 			r.table("features").get_all(*delete_features_keys).delete().run(g.rdb_conn)
 			for features_key in delete_features_keys:
-				os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv"%features_key))
-				os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features_with_classes.csv"%features_key))
-				os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl"%features_key))
-				os.remove(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, "flask/static/data/%s_features_with_classes.csv"%features_key))
+				try:
+					os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv"%features_key))
+				except Exception as err:
+					print "delete_project() - " + str(err)
+					logging.exception("Tried to delete a file that does not exist.")
+				try:
+					os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features_with_classes.csv"%features_key))
+				except Exception as err:
+					print "delete_project() - " + str(err)
+					logging.exception("Tried to delete a file that does not exist.")
+				try:
+					os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl"%features_key))
+				except Exception as err:
+					print "delete_project() - " + str(err)
+					logging.exception("Tried to delete a file that does not exist.")
+				try:
+					os.remove(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, "flask/static/data/%s_features_with_classes.csv"%features_key))
+				except Exception as err:
+					print "delete_project() - " + str(err)
+					logging.exception("Tried to delete a file that does not exist.")
 		else:
 			print "No feature sets matching this project key"
 			
@@ -813,8 +829,12 @@ def delete_project(project_name):
 			for model_key in delete_model_keys:
 				cursor = r.table("models").filter({"id":model_key}).pluck("projkey","name","type","featset_key").run(g.rdb_conn)
 				for model_entry in cursor:
-					os.remove(os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl"%(str(model_entry["featset_key"]),str(model_entry["type"]))))
-					print "Removed", os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl"%(model_entry["featset_key"],model_entry["type"]))
+					try:
+						os.remove(os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl"%(str(model_entry["featset_key"]),str(model_entry["type"]))))
+						print "Removed", os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl"%(model_entry["featset_key"],model_entry["type"]))
+					except Exception as err:
+						print "delete_project() - " + str(err)
+						logging.exception("Tried to delete a file that does not exist.")
 			
 			r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
 		else:
@@ -962,11 +982,24 @@ def update_project_info(orig_name,new_name,new_desc,new_addl_authed_users,delete
 		for features_key in delete_features_keys:
 			try:
 				os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv"%features_key))
+			except Exception as theErr:
+				logging.exception("Tried to delete a file that does not exist.")
+				print theErr
+			try:
 				os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features_with_classes.csv"%features_key))
+			except Exception as theErr:
+				logging.exception("Tried to delete a file that does not exist.")
+				print theErr
+			try:
 				os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl"%features_key))
+			except Exception as theErr:
+				print theErr
+				logging.exception("Tried to delete a file that does not exist.")
+			try:
 				os.remove(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, "flask/static/data/%s_features_with_classes.csv"%features_key))
 			except Exception as theErr:
 				print theErr
+				logging.exception("Tried to delete a file that does not exist.")
 	
 	if len(delete_model_keys) > 0:
 		for model_key in delete_model_keys:
@@ -978,6 +1011,7 @@ def update_project_info(orig_name,new_name,new_desc,new_addl_authed_users,delete
 						os.remove(os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl"%(featset_entry["id"],model_entry["type"])))
 					except Exception as theErr:
 						print theErr
+						logging.exception("Tried to delete a file that does not exist.")
 					print "Removed", os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl"%(featset_entry["id"],model_entry["type"]))
 		
 		r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
@@ -1837,24 +1871,19 @@ def load_source_data(prediction_entry_key,source_fname):
 
 
 
-@app.route('/load_prediction_results/<model_name>/<pid>',methods=['POST','GET'])
-def load_prediction_results(model_name,pid):
+@app.route('/load_prediction_results/<prediction_key>',methods=['POST','GET'])
+def load_prediction_results(prediction_key):
 	'''Returns JSON dict with file name and class prediction results. pid is the process ID of the featurization/prediction process.
 	'''
-	details = []
-	cursor = r.table("predictions").filter({"pid":pid,"model_name":model_name}).run(g.rdb_conn)
-	for entry in cursor:
-		details.append(entry)
-	
-	if len(details)==1:
-		details = details[0]
-		return jsonify(details)
-	elif len(details)>1:
-		raise(Exception("ERROR - MORE THAN ONE ENTRY IN model_predictions TABLE WITH PID = "+str(pid)))
-		return jsonify({})
+	results_dict = r.table("predictions").get(prediction_key).run(g.rdb_conn)
+	if results_dict is not None and "results_str_html" in results_dict:
+		if "An error occurred" in results_dict["results_str_html"] or "Error occurred" in results_dict["results_str_html"]:
+			r.table("predictions").get(prediction_key).delete().run(g.rdb_conn)
+			print "Deleted prediction entry with key", prediction_key
+			
+		return jsonify(results_dict)
 	else:
-		raise(Exception("ERROR - NO MATCHING ENTRIES IN model_predictions TABLE WITH PID=%s and model_name=%s"%(str(pid),model_name)))
-		return jsonify({})
+		return jsonify({"results_str_html":"<font color='red'>An error occurred while processing your request.</font>"})
 
 
 
@@ -1863,9 +1892,13 @@ def load_prediction_results(model_name,pid):
 def load_model_build_results(model_key):
 	'''Returns JSON dict with model build request status message.
 	'''
-	results_dict = r.table("models").get(model_key).pluck("results_msg").run(g.rdb_conn)
+	results_dict = r.table("models").get(model_key).run(g.rdb_conn)
 	
-	if "results_msg" in results_dict:
+	if results_dict is not None and "results_msg" in results_dict:
+		if "Error occurred" in results_dict["results_msg"] or "An error occurred" in results_dict["results_msg"]:
+			r.table("models").get(model_key).delete().run(g.rdb_conn)
+			print "Deleted model entry with key", model_key
+			
 		return jsonify(results_dict)
 	else:
 		return jsonify({"results_msg":"No status message could be found for this process."})
@@ -1875,9 +1908,13 @@ def load_model_build_results(model_key):
 def load_featurization_results(new_featset_key):
 	'''Returns JSON dict with featurization request status message.
 	'''
-	results_dict = r.table("features").get(new_featset_key).pluck("results_msg").run(g.rdb_conn)
+	results_dict = r.table("features").get(new_featset_key).run(g.rdb_conn)
 	
-	if "results_msg" in results_dict:
+	if results_dict is not None and "results_msg" in results_dict:
+		if "Error occurred" in results_dict["results_msg"] or "An error occurred" in results_dict["results_msg"]:
+			r.table("features").get(new_featset_key).delete().run(g.rdb_conn)
+			print "Deleted feature set entry with key", new_featset_key
+			
 		return jsonify(results_dict)
 	else:
 		return jsonify({"results_msg":"No status message could be found for this process."})

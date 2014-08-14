@@ -251,6 +251,8 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 		already_featurized: boolean indicating whether headerfile_path points to a file containing pre-generated features, in which case zipfile_path must be None
 		custom_script_path: path to Python script containing methods for the generation of any custom features
 	'''
+	
+	
 	if "/" not in headerfile_path:
 		headerfile_path = os.path.join(cfg.UPLOAD_FOLDER,headerfile_path)
 	

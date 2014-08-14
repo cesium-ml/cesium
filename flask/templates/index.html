@@ -726,7 +726,7 @@
 							if( job_status_str.indexOf("finished") != -1) {
 								$("#model_build_results").html("Featurization and prediction complete.").show();
 								
-								$.get("/load_prediction_results/{{ prediction_model_name }}/{{ PID }}", function(data){
+								$.get("/load_prediction_results/{{ prediction_entry_key }}", function(data){
 									
 									$("#class_pred_results").html(data["results_str_html"]);
 									
