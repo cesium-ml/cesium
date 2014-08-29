@@ -1540,7 +1540,7 @@ function init_dialogs(){
 	});
 	
 	
-	var contact_txt = "Email us at MachineLearningWebService {at} gmail {dot} com."
+	var contact_txt = "Email us at MLTimeseriesPlatform {at} gmail {dot} com."
 	var $contact_dialog = $('<div></div>')
 		.html(contact_txt)
 		.dialog({

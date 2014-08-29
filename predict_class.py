@@ -115,23 +115,24 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 				ts_data = []
 				f.close()
 				for i in range(len(lines)):
-					ts_data.append(lines[i].strip().split(sep))
-					if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(",")):
-						ts_data[i] = lines[i].strip("\n").strip().split(",")
-					if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(" ")):
-						ts_data[i] = lines[i].strip("\n").strip().split(" ")
-					if len(ts_data[i]) < len(lines[i].strip("\n").strip().split("\t")):
-						ts_data[i] = lines[i].strip("\n").strip().split("\t")
-					
-					for j in range(len(ts_data[i])):
-						ts_data[i][j] = float(ts_data[i][j])
-					
-					if len(ts_data[i]) == 2: # no error column
-						ts_data[i].append(1.0)
-					elif len(ts_data[i]) in [0,1]:
-						raise custom_exceptions.DataFormatError("Incomplete or improperly formatted time series data file provided.")
-					elif len(ts_data[i]) > 3:
-						ts_data[i] = ts_data[i][:3]
+					if lines[i].strip() != "":
+						ts_data.append(lines[i].strip().split(sep))
+						if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(",")):
+							ts_data[i] = lines[i].strip("\n").strip().split(",")
+						if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(" ")):
+							ts_data[i] = lines[i].strip("\n").strip().split(" ")
+						if len(ts_data[i]) < len(lines[i].strip("\n").strip().split("\t")):
+							ts_data[i] = lines[i].strip("\n").strip().split("\t")
+						
+						for j in range(len(ts_data[i])):
+							ts_data[i][j] = float(ts_data[i][j])
+						
+						if len(ts_data[i]) == 2: # no error column
+							ts_data[i].append(1.0) # make all errors 1.0
+						elif len(ts_data[i]) in [0,1]:
+							raise custom_exceptions.DataFormatError("Incomplete or improperly formatted time series data file provided.")
+						elif len(ts_data[i]) > 3:
+							ts_data[i] = ts_data[i][:3]
 				del lines
 				
 				## generate features:
@@ -167,16 +168,25 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 		f.close()
 		ts_data = []
 		for i in range(len(lines)):
-			ts_data.append(lines[i].strip("\n").strip().split(sep))
-			if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(",")):
-				ts_data[i] = lines[i].strip("\n").strip().split(",")
-			if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(" ")):
-				ts_data[i] = lines[i].strip("\n").strip().split(" ")
-			if len(ts_data[i]) < len(lines[i].strip("\n").strip().split("\t")):
-				ts_data[i] = lines[i].strip("\n").strip().split("\t")
-			
-			for j in range(len(ts_data[i])):
-				ts_data[i][j] = float(ts_data[i][j])
+			if lines[i].strip() != "":
+				ts_data.append(lines[i].strip("\n").strip().split(sep))
+				if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(",")):
+					ts_data[i] = lines[i].strip("\n").strip().split(",")
+				if len(ts_data[i]) < len(lines[i].strip("\n").strip().split(" ")):
+					ts_data[i] = lines[i].strip("\n").strip().split(" ")
+				if len(ts_data[i]) < len(lines[i].strip("\n").strip().split("\t")):
+					ts_data[i] = lines[i].strip("\n").strip().split("\t")
+				
+				for j in range(len(ts_data[i])):
+					ts_data[i][j] = float(ts_data[i][j])
+					
+				if len(ts_data[i]) == 2: # no error column
+					ts_data[i].append(1.0) # make all errors 1.0
+				elif len(ts_data[i]) in [0,1]:
+					raise custom_exceptions.DataFormatError("Incomplete or improperly formatted time series data file provided.")
+				elif len(ts_data[i]) > 3:
+					ts_data[i] = ts_data[i][:3]
+				
 		del lines
 		
 		f = open(os.path.join(cfg.FEATURES_FOLDER,"%s_features.csv" % featset_key))

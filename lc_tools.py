@@ -666,23 +666,30 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
 
 
 
-def getLocalLc(filename,classname='unknown',sep=',',single_obj_only=False,ts_data_passed_directly=False):
+def getLocalLc(filename,classname='unknown',sep=',',single_obj_only=False,ts_data_passed_directly=False,add_errors=False):
 	
 	
 	if ts_data_passed_directly:
 		lcdata = filename
 		for i in range(len(lcdata)):
 			try:
+				if len(lcdata[i])==2 and add_errors:
+					lcdata[i] = lcdata[i] + ["1.0"]
 				lcdata[i] = ','.join(lcdata[i])
-			except Exception as theError:
+			except TypeError:
 				for j in range(len(lcdata[i])):
 					lcdata[i][j] = str(lcdata[i][j])
+				if len(lcdata[i])==2 and add_errors:
+					lcdata[i] = lcdata[i] + ["1.0"]
 				lcdata[i] = ','.join(lcdata[i])
 	else:
 		f = open(filename, 'r')
 		lcdata = []
 		for line in f.readlines():
-			lcdata.append(line.replace('\n',''))
+			if line.strip() != "":
+				if len(line.strip().split(sep)) == 2 and add_errors:
+					line = line.strip()+sep+"1.0"
+				lcdata.append(line.strip())
 		f.close()
 	lcdata = '\n'.join(lcdata)
 	if lcdata.find("<Position2D>") > 0 and lcdata.find("xml") > 0:
@@ -702,8 +709,8 @@ def getLocalLc(filename,classname='unknown',sep=',',single_obj_only=False,ts_dat
 
 
 
-def generate_timeseries_features(filename,classname='unknown',sep=',',single_obj_only=True,ts_data_passed_directly=False):
-	lc_obj = getLocalLc(filename,classname=classname,sep=sep,single_obj_only=single_obj_only,ts_data_passed_directly=ts_data_passed_directly)
+def generate_timeseries_features(filename,classname='unknown',sep=',',single_obj_only=True,ts_data_passed_directly=False,add_errors=True):
+	lc_obj = getLocalLc(filename,classname=classname,sep=sep,single_obj_only=single_obj_only,ts_data_passed_directly=ts_data_passed_directly,add_errors=add_errors)
 	features_dict = lc_obj.generate_features_dict()
 	return features_dict
 

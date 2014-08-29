@@ -196,13 +196,20 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
     
     if path_to_csv: # read csv from local machine:
         try:
-            f = open(path_to_csv)
-            for line in f:
-                t,m,merr = line.strip().split(',')
-                t_list.append(float(t))
-                m_list.append(float(m))
-                merr_list.append(float(merr))
-            f.close()
+            with open(path_to_csv) as f:
+                for line in f:
+                    if line.strip() != "":
+                        if len(line.split(",")) >= 3:
+                            t,m,merr = line.strip().split(',')[:3]
+                            t_list.append(float(t))
+                            m_list.append(float(m))
+                            merr_list.append(float(merr))
+                        elif len(line.split(",")) == 2:
+                            t,m = line.strip().split(',')
+                            t_list.append(float(t))
+                            m_list.append(float(m))
+                            merr_list.append(1.0)
+                        
         except Exception as theError:
             print "generate_science_features::generate():", theError, "... Returning {}..."
             return {}

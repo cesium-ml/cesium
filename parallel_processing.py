@@ -20,6 +20,7 @@ import tarfile
 import glob
 import tarfile
 import disco_tools
+import custom_exceptions
 
 try:
 	from disco.core import Job, result_iterator
@@ -102,7 +103,7 @@ def pred_featurize_reduce(iter, params):
 	sys.path.append(PATH_TO_PROJECT_DIRECTORY)
 	import cfg
 	sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
-	
+	import custom_exceptions
 	import generate_science_features
 	import predict_class as predict
 	import build_rf_model
@@ -138,6 +139,14 @@ def pred_featurize_reduce(iter, params):
 			
 			for j in range(len(ts_data[i])):
 				ts_data[i][j] = float(ts_data[i][j])
+				
+			if len(ts_data[i]) == 2: # no error column
+				ts_data[i].append(1.0) # make all errors 1.0
+			elif len(ts_data[i]) in [0,1]:
+				raise custom_exceptions.DataFormatError("Incomplete or improperly formatted time series data file provided.")
+			elif len(ts_data[i]) > 3:
+				ts_data[i] = ts_data[i][:3]	
+			
 		del lines
 		f = open(os.path.join(cfg.FEATURES_FOLDER,"%s_features.csv" % featset_key))
 		features_in_model = f.readline().strip().split(',')

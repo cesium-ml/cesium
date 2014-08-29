@@ -1698,8 +1698,17 @@ def featurize_proc(headerfile_path,zipfile_path,features_to_use,featureset_key,i
 			emailUser(email_user)
 	except Exception as theErr:
 		results_str = "An error occurred while processing your request. Please ensure that the header file and tarball of time series data files conform to the formatting requirements."
-		print "ERROR - featurize: %s" % str(theErr)
+		print "   #########      Error:    featurize: %s" % str(theErr)
 		logging.exception("Error occurred during build_rf_model.featurize() call.")
+		try:
+			os.remove(headerfile_path)
+			os.remove(zipfile_path)
+			if custom_script_path:
+				os.remove(custom_script_path)
+		except Exception as err:
+			print "An error occurred while attempting to remove files associated with failed featurization attempt."
+			print err
+			logging.exception("An error occurred while attempting to remove files associated with failed featurization attempt.")
 		
 	update_featset_entry_with_results_msg(featureset_key,results_str)
 	
@@ -1965,7 +1974,7 @@ def prediction_proc(newpred_file_path,project_name,model_name,model_type,predict
 	except Exception as theErr:
 		msg = "<font color='red'>An error occurred while processing your request. Please ensure the formatting of the provided time series data file(s) conforms to the specified requirements.</font>" 
 		update_prediction_entry_with_results(prediction_entry_key,html_str=msg,features_dict={},ts_data_dict={},err=str(theErr))
-		print theErr
+		print "   #########      Error:   predict:", theErr
 		logging.exception("Error occurred during predict_class.predict() call.")
 	else:
 	
@@ -2181,13 +2190,13 @@ def uploadPredictionData():
 			print "Removed ", str(newpred_file_path) + (" and"+str(metadata_file_path) if metadata_file_path is not None else "")
 			return jsonify({"message":str(err),"type":"error"})
 		except Exception as err:
-			print "Data Improperly Formatted."
+			print "Uploaded Data Files Improperly Formatted."
 			print err
 			os.remove(newpred_file_path)
 			if metadata_file_path is not None:
 				os.remove(metadata_file_path)
 			print "Removed ", str(newpred_file_path) + (" and"+str(metadata_file_path) if metadata_file_path is not None else "")
-			return jsonify({"message":str(err),"type":"error"})
+			return jsonify({"message":"Uploaded data files improperly formatted. Please ensure that your data files meet the formatting guidelines and try again.","type":"error"})
 		
 		return predictionPage(newpred_file_path=newpred_file_path,sep=sep,project_name=project_name,model_name=model_name,model_type=model_type,metadata_file_path=metadata_file_path)
 
@@ -2222,7 +2231,7 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
 		print "Done!"
 		
 	except Exception as theErr:
-		print "build_model_proc() -", theErr
+		print "   #########      Error:   build_model_proc() -", theErr
 		model_built_msg = "An error occurred while processing your request. Please try again at a later time. If the problem persists, please <a href='mailto:MLTimeseriesPlatform+Support@gmail.com' target='_blank'>contact the support team</a>."
 		
 		logging.exception("Error occurred during build_rf_model.build_model() call.")
