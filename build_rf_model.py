@@ -334,7 +334,7 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 							fname_metadata_dict[fname] = dict(zip(other_metadata_labels, other_metadata))
 				line_no += 1
 		
-		if DISCO_INSTALLED:
+		if DISCO_INSTALLED and not in_docker_container: # disco may be installed in docker container, but it is not working yet!!!
 			print "FEATURIZE - USING DISCO"
 			fname_features_data_dict = parallel_processing.featurize_in_parallel(headerfile_path=headerfile_path,zipfile_path=zipfile_path,features_to_use=features_to_use,is_test=is_test,custom_script_path=custom_script_path,meta_features=fname_metadata_dict)
 			for k,v in fname_features_data_dict.iteritems():

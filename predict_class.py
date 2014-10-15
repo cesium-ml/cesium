@@ -101,7 +101,7 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 	if is_tarfile:
 		tmp_dir_path = os.path.join(os.path.join(uploads_folder, "unzipped"), str(uuid.uuid4()))
 		os.mkdir(tmp_dir_path)
-		if DISCO_INSTALLED:
+		if DISCO_INSTALLED and not in_docker_container: # disco may be installed in docker container, but it is not working yet!!!
 			big_features_and_tsdata_dict = parallel_processing.featurize_prediction_data_in_parallel(newpred_file_path=newpred_file_path, featset_key=featset_key, sep=sep, custom_features_script=custom_features_script,meta_features=meta_features,tmp_dir_path=tmp_dir_path)
 			for fname in big_features_and_tsdata_dict.keys():
 				if fname in meta_features:
