@@ -46,6 +46,9 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 				
 				
 				
+				
+				
+				
 				// compute and plot phase-folded ts data if period has been computed:
 				var period = 0;
 				if("freq1_harmonics_freq_0" in features_dict){
@@ -85,10 +88,15 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 				
 				
 				
+				
+				
+				
 				// build features table:
 				for (var key in features_dict){
 					$("#features_table tbody").append("<tr><td>"+String(key)+"</td><td>"+String(features_dict[key]).substring(0,9)+"</td></tr>");
 				}
+				
+				
 				
 				
 				
@@ -103,7 +111,7 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 					pred_results_for_chart.push(pred_results[i]);
 				}
 				var pred_results_datatable = google.visualization.arrayToDataTable(pred_results_for_chart);
-				var pred_results_chart_options = {title:"Top class prediction results", orientation:"horizontal", legend:'none'};
+				var pred_results_chart_options = {title:"Top class prediction results", orientation:"horizontal", legend:'none', vAxis: {title: "Probability", minValue: 0}, hAxis: {title: "Class name"} };
 				
 				var chart2 = new google.visualization.BarChart(document.getElementById('pred_results_bar_chart_div'));
 				chart2.draw(pred_results_datatable, pred_results_chart_options);
@@ -605,7 +613,7 @@ function featurizeFormSubmit(){
 				var zipfile_name = response["zipfile_name"];
 
 				
-				window.location.replace("http://"+location.host+"/featurizing?PID="+PID+"&featureset_key="+featureset_key+"&project_name="+project_name);
+				window.location.replace("http://"+location.host+"/featurizing?PID="+PID+"&featureset_key="+featureset_key+"&project_name="+project_name+"&featureset_name="+featureset_name);
 				
 			}
 			
@@ -654,8 +662,9 @@ function predictFormSubmit(){
 				var prediction_entry_key = response["prediction_entry_key"];
 				var project_name = response["project_name"];
 				var model_name = response["model_name"];
+				var model_type = response["model_type"];
 				
-				window.location.replace("http://"+location.host+"/predicting?PID="+PID+"&prediction_entry_key="+prediction_entry_key+"&project_name="+project_name+"&prediction_model_name="+model_name);
+				window.location.replace("http://"+location.host+"/predicting?PID="+PID+"&prediction_entry_key="+prediction_entry_key+"&project_name="+project_name+"&prediction_model_name="+model_name+"&model_type="+model_type);
 			
 			}
 		}	

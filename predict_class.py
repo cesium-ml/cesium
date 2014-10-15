@@ -11,7 +11,8 @@ import cfg
 import cPickle
 import lc_tools
 import sys, os
-
+import uuid
+import shutil
 import numpy as np
 import datetime
 import pytz
@@ -42,7 +43,7 @@ n_epochs_list = [20,40,70,100,150,250,500,1000,10000,100000]
 
 
 
-def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_html_table=5,features_already_extracted=False,custom_features_script=None,metadata_file_path=None):
+def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_html_table=5,features_already_extracted=False,custom_features_script=None,metadata_file_path=None,in_docker_container=False):
 	'''Generates features for new time series file, loads saved classifier model, calculates class predictions with extracted features, and returns a dictionary containing a list of class prediction probabilities, a string containing HTML markup for a table containing a list of the results, the time-series data itself used to generate features, and a dictionary of the features extracted. The respective dict keys of the above-mentioned values are: "pred_results_list", "results_str", "ts_data", "features_dict".
 	Required arguments:
 		newpred_file_path: path to time series data file to be used in prediction
@@ -58,6 +59,16 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 	'''
 	print "predict_class - predict() called."
 	
+	if in_docker_container:
+		features_folder = "/Data/features/"
+		models_folder = "/Data/models/"
+		uploads_folder = "/Data/flask_uploads/"
+		path_to_project_directory = "/home/mltp/"
+	else:
+		features_folder = cfg.FEATURES_FOLDER
+		models_folder = cfg.MODELS_FOLDER
+		uploads_folder = cfg.UPLOAD_FOLDER
+		path_to_project_directory = cfg.PATH_TO_PROJECT_DIRECTORY
 	
 	if metadata_file_path is not None:
 		meta_features = {}
@@ -80,7 +91,7 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 	featset_name = model_name
 	model_name = model_name.strip()
 	all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
-	with open(os.path.join(cfg.FEATURES_FOLDER,"%s_features.csv" % featset_key)) as f:
+	with open(os.path.join(features_folder,"%s_features.csv" % featset_key)) as f:
 		features_in_model = f.readline().strip().split(',')
 	features_to_use = features_in_model
 	is_tarfile = tarfile.is_tarfile(newpred_file_path)
@@ -88,8 +99,10 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 	big_features_and_tsdata_dict = {}
 	
 	if is_tarfile:
+		tmp_dir_path = os.path.join(os.path.join(uploads_folder, "unzipped"), str(uuid.uuid4()))
+		os.mkdir(tmp_dir_path)
 		if DISCO_INSTALLED:
-			big_features_and_tsdata_dict = parallel_processing.featurize_prediction_data_in_parallel(newpred_file_path=newpred_file_path, featset_key=featset_key, sep=sep, custom_features_script=custom_features_script,meta_features=meta_features)
+			big_features_and_tsdata_dict = parallel_processing.featurize_prediction_data_in_parallel(newpred_file_path=newpred_file_path, featset_key=featset_key, sep=sep, custom_features_script=custom_features_script,meta_features=meta_features,tmp_dir_path=tmp_dir_path)
 			for fname in big_features_and_tsdata_dict.keys():
 				if fname in meta_features:
 					big_features_and_tsdata_dict[fname]['features_dict'] = dict(big_features_and_tsdata_dict[fname]['features_dict'].items() + meta_features[fname].items())
@@ -97,16 +110,16 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 			
 			the_tarfile = tarfile.open(newpred_file_path)
 			all_fnames = the_tarfile.getnames()
-			the_tarfile.extractall()
+			the_tarfile.extractall(path=tmp_dir_path)
 			
-			with open(os.path.join(cfg.FEATURES_FOLDER,"%s_features.csv" % featset_key)) as f:
+			with open(os.path.join(features_folder,"%s_features.csv" % featset_key)) as f:
 				features_in_model = f.readline().strip().split(',')
 			features_to_use = features_in_model
 			for fname in all_fnames:
 				if os.path.isfile(fname):
 					f = open(fname)
-				elif os.path.isfile(os.path.join(cfg.UPLOAD_FOLDER, fname)):
-					f = open(os.path.join(cfg.UPLOAD_FOLDER, fname))
+				elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
+					f = open(os.path.join(tmp_dir_path, fname))
 				else:
 					print fname + " is not a file..."
 					continue
@@ -152,14 +165,15 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 				features_dict = dict(timeseries_features.items() + science_features.items() + custom_features.items() + (meta_features[short_fname].items() if short_fname in meta_features else {}.items()))
 				
 				big_features_and_tsdata_dict[fname] = {"features_dict":features_dict, "ts_data":ts_data}
-			
+		shutil.rmtree(tmp_dir_path, ignore_errors=True)	
+		
 	else:
 		fname = newpred_file_path
 		short_fname = fname.split("/")[-1]
 		if os.path.isfile(fname):
 			f = open(fname)
-		elif os.path.isfile(os.path.join(cfg.UPLOAD_FOLDER, fname)):
-			f = open(os.path.join(cfg.UPLOAD_FOLDER, fname))
+		elif os.path.isfile(os.path.join(uploads_folder, fname)):
+			f = open(os.path.join(uploads_folder, fname))
 		else:
 			print fname + " is not a file..."
 			return
@@ -189,7 +203,7 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 				
 		del lines
 		
-		f = open(os.path.join(cfg.FEATURES_FOLDER,"%s_features.csv" % featset_key))
+		f = open(os.path.join(features_folder,"%s_features.csv" % featset_key))
 		features_in_model = f.readline().strip().split(',')
 		f.close()
 		
@@ -205,7 +219,7 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 		else:
 			science_features = {}
 		if custom_features_script not in [None,"None","none",False]:
-			custom_features = cft.generate_custom_features(custom_script_path=custom_features_script,path_to_csv=None,features_already_known=dict(timeseries_features.items() + science_features.items() + (meta_features[short_fname].items() if short_fname in meta_features else {}.items())))
+			custom_features = cft.generate_custom_features(custom_script_path=custom_features_script,path_to_csv=None,features_already_known=dict(timeseries_features.items() + science_features.items() + (meta_features[short_fname].items() if short_fname in meta_features else {}.items())),ts_data=ts_data)
 		else:
 			custom_features = {}
 	
@@ -253,21 +267,21 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 			
 			modelnum="standard"
 			try: # load model object:
-				rfc_model = joblib.load(os.path.join(cfg.MODELS_FOLDER,"%s_%s.pkl" % (featset_key,model_type)))
+				rfc_model = joblib.load(os.path.join(models_folder,"%s_%s.pkl" % (featset_key,model_type)))
 			except Exception as theError:
 				return [str(theError)+"<br>It looks like a model has yet to be built for this project - after uploading your data and generating features, build the classifier model using the form under the 'Build Model' tab.", "Using model %s_%s.pkl" % (featset_key,model_type), features_dict]
 			# load classes list:
-			all_objs_class_list = joblib.load(os.path.join(cfg.FEATURES_FOLDER,"%s_classes.pkl" % featset_key))
+			all_objs_class_list = joblib.load(os.path.join(features_folder,"%s_classes.pkl" % featset_key))
 			
 		else:
 
 			modelnum="noerrs"
 			try: # load model object:
-				rfc_model = joblib.load(os.path.join(cfg.MODELS_FOLDER,"%s_%s.pkl" % (featset_key,model_type)))
+				rfc_model = joblib.load(os.path.join(models_folder,"%s_%s.pkl" % (featset_key,model_type)))
 			except Exception as theError:
 				return [str(theError)+"<br>It looks like a model has yet to be built for this project - after uploading your data and generating features, build the classifier model using the form under the 'Build Model' tab.", "Using model %s_%s.pkl" % (featset_key,model_type), features_dict]
 			# load classes list:
-			all_objs_class_list = joblib.load(os.path.join(cfg.FEATURES_FOLDER,"%s_classes.pkl" % featset_key))
+			all_objs_class_list = joblib.load(os.path.join(features_folder,"%s_classes.pkl" % featset_key))
 			
 		sorted_class_list = []
 		for i in sorted(all_objs_class_list):

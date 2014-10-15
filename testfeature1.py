@@ -1,6 +1,5 @@
 from custom_feature_tools import *
 import numpy as np
-import lc_tools
 
 
 @myFeature(requires=["t","m"], provides=['period','avg_mag'])
@@ -52,6 +51,7 @@ def test_feature6(e):
 
 
 if __name__=="__main__":
+	import lc_tools
 	tmestr = lc_tools.dotAstro_to_csv(215156)
 	all_lines = tmestr[0].strip().split("\n")
 	t,m,e=[[],[],[]]

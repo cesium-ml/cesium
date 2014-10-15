@@ -1,0 +1,44 @@
+#!/bin/bash 
+
+# Basic settings 
+
+DISCO_SCGI_PORT=${DISCO_SCGI_PORT:-"8989"} 
+DISCO_ROOT=${DISCO_ROOT:-"/disco/root/"} 
+DISCO_HOME=${DISCO_HOME:-"/disco/"} 
+DISCO_LOG=${DISCO_LOG:-"/disco/log/"} 
+DISCO_ULIMIT=${DISCO_ULIMIT:-"16000000"} 
+DISCO_PID_DIR=${DISCO_PID_DIR:-"/var/tmp/"} 
+DISCO_MASTER_HOST=${DISCO_MASTER_HOST:-""} 
+DISCO_SLAVES_OS=${DISCO_SLAVES_OS:-"linux"} 
+
+# Derived settings 
+
+DISCO_NAME=${DISCO_NAME:-"disco_$DISCO_SCGI_PORT"} 
+DISCO_DATA=${DISCO_DATA:-"$DISCO_ROOT/data"} 
+DISCO_MASTER=${DISCO_MASTER:-"$DISCO_DATA/_$DISCO_NAME"} 
+DISCO_CONFIG=${DISCO_CONFIG:-"$DISCO_ROOT/$DISCO_NAME.config"} 
+DISCO_MASTER_LOG=${DISCO_MASTER_LOG:-"$DISCO_LOG/$DISCO_NAME.log"} 
+
+if [ ! -e $DISCO_MASTER ] && ! mkdir -p $DISCO_MASTER; then 
+        echo "$DISCO_MASTER doesn't exist" 
+        exit 1 
+fi 
+echo "Using master... $DISCO_MASTER" 
+echo "Using slaves with... $DISCO_SLAVES_OS" 
+[ -z $DISCO_MASTER_HOST ] || echo "Using master host... $DISCO_MASTER_HOST" 
+
+if [ ! -e $DISCO_CONFIG ] && ! echo "[]" > $DISCO_CONFIG; then 
+        echo "Couldn't initialize $DISCO_CONFIG" 
+        exit 1 
+fi 
+echo "Using config... $DISCO_CONFIG" 
+
+# If DISCO_HEART is not specified, HEART_COMMAND is empty and heart 
+# will die togehter with the master process. 
+export HEART_COMMAND=${DISCO_HEART:+"$0 $@"} 
+
+# Prevent disasterous memory leaks from trashing the server 
+ulimit -v $DISCO_ULIMIT 2>/dev/null 
+
+# removed temporarily from below erl command options: -noinput
+erl +K true -sname $DISCO_NAME"_master" -rsh ssh -detached -connect_all false -pa "$DISCO_HOME/ebin" -kernel error_logger "{file, \"$DISCO_MASTER_LOG\"}" -eval "application:start(disco)" 

@@ -4,9 +4,11 @@ import glob
 from parse import parse
 import lc_tools
 from subprocess import call, Popen, PIPE
-import sys, os
+import sys, os, inspect
 import cPickle
 import cfg
+import uuid
+import shutil
 
 class MissingRequiredParameterError(Exception):
 	'''Exception that is raised when a required parameter is not provided in a function call.
@@ -56,7 +58,8 @@ class myFeature(object):
 
 
 
-
+class DummyFile(object):
+	def write(self, x): pass
 
 
 
@@ -70,7 +73,7 @@ def execute_functions_in_order(script_fname='testfeature1.py',features_already_k
 	'''
 	# for docker container:
 	import sys
-	sys.path.append("/home/mlweb")
+	sys.path.append("/home/mltp")
 	
 	
 	if script_fpath != "here":
@@ -83,7 +86,7 @@ def execute_functions_in_order(script_fname='testfeature1.py',features_already_k
 		with open(script_fpath) as f:
 			all_lines = f.readlines()
 	except IOError:
-		with open("/home/mlweb/"+script_fname) as f:
+		with open("/home/mltp/"+script_fname) as f:
 			all_lines = f.readlines()
 	
 	
@@ -109,7 +112,12 @@ def execute_functions_in_order(script_fname='testfeature1.py',features_already_k
 	i=0
 	func_rounds = {}
 	
+	
 	all_extracted_features = {}
+	
+	# redirect stdout temporarily:
+	save_stdout = sys.stdout
+	sys.stdout = DummyFile()
 	
 	while len(funcnames) > 0:
 		func_rounds[str(i)] = []
@@ -133,40 +141,21 @@ def execute_functions_in_order(script_fname='testfeature1.py',features_already_k
 				all_extracted_features = dict(all_extracted_features.items() + func_result.items())
 				funcnames.remove(funcname)
 		i+=1
+	
+	sys.stdout = save_stdout
+	
 	return all_extracted_features
 	
 	
 	
 
 
-def docker_test_script(script_fname,features_already_known,script_fpath):
-	'''
-	'''
-	import cfg
-	
-	cmd = ["docker", "run", "-v", "%s:/home/mlweb"%cfg.PATH_TO_PROJECT_DIRECTORY, "mlws"]
-	
-	process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-	
-	stdout, stderr = process.communicate()
-	
-	results_str = str(stdout).strip().split("\n")[-1]
-	
-	if "{" in results and "}" in results_str:
-		results_dict = eval(results_str)
-		return results_dict
-	
-	else:
-		print "Did not successfully capture features - '{' or '}' missing from output!!!"
-		return {}
-
-
-
 
 def docker_installed():
-	from subprocess import call
+	from subprocess import call, PIPE
 	try:
-		x=call(["docker"])
+		
+		x=call(["docker"], stdout=PIPE,stderr=PIPE)
 		return True
 	except OSError:
 		return False
@@ -175,7 +164,7 @@ def docker_installed():
 
 def docker_extract_features(script_fpath,features_already_known={},ts_datafile_path=None,ts_data=None):
 	'''
-	Runs a docker container which does all the script excecution/feature extraction inside,
+	Spins up / runs a docker container which does all the script excecution/feature extraction inside,
 	and whose output is captured and returned here. 
 	
 	Input parameters:
@@ -239,33 +228,53 @@ def docker_extract_features(script_fpath,features_already_known={},ts_datafile_p
 			else:
 				raise Exception("custom_feature_tools.py - docker_extract_features() - not all elements of tme are the same length.")
 	
+	container_name = str(uuid.uuid4())[:10]
+	path_to_tmp_dir = os.path.join("/tmp", container_name)
+	os.mkdir(path_to_tmp_dir)
+	
+	
 	# copy custom features defs script and pickle the relevant tsdata file into docker temp directory
-	status_code = call(["cp", script_fpath, "%s/docker/custom_feature_defs.py" % cfg.PATH_TO_PROJECT_DIRECTORY])
-	with open("%s/docker/features_already_known.pkl"%cfg.PATH_TO_PROJECT_DIRECTORY, "wb") as f:
+	status_code = call(["cp", script_fpath, os.path.join(path_to_tmp_dir, "custom_feature_defs.py")])
+	with open(os.path.join(path_to_tmp_dir, "features_already_known.pkl"), "wb") as f:
 		cPickle.dump(features_already_known,f)
 	
+	try:
+		# the (linux) command to run our docker container which will automatically generate features:
+		cmd = ["docker", "run", 
+				"-v", "%s:/home/mltp" % cfg.PATH_TO_PROJECT_DIRECTORY, 
+				"-v", "%s:/home/mltp/copied_data_files" % path_to_tmp_dir, 
+				"--name=%s" % container_name, 
+				"extract_custom_features"]
+		# execute command
+		process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+		# grab outputs
+		stdout, stderr = process.communicate()
+		
+		print "\n\ndocker container stdout:\n\n", stdout, "\n\ndocker container stderr:\n\n", stderr, "\n\n"
+		
+		# copy all necessary files produced in docker container to host
+		cmd = ["docker", "cp", "%s:/tmp/results_dict.pkl" % container_name, path_to_tmp_dir]
+		status_code = call(cmd, stdout=PIPE, stderr=PIPE)
+		print "/tmp/results_dict.pkl", "copied to host machine - status code %s" % str(status_code)
+		
+		# load results from copied .pkl file
+		with open(os.path.join(path_to_tmp_dir, "results_dict.pkl"), "rb") as f:
+			results_dict = cPickle.load(f)
+	except:
+		raise
+		
+	finally:
+		
+		# Delete used container
+		cmd = ["docker", "rm", "-f", container_name]
+		status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
+		print "Docker container deleted."
+		
+		# Remove tmp dir
+		shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
 	
-	# the (linux) command to run our docker container which will automatically generate features:
-	cmd = ["docker", "run", "-v", "%s:/home/mlweb"%cfg.PATH_TO_PROJECT_DIRECTORY, "extract_custom_features"]
-	# execute command
-	process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-	# grab outputs
-	stdout, stderr = process.communicate()
-	# parse output, grabbing relevant last line
-	results = str(stdout).strip().split("\n")[-1]
 	
-	# remove custom features defs script and .pkl file from docker temp directory
-	status_code = call(["rm", "%s/docker/custom_feature_defs.py" % cfg.PATH_TO_PROJECT_DIRECTORY])
-	status_code = call(["rm", "%s/docker/features_already_known.pkl" % cfg.PATH_TO_PROJECT_DIRECTORY])
-	
-	
-	# make sure a valid dictionary has been output, and return corresponding python dict object if so
-	if "{" in results and "}" in results:
-		results_dict = eval(results)
-		return results_dict
-	else:
-		print "Did not successfully capture features - '{' or '}' missing from output!!!"
-		return {}
+	return results_dict
 
 
 
@@ -273,23 +282,18 @@ def docker_extract_features(script_fpath,features_already_known={},ts_datafile_p
 
 
 def test_new_script(script_fname='testfeature1.py', script_fpath="here",docker_container=False):
-	
+	if script_fpath == "here":
+		script_fpath = os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), script_fname)
 	features_already_known_list = []
-	#for ID in [215153,263209]:
-	#	t,m,e=[[],[],[]]
-	#	lines = lc_tools.dotAstro_to_csv(ID)[0].strip().split("\n")
-	#	for line in lines:
-	#		if len(line.split(","))==3:
-	#			t.append(float(line.split(",")[0])); lc_tools.append(float(line.split(",")[1])); e.append(float(line.split(",")[2]))
 	all_fnames = False
 	try:
-		all_fnames = glob.glob("%s/sample_lcs/dotastro_*.dat" % cfg.PATH_TO_PROJECT_DIRECTORY)
+		all_fnames = glob.glob(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, ".sample_lcs/dotastro_*.dat"))[:1]
 	except:
 		pass
 			
-	if docker_installed()==True and (not all_fnames or len(all_fnames)==0) and False:
+	if is_running_in_docker_container()==True and (not all_fnames or len(all_fnames)==0) and False:
 		try:
-			all_fnames = glob.glob("/home/mlweb/sample_lcs/dotastro_*.dat")
+			all_fnames = glob.glob("/home/mltp/.sample_lcs/dotastro_*.dat")[:1]
 		except:
 			all_fnames = False
 	if not all_fnames or len(all_fnames)==0:
@@ -359,7 +363,7 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
 				linecount-=1
 		linecount+=1
 	
-	print linecount-1, "lines of data successfully read."
+	#print linecount-1, "lines of data successfully read."
 	f.close()
 	return [t,m,e]
 
@@ -373,27 +377,55 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
 
 
 def generate_custom_features(custom_script_path,path_to_csv,features_already_known,ts_data=None):
-	if path_to_csv:
+	if path_to_csv not in [None,False]:
 		t,m,e = parse_csv_file(path_to_csv)
-	elif ts_data:
+	elif ts_data not in [None,False]:
 		if len(ts_data[0]) == 3:
 			t,m,e = zip(*ts_data)
 		if len(ts_data[0]) == 2:
 			t,m = zip(*ts_data)
 	else:
+		print "predict_class.predict:"
+		print "path_to_csv:", path_to_csv
+		print "ts_data:", ts_data
 		raise Exception("Neither path_to_csv nor ts_data provided...")
 	features_already_known['t'] = t
 	features_already_known['m'] = m
 	if e and len(e)==len(m):
 		features_already_known['e'] = e
 	
-	if docker_installed() == True:
-		print "Extracting features inside docker container..."
-		all_new_features = docker_extract_features(script_fpath=custom_script_path,features_already_known=features_already_known)
+	if is_running_in_docker_container()==True:
+		all_new_features = execute_functions_in_order(script_fname=custom_script_path.split("/")[-1],features_already_known=features_already_known,script_fpath=custom_script_path)
 	else:
-		all_new_features = execute_functions_in_order(script_fname=custom_script_path.split("/")[-1],features_already_known=features_already_known,script_fpath=custom_script_path)	
+		if docker_installed() == True:
+			print "Generating custom features inside docker container..."
+			all_new_features = docker_extract_features(script_fpath=custom_script_path,features_already_known=features_already_known)
+		else:
+			print "Generating custom features WITHOUT docker container..."
+			all_new_features = execute_functions_in_order(script_fname=custom_script_path.split("/")[-1],features_already_known=features_already_known,script_fpath=custom_script_path)
+		
 	
 	return all_new_features
+
+
+
+
+
+
+def is_running_in_docker_container():
+	import subprocess
+	proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+	output = proc.stdout.read()
+	print output
+	if "/docker/" in output:
+		in_docker_container=True
+	else:
+		in_docker_container=False
+	return in_docker_container
+
+
+
+
 
 
 
@@ -402,15 +434,7 @@ if __name__ == "__main__":
 	import sys
 	encoding = sys.stdout.encoding or 'utf-8'
 	
-	proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
-	output = proc.stdout.read()
-	print output
-	if "/docker/" in output:
-		print "WE'RE INSIDE A DOCKER CONTAINER!!!!"
-		docker_container=True
-	else:
-		print "We're not inside a docker container."
-		docker_container=False
+	docker_container = is_running_in_docker_container()
 	
 	x = test_new_script(docker_container=docker_container)
 	print(str(x).encode(encoding))

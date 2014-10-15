@@ -9,6 +9,8 @@ import shutil
 import sklearn as skl
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
+from sklearn.cross_validation import train_test_split
+from sklearn.metrics import confusion_matrix
 from random import shuffle
 import cPickle
 import lc_tools
@@ -35,6 +37,7 @@ if DISCO_INSTALLED:
 import custom_exceptions
 
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+sys.path.append("/home/mltp/TCP/Software/ingest_tools") # for when run from inside docker container
 import generate_science_features
 
 import custom_feature_tools as cft
@@ -79,7 +82,7 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
 
 
 
-def build_model(featureset_name,featureset_key,model_type="RF"):
+def build_model(featureset_name,featureset_key,model_type="RF",in_docker_container=False):
 	'''
 	Required arguments:
 		featureset_name: name of the feature set to build the model upon (will also become the model name)
@@ -88,11 +91,21 @@ def build_model(featureset_name,featureset_key,model_type="RF"):
 		model_type: (string) abbreviation of the type of classifier to be created. Default is "RF"
 	'''
 	
+	if in_docker_container:
+		features_folder = "/Data/features/"
+		models_folder = "/Data/models/"
+		uploads_folder = "/Data/flask_uploads/"
+	else:
+		features_folder = cfg.FEATURES_FOLDER
+		models_folder = cfg.MODELS_FOLDER
+		uploads_folder = cfg.UPLOAD_FOLDER
+	
+	
 	all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 	
 	features_to_use = all_features_list
 	
-	features_filename = os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
+	features_filename = os.path.join(features_folder, "%s_features.csv" % featureset_key)
 	
 	
 	features_extracted, all_data = read_data_from_csv_file(features_filename)
@@ -153,8 +166,6 @@ def build_model(featureset_name,featureset_key,model_type="RF"):
 	
 	ntrees = 1000
 	njobs = -1
-	mtry = 7 # skl equiv = max_features??
-	nodesize = 1 # skl equiv?
 	
 	
 	#### build the model:
@@ -170,7 +181,7 @@ def build_model(featureset_name,featureset_key,model_type="RF"):
 	
 	# store the model:
 	print "Pickling model..."
-	foutname = os.path.join(cfg.MODELS_FOLDER, "%s_%s.pkl" % (featureset_key,model_type))
+	foutname = os.path.join(("/tmp" if in_docker_container==True else models_folder), "%s_%s.pkl" % (featureset_key,model_type))
 	joblib.dump(rf_fit,foutname,compress=3)
 	print foutname, "created."
 	
@@ -218,9 +229,7 @@ def build_model(featureset_name,featureset_key,model_type="RF"):
 	del rf_fit
 	
 	print "DONE!"
-	
-	#return str(foutname.split('/')[-1]) + " created."
-	
+		
 	return "New model successfully created. Click the Predict tab to start using it."
 
 
@@ -238,7 +247,7 @@ def build_model(featureset_name,featureset_key,model_type="RF"):
 
 
 
-def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="unknown",is_test=False,USE_DISCO=False, already_featurized=False, custom_script_path=None):
+def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="unknown",is_test=False,USE_DISCO=False, already_featurized=False, custom_script_path=None, in_docker_container=False):
 	'''Generates features for labeled time series data.
 	Required arguments:
 		headerfile_path: path to header file containing file names, class names, and meta data
@@ -252,13 +261,22 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 		custom_script_path: path to Python script containing methods for the generation of any custom features
 	'''
 	
+	if in_docker_container:
+		features_folder = "/Data/features/"
+		models_folder = "/Data/models/"
+		uploads_folder = "/Data/flask_uploads/"
+	else:
+		features_folder = cfg.FEATURES_FOLDER
+		models_folder = cfg.MODELS_FOLDER
+		uploads_folder = cfg.UPLOAD_FOLDER
+	
 	
 	if "/" not in headerfile_path:
-		headerfile_path = os.path.join(cfg.UPLOAD_FOLDER,headerfile_path)
+		headerfile_path = os.path.join(uploads_folder,headerfile_path)
 	
 	if zipfile_path is not None and "/" not in zipfile_path:
-		zipfile_path = os.path.join(cfg.UPLOAD_FOLDER,zipfile_path)
-		
+		zipfile_path = os.path.join(uploads_folder,zipfile_path)
+	
 	all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 	
 	if already_featurized:
@@ -278,45 +296,43 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 		if len(features_to_use)==0:
 			features_to_use = all_features_list
 		
-		headerfile = open(headerfile_path,'r')
+		with open(headerfile_path,'r') as headerfile:
 		
-		fname_class_dict = {}
-		fname_class_science_features_dict = {}
-		fname_metadata_dict = {}
-		objects = []
-		
-		# write ids and classnames to dict
-		line_no = 0
-		other_metadata_labels = []
-		for line in headerfile:
-			if line_no == 0:
-				els = line.strip().split(',')
-				fname, class_name = els[:2]
-				other_metadata_labels = els[2:]
-				features_to_use += other_metadata_labels
-			else:
-				if len(line) > 1 and line[0] not in ["#","\n"]:
-					if len(line.split(','))==2:
-						fname,class_name = line.strip('\n').split(',')
-						fname_class_dict[fname] = class_name
-						fname_class_science_features_dict[fname] = {'class':class_name}
-					elif len(line.split(',')) > 2:
-						els = line.strip().split(',')
-						fname, class_name = els[:2]
-						other_metadata = els[2:]
-						# convert to floats, if applicable:
-						for i in range(len(other_metadata)):
-							try:
-								other_metadata[i] = float(other_metadata[i])
-							except ValueError:
-								pass
-						fname_class_dict[fname] = class_name
-						fname_class_science_features_dict[fname] = {'class':class_name}
-						
-						fname_metadata_dict[fname] = dict(zip(other_metadata_labels, other_metadata))
-			line_no += 1
-		
-		headerfile.close()
+			fname_class_dict = {}
+			fname_class_science_features_dict = {}
+			fname_metadata_dict = {}
+			objects = []
+			
+			# write ids and classnames to dict
+			line_no = 0
+			other_metadata_labels = []
+			for line in headerfile:
+				if line_no == 0:
+					els = line.strip().split(',')
+					fname, class_name = els[:2]
+					other_metadata_labels = els[2:]
+					features_to_use += other_metadata_labels
+				else:
+					if len(line) > 1 and line[0] not in ["#","\n"]:
+						if len(line.split(','))==2:
+							fname,class_name = line.strip('\n').split(',')
+							fname_class_dict[fname] = class_name
+							fname_class_science_features_dict[fname] = {'class':class_name}
+						elif len(line.split(',')) > 2:
+							els = line.strip().split(',')
+							fname, class_name = els[:2]
+							other_metadata = els[2:]
+							# convert to floats, if applicable:
+							for i in range(len(other_metadata)):
+								try:
+									other_metadata[i] = float(other_metadata[i])
+								except ValueError:
+									pass
+							fname_class_dict[fname] = class_name
+							fname_class_science_features_dict[fname] = {'class':class_name}
+							
+							fname_metadata_dict[fname] = dict(zip(other_metadata_labels, other_metadata))
+				line_no += 1
 		
 		if DISCO_INSTALLED:
 			print "FEATURIZE - USING DISCO"
@@ -330,7 +346,7 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 			print "FEATURIZE - NOT USING DISCO"
 			
 			zipfile = tarfile.open(zipfile_path)
-			zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER,"unzipped"))
+			zipfile.extractall(path=os.path.join(uploads_folder,"unzipped"))
 			all_fnames = zipfile.getnames()
 			num_objs = len(fname_class_dict)
 			zipfile_name = zipfile_path.split("/")[-1]
@@ -343,7 +359,7 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 			
 			for fname in sorted(all_fnames):
 				short_fname = fname.split("/")[-1].replace(("."+fname.split(".")[-1] if "." in fname.split("/")[-1] else ""),"")
-				path_to_csv = os.path.join(cfg.UPLOAD_FOLDER, os.path.join("unzipped",fname))
+				path_to_csv = os.path.join(uploads_folder, os.path.join("unzipped",fname))
 				if os.path.isfile(path_to_csv):
 					print "Extracting features for", fname,"-", count, "of", num_objs
 					print "path_to_csv =", path_to_csv
@@ -383,7 +399,7 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 			all_fnames = zipfile.getnames()
 		finally:
 			for fname in all_fnames:
-				path_to_csv = os.path.join(cfg.UPLOAD_FOLDER, os.path.join("unzipped",fname))
+				path_to_csv = os.path.join(uploads_folder, os.path.join("unzipped",fname))
 				if os.path.isfile(path_to_csv):
 					os.remove(path_to_csv)
 			
@@ -401,13 +417,10 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 		features_to_plot = cfg.features_to_plot
 	
 	
+	foutname = os.path.join(features_folder, "%s.pkl" % featureset_id)
 	
-	
-	
-	foutname = os.path.join(cfg.FEATURES_FOLDER, "%s.pkl" % featureset_id)
-	
-	f = open(os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_id),'w')
-	f2 = open(os.path.join(cfg.FEATURES_FOLDER, "%s_features_with_classes.csv" % featureset_id),'w')
+	f = open(os.path.join(("/tmp" if in_docker_container==True else features_folder), "%s_features.csv" % featureset_id),'w')
+	f2 = open(os.path.join(("/tmp" if in_docker_container==True else features_folder), "%s_features_with_classes.csv" % featureset_id),'w')
 	line = []
 	line2 = ['class']
 	for feat in sorted(features_extracted):
@@ -483,12 +496,12 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 	
 	f.close()
 	f2.close()
-	shutil.copy2(f2.name,os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY,"flask/static/data"))
+	if not in_docker_container: shutil.copy2(f2.name,os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY,"flask/static/data"))
 	print "Done."
 	del objects
-	os.remove(os.path.join(cfg.FEATURES_FOLDER, "%s_features_with_classes.csv" % featureset_id))
+	if not in_docker_container: os.remove(os.path.join(features_folder, "%s_features_with_classes.csv" % featureset_id))
 	
-	joblib.dump(classes,os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl" % featureset_id),compress=3)
+	joblib.dump(classes,os.path.join(("/tmp" if in_docker_container==True else features_folder), "%s_classes.pkl" % featureset_id),compress=3)
 	
 	print foutname.replace(".pkl","_features.csv"), "and", foutname.replace(".pkl","_features_with_classes.csv"), "and", foutname.replace(".pkl","_classes.pkl"), "created."
 	

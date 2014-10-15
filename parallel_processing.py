@@ -21,6 +21,8 @@ import glob
 import tarfile
 import disco_tools
 import custom_exceptions
+import uuid
+import shutil
 
 try:
 	from disco.core import Job, result_iterator
@@ -29,9 +31,11 @@ try:
 except Exception as theError:
 	DISCO_INSTALLED = False
 
+sys.path.append("/home/mltp/TCP/Software/ingest_tools") # for when run from inside docker container
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import generate_science_features
+from generate_science_features import currently_running_in_docker_container
 import build_rf_model
 import predict_class as predict
 
@@ -96,30 +100,46 @@ def pred_featurize_reduce(iter, params):
 	
 	import sys, os
 	from disco.util import kvgroup
-	
+	import uuid
 	import os
 	import sys
-	PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mlweb")
+	PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mltp")
 	sys.path.append(PATH_TO_PROJECT_DIRECTORY)
 	import cfg
+	sys.path.append("/home/mltp/TCP/Software/ingest_tools") # for when run from inside docker container
 	sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 	import custom_exceptions
 	import generate_science_features
+	from generate_science_features import currently_running_in_docker_container
 	import predict_class as predict
 	import build_rf_model
 	import lc_tools
 	import custom_feature_tools as cft
-
-
+	
+	if currently_running_in_docker_container()==True:
+		features_folder = "/Data/features/"
+		models_folder = "/Data/models/"
+		uploads_folder = "/Data/flask_uploads/"
+		tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+	else:
+		features_folder = cfg.FEATURES_FOLDER
+		models_folder = cfg.MODELS_FOLDER
+		uploads_folder = cfg.UPLOAD_FOLDER
+		tcp_ingest_tools_path = cfg.TCP_INGEST_TOOLS_PATH
 	
 	for fname,junk in kvgroup(sorted(iter)):
 		if os.path.isfile(fname):
 			f = open(fname)
-		elif os.path.isfile(os.path.join(cfg.UPLOAD_FOLDER, fname)):
-			f = open(os.path.join(cfg.UPLOAD_FOLDER, fname))
+			fpath = fname
+		elif os.path.isfile(os.path.join(params["tmp_dir_path"], fname)):
+			f = open(os.path.join(params["tmp_dir_path"], fname))
+			fpath = os.path.join(params["tmp_dir_path"], fname)
+		elif os.path.isfile(os.path.join(os.path.join(uploads_folder, "unzipped"), fname)):
+			f = open(os.path.join(os.path.join(uploads_folder, "unzipped"), fname))
+			fpath = os.path.join(os.path.join(uploads_folder, "unzipped"), fname)
 		else:
-			print (fname if cfg.UPLOAD_FOLDER in fname else os.path.join(cfg.UPLOAD_FOLDER,fname)) + " is not a file..."
-			if os.path.exists(os.path.join(cfg.UPLOAD_FOLDER, fname)) or os.path.exists(fname):
+			print (fname if uploads_folder in fname else os.path.join(uploads_folder,fname)) + " is not a file..."
+			if os.path.exists(os.path.join(uploads_folder, fname)) or os.path.exists(fname):
 				print "But it does exist on the disk."
 			else:
 				print "and in fact it doesn't even exist."
@@ -148,7 +168,7 @@ def pred_featurize_reduce(iter, params):
 				ts_data[i] = ts_data[i][:3]	
 			
 		del lines
-		f = open(os.path.join(cfg.FEATURES_FOLDER,"%s_features.csv" % featset_key))
+		f = open(os.path.join(features_folder,"%s_features.csv" % featset_key))
 		features_in_model = f.readline().strip().split(',')
 		f.close()
 		
@@ -170,6 +190,7 @@ def pred_featurize_reduce(iter, params):
 		
 		all_features = dict(timeseries_features.items() + science_features.items() + custom_features.items() + meta_features.items())
 		
+		os.remove(fpath)
 		
 		yield fname, [all_features, ts_data]
 
@@ -204,10 +225,23 @@ def featurize_reduce(iter, params):
 		print "fname: " + fname + ", class_name: " + class_name
 		import os
 		import sys
-		PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mlweb")
+		PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mltp")
 		sys.path.append(PATH_TO_PROJECT_DIRECTORY)
 		import cfg
 		sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+		sys.path.append("/home/mltp/TCP/Software/ingest_tools") # for when run in docker container
+		
+		if currently_running_in_docker_container()==True:
+			features_folder = "/Data/features/"
+			models_folder = "/Data/models/"
+			uploads_folder = "/Data/flask_uploads/"
+			tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+		else:
+			features_folder = cfg.FEATURES_FOLDER
+			models_folder = cfg.MODELS_FOLDER
+			uploads_folder = cfg.UPLOAD_FOLDER
+			tcp_ingest_tools_path = cfg.TCP_INGEST_TOOLS_PATH
+		
 		
 		import generate_science_features
 		import build_rf_model
@@ -215,7 +249,7 @@ def featurize_reduce(iter, params):
 		import custom_feature_tools as cft
 		
 		short_fname = fname.split("/")[-1].replace(("."+fname.split(".")[-1] if "." in fname.split("/")[-1] else ""),"")
-		path_to_csv = os.path.join(cfg.UPLOAD_FOLDER, os.path.join("unzipped",fname))
+		path_to_csv = os.path.join(uploads_folder, os.path.join("unzipped",fname))
 		all_features = {}
 		print "path_to_csv: " + path_to_csv
 		if os.path.isfile(path_to_csv):
@@ -298,7 +332,7 @@ def process_prediction_data_featurization_with_disco(input_list,params,partition
 
 
 
-def featurize_prediction_data_in_parallel(newpred_file_path,featset_key,sep=',',custom_features_script=None,meta_features={}):
+def featurize_prediction_data_in_parallel(newpred_file_path,featset_key,sep=',',custom_features_script=None,meta_features={},tmp_dir_path=None):
 	'''Utilizes Disco's map-reduce framework to generate features on multiple time series data files in parallel. The generated features are returned, along with the time series data, in a dict (with file names as keys). 
 	Required arguments:
 		newpred_file_path: path to the zip file containing time series data files to be featurized
@@ -308,17 +342,19 @@ def featurize_prediction_data_in_parallel(newpred_file_path,featset_key,sep=',',
 		custom_features_script: path to custom features script to be used in feature generation, else None
 		meta_features: dict of associated meta features
 	'''
-	print "FEATURIZE_PRED_DATA_IN_PARALLEL: newpred_file_path =", newpred_file_path
+	#print "FEATURIZE_PRED_DATA_IN_PARALLEL: newpred_file_path =", newpred_file_path
+	
+	
 	the_tarfile = tarfile.open(newpred_file_path)
-	the_tarfile.extractall(path=newpred_file_path.replace(newpred_file_path.split("/")[-1],""))
+	the_tarfile.extractall(path=tmp_dir_path)
 	all_fnames = the_tarfile.getnames()
-	print "ALL_FNAMES:", all_fnames
+	#print "ALL_FNAMES:", all_fnames
 	
 	big_features_and_tsdata_dict = {}
 	
-	params={"featset_key":featset_key,"sep":sep,"custom_features_script":custom_features_script,"meta_features":meta_features}
+	params={"featset_key":featset_key,"sep":sep,"custom_features_script":custom_features_script,"meta_features":meta_features,"tmp_dir_path":tmp_dir_path}
 	
-	with open(os.path.join(cfg.UPLOAD_FOLDER,"disco_temp_inputfile.txt"),"w") as f:
+	with open("/tmp/%s_disco_tmp.txt"%str(uuid.uuid4()),"w") as f:
 		for fname in all_fnames:
 			f.write(fname+",unknown\n")
 	
@@ -331,9 +367,8 @@ def featurize_prediction_data_in_parallel(newpred_file_path,featset_key,sep=',',
 			big_features_and_tsdata_dict[fname] = {"features_dict":features_dict, "ts_data":ts_data}
 	
 	
-	print "DONE!!!"
+	print "Done extracting features."
 	os.remove(f.name)
-	
 	return big_features_and_tsdata_dict
 
 
@@ -359,6 +394,16 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use = [], i
 	
 	all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 	
+	if currently_running_in_docker_container()==True:
+		features_folder = "/Data/features/"
+		models_folder = "/Data/models/"
+		uploads_folder = "/Data/flask_uploads/"
+		tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+	else:
+		features_folder = cfg.FEATURES_FOLDER
+		models_folder = cfg.MODELS_FOLDER
+		uploads_folder = cfg.UPLOAD_FOLDER
+		tcp_ingest_tools_path = cfg.TCP_INGEST_TOOLS_PATH
 	
 	if len(features_to_use)==0:
 		features_to_use = all_features_list
@@ -376,7 +421,7 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use = [], i
 	headerfile.close()
 	
 	zipfile = tarfile.open(zipfile_path)
-	zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER,"unzipped"))
+	zipfile.extractall(path=os.path.join(uploads_folder,"unzipped"))
 	all_fnames = zipfile.getnames()
 	num_objs = len(fname_class_dict)
 	zipfile_name = zipfile_path.split("/")[-1]
@@ -396,7 +441,7 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use = [], i
 			longfname_class_list.append([all_fnames[i],fname_class_dict[short_fname]])
 		elif all_fnames[i] in fname_class_dict:
 			longfname_class_list.append([all_fnames[i],fname_class_dict[all_fnames[i]]])
-	with open(cfg.PATH_TO_PROJECT_DIRECTORY+"/disco_inputfile.txt","w") as f:
+	with open("/tmp/%s_disco_tmp.txt"%str(uuid.uuid4()),"w") as f:
 		for fname_classname in longfname_class_list:
 			f.write(",".join(fname_classname)+"\n")
 	
@@ -414,7 +459,7 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use = [], i
 		fname_features_dict[k] = v
 	
 	os.remove(f.name)
-	print "Done."
+	print "Done generating features."
 	
 	return fname_features_dict
 	
@@ -439,6 +484,16 @@ def featurize_in_parallel_newtest(headerfile_path, zipfile_path, features_to_use
 	
 	all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 	
+	if currently_running_in_docker_container()==True:
+		features_folder = "/Data/features/"
+		models_folder = "/Data/models/"
+		uploads_folder = "/Data/flask_uploads/"
+		tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+	else:
+		features_folder = cfg.FEATURES_FOLDER
+		models_folder = cfg.MODELS_FOLDER
+		uploads_folder = cfg.UPLOAD_FOLDER
+		tcp_ingest_tools_path = cfg.TCP_INGEST_TOOLS_PATH
 	
 	if len(features_to_use)==0:
 		features_to_use = all_features_list
@@ -456,7 +511,7 @@ def featurize_in_parallel_newtest(headerfile_path, zipfile_path, features_to_use
 	headerfile.close()
 	
 	zipfile = tarfile.open(zipfile_path)
-	zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER,"unzipped"))
+	zipfile.extractall(path=os.path.join(uploads_folder,"unzipped"))
 	all_fnames = zipfile.getnames()
 	num_objs = len(fname_class_dict)
 	zipfile_name = zipfile_path.split("/")[-1]
@@ -489,7 +544,7 @@ def featurize_in_parallel_newtest(headerfile_path, zipfile_path, features_to_use
 			longfname_class_list.append([all_fnames[i],fname_class_dict[short_fname]])
 		elif all_fnames[i] in fname_class_dict:
 			longfname_class_list.append([all_fnames[i],fname_class_dict[all_fnames[i]]])
-	with open(cfg.PATH_TO_PROJECT_DIRECTORY+"/disco_inputfile.txt","w") as f:
+	with open("/tmp/disco_inputfile.txt","w") as f:
 		for fname_classname in longfname_class_list:
 			f.write(",".join(fname_classname)+"\n")
 	'''

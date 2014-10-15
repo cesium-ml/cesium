@@ -3,20 +3,41 @@ This is to be called by flask script using subprocess.Popen()
 
 ###Calling Flask code should use syntax like:
 import subprocess
-p = subprocess.Popen(home_str+"/Dropbox/work_etc/mlweb/TCP/Software/ingest_tools/generate_science_features.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+p = subprocess.Popen(home_str+"/Dropbox/work_etc/mltp/TCP/Software/ingest_tools/generate_science_features.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
 sts = os.waitpid(p.pid, 0)
 script_output = p.stdout.readlines()
 
 ### This script can be tested using:
-home_str+/Dropbox/work_etc/mlweb/TCP/Software/ingest_tools/generate_science_features.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
+home_str+/Dropbox/work_etc/mltp/TCP/Software/ingest_tools/generate_science_features.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
 
 """
+
+
+def currently_running_in_docker_container():
+	import subprocess
+	proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+	output = proc.stdout.read()
+	if "/docker/" in output:
+		in_docker_container=True
+	else:
+		in_docker_container=False
+	return in_docker_container
+
+
+
+
+
+
+
+
 import sys, os
 home_str = os.path.expanduser("~")
 import urllib
 import cStringIO
-
-os.environ["TCP_DIR"] = home_str+"/Dropbox/work_etc/mlweb/TCP/"
+if currently_running_in_docker_container()==True:
+	os.environ["TCP_DIR"] = "/home/mltp/TCP/"
+else:
+	os.environ["TCP_DIR"] = home_str+"/Dropbox/work_etc/mltp/TCP/"
 #from rpy2.robjects.packages import importr
 #from rpy2 import robjects
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \

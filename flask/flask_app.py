@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # flask_app.py
 
-# Machine Learning Web Service flask application
+# Machine Learning Timeseries Platform flask application
 
 from __future__ import division
 import sys
@@ -13,7 +13,7 @@ sys_admin_emails = ['a.crellinquick@gmail.com']
 
 
 # set the path to the project directory (default is in /home/user/Dropbox/..., but to be changed for each machine)
-PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mlweb")
+PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mltp")
 sys.path.append(PATH_TO_PROJECT_DIRECTORY)
 
 import cfg
@@ -40,6 +40,7 @@ from flask.ext import restful
 from flask_googleauth import GoogleAuth, GoogleFederated
 from werkzeug import secure_filename
 from functools import wraps
+import uuid
 
 from operator import itemgetter
 import sklearn as skl
@@ -75,7 +76,7 @@ import build_rf_model
 import lc_tools
 import custom_feature_tools as cft
 import custom_exceptions
-
+import run_in_docker_container
 
 if DISCO_INSTALLED:
 	import parallel_processing
@@ -106,7 +107,7 @@ logging.basicConfig(filename=cfg.ERR_LOG_PATH,level=logging.WARNING)
 # RethinkDB config:
 RDB_HOST =  os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
-MLWS_DB = "mlws_app"
+MLWS_DB = "mltp_app"
 
 
 
@@ -690,7 +691,7 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
 
 
 
-def add_featureset(name,projkey,pid,featlist,custom_features_script,meta_feats=[]):
+def add_featureset(name,projkey,pid,featlist,custom_features_script,meta_feats=[],headerfile_path=None,zipfile_path=None):
 	'''Add a new entry to the rethinkDB 'features' table.
 	'''
 	new_featset_key = r.table("features").insert({
@@ -700,10 +701,12 @@ def add_featureset(name,projkey,pid,featlist,custom_features_script,meta_feats=[
 		"created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
 		"pid": pid,
 		"custom_features_script": custom_features_script,
-		"meta_feats": meta_feats
+		"meta_feats": meta_feats,
+		"headerfile_path":headerfile_path,
+		"zipfile_path":zipfile_path
 	}).run(g.rdb_conn)['generated_keys'][0]
 	
-	print "Feature set %s entry added to mlws_app db." % name
+	print "Feature set %s entry added to mltp_app db." % name
 	
 	return new_featset_key
 
@@ -727,7 +730,7 @@ def add_model(featureset_name,featureset_key,model_type,projkey,pid,meta_feats=F
 		"meta_feats":meta_feats
 	}).run(g.rdb_conn)['generated_keys'][0]
 	
-	print "New model entry %s added to mlws_app db." % featureset_name
+	print "New model entry %s added to mltp_app db." % featureset_name
 	
 	return new_model_key
 
@@ -750,7 +753,7 @@ def add_prediction(project_name,model_name,model_type,pred_filename,pid="None",m
 		"metadata_file": metadata_file
 	}).run(g.rdb_conn)['generated_keys'][0]
 	
-	print "New prediction entry added to mlws_app db."
+	print "New prediction entry added to mltp_app db."
 	
 	return new_prediction_key
 
@@ -1124,7 +1127,7 @@ def testNewScript():
 	if request.method == "POST":
 		scriptfile = request.files['custom_feat_script_file']
 		scriptfile_name = secure_filename(scriptfile.filename)
-		scriptfile_path = os.path.join(app.config['UPLOAD_FOLDER'], scriptfile_name)
+		scriptfile_path = os.path.join(os.path.join(app.config['UPLOAD_FOLDER'],"custom_feature_scripts"), str(uuid.uuid4())+"_"+str(scriptfile_name))
 		scriptfile.save(scriptfile_path)
 		try:
 			test_results = cft.test_new_script(script_fname=scriptfile_name,script_fpath=scriptfile_path)
@@ -1138,8 +1141,9 @@ def testNewScript():
 				res_str += "<input type='checkbox' value='%s' name='custom_feature_checkbox' id='custom_feature_checkbox' checked>%s<br>"%(str(k),str(k))
 		except Exception as theErr:
 			print theErr
+			logging.exception("testNewScript error.")
 			return str(theErr)
-		
+		os.remove(scriptfile_path)
 		return str("The following features have successfully been tested: <br>" + res_str)
 
 
@@ -1463,7 +1467,6 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
 	else:
 		with open(newpred_file_path) as f:
 			all_lines = [line.strip() for line in f.readlines() if line.strip() != '']
-		
 		file_name_variants = [f.name,f.name.split("/")[-1],f.name.split("/")[-1].replace("."+f.name.split("/")[-1].split(".")[-1],"")]
 		all_fname_variants.extend(file_name_variants)
 		all_fname_variants_list_of_lists.append(file_name_variants)
@@ -1518,7 +1521,7 @@ def uploadFeaturesForm():
 		features_file = request.files["features_file"]
 		featureset_name = str(request.form["featuresetname"]).strip()
 		project_name = str(request.form["featureset_projname_select"]).strip().split(" (created")[0]
-		features_file_name = secure_filename(features_file.filename)
+		features_file_name = str(uuid.uuid4()) + str(secure_filename(features_file.filename))
 		path = os.path.join(app.config['UPLOAD_FOLDER'], features_file_name)
 		features_file.save(path)
 		print "Saved", path
@@ -1556,9 +1559,10 @@ def uploadDataFeaturize(headerfile=None,zipfile=None,sep=None,project_name=None,
 		custom_script_tested = str(request.form["custom_script_tested"])
 		if custom_script_tested == "yes":
 			custom_script = request.files["custom_feat_script_file"]
-			customscript_name = secure_filename(custom_script.filename)
-			print customscript_name
-			customscript_path = os.path.join(app.config['UPLOAD_FOLDER'], customscript_name)
+			customscript_fname = str(secure_filename(custom_script.filename))
+			print customscript_fname, 'uploaded.'
+			customscript_path = os.path.join(os.path.join(app.config['UPLOAD_FOLDER'],"custom_feature_scripts"), str(uuid.uuid4())+"_"+str(customscript_fname))
+			custom_script.save(customscript_path)
 			custom_features = request.form.getlist("custom_feature_checkbox")
 			features_to_use += custom_features
 		else:
@@ -1580,8 +1584,11 @@ def uploadDataFeaturize(headerfile=None,zipfile=None,sep=None,project_name=None,
 		except: # unchecked
 			is_test=False
 		
-		headerfile_name = secure_filename(headerfile.filename)
-		zipfile_name = secure_filename(zipfile.filename)
+		#headerfile_name = secure_filename(headerfile.filename)
+		#zipfile_name = secure_filename(zipfile.filename)
+		
+		headerfile_name = str(uuid.uuid4()) + "_" + str(secure_filename(headerfile.filename))
+		zipfile_name = str(uuid.uuid4()) + "_" + str(secure_filename(zipfile.filename))
 		
 		proj_key = project_name_to_key(project_name)
 		
@@ -1693,12 +1700,13 @@ def featurize_proc(headerfile_path,zipfile_path,features_to_use,featureset_key,i
 	before_request()
 	
 	try:
-		results_str = build_rf_model.featurize(headerfile_path,zipfile_path,features_to_use=features_to_use,featureset_id=featureset_key,is_test=is_test,already_featurized=already_featurized,custom_script_path=custom_script_path)
+		results_str = run_in_docker_container.featurize_in_docker_container(headerfile_path,zipfile_path,features_to_use,featureset_key,is_test,already_featurized,custom_script_path)
+		#results_str = build_rf_model.featurize(headerfile_path,zipfile_path,features_to_use=features_to_use,featureset_id=featureset_key,is_test=is_test,already_featurized=already_featurized,custom_script_path=custom_script_path)
 		if email_user:
 			emailUser(email_user)
 	except Exception as theErr:
 		results_str = "An error occurred while processing your request. Please ensure that the header file and tarball of time series data files conform to the formatting requirements."
-		print "   #########      Error:    featurize: %s" % str(theErr)
+		print "   #########      Error:    flask_app.featurize_proc: %s" % str(theErr)
 		logging.exception("Error occurred during build_rf_model.featurize() call.")
 		try:
 			os.remove(headerfile_path)
@@ -1729,10 +1737,11 @@ def featurizing():
 	PID = request.args.get("PID")
 	featureset_key = request.args.get("featureset_key")
 	project_name = request.args.get("project_name")
+	featureset_name = request.args.get("featureset_name")
 	
 	info_dict = get_all_info_dict()
 	
-	return render_template('index.html',ACTION="featurizing",PID=PID,newpred_filename="",FEATURES_AVAILABLE=[info_dict['features_available_set1'],info_dict['features_available_set2']],CURRENT_PROJECTS=info_dict['list_of_current_projects'],CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],CURRENT_MODELS=info_dict['list_of_current_models'],CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],PROJECT_NAME=project_name,headerfile_name="",RESULTS=True,features_str="",new_featset_key=featureset_key,featureset_name="")
+	return render_template('index.html',ACTION="featurizing",PID=PID,newpred_filename="",FEATURES_AVAILABLE=[info_dict['features_available_set1'],info_dict['features_available_set2']],CURRENT_PROJECTS=info_dict['list_of_current_projects'],CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],CURRENT_MODELS=info_dict['list_of_current_models'],CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],PROJECT_NAME=project_name,headerfile_name="",RESULTS=True,features_str="",new_featset_key=featureset_key,featureset_name=featureset_name)
 	
 
 
@@ -1762,7 +1771,7 @@ def featurizationPage(featureset_name,project_name,headerfile_name,zipfile_name,
 		if len(meta_feats) > 0:
 			pass # do stuff here !!!!!!!!!!!!!!!!!
 		
-		new_featset_key = add_featureset(name=featureset_name,projkey=projkey,pid="None",featlist=featlist,custom_features_script=custom_script_path,meta_feats=meta_feats)
+		new_featset_key = add_featureset(name=featureset_name,projkey=projkey,pid="None",featlist=featlist,custom_features_script=custom_script_path,meta_feats=meta_feats,headerfile_path=features_filepath)
 		multiprocessing.log_to_stderr()
 		proc = multiprocessing.Process(target=featurize_proc,args=(features_filepath,None,featlist,new_featset_key,is_test,email_user,already_featurized,custom_script_path))
 		proc.start()
@@ -1802,7 +1811,7 @@ def featurizationPage(featureset_name,project_name,headerfile_name,zipfile_name,
 		with open(headerfile_path) as f:
 			meta_feats = f.readline().strip().split(',')[2:]
 		
-		new_featset_key = add_featureset(name=featureset_name,projkey=projkey,pid="None",featlist=featlist,custom_features_script=custom_script_path,meta_feats=meta_feats)
+		new_featset_key = add_featureset(name=featureset_name,projkey=projkey,pid="None",featlist=featlist,custom_features_script=custom_script_path,meta_feats=meta_feats,headerfile_path=headerfile_path,zipfile_path=zipfile_path)
 		print "NEW FEATURESET ADDED WITH featset_key =", new_featset_key
 		multiprocessing.log_to_stderr()
 		proc = multiprocessing.Process(target=featurize_proc,args=(headerfile_path,zipfile_path,featlist,new_featset_key,is_test,email_user,already_featurized,custom_script_path))
@@ -1919,8 +1928,34 @@ def load_featurization_results(new_featset_key):
 	'''
 	results_dict = r.table("features").get(new_featset_key).run(g.rdb_conn)
 	
-	if results_dict is not None and "results_msg" in results_dict:
-		if "Error occurred" in results_dict["results_msg"] or "An error occurred" in results_dict["results_msg"]:
+	if results_dict is not None and "results_msg" in results_dict and results_dict["results_msg"] is not None:
+		if "Error occurred" in str(results_dict["results_msg"]) or "An error occurred" in str(results_dict["results_msg"]):
+			if "headerfile_path" in results_dict and results_dict["headerfile_path"] is not None:
+				try:
+					os.remove(results_dict["headerfile_path"])
+					print "Deleted", results_dict["headerfile_path"]
+				except Exception as err:
+					pass
+			else:
+				print "headerfile_path not in asdfasdf or is None"
+			if "zipfile_path" in results_dict and results_dict["zipfile_path"] is not None:
+				try:
+					os.remove(results_dict["zipfile_path"])
+					print "Deleted", results_dict["zipfile_path"]
+				except Exception as err:
+					pass
+			if "custom_features_script" in results_dict and results_dict["custom_features_script"]:
+				try:
+					os.remove(str(results_dict["custom_features_script"]).replace(".py",".pyc"))
+					print "Deleted", str(results_dict["custom_features_script"]).replace(".py",".pyc")
+				except Exception as err:
+					pass
+				try:
+					os.remove(results_dict["custom_features_script"])
+					print "Deleted", results_dict["custom_features_script"]
+				except Exception as err:
+					pass
+				
 			r.table("features").get(new_featset_key).delete().run(g.rdb_conn)
 			print "Deleted feature set entry with key", new_featset_key
 			
@@ -1930,7 +1965,7 @@ def load_featurization_results(new_featset_key):
 
 
 
-def prediction_proc(newpred_file_path,project_name,model_name,model_type,prediction_entry_key,sep=",",metadata_file=None):
+def prediction_proc(newpred_file_path,project_name,model_name,model_type,prediction_entry_key,sep=",",metadata_file=None,path_to_tmp_dir=None):
 	'''Begins the featurization and prediction process by calling predict_class.predict() with provided parameters. To be executed as a separate process using the multiprocessing module's Process routine.
 	Required arguments:
 		newpred_file_path: (string) path to file containing time series data for featurization and prediction
@@ -1970,11 +2005,21 @@ def prediction_proc(newpred_file_path,project_name,model_name,model_type,predict
 	results_str += "</tr></thead><tbody>"
 	
 	try:
-		results_dict = predict.predict(newpred_file_path=newpred_file_path,model_name=model_name,model_type=model_type,featset_key=featset_key,sepr=sep,n_cols_html_table=n_cols_html_table,custom_features_script=custom_features_script,metadata_file_path=metadata_file)
+		results_dict = run_in_docker_container.predict_in_docker_container(newpred_file_path,project_name,model_name,model_type,prediction_entry_key,featset_key,sep=sep,n_cols_html_table=n_cols_html_table,features_already_extracted=None,metadata_file=metadata_file,custom_features_script=custom_features_script)
+		
+		#results_dict = predict.predict(newpred_file_path=newpred_file_path,model_name=model_name,model_type=model_type,featset_key=featset_key,sepr=sep,n_cols_html_table=n_cols_html_table,custom_features_script=custom_features_script,metadata_file_path=metadata_file)
+		
+		try:
+			os.remove(newpred_file_path)
+			if metadata_file:
+				os.remove(metadata_file)
+		except Exception as err:
+			print "An error occurred while attempting to remove the uploaded timeseries data file (and possibly associated metadata file)."
+			logging.exception("An error occurred while attempting to remove the uploaded timeseries data file (and possibly associated metadata file).")
 	except Exception as theErr:
 		msg = "<font color='red'>An error occurred while processing your request. Please ensure the formatting of the provided time series data file(s) conforms to the specified requirements.</font>" 
 		update_prediction_entry_with_results(prediction_entry_key,html_str=msg,features_dict={},ts_data_dict={},err=str(theErr))
-		print "   #########      Error:   predict:", theErr
+		print "   #########      Error:   flask_app.prediction_proc:", theErr
 		logging.exception("Error occurred during predict_class.predict() call.")
 	else:
 	
@@ -2002,6 +2047,14 @@ def prediction_proc(newpred_file_path,project_name,model_name,model_type,predict
 			update_prediction_entry_with_results(prediction_entry_key,html_str=results_dict,features_dict={},ts_data_dict={},pred_results_list_dict={})
 		
 		return True
+		
+	finally:
+		
+		if path_to_tmp_dir is not None:
+			try:
+				shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
+			except:
+				logging.exception("Error occurred while attempting to remove uploaded files and tmp directory.")
 
 
 
@@ -2025,10 +2078,11 @@ def predicting():
 	prediction_entry_key = request.args.get("prediction_entry_key")
 	project_name = request.args.get("project_name")
 	prediction_model_name = request.args.get("prediction_model_name")
+	model_type = request.args.get("model_type")
 	
 	info_dict = get_all_info_dict()
 	
-	return render_template('index.html',ACTION="predicting",PID=PID,newpred_filename="",FEATURES_AVAILABLE=[info_dict['features_available_set1'],info_dict['features_available_set2']],CURRENT_PROJECTS=info_dict['list_of_current_projects'],CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],CURRENT_MODELS=info_dict['list_of_current_models'],CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],PROJECT_NAME=project_name,headerfile_name="",RESULTS=True,features_str="",prediction_entry_key=prediction_entry_key,prediction_model_name=prediction_model_name)
+	return render_template('index.html',ACTION="predicting",PID=PID,newpred_filename="",FEATURES_AVAILABLE=[info_dict['features_available_set1'],info_dict['features_available_set2']],CURRENT_PROJECTS=info_dict['list_of_current_projects'],CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],CURRENT_MODELS=info_dict['list_of_current_models'],CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],PROJECT_NAME=project_name,headerfile_name="",RESULTS=True,features_str="",prediction_entry_key=prediction_entry_key,prediction_model_name=prediction_model_name,model_type=model_type)
 
 
 
@@ -2038,7 +2092,7 @@ def predicting():
 
 
 
-def predictionPage(newpred_file_path,project_name,model_name,model_type,sep=",",metadata_file_path=None):
+def predictionPage(newpred_file_path,project_name,model_name,model_type,sep=",",metadata_file_path=None,path_to_tmp_dir=None):
 	'''Starts featurization and prediction process as a subprocess (by calling prediction_proc with the multiprocessing.Process method). uploadPredictionData method redirects here after saving uploaded files. Returns JSONified dict with PID and other details about the process.
 	Required arguments:
 		newpred_file_path: (string) path to file containing time series data for featurization and prediction
@@ -2051,11 +2105,12 @@ def predictionPage(newpred_file_path,project_name,model_name,model_type,sep=",",
 	'''
 	new_prediction_key = add_prediction(project_name=project_name,model_name=model_name,model_type=model_type,pred_filename=newpred_file_path.split("/")[-1],pid="None",metadata_file=(metadata_file_path.split("/")[-1] if metadata_file_path is not None else None))
 	
-	is_tarfile = tarfile.is_tarfile(newpred_file_path)
+	#is_tarfile = tarfile.is_tarfile(newpred_file_path)
+	pred_file_name = newpred_file_path.split("/")[-1]
 	
 	print "starting prediction_proc..."
 	multiprocessing.log_to_stderr()
-	proc = multiprocessing.Process(target=prediction_proc,args=(newpred_file_path,project_name,model_name,model_type,new_prediction_key,sep,metadata_file_path))
+	proc = multiprocessing.Process(target=prediction_proc,args=(newpred_file_path,project_name,model_name,model_type,new_prediction_key,sep,metadata_file_path,path_to_tmp_dir))
 	
 	proc.start()
 	
@@ -2066,7 +2121,7 @@ def predictionPage(newpred_file_path,project_name,model_name,model_type,sep=",",
 	
 	
 	# replaces below commented-out section as of 6/18/14
-	return jsonify({"message":"New prediction files saved successfully, and featurization/model prediction has begun (with process ID = %s)."%str(PID), "PID":PID, "project_name":project_name, "prediction_entry_key":new_prediction_key, "model_name":model_name})
+	return jsonify({"message":"New prediction files saved successfully, and featurization/model prediction has begun (with process ID = %s)."%str(PID), "PID":PID, "project_name":project_name, "prediction_entry_key":new_prediction_key, "model_name":model_name, "model_type":model_type, "pred_file_name":pred_file_name})
 	
 	
 	# obsolete as of 6/18/14, keeping for chance of needing to revert
@@ -2097,6 +2152,9 @@ def uploadPredictionData():
 	'''
 	if request.method == 'POST':
 		newpred_file = request.files["newpred_file"]
+		tmp_folder = "tmp_"+str(uuid.uuid4())
+		path_to_tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], tmp_folder)
+		os.mkdir(path_to_tmp_dir)
 		if "prediction_files_metadata" in request.files:
 			prediction_files_metadata = request.files["prediction_files_metadata"]
 			if prediction_files_metadata.filename in [""," "]:
@@ -2105,7 +2163,7 @@ def uploadPredictionData():
 				metadata_file_path = None
 			else:
 				metadata_filename = secure_filename(prediction_files_metadata.filename)
-				metadata_file_path = os.path.join(app.config['UPLOAD_FOLDER'], metadata_filename)
+				metadata_file_path = os.path.join(path_to_tmp_dir, metadata_filename)
 		else:
 			prediction_files_metadata = None
 			metadata_file_path = None
@@ -2119,7 +2177,7 @@ def uploadPredictionData():
 			print filename, "uploaded but no sep info. Setting sep=','"
 			sep = ","
 		
-		newpred_file_path = os.path.join(app.config['UPLOAD_FOLDER'], newpred_filename)
+		newpred_file_path = os.path.join(path_to_tmp_dir, newpred_filename)
 		
 		# CHECKING AGAINST EXISTING UPLOADED FILES:
 		if os.path.exists(newpred_file_path) and False: # skipping this part for now - possibly re-implement in the future
@@ -2198,7 +2256,7 @@ def uploadPredictionData():
 			print "Removed ", str(newpred_file_path) + (" and"+str(metadata_file_path) if metadata_file_path is not None else "")
 			return jsonify({"message":"Uploaded data files improperly formatted. Please ensure that your data files meet the formatting guidelines and try again.","type":"error"})
 		
-		return predictionPage(newpred_file_path=newpred_file_path,sep=sep,project_name=project_name,model_name=model_name,model_type=model_type,metadata_file_path=metadata_file_path)
+		return predictionPage(newpred_file_path=newpred_file_path,sep=sep,project_name=project_name,model_name=model_name,model_type=model_type,metadata_file_path=metadata_file_path,path_to_tmp_dir=path_to_tmp_dir)
 
 
 
@@ -2227,11 +2285,11 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
 	
 	print "Building model..."
 	try:
-		model_built_msg = build_rf_model.build_model(featureset_name=featureset_name,featureset_key=featureset_key,model_type=model_type)
+		model_built_msg = run_in_docker_container.build_model_in_docker_container(featureset_name=featureset_name,featureset_key=featureset_key,model_type=model_type)
 		print "Done!"
 		
 	except Exception as theErr:
-		print "   #########      Error:   build_model_proc() -", theErr
+		print "   #########      Error:   flask_app.build_model_proc() -", theErr
 		model_built_msg = "An error occurred while processing your request. Please try again at a later time. If the problem persists, please <a href='mailto:MLTimeseriesPlatform+Support@gmail.com' target='_blank'>contact the support team</a>."
 		
 		logging.exception("Error occurred during build_rf_model.build_model() call.")

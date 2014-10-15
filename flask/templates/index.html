@@ -621,7 +621,7 @@
 					var index = $('#tabs a[href="#buildModelTab"]').parent().index();
 					$('#tabs').tabs( "option", "active", false);
 						
-					$("#results_header").html("<b>Model Creation:</b>");
+					$("#results_header").html("<b>Model Creation for {{ model_name }}:</b>");
 					
 					
 					var checkStatus = setInterval(
@@ -677,6 +677,8 @@
 				
 				$(document).ready(function(){
 				
+					$('#results_header').html("<b>Generating features for new feature set {{ featureset_name }}:</b>");
+				
 					$('#tabs').tabs( "option", "active", false);
 					
 					var checkStatus = setInterval(
@@ -714,7 +716,7 @@
 				
 					$('#tabs').tabs( "option", "active", false);
 					
-					$("#results_header").html("<b>Prediction Results</b>");
+					$("#results_header").html("<b>Prediction Results for model {{ prediction_model_name }} - {{ model_type }}</b>");
 					
 					$("#model_build_results").html("<img src='/static/media/spinner_black.gif'> Featurizing your new time series data and performing model predictions.");
 					$("#status_div").html("<img src='/static/media/spinner_black.gif'> Featurizing your new time series data...");
