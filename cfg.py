@@ -1,36 +1,28 @@
 # cfg.py
 #
-# Config file for MLTP flask-based app.
+# Config file for MLTP flask app.
 #
 
 import sys, os
 
+# path to user's home directory
+home_str = os.path.expanduser("~")
+
+# Specify path to project directory:
+PATH_TO_PROJECT_DIRECTORY = os.path.join(home_str,"Dropbox/work_etc/mltp") 
 
 
 # Specify path to uploads, models, and feature folders:
-home_str = os.path.expanduser("~")
 UPLOAD_FOLDER = os.path.join(home_str,"Data/flask_mltp/flask_uploads")
 MODELS_FOLDER = os.path.join(home_str,"Data/flask_mltp/classifier_models")
 FEATURES_FOLDER = os.path.join(home_str,"Data/flask_mltp/extracted_features")
-PATH_TO_DATA_DIRECTORY = os.path.join(home_str,"Data/flask_mltp/")
-# Specify path to project directory:
-PATH_TO_PROJECT_DIRECTORY = os.path.join(home_str,"Dropbox/work_etc/mltp") 
+
 
 # Specify path to generate_science_features script in TCP:
 TCP_INGEST_TOOLS_PATH = os.path.join(PATH_TO_PROJECT_DIRECTORY,"TCP/Software/ingest_tools")
 
 
 ERR_LOG_PATH = os.path.join(home_str,"Data/flask_mltp/logs/errors_and_warnings.txt")
-
-
-
-
-PATH_TO_RETHINKDB_DATA = os.path.join(home_str,"rethinkdb_data")
-
-
-
-
-
 
 
 # Specify list of general time-series features to be used (must correspond to those in lc_tools.LightCurve object attributes):

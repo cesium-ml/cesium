@@ -1,9 +1,9 @@
-### README FOR MLWS ###
+### README FOR MLTP ###
 
 
 Flask app for machine learning web service. 
 
-This is a placeholder - much more to be added here!
+In progress - much more to be added here!
 
 
 
@@ -12,18 +12,30 @@ This is a placeholder - much more to be added here!
 
 
 0. System dependecies:
-	a. The following Python packages are required:
-		flask, flask-mail, flask-login, flask-googleauth, flask-oauth, flask-
-	b. 
+	a. The following Python packages (in addition to those that ship with Anaconda) are required:
+		flask rethinkdb beautifulsoup4 seaborn mpld3 requests flask-googleauth flask-oauth flask-mail flask-login simplejson psutil parse flask-restful
+	b. Install and configure Disco
+	c. Install and configure RethinkDB
+	d. Install and configure Docker - then build required images from Dockerfiles ("featurize", "build_model", "predict", "extract_custom_features")
+	e. Install and configure nginx
 
 1. Required configuration:
-	a. Find all instances of the following variables and set them to reflect your system architecture:
-			MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER
-		in the file cfg.py
-		
-		or leave as is and create the following directories:
-			~/Data/flask_mlws/flask_uploads
-			~/Data/flask_mlws/extracted_features
-			~/Data/flask_mlws/classifier_models
+	a. In the file cfg.py, locate the following variables and set them to reflect your system architecture:
 	
-	b. Path to project directory:
+		PATH_TO_PROJECT_DIRECTORY
+			
+			and
+			
+		MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER
+		
+			or leave as is and create the following directories:
+				~/Data/flask_mltp/flask_uploads
+				~/Data/flask_mltp/extracted_features
+				~/Data/flask_mltp/classifier_models
+				~/Data/flask_mltp/logs
+
+2. Starting the app
+	a. Run in debug mode:
+		python path/to/flask_app.py PORT_NUM  (e.g. "python ./flask_app.py 8000")
+	b. Run with debug = False:
+		python path/to/flask_app.py PORT_NUM  0 (e.g. "python ./flask_app.py 8000 0")
