@@ -26,7 +26,7 @@ In progress - much more to be added here!
 			
 			and
 			
-		MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER
+		MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER, ERR_LOG_PATH
 		
 			or leave as is and create the following directories:
 				~/Data/flask_mltp/flask_uploads
