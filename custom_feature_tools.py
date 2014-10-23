@@ -241,7 +241,7 @@ def docker_extract_features(script_fpath,features_already_known={},ts_datafile_p
 	try:
 		# the (linux) command to run our docker container which will automatically generate features:
 		cmd = ["docker", "run", 
-				"-v", "%s:/home/mltp" % cfg.PATH_TO_PROJECT_DIRECTORY, 
+				"-v", "%s:/home/mltp" % cfg.PROJECT_PATH, 
 				"-v", "%s:/home/mltp/copied_data_files" % path_to_tmp_dir, 
 				"--name=%s" % container_name, 
 				"extract_custom_features"]
@@ -287,7 +287,7 @@ def test_new_script(script_fname='testfeature1.py', script_fpath="here",docker_c
 	features_already_known_list = []
 	all_fnames = False
 	try:
-		all_fnames = glob.glob(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, ".sample_lcs/dotastro_*.dat"))[:1]
+		all_fnames = glob.glob(os.path.join(cfg.PROJECT_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
 	except:
 		pass
 			

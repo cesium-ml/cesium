@@ -68,7 +68,7 @@ def predict(newpred_file_path,model_name,model_type,featset_key,sepr=',',n_cols_
 		features_folder = cfg.FEATURES_FOLDER
 		models_folder = cfg.MODELS_FOLDER
 		uploads_folder = cfg.UPLOAD_FOLDER
-		path_to_project_directory = cfg.PATH_TO_PROJECT_DIRECTORY
+		path_to_project_directory = cfg.PROJECT_PATH
 	
 	if metadata_file_path is not None:
 		meta_features = {}
