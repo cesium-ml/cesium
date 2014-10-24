@@ -34,7 +34,7 @@ def featurize_in_docker_container(headerfile_path, zipfile_path, features_to_use
 	try:
 		# run the docker container 
 		cmd = ["docker", "run", 
-				"-v", "%s:/home/mltp" % cfg.PATH_TO_PROJECT_DIRECTORY, 
+				"-v", "%s:/home/mltp" % cfg.PROJECT_PATH, 
 				"-v", "%s:/home/mltp/copied_data_files" % path_to_tmp_dir, 
 				"-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"), 
 				"-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"), 
@@ -52,7 +52,7 @@ def featurize_in_docker_container(headerfile_path, zipfile_path, features_to_use
 			status_code = call(cmd, stdout=PIPE, stderr=PIPE)
 			print os.path.join(cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)), "copied to host machine - status code %s" % str(status_code)
 	
-		shutil.copy2(os.path.join(cfg.FEATURES_FOLDER,"%s_features_with_classes.csv"%featureset_key), os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY,"flask/static/data"))
+		shutil.copy2(os.path.join(cfg.FEATURES_FOLDER,"%s_features_with_classes.csv"%featureset_key), os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
 	
 		os.remove(os.path.join(cfg.FEATURES_FOLDER,"%s_features_with_classes.csv"%featureset_key))
 		
@@ -110,7 +110,7 @@ def build_model_in_docker_container(featureset_name, featureset_key, model_type)
 	try:
 		# run the docker container 
 		cmd = ["docker", "run", 
-				"-v", "%s:/home/mltp" % cfg.PATH_TO_PROJECT_DIRECTORY, 
+				"-v", "%s:/home/mltp" % cfg.PROJECT_PATH, 
 				"-v", "%s:/home/mltp/copied_data_files" % path_to_tmp_dir, 
 				"-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"), 
 				"-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"), 
@@ -186,7 +186,7 @@ def predict_in_docker_container(newpred_file_path,project_name,model_name,model_
 	try:
 	
 		cmd = ["docker", "run", 
-				"-v", "%s:/home/mltp"%cfg.PATH_TO_PROJECT_DIRECTORY, 
+				"-v", "%s:/home/mltp"%cfg.PROJECT_PATH, 
 				"-v", "%s:/home/mltp/copied_data_files"%path_to_tmp_dir, 
 				"-v", "%s:%s"%(cfg.FEATURES_FOLDER,"/Data/features"), 
 				"-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"), 
@@ -249,7 +249,7 @@ def disco_test():
 	try:
 		# run the docker container 
 		cmd = ["docker", "run", 
-				"-v", "%s:/home/mltp" % cfg.PATH_TO_PROJECT_DIRECTORY, 
+				"-v", "%s:/home/mltp" % cfg.PROJECT_PATH, 
 				"--name=%s" % container_name, 
 				"disco_test"]
 		process = Popen(cmd, stdout=PIPE, stderr=PIPE)

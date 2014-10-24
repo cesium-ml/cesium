@@ -496,7 +496,7 @@ def featurize(headerfile_path, zipfile_path, features_to_use=[], featureset_id="
 	
 	f.close()
 	f2.close()
-	if not in_docker_container: shutil.copy2(f2.name,os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY,"flask/static/data"))
+	if not in_docker_container: shutil.copy2(f2.name,os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
 	print "Done."
 	del objects
 	if not in_docker_container: os.remove(os.path.join(features_folder, "%s_features_with_classes.csv" % featureset_id))

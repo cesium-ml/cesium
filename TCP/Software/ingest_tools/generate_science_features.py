@@ -37,20 +37,21 @@ import cStringIO
 if currently_running_in_docker_container()==True:
 	os.environ["TCP_DIR"] = "/home/mltp/TCP/"
 else:
-	os.environ["TCP_DIR"] = home_str+"/Dropbox/work_etc/mltp/TCP/"
+    import cfg
+    os.environ["TCP_DIR"] = os.path.join(cfg.TCP_INGEST_TOOLS_PATH, '../../')
+
 #from rpy2.robjects.packages import importr
 #from rpy2 import robjects
-sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-                                      'Software/feature_extract'))
-sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-              'Software/feature_extract/Code'))
+TCP_DIR = os.environ["TCP_DIR"]
+sys.path.append(os.path.join(TCP_DIR, 'Software/feature_extract'))
+sys.path.append(os.path.join(TCP_DIR, 'Software/feature_extract/Code'))
 from Code import *
 import db_importer
 
-sys.path.append(os.environ.get('TCP_DIR') + '/Software/feature_extract/MLData')
+sys.path.append(os.path.join(TCP_DIR, 'Software/feature_extract/MLData'))
 import arffify
 
-algo_code_dirpath = os.path.abspath(os.environ.get("TCP_DIR")+'Algorithms')
+algo_code_dirpath = os.path.abspath(os.path.join(TCP_DIR, 'Algorithms'))
 sys.path.append(algo_code_dirpath)
 #import rpy2_classifiers
 

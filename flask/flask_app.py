@@ -13,10 +13,8 @@ sys_admin_emails = ['a.crellinquick@gmail.com']
 
 
 # set the path to the project directory (default is in /home/user/Dropbox/..., but to be changed for each machine)
-PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mltp")
-sys.path.append(PATH_TO_PROJECT_DIRECTORY)
-
 import cfg
+sys.path.append(cfg.PROJECT_PATH)
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import shutil
@@ -235,7 +233,7 @@ def results_str():
 
 
 
-def dbSetup():
+def db_init():
 	'''Creates rethinkDB tables.
 	'''
 	connection = r.connect(host=RDB_HOST, port=RDB_PORT)
@@ -821,7 +819,7 @@ def delete_project(project_name):
 					print "delete_project() - " + str(err)
 					logging.exception("Tried to delete a file that does not exist.")
 				try:
-					os.remove(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, "flask/static/data/%s_features_with_classes.csv"%features_key))
+					os.remove(os.path.join(cfg.PROJECT_PATH, "flask/static/data/%s_features_with_classes.csv"%features_key))
 				except Exception as err:
 					print "delete_project() - " + str(err)
 					logging.exception("Tried to delete a file that does not exist.")
@@ -999,7 +997,7 @@ def update_project_info(orig_name,new_name,new_desc,new_addl_authed_users,delete
 				print theErr
 				logging.exception("Tried to delete a file that does not exist.")
 			try:
-				os.remove(os.path.join(cfg.PATH_TO_PROJECT_DIRECTORY, "flask/static/data/%s_features_with_classes.csv"%features_key))
+				os.remove(os.path.join(cfg.PROJECT_PATH, "flask/static/data/%s_features_with_classes.csv"%features_key))
 			except Exception as theErr:
 				print theErr
 				logging.exception("Tried to delete a file that does not exist.")
@@ -2536,35 +2534,21 @@ def get_lc_data():
 
 
 
-
-
-
-
 if __name__ == '__main__':
-	if len(sys.argv) >= 2:
-		if sys.argv[1].isdigit():
-			portnum = int(sys.argv[1])
-		else:
-			portnum = int(raw_input("Port:"))
-		
-		if len(sys.argv) >= 3:
-			if sys.argv[2].isdigit():
-				try:
-					debug = bool(int(sys.argv[2]))
-				except Exception as theError:
-					print theError, "- setting debug = False."
-					debug = False
-		else:
-			debug = True
-	else:
-		portnum = int(raw_input("Port:"))
-	print "debug =", debug
-	
-	if "--dbSetup" in sys.argv:
-		dbSetup()
-	
-	
-	
-	
-	app.run(port=portnum,debug=debug,threaded=True)#host="0.0.0.0")#
+    import argparse
 
+    parser = argparse.ArgumentParser(description='MLTP web server')
+    parser.add_argument('--port', type=int, default=8000,
+                        help='Port number (default 8000)')
+    parser.add_argument('--host', type=str, default='127.0.0.1',
+                        help='Address to listen on (default 127.0.0.1)')
+    parser.add_argument('--debug', action='store_true',
+                        help='Enable debugging (default: False)')
+    parser.add_argument('--dbinit', action='store_true',
+                        help='Initialize the database')
+    args = parser.parse_args()
+
+    if args.dbinit:
+        db_init()
+
+    app.run(port=args.port, debug=args.debug, host=args.host, threaded=True)

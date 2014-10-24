@@ -103,9 +103,8 @@ def pred_featurize_reduce(iter, params):
 	import uuid
 	import os
 	import sys
-	PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mltp")
-	sys.path.append(PATH_TO_PROJECT_DIRECTORY)
 	import cfg
+	sys.path.append(cfg.PROJECT_PATH)
 	sys.path.append("/home/mltp/TCP/Software/ingest_tools") # for when run from inside docker container
 	sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 	import custom_exceptions
@@ -225,9 +224,8 @@ def featurize_reduce(iter, params):
 		print "fname: " + fname + ", class_name: " + class_name
 		import os
 		import sys
-		PATH_TO_PROJECT_DIRECTORY = os.path.join(os.path.expanduser("~"), "Dropbox/work_etc/mltp")
-		sys.path.append(PATH_TO_PROJECT_DIRECTORY)
 		import cfg
+		sys.path.append(cfg.PROJECT_PATH)
 		sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 		sys.path.append("/home/mltp/TCP/Software/ingest_tools") # for when run in docker container
 		
