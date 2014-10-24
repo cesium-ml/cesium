@@ -4,14 +4,14 @@
 #
 
 from __future__ import print_function
-import os
+import os, sys
 
 # path to user's home directory
 HOME_DIRECTORY = os.path.expanduser("~")
 
 # Specify path to project directory:
-PROJECT_PATH = os.path.join(HOME_DIRECTORY, "akad/projekte/MLTP")
-DATA_PATH = os.path.join(PROJECT_PATH, "Data")
+PROJECT_PATH = os.path.join(HOME_DIRECTORY, "Dropbox/work_etc/mltp")
+DATA_PATH = os.path.join(HOME_DIRECTORY, "Data")
 
 
 # Specify path to uploads, models, and feature folders:
