@@ -14,14 +14,14 @@ home_str+/Dropbox/work_etc/mltp/TCP/Software/ingest_tools/generate_science_featu
 
 
 def currently_running_in_docker_container():
-	import subprocess
-	proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
-	output = proc.stdout.read()
-	if "/docker/" in output:
-		in_docker_container=True
-	else:
-		in_docker_container=False
-	return in_docker_container
+    import subprocess
+    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    output = proc.stdout.read()
+    if "/docker/" in output:
+        in_docker_container=True
+    else:
+        in_docker_container=False
+    return in_docker_container
 
 
 
@@ -35,7 +35,7 @@ home_str = os.path.expanduser("~")
 import urllib
 import cStringIO
 if currently_running_in_docker_container()==True:
-	os.environ["TCP_DIR"] = "/home/mltp/TCP/"
+    os.environ["TCP_DIR"] = "/home/mltp/TCP/"
 else:
     import cfg
     os.environ["TCP_DIR"] = os.path.join(cfg.TCP_INGEST_TOOLS_PATH, '../../')
@@ -57,7 +57,7 @@ sys.path.append(algo_code_dirpath)
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+    <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -77,11 +77,11 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+            <TimeType ucd="frame.time.system?">MJD</TimeType> 
+            <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+            <TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+            <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+        </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -236,7 +236,7 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
             print "generate_science_features::generate():", theError, "... Returning {}..."
             return {}
     elif timeseries_url != "": # a url is provided to return the ts data
-		
+        
         if timeseries_url not in ["","5125"]:
             print timeseries_url
         else:
@@ -245,7 +245,7 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
                 return {}
             print "lcs_classif.py - sys.argv[1] =", sys.argv[1]
         timeseries_url = sys.argv[1]
-	
+    
     
         try:
             f = urllib.urlopen(timeseries_url)
