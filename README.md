@@ -26,8 +26,13 @@
      cd disco
      make
      cd lib && python setup.py install && cd ..
-     bin/disco nodaemon
      ```
+
+     Launch Disco using: ``bin/disco nodaemon``
+
+     Navigate to ``localhost:8989``, click "configure" and ensure that
+     an entry for "localhost" exists under "Available nodes".  If not,
+     add one with the corresponding number of cores as the "workers" value.
 
    * Install RethinkDB
 
@@ -67,7 +72,7 @@
 
    First, initialize the database:
 
-   ``PYTHONPATH="." python flask/flask_app.py --dbinit``
+   ``PYTHONPATH="." python flask/flask_app.py --db-init``
 
    Invoke the app either in **standard** mode or in **debug mode**:
 
