@@ -51,10 +51,10 @@ try:
 	from disco.core import Job, result_iterator
 	from disco.util import kvgroup
 	DISCO_INSTALLED = True
-	print "DISCO_INSTALLED = True"
 except Exception as theError:
 	print theError
 	DISCO_INSTALLED = False
+	print "Warning: no installation of Disco found"
 
 import pandas as pd
 import tables
@@ -97,7 +97,7 @@ auth.force_auth_on_every_request = False
 app.config['UPLOAD_FOLDER'] = cfg.UPLOAD_FOLDER
 
 
-logging.basicConfig(filename=cfg.ERR_LOG_PATH,level=logging.WARNING)
+logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 
 #logging.warning("SSS")
 
@@ -228,32 +228,43 @@ def results_str():
 
 
 
+def db_init(force=False):
+    '''Creates rethinkDB tables.
+    '''
+    try:
+        connection = r.connect(host=RDB_HOST, port=RDB_PORT)
+    except RqlDriverError as e:
+        print 'db_init:', e.message
+        if 'not connect' in e.message:
+            print 'Launch the database by executing `rethinkdb`.'
+        return
 
+    if force:
+        try:
+            r.db_drop(MLWS_DB).run(connection)
+        except:
+            pass
 
+    try:
+        r.db_create(MLWS_DB).run(connection)
+    except RqlRuntimeError as e:
+        print 'db_init:', e.message
+        print 'The table may already exist.  Specify the --force flag ' \
+              'to clear existing data.'
+        return
 
+    table_names = ['projects', 'users', 'features',
+                   'models', 'userauth', 'predictions']
 
+    db = r.db(MLWS_DB)
 
-def db_init():
-	'''Creates rethinkDB tables.
-	'''
-	connection = r.connect(host=RDB_HOST, port=RDB_PORT)
-	try:
-		r.db_create(MLWS_DB).run(connection)
-		
-		table_names = ['projects','users','features','models','userauth','predictions']
-		
-		for table_name in table_names:
-			r.db(MLWS_DB).table_create(table_name).run(connection)
-		print 'Database setup completed. Now run the app without --setup.'
-	except RqlDriverError:
-		print 'App database already exists. Run the app without --setup.'
-	finally:
-		connection.close()
+    for table_name in table_names:
+        print 'Creating table', table_name
+        result = db.table_create(table_name).run(connection)
 
+    connection.close()
 
-
-
-
+    print 'Database setup completed.'
 
 
 
@@ -1335,44 +1346,21 @@ def get_list_of_featuresets_by_project(project_name=None):
 
 
 
-
-
-
-
-
-
-
-
-
 @app.route('/get_list_of_models_by_project',methods=['POST','GET'])
 @app.route('/get_list_of_models_by_project/<project_name>',methods=['POST','GET'])
 def get_list_of_models_by_project(project_name=None):
 	'''Returns (in JSON form) list of models associated with project_name parameter.
 	'''
 	if request.method=='GET':
-		if project_name==None:
+		if project_name is None:
 			try:
 				project_name = str(request.form["project_name"]).strip()
 			except:
 				return jsonify({"model_list":[]})
-		
+
 		project_name = project_name.split(" (created")[0]
 		model_list = list_models(auth_only=False,by_project=project_name,name_only=False,with_type=True)
 		return jsonify({"model_list":model_list})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2544,11 +2532,15 @@ if __name__ == '__main__':
                         help='Address to listen on (default 127.0.0.1)')
     parser.add_argument('--debug', action='store_true',
                         help='Enable debugging (default: False)')
-    parser.add_argument('--dbinit', action='store_true',
+    parser.add_argument('--db-init', action='store_true',
                         help='Initialize the database')
+    parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
 
-    if args.dbinit:
-        db_init()
+    if args.db_init:
+        db_init(force=args.force)
+        sys.exit(0)
 
+    print "Launching server on %s:%s" % (args.host, args.port)
+    print "Logging to:", cfg.ERR_LOG_PATH
     app.run(port=args.port, debug=args.debug, host=args.host, threaded=True)
