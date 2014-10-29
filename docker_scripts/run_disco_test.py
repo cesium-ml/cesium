@@ -16,6 +16,17 @@ def disco_test():
     
     To be run inside Docker container.
     '''
+    process = Popen(["/usr/bin/supervisord"])
+    time.sleep(2)
+    
+    process = Popen(["ps", "aux"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    print "beam", ("IS" if "beam" in str(stdout) else "is NOT"),\
+          "in 'ps aux' output"
+    print "epmd", ("IS" if "epmd" in str(stdout) else "is NOT"),\
+          "in 'ps aux' output"
+    print "\n\n\n", stdout, "\n\n\n"
+    
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     print "stdout and stderr for 'disco status' command: \n", \
@@ -26,6 +37,13 @@ def disco_test():
         #process = Popen(["/start_disco"], stdout=PIPE, stderr=PIPE)
         #stdout, stderr = process.communicate()
         #print stdout,"\n\n\n",stderr
+        
+        #print "Calling '/disco/bin/disco nodaemon -v':"
+        #status_code = Popen(["/disco/bin/disco", "nodaemon", "-v"])
+        #process = Popen(["/start_disco"], stdout=PIPE, stderr=PIPE)
+        #stdout, stderr = process.communicate()
+        #print stdout,"\n\n\n",stderr
+        
         
         process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
