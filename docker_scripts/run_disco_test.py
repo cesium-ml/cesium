@@ -7,9 +7,9 @@ import sys
 import os
 sys.path.append("/home/mltp")
 import build_rf_model
-
 from subprocess import Popen, PIPE, call
 import cPickle
+
 
 def disco_test():
     '''See if Disco runs correctly inside Docker container.
@@ -45,8 +45,6 @@ def disco_test():
                    "calling '/start_disco': \n"), stdout,"\n\n",stderr
         
     return ""
-
-
 
 
 if __name__=="__main__":
