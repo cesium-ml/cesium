@@ -155,7 +155,7 @@ class lightCurve:
         self.all_times_bins = bins
         self.all_times_hist_peak_val = np.max(hist)
         self.all_times_hist_peak_bin = np.where(
-            hist==self.all_times_hist_peak_val)[0][0]
+            hist == self.all_times_hist_peak_val)[0][0]
         self.all_times_hist_normed = nhist
         self.all_times_bins_normed = bins/np.max(self.all_times)
         self.all_times_nhist_peak_val = np.max(nhist)
@@ -706,13 +706,13 @@ def getLocalLc(filename, classname='unknown', sep=',',
         lcdata = filename
         for i in range(len(lcdata)):
             try:
-                if len(lcdata[i])==2 and add_errors:
+                if len(lcdata[i]) == 2 and add_errors:
                     lcdata[i] = lcdata[i] + ["1.0"]
                 lcdata[i] = ','.join(lcdata[i])
             except TypeError:
                 for j in range(len(lcdata[i])):
                     lcdata[i][j] = str(lcdata[i][j])
-                if len(lcdata[i])==2 and add_errors:
+                if len(lcdata[i]) == 2 and add_errors:
                     lcdata[i] = lcdata[i] + ["1.0"]
                 lcdata[i] = ','.join(lcdata[i])
     else:

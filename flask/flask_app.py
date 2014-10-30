@@ -370,7 +370,7 @@ def get_current_userkey():
     for entry in cursor:
         n_entries += 1
         entries.append(entry)
-    if len(entries)==0:
+    if len(entries) == 0:
         print ("ERROR!!! get_current_userkey() - no matching entries in users "
             "table with email"), g.user['email']
         raise Exception(("dbError - No matching entries in users table for "
@@ -466,10 +466,10 @@ def list_featuresets(
                     entry['name'] + 
                     (
                         " (created %s PST)"%str(entry['created'])[:-13] 
-                        if name_only==False else ""))
+                        if not name_only else ""))
         return authed_featuresets
     else:
-        if len(authed_proj_keys)==0:
+        if len(authed_proj_keys) == 0:
             return []
         authed_featuresets = []
         for this_projkey in authed_proj_keys:
@@ -481,7 +481,7 @@ def list_featuresets(
                 authed_featuresets.append(
                     entry['name'] + 
                     (" (created %s PST)"%str(entry['created'])[:-13] 
-                        if name_only==False else ""))
+                        if not name_only else ""))
         
         return authed_featuresets
 
@@ -548,7 +548,7 @@ def list_models(
                     + (" - %s"%str(entry['type']) if with_type else "") 
                     + (
                         " (created %s PST)"%str(entry['created'])[:-13] 
-                        if name_only==False else "") 
+                        if not name_only else "") 
                     + (
                         " meta_feats=%s" % ",".join(entry['meta_feats']) 
                         if 'meta_feats' in entry and entry['meta_feats'] 
@@ -570,7 +570,7 @@ def list_models(
                     + (" - %s"%str(entry['type']) if with_type else "") 
                     + (
                         " (created %s PST)"%str(entry['created'])[:-13] 
-                        if name_only==False else "") 
+                        if not name_only else "") 
                     + (
                         " meta_feats=%s" % ",".join(entry['meta_feats']) 
                         if 'meta_feats' in entry and entry['meta_feats'] 
@@ -654,7 +654,7 @@ def list_predictions(
     else:
         authed_proj_keys = (
             get_authed_projkeys() if auth_only else get_all_projkeys())
-        if len(authed_proj_keys)==0:
+        if len(authed_proj_keys) == 0:
             return []
         predictions = []
         for this_projkey in authed_proj_keys:
@@ -682,7 +682,7 @@ def get_list_of_projects():
     '''Returns list of project names (strings) that the current user is 
     authenticated to access. Called from browser to populate select options.
     '''
-    if request.method=='GET':
+    if request.method == 'GET':
         list_of_projs = list_projects(name_only=True)
         return jsonify({'list':list_of_projs})
 
@@ -699,7 +699,7 @@ def list_projects(auth_only=True,name_only=False):
         created, respectively.
     '''
     proj_keys = (get_authed_projkeys() if auth_only else get_all_projkeys())
-    if len(proj_keys)==0:
+    if len(proj_keys) == 0:
         return []
     proj_names = []
     for entry in (
@@ -709,7 +709,7 @@ def list_projects(auth_only=True,name_only=False):
             entry['name'] 
             + (
                 " (created %s PST)"%str(entry['created'])[:-13] 
-                if name_only==False else ""))
+                if not name_only else ""))
     return proj_names
 
 
@@ -720,7 +720,7 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
     '''
     if user_email in ["auto",None,"None","none","Auto"]:
         user_email = get_current_userkey()
-    if type(addl_authed_users)==str:
+    if type(addl_authed_users) == str:
         if addl_authed_users.strip() in [",",""]:
             addl_authed_users = []
     new_projkey = r.table("projects").insert({
@@ -840,7 +840,7 @@ def delete_project(project_name):
             "#######  WARNING: DELETING MORE THAN ONE PROJECT WITH NAME %s. "
             "DELETING PROJECTS WITH KEYS %s  ########") % (
             project_name, ", ".join(proj_keys))
-    elif len(proj_keys)==0:
+    elif len(proj_keys) == 0:
         print (
             "####### WARNING: flask_app.delete_project() - NO PROJECT "
             "WITH NAME %s.") % project_name
@@ -970,7 +970,7 @@ def get_project_details(project_name):
     for entry in cursor:
         entries.append(entry)
     
-    if len(entries)==1:
+    if len(entries) == 1:
         proj_info = entries[0]
         cursor = (
             r.table("userauth")
@@ -993,7 +993,7 @@ def get_project_details(project_name):
         "WITH NAME %s. ######") % project_name
         return False
     
-    elif len(entries)==0:
+    elif len(entries) == 0:
         print ("###### get_project_details() - ERROR: NO PROJECTS WITH "
         "NAME %s. ######") % project_name
         return False
@@ -1390,9 +1390,11 @@ def newProject(
         try:
             proj_name = proj_name.strip()
             proj_description = (proj_description.strip() if 
-                                type(proj_description)==str else "")
-            addl_users = (addl_users.strip() if type(addl_users)==str else "")
-            user_email = (user_email.strip() if type(user_email)==str else "")
+                                type(proj_description) == str else "")
+            addl_users = (addl_users.strip() if 
+                          type(addl_users) == str else "")
+            user_email = (user_email.strip() if 
+                          type(user_email) == str else "")
             if user_email == "":
                 return jsonify({
                     "result":("Required parameter 'user_email' must be a "
@@ -1400,13 +1402,13 @@ def newProject(
         except:
             return jsonify({"result":"Invalid project title."})
         
-        if proj_name=="":
+        if proj_name == "":
             return jsonify({
                 "result":("Project title must contain non-whitespace "
                           "characters. Please try another name.")})
         
         addl_users = str(addl_users).split(',')
-        if addl_users==[''] or addl_users==[' '] or addl_users==["None"]:
+        if addl_users == [''] or addl_users == [' '] or addl_users == ["None"]:
             addl_users = []
         
         new_projkey = add_project(
@@ -1420,14 +1422,14 @@ def newProject(
     
     if request.method == 'POST': # regular form POST submission being used
         proj_name = str(request.form["new_project_name"]).strip()
-        if proj_name=="":
+        if proj_name == "":
             return jsonify({
                 "result":("Project title must contain at least one "
                           "non-whitespace character. Please try another name.")
             })
         proj_description = str(request.form["project_description"])
         addl_users = str(request.form["addl_authed_users"]).split(',')
-        if addl_users==[''] or addl_users==[' ']:
+        if addl_users == [''] or addl_users == [' ']:
             addl_users = []
         if "user_email" in request.form:
             user_email = str(request.form["user_email"])
@@ -1435,9 +1437,9 @@ def newProject(
             user_email="auto" # will be determined through Flask 
         
         proj_description = (proj_description.strip() if 
-            type(proj_description)==str else "")
-        addl_users = (addl_users.strip() if type(addl_users)==str else "")
-        user_email = (user_email.strip() if type(user_email)==str else "")
+            type(proj_description) == str else "")
+        addl_users = (addl_users.strip() if type(addl_users) == str else "")
+        user_email = (user_email.strip() if type(user_email) == str else "")
         if user_email == "":
             return jsonify({
                 "result":("Required parameter 'user_email' must be a valid "
@@ -1463,11 +1465,11 @@ def editOrDeleteProject():
             .split(" (created ")[0].strip())
         action = str(request.form["action"])
         
-        if action=="Edit":
+        if action == "Edit":
             proj_info = get_project_details(proj_name)
             if proj_info != False:
                 return jsonify(proj_info)
-        elif action=="Delete":
+        elif action == "Delete":
             result = delete_project(proj_name)
             print result
             return jsonify({"result":"Deleted %s project(s)."%result})
@@ -1517,8 +1519,8 @@ def get_list_of_featuresets_by_project(project_name=None):
     '''Returns (in JSON form) list of featuresets associated with 
     project_name parameter.
     '''
-    if request.method=='GET':
-        if project_name==None:
+    if request.method == 'GET':
+        if project_name == None:
             try:
                 project_name = str(request.form["project_name"]).strip()
             except:
@@ -1538,8 +1540,8 @@ def get_list_of_models_by_project(project_name=None):
     '''Returns (in JSON form) list of models associated with 
     project_name parameter.
     '''
-    if request.method=='GET':
-        if project_name==None:
+    if request.method == 'GET':
+        if project_name == None:
             try:
                 project_name = str(request.form["project_name"]).strip()
             except:
@@ -1809,16 +1811,16 @@ def uploadDataFeaturize(
         print "Selected features:", features_to_use
         try:
             email_user = request.form["email_user"]
-            if email_user=="True":
+            if email_user == "True":
                 email_user = True
         except: # unchecked
-            email_user=False
+            email_user = False
         try:
             is_test = request.form["is_test"]
-            if is_test=="True":
+            if is_test == "True":
                 is_test = True
         except: # unchecked
-            is_test=False
+            is_test = False
         
         #headerfile_name = secure_filename(headerfile.filename)
         #zipfile_name = secure_filename(zipfile.filename)
@@ -2023,7 +2025,7 @@ def featurizationPage(
     '''
     
     projkey = project_name_to_key(project_name)
-    if already_featurized==True and zipfile_name==None: 
+    if already_featurized == True and zipfile_name == None: 
         # user is uploading pre-featurized data, without timeseries data
         features_filename = headerfile_name
         features_filepath = os.path.join(

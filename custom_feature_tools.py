@@ -331,13 +331,13 @@ def test_new_script(
             os.path.join(cfg.PROJECT_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
     except:
         pass
-    if (is_running_in_docker_container()==True and 
-            (not all_fnames or len(all_fnames)==0) and False):
+    if (is_running_in_docker_container() and 
+            (not all_fnames or len(all_fnames) == 0) and False):
         try:
             all_fnames = glob.glob("/home/mltp/.sample_lcs/dotastro_*.dat")[:1]
         except:
             all_fnames = False
-    if not all_fnames or len(all_fnames)==0:
+    if not all_fnames or len(all_fnames) == 0:
         print "all_fnames:", all_fnames
         raise Exception("No test lc files read in...")
     else:
@@ -353,7 +353,7 @@ def test_new_script(
     all_extracted_features_list = []
     
     for known_featset in features_already_known_list:
-        if docker_installed()==True:
+        if docker_installed():
             print "Extracting features inside docker container..."
             newfeats = docker_extract_features(
                 script_fpath=script_fpath, 
@@ -407,10 +407,10 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
     for line in f:
         line=line.strip()
         if linecount >= skip_lines:
-            if len(line.split(sep))==3:
+            if len(line.split(sep)) == 3:
                 ti,mi,ei = line.split(sep)
                 t.append(float(ti)); m.append(float(mi)); e.append(float(ei))
-            elif len(line.split(sep))==2:
+            elif len(line.split(sep)) == 2:
                 ti,mi = line.split(sep)
                 t.append(float(ti)); m.append(float(mi))
             else:
@@ -442,16 +442,16 @@ def generate_custom_features(
         raise Exception("Neither path_to_csv nor ts_data provided...")
     features_already_known['t'] = t
     features_already_known['m'] = m
-    if e and len(e)==len(m):
+    if e and len(e) == len(m):
         features_already_known['e'] = e
     
-    if is_running_in_docker_container()==True:
+    if is_running_in_docker_container():
         all_new_features = execute_functions_in_order(
                 script_fname=custom_script_path.split("/")[-1],
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
     else:
-        if docker_installed() == True:
+        if docker_installed():
             print "Generating custom features inside docker container..."
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,

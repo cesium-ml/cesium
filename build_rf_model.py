@@ -132,13 +132,13 @@ def build_model(
         line = data_dict['features'][i]
         if len(line) not in line_lens:
             line_lens.append(len(line))
-            if len(line)==1:
+            if len(line) == 1:
                 indices_for_deletion.append(i)
         line_no += 1
     print line_no, "total lines in features csv."
     print "line_lens:", line_lens
     print len(data_dict['features'])
-    if len(indices_for_deletion)==1:
+    if len(indices_for_deletion) == 1:
         del data_dict['features'][indices_for_deletion[0]]
         del data_dict['classes'][indices_for_deletion[0]]
     print len(data_dict['features'])
@@ -161,7 +161,7 @@ def build_model(
     # store the model:
     print "Pickling model..."
     foutname = os.path.join(
-        ("/tmp" if in_docker_container==True else models_folder), 
+        ("/tmp" if in_docker_container else models_folder), 
         "%s_%s.pkl" % (featureset_key,model_type))
     joblib.dump(rf_fit,foutname,compress=3)
     print foutname, "created."
@@ -266,7 +266,7 @@ def featurize(
                     for i in range(len(keys)):
                         objects[-1][keys[i]] = vals[i]
     else: # EXTRACT FEATURES::
-        if len(features_to_use)==0:
+        if len(features_to_use) == 0:
             features_to_use = all_features_list
         with open(headerfile_path,'r') as headerfile:
             fname_class_dict = {}
@@ -284,7 +284,7 @@ def featurize(
                     features_to_use += other_metadata_labels
                 else:
                     if len(line) > 1 and line[0] not in ["#","\n"]:
-                        if len(line.split(','))==2:
+                        if len(line.split(',')) == 2:
                             fname,class_name = line.strip('\n').split(',')
                             fname_class_dict[fname] = class_name
                             fname_class_science_features_dict[fname] = {
@@ -410,10 +410,10 @@ def featurize(
         features_to_plot = cfg.features_to_plot
     foutname = os.path.join(features_folder, "%s.pkl" % featureset_id)
     f = open(os.path.join(
-        ("/tmp" if in_docker_container==True else features_folder),
+        ("/tmp" if in_docker_container else features_folder),
          "%s_features.csv" % featureset_id),'w')
     f2 = open(os.path.join(
-        ("/tmp" if in_docker_container==True else features_folder),
+        ("/tmp" if in_docker_container else features_folder),
          "%s_features_with_classes.csv" % featureset_id),'w')
     line = []
     line2 = ['class']
@@ -499,7 +499,7 @@ def featurize(
         os.remove(os.path.join(
             features_folder, "%s_features_with_classes.csv" % featureset_id))
     joblib.dump(classes,os.path.join(
-        ("/tmp" if in_docker_container==True else features_folder),
+        ("/tmp" if in_docker_container else features_folder),
         "%s_classes.pkl" % featureset_id),compress=3)
     print foutname.replace(".pkl","_features.csv"), "and", \
         foutname.replace(".pkl","_features_with_classes.csv"), "and", \
