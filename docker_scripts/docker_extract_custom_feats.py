@@ -2,7 +2,6 @@
 
 # to be run from INSIDE a docker container
 
-
 #import subprocess
 import sys
 sys.path.append("/home/mltp")
@@ -12,8 +11,13 @@ import custom_feature_tools as cft
 import cPickle
 
 def extract_custom_feats():
+    '''Load pickled parameters and call cft.execute_functions_in_order()
+    
+    To be run from inside a Docker container.
+    '''
     # load pickled ts_data and known features
-    with open("/home/mltp/copied_data_files/features_already_known.pkl","rb") as f:
+    with open("/home/mltp/copied_data_files/features_already_known.pkl","rb") \
+         as f:
         features_already_known = cPickle.load(f)
 
     # script has been copied to the following location:
@@ -21,19 +25,16 @@ def extract_custom_feats():
     script_fname = "custom_feature_defs.py"
     
     # extract features
-    feats = cft.execute_functions_in_order(script_fname=script_fname,features_already_known=features_already_known,script_fpath=script_fpath)
+    feats = cft.execute_functions_in_order(
+        script_fname=script_fname, 
+        features_already_known=features_already_known, 
+        script_fpath=script_fpath)
     
     with open("/tmp/results_dict.pkl", "wb") as f:
         cPickle.dump(feats, f)
     
     print "Created /tmp/results_dict.pkl in docker container."
     return 0
-
-
-
-
-
-
 
 
 

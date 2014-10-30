@@ -24,14 +24,15 @@ FEATURES_FOLDER = os.path.join(DATA_PATH, "flask_mltp/extracted_features")
 TCP_INGEST_TOOLS_PATH = os.path.join(PROJECT_PATH, "TCP/Software/ingest_tools")
 
 
-ERR_LOG_PATH = os.path.join(DATA_PATH, "flask_mltp/logs/errors_and_warnings.txt")
+ERR_LOG_PATH = os.path.join(
+    DATA_PATH, "flask_mltp/logs/errors_and_warnings.txt")
 
 
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
 
 features_list = [
-    "n_epochs","avg_err","med_err","std_err", #not using: "start","end",#not always provided: "ra","dec",
+    "n_epochs","avg_err","med_err","std_err", 
     "total_time","avgt","cads_std","avg_mag",
     "cads_avg","cads_med","cad_probs_1",
     "cad_probs_10","cad_probs_20","cad_probs_30",
@@ -182,9 +183,24 @@ features_to_plot = [
     "freq1_harmonics_rel_phase_1"]
 
 
+
+
+def currently_running_in_docker_container():
+    import subprocess
+    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    output = proc.stdout.read()
+    if "/docker/" in output:
+        in_docker_container=True
+    else:
+        in_docker_container=False
+    return in_docker_container
+
+
+
 if not os.path.exists(PROJECT_PATH):
-    print("Non-existing project path specified")
-    sys.exit(-1)
+    print("cfg.py: Non-existing project path specified")
+    if currently_running_in_docker_container() == False:
+        sys.exit(-1)
 
 for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
              ERR_LOG_PATH):
