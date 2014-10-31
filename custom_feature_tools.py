@@ -101,10 +101,9 @@ class DummyFile(object):
 
 
 def execute_functions_in_order(
-        script_fname='testfeature1.py',
+        script_fpath="testfeature1.py",
         features_already_known={
-            "t":[1,2,3], "m":[1,23,2], "e":[0.2,0.3,0.2], "coords":[22,33]},
-        script_fpath="here"):
+            "t":[1,2,3], "m":[1,23,2], "e":[0.2,0.3,0.2], "coords":[22,33]}):
     '''Generate custom features defined in script_fname.
     
     Parses the script (which must have function definitions with 
@@ -115,7 +114,13 @@ def execute_functions_in_order(
     otherwise raises an Exception. 
     
     Args:
-        script_fname (str): 
+        script_fpath (str): Path to custom feature definitions script.
+        features_already_known (dict): Dictionary providing all 
+            time-series data (time (t), magnitude (m), error (e)) and 
+            any meta-features.
+            Example:
+                {"t": [1, 2, 3], "m": [10.32, 11.41, 11.06], 
+                 "e": [0.2015,0.3134,0.2953], "coords": [22.55,33.01]}
     
     Returns:
         dict of all extracted features (key-value pairs are feature name
@@ -123,22 +128,25 @@ def execute_functions_in_order(
     '''
     # For when run inside Docker container:
     import sys
+    import os
     sys.path.append("/home/mltp")
-    
-    if script_fpath != "here":
-        import sys
-        sys.path.append(script_fpath.replace("/"+script_fname,""))
-    else:
-        script_fpath = script_fname
+    script_fname = script_fpath.split("/")[-1]
+    if script_fpath == "testfeature1.py":
+        script_fpath = os.path.join(os.path.dirname(os.path.abspath(
+            inspect.getfile(inspect.currentframe()))), "testfeature1.py")
+    script_dir = script_fpath.replace("/"+script_fname,"")
+    if script_dir != cfg.PROJECT_PATH:
+        sys.path.append(script_dir)
     thismodule = __import__(script_fname.replace(".py",""))
     try:
         with open(script_fpath) as f:
             all_lines = f.readlines()
     except IOError:
-        with open("/home/mltp/"+script_fname) as f:
-            all_lines = f.readlines()
-    
-    
+        if is_running_in_docker_container():
+            with open("/home/mltp/"+script_fname) as f:
+                all_lines = f.readlines()
+        else:
+            raise
     fnames_req_prov_dict = {}
     all_required_params = []
     all_provided_params = []
@@ -166,7 +174,6 @@ def execute_functions_in_order(
                 "Not all of the required parameters are provided by the "
                 "functions in this script (required parameter '%s').") %
                 str(reqd_param))
-    
     funcs_round_1 = []
     func_queue = []
     funcnames = fnames_req_prov_dict.keys()
@@ -176,14 +183,12 @@ def execute_functions_in_order(
     # redirect stdout temporarily:
     save_stdout = sys.stdout
     sys.stdout = DummyFile()
-    
     while len(funcnames) > 0:
         func_rounds[str(i)] = []
         for funcname in funcnames:
             reqs_provs_dict = fnames_req_prov_dict[funcname]
             reqs = reqs_provs_dict['requires']
             provs = reqs_provs_dict['provides']
-            
             if len(set(all_required_params) & set(reqs)) > 0:
                 func_queue.append(funcname)
             else:
@@ -203,14 +208,11 @@ def execute_functions_in_order(
         i+=1
     # revert to original stdout
     sys.stdout = save_stdout
-    
     return all_extracted_features
 
 
 def docker_installed():
-    '''Returns boolean indicating whether or not Docker seems to be 
-    installed on the system.
-    '''
+    '''Return boolean indicating whether Docker is installed.'''
     from subprocess import call, PIPE
     try:
         x=call(["docker"], stdout=PIPE,stderr=PIPE)
@@ -220,18 +222,41 @@ def docker_installed():
 
 
 def docker_extract_features(
-    script_fpath, features_already_known={}, 
-    ts_datafile_path=None, ts_data=None):
-    '''
-    Spins up a docker container which does all the script 
-    excecution/feature extraction inside, and whose output is captured 
-    and returned here. 
+        script_fpath, features_already_known={}, 
+        ts_datafile_path=None, ts_data=None):
+    '''Extract custom features in a Docker container.
+    
+    Spins up a docker container in which custom script 
+    excecution/feature extraction is done inside. Resulting data are 
+    copied to host machine and returned as a dict.
     
     Args:
-        ts_datafile_path
-        ts_data must be either list of lists or tuples each 
-            containing t,m(,e) for a single epoch or None,
-            in which case ts_datafile_path must not be None
+        script_fpath (str): Path to script containing custom feature 
+            definitions.
+        features_already_known (dict, optional): Dictionary containing 
+            time series data (t,m,e) and any meta-features to be used 
+            in generating custom features. Defaults to {}. NOTE: If 
+            omitted, or if "t" or "m" are not among its keys, 
+            either ts_datafile_path or ts_data (see below) MUST be 
+            provided, otherwise raises ValueError.
+        ts_datafile_path (str, optional): Path to time-series CSV file. 
+            Defaults to None. NOTE: If None, either 
+            features_already_known (see above) must contain "t" (time) 
+            and "m" (magnitude, or the measurement at each time) among 
+            its keys, OR ts_data (see below must be provided), 
+            otherwise raises ValueError.
+        ts_data must (list OR str, optional): Either list of 
+            lists/tuples each containing t,m(,e) for a single epoch, or 
+            Defaults to None. NOTE: If None, either ts_datafile_path 
+            must not be None or "t" (time) and "m" 
+            (magnitude/measurement) must be among the keys of 
+            features_already_known (see above), otherwise raises 
+            ValueError.
+    
+    Returns:
+        dict: Dictionary of all generated features.
+            Example:
+                {"feature_1": 0.2352, "feature_2": 2824.131}
     '''
     if "t" not in features_already_known or "m" not in features_already_known:
         ## get ts data and put into features_already_known
@@ -293,10 +318,9 @@ def docker_extract_features(
     os.mkdir(path_to_tmp_dir)
     # copy custom features defs script and pickle the relevant 
     # tsdata file into docker temp directory
-    status_code = call(
-        [
-            "cp", script_fpath, 
-            os.path.join(path_to_tmp_dir, "custom_feature_defs.py")])
+    status_code = call([
+        "cp", script_fpath, 
+        os.path.join(path_to_tmp_dir, "custom_feature_defs.py")])
     with open(
             os.path.join(path_to_tmp_dir, 
             "features_already_known.pkl"), "wb") as f:
@@ -335,23 +359,33 @@ def docker_extract_features(
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
         print "Docker container deleted."
-        
         # Remove tmp dir
         shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
     return results_dict
 
 
 def test_new_script(
-    script_fname='testfeature1.py', 
-    script_fpath="here", 
-    docker_container=False):
-    '''Performs test run on custom feature def script and returns 
-    list of extracted features if successful, otherwise raises
-    exception.
+        script_fpath="testfeature1.py", 
+        docker_container=False):
+    '''Test custom features script and return generated features.
+    
+    Performs test run on custom feature def script with trial time 
+    series data sets and returns list of dicts containing extracted 
+    features if successful, otherwise raises an exception.
+    
+    Args:
+        script_fpath (str): Path to custom feature definitions script.
+        docker_container (bool, optional): Boolean indicating whether 
+            being called from within a Docker container.
+    
+    Returns:
+        list: List of dictionaries of extracted features for each of 
+            the trial time-series data sets.
     '''
-    if script_fpath == "here":
+    script_fname = script_fpath.split("/")[-1]
+    if script_fpath == "testfeature1.py":
         script_fpath = os.path.join(os.path.dirname(os.path.abspath(
-            inspect.getfile(inspect.currentframe()))), script_fname)
+            inspect.getfile(inspect.currentframe()))), "testfeature1.py")
     features_already_known_list = []
     all_fnames = False
     try:
@@ -377,9 +411,7 @@ def test_new_script(
         {"t":[1,2,3],"m":[50,51,52],"e":[0.3,0.2,0.4],"coords":[-11,-55]})
     features_already_known_list.append(
         {"t":[1],"m":[50],"e":[0.3],"coords":2})
-    
     all_extracted_features_list = []
-    
     for known_featset in features_already_known_list:
         if docker_installed():
             print "Extracting features inside docker container..."
@@ -388,11 +420,9 @@ def test_new_script(
                 features_already_known=known_featset)
         else:
             newfeats = execute_functions_in_order(
-                script_fname=script_fname, 
-                features_already_known=known_featset, 
-                script_fpath=script_fpath)
+                script_fpath=script_fpath,
+                features_already_known=known_featset)
         all_extracted_features_list.append(newfeats)
-    
     return all_extracted_features_list
     
 
@@ -400,11 +430,15 @@ def test_new_script(
 def list_features_provided(script_fpath):
     '''Parses script and returns a list of all features it provides.
     
+    Parses decorator expression in custom feature definitions script, 
+    returning a list of all feature names generated by the various 
+    definitions in that script.
+    
     Args:
       script_fpath (str): Path to custom features definition script.
         
     Returns:
-        
+        list: List of feature names that the script will generate.
     '''
     with open(script_fpath) as f:
         all_lines = f.readlines()
@@ -459,16 +493,31 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
             else:
                 linecount -= 1
         linecount += 1
-    
     #print linecount-1, "lines of data successfully read."
     f.close()
     return [t,m,e]
 
 
 def generate_custom_features(
-        custom_script_path, path_to_csv, features_already_known, 
+        custom_script_path, path_to_csv=None, features_already_known={}, 
         ts_data=None):
-    '''
+    '''Generate custom features for provided t-s data and script.
+    
+    Args:
+        custom_script_path (str): Path to custom features script.
+        path_to_csv (str, optional): Path to CSV file containing 
+            time-series data. Defaults to None. If None, ts_data (see 
+            below) must not be None, otherwise raises an Exception.
+        features_already_known (dict, optional): Dictionary containing 
+            any meta-features associated with provided time-series data.
+            Defaults to {}.
+        ts_data (list OR tuple, optional): List (or tuple) of lists 
+            (or tuples) containing time, measurement (and optionally 
+            associated error values) data. Defaults to None. If None,
+            path_to_csv must not be None, otherwise raises an Exception.
+    
+    Returns:
+        dict: Dictionary of newly-generated features.
     '''
     if path_to_csv not in [None,False]:
         t,m,e = parse_csv_file(path_to_csv)
@@ -507,9 +556,7 @@ def generate_custom_features(
 
 
 def is_running_in_docker_container():
-    '''Returns boolean indicating whether script is currently running
-    inside a Docker container (True) or not (False).
-    '''
+    '''Return bool indicating whether running in a Docker container.'''
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
@@ -521,21 +568,13 @@ def is_running_in_docker_container():
     return in_docker_container
 
 
-
-
 if __name__ == "__main__":
     import subprocess
     import sys
     encoding = sys.stdout.encoding or 'utf-8'
-    
     docker_container = is_running_in_docker_container()
-    
     x = test_new_script(docker_container=docker_container)
     print(str(x).encode(encoding))
     sys.stdout.write( str(x).encode(encoding) )
-    
     if docker_container:
         pass
-    
-
-
