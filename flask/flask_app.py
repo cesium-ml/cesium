@@ -113,8 +113,7 @@ ALLOWED_EXTENSIONS = set([
 
 @app.before_request
 def before_request():
-    '''Establish connection to rethinkdb database before each request.
-    '''
+    '''Establish connection to RethinkDB DB before each request.'''
     try:
         g.rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLWS_DB)
     except RqlDriverError:
@@ -124,9 +123,7 @@ def before_request():
 
 @app.teardown_request
 def teardown_request(exception):
-    '''Close connection to rethinkdb database after each request is 
-    completed.
-    '''
+    '''Close connection to RethinkDB DB after each request is completed.'''
     try:
         g.rdb_conn.close()
     except AttributeError:
@@ -143,9 +140,15 @@ def excepthook_replacement(exctype, value, tb):
 
 
 def num_lines(fname):
-    '''Returns number of non-comment and non-whitespace lines 
-    (comment lines are those that start with '#') in the file whose 
-    path is fname.
+    '''Return number of non-comment and non-whitespace lines in file.
+    
+    Comment lines are those that start with '#'.
+    
+    Args:
+        fname (str): Path to file.
+    
+    Returns:
+        int: Number of non-whitespace and non-comment lines in file.
     '''
     linecount = 0
     with open(fname) as f:
@@ -158,15 +161,22 @@ def num_lines(fname):
 
 @app.route('/check_job_status/',methods=['POST','GET'])
 def check_job_status(PID=False):
-    '''Check status of process with given process ID (passed as URL 
-    parameter).
-    Returns a string indicating whether the process is running (and 
-    when it was started if so), or whether it has completed (and when 
-    it was started if so), in which case it has 'zombie' status and is 
-    killed.
+    '''Check status of a process, return string summary.
+    
+    Checks the status of a process with given PID (passed as URL 
+    parameter) and returns a message (str) indicating whether the 
+    process is running (and when it was started if so), or whether it 
+    has completed (and when it was started if so), in which case it has 
+    'zombie' status and is killed.
+    
+    Args:
+        PID (int OR str): Process id of process to be checked.
+    
+    Returns:
+        str: Message indicating process status.
     '''
     if PID:
-        PID = str(PID)
+        PID = str(PID).strip()
     else:
         PID = str(request.args.get('PID',''))
     if PID == "undefined":
@@ -188,13 +198,22 @@ def check_job_status(PID=False):
     else:
         msg_str = ("This process has finished (checked at %s)." % 
             str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
-    
     return msg_str
 
 
 def is_running(PID):
-    '''Returns a string indicating the time process with PID was 
-    started if running, otherwise returns False.
+    '''Check if process with given PID is running.
+    
+    Returns a string indicating the time process with give PID was 
+    started if it is running, otherwise returns False (bool).
+    
+    Args:
+        PID (int OR str): PID of process to check on.
+    
+    Returns:
+        str OR bool: Returns a string indicating the time process with 
+            give PID was started if it is running, otherwise returns 
+            False (bool).
     '''
     if os.path.exists("/proc/%s" % str(PID)):
         p = psutil.Process(int(PID))
@@ -204,21 +223,8 @@ def is_running(PID):
         return False
 
 
-# Obsolete?
-@app.route('/results_str',methods=['POST','GET'])
-def results_str():
-    '''If 'results_str' is in flask session, returns its value. 
-    Otherwise returns an empty string.
-    '''
-    if 'results_str' in session:
-        return session['results_str']
-    else:
-        return ''
-
-
 def db_init(force=False):
-    '''Creates rethinkDB tables.
-    '''
+    '''Initialize RethinkDB tables.'''
     try:
         connection = r.connect(host=RDB_HOST, port=RDB_PORT)
     except RqlDriverError as e:
@@ -256,9 +262,10 @@ def db_init(force=False):
 
 @app.route('/add_user',methods=['POST'])
 def add_user():
-    '''Add current user to the 'users' rethnkDB table. Current user 
-    accessed via the flask.g application global (added to flask.g upon 
-    authentication).
+    '''Add current user to the RethnkDB 'users' table.
+    
+    Current user accessed via the flask.g application global (user info 
+    is added to flask.g upon authentication).
     '''
     r.table('users').insert({
         "name":g.user['name'],
@@ -271,9 +278,7 @@ def add_user():
 
 #@app.before_first_request
 def check_user_table():
-    '''Checks if current user is in 'users' table and adds current user 
-    if not.
-    '''
+    '''Add current user to RethinkDB 'users' table if not present.'''
     if (r.table("users").filter({'email':g.user['email']})
         .count().run(g.rdb_conn)) == 0:
         r.table('users').insert({
@@ -289,10 +294,19 @@ def check_user_table():
             g.user['email'], "already in users db."
 
 
-
 def update_model_entry_with_pid(new_model_key,pid):
-    '''Add process ID to model entry with key 'new_model_key' in 
-    'models' table after subprocess with given pid has been started.
+    '''Update RethinkDB model entry with process ID.
+    
+    Add process ID to model entry with key 'new_model_key' in 
+    'models' table after subprocess with given PID has been started.
+    
+    Args:
+        new_model_key (str): Key of RethinkDB 'models' table entry 
+            to be updated.
+        pid (str OR int): ID of model building process.
+    
+    Returns:
+        str: new_model_key, as provided in args.
     '''
     (r.table('models').get(str(new_model_key).strip())
         .update({"pid":str(pid)}).run(g.rdb_conn))
@@ -301,8 +315,18 @@ def update_model_entry_with_pid(new_model_key,pid):
 
 
 def update_featset_entry_with_pid(featset_key,pid):
-    '''Add process ID to feature set entry with key 'featset_key' in 
+    '''Update RethinkDB feature set entry with process ID.
+    
+    Add process ID to feature set entry with key 'featset_key' in 
     'features' table after subprocess with given pid has been started.
+    
+    Args:
+        featset_key (str): Key of RethinkDB 'features' table entry 
+            to be updated.
+        pid (str OR int): ID of feature generation process.
+    
+    Returns:
+        str: featset_key, as provided in args.
     '''
     (r.table('features').get(featset_key)
         .update({"pid":str(pid)}).run(g.rdb_conn))
@@ -311,9 +335,19 @@ def update_featset_entry_with_pid(featset_key,pid):
 
 
 def update_prediction_entry_with_pid(prediction_key,pid):
-    '''Add process ID to prediction entry with key 'prediction_key' in 
+    '''Update RethinkDB prediction entry with process ID.
+    
+    Add process ID to prediction entry with key 'prediction_key' in 
     'predictions' table after subprocess with given pid has been 
     started.
+    
+    Args:
+        prediction_key (str): Key of RethinkDB 'predictions' table 
+            entry to be updated.
+        pid (str OR int): ID of prediction process.
+    
+    Returns:
+        str: prediction_key, as provided in args.
     '''
     (r.table('predictions').get(prediction_key)
         .update({"pid":str(pid)}).run(g.rdb_conn))
@@ -324,25 +358,56 @@ def update_prediction_entry_with_pid(prediction_key,pid):
 def update_prediction_entry_with_results(
     prediction_entry_key, html_str="", features_dict={}, ts_data_dict={}, 
     pred_results_list_dict={}, err=None):
-    '''Add prediction results and ts data to entry in 'predictions' 
-    table for entry with key 'prediction_entry_key'.
+    '''Update RethinkDB prediction entry with results data.
+    
+    Add features generated, prediction results and ts data to entry in 
+    'predictions' table for entry with key 'prediction_entry_key'.
+    
+    Args:
+        prediction_entry_key (str): Key of RethinkDB 'predictions' 
+            table entry to be updated.
+        html_str (str, optional): HTML table of results. Defaults to "".
+        features_dict (dict, optional): Dictionary containing generated 
+            features. Defaults to {}.
+        ts_data_dict (dict, optional): Dictionary containing 
+            time-series data, with their original file names as keys, 
+            and list of respective (t, m, e) values as each dict value).
+            Defaults to {}.
+        pred_results_list_dict (dict, optional): Dictionary with 
+            original time-series data file name as keys, list of 
+            respective classifier prediction results as values.
+        err (str), optional: Error message associated with prediction 
+            process. Defaults to None.
+        
+    Returns:
+        bool: True
     '''
     info_dict = {
         "results_str_html":html_str,
         "features_dict":features_dict,
         "ts_data_dict":ts_data_dict,
         "pred_results_list_dict":pred_results_list_dict }
-    
     if err is not None: info_dict["err_msg"] = err
-    
     (r.table("predictions").get(prediction_entry_key)
         .update(info_dict).run(g.rdb_conn))
     return True
 
 
 def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
-    '''Add success/error message to model entry with key 'model_key' 
+    '''Update RethinkDB model entry with results message.
+    
+    Add success/error message to model entry with key 'model_key' 
     in 'models' table.
+    
+    Args:
+        model_key (str): Key of RethinkDB 'models' table entry to be 
+            updated.
+        model_built_msg (str): Message provided by model build function.
+        err (str, optional): Error message associated with model build 
+            process. Defaults to None.
+        
+    Returns:
+        str: model_key, as provided in args.
     '''
     info_dict = {"results_msg":model_built_msg}
     if err is not None: info_dict["err_msg"] = err
