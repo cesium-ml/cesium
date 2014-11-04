@@ -49,7 +49,12 @@
 
    * Install Docker
 
-     Build the required images from Docker files by running
+     Pull down the required images:
+
+     ``tools/docker_pull.sh``
+
+     Alternatively (but this takes much longer), build the images on your own
+     machine:
 
      ``tools/build_docker_images.sh``
 
