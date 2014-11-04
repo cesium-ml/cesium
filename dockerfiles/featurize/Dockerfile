@@ -1,4 +1,4 @@
-FROM mltp/base_disco
+FROM mltsp/base_disco
 
 RUN disco status
 
