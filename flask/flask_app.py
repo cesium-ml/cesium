@@ -416,8 +416,20 @@ def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
 
 
 def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
-    '''Add success/error message to model entry with key 
-    'model_key' in 'models' table.
+    '''Update RethinkDB feature set entry with results message.
+    
+    Add success/error message to feature set entry with key 
+    'featureset_key' in 'features' table.
+    
+    Args:
+        featureset_key (str): Key of RethinkDB 'features' table entry 
+            to be updated.
+        results_str (str): Message provided by featurization function.
+        err (str, optional): Error message associated with 
+            featurization process. Defaults to None.
+        
+    Returns:
+        str: featureset_key, as provided in args.
     '''
     info_dict = {"results_msg":results_str}
     if err is not None: info_dict["err_msg"] = err
@@ -426,8 +438,13 @@ def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
 
 
 def get_current_userkey():
-    '''Returns the key of the 'users' table entry that corresponds to 
-    current user's email.
+    '''Return RethinkDB key/ID associated with current user.
+    
+    Returns the key/ID of the 'users' table entry corresponding to 
+    current user's email (accessed through g.user thread-local). 
+    
+    Returns:
+        str: User key/ID.
     '''
     cursor = r.table("users").filter({"email":g.user['email']}).run(g.rdb_conn)
     n_entries = 0
@@ -448,7 +465,10 @@ def get_current_userkey():
     
 
 def get_all_projkeys():
-    '''Returns all project keys.
+    '''Return all project keys.
+    
+    Returns:
+        list: A list of project keys (strings).
     '''
     cursor = (r.table('userauth').map(lambda entry: entry['projkey'])
         .run(g.rdb_conn))
@@ -459,8 +479,10 @@ def get_all_projkeys():
 
 
 def get_authed_projkeys():
-    '''Returns all project keys in that current user is authenticated 
-    to access.
+    '''Return all project keys that current user is authenticated for.
+    
+    Returns:
+        list: A list of project keys (strings).
     '''
     this_userkey = get_current_userkey()
     cursor = r.table('userauth').filter({
@@ -476,16 +498,22 @@ def get_authed_projkeys():
 def list_featuresets(
     auth_only=True, by_project=False, name_only=False, 
     as_html_table_string=False):
-    '''Returns list of strings describing entries in 'features' table. 
+    '''Return list of strings describing entries in 'features' table.
     
-    Options described below:
-     - auth_only: if True, filters those entries whose parent projects 
-        current user is authenticated to access
-     - by_project: must be project name or False, filters by project if 
-        not False
-     - name_only: if True, does not include date/time created
-     - as_html_table_string: if True, returns the results as a single 
-        string of HTML markup containing a table
+    Args:
+        auth_only (bool, optional): If True, returns only those 
+            entries whose parent projects current user is authenticated 
+            to access. Defaults to True.
+        by_project (str OR bool, optional): Must be project name or 
+            False. Filters by project if not False. Defaults to False.
+        name_only (bool, optional): If True, does not include 
+            date/time created. Defaults to False.
+        as_html_table_string (bool, optional): If True, returns the 
+            results as a single string of HTML markup containing a 
+            table. Defaults to False.
+    
+    Returns:
+        list: List of strings describing entries in 'features' table.
     '''
     authed_proj_keys = (
         get_authed_projkeys() if auth_only else get_all_projkeys())
@@ -551,27 +579,27 @@ def list_featuresets(
         return authed_featuresets
 
 
-
-
-
-
-
-
-
 def list_models(
     auth_only=True, by_project=False, name_only=False, with_type=True, 
     as_html_table_string=False):
-    '''Returns list of strings, each describing an entry in 'models' 
-    table. Options described below:
-     - auth_only: if True, filters those entries whose parent projects 
-        current user is authenticated to access
-     - by_project: must be project name or False, filters by project if 
-        not False
-     - name_only: if True, does not include date/time created
-     - with_type: include model type (e.g. RF, LinReg) in model 
-        descriptions
-     - as_html_table_string: if True, returns the results as a single 
-        string of HTML markup containing a table
+    '''Return list of strings describing entries in 'models' table.
+    
+    Args:
+        auth_only (bool, optional): If True, returns only those 
+            entries whose parent projects current user is authenticated 
+            to access. Defaults to True.
+        by_project (str OR bool, optional): Must be project name or 
+            False. Filters by project if not False. Defaults to False.
+        name_only (bool, optional): If True, does not include 
+            date/time created. Defaults to False.
+        with_type (bool, optional): If True, includes model type 
+            (e.g. RF) in model description. Defaults to True.
+        as_html_table_string (bool, optional): If True, returns the 
+            results as a single string of HTML markup containing a 
+            table. Defaults to False.
+    
+    Returns:
+        list: List of strings describing entries in 'models' table.
     '''
     authed_proj_keys = (
         get_authed_projkeys() if auth_only else get_all_projkeys())
@@ -641,26 +669,28 @@ def list_models(
                         if 'meta_feats' in entry and entry['meta_feats'] 
                         not in [False,[],"False",None,"None"] 
                         and type(entry['meta_feats']) == list else ""))
-            
         return authed_models
-        
-    
-
-
 
 
 def list_predictions(
     auth_only=False, by_project=False, detailed=True, 
     as_html_table_string=False):
-    '''Returns list of strings, each describing an entry in 
-    'predictions' table. Options described below:
-     - auth_only: if True, filters those entries whose parent projects 
-        current user is authenticated to access
-     - by_project: must be project name or False, filters by project if 
-        not False
-     - detailed: if True, includes include date/time created
-     - as_html_table_string: if True, returns the results as a single 
-        string of HTML markup containing a table
+    '''Return list of strings describing entries in 'predictions' table.
+    
+    Args:
+        auth_only (bool, optional): If True, returns only those 
+            entries whose parent projects current user is authenticated 
+            to access. Defaults to False.
+        by_project (str OR bool, optional): Must be project name or 
+            False. Filters by project if not False. Defaults to False.
+        detailed (bool, optional): If True, includes more details such 
+            date/time. Defaults to True.
+        as_html_table_string (bool, optional): If True, returns the 
+            results as a single string of HTML markup containing a 
+            table. Defaults to False.
+    
+    Returns:
+        list: List of strings describing entries in 'models' table.
     '''
     if by_project:
         this_projkey = project_name_to_key(by_project)
@@ -739,29 +769,33 @@ def list_predictions(
         return predictions
 
 
-
-
-
 @app.route('/get_list_of_projects',methods=['POST','GET'])
 def get_list_of_projects():
-    '''Returns list of project names (strings) that the current user is 
-    authenticated to access. Called from browser to populate select options.
+    '''Return list of project names current user can access.
+    
+    Called from browser to populate select options.
+    
+    Returns:
+        json response: Jsonified dict {'list':list_of_projs}.
     '''
     if request.method == 'GET':
         list_of_projs = list_projects(name_only=True)
         return jsonify({'list':list_of_projs})
 
 
-
-
-
 def list_projects(auth_only=True,name_only=False):
-    '''Returns list of strings describing entries in 'projects' table.
-    - If auth_only is True, returns only those projects that the 
-        current user is authenticated to access, else all projects in 
-        table are returned.
-    - If name_only is True/False, does/does not include date & time 
-        created, respectively.
+    '''Return list of strings describing entries in 'projects' table.
+    
+    Args:
+        auth_only (bool, optional). If True, returns only those 
+            projects that the current user is authenticated to access, 
+            else all projects in table are returned. Defaults to True.
+        name_only (bool, optional). If True/False, does/does not 
+            include date & time created, respectively. Defaults to 
+            False.
+    
+    Returns:
+        list: List of strings describing project entries.
     '''
     proj_keys = (get_authed_projkeys() if auth_only else get_all_projkeys())
     if len(proj_keys) == 0:
@@ -778,10 +812,21 @@ def list_projects(auth_only=True,name_only=False):
     return proj_names
 
 
-
-
 def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
     '''Add a new entry to the rethinkDB 'projects' table.
+    
+    Args:
+        name (str): New project name.
+        desc (str, optional). Project description. Defaults to "".
+        addl_authed_users (list, optional): List of email addresses 
+            (str format) of additional users authorized to access this 
+            new project. Defaults to [].
+        user_email (str, optional): Email of user creating new project. 
+            If "auto", user email determined by g.user thread-local. 
+            Defauls to "auto".
+    
+    Returns:
+        str: RethinkDB key/ID of newly created project entry.
     '''
     if user_email in ["auto",None,"None","none","Auto"]:
         user_email = get_current_userkey()
@@ -806,14 +851,27 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
     return new_projkey
 
 
-
-
-
-
 def add_featureset(
-    name, projkey, pid, featlist, custom_features_script, 
+    name, projkey, pid, featlist, custom_features_script,
     meta_feats=[], headerfile_path=None, zipfile_path=None):
     '''Add a new entry to the rethinkDB 'features' table.
+    
+    Args:
+        name (str): New feature set name.
+        projkey (str): RethinkDB key/ID of parent project.
+        pid (str): PID of process associated with creation of new 
+            feature set.
+        featlist (list): List of names of features (strings) in new 
+            feature set.
+        custom_features_script (str or None): Path to custom features 
+            script associated with new feature set, or None.
+        meta_feats (list, optional): List of any associated meta 
+            features. Defaults to empty list [].
+        headerfile_path (str, optional): Path to header file associated 
+            with 
+    
+    Returns:
+        str: RethinkDB key/ID of newly created featureset entry.
     '''
     new_featset_key = r.table("features").insert({
         "projkey": projkey,
@@ -830,19 +888,31 @@ def add_featureset(
     return new_featset_key
 
 
-
-
 def add_model(
     featureset_name, featureset_key, model_type, projkey, pid, 
     meta_feats=False):
     '''Add a new entry to the rethinkDB 'models' table.
+    
+    Args:
+        name (str): New feature set name.
+        featureset_key (str): RethinkDB key/ID of associated feature 
+            set.
+        model_type (str): Abbreviation of model/classifier type (e.g. 
+            "RF").
+        projkey (str): RethinkDB key/ID of parent project.
+        pid (str): PID of process associated with creation of new 
+            feature set.
+        meta_feats (list, optional): List of any associated meta 
+            features. Defaults to False.
+    
+    Returns:
+        str: RethinkDB key/ID of newly created model entry.
     '''
     entry = (
         r.table("features").get(featureset_key)
         .pluck('meta_feats').run(g.rdb_conn))
     if 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
-    
     new_model_key = r.table("models").insert({
         "name":featureset_name,
         "featset_key":featureset_key,
@@ -852,19 +922,29 @@ def add_model(
         "pid": pid,
         "meta_feats":meta_feats
     }).run(g.rdb_conn)['generated_keys'][0]
-    
     print "New model entry %s added to mltp_app db." % featureset_name
-    
     return new_model_key
-
-
-
 
 
 def add_prediction(
     project_name, model_name, model_type, pred_filename, 
     pid="None", metadata_file="None"):
     '''Add a new entry to the rethinkDB 'predictions' table.
+    
+    Args:
+        project_name (str): Name of parent project.
+        model_name (str): Name of associated model.
+        model_type (str): Abbreviation of associated model/classifier 
+            type (e.g. "RF").
+        pred_filename (str): Name of time-series data file used in 
+            prediction.
+        pid (str, optional): PID of process associated with creation of 
+            new feature set. Defaults to "None".
+        metadata_file (str, optional): Path to associated metadata file.
+            Defaults to "None".
+    
+    Returns:
+        str: RethinkDB key/ID of newly created prediction entry.
     '''
     project_key = project_name_to_key(project_name)
     new_prediction_key = r.table("predictions").insert({
@@ -877,21 +957,24 @@ def add_prediction(
         "pid": pid,
         "metadata_file": metadata_file
     }).run(g.rdb_conn)['generated_keys'][0]
-    
     print "New prediction entry added to mltp_app db."
-    
     return new_prediction_key
 
 
-
-
-
 def delete_project(project_name):
-    '''Delete entry whose 'name' attribute has a value of provided 
+    '''Delete project entry and associated data.
+    
+    Deletes entry whose 'name' attribute has a value of provided 
     project_name from rethinkDB 'projects' table. Also deletes all 
     entries in 'predictions', 'features', 'models' and 'userauth' 
     tables that are solely associated with this project, and removes 
     all project data (features, models, etc) from the disk.
+    
+    Args:
+        project_name (str): Name of project to be deleted.
+        
+    Returns:
+        int: The number of projects deleted (should be 1).
     '''
     proj_keys = []
     cursor = (
@@ -899,7 +982,6 @@ def delete_project(project_name):
         .pluck("id").run(g.rdb_conn))
     for entry in cursor:
         proj_keys.append(entry["id"])
-    
     if len(proj_keys)>1:
         print (
             "#######  WARNING: DELETING MORE THAN ONE PROJECT WITH NAME %s. "
@@ -910,14 +992,12 @@ def delete_project(project_name):
             "####### WARNING: flask_app.delete_project() - NO PROJECT "
             "WITH NAME %s.") % project_name
         return 0
-    
     msg = r.table("projects").get_all(*proj_keys).delete().run(g.rdb_conn)
     print msg
     for proj_key in proj_keys:
         delete_prediction_keys = []
         delete_features_keys = []
         delete_model_keys = []
-        
         cursor = (r.table("predictions").filter({"projkey":proj_key})
         .pluck("id").run(g.rdb_conn))
         for entry in cursor:
@@ -978,7 +1058,6 @@ def delete_project(project_name):
                         "Tried to delete a file that does not exist.")
         else:
             print "No feature sets matching this project key"
-            
         if len(delete_model_keys) > 0:
             for model_key in delete_model_keys:
                 cursor = (
@@ -1007,34 +1086,34 @@ def delete_project(project_name):
                 .delete().run(g.rdb_conn))
         else:
             print "No models matching this project key"
-        
         (r.table("userauth").filter({"projkey":proj_key})
             .delete().run(g.rdb_conn))
-    
     return msg['deleted']
 
 
-
-
-
 def get_project_details(project_name):
-    '''Returns dictionary with the following key-value pairs:
-        "authed_users": a list of emails of authenticated users,
-        "featuresets": a string of HTML markup of a table describing 
-            all associated featuresets, 
-        "models": a string of HTML markup of a table describing all 
-            associated models, 
-        "predictions": a string of HTML markup of a table describing 
-            all associated predictions,
-        "created": date/time created,
-        "description": project description
+    '''Return dict containing project details.
+    
+    Args:
+        project_name (str): Name of project.
+    
+    Returns:
+        dict: Dictionary with the following key-value pairs:
+            "authed_users": a list of emails of authenticated users
+            "featuresets": a string of HTML markup of a table describing 
+                all associated featuresets
+            "models": a string of HTML markup of a table describing all 
+                associated models
+            "predictions": a string of HTML markup of a table describing 
+                all associated predictions
+            "created": date/time created
+            "description": project description
     '''
     # TODO: add following info: associated featuresets, models
     entries = []
     cursor = r.table("projects").filter({"name":project_name}).run(g.rdb_conn)
     for entry in cursor:
         entries.append(entry)
-    
     if len(entries) == 1:
         proj_info = entries[0]
         cursor = (
@@ -1052,22 +1131,27 @@ def get_project_details(project_name):
         proj_info["predictions"] = list_predictions(
             by_project=project_name, as_html_table_string=True)
         return proj_info
-    
     elif len(entries)>1:
         print ("###### get_project_details() - ERROR: MORE THAN ONE PROJECT "
         "WITH NAME %s. ######") % project_name
         return False
-    
     elif len(entries) == 0:
         print ("###### get_project_details() - ERROR: NO PROJECTS WITH "
         "NAME %s. ######") % project_name
         return False
 
 
-
 @app.route('/get_project_details')
 def get_project_details_json():
-    '''Returns results from get_project_details() method in JSON form.
+    '''Return JSONified dict Response object containing project details.
+    
+    Returns JSONified output of get_project_details.
+    
+    Args:
+        project_name (str): Name of project.
+        
+    Returns:
+        flask.Response object 
     '''
     try:
         project_name = str(request.args.get("project_name")).strip()
@@ -1078,10 +1162,14 @@ def get_project_details_json():
     return jsonify(project_details)
 
 
-
 def get_authed_users(project_key):
-    '''Returns list of user keys (their email addresses) who are 
-    authenticated for the specified project.
+    '''Return list of users authenticated for the specified project.
+    
+    Args:
+        project_key (str): RethinkDB key/ID of project.
+    
+    Returns:
+        list: List of authed user emails.
     '''
     authed_users = []
     cursor = (r.table("userauth").filter({"projkey":project_key})
@@ -1091,10 +1179,14 @@ def get_authed_users(project_key):
     return authed_users + sys_admin_emails
 
 
-
 def project_name_to_key(projname):
-    '''Returns the rethinkDB 'projects' table key of the entry whose 
-    "name" attr is the projname parameter.
+    '''Return RethinkDB entry key associated with project name projname.
+    
+    Args:
+        projname (str): Project name.
+    
+    Returns:
+        str: Key associated with project name.
     '''
     projname = projname.strip().split(" (created")[0]
     cursor = (r.table("projects").filter({"name":projname})
@@ -1109,13 +1201,20 @@ def project_name_to_key(projname):
         return False
 
 
-
-
-
 def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
-    '''Returns the key associated with the entry with attrs "name" of 
-    featureset_name and "projkey" of project_id (or that associated 
-    with "project_name")
+    '''Return RethinkDB key associated with given feature set details.
+    
+    Args:
+        featureset_name (str): Name of the feature set.
+        project_name (str, optional): Name of project to which feature 
+            set in question belongs. Defaults to None. 
+            If None, project_id (see below) must not be None.
+        project_id (str, optional). ID of project to wuich feature set 
+            in question belongs. Defaults to None. If None, 
+            project_name (see above) must not be None.
+    
+    Returns:
+        str: RethinkDB ID/key of specified feature set.
     '''
     if project_name is None and project_id is None:
         print ("featureset_name_to_key() - Neither project name nor id "
@@ -1140,42 +1239,53 @@ def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
         return featureset_key
 
 
-
-
-
-
 def update_project_info(
     orig_name, new_name, new_desc, new_addl_authed_users, 
     delete_features_keys=[], delete_model_keys=[], delete_prediction_keys=[]):
-    '''Updates project entry with new information.
+    '''Modify/update project entry with new information.
+    
+    If delete_feature_keys, delete_model_keys or delete_prediction_keys 
+    are provided, their RethinkDB entries will be deleted along with 
+    all associated data and files.
+    
+    Args:
+        orig_name (str): Name of project to be modified.
+        new_name (str): New project name (if unchanged, must be the 
+            same as orig_name).
+        new_desc (str): New project description (if unchanged, must be
+            the same as original).
+        new_addl_authed_users (list): New list of authorized users.
+        delete_feature_keys (list, optional): List of feature set 
+            IDs/keys to delete from this project. Defaults to [].
+        delete_model_keys (list, optional): List of model 
+            IDs/keys to delete from this project. Defaults to [].
+        delete_prediction_keys (list, optional): List of prediction  
+            IDs/keys to delete from this project. Defaults to [].
+    
+    Returns:
+        dict: Dictionary containing new project details.
     '''
     userkey = get_current_userkey()
     projkey = project_name_to_key(orig_name)
-    
     (r.table("projects").get(projkey)
         .update({
             "name": new_name,
             "description": new_desc})
         .run(g.rdb_conn))
-    
     already_authed_users = get_authed_users(projkey)
-    
     for prev_auth in already_authed_users:
         if prev_auth not in new_addl_authed_users + [userkey]:
             (r.table("userauth")
                 .filter({"userkey":prev_auth,"projkey":projkey})
                 .delete().run(g.rdb_conn))
-    
     for new_auth in new_addl_authed_users + [userkey]:
         if new_auth not in already_authed_users + [""]:
             (r.table("userauth")
                 .insert({"userkey":new_auth,"projkey":projkey,"active":"y"})
                 .run(g.rdb_conn))
-    
     if len(delete_prediction_keys) > 0:
         (r.table("predictions").get_all(*delete_prediction_keys)
             .delete().run(g.rdb_conn))
-    
     if len(delete_features_keys) > 0:
         (r.table("features").get_all(*delete_features_keys)
             .delete().run(g.rdb_conn))
@@ -1216,7 +1326,6 @@ def update_project_info(
                 print theErr
                 logging.exception(
                     "Tried to delete a file that does not exist.")
-    
     if len(delete_model_keys) > 0:
         for model_key in delete_model_keys:
             cursor = (
@@ -1244,60 +1353,50 @@ def update_project_info(
                     print "Removed", os.path.join(
                         cfg.MODELS_FOLDER, 
                         "%s_%s.pkl"%(featset_entry["id"],model_entry["type"]))
-        
         r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
-    
     new_proj_details = get_project_details(new_name)
-    
     return new_proj_details
 
 
-
-
-
-
 def get_all_info_dict(auth_only=True):
-    '''Returns dictionary containing: 
-        - list of current projects, 
-        - list of current feature sets, 
-        - list of current models, 
-        - list of available features
-    If auth_only is True, lists only those of the above that the 
-    current user is authenticated for.
-    Used for populating select fields, etc in browser.
+    '''Return dictionary containing application-wide information.
+    
+    For populating browser fields.
+    
+    Args:
+        auth_only (bool, optional): Return only data associated with 
+            projects current user is authenticated to access. Defaults 
+            to True.
+    
+    Returns
+        dict: Dictionary with the following keys (whose associated 
+        values are self-explanatory): 
+            list_of_current_projects
+            list_of_current_feature_sets
+            list_of_current_models
+            list_of_available_features
     '''
     info_dict = {}
-    
     info_dict['list_of_current_projects'] = list_projects(auth_only=auth_only)
     info_dict['list_of_current_projects_json'] = simplejson.dumps(
         list_projects(auth_only=auth_only,name_only=True))
-    
     info_dict['list_of_current_featuresets'] = list_featuresets(
         auth_only=auth_only)
     info_dict['list_of_current_featuresets_json'] = simplejson.dumps(
         list_featuresets(auth_only=auth_only,name_only=True))
-    
     info_dict['list_of_current_models'] = list_models(auth_only=auth_only)
     info_dict['list_of_current_models_json'] = simplejson.dumps(
         list_models(auth_only=auth_only,name_only=True))
-    
     info_dict['PROJECT_NAME'] = (
         session['PROJECT_NAME'] if "PROJECT_NAME" in session else "")
     info_dict['features_available_set1'] = get_list_of_available_features()
     info_dict['features_available_set2'] = \
         get_list_of_available_features_set2()
-    
     return info_dict
 
 
-
-
-
-
 def get_list_of_available_features():
-    '''Returns list of time series features available for feature 
-    generation.
-    '''
+    '''Return list of built-in time-series features available.'''
     features_list_science_used = []
     for feat in cfg.features_list_science:
         if feat not in cfg.ignore_feats_list_science:
@@ -1305,12 +1404,8 @@ def get_list_of_available_features():
     return sorted(features_list_science_used)
 
 
-
-
 def get_list_of_available_features_set2():
-    '''Returns list of time series features (additional and more 
-    general) available for feature generation.
-    '''
+    '''Return list of additional built-in time-series features.'''
     features_list_set2_used = []
     for feat in cfg.features_list:
         if feat not in cfg.ignore_feats_list_science:
@@ -1318,25 +1413,16 @@ def get_list_of_available_features_set2():
     return sorted(features_list_set2_used)
 
 
-
-
 def allowed_file(filename):
-    '''Returns boolean indicating whether the given filename has an 
-    allowed extension for upload/saving to disk.
-    '''
+    '''Return bool indicating whether filename has allowed extension.'''
     return ('.' in filename and 
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS)
-
-
-
-
 
 
 @app.route('/')
 @auth.required
 def MainPage():
-    '''Renders default page.
-    '''
+    '''Render default page.'''
     check_user_table()
     ACTION="None"
     info_dict = get_all_info_dict()
@@ -1355,17 +1441,19 @@ def MainPage():
         PROJECT_NAME=info_dict['PROJECT_NAME'])
 
 
-
-
-
-
 @app.route('/testNewScript', methods=['POST','GET'])
 def testNewScript():
-    '''Handles POSTing of form that uploads a .py script. Script is 
+    '''Test POSTed custom features script file.
+    
+    Handles POSTing of form that uploads a .py script. Script is 
     saved and tested inside a docker container. If successful, an HTML 
     string containing checkboxes, one for each of the successfully 
     tested features in the script, is returned for rendering in the 
     browser.
+    
+    Returns:
+        str: HTML containing checked checkboxes for each of the 
+            custom feature names.
     '''
     if request.method == "POST":
         scriptfile = request.files['custom_feat_script_file']
@@ -1400,13 +1488,9 @@ def testNewScript():
             + res_str)
 
 
-
-
-
 @app.route('/editProjectForm', methods=['POST','GET'])
 def editProjectForm():
-    '''Handles project editing form submission.
-    '''
+    '''Handles project editing form submission.'''
     if request.method == 'POST':
         orig_proj_name = str(request.form["project_name_orig"]).strip()
         new_proj_name = str(request.form["project_name_edit"]).strip()
@@ -1436,22 +1520,24 @@ def editProjectForm():
         return jsonify({"result":result})
 
 
-
-
-
-
-
-
-
 @app.route(
     '/newProject/<proj_name>/<proj_description>/<addl_users>/<user_email>')
 @app.route('/newProject', methods=['POST','GET'])
 def newProject(
     proj_name=None, proj_description=None, addl_users=None, user_email=None):
-    '''Handles project creation form and creates new entry in 
-    'projects' table with user-defined attributes.
+    '''Handle new project form and creates new RethinkDB entry.
+    
+    Args:
+        proj_name (str): Project name.
+        proj_description (str): Project description.
+        addl_users (str): String containing comma-separated list of 
+            any additional authorized users (their email handles).
+        user_email (str): Email of user creating new project.
+    
+    Returns:
+        JSON Response object
     '''
-    if proj_name is not None: # HTTP API being used
+    if proj_name is not None:
         try:
             proj_name = proj_name.strip()
             proj_description = (proj_description.strip() if 
@@ -1466,16 +1552,13 @@ def newProject(
                               "valid email address.")})
         except:
             return jsonify({"result":"Invalid project title."})
-        
         if proj_name == "":
             return jsonify({
                 "result":("Project title must contain non-whitespace "
                           "characters. Please try another name.")})
-        
         addl_users = str(addl_users).split(',')
         if addl_users == [''] or addl_users == [' '] or addl_users == ["None"]:
             addl_users = []
-        
         new_projkey = add_project(
             proj_name, desc=proj_description, addl_authed_users=addl_users, 
             user_email=user_email)
@@ -1484,8 +1567,7 @@ def newProject(
         return jsonify({
             "result":("New project %s with key %s successfully created."
                       %(str(proj_name),str(new_projkey)))})
-    
-    if request.method == 'POST': # regular form POST submission being used
+    if request.method == 'POST':
         proj_name = str(request.form["new_project_name"]).strip()
         if proj_name == "":
             return jsonify({
@@ -1517,13 +1599,11 @@ def newProject(
         return jsonify({"result":"New project successfully created."})
 
 
-
-
-
 @app.route('/editOrDeleteProject', methods=['POST'])
 def editOrDeleteProject():
-    '''Handles 'editOrDeleteProjectForm' form submission, and 
-    carries out relevant edits/deletions.
+    '''Handle 'editOrDeleteProjectForm' form submission.
+    
+    Returns JSON response object.
     '''
     if request.method == 'POST':
         proj_name = (str(request.form["PROJECT_NAME_TO_EDIT"])
@@ -1543,8 +1623,6 @@ def editOrDeleteProject():
             print ("###### ERROR - editOrDeleteProject() - 'action' not "
                 "in ['Edit','Delete'] ########")
             return Response()
-        
-
 
 
 @app.route(
@@ -1553,9 +1631,14 @@ def editOrDeleteProject():
     methods=["POST","GET"])
 def get_featureset_id_by_projname_and_featsetname(
         project_name=None, featureset_name=None):
-    '''Returns jsonified dictionary with key = "featureset_id" and 
-    value = id of the featureset corresponding to
-     project_name and featureset_name params.
+    '''Return JSON containing feature set ID.
+    
+    Args:
+        project_name (str): Project name.
+        featureset_name (str): Feature set name.
+    
+    Returns:
+        JSON Response object with "featureset_id" as a key.
     '''
     project_name = project_name.split(" (created")[0].strip()
     featureset_name = featureset_name.split(" (created")[0].strip()
@@ -1573,16 +1656,19 @@ def get_featureset_id_by_projname_and_featsetname(
     return jsonify({"featureset_id":featureset_id})
 
 
-
-
-
 @app.route('/get_list_of_featuresets_by_project',methods=['POST','GET'])
 @app.route(
     '/get_list_of_featuresets_by_project/<project_name>',
     methods=['POST','GET'])
 def get_list_of_featuresets_by_project(project_name=None):
-    '''Returns (in JSON form) list of featuresets associated with 
-    project_name parameter.
+    '''Return (in JSON form) list of project's feature sets.
+    
+    Args:
+        project_name (str): Name of project to inspect.
+        
+    Returns:
+        JSON containing "featset_list" as a key, whose value is a list 
+        of strings describing feature sets.
     '''
     if request.method == 'GET':
         if project_name == None:
