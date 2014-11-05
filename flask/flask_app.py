@@ -1676,20 +1676,24 @@ def get_list_of_featuresets_by_project(project_name=None):
                 project_name = str(request.form["project_name"]).strip()
             except:
                 return jsonify({"featset_list":[]})
-        
         project_name = project_name.split(" (created")[0]
         featset_list = list_featuresets(
             auth_only=False, by_project=project_name, name_only=True)
         return jsonify({"featset_list":featset_list})
 
 
-
 @app.route('/get_list_of_models_by_project',methods=['POST','GET'])
 @app.route(
     '/get_list_of_models_by_project/<project_name>', methods=['POST','GET'])
 def get_list_of_models_by_project(project_name=None):
-    '''Returns (in JSON form) list of models associated with 
-    project_name parameter.
+    '''Return (as JSON Response value) list of models in project.
+    
+    Args:
+        project_name (str): Name of project.
+    
+    Returns:
+        JSON containing "model_list" as a key, whose value is a list of 
+        strings describing models.
     '''
     if request.method == 'GET':
         if project_name == None:
@@ -1705,10 +1709,22 @@ def get_list_of_models_by_project(project_name=None):
         return jsonify({"model_list":model_list})
 
 
-
 def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
-    '''Ensures that headerfile_path and zipfile_path conform 
+    '''Ensure uploaded files are correctly formatted.
+    
+    Ensures that headerfile_path and zipfile_path conform 
     to expected format - returns False if so, raises Exception if not.
+    
+    Args:
+        headerfile_path (str): Path to header file to inspect.
+        zipfile_path (str): Path to tarball to inspect.
+    
+    Returns:
+        bool: Returns False if files are correctly formatted.
+    
+    Raises:
+        custom_exceptions.TimeSeriesFileNameError or 
+        custom_exceptions.DataFormatError
     '''
     with open(headerfile_path) as f:
         all_header_fnames = []
@@ -1722,16 +1738,12 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                         "required."))
                 else:
                     all_header_fnames.append(line.strip().split(",")[0])
-    
-    
-    
     the_zipfile = tarfile.open(zipfile_path)
     file_list = list(the_zipfile.getnames())
     all_fname_variants = []
     for file_name in file_list:
         this_file = the_zipfile.getmember(file_name)
         if this_file.isfile():
-            
             file_name_variants = [
                 file_name, file_name.split("/")[-1], 
                 (file_name.split("/")[-1].replace("."+file_name
@@ -1743,8 +1755,6 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                     "Time series data file %s provided in tarball/zip file "
                     "has no corresponding entry in header file.")
                     % str(file_name))
-
-            
             f = the_zipfile.extractfile(this_file)
             all_lines = [
                 line.strip() for line in f.readlines() if line.strip() != '']
@@ -1768,7 +1778,6 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                                 file_name, str(line_no), 
                                 str(len(line.split(","))), str(num_labels)))
                 line_no += 1
-    
     for header_fname in all_header_fnames:
         if header_fname not in all_fname_variants:
             raise custom_exceptions.TimeSeriesFileNameError((
@@ -1778,8 +1787,24 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
 
 
 def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
-    '''Ensures that newpred_file_path and metadata_file_path conform 
-    to required format - returns False if so, raises Exception if not.
+    '''Ensure uploaded files are correctly formatted.
+    
+    Ensures that time-series data file(s) and metadata file (if any) 
+    conform to expected format - returns False if so, raises Exception 
+    if not.
+    
+    Args:
+        newpred_file_path (str): Path to time-series data file or 
+            tarball of files.
+        metadata_file_path (str or None): Path to metadata file or 
+            None.
+    
+    Returns:
+        bool: Returns False if files are correctly formatted.
+    
+    Raises:
+        custom_exceptions.TimeSeriesFileNameError or 
+        custom_exceptions.DataFormatError
     '''
     all_fname_variants = []
     all_fname_variants_list_of_lists = []
@@ -1857,8 +1882,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                             str(line_no), str(len(line.split(","))),
                             str(num_labels))))
             line_no += 1
-    
-    
+    # Inspect metadata file, if exists
     if metadata_file_path is not None:
         all_metafile_fnames = []
         with open(metadata_file_path) as f:
@@ -1880,22 +1904,24 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                                 " corresponding file in provided time series "
                                 "data files.")%this_fname)
                 line_count += 1
-        
         for file_name_vars in all_fname_variants_list_of_lists:
             if (len(set(file_name_vars) & set(all_metafile_fnames)) == 0 and 
                     len(file_name_vars) > 1):
                 raise custom_exceptions.TimeSeriesFileNameError(
                     ("Provided time series data file %s has no corresponding "
                     "entry in provided metadata file.")%file_name_vars[1])
-        
     return False
-    
 
 
 @app.route('/uploadFeaturesForm', methods=['POST','GET'])
 def uploadFeaturesForm():
-    '''Handles pre-featurized data upload form. Saves uploaded file and 
-    begins featurization process.
+    '''Save uploaded file(s) and begin featurization process.
+    
+    Handles POST form submission.
+    
+    Returns:
+        Redirects to featurizationPage. See that function for output 
+        details.
     '''
     if request.method == 'POST':
         features_file = request.files["features_file"]
@@ -1923,10 +1949,14 @@ def uploadDataFeaturize(
         featureset_name=None, features_to_use=None, 
         custom_features_script=None, user_email=None, email_user=False, 
         is_test=False):
-    '''Handles 'time series data to be featurized' upload form. 
-    Saves uploaded files and begins featurization process.
-    '''
+    '''Save uploaded time series data files and begin featurization. 
     
+    Handles POST form submission.
+    
+    Returns:
+        Redirects to featurizationPage, see that function for output 
+        details.
+    '''
     ## ###
     # TODO: ADD MORE ROBUST EXCEPTION HANDLING (HERE AND ALL OTHER FUNCTIONS)
     if request.method == 'POST':
@@ -1943,7 +1973,6 @@ def uploadDataFeaturize(
         project_name = (str(request.form["featureset_project_name_select"]).
             strip().split(" (created")[0])
         features_to_use = request.form.getlist("features_selected")
-        
         custom_script_tested = str(request.form["custom_script_tested"])
         if custom_script_tested == "yes":
             custom_script = request.files["custom_feat_script_file"]
@@ -1958,7 +1987,6 @@ def uploadDataFeaturize(
             features_to_use += custom_features
         else:
             customscript_path = False
-        
         print "Selected features:", features_to_use
         try:
             email_user = request.form["email_user"]
@@ -1972,10 +2000,8 @@ def uploadDataFeaturize(
                 is_test = True
         except: # unchecked
             is_test = False
-        
         #headerfile_name = secure_filename(headerfile.filename)
         #zipfile_name = secure_filename(zipfile.filename)
-        
         headerfile_name = (str(uuid.uuid4()) + "_" + 
             str(secure_filename(headerfile.filename)))
         zipfile_name = (str(uuid.uuid4()) + "_" + 
@@ -1987,7 +2013,6 @@ def uploadDataFeaturize(
         headerfile_path = os.path.join(
             app.config['UPLOAD_FOLDER'], headerfile_name)
         zipfile_path = os.path.join(app.config['UPLOAD_FOLDER'], zipfile_name)
-        
         headerfile.save(headerfile_path)
         zipfile.save(zipfile_path)
         print "Saved", headerfile_name, "and", zipfile_name
@@ -2005,7 +2030,6 @@ def uploadDataFeaturize(
             return jsonify({"message":str(err),"type":"error"})
         except:
             raise
-        
         # this line is only necessary if we're checking contents against 
         # existing files:
         #header_lines = headerfile.stream.readlines()
@@ -2051,13 +2075,11 @@ def uploadDataFeaturize(
                     else:
                         # filename_test already exists but files don't match
                         print filename_test, ": is_match = False."
-                        
                 else:
                     # filename_test does not exist on disk and we now save it
                     for i in range(len(header_lines)):
                         header_lines[i] = header_lines[i].replace('\n','')
                     header_lines = '\n'.join(header_lines)
-                    
                     f = open(headerfile_path,'w')
                     f.write(header_lines)
                     f.close()
@@ -2071,24 +2093,34 @@ def uploadDataFeaturize(
             #zipfile.save(zipfile_path)
             #del header_lines
             pass
-
         return featurizationPage(
             featureset_name=featureset_name, project_name=project_name, 
             headerfile_name=headerfile_name, zipfile_name=zipfile_name, 
             sep=sep,featlist=features_to_use, is_test=is_test, 
-            email_user=email_user, custom_script_path=customscript_path, 
-            post_method=post_method)
-
-
+            email_user=email_user, custom_script_path=customscript_path)
 
 
 def featurize_proc(
         headerfile_path, zipfile_path, features_to_use, featureset_key, 
         is_test, email_user, already_featurized, custom_script_path):
-    '''Begins the featurization process by calling 
-    build_rf_model.featurize() with provided parameters. To be executed 
-    as a separate process using the multiprocessing module's Process 
-    routine.
+    '''Begin featurization and update feature set entry with results.
+    
+    To be executed in a subprocess using the multiprocessing module's 
+    Process routine.
+    
+    Args:
+        headerfile_path (str): Path to TS data header file.
+        zipfile_path (str): Path TS data tarball.
+        features_to_use (list): List of features to generate.
+        featureset_key (str): RethinkDB ID of new feature set.
+        is_test (bool): Boolean indicating whether to run as test.
+        email_user (str or False): If not False, email address of user 
+            to be notified upon completion.
+        already_featurized (bool): Boolean indicating whether files 
+            contain already generated features as opposed to TS data 
+            to be used for feature generation.
+        custom_script_path (str or None): Path to custom features 
+            definition script, or None.
     '''
     # needed to establish database connection because we're now in a 
     # subprocess that is separate from main app:
@@ -2124,27 +2156,26 @@ def featurize_proc(
             logging.exception(("An error occurred while attempting to remove "
                 "files associated with failed featurization attempt."))
     update_featset_entry_with_results_msg(featureset_key,results_str)
-    
 
 
 @app.route('/featurizing')
 def featurizing():
-    '''Browser redirects here after featurization process has commenced.
+    '''Render template for featurization in process page.
+    
+    Browser redirects here after featurization process has commenced.
     Renders template with process ID, which continually checks and 
     reports progress.
     
     Required URL params are:
-        PID
-        featureset_key
-        project_name
+        PID (str): ID of featurization subprocess.
+        featureset_key (str): RethinkDB key of feature set.
+        project_name (str): Name of parent project.
     '''
     PID = request.args.get("PID")
     featureset_key = request.args.get("featureset_key")
     project_name = request.args.get("project_name")
     featureset_name = request.args.get("featureset_name")
-    
     info_dict = get_all_info_dict()
-    
     return render_template(
         'index.html', ACTION="featurizing", PID=PID, newpred_filename="",
         FEATURES_AVAILABLE=[info_dict['features_available_set1'],
@@ -2158,8 +2189,6 @@ def featurizing():
         PROJECT_NAME=project_name, headerfile_name="", RESULTS=True, 
         features_str="", new_featset_key=featureset_key, 
         featureset_name=featureset_name)
-    
-
 
 
 @app.route('/featurizationPage', methods=['POST','GET'])
@@ -2168,13 +2197,36 @@ def featurizing():
 def featurizationPage(
         featureset_name, project_name, headerfile_name, zipfile_name, sep, 
         featlist, is_test, email_user, already_featurized=False, 
-        custom_script_path=False, post_method=None):
-    '''Handles featurization form submission - saves files and begins 
-    featurization process (by calling featurize_proc), and returns JSON 
-    with the following details: new process ID, feature set name, 
-    project name, header file name, zip file name, new feature set key.
-    '''
+        custom_script_path=False):
+    '''Save uploaded TS data files and begin featurization process.
     
+    Handles featurization form submission - saves files and begins 
+    featurization in a subprocess (by calling featurize_proc), and 
+    returns JSON Response with the following info: new process ID, 
+    feature set name, project name, header file name, zip file name, 
+    new feature set key.
+    
+    Args:
+        featureset_name (str): Feature set name.
+        project_name (str): Name of parent project.
+        headerfile_name (str): Header file name.
+        zipfile_name (str): Tarball file name.
+        sep (str): Delimiting character in CSV data.
+        featlist (list): List of names of features in feature set.
+        is_test (bool): Boolean indicating whether to generate features 
+            on all TS data files (is_test = False) or a test subset 
+            (is_test = True).
+        email_user (str or False): If not False, email address of user 
+            to be notified upon completion.
+        already_featurized (bool, optional): Boolean indicating whether 
+            files contain already generated features as opposed to TS 
+            data to be used for feature generation. Defaults to False.
+        custom_script_path (str or False, optional): Path to custom 
+            features definition script, or False. Defaults to False.
+        
+    Returns:
+        JSON Response object containing process details.
+    '''
     projkey = project_name_to_key(project_name)
     if already_featurized == True and zipfile_name == None: 
         # user is uploading pre-featurized data, without timeseries data
@@ -2193,10 +2245,8 @@ def featurizationPage(
             if (feat not in all_available_features_list and 
                     feat not in custom_features):
                 meta_feats.append(feat)
-        
         if len(meta_feats) > 0:
             pass # do stuff here !!!!!!!!!!!!!!!!!
-        
         new_featset_key = add_featureset(
             name = featureset_name, projkey = projkey, pid = "None", 
             featlist = featlist, custom_features_script = custom_script_path, 
@@ -2211,10 +2261,6 @@ def featurizationPage(
         print "PROCESS ID IS", PID
         session["PID"] = PID
         update_featset_entry_with_pid(new_featset_key,PID)
-        
-        
-        
-        
         return jsonify({
             "message": ("New feature set files saved successfully, and "
                 "featurization has begun (with process ID = %s).")%str(PID), 
@@ -2222,16 +2268,12 @@ def featurizationPage(
             "project_name":project_name, "headerfile_name":headerfile_name, 
             "zipfile_name":str(zipfile_name), 
             "featureset_key":new_featset_key})
-        
     else: # user is uploading timeseries data to be featurized
-        
         headerfile_path = os.path.join(
             app.config['UPLOAD_FOLDER'], headerfile_name)
         zipfile_path = os.path.join(app.config['UPLOAD_FOLDER'], zipfile_name)
-        
         with open(headerfile_path) as f:
             meta_feats = f.readline().strip().split(',')[2:]
-        
         new_featset_key = add_featureset(
             name=featureset_name, projkey = projkey, pid = "None", 
             featlist = featlist, custom_features_script = custom_script_path, 
@@ -2244,15 +2286,11 @@ def featurizationPage(
             args=(
                 headerfile_path, zipfile_path, featlist, new_featset_key, 
                 is_test, email_user, already_featurized, custom_script_path))
-        
         proc.start()
-        
         PID = str(proc.pid)
         print "PROCESS ID IS", PID
         session["PID"] = PID
         update_featset_entry_with_pid(new_featset_key,PID)
-        
-        
         return jsonify({
             "message": ("New feature set files saved successfully, and "
                 "featurization has begun (with process ID = %s).")%str(PID), 
@@ -2262,13 +2300,20 @@ def featurizationPage(
             "featureset_key":new_featset_key})
 
 
-
-
 @app.route(
     '/source_details/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
 def source_details(prediction_entry_key,source_fname):
-    '''Renders Source Details page.
+    '''Render Source Details page.
+    
+    Args:
+        prediction_entry_key (str): RethinkDB predictions table entry 
+            key.
+        source_fname (str): File name of individual TS source being 
+            requested.
+        
+    Returns:
+        flask.render_template
     '''
     return render_template(
         'source_details.html', 
@@ -2276,15 +2321,25 @@ def source_details(prediction_entry_key,source_fname):
         source_fname = source_fname)
 
 
-
-
 @app.route(
     '/load_source_data/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
 def load_source_data(prediction_entry_key,source_fname):
-    '''Returns JSONified dict containing extracted features, time 
+    '''Return JSONified dict of source data.
+    
+    Returns JSONified dict containing extracted features, time 
     series data, file name, and class predictions. For use in Source 
     Details page.
+    
+    Args:
+        prediction_entry_key (str): RethinkDB predictions table entry 
+            key.
+        source_fname (str): File name of individual TS source being 
+            requested.
+        
+    Returns:
+        JSON Response object with "fname", "pred_results", 
+        "features_dict", and "ts_data" as keys.
     '''
     entries = []
     cursor = (r.table("predictions").filter({"id":prediction_entry_key})
@@ -2300,22 +2355,24 @@ def load_source_data(prediction_entry_key,source_fname):
             "features_dict": ("No entry found for prediction_entry_key = %s." 
                 % prediction_entry_key), 
             "pred_results": pred_results})
-    
     pred_results = entry['pred_results_list_dict'][source_fname]
     features_dict = entry['features_dict'][source_fname]
     ts_data = entry['ts_data_dict'][source_fname]
-    
     return jsonify({
         "fname": source_fname, "pred_results": pred_results, 
         "features_dict": features_dict, "ts_data": ts_data})
 
 
-
-
-
 @app.route('/load_prediction_results/<prediction_key>',methods=['POST','GET'])
 def load_prediction_results(prediction_key):
-    '''Returns JSON dict with file name and class prediction results. 
+    '''Return JSON dict with file name and class prediction results. 
+    
+    Args:
+        prediction_key (str): RethinkDB prediction entry key.
+    
+    Returns: 
+        JSON Response with "results_str_html" as key - a string 
+        containing a table of results in HTML markup.
     '''
     results_dict = r.table("predictions").get(prediction_key).run(g.rdb_conn)
     if results_dict is not None and "results_str_html" in results_dict:
@@ -2331,20 +2388,25 @@ def load_prediction_results(prediction_key):
                 "processing your request.</font>")})
 
 
-
-
 @app.route('/load_model_build_results/<model_key>',methods=['POST','GET'])
 def load_model_build_results(model_key):
-    '''Returns JSON dict with model build request status message.
+    '''Return JSON dict with model build request status message.
+    
+    If an error occurred during the model building process, the 
+    RethinkDB entry is deleted.
+    
+    Args:
+        model_key (str): RethinkDB model entry key.
+    
+    Returns:
+        JSON Response containing model details.
     '''
     results_dict = r.table("models").get(model_key).run(g.rdb_conn)
-    
     if results_dict is not None and "results_msg" in results_dict:
         if ("Error occurred" in results_dict["results_msg"] or 
                 "An error occurred" in results_dict["results_msg"]):
             r.table("models").get(model_key).delete().run(g.rdb_conn)
             print "Deleted model entry with key", model_key
-            
         return jsonify(results_dict)
     else:
         return jsonify({
@@ -2356,9 +2418,17 @@ def load_model_build_results(model_key):
            methods = ['POST','GET'])
 def load_featurization_results(new_featset_key):
     '''Returns JSON dict with featurization request status message.
+    
+    If an error occurred during featurization, the associated files 
+    uploaded and/or created are deleted, as is the RethinkDB entry.
+    
+    Args:
+        new_featset_key (str): RethinkDB 'features' table entry key.
+    
+    Returns:
+        JSON Response containing feature set status message.
     '''
     results_dict = r.table("features").get(new_featset_key).run(g.rdb_conn)
-    
     if (results_dict is not None and "results_msg" in results_dict and 
             results_dict["results_msg"] is not None):
         if ("Error occurred" in str(results_dict["results_msg"]) or 
@@ -2394,7 +2464,6 @@ def load_featurization_results(new_featset_key):
                     print "Deleted", results_dict["custom_features_script"]
                 except Exception as err:
                     pass
-                
             r.table("features").get(new_featset_key).delete().run(g.rdb_conn)
             print "Deleted feature set entry with key", new_featset_key
             
@@ -2405,47 +2474,42 @@ def load_featurization_results(new_featset_key):
         })
 
 
-
 def prediction_proc(
         newpred_file_path, project_name, model_name, model_type, 
         prediction_entry_key, sep = ",", metadata_file = None, 
         path_to_tmp_dir = None):
-    '''Begins the featurization and prediction process by calling 
-    predict_class.predict() with provided parameters. To be executed 
-    as a separate process using the multiprocessing module's Process 
+    '''Begin featurization of new TS data and prediction process.
+    
+    Begins the featurization and prediction process. To be executed 
+    as a subprocess using the multiprocessing module's Process 
     routine.
     
-    Required arguments:
-        newpred_file_path: (string) path to file containing time series 
-            data for featurization and prediction
-        project_name: (string) name of the project associated with the 
-            model to be used
-        model_name: (string) name of the model to be used
-        model_type: (string) abbreviation of the model type (e.g. "RF")
-        prediction_entry_key: (string) 
-    Keyword paramters:
-        sep: (str) delimiting character in time series files (defaults 
-            to comma - ",")
-        metadata_file: path to associated metadata file, if any. Default
-            is None
+    Args:
+        newpred_file_path (string): Path to file containing time series 
+            data for featurization and prediction.
+        project_name (string): Name of the project associated with the 
+            model to be used.
+        model_name (string): Name of the model to be used.
+        model_type (string): Abbreviation of the model type (e.g. "RF").
+        prediction_entry_key (string): Prediction entry RethinkDB key.
+        sep (str, optional): Delimiting character in time series files 
+            Defaults to comma ",".
+        metadata_file (str, optional): Path to associated metadata 
+            file, if any. Default is None.
     '''
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
     before_request()
-    
     featset_key = featureset_name_to_key(
         featureset_name = model_name, project_name = project_name)
-    
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script=None
-    
     cursor = r.table("features").get(featset_key).run(g.rdb_conn)
     entry=cursor
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
     n_cols_html_table=5
-    
     results_str = (
         "<table id='pred_results_table' class='tablesorter'>"
         "    <thead>"
@@ -2459,7 +2523,6 @@ def prediction_proc(
         "        </tr>"
         "    </thead>"
         "    <tbody>")
-    
     try:
         results_dict = run_in_docker_container.predict_in_docker_container(
             newpred_file_path, project_name, model_name, model_type, 
@@ -2500,13 +2563,11 @@ def prediction_proc(
         logging.exception(
             "Error occurred during predict_class.predict() call.")
     else:
-    
         if type(results_dict) == dict:
             big_features_dict = {}
             ts_data_dict = {}
             pred_results_list_dict = {}
             for fname,data_dict in results_dict.iteritems():
-                
                 pred_results = data_dict['results_str']
                 ts_data = data_dict['ts_data']
                 features_dict = data_dict['features_dict']
@@ -2516,11 +2577,9 @@ def prediction_proc(
                 big_features_dict[fname] = features_dict
                 ts_data_dict[fname] = ts_data
                 pred_results_list_dict[fname] = pred_results_list
-                
             results_str += (
                 "   </tbody>"
                 "</table>")
-            
             update_prediction_entry_with_results(
                 prediction_entry_key, html_str = results_str, 
                 features_dict = big_features_dict, ts_data_dict = ts_data_dict,
@@ -2530,11 +2589,8 @@ def prediction_proc(
                 prediction_entry_key, html_str = results_dict, 
                 features_dict = {}, ts_data_dict = {}, 
                 pred_results_list_dict = {})
-        
         return True
-        
     finally:
-        
         if path_to_tmp_dir is not None:
             try:
                 shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
@@ -2543,28 +2599,30 @@ def prediction_proc(
                     "uploaded files and tmp directory."))
 
 
-
-
 @app.route('/predicting')
 def predicting():
-    '''Browser redirects here after featurization & prediction process 
+    '''Render template that checks on prediction process status.
+    
+    Browser redirects here after featurization & prediction process 
     has commenced. Renders template with process ID, which 
     continually checks and reports progress.
     
-    Required URL params are:
-        PID 
-        prediction_entry_key
-        project_name
-        prediction_model_name
+    Required URL parameters:
+        PID (str): Process ID.
+        prediction_entry_key (str): RethinkDB 'predictions' table entry 
+            key.
+        project_name (str): Name of parent project.
+        prediction_model_name (str): Name of prediction model.
+    
+    Returns:
+        flask.render_template
     '''
     PID = request.args.get("PID")
     prediction_entry_key = request.args.get("prediction_entry_key")
     project_name = request.args.get("project_name")
     prediction_model_name = request.args.get("prediction_model_name")
     model_type = request.args.get("model_type")
-    
     info_dict = get_all_info_dict()
-    
     return render_template(
         'index.html', ACTION = "predicting", PID = PID, newpred_filename = "",
         FEATURES_AVAILABLE = [info_dict['features_available_set1'],
@@ -2580,28 +2638,31 @@ def predicting():
         prediction_model_name=prediction_model_name,model_type=model_type)
 
 
-
 def predictionPage(
         newpred_file_path, project_name, model_name, model_type,
         sep = ",", metadata_file_path = None, path_to_tmp_dir = None):
-    '''Starts featurization and prediction process as a subprocess (by 
-    calling prediction_proc with the multiprocessing.Process method). 
+    '''Start featurization/prediction routine in a subprocess.
+    
+    Starts featurization and prediction process as a subprocess 
+    using the multiprocessing.Process method.
     uploadPredictionData method redirects here after saving uploaded 
     files. Returns JSONified dict with PID and other details about the 
     process.
     
-    Required arguments:
-        newpred_file_path: (string) path to file containing time series 
-            data for featurization and prediction
-        project_name: (string) name of the project associated with 
-            the model to be used
-        model_name: (string) name of the model to be used
-        model_type: (string) abbreviation of the model type (e.g. "RF")
-    Keyword paramters:
-        sep: (str) delimiting character in time series files (defaults 
-            to comma - ",")
-        metadata_file: path to associated metadata file, if any. 
-            Default is None
+    Args:
+        newpred_file_path (str): Path to file containing time series 
+            data for featurization and prediction.
+        project_name (str): Name of the project associated with 
+            the model to be used.
+        model_name (str): Name of the model to be used.
+        model_type (str): Abbreviation of the model type (e.g. "RF").
+        sep (str, optional): Delimiting character in time series files.
+            Defaults to comma ",".
+        metadata_file (str, optional): Path to associated metadata 
+            file, if any. Defaults to None.
+    
+    Returns:
+        JSON dict containing model details and subprocess ID.
     '''
     new_prediction_key = add_prediction(
         project_name=project_name,
@@ -2611,10 +2672,8 @@ def predictionPage(
         pid="None",
         metadata_file=(metadata_file_path.split("/")[-1] if 
             metadata_file_path is not None else None))
-    
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
     pred_file_name = newpred_file_path.split("/")[-1]
-    
     print "starting prediction_proc..."
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
@@ -2628,15 +2687,11 @@ def predictionPage(
             sep,
             metadata_file_path,
             path_to_tmp_dir))
-    
     proc.start()
-    
     PID = str(proc.pid)
     print "PROCESS ID IS", PID
     session["PID"] = PID
     update_prediction_entry_with_pid(new_prediction_key,PID)
-    
-    
     return jsonify({
         "message":("New prediction files saved successfully, and "
             "featurization/model prediction has begun (with process ID = %s)."
@@ -2647,15 +2702,18 @@ def predictionPage(
         "model_name":model_name, 
         "model_type":model_type, 
         "pred_file_name":pred_file_name})
-    
-
 
 
 @app.route('/uploadPredictionData', methods=['POST','GET'])
 def uploadPredictionData():
-    '''Handles 'predictForm' submission. Saves uploaded files and 
+    '''Save uploaded files and begin prediction process.
+    
+    Handles prediction form  submission. Saves uploaded files and 
     redirects to predictionPage, which begins the featurization/
     prediction process.
+    
+    Redirects to predictionPage - see that function's docstrings for 
+    return value details.
     '''
     if request.method == 'POST':
         newpred_file = request.files["newpred_file"]
@@ -2689,9 +2747,7 @@ def uploadPredictionData():
         if not sep or sep == "":
             print filename, "uploaded but no sep info. Setting sep=','"
             sep = ","
-        
         newpred_file_path = os.path.join(path_to_tmp_dir, newpred_filename)
-        
         # CHECKING AGAINST EXISTING UPLOADED FILES:
         # skipping this part for now - possibly re-implement in the future
         if os.path.exists(newpred_file_path) and False:
@@ -2735,13 +2791,11 @@ def uploadPredictionData():
                     else:
                         # filename_test already exists but files don't match
                         print filename_test, ": is_match = False."
-                        
                 else:
                     # filename_test does not exist on disk and we now save it
                     for i in range(len(header_lines)):
                         header_lines[i] = header_lines[i].replace('\n','')
                     header_lines = '\n'.join(header_lines)
-                    
                     f = open(headerfile_path,'w')
                     f.write(header_lines)
                     f.close()
@@ -2755,9 +2809,6 @@ def uploadPredictionData():
             print "Saved", newpred_filename
             if prediction_files_metadata is not None:
                 prediction_files_metadata.save(metadata_file_path)
-        
-        
-        
         try:
             check_prediction_tsdata_format(
                 newpred_file_path, 
@@ -2787,7 +2838,6 @@ def uploadPredictionData():
                 "formatted. Please ensure that your data files meet the "
                 "formatting guidelines and try again."),
             "type":"error"})
-        
         return predictionPage(
             newpred_file_path=newpred_file_path,
             sep=sep,
@@ -2798,25 +2848,28 @@ def uploadPredictionData():
             path_to_tmp_dir=path_to_tmp_dir)
 
 
-
-
 def build_model_proc(featureset_name,featureset_key,model_type,model_key):
-    '''Begins the model building process by calling 
+    '''Build a model based on given features.
+    
+    Begins the model building process by calling 
     build_rf_model.build_model with provided parameters. To be executed 
     as a separate process using the multiprocessing module's Process 
     routine.
-    Required arguments:
-        featureset_name: (string) name of the feature set associated 
-            with the model to be created
-        model_type: (string) abbreviation of the model type to be 
-            created (e.g. "RF")
-        featureset_key: (string) ID of the associated feature set
-    '''
     
+    Args:
+        featureset_name (str): Name of the feature set associated 
+            with the model to be created.
+        model_type (str): Abbreviation of the model type to be 
+            created (e.g. "RF").
+        featureset_key (str): RethinkDB ID of the associated feature 
+            set.
+    
+    Returns:
+        bool: True.
+    '''
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
     before_request()
-    
     print "Building model..."
     try:
         model_built_msg = (run_in_docker_container.
@@ -2825,7 +2878,6 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
                 featureset_key=featureset_key,
                 model_type=model_type))
         print "Done!"
-        
     except Exception as theErr:
         print "  #########   Error: flask_app.build_model_proc() -", theErr
         model_built_msg = (
@@ -2833,34 +2885,33 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
             "Please try again at a later time. If the problem persists, please"
             " <a href='mailto:MLTimeseriesPlatform+Support@gmail.com' "
             "target='_blank'>contact the support team</a>.")
-        
         logging.exception(
             "Error occurred during build_rf_model.build_model() call.")
-        
     update_model_entry_with_results_msg(model_key,model_built_msg)
-    
     return True
-
 
 
 @app.route('/buildingModel')
 def buildingModel():
-    '''Browser redirects here after model creation process has 
+    '''Render template to check on model creation process in browser.
+    
+    Browser redirects here after model creation process has 
     commenced. Renders browser template with process ID & other details,
     which continually checks and reports progress.
     Required URL params are:
-        PID 
-        new_model_key
-        project_name
-        model_name
+        PID (str): ID of subprocess in which model is being built.
+        new_model_key (str): RethinkDB 'models' table entry key.
+        project_name (str): Name of parent project.
+        model_name (str): Name of model being created.
+    
+    Returns:
+        flask.render_template
     '''
     PID = request.args.get("PID")
     new_model_key = request.args.get("new_model_key")
     project_name = request.args.get("project_name")
     model_name = request.args.get("model_name")
-    
     info_dict = get_all_info_dict()
-    
     return render_template(
         'index.html',
         ACTION="buildingModel",
@@ -2882,16 +2933,26 @@ def buildingModel():
         model_name=model_name)
 
 
-
-
 @app.route('/buildModel/<project_name>/<featureset_name>/<model_type>',
            methods=['POST'])
 @app.route('/buildModel',methods=['POST','GET'])
 def buildModel(project_name=None,featureset_name=None,model_type=None):
-    '''Handles 'buildModelForm' submission and starts model creation 
+    '''Build new model for specified feature set.
+    
+    Handles 'buildModelForm' submission and starts model creation 
     process as a subprocess (by calling prediction_proc with the 
     multiprocessing.Process method). Returns JSONified dict with PID 
     and other details about the process.
+    
+    Args:
+        project_name (str): Name of parent project.
+        featureset_name (str): Name of feature set from which to create 
+            new model.
+        model_type (str): Abbreviation of type of model to create (e.g. 
+            "RF").
+        
+    Returns:
+        JSON Response with model building details.
     '''
     if project_name is None: # browser form submission
         post_method = "browser"
@@ -2903,12 +2964,10 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
         model_type = str(request.form['model_type_select'])
     else:
         post_method = "http_api"
-    
     projkey = project_name_to_key(project_name)
     featureset_key = featureset_name_to_key(
         featureset_name=featureset_name,
         project_id=projkey)
-    
     new_model_key = add_model(
         featureset_name=featureset_name,
         featureset_key=featureset_key,
@@ -2923,29 +2982,32 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
               featureset_key,
               model_type,
               str(new_model_key).strip()))
-    
     proc.start()
-    
     PID = str(proc.pid)
     print "PROCESS ID IS", PID
     session["PID"] = PID
     update_model_entry_with_pid(new_model_key,PID)
-    
-    
-    # replaces below commented-out section as of 6/18/14
     return jsonify({
         "message":"Model creation has begun (with process ID = %s)."%str(PID), 
         "PID":PID, 
         "project_name":project_name, 
         "new_model_key":new_model_key, 
         "model_name":featureset_name})
-    
 
 
 @app.route('/emailUser',methods=['POST','GET'])
 def emailUser(user_email=None):
-    '''Emails specified (or current) user with notification that the 
+    '''Send a notification email to specified address.
+    
+    Emails specified (or current) user with notification that the 
     feature creation process has completed.
+    
+    Args:
+        user_email (str, optional): Email address. Defaults to None, 
+            in which case the current user' email is used.
+    
+    Returns:
+        str: Success/failure message.
     '''
     print '/emailUser() called.'
     try:
@@ -2969,97 +3031,6 @@ def emailUser(user_email=None):
         return "A notification email has been sent to %s." % user_email
     except Exception as theError:
         return str(theError)
-
-
-
-
-## OBSOLETE: 
-@app.route('/dotAstroID',methods=['POST','GET'])
-def dotAstroID():
-    if request.method == "POST":
-        session['lc_type'] = 'DotAstro'
-        id_str = str(request.form['dotastro_id'])
-        session['lc_id'] = id_str
-        lcdata = lc_tools.dotAstro_to_csv(id_str)
-        if lcdata and type(lcdata) != type(None):
-            lcdata = lcdata[0]
-            filename = 'dotastro_' + id_str + '.dat'
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            if not os.path.exists(path):
-                f = open(path, 'w')
-                f.write(lcdata)
-                f.close()
-                print "Saved", filename
-            else:
-                print filename,"already on disk."
-            
-            session['filename'] = filename
-            session['sep'] = ","
-            #pred_results,model_msg = predict.survey_predict(lcdata,',')
-            #app.logger.info(model_msg+'\n'+pred_results)
-            #print model_msg
-            #session['pred_results'] = pred_results
-        else:
-            print '/dotastroID: no lcdata.'
-        
-        return redirect(url_for('results'))
-
-
-
-## OBSOLETE: 
-@app.route('/harvardID',methods=['POST','GET'])
-def harvardID():
-    if request.method == "POST":
-        session['lc_type'] = 'Harvard TSC'
-        id_str = str(request.form['harvard_id'])
-        session['lc_id'] = id_str
-        lcdata = lc_tools.parse_harvard_lc(id_str)
-        if lcdata and type(lcdata) != type(None):
-            lcdata = lcdata[0]
-            filename = 'harvard_' + id_str + '.dat'
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            if not os.path.exists(path):
-                f = open(path, 'w')
-                f.write(lcdata)
-                f.close()
-                print "Saved", filename
-            else:
-                print filename,"already on disk."
-            
-            session['filename'] = filename
-            session['sep'] = ","
-        else:
-            print "/harvardID: no lcdata."
-        
-        return redirect(url_for('results'))
-
-
-
-## OBSOLETE? 
-@app.route('/get_lc_data/',methods=['POST','GET'])
-def get_lc_data():
-    filename = str(request.args.get('filename',''))
-    try:
-        sep = str(request.args.get('sep',''))
-        if not sep:
-            sep = ','
-    except:
-        sep = ','
-    f = open(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    all_lines=f.readlines()
-    data_array = []
-    for line_index in range(len(all_lines)):
-        if len(all_lines[line_index]) > 0:
-            if all_lines[line_index][0] != "#":
-                data_array.append(
-                    all_lines[line_index].replace("\n","").split(sep))
-    f.close()
-    del all_lines
-    #return render_template('lcdat.html',lcdata=simplejson.dumps(data_array))
-    return simplejson.dumps(data_array)
-
-
-
 
 
 if __name__ == '__main__':
