@@ -1,4 +1,4 @@
-FROM mltp/base
+FROM mltsp/base
 
 MAINTAINER Ari Crellin-Quick, a.crellinquick@gmail.com
 
