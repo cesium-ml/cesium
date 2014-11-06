@@ -147,7 +147,7 @@ def pred_featurize_reduce(iter, params):
                 
             if len(ts_data[i]) == 2: # no error column
                 ts_data[i].append(1.0) # make all errors 1.0
-            elif len(ts_data[i]) in [0,1]:
+            elif len(ts_data[i]) in (0, 1):
                 raise custom_exceptions.DataFormatError(
                     "Incomplete or improperly formatted time series "
                     "data file provided.")
@@ -173,7 +173,7 @@ def pred_featurize_reduce(iter, params):
                 ts_data=deepcopy(ts_data))
         else:
             science_features = {}
-        if custom_features_script:
+        if custom_features_script not in ("None", None, False, "False"):
             custom_features = cft.generate_custom_features(
                 custom_script_path=custom_features_script,
                 path_to_csv=None, 
