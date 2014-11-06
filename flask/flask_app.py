@@ -113,7 +113,7 @@ ALLOWED_EXTENSIONS = set([
 
 @app.before_request
 def before_request():
-    '''Establish connection to RethinkDB DB before each request.'''
+    """Establish connection to RethinkDB DB before each request."""
     try:
         g.rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLWS_DB)
     except RqlDriverError:
@@ -123,7 +123,7 @@ def before_request():
 
 @app.teardown_request
 def teardown_request(exception):
-    '''Close connection to RethinkDB DB after each request is completed.'''
+    """Close connection to RethinkDB DB after each request is completed."""
     try:
         g.rdb_conn.close()
     except AttributeError:
@@ -139,19 +139,24 @@ def excepthook_replacement(exctype, value, tb):
     logging.exception("Error occurred in flask_app.py")
 
 
-def num_lines(fname):
-    '''Return number of non-comment and non-whitespace lines in file.
+def num_lines(filename):
+    """Return number of non-comment and non-whitespace lines in a file.
     
     Comment lines are those that start with '#'.
     
-    Args:
-        fname (str): Path to file.
+    Parameters
+    ----------
+    fname : str
+        Path to file.
     
-    Returns:
-        int: Number of non-whitespace and non-comment lines in file.
-    '''
+    Returns
+    -------
+    int
+        Number of non-whitespace and non-comment lines in file.
+    
+    """
     linecount = 0
-    with open(fname) as f:
+    with open(filename) as f:
         for line in f:
             if (len(line)>0 and line[0] not in ["#","\n"] 
                     and not line.isspace()):
@@ -161,7 +166,7 @@ def num_lines(fname):
 
 @app.route('/check_job_status/',methods=['POST','GET'])
 def check_job_status(PID=False):
-    '''Check status of a process, return string summary.
+    """Check status of a process, return string summary.
     
     Checks the status of a process with given PID (passed as URL 
     parameter) and returns a message (str) indicating whether the 
@@ -169,12 +174,17 @@ def check_job_status(PID=False):
     has completed (and when it was started if so), in which case it has 
     'zombie' status and is killed.
     
-    Args:
-        PID (int OR str): Process id of process to be checked.
+    Parameters
+    ----------
+    PID : int or str
+        Process ID of process to be checked.
     
-    Returns:
-        str: Message indicating process status.
-    '''
+    Returns
+    -------
+    str
+        Message indicating process status.
+    
+    """
     if PID:
         PID = str(PID).strip()
     else:
@@ -182,7 +192,7 @@ def check_job_status(PID=False):
     if PID == "undefined":
         PID = str(session['PID'])
     start_time = is_running(PID)
-    if start_time:
+    if start_time != "False":
         if psutil.Process(int(PID)).status() != "zombie":
             msg_str = (
                 "This process is currently running and was started at "
@@ -202,29 +212,47 @@ def check_job_status(PID=False):
 
 
 def is_running(PID):
-    '''Check if process with given PID is running.
+    """Check if process with given PID is running.
     
-    Returns a string indicating the time process with give PID was 
+    Returns a string indicating the time process with given PID was 
     started if it is running, otherwise returns False (bool).
     
-    Args:
-        PID (int OR str): PID of process to check on.
+    Parameters
+    ----------
+    PID : int or str
+        PID of process to check on.
     
-    Returns:
-        str OR bool: Returns a string indicating the time process with 
-            give PID was started if it is running, otherwise returns 
-            False (bool).
-    '''
+    Returns
+    -------
+    str
+        Human readable string indicating the time process with 
+        given PID was started if it is running, otherwise "False".
+    
+    """
     if os.path.exists("/proc/%s" % str(PID)):
         p = psutil.Process(int(PID))
         return time.strftime(
             "%Y-%m-%d %H:%M:%S", time.localtime(p.create_time()))
     else:
-        return False
+        return "False"
 
 
 def db_init(force=False):
-    '''Initialize RethinkDB tables.'''
+    """Initialize RethinkDB tables.
+    
+    Create a RethinkDB database whose name is the value of the global 
+    `MLWS_DB` defined above, and creates tables within the new DB 
+    with the names 'projects', 'users', 'features', 'models', 
+    'userauth' and 'predictions', respectively.
+    
+    Parameters
+    ----------
+    force : boolean, optional
+        If True, any pre-existing database associated with this app and 
+        all its tables will be deleted and replaced by empty tables. 
+        Defaults to False.
+    
+    """
     try:
         connection = r.connect(host=RDB_HOST, port=RDB_PORT)
     except RqlDriverError as e:
@@ -232,13 +260,11 @@ def db_init(force=False):
         if 'not connect' in e.message:
             print 'Launch the database by executing `rethinkdb`.'
         return
-
     if force:
         try:
             r.db_drop(MLWS_DB).run(connection)
         except:
             pass
-
     try:
         r.db_create(MLWS_DB).run(connection)
     except RqlRuntimeError as e:
@@ -246,7 +272,6 @@ def db_init(force=False):
         print ('The table may already exist.  Specify the --force flag '
               'to clear existing data.')
         return
-
     table_names = ['projects', 'users', 'features',
                    'models', 'userauth', 'predictions']
 
@@ -262,11 +287,13 @@ def db_init(force=False):
 
 @app.route('/add_user',methods=['POST'])
 def add_user():
-    '''Add current user to the RethnkDB 'users' table.
+    """Add current user to the RethnkDB 'users' table.
     
+    Adds the currently logged-in user to the database's 'users' table. 
     Current user accessed via the flask.g application global (user info 
     is added to flask.g upon authentication).
-    '''
+    
+    """
     r.table('users').insert({
         "name":g.user['name'],
         "email":g.user['email'],
@@ -278,7 +305,7 @@ def add_user():
 
 #@app.before_first_request
 def check_user_table():
-    '''Add current user to RethinkDB 'users' table if not present.'''
+    """Add current user to RethinkDB 'users' table if not present."""
     if (r.table("users").filter({'email':g.user['email']})
         .count().run(g.rdb_conn)) == 0:
         r.table('users').insert({
@@ -295,19 +322,23 @@ def check_user_table():
 
 
 def update_model_entry_with_pid(new_model_key,pid):
-    '''Update RethinkDB model entry with process ID.
+    """Update RethinkDB model entry with process ID.
     
-    Add process ID to model entry with key 'new_model_key' in 
+    Add process ID to model entry with key `new_model_key` in 
     'models' table after subprocess with given PID has been started.
     
-    Args:
-        new_model_key (str): Key of RethinkDB 'models' table entry 
-            to be updated.
-        pid (str OR int): ID of model building process.
+    Parameters
+    ----------
+    new_model_key : str
+        Key of RethinkDB 'models' table entry to be updated.
+    pid : str or int
+        ID of model building process.
     
     Returns:
-        str: new_model_key, as provided in args.
-    '''
+    str
+        `new_model_key`, as provided in args.
+    
+    """
     (r.table('models').get(str(new_model_key).strip())
         .update({"pid":str(pid)}).run(g.rdb_conn))
     return new_model_key
@@ -315,19 +346,24 @@ def update_model_entry_with_pid(new_model_key,pid):
 
 
 def update_featset_entry_with_pid(featset_key,pid):
-    '''Update RethinkDB feature set entry with process ID.
+    """Update RethinkDB feature set entry with process ID.
     
-    Add process ID to feature set entry with key 'featset_key' in 
+    Add process ID to feature set entry with key `featset_key` in 
     'features' table after subprocess with given pid has been started.
     
-    Args:
-        featset_key (str): Key of RethinkDB 'features' table entry 
-            to be updated.
-        pid (str OR int): ID of feature generation process.
+    Parameters
+    ----------
+    featset_key : str
+        Key of RethinkDB 'features' table entry to be updated.
+    pid : str or int
+        ID of feature generation process.
     
-    Returns:
-        str: featset_key, as provided in args.
-    '''
+    Returns
+    -------
+    str
+        `featset_key`, as provided in function call.
+    
+    """
     (r.table('features').get(featset_key)
         .update({"pid":str(pid)}).run(g.rdb_conn))
     return featset_key
@@ -335,20 +371,25 @@ def update_featset_entry_with_pid(featset_key,pid):
 
 
 def update_prediction_entry_with_pid(prediction_key,pid):
-    '''Update RethinkDB prediction entry with process ID.
+    """Update RethinkDB prediction entry with process ID.
     
-    Add process ID to prediction entry with key 'prediction_key' in 
+    Add process ID to prediction entry with key `prediction_key` in 
     'predictions' table after subprocess with given pid has been 
     started.
     
-    Args:
-        prediction_key (str): Key of RethinkDB 'predictions' table 
-            entry to be updated.
-        pid (str OR int): ID of prediction process.
+    Parameters
+    ----------
+    prediction_key : str
+        Key of RethinkDB 'predictions' table entry to be updated.
+    pid : str or int
+        ID of prediction process.
     
-    Returns:
-        str: prediction_key, as provided in args.
-    '''
+    Returns
+    -------
+    str
+        `prediction_key`, as provided in function call.
+    
+    """
     (r.table('predictions').get(prediction_key)
         .update({"pid":str(pid)}).run(g.rdb_conn))
     return prediction_key
@@ -356,32 +397,38 @@ def update_prediction_entry_with_pid(prediction_key,pid):
 
 
 def update_prediction_entry_with_results(
-    prediction_entry_key, html_str="", features_dict={}, ts_data_dict={}, 
-    pred_results_list_dict={}, err=None):
-    '''Update RethinkDB prediction entry with results data.
+    prediction_entry_key, html_str, features_dict, ts_data_dict, 
+    pred_results_list_dict, err=None):
+    """Update RethinkDB prediction entry with results data.
     
     Add features generated, prediction results and ts data to entry in 
-    'predictions' table for entry with key 'prediction_entry_key'.
+    'predictions' table for entry with key `prediction_entry_key`.
     
-    Args:
-        prediction_entry_key (str): Key of RethinkDB 'predictions' 
-            table entry to be updated.
-        html_str (str, optional): HTML table of results. Defaults to "".
-        features_dict (dict, optional): Dictionary containing generated 
-            features. Defaults to {}.
-        ts_data_dict (dict, optional): Dictionary containing 
-            time-series data, with their original file names as keys, 
-            and list of respective (t, m, e) values as each dict value).
-            Defaults to {}.
-        pred_results_list_dict (dict, optional): Dictionary with 
-            original time-series data file name as keys, list of 
-            respective classifier prediction results as values.
-        err (str), optional: Error message associated with prediction 
-            process. Defaults to None.
+    Parameters
+    ----------
+    prediction_entry_key : str
+        Key of RethinkDB 'predictions' table entry to be updated.
+    html_str : str
+        String containing HTML table of results.
+    features_dict : dict
+        Dictionary containing generated features.
+    ts_data_dict : dict
+        Dictionary containing time-series data, with their original 
+        file names as keys, and list of respective (t,m,e) values as 
+        each dict value.
+    pred_results_list_dict : dict
+        Dictionary with original time-series data file name as keys, 
+        list of respective classifier prediction results as values.
+    err : str, optional
+        Error message associated with prediction process. Defaults to 
+        None.
         
-    Returns:
-        bool: True
-    '''
+    Returns
+    -------
+    boolean
+        True.
+        
+    """
     info_dict = {
         "results_str_html":html_str,
         "features_dict":features_dict,
@@ -394,21 +441,27 @@ def update_prediction_entry_with_results(
 
 
 def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
-    '''Update RethinkDB model entry with results message.
+    """Update RethinkDB model entry with results message.
     
-    Add success/error message to model entry with key 'model_key' 
+    Add success/error message to model entry with key `model_key` 
     in 'models' table.
     
-    Args:
-        model_key (str): Key of RethinkDB 'models' table entry to be 
-            updated.
-        model_built_msg (str): Message provided by model build function.
-        err (str, optional): Error message associated with model build 
-            process. Defaults to None.
+    Parameters
+    ----------
+    model_key : str
+        Key of RethinkDB 'models' table entry to be updated.
+    model_built_msg : str
+        Message provided by model build function.
+    err : str, optional
+        Error message associated with model build process. Defaults to 
+        None.
         
-    Returns:
-        str: model_key, as provided in args.
-    '''
+    Returns
+    -------
+    str
+        `model_key`, as provided in function call parameters.
+    
+    """
     info_dict = {"results_msg":model_built_msg}
     if err is not None: info_dict["err_msg"] = err
     r.table('models').get(model_key).update(info_dict).run(g.rdb_conn)
@@ -416,21 +469,27 @@ def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
 
 
 def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
-    '''Update RethinkDB feature set entry with results message.
+    """Update RethinkDB feature set entry with results message.
     
     Add success/error message to feature set entry with key 
-    'featureset_key' in 'features' table.
+    `featureset_key` in 'features' table.
     
-    Args:
-        featureset_key (str): Key of RethinkDB 'features' table entry 
-            to be updated.
-        results_str (str): Message provided by featurization function.
-        err (str, optional): Error message associated with 
-            featurization process. Defaults to None.
+    Parameters
+    ----------
+    featureset_key : str
+        Key of RethinkDB 'features' table entry to be updated.
+    results_str : str
+        Human readable message provided by featurization function.
+    err : str, optional
+        Human readable error message associated with featurization 
+        process. Defaults to None.
         
-    Returns:
-        str: featureset_key, as provided in args.
-    '''
+    Returns
+    -------
+    str
+        `featureset_key`, as provided in function call parameters.
+    
+    """
     info_dict = {"results_msg":results_str}
     if err is not None: info_dict["err_msg"] = err
     r.table('features').get(featureset_key).update(info_dict).run(g.rdb_conn)
@@ -438,14 +497,17 @@ def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
 
 
 def get_current_userkey():
-    '''Return RethinkDB key/ID associated with current user.
+    """Return RethinkDB key/ID associated with current user.
     
     Returns the key/ID of the 'users' table entry corresponding to 
-    current user's email (accessed through g.user thread-local). 
+    current user's email (accessed through `g.user` thread-local). 
     
-    Returns:
-        str: User key/ID.
-    '''
+    Returns
+    -------
+    str
+        User key/ID.
+    
+    """
     cursor = r.table("users").filter({"email":g.user['email']}).run(g.rdb_conn)
     n_entries = 0
     entries = []
@@ -462,14 +524,17 @@ def get_current_userkey():
         "users table with email"), g.user['email']
     else:
         return entries[0]['id']
-    
+
 
 def get_all_projkeys():
-    '''Return all project keys.
+    """Return all project keys.
     
-    Returns:
-        list: A list of project keys (strings).
-    '''
+    Returns
+    -------
+    list of str
+        A list of project keys (strings).
+    
+    """
     cursor = (r.table('userauth').map(lambda entry: entry['projkey'])
         .run(g.rdb_conn))
     proj_keys = []
@@ -479,11 +544,14 @@ def get_all_projkeys():
 
 
 def get_authed_projkeys():
-    '''Return all project keys that current user is authenticated for.
+    """Return all project keys that current user is authenticated for.
     
-    Returns:
-        list: A list of project keys (strings).
-    '''
+    Returns
+    -------
+    list of str
+        A list of project keys (strings).
+    
+    """
     this_userkey = get_current_userkey()
     cursor = r.table('userauth').filter({
         "userkey":this_userkey,
@@ -498,23 +566,28 @@ def get_authed_projkeys():
 def list_featuresets(
     auth_only=True, by_project=False, name_only=False, 
     as_html_table_string=False):
-    '''Return list of strings describing entries in 'features' table.
+    """Return list of strings describing entries in 'features' table.
     
-    Args:
-        auth_only (bool, optional): If True, returns only those 
-            entries whose parent projects current user is authenticated 
-            to access. Defaults to True.
-        by_project (str OR bool, optional): Must be project name or 
-            False. Filters by project if not False. Defaults to False.
-        name_only (bool, optional): If True, does not include 
-            date/time created. Defaults to False.
-        as_html_table_string (bool, optional): If True, returns the 
-            results as a single string of HTML markup containing a 
-            table. Defaults to False.
+    Parameters
+    ----------
+    auth_only : bool, optional
+        If True, returns only those entries whose parent projects 
+        current user is authenticated to access. Defaults to True.
+    by_project : str, optional
+        Project name. Filters by project if not False. Defaults to 
+        False.
+    name_only : bool, optional
+        If True, does not include date/time created. Defaults to False.
+    as_html_table_string : bool, optional
+        If True, returns the results as a single string of HTML markup 
+        containing a table. Defaults to False.
     
-    Returns:
-        list: List of strings describing entries in 'features' table.
-    '''
+    Returns
+    -------
+    list of str
+        List of strings describing entries in 'features' table.
+    
+    """
     authed_proj_keys = (
         get_authed_projkeys() if auth_only else get_all_projkeys())
     if by_project:
@@ -582,25 +655,31 @@ def list_featuresets(
 def list_models(
     auth_only=True, by_project=False, name_only=False, with_type=True, 
     as_html_table_string=False):
-    '''Return list of strings describing entries in 'models' table.
+    """Return list of strings describing entries in 'models' table.
     
-    Args:
-        auth_only (bool, optional): If True, returns only those 
-            entries whose parent projects current user is authenticated 
-            to access. Defaults to True.
-        by_project (str OR bool, optional): Must be project name or 
-            False. Filters by project if not False. Defaults to False.
-        name_only (bool, optional): If True, does not include 
-            date/time created. Defaults to False.
-        with_type (bool, optional): If True, includes model type 
-            (e.g. RF) in model description. Defaults to True.
-        as_html_table_string (bool, optional): If True, returns the 
-            results as a single string of HTML markup containing a 
-            table. Defaults to False.
+    Parameters
+    ----------
+    auth_only : bool, optional
+        If True, returns only those entries whose parent projects 
+        current user is authenticated to access. Defaults to True.
+    by_project : str, optional
+        Must be project name or False. Filters by project. Defaults 
+        to False.
+    name_only : bool, optional
+        If True, does not include date/time created. Defaults to False.
+    with_type : bool, optional
+        If True, includes model type (e.g. 'RF') in model description. 
+        Defaults to True.
+    as_html_table_string : bool, optional
+        If True, returns the results as a single string of HTML markup 
+        containing a table. Defaults to False.
     
-    Returns:
-        list: List of strings describing entries in 'models' table.
-    '''
+    Returns
+    -------
+    list of str
+        List of strings describing entries in 'models' table.
+    
+    """
     authed_proj_keys = (
         get_authed_projkeys() if auth_only else get_all_projkeys())
     
@@ -675,23 +754,27 @@ def list_models(
 def list_predictions(
     auth_only=False, by_project=False, detailed=True, 
     as_html_table_string=False):
-    '''Return list of strings describing entries in 'predictions' table.
+    """Return list of strings describing entries in 'predictions' table.
     
-    Args:
-        auth_only (bool, optional): If True, returns only those 
-            entries whose parent projects current user is authenticated 
-            to access. Defaults to False.
-        by_project (str OR bool, optional): Must be project name or 
-            False. Filters by project if not False. Defaults to False.
-        detailed (bool, optional): If True, includes more details such 
-            date/time. Defaults to True.
-        as_html_table_string (bool, optional): If True, returns the 
-            results as a single string of HTML markup containing a 
-            table. Defaults to False.
+    Parameters
+    ----------
+    auth_only : bool, optional
+        If True, returns only those entries whose parent projects 
+        current user is authenticated to access. Defaults to False.
+    by_project : str, optional
+        Name of project to restrict results to. Defaults to False.
+    detailed : bool, optional
+        If True, includes more details such date/time. Defaults to True.
+    as_html_table_string : bool, optional
+        If True, returns the results as a single string of HTML markup 
+        containing a table. Defaults to False.
     
-    Returns:
-        list: List of strings describing entries in 'models' table.
-    '''
+    Returns
+    -------
+    list of str
+        List of strings describing entries in 'models' table.
+    
+    """
     if by_project:
         this_projkey = project_name_to_key(by_project)
         cursor = (
@@ -728,12 +811,10 @@ def list_predictions(
                 except KeyError:
                     predictions += (
                         "No prediction results saved for this entry.")
-                
                 predictions += ((
                         "</div></td><td align='center'><input type='checkbox' "
                         "name='delete_prediction_key' value='%s'></td></tr>") 
                     % entry['id'])
-                
                 count += 1
             predictions += "</table>"
         else:
@@ -765,38 +846,46 @@ def list_predictions(
                     + (
                         " (created %s PST)"%str(entry['created'])[:-13] 
                         if detailed else ""))
-            
         return predictions
 
 
 @app.route('/get_list_of_projects',methods=['POST','GET'])
 def get_list_of_projects():
-    '''Return list of project names current user can access.
+    """Return list of project names current user can access.
     
     Called from browser to populate select options.
     
-    Returns:
-        json response: Jsonified dict {'list':list_of_projs}.
-    '''
+    Returns
+    -------
+    flask.Response() object
+        Creates flask.Response() object with JSONified dict 
+        (``{'list':list_of_projects}``).
+    
+    """
     if request.method == 'GET':
         list_of_projs = list_projects(name_only=True)
         return jsonify({'list':list_of_projs})
 
 
 def list_projects(auth_only=True,name_only=False):
-    '''Return list of strings describing entries in 'projects' table.
+    """Return list of strings describing entries in 'projects' table.
     
-    Args:
-        auth_only (bool, optional). If True, returns only those 
-            projects that the current user is authenticated to access, 
-            else all projects in table are returned. Defaults to True.
-        name_only (bool, optional). If True/False, does/does not 
-            include date & time created, respectively. Defaults to 
-            False.
+    Parameters
+    ----------
+    auth_only : bool, optional
+        If True, returns only those projects that the current user is 
+        authenticated to access, else all projects in table are 
+        returned. Defaults to True.
+    name_only : bool, optional
+        If True, includes date & time created, omits if False. 
+        Defaults to False.
     
-    Returns:
-        list: List of strings describing project entries.
-    '''
+    Returns
+    -------
+    list of str
+        List of strings describing project entries.
+    
+    """
     proj_keys = (get_authed_projkeys() if auth_only else get_all_projkeys())
     if len(proj_keys) == 0:
         return []
@@ -813,21 +902,27 @@ def list_projects(auth_only=True,name_only=False):
 
 
 def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
-    '''Add a new entry to the rethinkDB 'projects' table.
+    """Add a new entry to the rethinkDB 'projects' table.
     
-    Args:
-        name (str): New project name.
-        desc (str, optional). Project description. Defaults to "".
-        addl_authed_users (list, optional): List of email addresses 
-            (str format) of additional users authorized to access this 
-            new project. Defaults to [].
-        user_email (str, optional): Email of user creating new project. 
-            If "auto", user email determined by g.user thread-local. 
-            Defauls to "auto".
+    Parameters
+    ----------
+    name : str
+        New project name.
+    desc : str, optional
+        Project description. Defaults to an empty strings.
+    addl_authed_users : list of str, optional
+        List of email addresses (str format) of additional users 
+        authorized to access this new project. Defaults to empty list.
+    user_email : str, optional
+        Email of user creating new project. If "auto", user email 
+        determined by g.user thread-local. Defauls to "auto".
     
-    Returns:
-        str: RethinkDB key/ID of newly created project entry.
-    '''
+    Returns
+    -------
+    str
+        RethinkDB key/ID of newly created project entry.
+    
+    """
     if user_email in ["auto",None,"None","none","Auto"]:
         user_email = get_current_userkey()
     if type(addl_authed_users) == str:
@@ -852,27 +947,38 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
 
 
 def add_featureset(
-    name, projkey, pid, featlist, custom_features_script,
+    name, projkey, pid, featlist, custom_features_script=None,
     meta_feats=[], headerfile_path=None, zipfile_path=None):
-    '''Add a new entry to the rethinkDB 'features' table.
+    """Add a new entry to the rethinkDB 'features' table.
     
-    Args:
-        name (str): New feature set name.
-        projkey (str): RethinkDB key/ID of parent project.
-        pid (str): PID of process associated with creation of new 
-            feature set.
-        featlist (list): List of names of features (strings) in new 
-            feature set.
-        custom_features_script (str or None): Path to custom features 
-            script associated with new feature set, or None.
-        meta_feats (list, optional): List of any associated meta 
-            features. Defaults to empty list [].
-        headerfile_path (str, optional): Path to header file associated 
-            with 
+    Parameters
+    ----------
+    name : str
+        New feature set name.
+    projkey : str
+        RethinkDB key/ID of parent project.
+    pid : str
+        PID of process associated with creation of new feature set.
+    featlist : list
+        List of names of features (strings) in new feature set.
+    custom_features_script : str, optional
+        Path to custom features script associated with new feature set. 
+        Defaults to None.
+    meta_feats : list of str, optional
+        List of any associated meta features. Defaults to empty list.
+    headerfile_path : str, optional
+        Path to header file associated with new feature set. Defaults 
+        to None.
+    zipfile_path : str, optional
+        Path to tarball file containing time-series data associated 
+        with new feature set. Defaults to None.
     
-    Returns:
-        str: RethinkDB key/ID of newly created featureset entry.
-    '''
+    Returns
+    -------
+    str
+        RethinkDB key/ID of newly created featureset entry.
+    
+    """
     new_featset_key = r.table("features").insert({
         "projkey": projkey,
         "name": name, 
@@ -891,23 +997,30 @@ def add_featureset(
 def add_model(
     featureset_name, featureset_key, model_type, projkey, pid, 
     meta_feats=False):
-    '''Add a new entry to the rethinkDB 'models' table.
+    """Add a new entry to the rethinkDB 'models' table.
     
-    Args:
-        name (str): New feature set name.
-        featureset_key (str): RethinkDB key/ID of associated feature 
-            set.
-        model_type (str): Abbreviation of model/classifier type (e.g. 
-            "RF").
-        projkey (str): RethinkDB key/ID of parent project.
-        pid (str): PID of process associated with creation of new 
-            feature set.
-        meta_feats (list, optional): List of any associated meta 
-            features. Defaults to False.
+    Parameters
+    ----------
+    name : str
+        New feature set name.
+    featureset_key : str
+        RethinkDB key/ID of associated feature set.
+    model_type : str
+        Abbreviation of model/classifier type (e.g. "RF").
+    projkey : str
+        RethinkDB key/ID of parent project.
+    pid : str
+        PID of process associated with creation of new feature set.
+    meta_feats : list of str, optional
+        List of names of any associated meta features. Defaults to 
+        False.
     
-    Returns:
-        str: RethinkDB key/ID of newly created model entry.
-    '''
+    Returns
+    -------
+    str
+        RethinkDB key/ID of newly created model entry.
+    
+    """
     entry = (
         r.table("features").get(featureset_key)
         .pluck('meta_feats').run(g.rdb_conn))
@@ -929,23 +1042,30 @@ def add_model(
 def add_prediction(
     project_name, model_name, model_type, pred_filename, 
     pid="None", metadata_file="None"):
-    '''Add a new entry to the rethinkDB 'predictions' table.
+    """Add a new entry to the rethinkDB 'predictions' table.
     
-    Args:
-        project_name (str): Name of parent project.
-        model_name (str): Name of associated model.
-        model_type (str): Abbreviation of associated model/classifier 
-            type (e.g. "RF").
-        pred_filename (str): Name of time-series data file used in 
-            prediction.
-        pid (str, optional): PID of process associated with creation of 
-            new feature set. Defaults to "None".
-        metadata_file (str, optional): Path to associated metadata file.
-            Defaults to "None".
+    Parameters
+    ----------
+    project_name : str
+        Name of parent project.
+    model_name : str
+        Name of associated model.
+    model_type : str
+        Abbreviation of associated model/classifier type (e.g. "RF").
+    pred_filename : str
+        Name of time-series data file used in prediction.
+    pid : str, optional
+        PID of process associated with creation of new feature set. 
+        Defaults to "None".
+    metadata_file : str, optional
+        Path to associated metadata file. Defaults to "None".
     
-    Returns:
-        str: RethinkDB key/ID of newly created prediction entry.
-    '''
+    Returns
+    -------
+    str
+        RethinkDB key/ID of newly created prediction entry.
+    
+    """
     project_key = project_name_to_key(project_name)
     new_prediction_key = r.table("predictions").insert({
         "project_name":project_name,
@@ -962,20 +1082,25 @@ def add_prediction(
 
 
 def delete_project(project_name):
-    '''Delete project entry and associated data.
+    """Delete project entry and associated data.
     
-    Deletes entry whose 'name' attribute has a value of provided 
-    project_name from rethinkDB 'projects' table. Also deletes all 
-    entries in 'predictions', 'features', 'models' and 'userauth' 
-    tables that are solely associated with this project, and removes 
-    all project data (features, models, etc) from the disk.
+    Deletes RethinkDB project entry whose 'name' attribute is 
+    `project_name`. Also deletes all entries in 'predictions', 
+    'features', 'models' and 'userauth' tables that are solely 
+    associated with this project, and removes all project data 
+    (features, models, etc) from the disk.
     
-    Args:
-        project_name (str): Name of project to be deleted.
+    Parameters
+    ----------
+    project_name : str
+        Name of project to be deleted.
         
-    Returns:
-        int: The number of projects deleted (should be 1).
-    '''
+    Returns
+    -------
+    int
+        The number of projects successfully deleted.
+    
+    """
     proj_keys = []
     cursor = (
         r.table("projects").filter({"name":project_name})
@@ -1092,23 +1217,28 @@ def delete_project(project_name):
 
 
 def get_project_details(project_name):
-    '''Return dict containing project details.
+    """Return dict containing project details.
     
-    Args:
-        project_name (str): Name of project.
+    Parameters
+    ----------
+    project_name : str
+        Name of project.
     
-    Returns:
-        dict: Dictionary with the following key-value pairs:
-            "authed_users": a list of emails of authenticated users
-            "featuresets": a string of HTML markup of a table describing 
-                all associated featuresets
-            "models": a string of HTML markup of a table describing all 
-                associated models
-            "predictions": a string of HTML markup of a table describing 
-                all associated predictions
-            "created": date/time created
-            "description": project description
-    '''
+    Returns
+    -------
+    dict
+        Dictionary with the following key-value pairs:
+        "authed_users": a list of emails of authenticated users
+        "featuresets": a string of HTML markup of a table describing 
+            all associated featuresets
+        "models": a string of HTML markup of a table describing all 
+            associated models
+        "predictions": a string of HTML markup of a table describing 
+            all associated predictions
+        "created": date/time created
+        "description": project description
+    
+    """
     # TODO: add following info: associated featuresets, models
     entries = []
     cursor = r.table("projects").filter({"name":project_name}).run(g.rdb_conn)
@@ -1143,16 +1273,22 @@ def get_project_details(project_name):
 
 @app.route('/get_project_details')
 def get_project_details_json():
-    '''Return JSONified dict Response object containing project details.
+    """Return Response object containing project details.
     
-    Returns JSONified output of get_project_details.
+    Returns flask.Response() object with JSONified output of 
+    `get_project_details`.
     
-    Args:
-        project_name (str): Name of project.
+    Parameters
+    ----------
+    project_name : str
+        Name of project.
         
-    Returns:
-        flask.Response object 
-    '''
+    Returns
+    -------
+    flask.Response object
+        Response object contains project details in JSON form.
+    
+    """
     try:
         project_name = str(request.args.get("project_name")).strip()
     except:
@@ -1163,14 +1299,19 @@ def get_project_details_json():
 
 
 def get_authed_users(project_key):
-    '''Return list of users authenticated for the specified project.
+    """Return list of users authenticated for the specified project.
     
-    Args:
-        project_key (str): RethinkDB key/ID of project.
+    Parameters
+    ----------
+    project_key : str
+        RethinkDB entry key/ID of project.
     
-    Returns:
-        list: List of authed user emails.
-    '''
+    Returns
+    -------
+    list of str
+        List of authed user emails.
+    
+    """
     authed_users = []
     cursor = (r.table("userauth").filter({"projkey":project_key})
               .pluck("userkey").run(g.rdb_conn))
@@ -1180,14 +1321,20 @@ def get_authed_users(project_key):
 
 
 def project_name_to_key(projname):
-    '''Return RethinkDB entry key associated with project name projname.
+    """Return RethinkDB entry key associated with project name 
+    `projname`.
     
-    Args:
-        projname (str): Project name.
+    Parameters
+    ----------
+    projname : str
+        Project name.
     
-    Returns:
-        str: Key associated with project name.
-    '''
+    Returns
+    -------
+    str
+        RethinkDB ID associated with project name.
+    
+    """
     projname = projname.strip().split(" (created")[0]
     cursor = (r.table("projects").filter({"name":projname})
               .pluck("id").run(g.rdb_conn))
@@ -1202,20 +1349,26 @@ def project_name_to_key(projname):
 
 
 def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
-    '''Return RethinkDB key associated with given feature set details.
+    """Return RethinkDB key associated with given feature set details.
     
-    Args:
-        featureset_name (str): Name of the feature set.
-        project_name (str, optional): Name of project to which feature 
-            set in question belongs. Defaults to None. 
-            If None, project_id (see below) must not be None.
-        project_id (str, optional). ID of project to wuich feature set 
-            in question belongs. Defaults to None. If None, 
-            project_name (see above) must not be None.
+    Parameters
+    ----------
+    featureset_name : str
+        Name of the feature set.
+    project_name : str, optional
+        Name of project to which feature set in question belongs. 
+        Defaults to None. If None, `project_id` (see below) must be 
+        provided.
+    project_id : str, optional
+        ID of project to wuich feature set in question belongs. 
+        Defaults to None. If None, `project_name` (see above) must be
+        provided.
     
-    Returns:
-        str: RethinkDB ID/key of specified feature set.
-    '''
+    Returns
+    str
+        RethinkDB ID/key of specified feature set.
+    
+    """
     if project_name is None and project_id is None:
         print ("featureset_name_to_key() - Neither project name nor id "
                "provided - returning false.")
@@ -1242,29 +1395,36 @@ def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
 def update_project_info(
     orig_name, new_name, new_desc, new_addl_authed_users, 
     delete_features_keys=[], delete_model_keys=[], delete_prediction_keys=[]):
-    '''Modify/update project entry with new information.
+    """Modify/update project entry with new information.
     
-    If delete_feature_keys, delete_model_keys or delete_prediction_keys 
-    are provided, their RethinkDB entries will be deleted along with 
-    all associated data and files.
+    If `delete_feature_keys`, `delete_model_keys` or 
+    `delete_prediction_keys` are provided, their RethinkDB entries will 
+    be deleted along with all associated data and files.
     
-    Args:
-        orig_name (str): Name of project to be modified.
-        new_name (str): New project name (if unchanged, must be the 
-            same as orig_name).
-        new_desc (str): New project description (if unchanged, must be
-            the same as original).
-        new_addl_authed_users (list): New list of authorized users.
-        delete_feature_keys (list, optional): List of feature set 
-            IDs/keys to delete from this project. Defaults to [].
-        delete_model_keys (list, optional): List of model 
-            IDs/keys to delete from this project. Defaults to [].
-        delete_prediction_keys (list, optional): List of prediction  
-            IDs/keys to delete from this project. Defaults to [].
+    Parameters
+    ----------
+    orig_name : str
+        Name of project to be modified.
+    new_name : str
+        New project name. If unchanged, must be the same as `orig_name`.
+    new_desc : str
+        New project description (if unchanged, must be the same as 
+        original).
+    new_addl_authed_users : list of str
+        New list of authorized users (email addresses).
+    delete_feature_keys : list of str, optional
+        List of feature set IDs/keys to delete from this project.
+    delete_model_keys : list, optional
+        List of model IDs/keys to delete from this project.
+    delete_prediction_keys : list of str, optional
+        List of prediction IDs/keys to delete from this project.
     
-    Returns:
-        dict: Dictionary containing new project details.
-    '''
+    Returns
+    -------
+    dict
+        Dictionary containing new project details.
+    
+    """
     userkey = get_current_userkey()
     projkey = project_name_to_key(orig_name)
     (r.table("projects").get(projkey)
@@ -1359,23 +1519,27 @@ def update_project_info(
 
 
 def get_all_info_dict(auth_only=True):
-    '''Return dictionary containing application-wide information.
+    """Return dictionary containing application-wide information.
     
     For populating browser fields.
     
-    Args:
-        auth_only (bool, optional): Return only data associated with 
-            projects current user is authenticated to access. Defaults 
-            to True.
+    Parameters
+    ----------
+    auth_only : bool, optional
+        Return only data associated with projects current user is 
+        authenticated to access. Defaults to True.
     
     Returns
-        dict: Dictionary with the following keys (whose associated 
+    -------
+    dict
+        Dictionary with the following keys (whose associated 
         values are self-explanatory): 
-            list_of_current_projects
-            list_of_current_feature_sets
-            list_of_current_models
-            list_of_available_features
-    '''
+            'list_of_current_projects'
+            'list_of_current_feature_sets'
+            'list_of_current_models'
+            'list_of_available_features'
+    
+    """
     info_dict = {}
     info_dict['list_of_current_projects'] = list_projects(auth_only=auth_only)
     info_dict['list_of_current_projects_json'] = simplejson.dumps(
@@ -1396,7 +1560,7 @@ def get_all_info_dict(auth_only=True):
 
 
 def get_list_of_available_features():
-    '''Return list of built-in time-series features available.'''
+    """Return list of built-in time-series features available."""
     features_list_science_used = []
     for feat in cfg.features_list_science:
         if feat not in cfg.ignore_feats_list_science:
@@ -1405,7 +1569,7 @@ def get_list_of_available_features():
 
 
 def get_list_of_available_features_set2():
-    '''Return list of additional built-in time-series features.'''
+    """Return list of additional built-in time-series features."""
     features_list_set2_used = []
     for feat in cfg.features_list:
         if feat not in cfg.ignore_feats_list_science:
@@ -1414,7 +1578,7 @@ def get_list_of_available_features_set2():
 
 
 def allowed_file(filename):
-    '''Return bool indicating whether filename has allowed extension.'''
+    """Return bool indicating whether filename has allowed extension."""
     return ('.' in filename and 
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS)
 
@@ -1422,7 +1586,7 @@ def allowed_file(filename):
 @app.route('/')
 @auth.required
 def MainPage():
-    '''Render default page.'''
+    """Render default page."""
     check_user_table()
     ACTION="None"
     info_dict = get_all_info_dict()
@@ -1443,7 +1607,7 @@ def MainPage():
 
 @app.route('/testNewScript', methods=['POST','GET'])
 def testNewScript():
-    '''Test POSTed custom features script file.
+    """Test POSTed custom features script file.
     
     Handles POSTing of form that uploads a .py script. Script is 
     saved and tested inside a docker container. If successful, an HTML 
@@ -1451,10 +1615,13 @@ def testNewScript():
     tested features in the script, is returned for rendering in the 
     browser.
     
-    Returns:
-        str: HTML containing checked checkboxes for each of the 
-            custom feature names.
-    '''
+    Returns
+    -------
+    str
+        String of HTML markup for checked checkboxes for each of the 
+        custom feature names.
+    
+    """
     if request.method == "POST":
         scriptfile = request.files['custom_feat_script_file']
         scriptfile_name = secure_filename(scriptfile.filename)
@@ -1490,7 +1657,7 @@ def testNewScript():
 
 @app.route('/editProjectForm', methods=['POST','GET'])
 def editProjectForm():
-    '''Handles project editing form submission.'''
+    """Handles project editing form submission."""
     if request.method == 'POST':
         orig_proj_name = str(request.form["project_name_orig"]).strip()
         new_proj_name = str(request.form["project_name_edit"]).strip()
@@ -1525,18 +1692,27 @@ def editProjectForm():
 @app.route('/newProject', methods=['POST','GET'])
 def newProject(
     proj_name=None, proj_description=None, addl_users=None, user_email=None):
-    '''Handle new project form and creates new RethinkDB entry.
+    """Handle new project form and creates new RethinkDB entry.
     
-    Args:
-        proj_name (str): Project name.
-        proj_description (str): Project description.
-        addl_users (str): String containing comma-separated list of 
-            any additional authorized users (their email handles).
-        user_email (str): Email of user creating new project.
+    Parameters
+    ----------
+    proj_name : str
+        Project name.
+    proj_description : str
+        Project description.
+    addl_users : str
+        String containing comma-separated list of any additional 
+        authorized users (their email handles).
+    user_email : str
+        Email of user creating new project.
     
-    Returns:
-        JSON Response object
-    '''
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSONified dict with "result" 
+        as key and the result description as the corresponding value.
+    
+    """
     if proj_name is not None:
         try:
             proj_name = proj_name.strip()
@@ -1601,10 +1777,14 @@ def newProject(
 
 @app.route('/editOrDeleteProject', methods=['POST'])
 def editOrDeleteProject():
-    '''Handle 'editOrDeleteProjectForm' form submission.
+    """Handle 'editOrDeleteProjectForm' form submission.
     
-    Returns JSON response object.
-    '''
+    Returns
+    -------
+    JSON response object
+        JSONified dict containing result message.
+    
+    """
     if request.method == 'POST':
         proj_name = (str(request.form["PROJECT_NAME_TO_EDIT"])
             .split(" (created ")[0].strip())
@@ -1631,15 +1811,22 @@ def editOrDeleteProject():
     methods=["POST","GET"])
 def get_featureset_id_by_projname_and_featsetname(
         project_name=None, featureset_name=None):
-    '''Return JSON containing feature set ID.
+    """Return flask.Response() object containing feature set ID.
     
-    Args:
-        project_name (str): Project name.
-        featureset_name (str): Feature set name.
+    Parameters
+    ----------
+    project_name :str
+        Project name.
+    featureset_name : str
+        Feature set name.
     
-    Returns:
-        JSON Response object with "featureset_id" as a key.
-    '''
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSONified dict with 
+        "featureset_id" as a key.
+    
+    """
     project_name = project_name.split(" (created")[0].strip()
     featureset_name = featureset_name.split(" (created")[0].strip()
     
@@ -1661,15 +1848,21 @@ def get_featureset_id_by_projname_and_featsetname(
     '/get_list_of_featuresets_by_project/<project_name>',
     methods=['POST','GET'])
 def get_list_of_featuresets_by_project(project_name=None):
-    '''Return (in JSON form) list of project's feature sets.
+    """Return (in JSON form) list of project's feature sets.
     
-    Args:
-        project_name (str): Name of project to inspect.
+    Parameters
+    ----------
+    project_name : str
+        Name of project to inspect.
         
-    Returns:
-        JSON containing "featset_list" as a key, whose value is a list 
-        of strings describing feature sets.
-    '''
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSONified dict with 
+        "featset_list" as a key, whose value is a list of strings 
+        describing the feature sets.
+    
+    """
     if request.method == 'GET':
         if project_name == None:
             try:
@@ -1686,15 +1879,21 @@ def get_list_of_featuresets_by_project(project_name=None):
 @app.route(
     '/get_list_of_models_by_project/<project_name>', methods=['POST','GET'])
 def get_list_of_models_by_project(project_name=None):
-    '''Return (as JSON Response value) list of models in project.
+    """Return list of models in specified project.
     
-    Args:
-        project_name (str): Name of project.
+    Parameters
+    ----------
+    project_name : str
+        Name of project whose models to list.
     
-    Returns:
-        JSON containing "model_list" as a key, whose value is a list of 
-        strings describing models.
-    '''
+    Returns
+    -------
+    flask.Response() object
+        Response object containing JSONified dict with "model_list" as 
+        a key, whose corresponding value is a list of strings 
+        describing the models in specified project.
+    
+    """
     if request.method == 'GET':
         if project_name == None:
             try:
@@ -1710,22 +1909,34 @@ def get_list_of_models_by_project(project_name=None):
 
 
 def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
-    '''Ensure uploaded files are correctly formatted.
+    """Ensure uploaded files are correctly formatted.
     
     Ensures that headerfile_path and zipfile_path conform 
     to expected format - returns False if so, raises Exception if not.
     
-    Args:
-        headerfile_path (str): Path to header file to inspect.
-        zipfile_path (str): Path to tarball to inspect.
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to header file to inspect.
+    zipfile_path : str
+        Path to tarball to inspect.
     
-    Returns:
-        bool: Returns False if files are correctly formatted.
+    Returns
+    -------
+    bool
+        Returns False if files are correctly formatted, otherwise 
+        raises an exception (see below).
     
-    Raises:
-        custom_exceptions.TimeSeriesFileNameError or 
-        custom_exceptions.DataFormatError
-    '''
+    Raises
+    ------
+    custom_exceptions.TimeSeriesFileNameError
+        If any provided time-series data files' names are absent in 
+        provided header file.
+    custom_exceptions.DataFormatError
+        If provided time-series data files or header file are 
+        improperly formatted.
+    
+    """
     with open(headerfile_path) as f:
         all_header_fnames = []
         column_header_line = f.readline()
@@ -1787,25 +1998,36 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
 
 
 def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
-    '''Ensure uploaded files are correctly formatted.
+    """Ensure uploaded files are correctly formatted.
     
     Ensures that time-series data file(s) and metadata file (if any) 
     conform to expected format - returns False if so, raises Exception 
     if not.
     
-    Args:
-        newpred_file_path (str): Path to time-series data file or 
-            tarball of files.
-        metadata_file_path (str or None): Path to metadata file or 
-            None.
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to time-series data file or tarball of files.
+    metadata_file_path : str
+        Path to metadata file or "None".
     
-    Returns:
-        bool: Returns False if files are correctly formatted.
+    Returns
+    -------
+    bool
+        False if files are correctly formatted, otherwise raises an 
+        exception (see below).
     
-    Raises:
-        custom_exceptions.TimeSeriesFileNameError or 
-        custom_exceptions.DataFormatError
-    '''
+    Raises
+    ------
+    custom_exceptions.TimeSeriesFileNameError
+        If any provided time-series data files' names are absent in 
+        provided metadata file (only if `metadata_file_path` is not 
+        "None" or None).
+    custom_exceptions.DataFormatError
+        If provided time-series data files or metadata file are 
+        improperly formatted.
+    
+    """
     all_fname_variants = []
     all_fname_variants_list_of_lists = []
     if tarfile.is_tarfile(newpred_file_path):
@@ -1883,7 +2105,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                             str(num_labels))))
             line_no += 1
     # Inspect metadata file, if exists
-    if metadata_file_path is not None:
+    if metadata_file_path not in ["None", None, "False", False, 0]:
         all_metafile_fnames = []
         with open(metadata_file_path) as f:
             line_count = 0
@@ -1915,14 +2137,16 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
 
 @app.route('/uploadFeaturesForm', methods=['POST','GET'])
 def uploadFeaturesForm():
-    '''Save uploaded file(s) and begin featurization process.
+    """Save uploaded file(s) and begin featurization process.
     
     Handles POST form submission.
     
-    Returns:
-        Redirects to featurizationPage. See that function for output 
-        details.
-    '''
+    Returns
+    -------
+    Redirects to featurizationPage. See that function for output 
+    details.
+    
+    """
     if request.method == 'POST':
         features_file = request.files["features_file"]
         featureset_name = str(request.form["featuresetname"]).strip()
@@ -1949,14 +2173,16 @@ def uploadDataFeaturize(
         featureset_name=None, features_to_use=None, 
         custom_features_script=None, user_email=None, email_user=False, 
         is_test=False):
-    '''Save uploaded time series data files and begin featurization. 
+    """Save uploaded time series data files and begin featurization. 
     
     Handles POST form submission.
     
-    Returns:
-        Redirects to featurizationPage, see that function for output 
-        details.
-    '''
+    Returns
+    -------
+    Redirects to featurizationPage, see that function for output 
+    details.
+    
+    """
     ## ###
     # TODO: ADD MORE ROBUST EXCEPTION HANDLING (HERE AND ALL OTHER FUNCTIONS)
     if request.method == 'POST':
@@ -2103,25 +2329,34 @@ def uploadDataFeaturize(
 def featurize_proc(
         headerfile_path, zipfile_path, features_to_use, featureset_key, 
         is_test, email_user, already_featurized, custom_script_path):
-    '''Begin featurization and update feature set entry with results.
+    """Generate features and update feature set entry with results.
     
     To be executed in a subprocess using the multiprocessing module's 
     Process routine.
     
-    Args:
-        headerfile_path (str): Path to TS data header file.
-        zipfile_path (str): Path TS data tarball.
-        features_to_use (list): List of features to generate.
-        featureset_key (str): RethinkDB ID of new feature set.
-        is_test (bool): Boolean indicating whether to run as test.
-        email_user (str or False): If not False, email address of user 
-            to be notified upon completion.
-        already_featurized (bool): Boolean indicating whether files 
-            contain already generated features as opposed to TS data 
-            to be used for feature generation.
-        custom_script_path (str or None): Path to custom features 
-            definition script, or None.
-    '''
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to TS data header file.
+    zipfile_path : str
+        Path TS data tarball.
+    features_to_use : list
+        List of features to generate.
+    featureset_key : str
+        RethinkDB ID of new feature set.
+    is_test : bool
+        Boolean indicating whether to run as test.
+    email_user : str or False
+        If not False, email address of user to be notified upon 
+        completion.
+    already_featurized : bool
+        Boolean indicating whether files contain already generated 
+        features as opposed to TS data to be used for feature 
+        generation.
+    custom_script_path : str
+        Path to custom features definition script, or "None".
+    
+    """
     # needed to establish database connection because we're now in a 
     # subprocess that is separate from main app:
     before_request()
@@ -2160,7 +2395,7 @@ def featurize_proc(
 
 @app.route('/featurizing')
 def featurizing():
-    '''Render template for featurization in process page.
+    """Render template for featurization in process page.
     
     Browser redirects here after featurization process has commenced.
     Renders template with process ID, which continually checks and 
@@ -2170,7 +2405,7 @@ def featurizing():
         PID (str): ID of featurization subprocess.
         featureset_key (str): RethinkDB key of feature set.
         project_name (str): Name of parent project.
-    '''
+    """
     PID = request.args.get("PID")
     featureset_key = request.args.get("featureset_key")
     project_name = request.args.get("project_name")
@@ -2198,13 +2433,13 @@ def featurizationPage(
         featureset_name, project_name, headerfile_name, zipfile_name, sep, 
         featlist, is_test, email_user, already_featurized=False, 
         custom_script_path=False):
-    '''Save uploaded TS data files and begin featurization process.
+    """Save uploaded TS data files and begin featurization process.
     
     Handles featurization form submission - saves files and begins 
     featurization in a subprocess (by calling featurize_proc), and 
-    returns JSON Response with the following info: new process ID, 
-    feature set name, project name, header file name, zip file name, 
-    new feature set key.
+    returns flask.Response() object with the following info: new 
+    process ID, feature set name, project name, header file name, 
+    zip file name, new feature set key.
     
     Args:
         featureset_name (str): Feature set name.
@@ -2225,8 +2460,8 @@ def featurizationPage(
             features definition script, or False. Defaults to False.
         
     Returns:
-        JSON Response object containing process details.
-    '''
+        JSONified flask.Response() object containing process details.
+    """
     projkey = project_name_to_key(project_name)
     if already_featurized == True and zipfile_name == None: 
         # user is uploading pre-featurized data, without timeseries data
@@ -2304,7 +2539,7 @@ def featurizationPage(
     '/source_details/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
 def source_details(prediction_entry_key,source_fname):
-    '''Render Source Details page.
+    """Render Source Details page.
     
     Args:
         prediction_entry_key (str): RethinkDB predictions table entry 
@@ -2314,7 +2549,7 @@ def source_details(prediction_entry_key,source_fname):
         
     Returns:
         flask.render_template
-    '''
+    """
     return render_template(
         'source_details.html', 
         prediction_entry_key = prediction_entry_key, 
@@ -2325,11 +2560,11 @@ def source_details(prediction_entry_key,source_fname):
     '/load_source_data/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
 def load_source_data(prediction_entry_key,source_fname):
-    '''Return JSONified dict of source data.
+    """Return JSONified dict of source data in flask.Response() object.
     
     Returns JSONified dict containing extracted features, time 
-    series data, file name, and class predictions. For use in Source 
-    Details page.
+    series data, file name, and class predictions in flask.Response() 
+    object. For use in Source Details page.
     
     Args:
         prediction_entry_key (str): RethinkDB predictions table entry 
@@ -2338,9 +2573,9 @@ def load_source_data(prediction_entry_key,source_fname):
             requested.
         
     Returns:
-        JSON Response object with "fname", "pred_results", 
-        "features_dict", and "ts_data" as keys.
-    '''
+        flask.Response() object with JSONified dict with "fname", 
+        "pred_results", "features_dict", and "ts_data" as keys.
+    """
     entries = []
     cursor = (r.table("predictions").filter({"id":prediction_entry_key})
         .run(g.rdb_conn))
@@ -2365,15 +2600,16 @@ def load_source_data(prediction_entry_key,source_fname):
 
 @app.route('/load_prediction_results/<prediction_key>',methods=['POST','GET'])
 def load_prediction_results(prediction_key):
-    '''Return JSON dict with file name and class prediction results. 
+    """Return JSON dict with file name and class prediction results. 
     
     Args:
         prediction_key (str): RethinkDB prediction entry key.
     
     Returns: 
-        JSON Response with "results_str_html" as key - a string 
-        containing a table of results in HTML markup.
-    '''
+        flask.Response() object with JSONified dict with 
+        "results_str_html" as key - a string containing a table of 
+        results in HTML markup.
+    """
     results_dict = r.table("predictions").get(prediction_key).run(g.rdb_conn)
     if results_dict is not None and "results_str_html" in results_dict:
         if ("An error occurred" in results_dict["results_str_html"] or 
@@ -2390,7 +2626,7 @@ def load_prediction_results(prediction_key):
 
 @app.route('/load_model_build_results/<model_key>',methods=['POST','GET'])
 def load_model_build_results(model_key):
-    '''Return JSON dict with model build request status message.
+    """Return JSON dict with model build request status message.
     
     If an error occurred during the model building process, the 
     RethinkDB entry is deleted.
@@ -2399,8 +2635,9 @@ def load_model_build_results(model_key):
         model_key (str): RethinkDB model entry key.
     
     Returns:
-        JSON Response containing model details.
-    '''
+        flask.Response() object with JSONified dict containing model 
+        details.
+    """
     results_dict = r.table("models").get(model_key).run(g.rdb_conn)
     if results_dict is not None and "results_msg" in results_dict:
         if ("Error occurred" in results_dict["results_msg"] or 
@@ -2417,7 +2654,7 @@ def load_model_build_results(model_key):
 @app.route('/load_featurization_results/<new_featset_key>', 
            methods = ['POST','GET'])
 def load_featurization_results(new_featset_key):
-    '''Returns JSON dict with featurization request status message.
+    """Returns JSON dict with featurization request status message.
     
     If an error occurred during featurization, the associated files 
     uploaded and/or created are deleted, as is the RethinkDB entry.
@@ -2426,8 +2663,9 @@ def load_featurization_results(new_featset_key):
         new_featset_key (str): RethinkDB 'features' table entry key.
     
     Returns:
-        JSON Response containing feature set status message.
-    '''
+        flask.Response() object with JSONified dict containing feature 
+        set status message.
+    """
     results_dict = r.table("features").get(new_featset_key).run(g.rdb_conn)
     if (results_dict is not None and "results_msg" in results_dict and 
             results_dict["results_msg"] is not None):
@@ -2478,7 +2716,7 @@ def prediction_proc(
         newpred_file_path, project_name, model_name, model_type, 
         prediction_entry_key, sep = ",", metadata_file = None, 
         path_to_tmp_dir = None):
-    '''Begin featurization of new TS data and prediction process.
+    """Begin featurization of new TS data and prediction process.
     
     Begins the featurization and prediction process. To be executed 
     as a subprocess using the multiprocessing module's Process 
@@ -2496,7 +2734,7 @@ def prediction_proc(
             Defaults to comma ",".
         metadata_file (str, optional): Path to associated metadata 
             file, if any. Default is None.
-    '''
+    """
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
     before_request()
@@ -2601,7 +2839,7 @@ def prediction_proc(
 
 @app.route('/predicting')
 def predicting():
-    '''Render template that checks on prediction process status.
+    """Render template that checks on prediction process status.
     
     Browser redirects here after featurization & prediction process 
     has commenced. Renders template with process ID, which 
@@ -2616,7 +2854,7 @@ def predicting():
     
     Returns:
         flask.render_template
-    '''
+    """
     PID = request.args.get("PID")
     prediction_entry_key = request.args.get("prediction_entry_key")
     project_name = request.args.get("project_name")
@@ -2641,7 +2879,7 @@ def predicting():
 def predictionPage(
         newpred_file_path, project_name, model_name, model_type,
         sep = ",", metadata_file_path = None, path_to_tmp_dir = None):
-    '''Start featurization/prediction routine in a subprocess.
+    """Start featurization/prediction routine in a subprocess.
     
     Starts featurization and prediction process as a subprocess 
     using the multiprocessing.Process method.
@@ -2663,7 +2901,7 @@ def predictionPage(
     
     Returns:
         JSON dict containing model details and subprocess ID.
-    '''
+    """
     new_prediction_key = add_prediction(
         project_name=project_name,
         model_name=model_name,
@@ -2706,7 +2944,7 @@ def predictionPage(
 
 @app.route('/uploadPredictionData', methods=['POST','GET'])
 def uploadPredictionData():
-    '''Save uploaded files and begin prediction process.
+    """Save uploaded files and begin prediction process.
     
     Handles prediction form  submission. Saves uploaded files and 
     redirects to predictionPage, which begins the featurization/
@@ -2714,7 +2952,7 @@ def uploadPredictionData():
     
     Redirects to predictionPage - see that function's docstrings for 
     return value details.
-    '''
+    """
     if request.method == 'POST':
         newpred_file = request.files["newpred_file"]
         tmp_folder = "tmp_"+str(uuid.uuid4())
@@ -2849,7 +3087,7 @@ def uploadPredictionData():
 
 
 def build_model_proc(featureset_name,featureset_key,model_type,model_key):
-    '''Build a model based on given features.
+    """Build a model based on given features.
     
     Begins the model building process by calling 
     build_rf_model.build_model with provided parameters. To be executed 
@@ -2866,7 +3104,7 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
     
     Returns:
         bool: True.
-    '''
+    """
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
     before_request()
@@ -2893,7 +3131,7 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
 
 @app.route('/buildingModel')
 def buildingModel():
-    '''Render template to check on model creation process in browser.
+    """Render template to check on model creation process in browser.
     
     Browser redirects here after model creation process has 
     commenced. Renders browser template with process ID & other details,
@@ -2906,7 +3144,7 @@ def buildingModel():
     
     Returns:
         flask.render_template
-    '''
+    """
     PID = request.args.get("PID")
     new_model_key = request.args.get("new_model_key")
     project_name = request.args.get("project_name")
@@ -2937,7 +3175,7 @@ def buildingModel():
            methods=['POST'])
 @app.route('/buildModel',methods=['POST','GET'])
 def buildModel(project_name=None,featureset_name=None,model_type=None):
-    '''Build new model for specified feature set.
+    """Build new model for specified feature set.
     
     Handles 'buildModelForm' submission and starts model creation 
     process as a subprocess (by calling prediction_proc with the 
@@ -2952,8 +3190,9 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
             "RF").
         
     Returns:
-        JSON Response with model building details.
-    '''
+        flask.Response() object with JSONified dict containing model 
+        building details.
+    """
     if project_name is None: # browser form submission
         post_method = "browser"
         project_name = (str(request.form['buildmodel_project_name_select'])
@@ -2997,7 +3236,7 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
 
 @app.route('/emailUser',methods=['POST','GET'])
 def emailUser(user_email=None):
-    '''Send a notification email to specified address.
+    """Send a notification email to specified address.
     
     Emails specified (or current) user with notification that the 
     feature creation process has completed.
@@ -3008,7 +3247,7 @@ def emailUser(user_email=None):
     
     Returns:
         str: Success/failure message.
-    '''
+    """
     print '/emailUser() called.'
     try:
         if user_email is None:

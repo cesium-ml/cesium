@@ -358,7 +358,7 @@ def featurize(
                             path_to_csv=path_to_csv)
                     else:
                         science_features = {}
-                    if custom_script_path:
+                    if custom_script_path not in [None, "None"]:
                         custom_features = cft.generate_custom_features(
                             custom_script_path=custom_script_path,
                             path_to_csv=path_to_csv,
