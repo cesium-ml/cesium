@@ -2332,7 +2332,7 @@ def featurize_proc(
     """Generate features and update feature set entry with results.
     
     To be executed in a subprocess using the multiprocessing module's 
-    Process routine.
+    Process routine. 
     
     Parameters
     ----------
@@ -2369,7 +2369,7 @@ def featurize_proc(
         #    featureset_id=featureset_key, is_test=is_test, 
         #    already_featurized=already_featurized, 
         #    custom_script_path=custom_script_path)
-        if email_user:
+        if email_user not in (False, None, "False", "None"):
             emailUser(email_user)
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
@@ -2382,7 +2382,7 @@ def featurize_proc(
         try:
             os.remove(headerfile_path)
             os.remove(zipfile_path)
-            if custom_script_path:
+            if custom_script_path not in ("None", None, False, "False"):
                 os.remove(custom_script_path)
         except Exception as err:
             print ("An error occurred while attempting to remove files "
@@ -2401,10 +2401,20 @@ def featurizing():
     Renders template with process ID, which continually checks and 
     reports progress.
     
-    Required URL params are:
-        PID (str): ID of featurization subprocess.
-        featureset_key (str): RethinkDB key of feature set.
-        project_name (str): Name of parent project.
+    Parameters
+    ----------
+    PID : str
+        ID of featurization subprocess.
+    featureset_key : str
+        RethinkDB key of feature set.
+    project_name : str
+        Name of parent project.
+    
+    Returns
+    -------
+    Rendered Jinja2 template
+        flask.render_template()
+    
     """
     PID = request.args.get("PID")
     featureset_key = request.args.get("featureset_key")
@@ -2432,7 +2442,7 @@ def featurizing():
 def featurizationPage(
         featureset_name, project_name, headerfile_name, zipfile_name, sep, 
         featlist, is_test, email_user, already_featurized=False, 
-        custom_script_path=False):
+        custom_script_path=None):
     """Save uploaded TS data files and begin featurization process.
     
     Handles featurization form submission - saves files and begins 
@@ -2441,26 +2451,40 @@ def featurizationPage(
     process ID, feature set name, project name, header file name, 
     zip file name, new feature set key.
     
-    Args:
-        featureset_name (str): Feature set name.
-        project_name (str): Name of parent project.
-        headerfile_name (str): Header file name.
-        zipfile_name (str): Tarball file name.
-        sep (str): Delimiting character in CSV data.
-        featlist (list): List of names of features in feature set.
-        is_test (bool): Boolean indicating whether to generate features 
-            on all TS data files (is_test = False) or a test subset 
-            (is_test = True).
-        email_user (str or False): If not False, email address of user 
-            to be notified upon completion.
-        already_featurized (bool, optional): Boolean indicating whether 
-            files contain already generated features as opposed to TS 
-            data to be used for feature generation. Defaults to False.
-        custom_script_path (str or False, optional): Path to custom 
-            features definition script, or False. Defaults to False.
+    Parameters
+    ----------
+    featureset_name : str
+        Feature set name.
+    project_name : str
+        Name of parent project.
+    headerfile_name : str
+        Header file name.
+    zipfile_name : str
+        Tarball file name.
+    sep : str
+        Delimiting character in CSV data.
+    featlist : list of str
+        List of names of features in feature set.
+    is_test : bool
+        Boolean indicating whether to generate features on all TS data 
+        files (is_test = False) or a test subset (``is_test = True``).
+    email_user : str
+        Email address of user to be notified upon completion, or 
+        "False" for no notification.
+    already_featurized : bool, optional
+        Boolean indicating whether files contain already generated 
+        features, as opposed to TS data to be used for feature 
+        generation. Defaults to False.
+    custom_script_path : str, optional
+        Path to custom features definition script. Defaults 
+        to None.
         
-    Returns:
-        JSONified flask.Response() object containing process details.
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSONified dict of process 
+        details.
+    
     """
     projkey = project_name_to_key(project_name)
     if already_featurized == True and zipfile_name == None: 
@@ -2541,14 +2565,18 @@ def featurizationPage(
 def source_details(prediction_entry_key,source_fname):
     """Render Source Details page.
     
-    Args:
-        prediction_entry_key (str): RethinkDB predictions table entry 
-            key.
-        source_fname (str): File name of individual TS source being 
-            requested.
+    Parameters
+    ----------
+    prediction_entry_key : str
+        RethinkDB predictions table entry key.
+    source_fname : str
+        File name of individual TS source being requested.
         
-    Returns:
-        flask.render_template
+    Returns
+    -------
+    Rendered Jinja2 template
+        flask.render_template()
+    
     """
     return render_template(
         'source_details.html', 
@@ -2562,19 +2590,23 @@ def source_details(prediction_entry_key,source_fname):
 def load_source_data(prediction_entry_key,source_fname):
     """Return JSONified dict of source data in flask.Response() object.
     
-    Returns JSONified dict containing extracted features, time 
-    series data, file name, and class predictions in flask.Response() 
-    object. For use in Source Details page.
+    Returns flask.Response object containing JSONified dict with 
+    extracted features, time series data, file name, and class 
+    predictions. For use in Source Details page.
     
-    Args:
-        prediction_entry_key (str): RethinkDB predictions table entry 
-            key.
-        source_fname (str): File name of individual TS source being 
-            requested.
+    Parameters
+    ----------
+    prediction_entry_key : str
+        RethinkDB predictions table entry key.
+    source_fname : str
+        File name of source being requested.
         
-    Returns:
-        flask.Response() object with JSONified dict with "fname", 
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSONified dict with "fname", 
         "pred_results", "features_dict", and "ts_data" as keys.
+    
     """
     entries = []
     cursor = (r.table("predictions").filter({"id":prediction_entry_key})
@@ -2602,13 +2634,18 @@ def load_source_data(prediction_entry_key,source_fname):
 def load_prediction_results(prediction_key):
     """Return JSON dict with file name and class prediction results. 
     
-    Args:
-        prediction_key (str): RethinkDB prediction entry key.
+    Parameters
+    ----------
+    prediction_key : str
+        RethinkDB prediction entry key.
     
-    Returns: 
-        flask.Response() object with JSONified dict with 
+    Returns
+    ------- 
+    flask.Response() object
+        flask.Response() object containing JSONified dict with 
         "results_str_html" as key - a string containing a table of 
         results in HTML markup.
+    
     """
     results_dict = r.table("predictions").get(prediction_key).run(g.rdb_conn)
     if results_dict is not None and "results_str_html" in results_dict:
@@ -2631,12 +2668,17 @@ def load_model_build_results(model_key):
     If an error occurred during the model building process, the 
     RethinkDB entry is deleted.
     
-    Args:
-        model_key (str): RethinkDB model entry key.
+    Parameters
+    ----------
+    model_key : str
+        RethinkDB model entry key.
     
-    Returns:
+    Returns
+    -------
+    flask.Response() object
         flask.Response() object with JSONified dict containing model 
         details.
+    
     """
     results_dict = r.table("models").get(model_key).run(g.rdb_conn)
     if results_dict is not None and "results_msg" in results_dict:
@@ -2659,12 +2701,17 @@ def load_featurization_results(new_featset_key):
     If an error occurred during featurization, the associated files 
     uploaded and/or created are deleted, as is the RethinkDB entry.
     
-    Args:
-        new_featset_key (str): RethinkDB 'features' table entry key.
+    Parameters
+    ----------
+    new_featset_key : str
+        RethinkDB 'features' table entry key.
     
-    Returns:
+    Returns
+    -------
+    flask.Response() object
         flask.Response() object with JSONified dict containing feature 
         set status message.
+    
     """
     results_dict = r.table("features").get(new_featset_key).run(g.rdb_conn)
     if (results_dict is not None and "results_msg" in results_dict and 
@@ -2716,24 +2763,31 @@ def prediction_proc(
         newpred_file_path, project_name, model_name, model_type, 
         prediction_entry_key, sep = ",", metadata_file = None, 
         path_to_tmp_dir = None):
-    """Begin featurization of new TS data and prediction process.
+    """Generate features for new TS data and perform model prediction.
     
     Begins the featurization and prediction process. To be executed 
     as a subprocess using the multiprocessing module's Process 
     routine.
     
-    Args:
-        newpred_file_path (string): Path to file containing time series 
-            data for featurization and prediction.
-        project_name (string): Name of the project associated with the 
-            model to be used.
-        model_name (string): Name of the model to be used.
-        model_type (string): Abbreviation of the model type (e.g. "RF").
-        prediction_entry_key (string): Prediction entry RethinkDB key.
-        sep (str, optional): Delimiting character in time series files 
-            Defaults to comma ",".
-        metadata_file (str, optional): Path to associated metadata 
-            file, if any. Default is None.
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to file containing time series data for featurization and 
+        prediction.
+    project_name : str
+        Name of the project associated with the model to be used.
+    model_name : str
+        Name of the model to be used.
+    model_type : str
+        Abbreviation of the model type (e.g. "RF").
+    prediction_entry_key : str
+        Prediction entry RethinkDB key.
+    sep : str, optional
+        Delimiting character in time series data files. Defaults to 
+        comma ",".
+    metadata_file : str, optional
+        Path to associated metadata file, if any. Defaults to None.
+    
     """
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
@@ -2845,15 +2899,22 @@ def predicting():
     has commenced. Renders template with process ID, which 
     continually checks and reports progress.
     
-    Required URL parameters:
-        PID (str): Process ID.
-        prediction_entry_key (str): RethinkDB 'predictions' table entry 
-            key.
-        project_name (str): Name of parent project.
-        prediction_model_name (str): Name of prediction model.
+    Parameters
+    ----------
+    PID : str
+        Process ID.
+    prediction_entry_key : str
+        RethinkDB 'predictions' table entry key.
+    project_name : str
+        Name of parent project.
+    prediction_model_name : str
+        Name of prediction model.
     
-    Returns:
-        flask.render_template
+    Returns
+    -------
+    Rendered Jinja2 template
+        Returns flask.render_template(...).
+    
     """
     PID = request.args.get("PID")
     prediction_entry_key = request.args.get("prediction_entry_key")
@@ -2887,20 +2948,29 @@ def predictionPage(
     files. Returns JSONified dict with PID and other details about the 
     process.
     
-    Args:
-        newpred_file_path (str): Path to file containing time series 
-            data for featurization and prediction.
-        project_name (str): Name of the project associated with 
-            the model to be used.
-        model_name (str): Name of the model to be used.
-        model_type (str): Abbreviation of the model type (e.g. "RF").
-        sep (str, optional): Delimiting character in time series files.
-            Defaults to comma ",".
-        metadata_file (str, optional): Path to associated metadata 
-            file, if any. Defaults to None.
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to file containing time series data for featurization and 
+        prediction.
+    project_name : str
+        Name of the project associated with the model to be used.
+    model_name : str
+        Name of the model to be used.
+    model_type : str
+        Abbreviation of the model type (e.g. "RF").
+    sep : str, optional
+        Delimiting character in time series data files. Defaults to 
+        comma ",".
+    metadata_file : str, optional
+        Path to associated metadata file, if any. Defaults to None.
     
-    Returns:
-        JSON dict containing model details and subprocess ID.
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSON dict with model details 
+        and subprocess ID.
+    
     """
     new_prediction_key = add_prediction(
         project_name=project_name,
@@ -2952,6 +3022,7 @@ def uploadPredictionData():
     
     Redirects to predictionPage - see that function's docstrings for 
     return value details.
+    
     """
     if request.method == 'POST':
         newpred_file = request.files["newpred_file"]
@@ -3094,16 +3165,19 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
     as a separate process using the multiprocessing module's Process 
     routine.
     
-    Args:
-        featureset_name (str): Name of the feature set associated 
-            with the model to be created.
-        model_type (str): Abbreviation of the model type to be 
-            created (e.g. "RF").
-        featureset_key (str): RethinkDB ID of the associated feature 
-            set.
+    Parameters
+    ----------
+    featureset_name : str
+        Name of the feature set associated with the model to be created.
+    model_type : str
+        Abbreviation of the model type to be created (e.g. "RF").
+    featureset_key : str
+        RethinkDB ID of the associated feature set.
     
-    Returns:
-        bool: True.
+    Returns
+    -------
+    bool
+        Returns True.
     """
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
@@ -3136,14 +3210,25 @@ def buildingModel():
     Browser redirects here after model creation process has 
     commenced. Renders browser template with process ID & other details,
     which continually checks and reports progress.
-    Required URL params are:
-        PID (str): ID of subprocess in which model is being built.
-        new_model_key (str): RethinkDB 'models' table entry key.
-        project_name (str): Name of parent project.
-        model_name (str): Name of model being created.
     
-    Returns:
-        flask.render_template
+    Parameters described below are URL parameters.
+    
+    Parameters
+    ----------
+    PID : str
+        ID of subprocess in which model is being built.
+    new_model_key : str
+        RethinkDB 'models' table entry key.
+    project_name : str
+        Name of parent project.
+    model_name : str
+        Name of model being created.
+    
+    Returns
+    -------
+    Rendered Jinja2 template
+        Returns call to flask.render_template(...).
+    
     """
     PID = request.args.get("PID")
     new_model_key = request.args.get("new_model_key")
@@ -3182,16 +3267,21 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
     multiprocessing.Process method). Returns JSONified dict with PID 
     and other details about the process.
     
-    Args:
-        project_name (str): Name of parent project.
-        featureset_name (str): Name of feature set from which to create 
-            new model.
-        model_type (str): Abbreviation of type of model to create (e.g. 
-            "RF").
+    Parameters
+    ----------
+    project_name : str
+        Name of parent project.
+    featureset_name : str
+        Name of feature set from which to create new model.
+    model_type : str
+        Abbreviation of type of model to create (e.g. "RF").
         
-    Returns:
+    Returns
+    -------
+    flask.Response() object
         flask.Response() object with JSONified dict containing model 
         building details.
+    
     """
     if project_name is None: # browser form submission
         post_method = "browser"
@@ -3241,12 +3331,17 @@ def emailUser(user_email=None):
     Emails specified (or current) user with notification that the 
     feature creation process has completed.
     
-    Args:
-        user_email (str, optional): Email address. Defaults to None, 
-            in which case the current user' email is used.
+    Parameters
+    ----------
+    user_email : str, optional
+        Email address. Defaults to None, in which case the current 
+        user's email is used.
     
-    Returns:
-        str: Success/failure message.
+    Returns
+    -------
+    str
+        Human readable success/failure message.
+    
     """
     print '/emailUser() called.'
     try:
