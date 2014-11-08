@@ -12,7 +12,7 @@ import cPickle
 
 
 def disco_test():
-    '''Try to start Disc from inside Docker container.'''
+    """Try to start Disc from inside Docker container."""
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     print "stdout and stderr for 'disco status' command: \n", \

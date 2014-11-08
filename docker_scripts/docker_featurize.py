@@ -11,14 +11,19 @@ import build_rf_model
 from subprocess import Popen, PIPE, call
 import cPickle
 
+
 def featurize():
-    '''Load pickled parameters and call build_rf_model.featurize().
+    """Load pickled parameters and call `build_rf_model.featurize`.
     
     To be run from inside a Docker container.
     
-    Returns:
-        str: Message indicating completion of feature generation.
-    '''
+    Returns
+    -------
+    str
+        Human readable message indicating completion of feature 
+        generation.
+    
+    """
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     if "stopped" in str(stdout):
@@ -62,8 +67,6 @@ def featurize():
         custom_script_path=function_args["custom_script_path"], 
         in_docker_container=True)
     return results_str
-
-
 
 
 if __name__=="__main__":

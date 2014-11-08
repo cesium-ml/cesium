@@ -14,10 +14,42 @@ import rethinkdb as r
 def featurize_in_docker_container(
         headerfile_path, zipfile_path, features_to_use, featureset_key, 
         is_test, already_featurized, custom_script_path):
-    '''Spins up a Docker container in which the 
+    """Generate TS data features inside a Docker container.
+    
+    Spins up a Docker container in which the 
     build_rf_model.featurize() method is called, and the resulting 
     files are then copied to the host machine.
-    '''
+    
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to the header file associated with TS data to be 
+        used for feature generation.
+    zipfile_path : str
+        Path to the tarball containing the individual time-series data 
+        files to be used for feature generation.
+    features_to_use : list of str
+        List of names of features to generate.
+    featureset_key : str
+        Feature set ID/RethinkDB entry key.
+    is_test : bool
+        Boolean indicating whether to run as a test, in which case only 
+        a small subset of the time-series data files will be used for 
+        feature generation.
+    already_featurized : bool
+        Boolean indicating whether `headerfile_path` already contains 
+        all of the features to be included in new feature set, in 
+        which case no feature generation is performed and no TS data 
+        files are required.
+    custom_script_path : str
+        Path to custom feature definitions script, or None.
+    
+    Returns
+    -------
+    str
+        Human-readable success message.
+    
+    """
     arguments = locals()
     #unique name for docker container for later cp and rm commands
     container_name = str(uuid.uuid4())[:10]
@@ -104,10 +136,28 @@ def featurize_in_docker_container(
 
 def build_model_in_docker_container(
     featureset_name, featureset_key, model_type):
-    '''Spins up a Docker container in which the 
+    """Build classification model inside a Docker container.
+    
+    Spins up a Docker container in which the 
     build_rf_model.build_model() routine is called, and the resulting 
     model is then copied to the host machine.
-    '''
+    
+    Parameters
+    ----------
+    featureset_name : str
+        Name of the feature set from which to create the new model.
+    featureset_key : str
+        Feature set key/ID, also the RethinkDB 'features' table entry 
+        key associated with the feature set to be used.
+    model_type : str
+        Abbreviation of type of model to create (e.g. "RF").
+    
+    Returns
+    -------
+    str
+        Human-readable success message.
+    
+    """
     arguments = locals()
     #unique name for docker container for later cp and rm commands
     container_name = str(uuid.uuid4())[:10]
@@ -174,10 +224,44 @@ def predict_in_docker_container(
     prediction_entry_key, featset_key, sep=",", n_cols_html_table=5, 
     features_already_extracted=None, metadata_file=None, 
     custom_features_script=None):
-    '''Spins up a Docker container in which the 
+    """Generate features and perform classification in Docker container.
+    
+    Spins up a Docker container in which the 
     predict_class.predict() method is called, and the resulting 
     files are then copied to the host machine.
-    '''
+    
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to file containing time series data for featurization and 
+        prediction.
+    project_name : str
+        Name of the project associated with the model to be used.
+    model_name : str
+        Name of the model to be used.
+    model_type : str
+        Abbreviation of the model type (e.g. "RF").
+    prediction_entry_key : str
+        Prediction entry RethinkDB key.
+    featset_key : str
+        ID of feature set/model to use in prediction.
+    sep : str, optional
+        Delimiting character in time series data files. Defaults to 
+        comma ",".
+    n_cols_html_table : int, optional
+        Number of most probable predicted classes to include in HTML 
+        table output. Defaults to 5.
+    features_already_extracted : dict, optional
+        Dictionary of previously-generated features. Defaults to None.
+    metadata_file : str, optional
+        Path to associated metadata file, if any. Defaults to None.
+    
+    Returns
+    -------
+    dict
+        Dictionary containing prediction results.
+    
+    """
     arguments = locals()
     container_name = str(uuid.uuid4())[:10]
     path_to_tmp_dir = os.path.join("/tmp", container_name)
@@ -272,8 +356,9 @@ def predict_in_docker_container(
 
 
 def disco_test():
-    '''Testing Disco functionality inside Docker container.
-    '''
+    """Test Disco functionality inside Docker container.
+    
+    """
     #unique name for docker container for later cp and rm commands
     container_name = str(uuid.uuid4())[:10]
     

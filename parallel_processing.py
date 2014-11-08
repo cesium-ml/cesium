@@ -42,36 +42,89 @@ import build_rf_model
 import predict_class as predict
 
 
-
 def map(fname_and_class, params):
-    '''Generator, map procedure used for feature generation process 
-    (as opposed to feature generation to be used for model 
-    predictions). Yields a (file name, class name) tuple.
-    '''
+    """Map procedure for use in Disco's map-reduce implementation.
+    
+    Generator used for feature generation process. Yields a 
+    (file name, class name) tuple.
+    
+    This function is never directly called, but rather passed as a 
+    parameter to the Disco `Job()` object's `run()` method.
+    
+    Parameters
+    ----------
+    fname_and_class : str
+        Single line from a file containing file name and class name 
+        separated by a comma.
+    params : dict
+        Dictionary of parameters for use in map-reduce process.
+    
+    Yields
+    ------
+    tuple of str
+        Two-element tuple containing file name (str) and class name 
+        (str).
+    
+    """
     fname, class_name = fname_and_class.strip("\n").strip().split(",")
     yield fname, class_name
 
 
-
-
 def pred_map(fname, params):
-    '''Generator, map procedure for feature generation in model 
-    predictions. Yields a (file name, unused random string) tuple.
-    '''
+    """Map procedure for use in Disco's map-reduce implementation.
+    
+    Generator used for featurizing prediction data. Yields a 
+    (file name, empty string) tuple.
+    
+    This function is never directly called, but rather passed as a 
+    parameter to the Disco `Job()` object's `run()` method.
+    
+    Parameters
+    ----------
+    fname : str
+        Single line from a file containing file name and a placeholder  
+        separated by a comma.
+    params : dict
+        Dictionary of parameters for use in map-reduce process.
+    
+    Yields
+    ------
+    tuple of str
+        Two-element tuple containing file name (str) and class name 
+        (str).
+    
+    """
     fname, junk = fname.strip("\n").strip().split(",")
     yield fname, junk
 
 
-
 def pred_featurize_reduce(iter, params):
-    '''Generator, implementation of reduce stage in map-reduce process, 
-    for model prediction feature generation of time series data. iter 
-    is an iterable of tuples containing the file name of a time series 
-    data file to be used for featurization, and an unused placeholder 
-    string. Yields a two-element tuple containing the file name of the 
-    time series data set, and a two-element list containing the 
-    extracted features and the original time series data. 
-    '''
+    """Generate features as reduce step in Disco's map-reduce.
+    
+    Generator. Implementation of reduce stage in map-reduce process, 
+    for model prediction feature generation of time series data. 
+    
+    This function is never directly called, but rather passed as a 
+    parameter to the Disco `Job()` object's `run()` method.
+    
+    Parameters
+    ----------
+    iter : iterable
+        Iterable of tuples each containing the file name of a time 
+        series data file to be used for featurization and an unused 
+        placeholder string. 
+    params : dict
+        Dictionary of parameters for use in map-reduce process.
+    
+    Yields
+    ------
+    tuple
+        A two-element tuple containing the file name of the 
+        time series data set as its first element, and a two-element 
+        list containing the extracted features (dict) and the original 
+        time series data (list of lists) as its the second element. 
+    
+    """
     from copy import deepcopy
     featset_key = params['featset_key']
     sep = params['sep']
@@ -193,16 +246,31 @@ def pred_featurize_reduce(iter, params):
         yield fname, [all_features, ts_data]
 
 
-
-
 def featurize_reduce(iter, params):
-    '''Generator, implementation of reduce stage in map-reduce process, 
-    for feature generation of time series data. iter is an iterable of 
-    tuples containing the file name of a time series data file to be 
-    used for featurization, and the associated class or type name. 
-    Yields a two-element tuple containing the file name of the time 
-    series data set, and dict of the extracted features. 
-    '''
+    """Generate features as reduce step in Disco's map-reduce.
+    
+    Generator. Implementation of reduce stage in map-reduce process, 
+    for model prediction feature generation of time series data. 
+    
+    This function is never directly called, but rather passed as a 
+    parameter to the Disco `Job()` object's `run()` method.
+    
+    Parameters
+    ----------
+    iter : iterable
+        Iterable of tuples each containing the file name of a time 
+        series data file to be used for featurization, and the 
+        associated class or type name. 
+    params : dict
+        Dictionary of parameters for use in map-reduce process.
+    
+    Yields
+    ------
+    tuple
+        A two-element tuple containing the file name of the time 
+        series data set, and dict of the extracted features.
+    
+    """
     from disco.util import kvgroup
     
     for fname,class_name in kvgroup(sorted(iter)):
@@ -293,20 +361,32 @@ def featurize_reduce(iter, params):
         yield short_fname, all_features
 
 
-
-
-
 def process_featurization_with_disco(input_list,params,partitions=4):
-    '''
-    Called from within featurize_in_parallel.
-    Returns disco.core.result_iterator
-    Arguments:
-        input_list: path to file listing filename,class_name for each 
-            individual time series data file.
-        params: dictionary of parameters to be passed to each map & 
-            reduce function.
-        partitions: Number of nodes/partitions in system.
-    '''
+    """Featurize time-series data in parallel as a Disco job. 
+    
+    Called from within the `featurize_in_parallel` function.
+    
+    Parameters
+    ----------
+    input_list : str
+        Path to file listing the file name and class name 
+        (comma-separated) for each individual time series data file, 
+        one per line.
+    params : dict
+        Dictionary of parameters to be passed to each map & reduce 
+        function.
+    partitions : int, optional
+        Number of nodes/partitions in system. Defaults to 4.
+    
+    Returns
+    -------
+    iterator
+        disco.core.result_iterator(), an interator of two-element 
+        tuples, each containing the file name of the original time 
+        series data file, and a dictionary of the associated features 
+        generated.
+    
+    """
     from disco.core import Job, result_iterator
     job = Job().run(input=input_list,
                     map=map,
@@ -318,20 +398,34 @@ def process_featurization_with_disco(input_list,params,partitions=4):
     return result
 
 
-
-
 def process_prediction_data_featurization_with_disco(
     input_list, params, partitions=4):
-    '''
-    Called from within featurize_prediction_data_in_parallel
-    Returns disco.core.result_iterator
-    Arguments:
-        input_list: path to file listing filename,unused_string for 
-            each individual time series data file.
-        params: dictionary of parameters to be passed to each map & 
-            reduce function.
-        partitions: Number of nodes/partitions in system.
-    '''
+    """Featurize time-series data in parallel as a Disco job.
+    
+    Called from within the `featurize_prediction_data_in_parallel` 
+    function.
+    
+    Parameters
+    ----------
+    input_list : str
+        Path to two-column CSV file listing the file name and an unused 
+        placeholder string (comma-separated) for each individual time 
+        series data file, one per line.
+    params : dict
+        Dictionary of parameters to be passed to each map & reduce 
+        function.
+    partitions : int, optional
+        Number of nodes/partitions in system. Defaults to 4.
+    
+    Returns
+    -------
+    iterator
+        disco.core.result_iterator(), an interator of two-element 
+        tuples, each containing the file name of the original time 
+        series data file, and a dictionary of the associated features 
+        generated.
+    
+    """
     from disco.core import Job, result_iterator
     job = Job().run(input=input_list,
                     map=pred_map,
@@ -343,29 +437,47 @@ def process_prediction_data_featurization_with_disco(
     return result
 
 
-
-
 def featurize_prediction_data_in_parallel(
     newpred_file_path, featset_key, sep=',', 
     custom_features_script=None, meta_features={}, 
     tmp_dir_path=None):
-    '''Utilizes Disco's map-reduce framework to generate features on 
+    """Generate features using Disco's map-reduce framework.
+    
+    Utilizes Disco's map-reduce framework to generate features on 
     multiple time series data files in parallel. The generated 
     features are returned, along with the time series data, in a 
     dict (with file names as keys). 
     
-    Required arguments:
-        newpred_file_path: path to the zip file containing time series 
-            data files to be featurized
-        featset_key: (str) rethinkDB key of the feature set associated 
-            with the model to be used in prediction
-    Keyword arguments: 
-        sep: string (default = ",") - value-delimiter in time series 
-            data files
-        custom_features_script: path to custom features script to be 
-            used in feature generation, else None
-        meta_features: dict of associated meta features
-    '''
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to the zip file containing time series data files to be 
+        featurized.
+    featset_key : str
+        RethinkDB key of the feature set associated with the model to 
+        be used in prediction.
+    sep : str, optional
+        Delimiting character in time series data files. Defaults to ",".
+    custom_features_script : str, optional
+        Path to custom features script to be used in feature 
+        generation. Defaults to None.
+    meta_features : dict
+        Dictionary of associated meta features. Defaults to an empty 
+        dict.
+    tmp_dir_path : str, optional
+        Path to temporary files directory, in which any temporary files 
+        will be created. Defaults to None, in which case temporary 
+        files are created in working directory, though they are later 
+        removed.
+    
+    Returns
+    -------
+    dict
+        Dictionary whose keys are the file names of the original time-
+        series data and keys are dictionaries containing a dictionary 
+        of the features generated and a list of the time-series data.
+    
+    """
     #print "FEATURIZE_PRED_DATA_IN_PARALLEL: newpred_file_path =", \
     #      newpred_file_path
     the_tarfile = tarfile.open(newpred_file_path)
@@ -399,29 +511,45 @@ def featurize_prediction_data_in_parallel(
     return big_features_and_tsdata_dict
 
 
-
-
 def featurize_in_parallel(
     headerfile_path, zipfile_path, features_to_use=[], 
     is_test=False, custom_script_path=None, meta_features={}):
-    '''Utilizes Disco's map-reduce framework to generate features on 
+    """Generate features using Disco's map-reduce framework.
+    
+    Utilizes Disco's map-reduce framework to generate features on 
     multiple time series data files in parallel. The generated 
-    features are returned in a dict (with file names as keys). 
-    Required arguments:
-        headerfile_path: path to header file containing file names, 
-            class names, and meta data
-        zipfile_path: path to the tarball of individual time series 
-            files to be used for feature generation
-    Keyword arguments: 
-        features_to_use: list of feature names to be generated. Default 
-            is an empty list, which results in all available features 
-            being used
-        is_test: boolean indicating whether to do a test run of only 
-            the first five time-series files. Defaults to False
-        custom_script_path: path to Python script containing methods 
-            for the generation of any custom features
-        meta_features: dict of associated meta features
-    '''
+    features are returned, along with the time series data, in a 
+    dict (with file names as keys). 
+    
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to header file containing file names, class names, and 
+        metadata.
+    zipfile_path : str
+        Path to the tarball of individual time series files to be used 
+        for feature generation.
+    features_to_use : list, optional
+        List of feature names to be generated. Default is an empty list,
+        which results in all available features being used.
+    is_test : bool, optional
+        Boolean indicating whether to do a test run of only the first 
+        five time-series files. Defaults to False.
+    custom_script_path : str, optional
+        Path to Python script containing methods for the generation of 
+        any custom features.
+    meta_features : dict, optional
+        Dictionary of associated meta features, defaults to an empty 
+        dict.
+    
+    Returns
+    -------
+    dict
+        Dictionary whose keys are the file names of the original time-
+        series data and keys are dictionaries containing a dictionary 
+        of the features generated and a list of the time-series data.
+    
+    """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     
     if currently_running_in_docker_container():
@@ -502,24 +630,44 @@ def featurize_in_parallel(
 def featurize_in_parallel_newtest(
     headerfile_path, zipfile_path, features_to_use=[], is_test=False, 
     custom_script_path=None, meta_features={}):
-    '''Utilizes Disco's map-reduce framework to generate features on 
+    """Generate features using Disco's map-reduce framework.
+    
+    Utilizes Disco's map-reduce framework to generate features on 
     multiple time series data files in parallel. The generated 
-    features are returned in a dict (with file names as keys). 
-    Required arguments:
-        headerfile_path: path to header file containing file names, 
-            class names, and meta data
-        zipfile_path: path to the tarball of individual time series 
-            files to be used for feature generation
-    Keyword arguments: 
-        features_to_use: list of feature names to be generated. Default 
-            is an empty list, which results in all available features 
-            being used
-        is_test: boolean indicating whether to do a test run of only 
-            the first five time-series files. Defaults to False
-        custom_script_path: path to Python script containing methods 
-            for the generation of any custom features
-        meta_features: dict of associated meta features
-    '''
+    features are returned, along with the time series data, in a 
+    dict (with file names as keys). 
+    
+    Test function.
+    
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to header file containing file names, class names, and 
+        metadata.
+    zipfile_path : str
+        Path to the tarball of individual time series files to be used 
+        for feature generation.
+    features_to_use : list, optional
+        List of feature names to be generated. Default is an empty list,
+        which results in all available features being used.
+    is_test : bool, optional
+        Boolean indicating whether to do a test run of only the first 
+        five time-series files. Defaults to False.
+    custom_script_path : str, optional
+        Path to Python script containing methods for the generation of 
+        any custom features.
+    meta_features : dict, optional
+        Dictionary of associated meta features, defaults to an empty 
+        dict.
+    
+    Returns
+    -------
+    dict
+        Dictionary whose keys are the file names of the original time-
+        series data and keys are dictionaries containing a dictionary 
+        of the features generated and a list of the time-series data.
+    
+    """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     
     if currently_running_in_docker_container():
@@ -571,7 +719,7 @@ def featurize_in_parallel_newtest(
     # pass tags (or urls?) as input_list
     
     
-    '''
+    """
     fname_class_list = list(fname_class_dict.iteritems())
     input_fname_list = all_fnames
     longfname_class_list = []
@@ -590,7 +738,7 @@ def featurize_in_parallel_newtest(
     with open("/tmp/disco_inputfile.txt","w") as f:
         for fname_classname in longfname_class_list:
             f.write(",".join(fname_classname)+"\n")
-    '''
+    """
     
     params = {}
     params['fname_class_dict'] = fname_class_dict

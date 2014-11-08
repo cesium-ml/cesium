@@ -14,7 +14,7 @@ import shutil
 
 
 class MissingRequiredParameterError(Exception):
-    '''Required parameter is not provided in feature function call.'''
+    """Required parameter is not provided in feature function call."""
     
     def __init__(self,value):
         self.value = value
@@ -24,10 +24,10 @@ class MissingRequiredParameterError(Exception):
 
 
 class MissingRequiredReturnKeyError(Exception):
-    '''Required return value is not provided in feature definition.'''
+    """Required return value is not provided in feature definition."""
     
     def __init__(self, value):
-        '''In'''
+        """In"""
         self.value = value
     
     def __str__(self):
@@ -35,7 +35,7 @@ class MissingRequiredReturnKeyError(Exception):
 
 
 class myFeature(object):
-    '''Decorator for custom-defined time series feature(s) function.
+    """Decorator for custom-defined time series feature(s) function.
     
     Applies function wrapper that ensures required parameters and 
     return values are present before executing, raising an exception if 
@@ -50,10 +50,10 @@ class myFeature(object):
     Methods:
         __init__: Instantiates object.
         __call__: Wraps decorated function.
-    '''
+    """
     
     def __init__(self, requires, provides):
-        '''Instantiates object, sets args as attributes.
+        """Instantiates object, sets args as attributes.
         
         Args:
             requires (list): List of variable names required by the 
@@ -61,12 +61,12 @@ class myFeature(object):
             provides (list): List of the key names of the returned 
                 dictionary - the features calculated by a particular 
                 function. 
-        '''
+        """
         self.requires = requires
         self.provides = provides
     
     def __call__(self, f):
-        '''Wrap decorated function.
+        """Wrap decorated function.
         
         Wrap decorated function with a check to ensure that required 
         parameters (specified in decorator expression) are provided 
@@ -77,7 +77,7 @@ class myFeature(object):
         
         Returns:
             function: The wrapped function.
-        '''
+        """
         def wrapped_f(*args, **kwargs):
             for required_arg in self.requires:
                 if required_arg not in args and required_arg not in kwargs:
@@ -96,7 +96,7 @@ class myFeature(object):
 
 
 class DummyFile(object):
-    '''Used as a file object to temporarily redirect/suppress output.'''
+    """Used as a file object to temporarily redirect/suppress output."""
     def write(self, x): pass
 
 
@@ -104,7 +104,7 @@ def execute_functions_in_order(
         script_fpath="testfeature1.py",
         features_already_known={
             "t":[1,2,3], "m":[1,23,2], "e":[0.2,0.3,0.2], "coords":[22,33]}):
-    '''Generate custom features defined in script_fname.
+    """Generate custom features defined in script_fname.
     
     Parses the script (which must have function definitions with 
     decorators specifying the required parameters and those which are 
@@ -125,7 +125,7 @@ def execute_functions_in_order(
     Returns:
         dict of all extracted features (key-value pairs are feature name
             and feature value respectively).
-    '''
+    """
     # For when run inside Docker container:
     import sys
     import os
@@ -212,7 +212,7 @@ def execute_functions_in_order(
 
 
 def docker_installed():
-    '''Return boolean indicating whether Docker is installed.'''
+    """Return boolean indicating whether Docker is installed."""
     from subprocess import call, PIPE
     try:
         x=call(["docker"], stdout=PIPE,stderr=PIPE)
@@ -224,7 +224,7 @@ def docker_installed():
 def docker_extract_features(
         script_fpath, features_already_known={}, 
         ts_datafile_path=None, ts_data=None):
-    '''Extract custom features in a Docker container.
+    """Extract custom features in a Docker container.
     
     Spins up a docker container in which custom script 
     excecution/feature extraction is done inside. Resulting data are 
@@ -257,7 +257,7 @@ def docker_extract_features(
         dict: Dictionary of all generated features.
             Example:
                 {"feature_1": 0.2352, "feature_2": 2824.131}
-    '''
+    """
     if "t" not in features_already_known or "m" not in features_already_known:
         ## get ts data and put into features_already_known
         if ts_datafile_path is None and ts_data is None:
@@ -367,7 +367,7 @@ def docker_extract_features(
 def test_new_script(
         script_fpath="testfeature1.py", 
         docker_container=False):
-    '''Test custom features script and return generated features.
+    """Test custom features script and return generated features.
     
     Performs test run on custom feature def script with trial time 
     series data sets and returns list of dicts containing extracted 
@@ -381,7 +381,7 @@ def test_new_script(
     Returns:
         list: List of dictionaries of extracted features for each of 
             the trial time-series data sets.
-    '''
+    """
     script_fname = script_fpath.split("/")[-1]
     if script_fpath == "testfeature1.py":
         script_fpath = os.path.join(os.path.dirname(os.path.abspath(
@@ -428,7 +428,7 @@ def test_new_script(
 
 
 def list_features_provided(script_fpath):
-    '''Parses script and returns a list of all features it provides.
+    """Parses script and returns a list of all features it provides.
     
     Parses decorator expression in custom feature definitions script, 
     returning a list of all feature names generated by the various 
@@ -439,7 +439,7 @@ def list_features_provided(script_fpath):
         
     Returns:
         list: List of feature names that the script will generate.
-    '''
+    """
     with open(script_fpath) as f:
         all_lines = f.readlines()
     fnames_req_prov_dict = {}
@@ -465,7 +465,7 @@ def list_features_provided(script_fpath):
 
 
 def parse_csv_file(fname,sep=',',skip_lines=0):
-    '''Parse 2- or 3-column CSV file and return a list of its columns.
+    """Parse 2- or 3-column CSV file and return a list of its columns.
     
     Args:
       fname (str): Absolute path to the CSV file.
@@ -477,7 +477,7 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
       list: Two- or three-element list of lists of each of the 
         columns. If fname is not a 2- or 3-column CSV file, 
         returns list of three empty lists.
-    '''
+    """
     f = open(fname)
     linecount = 0
     t,m,e = [[],[],[]]
@@ -501,7 +501,7 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
 def generate_custom_features(
         custom_script_path, path_to_csv=None, features_already_known={}, 
         ts_data=None):
-    '''Generate custom features for provided t-s data and script.
+    """Generate custom features for provided t-s data and script.
     
     Args:
         custom_script_path (str): Path to custom features script.
@@ -518,7 +518,7 @@ def generate_custom_features(
     
     Returns:
         dict: Dictionary of newly-generated features.
-    '''
+    """
     if path_to_csv not in [None,False]:
         t,m,e = parse_csv_file(path_to_csv)
     elif ts_data not in [None,False]:
@@ -556,7 +556,7 @@ def generate_custom_features(
 
 
 def is_running_in_docker_container():
-    '''Return bool indicating whether running in a Docker container.'''
+    """Return bool indicating whether running in a Docker container."""
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
