@@ -11,10 +11,17 @@ import custom_feature_tools as cft
 import cPickle
 
 def extract_custom_feats():
-    '''Load pickled parameters and call cft.execute_functions_in_order()
+    """Load pickled parameters and generate custom features.
     
-    To be run from inside a Docker container.
-    '''
+    To be run from inside a Docker container. Pickles the extracted 
+    features for later copying from container to host machine.
+    
+    Returns
+    -------
+    int
+        Returns 0.
+    
+    """
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/features_already_known.pkl","rb") \
          as f:

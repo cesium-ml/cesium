@@ -13,13 +13,22 @@ import predict_class
 from subprocess import Popen, PIPE, call
 import cPickle
 
+
 def predict():
-    '''Loads pickled parameters and calls predict_class.predict(), 
+    """Generate features and perform classification.
+    
+    Loads pickled parameters and calls predict_class.predict(), 
     pickling the resulting data, which will later be copied to host 
     machine.
     
     To be called inside a Docker container.
-    '''
+    
+    Returns
+    -------
+    str
+        Human-readable status message.
+    
+    """
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)

@@ -2,19 +2,34 @@
 
 
 class DataFormatError(Exception):
-    '''Exception that is raised when provided time series data file 
-    or header file does not conform to required formatting.
-    '''
+    """TS data file or header file does not improperly formatted.
+    
+    Attributes
+    ----------
+    value : str
+        The exception message.
+    
+    """
+    
     def __init__(self,value):
         self.value = value
+    
     def __str__(self):
         return str(self.value)
-        
+
+
 class TimeSeriesFileNameError(Exception):
-    '''Exception that is raised when provided time series data files 
-    and header file's list of file names do not match.
-    '''
+    """Provided TS data file name(s) missing from header file.
+    
+    Attributes
+    ----------
+    value : str
+        The exception message.
+    
+    """
+    
     def __init__(self,value):
         self.value = value
+    
     def __str__(self):
         return str(self.value)

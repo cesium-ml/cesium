@@ -23,15 +23,16 @@ import sys
 import cfg
 
 
-
-
-
 class lightCurve:
+    """Object for time-series data and features.
+    
+    
+    """
     def __init__(
         self, epochs, mags, errs=[], ra='none', dec='none', 
         source_id='none', time_unit='day', classname='unknown',
         band='unknown', features_to_use=[]):
-        '''Extracts the following features (and all are lightCurve obj 
+        """Extracts the following features (and all are lightCurve obj 
         attrs):
             epochs: array of times of all observations
             mags: array of magnitudes of observations
@@ -88,7 +89,7 @@ class lightCurve:
                 ra: right ascension (decimal degrees),
                 dec: declination (decimal degrees),
                 band: observation band
-        '''
+        """
         self.time_unit = time_unit
         self.id = str(source_id)
         self.classname = classname
@@ -240,22 +241,16 @@ class lightCurve:
         self.cad_probs_1000000 = self.cad_probs[1000000]
         self.cad_probs_5000000 = self.cad_probs[5000000]
         self.cad_probs_10000000 = self.cad_probs[10000000]
-        
-    
     
     def extractScienceFeatures(self):
         return
     
-    
     def showInfo(self):
         print [self.start,self.end,len(self.epochs),self.avgt]
-    
-    
     
     def showAllInfo(self):
         for attr, val in vars(self).items():
             print attr, ":", val
-
     
     def allAttrs(self):
         count = 0
@@ -264,10 +259,7 @@ class lightCurve:
             count += 1
         print count, "attributes total."
 
-
     def put(self,cursor):
-        
-        
         return
 
     def generate_features_dict(self):
@@ -278,13 +270,8 @@ class lightCurve:
         return features_dict
 
 
-
 def generate_features_dict(lc_obj):
     return lc_obj.generate_features_dict()
-
-
-
-
 
 
 def makePdf(sources):
@@ -311,7 +298,6 @@ def makePdf(sources):
             ax.set_title(label)
             ax.axis('off')
             
-            
             ax1 = fig.add_subplot(321)
             ax2 = fig.add_subplot(322)
             ax2.axis('off')
@@ -321,7 +307,6 @@ def makePdf(sources):
             ax5 = fig.add_subplot(325)
             ax6 = fig.add_subplot(326)
             ax6.axis('off')
-            
             
             hist, bins, other = ax1.hist(lc.all_times,50,normed=True)
             ax1.text(np.max(bins)*0.1,np.max(hist)*0.8,
@@ -378,9 +363,7 @@ def makePdf(sources):
             
             pdf.savefig(fig)
     
-    
     pdf.close()
-    
     
     pdf = PdfPages('feature_plots.pdf')
     
@@ -394,7 +377,6 @@ def makePdf(sources):
     plt.subplots_adjust(wspace=0.4,hspace=0.4)
     
     classnamenum = 0
-    
     
     colors = ['red','yellow','green','blue','gray','orange','cyan','magenta']
     for classname, lcs in classname_dict.items():
@@ -418,9 +400,6 @@ def makePdf(sources):
             attr7.append(lc.all_times_nhist_peak_1_to_3)
             attr8.append(lc.all_times_nhist_peak_val)
         
-        
-        
-        
         ax2.scatter(attr1,attr2,color=colors[classnamenum],label=classname)
         ax1.scatter(attr3,attr4,color=colors[classnamenum],label=classname)
         ax2.set_xlabel('N Epochs')
@@ -435,24 +414,15 @@ def makePdf(sources):
         ax4.set_xlabel(r'$\Delta$Ts normed hist peak 1 to peak 3')
         ax4.set_ylabel(r'Peak val of all $\Delta$Ts normed hist')
         
-        
     #ax1.legend(bbox_to_anchor=(1.1, 1.1),prop={'size':6})
     ax2.legend(bbox_to_anchor=(1.1, 1.1),prop={'size':6})
     #ax3.legend(loc='upper right',prop={'size':6})
     #ax4.legend(loc='upper right',prop={'size':6})
     
-    
     pdf.savefig(fig)
         
     pdf.close()
     return
-
-
-
-
-
-
-
 
 
 def generate_lc_snippets(lc):
@@ -482,11 +452,6 @@ def generate_lc_snippets(lc):
                         classname=lc.classname))
     
     return lc_snippets
-
-
-
-
-
 
 
 class Source:
@@ -524,21 +489,12 @@ class Source:
             lc.put(lc_cursor)
 
 
-
-
-
-
-
-
-
-
-
 def getMultiple(source_ids,classname='unknown'):
-    '''Returns an array of Source objects corresponding to source IDs 
+    """Returns an array of Source objects corresponding to source IDs 
         in source_ids.
         
         source_ids is either a filename or an array of dotAstro IDs.
-    '''
+    """
     if type(source_ids) == str:
         f = open(source_ids,'r')
         ids = f.read().split()
@@ -556,14 +512,9 @@ def getMultiple(source_ids,classname='unknown'):
     return sources
 
 
-
-
-
-
-
 def getLcInfo(id,classname='unknown'):
-    '''
-    '''
+    """
+    """
     id = str(id)
     isError = False
     if("http" in id):
@@ -591,14 +542,6 @@ def getLcInfo(id,classname='unknown'):
         return newSource
     
     return
-
-
-
-
-
-
-
-
 
 
 def dotAstroLc(lc,id,classname):
@@ -639,15 +582,6 @@ def dotAstroLc(lc,id,classname):
     return lcs
 
 
-
-
-
-
-
-
-
-
-
 def getMultipleLocal(filenames,classname='unknown'):
     sources = []
     for filename in filenames:
@@ -655,12 +589,9 @@ def getMultipleLocal(filenames,classname='unknown'):
     return sources
 
 
-
-
-
 def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
-    '''
-    '''
+    """
+    """
     lcdata = lcdata.split('\n')
     epochs = []
     mags = []
@@ -695,13 +626,11 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
         return []
 
 
-
-
 def getLocalLc(filename, classname='unknown', sep=',', 
                single_obj_only=False, ts_data_passed_directly=False, 
                add_errors=False):
-    '''
-    '''
+    """
+    """
     if ts_data_passed_directly:
         lcdata = filename
         for i in range(len(lcdata)):
@@ -737,16 +666,11 @@ def getLocalLc(filename, classname='unknown', sep=',',
         return newSource
 
 
-
-
-
-
-
 def generate_timeseries_features(
     filename, classname='unknown', sep=',', single_obj_only=True, 
     ts_data_passed_directly=False, add_errors=True):
-    '''
-    '''
+    """
+    """
     lc_obj = getLocalLc(
         filename, classname=classname, sep=sep, 
         single_obj_only=single_obj_only, 
@@ -756,12 +680,9 @@ def generate_timeseries_features(
     return features_dict
 
 
-
-
-
 def dotAstro_to_csv(id):
-    '''
-    '''
+    """
+    """
     id = str(id)
     isError = False
     if("http" in id):
@@ -783,7 +704,6 @@ def dotAstro_to_csv(id):
         print "Error encountered.", id, error
         isError = True
         return False
-    
     
     lcs = []
     numlcs = 0

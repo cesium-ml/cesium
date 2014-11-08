@@ -41,14 +41,14 @@ n_epochs_list = [20,40,70,100,150,250,500,1000,10000,100000]
 #sorted_survey_list = sorted(survey_list)
 
 
-
-
 def predict(
     newpred_file_path, model_name, model_type, featset_key,
     sepr=',', n_cols_html_table=5, features_already_extracted=False, 
     custom_features_script=None, metadata_file_path=None, 
     in_docker_container=False):
-    '''Generates features for new time series file, loads saved 
+    """Generate features from new TS data and perform model prediction.
+    
+    Generates features for new time series file, loads saved 
     classifier model, calculates class predictions with extracted 
     features, and returns a dictionary containing a list of class 
     prediction probabilities, a string containing HTML markup for a 
@@ -56,27 +56,51 @@ def predict(
     used to generate features, and a dictionary of the features 
     extracted. The respective dict keys of the above-mentioned values 
     are: "pred_results_list", "results_str", "ts_data", "features_dict".
-    Required arguments:
-        newpred_file_path: path to time series data file to be used in 
-            prediction
-        model_name: name of the model to be used
-        model_type: type (abbreviation, e.g. "RF") of the model to be 
-            used
-        featset_key: rethinkDB ID of the feature set used to create 
-            the above-specified model
-    Optional (keyword) arguments:
-        sepr: character delimiting values in time series data file. 
-            Default is ","
-        n_cols_html_table: the number of highest-probability classes to 
-            include (one per column) in the returned HTML table
-        features_already_extracted: dict of any features already 
-            extracted associated with the time series data pointed to 
-            by newpred_file_path
-        custom_features_script: path to custom features script to be 
-            used in feature generation, else None
-        metadata_file_path: path to meta data file associated with 
-            provided time series data, else None
-    '''
+    
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to time series data file to be used in prediction.
+    model_name : str
+        Name of the model to be used.
+    model_type : str
+        Type (abbreviation, e.g. "RF") of the model to be used.
+    featset_key : str
+        RethinkDB ID of the feature set used to create the 
+        above-specified model.
+    sepr : str, optional
+        Delimiting character in time series data file. Default is comma 
+        (",").
+    n_cols_html_table : int, optional
+        The number of highest-probability classes to include (one per 
+        column) in the generated HTML table.
+    features_already_extracted : dict, optional
+        Dictionary of any features already extracted associated with 
+        the time series data pointed to by `newpred_file_path`. 
+        Defaults to False.
+    custom_features_script : str, optional
+        Path to custom features script to be used in feature 
+        generation, defaults to None.
+    metadata_file_path : str, optional
+        Path to meta data file associated with provided time series 
+        data. Defaults to None.
+    
+    Returns
+    -------
+    dict
+        Returns dictionary whose keys are the file names of the 
+        individual time-series data files used in prediction and whose 
+        corresponding values are dictionaries with the following 
+        key-value pairs:
+            "results_str": String containing table listing results in 
+                HTML markup.
+            "ts_data": The original time-series data provided.
+            "features_dict": A dictionary containing the generated 
+                features.
+            "pred_results_list": A list of lists, each containing one 
+                of the most-probable classes and its probability.
+    
+    """
     print "predict_class - predict() called."
     if in_docker_container:
         features_folder = "/Data/features/"
@@ -411,10 +435,10 @@ def predict(
             i=0
             for arr in results_arr:
                 if i < n_cols_html_table:
-                    results_str += '''
+                    results_str += """
                         <td class='pred_results'>%s</td>
                         <td class='pred_results'>%s</td>
-                    ''' % (arr[0], str(arr[1]))
+                    """ % (arr[0], str(arr[1]))
                 
                 i += 1
         results_str += "</tr>"
