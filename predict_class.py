@@ -453,18 +453,6 @@ def predict(
         del sorted_class_list
     #os.remove(newpred_file_path)
     return results_dict
-    
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
