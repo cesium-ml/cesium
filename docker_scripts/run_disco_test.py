@@ -10,11 +10,15 @@ import build_rf_model
 
 from subprocess import Popen, PIPE, call
 import cPickle
+import time
 
 def disco_test():
     '''See if Disco runs correctly inside Docker container.
     
     To be run inside Docker container.
+    '''
+    
+    
     '''
     process = Popen(["/usr/bin/supervisord"])
     time.sleep(2)
@@ -26,6 +30,9 @@ def disco_test():
     print "epmd", ("IS" if "epmd" in str(stdout) else "is NOT"),\
           "in 'ps aux' output"
     print "\n\n\n", stdout, "\n\n\n"
+    '''
+    
+    status_code = call(["/disco/bin/disco", "nodaemon"])
     
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
@@ -44,14 +51,14 @@ def disco_test():
         #stdout, stderr = process.communicate()
         #print stdout,"\n\n\n",stderr
         
-        
+        time.sleep(2)
         process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print ("stdout and stderr for 'disco status' command after "
                "calling '/start_disco': \n"), stdout,"\n\n",stderr
         
         if "stopped" in str(stdout):
-            print "Calling '/disco/bin/disco debug':"
+            print "Calling '/disco/bin/disco nodaemon':"
             status_code = call(["/disco/bin/disco", "nodaemon"])
             #process = Popen(["/start_disco"], stdout=PIPE, stderr=PIPE)
             #stdout, stderr = process.communicate()
@@ -60,8 +67,15 @@ def disco_test():
             process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
             print ("stdout and stderr for 'disco status' command after "
-                   "calling '/start_disco': \n"), stdout,"\n\n",stderr
-        
+                   "calling '/disco/bin/disco nodaemon': \n"), stdout,"\n\n",stderr
+            
+            time.sleep(1)
+            
+            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            print ("stdout and stderr for 'disco status' command after "
+                   "calling '/disco/bin/disco nodaemon': \n"), stdout,"\n\n",stderr
+            
     return ""
 
 
