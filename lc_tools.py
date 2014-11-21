@@ -615,6 +615,7 @@ class Source:
     
     def plotCadHists(self):
         """Plot cadence histograms for all `lcs` attribute elements.
+        
         """
         n_lcs = len(self.lcs)
         if n_lcs > 0:
@@ -638,10 +639,24 @@ class Source:
 
 
 def getMultiple(source_ids,classname='unknown'):
-    """Returns an array of Source objects corresponding to source IDs 
-        in source_ids.
-        
-        source_ids is either a filename or an array of dotAstro IDs.
+    """Create multiple Source() objects from list of dotAstro IDs.
+    
+    Pulls time-series data over HTTP to create Source() objects with 
+    lightCurve() objects as attributes.
+    
+    Parameters
+    ----------
+    source_ids : list of str
+        List of dotAstro IDs from which to construct Source() objects.
+    classname : str, optional
+        Class name of sources, defaults to "unknown".
+    
+    Returns
+    -------
+    list of Source()
+        Returns a list of the Source() objects created from the 
+        provided dotAstro IDs.
+    
     """
     if type(source_ids) == str:
         f = open(source_ids,'r')
@@ -661,7 +676,23 @@ def getMultiple(source_ids,classname='unknown'):
 
 
 def getLcInfo(id,classname='unknown'):
-    """
+    """Create Source() object from dotAstro ID.
+    
+    Pulls time-series data over HTTP to create Source() object with 
+    lightCurve() objects as attributes.
+    
+    Parameters
+    ----------
+    id : str
+        DotAstro ID from which to construct Source() object.
+    classname : str, optional
+        Class name of source, defaults to "unknown".
+    
+    Returns
+    -------
+    Source() object
+        Returns a Source() object created from the provided dotAstro ID.
+    
     """
     id = str(id)
     isError = False
@@ -817,7 +848,20 @@ def getLocalLc(filename, classname='unknown', sep=',',
 def generate_timeseries_features(
     filename, classname='unknown', sep=',', single_obj_only=True, 
     ts_data_passed_directly=False, add_errors=True):
-    """
+    """Generate features dict from given time-series data.
+    
+    Parameters
+    ----------
+    filename : str
+        Path to local file containing time-series data.
+    classname : str, optional
+        Class name associated with provided time series data, defaults 
+        to "unknown".
+    sep : str, optional
+        Delimiting character in time-series data, defaults to comma 
+        (",").
+    single_obj_only : bool, optional
+        
     """
     lc_obj = getLocalLc(
         filename, classname=classname, sep=sep, 
@@ -829,7 +873,19 @@ def generate_timeseries_features(
 
 
 def dotAstro_to_csv(id):
-    """
+    """Return CSV time-series data for source with provided DotAstro ID.
+    
+    Parameters
+    ----------
+    id : str
+        DotAstro source ID.
+    
+    Returns
+    -------
+    list of str
+        Returns a list of strings of CSV-format time-series data (t,m,e), 
+        each line separated by a newline character.
+    
     """
     id = str(id)
     isError = False
@@ -884,19 +940,3 @@ def dotAstro_to_csv(id):
             numlcs += 1
     
     return lcs
-
-testurl = ('http://timemachine.iic.harvard.edu/search/lcdb/astobject/'
-           'lightcurve/135278496/download=ascii/pro=cal/')
-
-
-def parse_harvard_lc(id):
-    id = str(id)
-    url = ("http://timemachine.iic.harvard.edu/search/lcdb/astobject/"
-           "lightcurve/ID/download=ascii/pro=cal/").replace("ID",id)
-    lc = urllib2.urlopen(url).read().split("\n")
-    lcdata = ""
-    for line in lc:
-        if len(line) > 0:
-            if line[0] != "#":
-                lcdata += ",".join(line.split()) + "\n"
-    return [lcdata]
