@@ -7,6 +7,7 @@ import sys
 import os
 sys.path.append("/home/mltp")
 import build_rf_model
+import time
 
 from subprocess import Popen, PIPE, call
 import cPickle
@@ -20,6 +21,7 @@ def featurize():
     stdout, stderr = process.communicate()
     if "stopped" in str(stdout):
         status_code = call(["/disco/bin/disco","nodaemon"])
+        time.sleep(2)
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)

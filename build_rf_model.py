@@ -309,7 +309,7 @@ def featurize(
                 line_no += 1
         # disco may be installed in docker container, but 
         # it is not working yet, thus the " and not in_docker_container"
-        if DISCO_INSTALLED and not in_docker_container:
+        if DISCO_INSTALLED:# and not in_docker_container:
             print "FEATURIZE - USING DISCO"
             fname_features_data_dict = (
                 parallel_processing.featurize_in_parallel(

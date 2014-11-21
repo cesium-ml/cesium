@@ -58,7 +58,7 @@ def featurize_in_docker_container(
                 "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"), 
                 "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"), 
                 "--name=%s" % container_name, 
-                "featurize"]
+                "mltsp/featurize"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print "\n\ndocker container stdout:\n\n", stdout, \
@@ -128,7 +128,7 @@ def build_model_in_docker_container(
                 "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"), 
                 "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),  
                 "--name=%s" % container_name, 
-                "build_model"]
+                "mltsp/build_model"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print "\n\ndocker container stdout:\n\n", stdout, \
