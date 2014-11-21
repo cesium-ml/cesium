@@ -218,7 +218,7 @@ def predict_in_docker_container(
                 "-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"), 
                 "-v", "%s:%s"%(cfg.MODELS_FOLDER,"/Data/models"), 
                 "--name=%s"%container_name, 
-                "predict"]
+                "mltsp/predict"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print "\n\ndocker container stdout:\n\n", stdout, \
