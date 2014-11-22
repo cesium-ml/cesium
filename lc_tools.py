@@ -724,6 +724,24 @@ def getLcInfo(id,classname='unknown'):
 
 
 def dotAstroLc(lc,id,classname):
+    """Return list of lightCurve() objects made from provided data.
+    
+    Parameters
+    ----------
+    lc : str
+        XML string containing light curve data.
+    id : str
+        ID of source.
+    classname : str
+        Class name of source.
+        
+    Returns
+    -------
+    list of lightCurve() objects
+        Returns a list of lightCurve() objects created from each of the 
+        light curves in provided XML data.
+    
+    """
     lcs = []
     numlcs = 0
     data = lc
@@ -762,6 +780,21 @@ def dotAstroLc(lc,id,classname):
 
 
 def getMultipleLocal(filenames,classname='unknown'):
+    """Create and return a list of Source() objects from provided data.
+    
+    Parameters
+    ----------
+    filenames : list of str
+        List of paths to TS data files.
+    classname : str, optional
+        Class name of provided TS data sources, defaults to "unknown".
+    
+    Returns
+    -------
+    list of Source() objects
+        Returns a list of Source() objects.
+    
+    """
     sources = []
     for filename in filenames:
         sources.append(getLocalLc(filename,classname))
@@ -769,7 +802,8 @@ def getMultipleLocal(filenames,classname='unknown'):
 
 
 def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
-    """
+    """Create and return a lightCurve() object from provided TS data.
+    
     """
     lcdata = lcdata.split('\n')
     epochs = []
@@ -808,7 +842,35 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
 def getLocalLc(filename, classname='unknown', sep=',', 
                single_obj_only=False, ts_data_passed_directly=False, 
                add_errors=False):
-    """
+    """Generate lightCurve() or Source() object(s) from given TS data.
+    
+    Parameters
+    ----------
+    filename : str
+        Path to local file containing time-series data.
+    classname : str, optional
+        Class name associated with provided time series data, defaults 
+        to "unknown".
+    sep : str, optional
+        Delimiting character in time-series data, defaults to comma 
+        (",").
+    single_obj_only : bool, optional
+        Boolean indicating whether provided time-series data are 
+        associated with a single light curve (True) or multiple (False).
+        If True, returns a list of feature dictionaries. Defaults to 
+        False.
+    ts_data_passed_directly : bool, optional
+        Boolean indicating whether `filename` is a string containing 
+        raw time series data (True) or not. Defaults to False.
+    add_errors : bool, optional
+        Boolean indicating whether to add an error value of 1.0 to 
+        each epoch without pre-existing error values. Defaults to False.
+    
+    Returns
+    -------
+    Source() object
+        Returns a new Source() object.
+        
     """
     if ts_data_passed_directly:
         lcdata = filename
@@ -861,6 +923,21 @@ def generate_timeseries_features(
         Delimiting character in time-series data, defaults to comma 
         (",").
     single_obj_only : bool, optional
+        Boolean indicating whether provided time-series data are 
+        associated with a single light curve (True) or multiple (False).
+        If True, returns a list of feature dictionaries. Defaults to 
+        True.
+    ts_data_passed_directly : bool, optional
+        Boolean indicating whether `filename` is a string containing 
+        raw time series data (True) or not. Defaults to False.
+    add_errors : bool, optional
+        Boolean indicating whether to add an error value of 1.0 to 
+        each epoch without pre-existing error values. Defaults to True.
+    
+    Returns
+    -------
+    dict
+        Dictionary containing generated time series features.
         
     """
     lc_obj = getLocalLc(
