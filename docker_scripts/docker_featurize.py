@@ -11,11 +11,19 @@ import build_rf_model
 from subprocess import Popen, PIPE, call
 import cPickle
 
+
 def featurize():
-    '''Load pickled parameters and call build_rf_model.featurize().
+    """Load pickled parameters and call `build_rf_model.featurize`.
     
     To be run from inside a Docker container.
-    '''
+    
+    Returns
+    -------
+    str
+        Human readable message indicating completion of feature 
+        generation.
+    
+    """
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     if "stopped" in str(stdout):
@@ -23,7 +31,6 @@ def featurize():
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)
-    
     # ensure required files successfully copied into container:
     if "headerfile_path" in function_args:
         headerfile_path = str(function_args['headerfile_path'])
@@ -50,7 +57,6 @@ def featurize():
     elif ("already_featurized" in function_args and 
           function_args["already_featurized"] == True):
         pass
-    
     results_str = build_rf_model.featurize(
         function_args["headerfile_path"], 
         function_args["zipfile_path"], 
@@ -60,10 +66,7 @@ def featurize():
         already_featurized=function_args["already_featurized"], 
         custom_script_path=function_args["custom_script_path"], 
         in_docker_container=True)
-    
     return results_str
-
-
 
 
 if __name__=="__main__":

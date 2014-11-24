@@ -7,15 +7,12 @@ import sys
 import os
 sys.path.append("/home/mltp")
 import build_rf_model
-
 from subprocess import Popen, PIPE, call
 import cPickle
 
+
 def disco_test():
-    '''See if Disco runs correctly inside Docker container.
-    
-    To be run inside Docker container.
-    '''
+    """Try to start Disc from inside Docker container."""
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     print "stdout and stderr for 'disco status' command: \n", \
@@ -26,27 +23,21 @@ def disco_test():
         #process = Popen(["/start_disco"], stdout=PIPE, stderr=PIPE)
         #stdout, stderr = process.communicate()
         #print stdout,"\n\n\n",stderr
-        
         process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print ("stdout and stderr for 'disco status' command after "
                "calling '/start_disco': \n"), stdout,"\n\n",stderr
-        
         if "stopped" in str(stdout):
             print "Calling '/disco/bin/disco debug':"
             status_code = call(["/disco/bin/disco", "nodaemon"])
             #process = Popen(["/start_disco"], stdout=PIPE, stderr=PIPE)
             #stdout, stderr = process.communicate()
             #print stdout,"\n\n\n",stderr
-            
             process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
             print ("stdout and stderr for 'disco status' command after "
                    "calling '/start_disco': \n"), stdout,"\n\n",stderr
-        
     return ""
-
-
 
 
 if __name__=="__main__":
