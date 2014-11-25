@@ -9,15 +9,22 @@ sys.path.append("/home/mltp")
 import custom_feature_tools as cft
 import build_rf_model
 
-
 from subprocess import Popen, PIPE, call
 import cPickle
 
+
 def build_model():
-    '''Load pickled parameters and call build_rf_model.build_model().
+    """Load pickled parameters and call `build_rf_model.build_model`.
     
-    To be called from inside a Docker container.
-    '''
+    To be called from inside a Docker container. Pickles model which 
+    will later be copied to host machine.
+    
+    Returns
+    -------
+    str
+        Human readable message indicating successful completion.
+    
+    """
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)
@@ -29,7 +36,6 @@ def build_model():
         in_docker_container=True)
     
     return results_str
-
 
 
 if __name__=="__main__":

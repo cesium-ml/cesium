@@ -13,13 +13,22 @@ import time
 from subprocess import Popen, PIPE, call
 import cPickle
 
+
 def predict():
-    '''Loads pickled parameters and calls predict_class.predict(), 
+    """Generate features and perform classification.
+    
+    Loads pickled parameters and calls predict_class.predict(), 
     pickling the resulting data, which will later be copied to host 
     machine.
     
     To be called inside a Docker container.
-    '''
+    
+    Returns
+    -------
+    str
+        Human-readable status message.
+    
+    """
     # start Disco
     status_code = call(["/disco/bin/disco", "nodaemon"])
     time.sleep(2)

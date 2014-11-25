@@ -38,10 +38,26 @@ import generate_science_features
 import custom_feature_tools as cft
 
 
-
 def read_data_from_csv_file(fname,sep=',',skip_lines=0):
-    '''Returns csv data in fname (separated by sep) in list form.
-    '''
+    """Parse CSV file and return data in list form.
+    
+    Parameters
+    ----------
+    fname : str
+        Path to the CSV file.
+    sep : str, optional
+        Delimiting character in CSV file. Defaults to ",".
+    skip_lines : int, optional
+        Number of leading lines to skip in file. Defaults to 0.
+    
+    Returns
+    -------
+    list of list
+        Two-element list whose first element is a list of the column 
+        names in the file, and whose second element is a list of lists, 
+        each list containing the values in each row in the file.
+    
+    """
     f = open(fname)
     linecount = 0
     data_rows = []
@@ -55,6 +71,7 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
                 data_rows.append(line.strip('\n').split(sep))
                 all_rows.append(line.strip('\n').split(sep))
                 if "?" in line:
+                    # Replace missing values with 0.0
                     data_rows[-1] = [el if el != "?" else "0.0" 
                                      for el in data_rows[-1]]
                     all_rows[-1] = [el if el != "?" else "0.0" 
@@ -68,20 +85,38 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
     return [colnames,data_rows]
 
 
-
-
 def build_model(
     featureset_name, featureset_key, model_type="RF", 
     in_docker_container=False):
-    '''Build a scikit-learn classifier.
-    Required arguments:
-        featureset_name: name of the feature set to build the model 
-            upon (will also become the model name)
-        featureset_key: rethinkDB ID of the associated feature set
-    Keyword arguments:
-        model_type: (string) abbreviation of the type of classifier to 
-            be created. Default is "RF"
-    '''
+    """Build a `scikit-learn` classifier.
+    
+    Builds the specified model and pickles it in the file 
+    whose name is given by 
+    ``"%s_%s.pkl" % (featureset_key, model_type)``
+    in the directory `cfg.MODELS_FOLDER` (or is later copied there 
+    from within the Docker container if `in_docker_container` is True.
+    
+    Parameters
+    ----------
+    featureset_name : str
+        Name of the feature set to build the model upon (will also 
+        become the model name).
+    featureset_key: str
+        RethinkDB ID of the associated feature set from which to build 
+        the model, which will also become the ID/key for the model.
+    model_type : str
+        Abbreviation of the type of classifier to be created. Defaults 
+        to "RF".
+    in_docker_container : bool, optional
+        Boolean indicating whether function is being called from within 
+        a Docker container.
+    
+    Returns
+    -------
+    str
+        Human-readable message indicating successful completion.
+    
+    """
     if in_docker_container:
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
@@ -211,34 +246,53 @@ def build_model(
         "start using it.")
 
 
-
 def featurize(
     headerfile_path, zipfile_path, features_to_use=[], 
     featureset_id="unknown", is_test=False, USE_DISCO=False, 
     already_featurized=False, custom_script_path=None, 
     in_docker_container=False):
-    '''Generates features for labeled time series data.
-    Required arguments:
-        headerfile_path: path to header file containing file names, 
-            class names, and meta data
-        zipfile_path: path to the tarball of individual time series 
-            files to be used for feature generation
-    Optional (keyword) arguments:
-        features_to_use: list of feature names to be generated. Default 
-            is an empty list, which results in all available features 
-            being used
-        featureset_id: rethinkDB ID of the new feature set entry. 
-            Default "unknown".
-        is_test: boolean indicating whether to do a test run of only 
-            the first five time-series files. Defaults to False
-        USE_DISCO: boolean indicating whether to featurize in parallel 
-            using Disco
-        already_featurized: boolean indicating whether headerfile_path 
-            points to a file containing pre-generated features, in 
-            which case zipfile_path must be None
-        custom_script_path: path to Python script containing methods 
-            for the generation of any custom features
-    '''
+    """Generates features for labeled time series data.
+    
+    Features are saved to the file given by 
+    ``"%s_features.csv" % featureset_id``
+    and a list of corresponding classes is saved to the file given by 
+    ``"%s_classes.pkl" % featureset_id``
+    in the directory `cfg.FEATURES_FOLDER` (or is later copied there if 
+    generated inside a Docker container).
+    
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to header file containing file names, class names, and 
+        metadata.
+    zipfile_path : str
+        Path to the tarball of individual time series files to be used 
+        for feature generation.
+    features_to_use : list, optional
+        List of feature names to be generated. Defaults to an empty 
+        list, which results in all available features being used.
+    featureset_id : str, optional
+        RethinkDB ID of the new feature set entry. Defaults to 
+        "unknown".
+    is_test : bool, optional
+        Boolean indicating whether to do a test run of only the first 
+        five time-series files. Defaults to False
+    USE_DISCO : bool, optional
+        Boolean indicating whether to featurize in parallel using Disco.
+    already_featurized : bool, optional
+        Boolean indicating whether `headerfile_path` points to a file 
+        containing pre-generated features, in which case `zipfile_path` 
+        must be None.
+    custom_script_path : str, optional
+        Path to Python script containing function definitions for the 
+        generation of any custom features.
+    
+    Returns
+    -------
+    str
+        Human-readable message indicating successful completion.
+    
+    """
     if in_docker_container:
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
@@ -358,7 +412,8 @@ def featurize(
                             path_to_csv=path_to_csv)
                     else:
                         science_features = {}
-                    if custom_script_path:
+                    if custom_script_path not in (None, "None", 
+                                                  False, "False"):
                         custom_features = cft.generate_custom_features(
                             custom_script_path=custom_script_path,
                             path_to_csv=path_to_csv,
@@ -511,10 +566,6 @@ def featurize(
         " and " + foutname.replace(".pkl","_classes.pkl").split('/')[-1] + 
         " created."))
     return "Featurization of timeseries data complete."
-    
-    
-
-
 
 
 if __name__ == "__main__":
