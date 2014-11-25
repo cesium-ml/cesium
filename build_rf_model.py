@@ -248,7 +248,7 @@ def build_model(
 
 def featurize(
     headerfile_path, zipfile_path, features_to_use=[], 
-    featureset_id="unknown", is_test=False, USE_DISCO=False, 
+    featureset_id="unknown", is_test=False, USE_DISCO=True, 
     already_featurized=False, custom_script_path=None, 
     in_docker_container=False):
     """Generates features for labeled time series data.
@@ -276,16 +276,20 @@ def featurize(
         "unknown".
     is_test : bool, optional
         Boolean indicating whether to do a test run of only the first 
-        five time-series files. Defaults to False
+        five time-series files. Defaults to False.
     USE_DISCO : bool, optional
         Boolean indicating whether to featurize in parallel using Disco.
+        Defaults to True.
     already_featurized : bool, optional
         Boolean indicating whether `headerfile_path` points to a file 
         containing pre-generated features, in which case `zipfile_path` 
-        must be None.
+        must be None. Defaults to False.
     custom_script_path : str, optional
         Path to Python script containing function definitions for the 
-        generation of any custom features.
+        generation of any custom features. Defaults to None.
+    in_docker_container : bool, optional
+        Boolean indicating whether function is being called from inside 
+        a Docker container. Defaults to False.
     
     Returns
     -------
@@ -363,7 +367,7 @@ def featurize(
                 line_no += 1
         # disco may be installed in docker container, but 
         # it is not working yet, thus the " and not in_docker_container"
-        if DISCO_INSTALLED:# and not in_docker_container:
+        if DISCO_INSTALLED and USE_DISCO:# and not in_docker_container:
             print "FEATURIZE - USING DISCO"
             fname_features_data_dict = (
                 parallel_processing.featurize_in_parallel(
