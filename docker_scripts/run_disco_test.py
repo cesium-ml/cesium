@@ -71,6 +71,20 @@ def disco_test():
             print ("stdout and stderr for 'disco status' command after "
                    "calling '/disco/bin/disco nodaemon': \n"), stdout,"\n\n",stderr
             
+            
+            if "running" in str(stdout):
+                results_str = build_rf_model.featurize(
+                    "/Data/sample_lcs/asas_training_set_classes.dat", 
+                    "/Data/sample_lcs/asas_training_set.tar.gz", 
+                    features_to_use=[], 
+                    featureset_id="JUST_A_TEST_FEATSET", 
+                    is_test=True,
+                    USE_DISCO=True, 
+                    already_featurized=False, 
+                    custom_script_path=None, 
+                    in_docker_container=True)
+                print results_str
+            
     return ""
 
 

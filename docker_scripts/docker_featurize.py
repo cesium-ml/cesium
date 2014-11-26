@@ -35,8 +35,17 @@ def featurize():
         process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         if "stopped" in str(stdout):
-            print "Disco still stopped... Will featurize without Disco."
-            disco_running = False
+            print "Disco is stopped - attempting to start Disco..."
+            status_code = call(["disco","start"])
+            print "Status code for Disco command:", status_code
+            time.sleep(2)
+            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            if "stopped" in str(stdout):
+                print "Disco still stopped... Will featurize without Disco."
+                disco_running = False
+            else:
+                disco_running = True
         else:
             disco_running = True
     else:
@@ -66,7 +75,8 @@ def featurize():
                              "disk.")%zipfile_path)
     elif ("already_featurized" in function_args and 
           function_args["already_featurized"] == False):
-        raise Exception("ERROR - IN DOCKER CONTAINER featurize - zipfile_path not in function args.")
+        raise Exception("ERROR - IN DOCKER CONTAINER featurize - zipfile_path "
+                        "not in function args.")
     elif ("already_featurized" in function_args and 
           function_args["already_featurized"] == True):
         pass
