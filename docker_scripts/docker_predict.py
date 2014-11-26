@@ -9,7 +9,7 @@ sys.path.append("/home/mltp")
 import custom_feature_tools as cft
 import build_rf_model
 import predict_class
-
+import time
 from subprocess import Popen, PIPE, call
 import cPickle
 
@@ -29,6 +29,10 @@ def predict():
         Human-readable status message.
     
     """
+    # start Disco
+    status_code = call(["/disco/bin/disco", "nodaemon"])
+    time.sleep(2)
+    
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)

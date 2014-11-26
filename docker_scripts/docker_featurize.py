@@ -7,6 +7,7 @@ import sys
 import os
 sys.path.append("/home/mltp")
 import build_rf_model
+import time
 
 from subprocess import Popen, PIPE, call
 import cPickle
@@ -27,7 +28,28 @@ def featurize():
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     if "stopped" in str(stdout):
+        print "Disco is stopped - attempting to start Disco..."
         status_code = call(["/disco/bin/disco","nodaemon"])
+        print "Status code for Disco command:", status_code
+        time.sleep(2)
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        if "stopped" in str(stdout):
+            print "Disco is stopped - attempting to start Disco..."
+            status_code = call(["disco","start"])
+            print "Status code for Disco command:", status_code
+            time.sleep(2)
+            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            if "stopped" in str(stdout):
+                print "Disco still stopped... Will featurize without Disco."
+                disco_running = False
+            else:
+                disco_running = True
+        else:
+            disco_running = True
+    else:
+        disco_running = True
     # load pickled ts_data and known features
     with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)
@@ -53,7 +75,8 @@ def featurize():
                              "disk.")%zipfile_path)
     elif ("already_featurized" in function_args and 
           function_args["already_featurized"] == False):
-        raise Exception("ERROR - IN DOCKER CONTAINER featurize - zipfile_path not in function args.")
+        raise Exception("ERROR - IN DOCKER CONTAINER featurize - zipfile_path "
+                        "not in function args.")
     elif ("already_featurized" in function_args and 
           function_args["already_featurized"] == True):
         pass
@@ -62,7 +85,8 @@ def featurize():
         function_args["zipfile_path"], 
         features_to_use=function_args["features_to_use"], 
         featureset_id=function_args["featureset_key"], 
-        is_test=function_args["is_test"], 
+        is_test=function_args["is_test"],
+        USE_DISCO=disco_running, 
         already_featurized=function_args["already_featurized"], 
         custom_script_path=function_args["custom_script_path"], 
         in_docker_container=True)
