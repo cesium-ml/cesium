@@ -1,3 +1,4 @@
 FROM mltsp/base_disco
 
-ENTRYPOINT ["python", "/home/mltp/docker_scripts/run_disco_test.py"]
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
