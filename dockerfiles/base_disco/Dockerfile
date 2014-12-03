@@ -7,13 +7,6 @@ ENV DEBIAN_FRONTEND noninteractive
 ## install requirements
 RUN apt-get install -y wget curl erlang git make openssh-server supervisor
 
-## passwordless login for root
-RUN mkdir -p /root/.ssh
-RUN ssh-keygen -N '' -f /root/.ssh/id_dsa
-RUN cat /root/.ssh/id_dsa.pub >> /root/.ssh/authorized_keys
-RUN echo -n "localhost " > /root/.ssh/known_hosts
-RUN cat /etc/ssh/ssh_host_rsa_key.pub >> /root/.ssh/known_hosts
-
 ## add user for disco
 RUN adduser --system disco --shell /bin/sh
 
@@ -26,7 +19,7 @@ RUN mkdir -p /home/disco/.ssh
 RUN ssh-keygen -N '' -f /home/disco/.ssh/id_dsa
 RUN cat /home/disco/.ssh/id_dsa.pub >> /home/disco/.ssh/authorized_keys
 RUN echo -n "localhost" > /home/disco/.ssh/known_hosts
-RUN cat /etc/ssh/ssh_host_rsa_key.pub >> /home/disco/.ssh/known_hosts
+RUN ssh-keyscan -H localhost >> /home/disco/.ssh/known_hosts
 RUN chown disco -R /home/disco/.ssh
 
 ## install disco
