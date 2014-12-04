@@ -5,11 +5,33 @@
 import subprocess
 import sys
 import os
-sys.path.append("/home/mltp")
-import build_rf_model
+sys.path.append("/home/mltsp/mltsp")
+#import build_rf_model
 from subprocess import Popen, PIPE, call
 import cPickle
 import time
+
+# ----
+from disco.core import Job, result_iterator
+
+def map(line, params):
+    for word in line.split():
+        yield word, 1
+
+
+def reduce(iter, params):
+    from disco.util import kvgroup
+    for word, counts in kvgroup(sorted(iter)):
+        yield word, sum(counts)
+
+
+def disco_word_count():
+    job = Job().run(input=["http://discoproject.org/media/text/chekhov.txt"],
+                    map=map,
+                    reduce=reduce)
+    for word, count in result_iterator(job.wait(show=True)):
+        print(word, count)
+#----
 
 
 def disco_test():
@@ -21,20 +43,25 @@ def disco_test():
     stdout, stderr = process.communicate()
     print "-> disco status", stdout, stderr
 
+    time.sleep(2)
+
     if "stopped" in str(stdout):
         print "Error: disco not running"
+        sys.exit(-1)
 
     elif "running" in str(stdout):
-        results_str = build_rf_model.featurize(
-            "/Data/sample_lcs/asas_training_set_classes.dat",
-            "/Data/sample_lcs/asas_training_set.tar.gz",
-            features_to_use=[],
-            featureset_id="JUST_A_TEST_FEATSET",
-            is_test=True,
-            USE_DISCO=True,
-            already_featurized=False,
-            custom_script_path=None,
-            in_docker_container=True)
+        disco_word_count()
+        results_str = 'OK'
+        ## results_str = build_rf_model.featurize(
+        ##     "/Data/sample_lcs/asas_training_set_classes.dat",
+        ##     "/Data/sample_lcs/asas_training_set.tar.gz",
+        ##     features_to_use=[],
+        ##     featureset_id="JUST_A_TEST_FEATSET",
+        ##     is_test=True,
+        ##     USE_DISCO=True,
+        ##     already_featurized=False,
+        ##     custom_script_path=None,
+        ##     in_docker_container=True)
 
         return results_str
 

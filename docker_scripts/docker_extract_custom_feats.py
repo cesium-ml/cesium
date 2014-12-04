@@ -4,7 +4,7 @@
 
 #import subprocess
 import sys
-sys.path.append("/home/mltp")
+sys.path.append("/home/mltsp/mltsp")
 import custom_feature_tools as cft
 
 #from subprocess import Popen, PIPE, call
@@ -23,12 +23,12 @@ def extract_custom_feats():
     
     """
     # load pickled ts_data and known features
-    with open("/home/mltp/copied_data_files/features_already_known.pkl","rb") \
+    with open("/home/mltsp/mltsp/copied_data_files/features_already_known.pkl","rb") \
          as f:
         features_already_known = cPickle.load(f)
 
     # script has been copied to the following location:
-    script_fpath = "/home/mltp/copied_data_files/custom_feature_defs.py"
+    script_fpath = "/home/mltsp/mltsp/copied_data_files/custom_feature_defs.py"
     script_fname = "custom_feature_defs.py"
     
     # extract features

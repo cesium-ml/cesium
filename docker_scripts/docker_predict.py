@@ -5,7 +5,7 @@
 import subprocess
 import sys
 import os
-sys.path.append("/home/mltp")
+sys.path.append("/home/mltsp/mltsp")
 import custom_feature_tools as cft
 import build_rf_model
 import predict_class
@@ -34,7 +34,7 @@ def predict():
     time.sleep(2)
     
     # load pickled ts_data and known features
-    with open("/home/mltp/copied_data_files/function_args.pkl","rb") as f:
+    with open("/home/mltsp/mltsp/copied_data_files/function_args.pkl","rb") as f:
         function_args = cPickle.load(f)
     
     # ensure required files successfully copied into container:
