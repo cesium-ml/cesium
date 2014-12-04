@@ -8,18 +8,17 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get install -y wget curl erlang git make openssh-server supervisor
 
 ## add user for disco
-RUN adduser --system disco --shell /bin/sh
+RUN adduser --system disco --shell /bin/bash
 
 ## setup ssh for disco
 RUN echo root:disco | chpasswd
 RUN mkdir -p /var/run/sshd
 
 ## passwordless login for disco
-RUN mkdir -p /home/disco/.ssh
-RUN ssh-keygen -N '' -f /home/disco/.ssh/id_dsa
-RUN cat /home/disco/.ssh/id_dsa.pub >> /home/disco/.ssh/authorized_keys
-RUN echo -n "localhost" > /home/disco/.ssh/known_hosts
-RUN ssh-keyscan -H localhost >> /home/disco/.ssh/known_hosts
+RUN mkdir -p /home/disco/.ssh && rm /home/disco/.ssh/*
+RUN ssh-keygen -t dsa -f /home/disco/.ssh/id_dsa
+RUN cat /home/disco/.ssh/id_dsa.pub > /home/disco/.ssh/authorized_keys
+RUN /usr/sbin/sshd && ssh-keyscan -H localhost > /home/disco/.ssh/known_hosts
 RUN chown disco -R /home/disco/.ssh
 
 ## install disco
@@ -33,8 +32,8 @@ ADD disco_8989.config /disco/root/disco_8989.config
 ENV PYTHONPATH /disco/lib
 
 ## configure the supervisor which will start ssh, docker & disco
-ADD supervisor.conf /etc/supervisor/conf.d/disco.conf
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 EXPOSE 22
 EXPOSE 8990
 EXPOSE 8989
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
