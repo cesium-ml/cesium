@@ -1,14 +1,16 @@
+#!/usr/bin/env python
+
 # docker_featurize.py
 
 # to be run from INSIDE a docker container
 
+from __future__ import print_function
 import subprocess
 import sys
 import os
 sys.path.append("/home/mltsp/mltsp")
 #import build_rf_model
 from subprocess import Popen, PIPE, call
-import cPickle
 import time
 
 # ----
@@ -35,18 +37,18 @@ def disco_word_count():
 
 
 def disco_test():
-    print "*" * 80
-    print "Disco Test"
-    print "*" * 80
+    print("*" * 80)
+    print("Disco Test")
+    print("*" * 80)
 
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
-    print "-> disco status", stdout, stderr
+    print("-> disco status", stdout, stderr)
 
     time.sleep(2)
 
     if "stopped" in str(stdout):
-        print "Error: disco not running"
+        print("Error: disco not running")
         sys.exit(-1)
 
     elif "running" in str(stdout):
@@ -68,4 +70,4 @@ def disco_test():
 
 if __name__=="__main__":
     results_str = disco_test()
-    print results_str
+    print(results_str)
