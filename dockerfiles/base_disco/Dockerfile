@@ -1,39 +1,35 @@
 FROM mltsp/base
 
-MAINTAINER Ari Crellin-Quick, a.crellinquick@gmail.com
-
-ENV DEBIAN_FRONTEND noninteractive
-
 ## install requirements
-RUN apt-get install -y wget curl erlang git make openssh-server supervisor
+RUN apt-get install -y wget curl erlang git make
 
 ## add user for disco
 RUN adduser --system disco --shell /bin/bash
 
-## setup ssh for disco
 RUN echo root:disco | chpasswd
-RUN mkdir -p /var/run/sshd
 
 ## passwordless login for disco
-RUN mkdir -p /home/disco/.ssh && rm /home/disco/.ssh/*
+
+RUN mkdir -p /home/disco/.ssh
+RUN chown disco -R /home/disco/.ssh
 RUN ssh-keygen -t dsa -f /home/disco/.ssh/id_dsa
 RUN cat /home/disco/.ssh/id_dsa.pub > /home/disco/.ssh/authorized_keys
 RUN /usr/sbin/sshd && ssh-keyscan -H localhost > /home/disco/.ssh/known_hosts
-RUN chown disco -R /home/disco/.ssh
 
 ## install disco
+
 RUN git clone --depth 1 https://github.com/discoproject/disco.git /disco
 RUN cd /disco &&  make install
 RUN chown -R disco /usr/var/disco
-
 ADD disco_8989.config /disco/root/disco_8989.config
 
 ## add disco install location to pythonpath
 ENV PYTHONPATH /disco/lib
 
-## configure the supervisor which will start ssh, docker & disco
-ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-EXPOSE 22
-EXPOSE 8990
-EXPOSE 8989
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+## add disco to runit
+RUN mkdir /etc/service/disco
+ADD disco.sh /etc/service/disco/run
+
+# clean system
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
