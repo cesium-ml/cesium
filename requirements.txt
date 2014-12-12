@@ -16,3 +16,4 @@ requests
 seaborn
 simplejson
 tables
+colorlog
