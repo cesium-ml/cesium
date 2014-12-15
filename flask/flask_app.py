@@ -1631,9 +1631,7 @@ def testNewScript():
             str(uuid.uuid4())+"_"+str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
-            test_results = cft.test_new_script(
-                script_fname=scriptfile_name, 
-                script_fpath=scriptfile_path)
+            test_results = cft.test_new_script(script_fpath=scriptfile_path)
             ks=[]
             for thisone in test_results:
                 for k,v in thisone.iteritems():

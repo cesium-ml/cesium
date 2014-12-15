@@ -10,7 +10,6 @@ import os
 import rethinkdb as r
 
 
-
 def featurize_in_docker_container(
         headerfile_path, zipfile_path, features_to_use, featureset_key, 
         is_test, already_featurized, custom_script_path):
@@ -129,9 +128,6 @@ def featurize_in_docker_container(
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
         print "Docker container deleted."
     return "Featurization complete."
-    
-
-
 
 
 def build_model_in_docker_container(
@@ -210,13 +206,6 @@ def build_model_in_docker_container(
         print "Docker container deleted."
     
     return "Model creation complete. Click the Predict tab to start using it."
-    
-
-
-
-
-
-
 
 
 def predict_in_docker_container(
@@ -341,20 +330,6 @@ def predict_in_docker_container(
     return pred_results_dict
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def disco_test():
     """Test Disco functionality inside Docker container.
     
@@ -383,16 +358,3 @@ def disco_test():
         
     
     return "Test complete."
-    
-
-
-
-
-
-
-
-
-
-
-
-
