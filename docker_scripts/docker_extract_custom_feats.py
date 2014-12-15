@@ -4,7 +4,7 @@
 
 #import subprocess
 import sys
-sys.path.append("/home/mltsp/mltsp")
+sys.path.append("/home/mltsp")
 import custom_feature_tools as cft
 
 #from subprocess import Popen, PIPE, call
@@ -23,27 +23,27 @@ def extract_custom_feats():
     
     """
     # load pickled ts_data and known features
-    with open("/home/mltsp/mltsp/copied_data_files/features_already_known.pkl","rb") \
-         as f:
+    with open(
+        "/home/mltsp/copied_data_files/features_already_known_list.pkl",
+        "rb") as f:
         features_already_known_list = cPickle.load(f)
 
     # script has been copied to the following location:
-    script_fpath = "/home/mltsp/mltsp/copied_data_files/custom_feature_defs.py"
+    script_fpath = "/home/mltsp/copied_data_files/custom_feature_defs.py"
     script_fname = "custom_feature_defs.py"
     
     # extract features
-    feats = cft.execute_functions_in_order(
-        script_fname=script_fname, 
+    all_feats = cft.execute_functions_in_order(
         features_already_known=features_already_known_list, 
         script_fpath=script_fpath)
     
     with open("/tmp/results_list_of_dict.pkl", "wb") as f:
-        cPickle.dump(feats, f)
+        cPickle.dump(all_feats, f)
     
     print "Created /tmp/results_list_of_dict.pkl in docker container."
     return 0
 
 
 if __name__=="__main__":
-    feats = extract_custom_feats()
-    print feats
+    all_feats = extract_custom_feats()
+    print all_feats

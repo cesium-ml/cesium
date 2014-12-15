@@ -94,7 +94,6 @@ class myFeature(object):
         return wrapped_f
 
 
-
 class DummyFile(object):
     """Used as a file object to temporarily redirect/suppress output."""
     def write(self, x):
@@ -345,10 +344,10 @@ def docker_extract_features(
         # the command to run our docker container which
         # will automatically generate features:
         cmd = ["docker", "run",
-                "-v", "%s:/home/mltp" % cfg.PROJECT_PATH,
-                "-v", "%s:/home/mltp/copied_data_files" % path_to_tmp_dir,
+                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
+                "-v", "%s:/home/mltsp/copied_data_files" % path_to_tmp_dir,
                 "--name=%s" % container_name,
-                "extract_custom_features"]
+                "mltsp/extract_custom_feats"]
         # execute command
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         # grab outputs
@@ -434,7 +433,8 @@ def test_new_script(
             script_fpath=script_fpath,
             features_already_known_list=features_already_known_list)
     else:
-        pass
+        print("Docker not installed - running custom features script could be "
+              "unsafe. Skipping generation of custom features.")
     return all_extracted_features_list
 
 
