@@ -61,7 +61,7 @@ def generate_keyfile(csrf_key, session_key):
     ))
     if os.path.exists(file_name):
         if options.force is None:
-            print "Warning: secret_keys.py file exists.  Use '-f' flag to force overwrite."
+            print("Warning: secret_keys.py file exists.  Use '-f' flag to force overwrite.")
         else:
             write_file(output)
     else:

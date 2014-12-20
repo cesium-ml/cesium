@@ -45,7 +45,7 @@ class StarVars_LINEAR_Feature_Generation:
     def __init__(self, pars={}):
         self.head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+    <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -65,11 +65,11 @@ class StarVars_LINEAR_Feature_Generation:
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+            <TimeType ucd="frame.time.system?">MJD</TimeType> 
+            <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+            <TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+            <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+        </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -118,7 +118,7 @@ class StarVars_LINEAR_Feature_Generation:
     
     def form_xml_string(self, mag_data_dict):
         """
-    	Take timeseries dict data and place into VOSource XML format, 
+        Take timeseries dict data and place into VOSource XML format, 
         which TCP feature generation code expects.
        
         Adapted from: TCP/Software/feature_extract/format_csv_getfeats.py
@@ -231,10 +231,10 @@ class StarVars_LINEAR_Feature_Generation:
     #
     # INPUTS:
     #       start - an integer representing the index of the first light curve in the range of 
-    #				light curves to be processed.
+    #               light curves to be processed.
     #
-    #		finish- an integer representing the index of the final light curve in the range of 
-    #				light curves to be processed.
+    #       finish- an integer representing the index of the final light curve in the range of 
+    #               light curves to be processed.
     #
     # OUTPUTS:
     #       A file containing the currently coded set of light curve features
@@ -252,12 +252,12 @@ if __name__ == '__main__':
         'limitmags_pkl_gz_fpath':'/project/projectdirs/m1583/ASAS_scratch/asas_limitmags.pkl.gz',
         }
 
-	# initialize the class StarVars_LINEAR_Feature_Generation
+    # initialize the class StarVars_LINEAR_Feature_Generation
     sv_asas = StarVars_LINEAR_Feature_Generation( pars=pars )
     
     startTime = time.time()
 
-	# open the pickle file containing the xml string light curves an load them into memory as the list 'files'
+    # open the pickle file containing the xml string light curves an load them into memory as the list 'files'
     buff  = open('/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat/xml.pickle', 'wb')
     files = cPickle.load( buff )
     buff.close()
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     for i in range(m,n):
         runfiles.append( files[i] )
 
-	# calculate features for the specified light curves and write the results into a file
+    # calculate features for the specified light curves and write the results into a file
     arff_output_fp = open( 'out' + '_' + str(m) + 'to' + str(n) + '.arff', 'w' )
 
     sv_asas.generate_arff_using_asasdat(xml_data=runfiles,
@@ -281,6 +281,6 @@ if __name__ == '__main__':
     endTime = time.time()  
     totalTime = endTime - startTime
     print '\nDone! Total time =', totalTime, 's'
-   	time.sleep(30)
+    time.sleep(30)
 
-	# need to add code that checks the output file for correctness using os.stat
+    # need to add code that checks the output file for correctness using os.stat

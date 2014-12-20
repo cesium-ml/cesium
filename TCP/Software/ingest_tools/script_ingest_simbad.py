@@ -36,7 +36,7 @@ def invoke_pdb(type, value, tb):
     """                                                                            
     import traceback, pdb
     traceback.print_exception(type, value, tb)
-    print
+    print()
     pdb.pm() 
 
 
@@ -129,13 +129,13 @@ class Simbad_Data:
             self.cursor.execute(select_str)
             rows = self.cursor.fetchall()
             for row in rows:
-                print (PTFname,
+                print((PTFname,
                        initial_lbl_cand_id,
                        ra,
                        dec,
                        tab_filename,
                        otype,
-                       main_id), '\n', row, '\n\n'
+                       main_id), '\n', row, '\n\n')
 
     def get_noningested_ptfids(self):
         """ query the RDB, return a list of ids (and related information).
@@ -222,7 +222,7 @@ class Associate_Simbad_PTF_Sources:
             #TODO: check if srcid.xml composed from ptf_cand_dict{srcid} is in the expected directory.  If so, just pass that xml-fpath as xml_handle.  Otherwise, generate the xml string (and write to file) and pass that.
             xml_fpath = "%s/%s.xml" % (self.pars['out_xmls_dirpath'], short_name)
             if os.path.exists(xml_fpath):
-                print "Found on disk:", xml_fpath 
+                print("Found on disk:", xml_fpath) 
             else:
                 # NOTE: Since the Caltech database is currently down and we know we've ingested these ptf-ids already into our local database...
                 #"""
@@ -241,7 +241,7 @@ class Associate_Simbad_PTF_Sources:
                 fp = open(xml_fpath, 'w')
                 fp.write(ingested_src_xmltuple_dict[matching_source_dict['src_id']])
                 fp.close()
-                print "Wrote on disk:", xml_fpath 
+                print("Wrote on disk:", xml_fpath) 
                 #pprint.pprint(ptf_cand_dict)
                 self.SimbadData.update_table(short_name=short_name, tcp_srcid=matching_source_dict['src_id'])
 
@@ -296,7 +296,7 @@ class Generate_Summary_Webpage:
         rows = self.SimbadData.cursor.fetchall()
         for row in rows:
             (ptf_shortname, src_id, init_lbl_id, ra, decl, tab_filename, simbad_otype, simbad_main_id) = row
-            if not out_dict.has_key(simbad_otype):
+            if simbad_otype not in out_dict:
                 out_dict[simbad_otype] = {}
             out_dict[simbad_otype][ptf_shortname] = {'ptf_shortname':ptf_shortname,
                                                      'src_id':src_id,
@@ -313,8 +313,8 @@ class Generate_Summary_Webpage:
     def generate_simptimeseries_xmls(self, simbad_ptf_dict={}):
         """ Using the entries in given dict, run db_importer.py stuff and generate new .xmls in some dir.
         """
-        for simbad_otype, sim_dict in simbad_ptf_dict.iteritems():
-            for ptf_shortname, ptf_dict in sim_dict.iteritems():
+        for simbad_otype, sim_dict in simbad_ptf_dict.items():
+            for ptf_shortname, ptf_dict in sim_dict.items():
                 orig_fpath = os.path.expandvars("%s/%s.xml" % (self.pars['out_xmls_dirpath'], ptf_shortname))
                 s = db_importer.Source(xml_handle=orig_fpath)
                 out_str = s.source_dict_to_xml__simptimeseries(s.x_sdict)
@@ -344,8 +344,8 @@ class Generate_Summary_Webpage:
         ElementTree.SubElement(tr, "TD").text = "RA"
         ElementTree.SubElement(tr, "TD").text = "Decl"
 
-        for simbad_otype, sim_dict in simbad_ptf_dict.iteritems():
-            for ptf_shortname, ptf_dict in sim_dict.iteritems():
+        for simbad_otype, sim_dict in simbad_ptf_dict.items():
+            for ptf_shortname, ptf_dict in sim_dict.items():
                 orig_fpath = os.path.expandvars("simbad_ptf_old_vsrc_xmls/%s.xml" % (ptf_shortname))
                 simpts_fpath = "simbad_ptf_simpletimeseries_xmls/simpt_%s.xml" % (ptf_shortname)
                 tr = ElementTree.SubElement(table, "TR")
@@ -365,9 +365,9 @@ class Generate_Summary_Webpage:
                 ElementTree.SubElement(tr, "TD").text = str(ptf_dict['decl'])
                 
         db_importer.add_pretty_indents_to_elemtree(html, 0)
-	tree = ElementTree.ElementTree(html)
+    tree = ElementTree.ElementTree(html)
         fp = open(self.pars['out_summary_html_fpath'], 'w')
-	tree.write(fp, encoding="UTF-8")
+    tree.write(fp, encoding="UTF-8")
         fp.close()
 
 

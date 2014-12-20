@@ -276,7 +276,7 @@ class Signal(object):
     def _disconnect(self, receiver_id, sender_id):
         if sender_id == ANY_ID:
             if self._by_receiver.pop(receiver_id, False):
-                for bucket in self._by_sender.values():
+                for bucket in list(self._by_sender.values()):
                     bucket.discard(receiver_id)
             self.receivers.pop(receiver_id, None)
         else:

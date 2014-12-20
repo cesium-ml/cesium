@@ -47,8 +47,8 @@ import copy
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                  'Software/feature_extract/Code/extractors/'))
-import ned
-import sdss
+from . import ned
+from . import sdss
 
 pars = {
     'ned_cache_hostname':'192.168.1.25',
@@ -200,7 +200,7 @@ class Ned_Cache_Server:
     def sig_handler(self, signum, frame):
         """ Catch:  'kill':SIGTERM, ^C: SIGINT
         """
-        print "Got signal: %i" % (signum)
+        print("Got signal: %i" % (signum))
         self.do_loop = False
 
 
@@ -215,7 +215,7 @@ class Ned_Cache_Server:
             for t_type, table_name in table_list:
                 drop_table_str = "DROP %s IF EXISTS %s" % (t_type,
                                                            table_name)
-                print drop_table_str
+                print(drop_table_str)
                 self.cursor.execute(drop_table_str)
 
             # Drop HTM / dif triggers, views:
@@ -225,7 +225,7 @@ class Ned_Cache_Server:
                 self.pars['tablename__ch_spatial_htm'])
             self.cursor.execute(drop_table_str)
         except:
-            print '!!! unable to drop tables / views'
+            print('!!! unable to drop tables / views')
 
 
     def create_tables(self):
@@ -296,11 +296,11 @@ class Ned_Cache_Server:
             ### NED INSERT:
             n = ned.NED(pos=(ra,dec),verbose=False, do_threaded=False)
             nn_dict = n.distance_in_arcmin_to_nearest_galaxy()
-            if not nn_dict.get('source_info',{}).has_key('kpc_offset'):
-                print 'ERROR: odd nn_dict:', nn_dict
+            if 'kpc_offset' not in nn_dict.get('source_info',{}):
+                print('ERROR: odd nn_dict:', nn_dict)
             else:
                 nice_name = nn_dict['source_info']['name']
-                for old,new in self.pars['char_replace'].iteritems():
+                for old,new in self.pars['char_replace'].items():
                     nice_name = nice_name.replace(old,new)
                 if nn_dict['source_info']['dm'] == '':
                     float_dm = -1
@@ -310,8 +310,8 @@ class Ned_Cache_Server:
                 ################
                 # Here we parse the feature-extractor structures for INSERT:
                 nn_dict['source_info']['distance'] = nn_dict['distance']
-                for ch_name,ch_val in nn_dict['source_info'].iteritems():
-                    if not self.chname_chid_lookup.has_key((0,ch_name)):
+                for ch_name,ch_val in nn_dict['source_info'].items():
+                    if (0,ch_name) not in self.chname_chid_lookup:
                         continue # skip this ch_name since its not a charac.
                     if self.chname_type_lookup[(0,ch_name)]:
                         ch_val_dbl = 'NULL'
@@ -328,13 +328,13 @@ class Ned_Cache_Server:
             s = sdss.sdssq(pos=(ra,dec),verbose=True,maxd=0.2*1.05) # 0.2*1.05 :: dont report anything farther away than this in arcmin
 
             sdss_dict = s.feature
-            if not sdss_dict.has_key('in_footprint'):
-                print 'ERROR: odd sdss_dict:', sdss_dict
+            if 'in_footprint' not in sdss_dict:
+                print('ERROR: odd sdss_dict:', sdss_dict)
             else:
                 ################
                 # Here we parse the feature-extractor structures for INSERT:
-                for ch_name,ch_val in sdss_dict.iteritems():
-                    if not self.chname_chid_lookup.has_key((1,ch_name)):
+                for ch_name,ch_val in sdss_dict.items():
+                    if (1,ch_name) not in self.chname_chid_lookup:
                         continue # skip this ch_name since its not a charac.
                     if ch_val == None:
                         ch_val_dbl = 'NULL'
@@ -434,7 +434,7 @@ class Ned_Cache_Server:
                 results = cursor.fetchall()
                 if len(results) == 0:
                     time.sleep(self.pars['while_loop_sleep_time'])
-                    print '.',
+                    print('.', end=' ')
                     continue
                 else:
                     self.NED_connection_is_free = False
@@ -443,10 +443,10 @@ class Ned_Cache_Server:
                                                            cursor, update_only=True)
                     self.NED_connection_is_free = True
             except:
-                print 'EXCEPT during cursor.execute(), DB down?  Sleeping for a bit...'
-                print 'select_str=', select_str
+                print('EXCEPT during cursor.execute(), DB down?  Sleeping for a bit...')
+                print('select_str=', select_str)
                 time.sleep(self.pars['while_loop_sleep_time'])
-        print "Out of while loop"
+        print("Out of while loop")
 
     ####
 
@@ -487,7 +487,7 @@ class Ned_Cache_Server:
                 results = mysql_cursor.fetchall()
                 if len(results) == 0:
                     time.sleep(self.pars['while_loop_sleep_time'])
-                    print '.',
+                    print('.', end=' ')
                     continue
                 else:
                     #self.NED_connection_is_free = False
@@ -504,10 +504,10 @@ class Ned_Cache_Server:
                     #self.NED_connection_is_free = True
             #except:
             if 0:
-                print 'EXCEPT during cursor.execute(), DB down?  Sleeping for a bit...'
-                print 'select_str=', select_str
+                print('EXCEPT during cursor.execute(), DB down?  Sleeping for a bit...')
+                print('select_str=', select_str)
                 time.sleep(self.pars['while_loop_sleep_time'])
-        print "Out of while loop"
+        print("Out of while loop")
 
 
     ####
@@ -845,8 +845,8 @@ class Ned_Cache_Server:
         results = self.cursor.fetchall()
         for result in results:
             if len(result) != 4:
-                print 'ERROR: %s returns an unexpected result: %s' % ( \
-                                                       select_str, str(result))
+                print('ERROR: %s returns an unexpected result: %s' % ( \
+                                                       select_str, str(result)))
             result_dict = {'ch_id':result[0],
                            'ch_group':result[1], #0:NED, 1:SDSS featclass
                            'ch_name':result[3],
@@ -961,7 +961,7 @@ class Ned_Cache_Server:
         """
         for t in self.threads:
             t.join()
-        print "All threads have joined"
+        print("All threads have joined")
 
 
     def insert_radec_into_cachetable_for_retrieval(self, ra, dec, cursor):
@@ -1012,10 +1012,10 @@ class Ned_Cache_Server:
                 s.bind(('', self.pars['socket_server_port']))
                 try_to_bind = False
             except:
-                print "socket %d still in use"%(self.pars['socket_server_port'])
+                print("socket %d still in use"%(self.pars['socket_server_port']))
                 time.sleep(self.pars['socket_bind_wait_time'])
 
-        print "In socket listening loop..."
+        print("In socket listening loop...")
         s.listen(self.pars['socket_n_backlog_connections'])
         while self.do_loop:
             time.sleep(self.pars['socket_loop_sleep_time'])

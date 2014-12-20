@@ -17,25 +17,19 @@ def currently_running_in_docker_container():
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
-    if "/docker/" in output:
+    if "/docker/" in str(output):
         in_docker_container=True
     else:
         in_docker_container=False
     return in_docker_container
 
 
-
-
-
-
-
-
 import sys, os
 home_str = os.path.expanduser("~")
-import urllib
-import cStringIO
+import urllib.request, urllib.parse, urllib.error
+import io
 if currently_running_in_docker_container()==True:
-    os.environ["TCP_DIR"] = "/home/mltp/TCP/"
+    os.environ["TCP_DIR"] = "/home/mltsp/TCP/"
 else:
     import cfg
     os.environ["TCP_DIR"] = os.path.join(cfg.TCP_INGEST_TOOLS_PATH, '../../')
@@ -111,7 +105,7 @@ def generate_feature_xml_using_raw_xml(raw_xml_str):
     gen.generate(xml_handle=raw_xml_str)
     gen.sig.add_features_to_xml_string(gen.signals_list)
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     gen.sig.write_xml(out_xml_fpath=fp_out)
     xml_str = fp_out.getvalue()
     sys.stdout.close()
@@ -155,8 +149,8 @@ def generate_arff_using_raw_xml(xml_str):
         master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-    master_features = master_features_dict.keys()
-    master_classes = master_classes_dict.keys()
+    master_features = list(master_features_dict.keys())
+    master_classes = list(master_classes_dict.keys())
     a = arffify.Maker(search=[], skip_class=True, local_xmls=True, 
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -167,7 +161,7 @@ def generate_arff_using_raw_xml(xml_str):
     a.master_list = master_list
 
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     a.write_arff(outfile=fp_out, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,
@@ -175,8 +169,6 @@ def generate_arff_using_raw_xml(xml_str):
                  use_str_srcid=True)#, classes_arff_str='', remove_sparse_classes=False)
     arff_str = fp_out.getvalue()
     return arff_str
-
-
 
 
 def arff_to_dict(arff_str):
@@ -193,9 +185,9 @@ def arff_to_dict(arff_str):
         if "@data" in line:
             all_vals = all_lines[line_num+1].split(',')
             if len(all_vals) != len(attributes_list):
-                print "ERROR: len(all_vals) != len(attributes_list) !!!!"
-                print "len(all_vals) =", len(all_vals), " and len(attributes_list) =", len(attributes_list)
-                print "attributes_list =", attributes_list
+                print("ERROR: len(all_vals) != len(attributes_list) !!!!")
+                print("len(all_vals) =", len(all_vals), " and len(attributes_list) =", len(attributes_list))
+                print("attributes_list =", attributes_list)
                 return out_dict
             for i in range(len(all_vals)):
                 try:
@@ -233,22 +225,22 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
                             merr_list.append(1.0)
                         
         except Exception as theError:
-            print "generate_science_features::generate():", theError, "... Returning {}..."
+            print("generate_science_features::generate():", theError, "... Returning {}...")
             return {}
     elif timeseries_url != "": # a url is provided to return the ts data
         
         if timeseries_url not in ["","5125"]:
-            print timeseries_url
+            print(timeseries_url)
         else:
             if len(sys.argv) < 2:
-                print "lcs_classif.py - len(sys.argv) < 2. Returning..."
+                print("lcs_classif.py - len(sys.argv) < 2. Returning...")
                 return {}
-            print "lcs_classif.py - sys.argv[1] =", sys.argv[1]
+            print("lcs_classif.py - sys.argv[1] =", sys.argv[1])
         timeseries_url = sys.argv[1]
     
     
         try:
-            f = urllib.urlopen(timeseries_url)
+            f = urllib.request.urlopen(timeseries_url)
             ts_str = f.read()
             f.close()
             ts_list = eval(ts_str)
@@ -257,15 +249,15 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
                 m_list.append(float(tup[1]))
                 merr_list.append(float(tup[2]))
         except Exception as theError:
-            print "generate_science_features::generate():", theError, "... Returning {}..."
+            print("generate_science_features::generate():", theError, "... Returning {}...")
             return {}
     elif ts_data != None and type(ts_data)==list:
-        t_list, m_list, merr_list = zip(*ts_data)
+        t_list, m_list, merr_list = list(zip(*ts_data))
         t_list=list(t_list)
         m_list=list(m_list)
         merr_list=list(merr_list)
     if len(t_list) == 0:
-        print "t_list = [] !!!!!!!!!!!\nReturning {}..."
+        print("t_list = [] !!!!!!!!!!!\nReturning {}...")
         return {}
     #to see what's been read in:
     #print zip(t_list,m_list,merr_list)
@@ -297,5 +289,4 @@ if __name__ == '__main__':
     
     outdict = generate()
     
-    print outdict
-
+    print(outdict)

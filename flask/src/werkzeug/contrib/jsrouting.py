@@ -23,11 +23,11 @@ from werkzeug.routing import NumberConverter
 
 
 def render_template(name_parts, rules, converters):
-    result = u''
+    result = ''
     if name_parts:
-        for idx in xrange(0, len(name_parts) - 1):
-            name = u'.'.join(name_parts[:idx + 1])
-            result += u"if (typeof %s === 'undefined') %s = {}\n" % (name, name)
+        for idx in range(0, len(name_parts) - 1):
+            name = '.'.join(name_parts[:idx + 1])
+            result += "if (typeof %s === 'undefined') %s = {}\n" % (name, name)
         result += '%s = ' % '.'.join(name_parts)
     result += """(function (server_name, script_name, subdomain, url_scheme) {
     var converters = %(converters)s;
@@ -162,7 +162,7 @@ def render_template(name_parts, rules, converters):
                    + '/' + lstrip(rv.path, '/');
         }
     };
-})""" % {'converters': u', '.join(converters)}
+})""" % {'converters': ', '.join(converters)}
     return result
 
 
@@ -190,7 +190,7 @@ def generate_map(map, name='url_map'):
             'data':         data
         } for is_dynamic, data in rule._trace]
         rule_converters = {}
-        for key, converter in rule._converters.iteritems():
+        for key, converter in rule._converters.items():
             js_func = js_to_url_function(converter)
             try:
                 index = converters.index(js_func)
@@ -199,11 +199,11 @@ def generate_map(map, name='url_map'):
                 index = len(converters) - 1
             rule_converters[key] = index
         rules.append({
-            u'endpoint':    rule.endpoint,
-            u'arguments':   list(rule.arguments),
-            u'converters':  rule_converters,
-            u'trace':       trace,
-            u'defaults':    rule.defaults
+            'endpoint':    rule.endpoint,
+            'arguments':   list(rule.arguments),
+            'converters':  rule_converters,
+            'trace':       trace,
+            'defaults':    rule.defaults
         })
 
     return render_template(name_parts=name and name.split('.') or [],
@@ -214,14 +214,14 @@ def generate_map(map, name='url_map'):
 def generate_adapter(adapter, name='url_for', map_name='url_map'):
     """Generates the url building function for a map."""
     values = {
-        u'server_name':     dumps(adapter.server_name),
-        u'script_name':     dumps(adapter.script_name),
-        u'subdomain':       dumps(adapter.subdomain),
-        u'url_scheme':      dumps(adapter.url_scheme),
-        u'name':            name,
-        u'map_name':        map_name
+        'server_name':     dumps(adapter.server_name),
+        'script_name':     dumps(adapter.script_name),
+        'subdomain':       dumps(adapter.subdomain),
+        'url_scheme':      dumps(adapter.url_scheme),
+        'name':            name,
+        'map_name':        map_name
     }
-    return u'''\
+    return '''\
 var %(name)s = %(map_name)s(
     %(server_name)s,
     %(script_name)s,
@@ -246,12 +246,12 @@ def js_to_url_function(converter):
 
 def NumberConverter_js_to_url(conv):
     if conv.fixed_digits:
-        return u'''\
+        return '''\
 var result = value.toString();
 while (result.length < %s)
     result = '0' + result;
 return result;''' % conv.fixed_digits
-    return u'return value.toString();'
+    return 'return value.toString();'
 
 
 js_to_url_functions = {

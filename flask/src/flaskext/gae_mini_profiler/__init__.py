@@ -150,7 +150,7 @@ class GAEMiniProfiler(object):
         stats = profiler.RequestStats.get(request_id)
 
         if not stats:
-            return u''
+            return ''
 
         dict_request_stats = {}
         for property in profiler.RequestStats.serialized_properties:
@@ -165,7 +165,7 @@ class GAEMiniProfiler(object):
         request_id = request.args['request_id']
 
         if not profiler.RequestStats.get(request_id):
-            return u"Profiler stats no longer available."
+            return "Profiler stats no longer available."
 
         context = self._get_render_context()
         context['request_id'] = request_id

@@ -59,7 +59,7 @@ class Pairitel_Pickle_ingest:
                 if len(line_elems) != 2:
                     continue
                 pkl_fpath = line_elems[1]
-                print pkl_fpath
+                print(pkl_fpath)
                 scratch_dirpath = "%s/pkl_ingest_%s" % (self.pars['scratch_dirpath'], scratch_dir_count)
 
                 for thr in running_threads:

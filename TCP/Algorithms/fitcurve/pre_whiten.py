@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # this is Nat's code copied over from the feature_extract project on August 3rd 2008, but I copied over nat's original svn upload, not Dan's modification (the modifications did not apply to this project)
 
-from __future__ import division
+
 from numpy import *
 
 from lomb_scargle import lprob2sigma
@@ -133,7 +133,7 @@ nharm_min=4, nharm_max=20):
             nharm = i
             sigma = chi2sigma(chi0,chi1,nu0,nharm)
 
-        if (stop==1 and j>nharm_min):	# calculate >= nharm_min harmonics
+        if (stop==1 and j>nharm_min):   # calculate >= nharm_min harmonics
 
             A0 = A0[:i]
             dA0 = dA0[:i]
@@ -214,7 +214,7 @@ nharm_min=4, nharm_max=20):
     for k in range(niter):
         if (k==0): window = 1.
 
-        nmom = 4	# number of moments requested (don't change)
+        nmom = 4    # number of moments requested (don't change)
         mu = zeros(1+nmom,dtype=float)
         vmu = zeros(1+nmom,dtype=float)
         x0=0.
@@ -265,19 +265,19 @@ nharm_min=4, nharm_max=20):
     out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux, 
                  'peak2peak_flux_error': peak2peak_flux_error, 'nharm': nharm}
 
-    for i in xrange(len(moments)):
+    for i in range(len(moments)):
         out_dict['moments_' + str(i)] = moments[i]
-    for i in xrange(len(dA[:nharm_min])):
+    for i in range(len(dA[:nharm_min])):
         out_dict['amplitude_error_' + str(i)] = dA[:nharm_min][i]
-    for i in xrange(len(dmoments)):
+    for i in range(len(dmoments)):
         out_dict['moments_err_' + str(i)] = dmoments[i]
-    for i in xrange(len(dpha[:nharm_min])):
+    for i in range(len(dpha[:nharm_min])):
         out_dict['rel_phase_error_' + str(i)] = dpha[:nharm_min][i]
-    for i in xrange(len(A[:nharm_min])):
+    for i in range(len(A[:nharm_min])):
         out_dict['amplitude_' + str(i)] = A[:nharm_min][i]
-    for i in xrange(len(pha[:nharm_min])):
+    for i in range(len(pha[:nharm_min])):
         out_dict['rel_phase_' + str(i)] = pha[:nharm_min][i]
-    for i in xrange(len(freqs)):
+    for i in range(len(freqs)):
         out_dict['freq_' + str(i)] = freqs[i]
 
     out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux, 

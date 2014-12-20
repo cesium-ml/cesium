@@ -96,7 +96,7 @@ class Poll_LBL_PTF_Footprint_Server:
                 self.max_id_ingested = current_max_id
                 insert_str = ''.join(insert_list)[:-2] + ' ON DUPLICATE KEY UPDATE ujd=VALUES(ujd), lmt_mg=VALUES(lmt_mg)'
                 self.mysql_cursor.execute(insert_str)
-                print "self.max_id_ingested:", self.max_id_ingested
+                print("self.max_id_ingested:", self.max_id_ingested)
 
 
     def main(self):
@@ -104,7 +104,7 @@ class Poll_LBL_PTF_Footprint_Server:
         """
         while True:
             self.query_add_new_footprint_row()
-            print datetime.datetime.utcnow(), "sleep(60)..."
+            print(datetime.datetime.utcnow(), "sleep(60)...")
             time.sleep(60) # give LBL PTF server a break
 
 if __name__ == '__main__':

@@ -72,8 +72,8 @@ class lomb_model(object):
                         phase = freq_dict["harmonics_rel_phase"][harmonic]
                         new = amp * sin(omega * (times - time_offset) + phase)
                         data += new
-            print "length of data is:", len(data)
-            print "data:", data
+            print("length of data is:", len(data))
+            print("data:", data)
             return data
         return model
         
@@ -107,10 +107,10 @@ class period_folding_model(lomb_model):
             progenitor_file.write("%f\t%f\t%f\n" % (available[n], m[n], m_err[n]))
         progenitor_file.close()
 
-        print "RETURNING t_fold:"
-        print t_fold
-        print "RETURNING t_fold_model:"
-        print t_fold_model
+        print("RETURNING t_fold:")
+        print(t_fold)
+        print("RETURNING t_fold_model:")
+        print(t_fold_model)
         return t_fold, t_fold_model
 
         
@@ -288,9 +288,9 @@ class observatory_source_interface(object):
             plt.savefig("/tmp/ggg.png")
             #os.system("eog /tmp/ggg.png &")
             plt.show()
-            print
+            print()
             import pdb; pdb.set_trace()
-            print
+            print()
         return out_dict
 
 
@@ -338,7 +338,7 @@ class observatory_source_interface(object):
 
         lambda0_range=[-log10(n0),8] # these numbers "fix" the strange-amplitude effect
 
-        for i in xrange(num_freq_comps):
+        for i in range(num_freq_comps):
             if (i==0):
                 psd,res = lombr(x,ytest,dy0,f0,df,numf, tone_control=tone_control,
                                 lambda0_range=lambda0_range, nharm=nharm, detrend_order=1)                    
@@ -456,9 +456,9 @@ class observatory_source_interface(object):
 
         ##### This is used for p2p_scatter_2praw feature:
         t_2per_fold = x % (2/out_dict['freq1']['frequency'])
-        tups = zip(t_2per_fold, y)#, range(len(t_2per_fold)))
+        tups = list(zip(t_2per_fold, y))#, range(len(t_2per_fold)))
         tups.sort()
-        t_2fold, m_2fold = zip(*tups) #So:  m_2fold[30] == y[i_fold[30]]
+        t_2fold, m_2fold = list(zip(*tups)) #So:  m_2fold[30] == y[i_fold[30]]
         m_2fold_array = numpy.array(m_2fold)
         sumsqr_diff_folded = numpy.sum((m_2fold_array[1:] - m_2fold_array[:-1])**2)
         sumsqr_diff_unfold = numpy.sum((y[1:] - y[:-1])**2)
@@ -472,9 +472,9 @@ class observatory_source_interface(object):
         out_dict['p2p_ssqr_diff_over_var'] = sumsqr_diff_unfold / ((len(y) - 1) * numpy.var(y))
 
         t_1per_fold = x % (1./out_dict['freq1']['frequency'])
-        tups = zip(t_1per_fold, y)#, range(len(t_2per_fold)))
+        tups = list(zip(t_1per_fold, y))#, range(len(t_2per_fold)))
         tups.sort()
-        t_1fold, m_1fold = zip(*tups) #So:  m_1fold[30] == y[i_fold[30]]
+        t_1fold, m_1fold = list(zip(*tups)) #So:  m_1fold[30] == y[i_fold[30]]
         m_1fold_array = numpy.array(m_1fold)
         out_dict['p2p_scatter_pfold_over_mad'] = \
                            numpy.median(numpy.abs(m_1fold_array[1:] - m_1fold_array[:-1])) / mad
@@ -500,7 +500,7 @@ class observatory_source_interface(object):
         #all_model_vals += res['model']
 
         ytest_2p -= res['model']
-        for i in xrange(1,num_freq_comps):
+        for i in range(1,num_freq_comps):
             psd,res = lombr(x,ytest_2p,dy0,f0,df,numf, tone_control=tone_control,
                             lambda0_range=lambda0_range, nharm=nharm, detrend_order=0)
 
@@ -526,9 +526,9 @@ class observatory_source_interface(object):
 
 
         t_2per_fold = x % (1/freq_2p)
-        tups = zip(t_2per_fold, model_vals)
+        tups = list(zip(t_2per_fold, model_vals))
         tups.sort()
-        t_2fold, m_2fold = zip(*tups)
+        t_2fold, m_2fold = list(zip(*tups))
         t_2fold_array = numpy.array(t_2fold)
         m_2fold_array = numpy.array(m_2fold)
         slopes = (m_2fold_array[1:] - m_2fold_array[:-1]) / (t_2fold_array[1:] - t_2fold_array[:-1])
@@ -587,11 +587,11 @@ class GetPeriodFoldForWeb:
         """ Generate a RDB feature table lookup dictionary for: 
         feat_id : feat_value
         """
-        import cPickle
+        import pickle
         # TODO: if not .pkl file exists...
         if os.path.exists(self.pars['featid_lookup_pkl_fpath']):
             fp = open(self.pars['featid_lookup_pkl_fpath'])
-            self.featname_lookup = cPickle.load(fp)
+            self.featname_lookup = pickle.load(fp)
             fp.close()
             return
         else:
@@ -605,7 +605,7 @@ class GetPeriodFoldForWeb:
                 self.featname_lookup[feat_name] = feat_id
             
             fp = open(self.pars['featid_lookup_pkl_fpath'], 'w')
-            cPickle.dump(self.featname_lookup, fp)
+            pickle.dump(self.featname_lookup, fp)
             fp.close()
             return
 
@@ -898,13 +898,13 @@ class GetPeriodFoldForWeb:
         """
         json_list = []
         data_list1 = []
-        for i in xrange(len(combo_dict['Actual Mags folded']['t'])):
+        for i in range(len(combo_dict['Actual Mags folded']['t'])):
             data_list1.append([combo_dict['Actual Mags folded']['t'][i],combo_dict['Actual Mags folded']['m'][i]])
         data_list2 = []
-        for i in xrange(len(combo_dict['Folded Model']['t'])):
+        for i in range(len(combo_dict['Folded Model']['t'])):
             data_list2.append([combo_dict['Folded Model']['t'][i],combo_dict['Folded Model']['m'][i]])
         data_list3 = []
-        for i in xrange(len(combo_dict['Model with dictionary values']['t'])):
+        for i in range(len(combo_dict['Model with dictionary values']['t'])):
             data_list3.append([combo_dict['Model with dictionary values']['t'][i],combo_dict['Model with dictionary values']['m'][i]])
         json_list.append({'label':'Model with dictionary values', 
                           'color':'#F2BABB',
@@ -931,16 +931,16 @@ class GetPeriodFoldForWeb:
            [{"label":"Period Fold", "color":#36477b, 
                                     "data":[[1,1],[2,4],[3,9],[4,16]]}]
         """
-        print "make db connect"
+        print("make db connect")
         self.make_db_connection()
-        print "before mysql query"
+        print("before mysql query")
         self.generate_featname_featid_lookup()
-        print "after mysql query"
+        print("after mysql query")
         if source_id >= 100000000:
             src_dict = self.get_source_arrays__dotastro(source_id)
         else:
             src_dict = self.get_source_arrays(source_id)
-        print "finished generating src_dict"
+        print("finished generating src_dict")
         lc_dict = {}
         lomb_folded_dict = self.generate_lomb_period_fold(src_dict)
         lc_dict.update(lomb_folded_dict)
@@ -991,7 +991,7 @@ if sys_argv_1 == 'get_period_fold2':
     source_id = int(sys_argv_2)
     GetPeriodFoldForWeb = GetPeriodFoldForWeb()
     json_out_string = GetPeriodFoldForWeb.main(source_id)
-    print json_out_string
+    print(json_out_string)
 
 if sys_argv_1 == 'get_period_fold4':
     from lomb_scargle import *
@@ -1045,7 +1045,7 @@ if sys_argv_1 == 'get_period_fold5':
     source_id = int(sys_argv_2)
     GetPeriodFoldForWeb = GetPeriodFoldForWeb()
     db_dict = GetPeriodFoldForWeb.online_dictionary(source_id)
-    print db_dict
+    print(db_dict)
 
 if __name__ == '__main__':
     ### 20101012: Added __main__ for testing use only, to see tracebacks from LombScargle code.

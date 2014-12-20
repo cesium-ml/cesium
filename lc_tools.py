@@ -2,7 +2,9 @@
 # filename: lc_tools.py
 
 import re
-import urllib2
+# 12/17/14: Commenting out urllib imports for now to resolve error - breaks a 
+# couple functions but none that the MLTSP flask app uses
+#import urllib.request, urllib.error, urllib.parse
 try:
     from bs4 import BeautifulSoup
 except:
@@ -327,22 +329,22 @@ class lightCurve:
         self.cad_probs_10000000 = self.cad_probs[10000000]
     
     def showInfo(self):
-        print [self.start,self.end,len(self.epochs),self.avgt]
+        print([self.start,self.end,len(self.epochs),self.avgt])
     
     def showAllInfo(self):
-        for attr, val in vars(self).items():
-            print attr, ":", val
+        for attr, val in list(vars(self).items()):
+            print(attr, ":", val)
     
     def allAttrs(self):
         count = 0
-        for attr, val in vars(self).items():
-            print attr
+        for attr, val in list(vars(self).items()):
+            print(attr)
             count += 1
-        print count, "attributes total."
+        print(count, "attributes total.")
     
     def generate_features_dict(self):
         features_dict = {}
-        for attr, val in vars(self).items():
+        for attr, val in list(vars(self).items()):
             if attr in cfg.features_list:
                 features_dict[attr] = val
         return features_dict
@@ -468,9 +470,9 @@ def makePdf(sources):
     classnamenum = 0
     
     colors = ['red','yellow','green','blue','gray','orange','cyan','magenta']
-    for classname, lcs in classname_dict.items():
+    for classname, lcs in list(classname_dict.items()):
         classnamenum += 1
-        print classname, len(lcs), 'light curves.'
+        print(classname, len(lcs), 'light curves.')
         attr1 = []
         attr2 = []
         attr3 = []
@@ -543,7 +545,7 @@ def generate_lc_snippets(lc):
             bin_edges = np.linspace(
                 0,n_epochs-1,int(round(float(n_epochs)/float(binsize)))+1)
             #for chunk in list(chunks(range(n_epochs),binsize)):
-            bin_indices = range(len(bin_edges)-1)
+            bin_indices = list(range(len(bin_edges)-1))
             np.random.shuffle(bin_indices)
             for i in bin_indices:
                 nbins += 1
@@ -611,7 +613,7 @@ class Source:
         """Print a human-readable summary of object attributes.
         
         """
-        print "dotAstro ID: " + str(self.id) + "Num LCs: " + str(len(self.lcs))
+        print("dotAstro ID: " + str(self.id) + "Num LCs: " + str(len(self.lcs)))
     
     def plotCadHists(self):
         """Plot cadence histograms for all `lcs` attribute elements.
@@ -701,16 +703,16 @@ def getLcInfo(id,classname='unknown'):
     elif id.isdigit():
         url = "http://dotastro.org/lightcurves/vosource.php?Source_ID=" + id
     try:
-        lc = urllib2.urlopen(url).read()
+        lc = urllib.request.urlopen(url).read()
         if lc.find("<TD>") == -1:
-            raise urllib2.URLError('No data for specified source ID.')
+            raise urllib.error.URLError('No data for specified source ID.')
             
-    except (IOError, urllib2.URLError) as error:
-        print "Could not read specified file.", id, error
+    except (IOError, urllib.error.URLError) as error:
+        print("Could not read specified file.", id, error)
         isError = True
         return False
     except Exception as error:
-        print "Error encountered.", id, error
+        print("Error encountered.", id, error)
         isError = True
         return False
     
@@ -752,7 +754,7 @@ def dotAstroLc(lc,id,classname):
         dec = float(soup('position2d')[0]('value2')[0]('c2')[0]\
             .renderContents())
     except IndexError:
-        print 'position2d/value2/c1 or c2 tag not present in light curve file'
+        print('position2d/value2/c1 or c2 tag not present in light curve file')
         ra, dec = [None,None]
     time_unit = []
     for timeunitfield in soup(ucd="time.epoch"):
@@ -827,7 +829,7 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
                     epochs.append(float(els[0]))
                     mags.append(float(els[1]))
                 else:
-                    print len(els), "elements in row - cvsLc()"
+                    print(len(els), "elements in row - cvsLc()")
     if len(epochs) > 0:
         if single_obj_only:
             lc = lightCurve(epochs,mags,errs,classname=classname)
@@ -835,7 +837,7 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
             lc = [lightCurve(epochs,mags,errs,classname=classname)]
         return lc
     else:
-        print 'csvLc() - No data.'
+        print('csvLc() - No data.')
         return []
 
 
@@ -971,18 +973,18 @@ def dotAstro_to_csv(id):
     elif id.isdigit():
         url = "http://dotastro.org/lightcurves/vosource.php?Source_ID=" + id
     else:
-        print "dotAstro ID not a digit."
+        print("dotAstro ID not a digit.")
     try:
-        lc = urllib2.urlopen(url).read()
+        lc = urllib.request.urlopen(url).read()
         if lc.find("<TD>") == -1:
-            raise urllib2.URLError('No data for specified source ID.')
+            raise urllib.error.URLError('No data for specified source ID.')
             
-    except (IOError, urllib2.URLError) as error:
-        print "Could not read specified file.", id, error
+    except (IOError, urllib.error.URLError) as error:
+        print("Could not read specified file.", id, error)
         isError = True
         return False
     except Exception as error:
-        print "Error encountered.", id, error
+        print("Error encountered.", id, error)
         isError = True
         return False
     
@@ -996,7 +998,7 @@ def dotAstro_to_csv(id):
         dec = float(soup('position2d')[0]('value2')[0]('c2')[0]\
               .renderContents())
     except IndexError:
-        print 'position2d/value2/c1 or c2 tag not present in light curve file'
+        print('position2d/value2/c1 or c2 tag not present in light curve file')
         ra, dec = [None,None]
     time_unit = []
     for timeunitfield in soup(ucd="time.epoch"):

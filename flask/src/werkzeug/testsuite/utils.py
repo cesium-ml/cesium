@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import with_statement
+
 
 import unittest
 from datetime import datetime
@@ -26,12 +26,12 @@ from werkzeug.test import Client, run_wsgi_app
 class GeneralUtilityTestCase(WerkzeugTestCase):
 
     def test_redirect(self):
-        resp = utils.redirect(u'/füübär')
+        resp = utils.redirect('/füübär')
         assert '/f%C3%BC%C3%BCb%C3%A4r' in resp.data
         assert resp.headers['Location'] == '/f%C3%BC%C3%BCb%C3%A4r'
         assert resp.status_code == 302
 
-        resp = utils.redirect(u'http://☃.net/', 307)
+        resp = utils.redirect('http://☃.net/', 307)
         assert 'http://xn--n3h.net/' in resp.data
         assert resp.headers['Location'] == 'http://xn--n3h.net/'
         assert resp.status_code == 307
@@ -105,7 +105,7 @@ class GeneralUtilityTestCase(WerkzeugTestCase):
     def test_escape(self):
         class Foo(str):
             def __html__(self):
-                return unicode(self)
+                return str(self)
         assert utils.escape(None) == ''
         assert utils.escape(42) == '42'
         assert utils.escape('<>') == '&lt;&gt;'
@@ -114,7 +114,7 @@ class GeneralUtilityTestCase(WerkzeugTestCase):
         assert utils.escape(Foo('<foo>')) == '<foo>'
 
     def test_unescape(self):
-        assert utils.unescape('&lt;&auml;&gt;') == u'<ä>'
+        assert utils.unescape('&lt;&auml;&gt;') == '<ä>'
 
     def test_run_wsgi_app(self):
         def foo(environ, start_response):
@@ -126,10 +126,10 @@ class GeneralUtilityTestCase(WerkzeugTestCase):
         app_iter, status, headers = run_wsgi_app(foo, {})
         assert status == '200 OK'
         assert headers == [('Content-Type', 'text/plain')]
-        assert app_iter.next() == '1'
-        assert app_iter.next() == '2'
-        assert app_iter.next() == '3'
-        self.assert_raises(StopIteration, app_iter.next)
+        assert next(app_iter) == '1'
+        assert next(app_iter) == '2'
+        assert next(app_iter) == '3'
+        self.assert_raises(StopIteration, app_iter.__next__)
 
         got_close = []
         class CloseIter(object):
@@ -139,7 +139,7 @@ class GeneralUtilityTestCase(WerkzeugTestCase):
                 return self
             def close(self):
                 got_close.append(None)
-            def next(self):
+            def __next__(self):
                 if self.iterated:
                     raise StopIteration()
                 self.iterated = True
@@ -152,8 +152,8 @@ class GeneralUtilityTestCase(WerkzeugTestCase):
         app_iter, status, headers = run_wsgi_app(bar, {})
         assert status == '200 OK'
         assert headers == [('Content-Type', 'text/plain')]
-        assert app_iter.next() == 'bar'
-        self.assert_raises(StopIteration, app_iter.next)
+        assert next(app_iter) == 'bar'
+        self.assert_raises(StopIteration, app_iter.__next__)
         app_iter.close()
 
         assert run_wsgi_app(bar, {}, True)[0] == ['bar']
@@ -164,12 +164,12 @@ class GeneralUtilityTestCase(WerkzeugTestCase):
         import cgi
         from werkzeug.debug import DebuggedApplication
         assert utils.import_string('cgi.escape') is cgi.escape
-        assert utils.import_string(u'cgi.escape') is cgi.escape
+        assert utils.import_string('cgi.escape') is cgi.escape
         assert utils.import_string('cgi:escape') is cgi.escape
         assert utils.import_string('XXXXXXXXXXXX', True) is None
         assert utils.import_string('cgi.XXXXXXXXXXXX', True) is None
-        assert utils.import_string(u'cgi.escape') is cgi.escape
-        assert utils.import_string(u'werkzeug.debug.DebuggedApplication') is DebuggedApplication
+        assert utils.import_string('cgi.escape') is cgi.escape
+        assert utils.import_string('werkzeug.debug.DebuggedApplication') is DebuggedApplication
         self.assert_raises(ImportError, utils.import_string, 'XXXXXXXXXXXXXXXX')
         self.assert_raises(ImportError, utils.import_string, 'cgi.XXXXXXXXXX')
 

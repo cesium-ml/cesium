@@ -30,24 +30,24 @@ interface = feature_interfaces.feature_interface
 noisify_extr = interface.request_extractor('noisify') # grab the noisifying extractor from the interface
 
 for i in range(len(signals_list)):
-	signal = signals_list[i]
-	signal.register_signal(initialize=False)
-	
+    signal = signals_list[i]
+    signal.register_signal(initialize=False)
+    
 interface.notify(noisify_extr)
 
 def fetch_noisified(signal, band):
-	noisified = signal.properties['data'][band]['inter']['noisify'].result
-	return noisified
+    noisified = signal.properties['data'][band]['inter']['noisify'].result
+    return noisified
 
 feature_added_VOSource_XML_fpath = '/tmp/test_feature_algorithms.VOSource.xml'
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
+print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
 
 
 def main():
-	pass
+    pass
 
 
 if __name__ == '__main__':
-	main()
+    main()
 

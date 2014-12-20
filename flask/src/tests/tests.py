@@ -48,7 +48,7 @@ class DemoTestCase(unittest.TestCase):
         assert 'No examples yet' in rv.data
 
     def test_inserts_data(self):
-        self.setCurrentUser(u'john@example.com', u'123')
+        self.setCurrentUser('john@example.com', '123')
         rv = self.app.post('/example/new', data=dict(
             example_name='An example',
             example_description='Description of an example'
@@ -64,11 +64,11 @@ class DemoTestCase(unittest.TestCase):
         rv = self.app.get('/admin_only')
         assert rv.status == '302 FOUND'
         #Normal user
-        self.setCurrentUser(u'john@example.com', u'123')
+        self.setCurrentUser('john@example.com', '123')
         rv = self.app.get('/admin_only')
         assert rv.status == '302 FOUND'
         #Admin
-        self.setCurrentUser(u'john@example.com', u'123', True)
+        self.setCurrentUser('john@example.com', '123', True)
         rv = self.app.get('/admin_only')
         assert rv.status == '200 OK'
 

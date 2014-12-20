@@ -428,13 +428,13 @@ CREATE TABLE classid_lookup (schema_id SMALLINT UNSIGNED,
                              PRIMARY KEY(schema_id, class_id));
 
 CREATE TABLE src_class_probs (schema_id SMALLINT UNSIGNED,
-			      class_id SMALLINT UNSIGNED, 
-			      prob FLOAT DEFAULT 1.0,
-		              src_id INT UNSIGNED,
-			      class_rank TINYINT DEFAULT 0,
+                  class_id SMALLINT UNSIGNED, 
+                  prob FLOAT DEFAULT 1.0,
+                      src_id INT UNSIGNED,
+                  class_rank TINYINT DEFAULT 0,
                               prob_weight FLOAT DEFAULT 1.0,
-			      gen_dtime DATETIME,
-			      PRIMARY KEY(schema_id, src_id, class_rank),
+                  gen_dtime DATETIME,
+                  PRIMARY KEY(schema_id, src_id, class_rank),
                               INDEX(gen_dtime),
                               INDEX(prob));
 

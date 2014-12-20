@@ -1,9 +1,11 @@
 from numpy import empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
-from scipy import weave
-from lomb_scargle import lprob2sigma
+# replaced weave w/ cython for python 3 12/16/14:
+#from scipy import weave
+import cython
+from .lomb_scargle import lprob2sigma
 from scipy.stats import f as fdist
-from ls_support import lomb_code,lomb_scargle_support
-from numc_eigs import scode as eigs_code
+from .ls_support import lomb_code,lomb_scargle_support
+from .numc_eigs import scode as eigs_code
 
 def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
     """
@@ -77,9 +79,9 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     else:
         wth = wth0
 
-    for i in xrange(detrend_order):
+    for i in range(detrend_order):
         f = wth[i,:]*tt/(2*pi)
-        for j in xrange(i+1):
+        for j in range(i+1):
             f -= dot(f,wth[j,:])*wth[j,:]
         norm[i+1] = sqrt(dot(f,f)); f /= norm[i+1]
         coef[i+1] = dot(cn,f)
@@ -98,14 +100,15 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     lambda0_range = 10**array(lambda0_range,dtype='float64')/s0
 
     vars=['numt','numf','nharm','detrend_order','psd','cn','wth','sinx','cosx','sinx_step','cosx_step','sinx_back','cosx_back','sinx_smallstep','cosx_smallstep','hat_matr','hat_hat','hat0','soln','chi0','freq_zoom','psdmin','tone_control','lambda0','lambda0_range','Tr','ifreq']
-    weave.inline(lomb_code, vars, support_code = eigs_code + lomb_scargle_support,force=0)
+    # replaced weave w/ cython for python 3 12/16/14:
+    cython.inline(lomb_code, vars, support_code = eigs_code + lomb_scargle_support,force=0)
 
     hat_hat /= s0
     ii = arange(nharm,dtype='int32')
     soln[0:nharm] /= (1.+ii)**2; soln[nharm:] /= (1.+ii)**2
     if (detrend_order>=0):
         hat_matr0 = outer(hat0[:,0],wth0)
-    for i in xrange(detrend_order):
+    for i in range(detrend_order):
         hat_matr0 += outer(hat0[:,i+1],wth[i+1,:])
 
 
@@ -157,7 +160,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     rel_phase = phase - phase[0]*(1.+ii)
     rel_phase = arctan2( sin(rel_phase),cos(rel_phase) )
     dphase = 0.*rel_phase
-    for i in xrange(nharm-1):
+    for i in range(nharm-1):
         j=i+1
         v = array([-A0[0]*(1.+j)/amp[0]**2,B0[0]*(1.+j)/amp[0]**2,A0[j]/amp[j]**2,-B0[j]/amp[j]**2])
         jj=array([0,nharm,j,j+nharm])

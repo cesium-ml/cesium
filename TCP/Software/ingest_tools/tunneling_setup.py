@@ -20,10 +20,10 @@ class Tunnel_Class:
     """
     def execute_str(self, a_str):
         if not self.pars['only_print_ssh_tunnels']:
-            print '#     EXECUTING:'
+            print('#     EXECUTING:')
             os.system(a_str)
 
-        print a_str
+        print(a_str)
 
 
     def make_local_tunnel_str(self, port_client_local=0, \
@@ -91,7 +91,7 @@ class Server_Setup(Tunnel_Class):
         """  Retrieves all socket port instances from obj_id_sockets.py
         and executes a series of ssh port forwards.
         """
-        for socket_name,socket_dict in obj_id_sockets.pars.iteritems():
+        for socket_name,socket_dict in obj_id_sockets.pars.items():
             if not type(socket_dict) == type({}):
                 continue
 
@@ -149,7 +149,7 @@ class Client_Setup(Tunnel_Class):
         """  Retrieves all socket port instances from obj_id_sockets.py
         and executes a series of ssh port forwards.
         """
-        for socket_name,socket_dict in obj_id_sockets.pars.iteritems():
+        for socket_name,socket_dict in obj_id_sockets.pars.items():
             if not type(socket_dict) == type({}):
                 continue
 

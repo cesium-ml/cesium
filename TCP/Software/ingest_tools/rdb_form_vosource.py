@@ -84,7 +84,7 @@ class Rdb_Form_VOsource:
                 else:
                     # (tcptutor) Explicit filtername given
                     filt_name = result[3]
-                if not sdict['ts'].has_key(filt_name):
+                if filt_name not in sdict['ts']:
                     sdict['ts'][filt_name] = {}
                     sdict['ts'][filt_name]['t'] = []
                     sdict['ts'][filt_name]['m'] = []
@@ -93,7 +93,7 @@ class Rdb_Form_VOsource:
                 sdict['ts'][filt_name]['m'].append(result[1])
                 sdict['ts'][filt_name]['m_err'].append(result[2])
         except:
-            print "Failed query:", select_str
+            print("Failed query:", select_str)
             raise
 
 
@@ -111,7 +111,7 @@ class Rdb_Form_VOsource:
             sdict['dec_rms'] = str(results[0][3])
             sdict['feat_gen_date'] = str(results[0][4])
         except:
-            print "Failed query:", select_str
+            print("Failed query:", select_str)
             raise
 
 
@@ -128,11 +128,11 @@ class Rdb_Form_VOsource:
             for result in results:
                 filt_name = self.feat_db.final_features.filter_list[result[2]]
                 sdict['feature_docs'][result[1]] = result[3] # __doc__ string in TABLE
-                if not sdict['features'].has_key(filt_name):
+                if filt_name not in sdict['features']:
                     sdict['features'][filt_name] = {}
                 sdict['features'][filt_name][result[1]] = str(result[0])
         except:
-            print "Failed query:", select_str
+            print("Failed query:", select_str)
             raise
 
 
@@ -148,16 +148,16 @@ class Rdb_Form_VOsource:
             self.rdbt.cursor.execute(select_str)
             results = self.rdbt.cursor.fetchall()
             if len(results) != 1:
-                print "src_id unknown"
+                print("src_id unknown")
                 raise
             else:
                 for survey_name,survey_id in self.pars['survey_id_dict'].\
-                                                                iteritems():
+                                                                items():
                     if results[0][0] == survey_id:
                         return survey_name
-                print "src_id unknown:", type(results[0][0])
+                print("src_id unknown:", type(results[0][0]))
                 raise
-        print "src_id unknown" # probably dont get here
+        print("src_id unknown") # probably dont get here
         raise
 
 
@@ -272,8 +272,8 @@ class Rdb_Form_VOsource:
             self.generate_vosource_file(src_id, vosource_fpath)
         #except:
         #    return "database_query_error"
-        print '<A href="%s">Source ID=%d VOSource.xml</A>' % (vosource_url, \
-                                                              src_id)
+        print('<A href="%s">Source ID=%d VOSource.xml</A>' % (vosource_url, \
+                                                              src_id))
         return '<A href="%s">Source ID=%d VOSource.xml</A>' % (vosource_url, \
                                                               src_id)
 
@@ -333,8 +333,8 @@ if __name__ == '__main__':
     #rfv = Rdb_Form_VOsource(ingest_tools.pars, rdbt, srcdbt, feat_db, dbi_src)
     #rfv.get_vosource_url_for_srcid(src_id)
     #sys.exit()
-    import SimpleXMLRPCServer
-    server = SimpleXMLRPCServer.SimpleXMLRPCServer(\
+    import xmlrpc.server
+    server = xmlrpc.server.SimpleXMLRPCServer(\
                           ("lyra.berkeley.edu", \
                            34583))
     #server = SimpleXMLRPCServer.SimpleXMLRPCServer(\

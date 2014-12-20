@@ -15,9 +15,9 @@ from google.appengine.runtime.apiproxy_errors import CapabilityDisabledError
 
 from flask import render_template, flash, url_for, redirect
 
-from models import ExampleModel
-from decorators import login_required, admin_required
-from forms import ExampleForm
+from .models import ExampleModel
+from .decorators import login_required, admin_required
+from .forms import ExampleForm
 
 
 def home():
@@ -43,10 +43,10 @@ def list_examples():
         try:
             example.put()
             example_id = example.key().id()
-            flash(u'Example %s successfully saved.' % example_id, 'success')
+            flash('Example %s successfully saved.' % example_id, 'success')
             return redirect(url_for('list_examples'))
         except CapabilityDisabledError:
-            flash(u'App Engine Datastore is currently in read-only mode.', 'info')
+            flash('App Engine Datastore is currently in read-only mode.', 'info')
             return redirect(url_for('list_examples'))
     return render_template('list_examples.html', examples=examples, form=form)
 
@@ -57,10 +57,10 @@ def delete_example(example_id):
     example = ExampleModel.get_by_id(example_id)
     try:
         example.delete()
-        flash(u'Example %s successfully deleted.' % example_id, 'success')
+        flash('Example %s successfully deleted.' % example_id, 'success')
         return redirect(url_for('list_examples'))
     except CapabilityDisabledError:
-        flash(u'App Engine Datastore is currently in read-only mode.', 'info')
+        flash('App Engine Datastore is currently in read-only mode.', 'info')
         return redirect(url_for('list_examples'))
 
 

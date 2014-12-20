@@ -8,7 +8,7 @@
     :copyright: (c) 2011 by the Werkzeug Team, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
-import urlparse
+import urllib.parse
 
 from werkzeug._internal import _decode_unicode
 from werkzeug.datastructures import MultiDict, iter_multi_items
@@ -20,11 +20,11 @@ _always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                 'abcdefghijklmnopqrstuvwxyz'
                 '0123456789_.-')
 _safe_map = dict((c, c) for c in _always_safe)
-for i in xrange(0x80):
+for i in range(0x80):
     c = chr(i)
     if c not in _safe_map:
         _safe_map[c] = '%%%02X' % i
-_safe_map.update((chr(i), '%%%02X' % i) for i in xrange(0x80, 0x100))
+_safe_map.update((chr(i), '%%%02X' % i) for i in range(0x80, 0x100))
 _safemaps = {}
 
 #: lookup table for encoded characters.
@@ -43,7 +43,7 @@ def _quote(s, safe='/', _join=''.join):
         safe_map = _safe_map.copy()
         safe_map.update([(c, c) for c in safe])
         _safemaps[safe] = quoter = safe_map.__getitem__
-    return _join(map(quoter, s))
+    return _join(list(map(quoter, s)))
 
 
 def _quote_plus(s, safe=''):
@@ -57,13 +57,13 @@ def _safe_urlsplit(s):
     we cannot control that.  So we force type cast that thing back
     to what we think it is.
     """
-    rv = urlparse.urlsplit(s)
+    rv = urllib.parse.urlsplit(s)
     # we have to check rv[2] here and not rv[1] as rv[1] will be
     # an empty bytestring in case no domain was given.
     if type(rv[2]) is not type(s):
         assert hasattr(urlparse, 'clear_cache')
-        urlparse.clear_cache()
-        rv = urlparse.urlsplit(s)
+        urllib.parse.clear_cache()
+        rv = urllib.parse.urlsplit(s)
         assert type(rv[2]) is type(s)
     return rv
 
@@ -124,7 +124,7 @@ def iri_to_uri(iri, charset='utf-8'):
     :param iri: the iri to convert
     :param charset: the charset for the URI
     """
-    iri = unicode(iri)
+    iri = str(iri)
     scheme, auth, hostname, port, path, query, fragment = _uri_split(iri)
 
     scheme = scheme.encode('ascii')
@@ -146,7 +146,7 @@ def iri_to_uri(iri, charset='utf-8'):
 
     # this absolutely always must return a string.  Otherwise some parts of
     # the system might perform double quoting (#61)
-    return str(urlparse.urlunsplit([scheme, hostname, path, query, fragment]))
+    return str(urllib.parse.urlunsplit([scheme, hostname, path, query, fragment]))
 
 
 def uri_to_iri(uri, charset='utf-8', errors='replace'):
@@ -191,18 +191,18 @@ def uri_to_iri(uri, charset='utf-8', errors='replace'):
             password = None
         auth = _decode_unicode(_unquote(auth), charset, errors)
         if password:
-            auth += u':' + _decode_unicode(_unquote(password),
+            auth += ':' + _decode_unicode(_unquote(password),
                                            charset, errors)
-        hostname = auth + u'@' + hostname
+        hostname = auth + '@' + hostname
     if port:
         # port should be numeric, but you never know...
-        hostname += u':' + port.decode(charset, errors)
+        hostname += ':' + port.decode(charset, errors)
 
     path = _decode_unicode(_unquote(path, '/;?'), charset, errors)
     query = _decode_unicode(_unquote(query, ';/?:@&=+,$'),
                             charset, errors)
 
-    return urlparse.urlunsplit([scheme, hostname, path, query, fragment])
+    return urllib.parse.urlunsplit([scheme, hostname, path, query, fragment])
 
 
 def url_decode(s, charset='utf-8', decode_keys=False, include_empty=True,
@@ -355,11 +355,11 @@ def _url_encode_impl(obj, charset, encode_keys, sort, key):
     for key, value in iterable:
         if value is None:
             continue
-        if encode_keys and isinstance(key, unicode):
+        if encode_keys and isinstance(key, str):
             key = key.encode(charset)
         else:
             key = str(key)
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode(charset)
         else:
             value = str(value)
@@ -373,7 +373,7 @@ def url_quote(s, charset='utf-8', safe='/:'):
     :param charset: the charset to be used.
     :param safe: an optional sequence of safe characters.
     """
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = s.encode(charset)
     elif not isinstance(s, str):
         s = str(s)
@@ -388,7 +388,7 @@ def url_quote_plus(s, charset='utf-8', safe=''):
     :param charset: the charset to be used.
     :param safe: an optional sequence of safe characters.
     """
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = s.encode(charset)
     elif not isinstance(s, str):
         s = str(s)
@@ -406,7 +406,7 @@ def url_unquote(s, charset='utf-8', errors='replace'):
     :param charset: the charset to be used.
     :param errors: the error handling for the charset decoding.
     """
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = s.encode(charset)
     return _decode_unicode(_unquote(s), charset, errors)
 
@@ -423,7 +423,7 @@ def url_unquote_plus(s, charset='utf-8', errors='replace'):
     :param charset: the charset to be used.
     :param errors: the error handling for the charset decoding.
     """
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = s.encode(charset)
     return _decode_unicode(_unquote_plus(s), charset, errors)
 
@@ -441,12 +441,12 @@ def url_fix(s, charset='utf-8'):
     :param charset: The target charset for the URL if the url was given as
                     unicode string.
     """
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         s = s.encode(charset, 'replace')
     scheme, netloc, path, qs, anchor = _safe_urlsplit(s)
     path = _quote(path, '/%')
     qs = _quote_plus(qs, ':&%=')
-    return urlparse.urlunsplit((scheme, netloc, path, qs, anchor))
+    return urllib.parse.urlunsplit((scheme, netloc, path, qs, anchor))
 
 
 class Href(object):
@@ -514,7 +514,7 @@ class Href(object):
         base = self.base
         if base[-1:] != '/':
             base += '/'
-        return Href(urlparse.urljoin(base, name), self.charset, self.sort,
+        return Href(urllib.parse.urljoin(base, name), self.charset, self.sort,
                     self.key)
 
     def __call__(self, *path, **query):
@@ -525,14 +525,14 @@ class Href(object):
             query, path = path[-1], path[:-1]
         elif query:
             query = dict([(k.endswith('_') and k[:-1] or k, v)
-                          for k, v in query.items()])
+                          for k, v in list(query.items())])
         path = '/'.join([url_quote(x, self.charset) for x in path
                          if x is not None]).lstrip('/')
         rv = self.base
         if path:
             if not rv.endswith('/'):
                 rv += '/'
-            rv = urlparse.urljoin(rv, './' + path)
+            rv = urllib.parse.urljoin(rv, './' + path)
         if query:
             rv += '?' + url_encode(query, self.charset, sort=self.sort,
                                    key=self.key)

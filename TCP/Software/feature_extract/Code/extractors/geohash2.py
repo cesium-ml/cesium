@@ -89,20 +89,22 @@ Some degenerate cases:
 >>> (east+west).bbox()
 (-180.0, -90.0, 180.0, 90.0)
 """
+from functools import reduce
 
 defbound = (0,-90,360,90) # (-180,-90,180,90) ## make this more astronomy friendly Josh Bloom
 defdepth = 35
 
 class Geostring (object):
     def _to_bits (cls,f,depth=defdepth):
-        f *= (1L << depth)
-        return [(long(f) >> (depth-i)) & 1 for i in range(1,depth+1)]
+        f *= (1 << depth)
+        return [(int(f) >> (depth-i)) & 1 for i in range(1,depth+1)]
     _to_bits = classmethod(_to_bits)
 
-    def bitstring (cls,(x,y),bound=defbound,depth=defdepth):
+    def bitstring (cls, xxx_todo_changeme,bound=defbound,depth=defdepth):
+        (x,y) = xxx_todo_changeme
         x = cls._to_bits((x-bound[0])/float(bound[2]-bound[0]),depth)
         y = cls._to_bits((y-bound[1])/float(bound[3]-bound[1]),depth)
-        bits = reduce(lambda x,y:x+list(y), zip(x,y), [])
+        bits = reduce(lambda x,y:x+list(y), list(zip(x,y)), [])
         return "".join(map(str,bits))
     bitstring = classmethod(bitstring)
 
@@ -125,19 +127,19 @@ class Geostring (object):
         maxx = maxy = 1.0
         for i in range(depth+1):
             try:
-                minx += float(bits[i*2])/(2L<<i)
-                miny += float(bits[i*2+1])/(2L<<i)
+                minx += float(bits[i*2])/(2<<i)
+                miny += float(bits[i*2+1])/(2<<i)
             except IndexError:
                 pass
         if depth:
-            maxx = minx + 1.0/(2L<<(depth-1))
-            maxy = miny + 1.0/(2L<<(depth-1))
+            maxx = minx + 1.0/(2<<(depth-1))
+            maxy = miny + 1.0/(2<<(depth-1))
         elif len(bits) == 1:
             # degenerate case
             maxx = min(minx + .5, 1.0)
         minx, maxx = [self.origin[0]+x*self.size[0] for x in (minx,maxx)] 
         miny, maxy = [self.origin[1]+y*self.size[1] for y in (miny,maxy)] 
-        return tuple([round(x,6) for x in minx, miny, maxx, maxy])
+        return tuple([round(x,6) for x in (minx, miny, maxx, maxy)])
 
     def bbox (self, prefix=None):
         if not prefix: prefix=len(self.hash)
@@ -207,6 +209,6 @@ if __name__ == "__main__":
         import doctest
         doctest.testmod(verbose=True)
     elif len(sys.argv) == 2:
-        print Geohash(sys.argv[1]).bbox()
+        print(Geohash(sys.argv[1]).bbox())
     else:
-        print Geohash(map(float, sys.argv[1:3]))
+        print(Geohash(list(map(float, sys.argv[1:3]))))

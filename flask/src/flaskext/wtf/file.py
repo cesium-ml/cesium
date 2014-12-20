@@ -41,7 +41,7 @@ class FileRequired(object):
 
     def __call__(self, form, field):
         if not field.has_file():
-            raise ValidationError, self.message
+            raise ValidationError(self.message)
 
 file_required = FileRequired
 
@@ -66,7 +66,7 @@ class FileAllowed(object):
         if not field.has_file():
             return
         if not self.upload_set.file_allowed(field.data, field.data.filename):
-            raise ValidationError, self.message
+            raise ValidationError(self.message)
 
 file_allowed = FileAllowed
     

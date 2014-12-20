@@ -24,11 +24,11 @@ def sex2cat(fname,outname=None,append_filter=True):
     headers. Such .sex files will be generated from trans.photm
     """
     if not os.path.exists(sextotable):
-        print "sextotable path does not exist"
+        print("sextotable path does not exist")
         return None
     
     if not os.path.exists(fname):
-        print "input files %s does not exist" % fname
+        print("input files %s does not exist" % fname)
         return None
     
     if append_filter:
@@ -53,7 +53,7 @@ def sex2cat(fname,outname=None,append_filter=True):
            if l.find('FILTER =') != -1:
               filter = l.split('FILTER =')[1].split('#')[0].strip()
               break
-        print 'detected the filter as: %s' % filter
+        print('detected the filter as: %s' % filter)
         
     if outname is None:
         outname = fname + ".cat"
@@ -96,13 +96,13 @@ if __name__ == "__main__":
     
     outname = None
     if len(sys.argv) <= 1:
-        print "usage: sex2cat.py insexname.sex [outname]"
+        print("usage: sex2cat.py insexname.sex [outname]")
         sys.exit()
         
     if len(sys.argv) > 2:
         outname = sys.argv[2]
     
     ret = sex2cat(sys.argv[1],outname)
-    print "returned: %s" % ret
+    print("returned: %s" % ret)
     
     

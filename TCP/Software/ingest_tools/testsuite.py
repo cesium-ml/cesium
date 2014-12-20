@@ -79,7 +79,7 @@ from Code import *
 #f = open('testsuite.par.py')# Import the standard Parameter file
 f = open('testsuite.par.py')# Import the standard Parameter file
 ####f = open('testsuite.transx_production_configs.par.py')# Import the standard Parameter file
-exec f
+exec(f)
 f.close()
 pars = parameters
 
@@ -296,7 +296,7 @@ echo "
         db = MySQLdb.connect(host=hostname, user=username, db=db_name,port=port)
         cursor = db.cursor()
 
-        for table_name,n_cols in table_dict.iteritems():
+        for table_name,n_cols in table_dict.items():
             select_str = "DESCRIBE %s" % (table_name)
             cursor.execute(select_str)
             results = cursor.fetchall()
@@ -323,7 +323,7 @@ echo "
         """ Spawn off all needed index servers.
         NOTE: Testing of index server usablility occurs in later tests.
         """
-        for index_type, index_dict in self.pars['index_server'].iteritems():
+        for index_type, index_dict in self.pars['index_server'].items():
             exec_str = "$TCP_DIR/Software/ingest_tools/obj_id_sockets.py socket_server_host_ip=%s socket_server_port=%d rdb_server_host_ip=%s rdb_server_user=%s rdb_server_db=%s primary_table_colname=%s obj_id_reference_tablename=%s &" % \
                 (self.mysql_hostname,\
                  index_dict['socket_server_port'], \
@@ -331,7 +331,7 @@ echo "
                  index_dict['rdb_server_db'], \
                  index_dict['primary_table_colname'], \
                  index_dict['obj_id_reference_tablename'])
-            print exec_str
+            print(exec_str)
             os.system(exec_str)
 
 
@@ -362,7 +362,7 @@ echo "
             self.mysql_hostname, \
             self.mysql_hostname, \
             self.mysql_username)
-        print exec_str
+        print(exec_str)
         os.system(exec_str)
 
 
@@ -413,8 +413,8 @@ echo "
                 has_been_ingested = self.rdbt.check_obsid_has_been_ingested(\
                                                           mos_fname_root_trunc)
             except:
-                print "SKIP INSERT of existing ptel objects:", \
-                                                          mos_fname_root_trunc
+                print("SKIP INSERT of existing ptel objects:", \
+                                                          mos_fname_root_trunc)
                 continue
             if (has_been_ingested == 0):
                 a = ptel_astrophot.PTEL_data_block(mos_globpath, \
@@ -472,7 +472,7 @@ echo "
         """
         for test_vals_dict in testvals_list:
             condition_list = []
-            for name,val in test_vals_dict.iteritems():
+            for name,val in test_vals_dict.items():
                 condition_list.append("(%s > %lf) and (%s < %lf)" % ( \
                     name, val - self.pars['mysql_float_condition_accuracy'], \
                     name, val + self.pars['mysql_float_condition_accuracy']))
@@ -519,7 +519,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
             condition_list = []
             join_list = []
             name_val_tuplist = []
-            for (name,val) in test_vals_dict.iteritems():
+            for (name,val) in test_vals_dict.items():
                 name_val_tuplist.append((name,val))
             (feat_name,feat_val) = name_val_tuplist[0]
             join_list.append(\
@@ -612,13 +612,13 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         #for a in test:  print "%40.40s   %s" % (a,str(signals_list[0].properties['data']['H:table1384']['features'][a]))
 
         
-        for xml_fpath,xml_dict in test_feature_dict.iteritems():
+        for xml_fpath,xml_dict in test_feature_dict.items():
             fname = xml_fpath[xml_fpath.rfind('/')+1:] # for DEBUGGING print
             signals_list = []
             gen = generators_importers.from_xml(signals_list)
             gen.generate(xml_handle=os.path.expandvars(xml_fpath))
-            for filt_name,filt_dict in xml_dict.iteritems():
-                for feat_name,feat_val_expected in filt_dict.iteritems():
+            for filt_name,filt_dict in xml_dict.items():
+                for feat_name,feat_val_expected in filt_dict.items():
                     feat_val_gen = signals_list[0].properties['data'][filt_name]['features'][feat_name]
                     try:
                         if ((float(str(feat_val_gen)) >= feat_val_expected - self.pars['mysql_float_condition_accuracy']) and
@@ -626,11 +626,11 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
                             return_bool = return_bool and True
                             #print "OK feature: %40.40s in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen))
                         else:
-                            print "WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen))
+                            print("WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen)))
                             return_bool = return_bool and False # could just set to False & return, but I want to see all features which fail.
                     except:
                         # Probably get here because feat_val_gen is not float()'able
-                        print "WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen))
+                        print("WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen)))
                         return_bool = return_bool and False # could just set to False & return, but I want to see all features which fail.
         return return_bool
 
@@ -723,13 +723,13 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
     def populate_sdss_sources_using_XMLRPC(self):
         """ Populate some sdss sources by querying the XMLRPC server.
         """
-        import xmlrpclib
+        import xmlrpc.client
         server_url = "http://%s:%d" % (self.pars['xmlrpc_server_name'], \
                            self.pars['ingest_tools_pars']['xmlrpc_server_port'])
-        server = xmlrpclib.ServerProxy(server_url)
+        server = xmlrpc.client.ServerProxy(server_url)
         
         src_list = server.get_sources_for_radec(49.556229, -0.883328, 0.05, '')
-        print 'len(src_list) :', len(src_list)
+        print('len(src_list) :', len(src_list))
         #print server.system.listMethods()
 
         # TODO test the source values which are returned. (RDB values check?)
@@ -887,37 +887,37 @@ class Test_Case_Wrapper(unittest.TestCase):
     NOTE: My method naming convention allows sequential testing and method calls
     """
     def test_03_ingest_tools_setup_pars(self):
-        self.failUnless(cm.check_03_ingest_tools_setup_pars())
+        self.assertTrue(cm.check_03_ingest_tools_setup_pars())
 
     def test_04_ingest_tools_table_creation(self):
-        self.failUnless(cm.check_04_ingest_tools_table_creation())
+        self.assertTrue(cm.check_04_ingest_tools_table_creation())
 
     def test_05_spawn_index_servers(self):
-        self.failUnless(cm.check_05_spawn_index_servers())
+        self.assertTrue(cm.check_05_spawn_index_servers())
 
     def test_06_spawn_XMLRPC_server(self):
-        self.failUnless(cm.check_06_spawn_XMLRPC_server())
+        self.assertTrue(cm.check_06_spawn_XMLRPC_server())
 
     def test_10_populate_ptel_object_tables_single_mosfits(self):
-        self.failUnless(cm.check_10_populate_ptel_object_tables_single_mosfits())
+        self.assertTrue(cm.check_10_populate_ptel_object_tables_single_mosfits())
 
     def test_11_populate_ptel_object_tables_multi_mosfits(self):
-        self.failUnless(cm.check_11_populate_ptel_object_tables_multi_mosfits())
+        self.assertTrue(cm.check_11_populate_ptel_object_tables_multi_mosfits())
 
     def test_12_populate_sdss_object_tables(self):
-        self.failUnless(cm.check_12_populate_sdss_object_tables())
+        self.assertTrue(cm.check_12_populate_sdss_object_tables())
 
     def test_15_populate_ptel_related_sources(self):
-        self.failUnless(cm.check_15_populate_ptel_related_sources())
+        self.assertTrue(cm.check_15_populate_ptel_related_sources())
 
     def test_20_get_features_for_ptel_sources(self):
-        self.failUnless(cm.check_20_get_features_for_ptel_sources())
+        self.assertTrue(cm.check_20_get_features_for_ptel_sources())
 
     def test_30_populate_sdss_sources_using_XMLRPC(self):
-        self.failUnless(cm.check_30_populate_sdss_sources_using_XMLRPC())
+        self.assertTrue(cm.check_30_populate_sdss_sources_using_XMLRPC())
 
     def test_40_feature_extraction_sanity_check(self):
-        self.failUnless(cm.check_40_feature_extraction_sanity_check())
+        self.assertTrue(cm.check_40_feature_extraction_sanity_check())
 
 
 if __name__ == '__main__':
@@ -926,12 +926,12 @@ if __name__ == '__main__':
     cm = Check_Methods()
 
     if pars['test_suite__enable_traceback']:
-        method_list = filter(lambda x: x not in ['__doc__', '__init__', \
-                                                 '__module__'], dir(cm))
+        method_list = [x for x in dir(cm) if x not in ['__doc__', '__init__', \
+                                                 '__module__']]
         method_list.sort()
         for method in method_list:
             method_str = "cm." + method + "()"
-            print method_str
+            print(method_str)
             #exec(method_str)
             ### This allows stepping into & breaking in check functions:
             if method_str == "cm.check_40_feature_extraction_sanity_check()":

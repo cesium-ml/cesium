@@ -31,12 +31,12 @@ lines = open('class_names').readlines()
 tally_dict = {}
 for line in lines:
     class_name = line.strip()
-    if not tally_dict.has_key(class_name):
+    if class_name not in tally_dict:
         tally_dict[class_name] = [1, class_name]
     else:
         tally_dict[class_name][0] += 1
 
-sorted_elems = tally_dict.values()
+sorted_elems = list(tally_dict.values())
 sorted_elems.sort(reverse=True)
 
 for a in sorted_elems:
@@ -53,9 +53,9 @@ for a in sorted_elems:
         db.tutor_cursor.execute(select_str)
         results = db.tutor_cursor.fetchall()
     try:
-        print "%4d %35s http://dotastro.org/lightcurves/class.php?Class_ID=%d " % (a[0], a[1], int(results[0][0]))
+        print("%4d %35s http://dotastro.org/lightcurves/class.php?Class_ID=%d " % (a[0], a[1], int(results[0][0])))
     except:
-        print "!!!", len(results), class_name
+        print("!!!", len(results), class_name)
 
 
 """

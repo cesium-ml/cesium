@@ -66,7 +66,7 @@ TODO:
         """
         import glob
         srcid_list = []
-        for proj_id, dirpath in self.pars['xml_dirs'].iteritems():
+        for proj_id, dirpath in self.pars['xml_dirs'].items():
             xml_fpaths = glob.glob("%s/*xml" % (dirpath))
             for xml_fpath in xml_fpaths:
                 src_id = int(xml_fpath[xml_fpath.rfind('/')+1:xml_fpath.rfind('.')]) - 100000000
@@ -80,15 +80,15 @@ TODO:
                     gen.signalgen = {}
                     gen.sig = db_importer.Source(xml_handle=xml_fpath,doplot=False, make_xml_if_given_dict=False)
                     ### Here we assume only one filter (true for proj_id=[123,126]):
-                    t = gen.sig.x_sdict['ts'].values()[0]['t']
-                    m = gen.sig.x_sdict['ts'].values()[0]['m']
-                    m_err = gen.sig.x_sdict['ts'].values()[0]['m_err']
+                    t = list(gen.sig.x_sdict['ts'].values())[0]['t']
+                    m = list(gen.sig.x_sdict['ts'].values())[0]['m']
+                    m_err = list(gen.sig.x_sdict['ts'].values())[0]['m_err']
 
 
                     dat_fpath = "%s/%d.dat" % (self.pars['dat_dirpath'], src_id)
 
                     fp = open(dat_fpath, 'w')
-                    for i in xrange(len(t)):
+                    for i in range(len(t)):
                         fp.write("%lf %lf %lf\n" % (t[i], m[i], m_err[i]))
 
                     fp.close()
@@ -140,7 +140,7 @@ TODO:
             write_str = "%d %d %s %s %s\n" % ( \
                             src_id, proj_id, survey_name, tutor_class_name,
                             algo_class_str)
-            print write_str,
+            print(write_str, end=' ')
             #import pdb; pdb.set_trace()
             #print
             fp.write(write_str)
@@ -185,7 +185,7 @@ TODO:
 
         from numpy import loadtxt
         all_srcid_classid = {}
-        for n, fpath in user_classifs_fpaths.iteritems():
+        for n, fpath in user_classifs_fpaths.items():
             data = loadtxt(fpath, dtype={'names': ('src_id', 'class_id'),
                                          'formats': ('i4', 'i4')})
             for i, src_id in enumerate(data['src_id']):
@@ -209,7 +209,7 @@ TODO:
         self.make_summary_file(srcid_list=srcid_list, srcid_classname=srcid_classname)
         
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 if __name__ == '__main__':

@@ -98,7 +98,7 @@
 import re
 import posixpath
 from pprint import pformat
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from werkzeug.urls import url_encode, url_decode, url_quote
 from werkzeug.utils import redirect, format_string
@@ -149,7 +149,7 @@ def _pythonize(value):
             pass
     if value[:1] == value[-1:] and value[0] in '"\'':
         value = value[1:-1]
-    return unicode(value)
+    return str(value)
 
 
 def parse_converter_args(argstr):
@@ -409,14 +409,14 @@ class RuleTemplateFactory(RuleFactory):
                 new_defaults = subdomain = None
                 if rule.defaults:
                     new_defaults = {}
-                    for key, value in rule.defaults.iteritems():
-                        if isinstance(value, basestring):
+                    for key, value in rule.defaults.items():
+                        if isinstance(value, str):
                             value = format_string(value, self.context)
                         new_defaults[key] = value
                 if rule.subdomain is not None:
                     subdomain = format_string(rule.subdomain, self.context)
                 new_endpoint = rule.endpoint
-                if isinstance(new_endpoint, basestring):
+                if isinstance(new_endpoint, str):
                     new_endpoint = format_string(new_endpoint, self.context)
                 yield Rule(
                     format_string(rule.rule, self.context),
@@ -650,7 +650,7 @@ class Rule(RuleFactory):
         if self.build_only:
             return
         regex = r'^%s%s$' % (
-            u''.join(regex_parts),
+            ''.join(regex_parts),
             (not self.is_leaf or not self.strict_slashes) and \
                 '(?<!/)(?P<__suffix__>/?)' or ''
         )
@@ -684,7 +684,7 @@ class Rule(RuleFactory):
                     del groups['__suffix__']
 
                 result = {}
-                for name, value in groups.iteritems():
+                for name, value in groups.items():
                     try:
                         value = self._converters[name].to_python(value)
                     except ValidationError:
@@ -716,7 +716,7 @@ class Rule(RuleFactory):
                 processed.add(data)
             else:
                 add(url_quote(data, self.map.charset, safe='/:|'))
-        domain_part, url = (u''.join(tmp)).split('|', 1)
+        domain_part, url = (''.join(tmp)).split('|', 1)
 
         if append_unknown:
             query_vars = MultiDict(values)
@@ -762,7 +762,7 @@ class Rule(RuleFactory):
         # in case defaults are given we ensure taht either the value was
         # skipped or the value is the same as the default value.
         if defaults:
-            for key, value in defaults.iteritems():
+            for key, value in defaults.items():
                 if key in values and value != values[key]:
                     return False
 
@@ -804,7 +804,7 @@ class Rule(RuleFactory):
 
     def __str__(self):
         charset = self.map is not None and self.map.charset or 'utf-8'
-        return unicode(self).encode(charset)
+        return str(self).encode(charset)
 
     def __repr__(self):
         if self.map is None:
@@ -818,7 +818,7 @@ class Rule(RuleFactory):
                 tmp.append(data)
         return '<%s %r%s -> %s>' % (
             self.__class__.__name__,
-            (u''.join(tmp).encode(charset)).lstrip('|'),
+            (''.join(tmp).encode(charset)).lstrip('|'),
             self.methods is not None and ' (%s)' % \
                 ', '.join(self.methods) or '',
             self.endpoint
@@ -1121,7 +1121,7 @@ class Map(object):
             subdomain = self.default_subdomain
         if script_name is None:
             script_name = '/'
-        if isinstance(server_name, unicode):
+        if isinstance(server_name, str):
             server_name = server_name.encode('idna')
         return MapAdapter(self, server_name, script_name, subdomain,
                           url_scheme, path_info, default_method, query_args)
@@ -1190,7 +1190,7 @@ class Map(object):
                 # in a 404 error on matching.
                 subdomain = '<invalid>'
             else:
-                subdomain = '.'.join(filter(None, cur_server_name[:offset]))
+                subdomain = '.'.join([_f for _f in cur_server_name[:offset] if _f])
         return Map.bind(self, server_name, environ.get('SCRIPT_NAME'),
                         subdomain, environ['wsgi.url_scheme'],
                         environ['REQUEST_METHOD'], environ.get('PATH_INFO'),
@@ -1202,7 +1202,7 @@ class Map(object):
         """
         if self._remap:
             self._rules.sort(key=lambda x: x.match_compare_key())
-            for rules in self._rules_by_endpoint.itervalues():
+            for rules in self._rules_by_endpoint.values():
                 rules.sort(key=lambda x: x.build_compare_key())
             self._remap = False
 
@@ -1225,7 +1225,7 @@ class MapAdapter(object):
         self.script_name = script_name
         self.subdomain = subdomain
         self.url_scheme = url_scheme
-        self.path_info = path_info or u''
+        self.path_info = path_info or ''
         self.default_method = default_method
         self.query_args = query_args
 
@@ -1276,10 +1276,10 @@ class MapAdapter(object):
         try:
             try:
                 endpoint, args = self.match(path_info, method)
-            except RequestRedirect, e:
+            except RequestRedirect as e:
                 return e
             return view_func(endpoint, args)
-        except HTTPException, e:
+        except HTTPException as e:
             if catch_http_exceptions:
                 return e
             raise
@@ -1365,14 +1365,14 @@ class MapAdapter(object):
         self.map.update()
         if path_info is None:
             path_info = self.path_info
-        if not isinstance(path_info, unicode):
+        if not isinstance(path_info, str):
             path_info = path_info.decode(self.map.charset,
                                          self.map.encoding_errors)
         if query_args is None:
             query_args = self.query_args
         method = (method or self.default_method).upper()
 
-        path = u'%s|/%s' % (self.map.host_matching and self.server_name or
+        path = '%s|/%s' % (self.map.host_matching and self.server_name or
                             self.subdomain, path_info.lstrip('/'))
 
         have_match_for = set()
@@ -1382,7 +1382,7 @@ class MapAdapter(object):
             except RequestSlash:
                 raise RequestRedirect(self.make_redirect_url(
                     path_info + '/', query_args))
-            except RequestAliasRedirect, e:
+            except RequestAliasRedirect as e:
                 raise RequestRedirect(self.make_alias_redirect_url(
                     path, rule.endpoint, e.matched_values, method, query_args))
             if rv is None:
@@ -1398,7 +1398,7 @@ class MapAdapter(object):
                     raise RequestRedirect(redirect_url)
 
             if rule.redirect_to is not None:
-                if isinstance(rule.redirect_to, basestring):
+                if isinstance(rule.redirect_to, str):
                     def _handle_match(match):
                         value = rv[match.group(1)]
                         return rule._converters[match.group(1)].to_url(value)
@@ -1446,9 +1446,9 @@ class MapAdapter(object):
         """
         try:
             self.match(path_info, method='--')
-        except MethodNotAllowed, e:
+        except MethodNotAllowed as e:
             return e.valid_methods
-        except HTTPException, e:
+        except HTTPException as e:
             pass
         return []
 
@@ -1487,7 +1487,7 @@ class MapAdapter(object):
                     path, query_args, domain_part=domain_part)
 
     def encode_query_args(self, query_args):
-        if not isinstance(query_args, basestring):
+        if not isinstance(query_args, str):
             query_args = url_encode(query_args, self.map.charset)
         return query_args
 
@@ -1597,7 +1597,7 @@ class MapAdapter(object):
             if isinstance(values, MultiDict):
                 valueiter = values.iteritems(multi=True)
             else:
-                valueiter = values.iteritems()
+                valueiter = iter(values.items())
             values = dict((k, v) for k, v in valueiter if v is not None)
         else:
             values = {}

@@ -38,6 +38,7 @@ import operator
 import sys
 import traceback
 import weakref
+import collections
 
 
 try:
@@ -70,7 +71,7 @@ def safe_ref(target, on_delete=None):
     try:
         im_self = get_self(target)
     except AttributeError:
-        if callable(on_delete):
+        if isinstance(on_delete, collections.Callable):
             return weakref.ref(target, on_delete)
         else:
             return weakref.ref(target)
@@ -169,15 +170,15 @@ class BoundMethodWeakref(object):
                 pass
             for function in methods:
                 try:
-                    if callable(function):
+                    if isinstance(function, collections.Callable):
                         function(self)
                 except Exception:
                     try:
                         traceback.print_exc()
                     except AttributeError:
                         e = sys.exc_info()[1]
-                        print ('Exception during saferef %s '
-                               'cleanup function %s: %s' % (self, function, e))
+                        print(('Exception during saferef %s '
+                               'cleanup function %s: %s' % (self, function, e)))
         self.deletion_methods = [on_delete]
         self.key = self.calculate_key(target)
         im_self = get_self(target)
@@ -185,7 +186,7 @@ class BoundMethodWeakref(object):
         self.weak_self = weakref.ref(im_self, remove)
         self.weak_func = weakref.ref(im_func, remove)
         self.self_name = str(im_self)
-        self.func_name = str(im_func.__name__)
+        self.__name__ = str(im_func.__name__)
 
     def calculate_key(cls, target):
         """Calculate the reference key for this reference.
@@ -201,12 +202,12 @@ class BoundMethodWeakref(object):
         return "%s(%s.%s)" % (
             self.__class__.__name__,
             self.self_name,
-            self.func_name,
+            self.__name__,
             )
 
     __repr__ = __str__
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Whether we are still a valid reference."""
         return self() is not None
 

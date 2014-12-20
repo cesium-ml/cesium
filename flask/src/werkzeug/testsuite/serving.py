@@ -10,10 +10,10 @@
 """
 import sys
 import time
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import unittest
 from functools import update_wrapper
-from StringIO import StringIO
+from io import StringIO
 
 from werkzeug.testsuite import WerkzeugTestCase
 
@@ -64,7 +64,7 @@ class ServingTestCase(WerkzeugTestCase):
     @silencestderr
     def test_serving(self):
         server, addr = run_dev_server(test_app)
-        rv = urllib.urlopen('http://%s/?foo=bar&baz=blah' % addr).read()
+        rv = urllib.request.urlopen('http://%s/?foo=bar&baz=blah' % addr).read()
         assert 'WSGI Information' in rv
         assert 'foo=bar&amp;baz=blah' in rv
         assert ('Werkzeug/%s' % version) in rv
@@ -74,7 +74,7 @@ class ServingTestCase(WerkzeugTestCase):
         def broken_app(environ, start_response):
             1/0
         server, addr = run_dev_server(broken_app)
-        rv = urllib.urlopen('http://%s/?foo=bar&baz=blah' % addr).read()
+        rv = urllib.request.urlopen('http://%s/?foo=bar&baz=blah' % addr).read()
         assert 'Internal Server Error' in rv
 
 

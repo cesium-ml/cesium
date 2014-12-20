@@ -10,8 +10,8 @@
 """
 import inspect
 from weakref import WeakKeyDictionary
-from cStringIO import StringIO
-from Cookie import SimpleCookie, Morsel, CookieError
+from io import StringIO
+from http.cookies import SimpleCookie, Morsel, CookieError
 from time import gmtime
 from datetime import datetime, date
 
@@ -119,7 +119,7 @@ def _log(type, message, *args, **kwargs):
 def _parse_signature(func):
     """Return a signature object for the function."""
     if hasattr(func, 'im_func'):
-        func = func.im_func
+        func = func.__func__
 
     # if we have a cached validator for this function, return it
     parse = _signature_cache.get(func)
@@ -202,7 +202,7 @@ def _decode_unicode(value, charset, errors):
         errors = 'strict'
     try:
         return value.decode(charset, errors)
-    except UnicodeError, e:
+    except UnicodeError as e:
         if fallback is not None:
             return value.decode(fallback, 'replace')
         from werkzeug.exceptions import HTTPUnicodeError
@@ -236,7 +236,7 @@ def _dump_date(d, delim):
         d = gmtime()
     elif isinstance(d, datetime):
         d = d.utctimetuple()
-    elif isinstance(d, (int, long, float)):
+    elif isinstance(d, (int, float)):
         d = gmtime(d)
     return '%s, %02d%s%s%s%s %02d:%02d:%02d GMT' % (
         ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')[d.tm_wday],
@@ -253,7 +253,7 @@ def _date_to_unix(arg):
     """
     if isinstance(arg, datetime):
         arg = arg.utctimetuple()
-    elif isinstance(arg, (int, long, float)):
+    elif isinstance(arg, (int, float)):
         return int(arg)
     year, month, day, hour, minute, second = arg[:6]
     days = date(year, month, 1).toordinal() - _epoch_ord + day - 1

@@ -125,7 +125,7 @@ class Analyze_Iterative_Tutor_Classification:
         try:
             self.cursor.execute("DROP TABLE %s" % (self.pars['table_name']))
         except:
-            print 'Unable to DROP TABLE: ', self.pars['table_name']
+            print('Unable to DROP TABLE: ', self.pars['table_name'])
 
 
     def get_tutor_vosource_xml_fpath_list(self):
@@ -148,15 +148,15 @@ class Analyze_Iterative_Tutor_Classification:
         src_id = dbi_src.x_sdict['src_id']
         sci_class = dbi_src.x_sdict['class']
         if len(sci_class) == 0:
-            print 'No class:', src_id
+            print('No class:', src_id)
             return
         if not sci_class in self.pars['interested_sci_classes']:
-            print 'Not a sci-class of interest:', src_id, sci_class
+            print('Not a sci-class of interest:', src_id, sci_class)
             return
         insert_str = "INSERT INTO %s (src_id, epoch_id, n_epochs, class_final, fpath) VALUES (%d, 0, %d, '%s', '%s')" % (\
                                    self.pars['table_name'],
                                    src_id,
-                                   len(dbi_src.x_sdict['ts'].values()[0]['t']),
+                                   len(list(dbi_src.x_sdict['ts'].values())[0]['t']),
                                    sci_class, 
                                    fpath)
         self.cursor.execute(insert_str)
@@ -186,7 +186,7 @@ pars = analyze_iterative_tutor_classification.pars
 aitc = analyze_iterative_tutor_classification.Analyze_Iterative_Tutor_Classification(pars)
 aitc.connect_to_db()
 """
-        print self.mec.execute(exec_str)# Do we get an echo during execution?
+        print(self.mec.execute(exec_str))# Do we get an echo during execution?
 
 
     def parallel_populate_mysql_with_initial_tutor_sources(self, fpath_list, \
@@ -248,7 +248,7 @@ aitc.connect_to_db()
                               vosource_xml_fpath=fpath,
                               case_poll_for_recent_postgre_table_entries=False,
                               insert_row_into_iterative_class_probs=True)
-                print "Done: VOSource %d of %d" % (i, len(vosource_fpath_list))
+                print("Done: VOSource %d of %d" % (i, len(vosource_fpath_list)))
             return (None, None)
 
             ##### For debugging using cProfile, kcachegrind, etc:
@@ -337,7 +337,7 @@ class Retrieve_Tutor_Vosources_From_Web:
             if os.path.exists(wget_fpath):
                 return_vosource_fpath_list.append(wget_fpath)
             else:
-                print "Cannot retrieve:", wget_str
+                print("Cannot retrieve:", wget_str)
         return return_vosource_fpath_list
 
 
@@ -357,7 +357,7 @@ class Sciclass_Prob_Arrays:
         # NOTE: (prob < 0.1) is useful but still cluttered 
         if prob < self.sciclass_probability_cut:
             return # don't plot any points with probabilites less than this %%
-        if not self.class_dict.has_key(class_name):
+        if class_name not in self.class_dict:
             self.class_dict[class_name] = {'epoch_ids':[],
                                            'probs':[],
                                            'linfit_segments':[]}
@@ -377,7 +377,7 @@ class Sciclass_Prob_Arrays:
         modeled_probs = [probs[0]]
 
         epoch_id_span = epoch_ids[-1] - epoch_ids[0]
-        for i in xrange(poly_order - 1):
+        for i in range(poly_order - 1):
             x = (epoch_id_span / float(poly_order)) * (i + 1) + epoch_ids[0]
             y = scipy.polyval(coeffs, x)
             modeled_epoch_ids.append(x)
@@ -394,7 +394,7 @@ class Sciclass_Prob_Arrays:
         densely populate.  Then reduce these arrays to just liner-fit
         sub-array endpoints.
         """
-        for class_name, class_dict in self.class_dict.iteritems():
+        for class_name, class_dict in self.class_dict.items():
 
             array_length = len(class_dict['epoch_ids'])
             i = 0
@@ -408,7 +408,7 @@ class Sciclass_Prob_Arrays:
                                   class_dict['epoch_ids'][i:i + self.bin_size])
                     temp_probs.extend(class_dict['probs'][i:i + self.bin_size])
                     i += self.bin_size
-                    for j in xrange(i,array_length):
+                    for j in range(i,array_length):
                         if (class_dict['epoch_ids'][j] <= \
                             (class_dict['epoch_ids'][i] + \
                                           ((j - i) * self.factor_threshold))):
@@ -431,7 +431,7 @@ class Sciclass_Prob_Arrays:
     def arrayiffy(self):
         """ We make numarray of all probability and epoch_id lists, for plotting
         """
-        for class_name, class_dict in self.class_dict.iteritems():
+        for class_name, class_dict in self.class_dict.items():
             class_dict['epoch_ids'] = numpy.array(class_dict['epoch_ids'])
             class_dict['probs'] = numpy.array(class_dict['probs'])
         
@@ -459,7 +459,7 @@ class Make_Summary_Plots:
         self.sciclass_style_dict = {}
         n_sci_classes = len(self.pars['interested_sci_classes'])
 
-        for i in xrange(n_sci_classes):
+        for i in range(n_sci_classes):
             class_name = self.pars['interested_sci_classes'][i]
             self.sciclass_style_dict[class_name] = (i+2) * \
                                            (255.0 / (n_sci_classes + 1 ))
@@ -542,16 +542,16 @@ class Make_Summary_Plots:
         used_final_classes = []
         i_srcid = 0
         for final_class in self.pars['interested_sci_classes']:
-            if not finalclass_ordered_dict.has_key(final_class):
+            if final_class not in finalclass_ordered_dict:
                 continue # skip this science class since nothing to plot
             else:
                 used_final_classes.append(final_class)
             srcid_sciclasses_list = finalclass_ordered_dict[final_class]
             for src_id,sci_classes in srcid_sciclasses_list:
-                print 'src_id:', src_id, '\t', final_class
+                print('src_id:', src_id, '\t', final_class)
                 sci_classes.generate_linearfit_endpoints_segments()
                 i = 0
-                for class_name,class_dict in sci_classes.class_dict.iteritems():
+                for class_name,class_dict in sci_classes.class_dict.items():
                     class_style = self.sciclass_style_dict[class_name]
 
                     if use_linfit_segments:
@@ -641,11 +641,11 @@ class Make_Summary_Plots:
             cp.implicit_plane.normal = 0,0,1
             cp.implicit_plane.origin = 150,168,15
             #cp.implicit_plane.position= 0.15 # feature not available yet
-            print '##### cp:'
+            print('##### cp:')
             cp.print_traits()
-            print '##### cp.implicit_plane:'
+            print('##### cp.implicit_plane:')
             cp.implicit_plane.print_traits()
-            print '##### cp.implicit_plane._HideShowAction:'
+            print('##### cp.implicit_plane._HideShowAction:')
             cp.implicit_plane._HideShowAction.print_traits()
 
         ##### Camera position:
@@ -662,7 +662,7 @@ class Make_Summary_Plots:
 
         #####If no Mayavi2 GUI, we allow user to resize image before saving file
         if not enable_mayavi2_interactive_gui:
-            print 'Please resize window & Press a Key.'
+            print('Please resize window & Press a Key.')
             import curses
             stdscr = curses.initscr()
             while 1:
@@ -676,7 +676,7 @@ class Make_Summary_Plots:
         if os.path.exists(img_fpath):
             os.system('rm ' + img_fpath)
         mlab.savefig(img_fpath)#, size=(500,500))#, dpi=200) #size flag doesn't do anything
-        print "Saved:", img_fpath
+        print("Saved:", img_fpath)
 
 
     def generate_mayavi_point_plot(self, srcid_sciclasses_list):
@@ -699,7 +699,7 @@ class Make_Summary_Plots:
         for src_id,sci_classes in srcid_sciclasses_list:
             #print 'src_id:', src_id
             i = 0
-            for class_name, class_dict in sci_classes.class_dict.iteritems():
+            for class_name, class_dict in sci_classes.class_dict.items():
                 epoch_ids.extend(class_dict['epoch_ids'])
                 class_groups.extend([1]*len(class_dict['epoch_ids']))
                 probs.extend(class_dict['probs'])
@@ -752,12 +752,12 @@ class Make_Summary_Plots:
             #     also add {class_name:class_legend_str}
             classname_legend_str_dict = {}
             name_list = []
-            for class_name, class_dict in sci_classes.class_dict.iteritems():
+            for class_name, class_dict in sci_classes.class_dict.items():
                 if len(class_dict['probs']) > 0:
                     class_legend_str = "%d  %s" % (len(class_dict['probs']), class_name)
                     classname_legend_str_dict[class_name] = class_legend_str
                     name_list.append(class_name)
-                print '!', len(class_dict['probs']), class_name
+                print('!', len(class_dict['probs']), class_name)
                 marker = 'r' + symbol
                 l = pylab.plot(class_dict['epoch_ids'], class_dict['probs'], marker)
                 pylab.setp(l, 'markerfacecolor', self.pars['class_color_dict'][class_name])
@@ -780,7 +780,7 @@ class Make_Summary_Plots:
             #pylab.legend(tuple(legend_str_list), shadow = True, loc = (-0.25, 0.30))
             pylab.legend(tuple(legend_str_list), shadow = True, loc = (-0.25, 0.75))
             ltext = pylab.gca().get_legend().get_texts()
-            for i in xrange(len(color_list)):
+            for i in range(len(color_list)):
                 pylab.setp(ltext[i], fontsize = 7, color = color_list[i]) # doesnt do anything:#, fontweight='heavy')
             
             title_str = "%s %s" % (srcid_finalclassname_dict[src_id], src_id)
@@ -807,7 +807,7 @@ if __name__ == '__main__':
         finalclass_ordered_dict = {}
         for src_id,sci_classes in srcid_sciclasses_list:
             final_class = srcid_finalclassname_dict[src_id]
-            if not finalclass_ordered_dict.has_key(final_class):
+            if final_class not in finalclass_ordered_dict:
                 finalclass_ordered_dict[final_class] = []
             finalclass_ordered_dict[final_class].append((src_id,sci_classes))
 
@@ -839,7 +839,7 @@ if __name__ == '__main__':
         #NOTE: This assumes the TUTOR Vosource.xmls have already been saved locally:
         fpath_list = aitc.get_tutor_vosource_xml_fpath_list()
     
-        print 'About to: populate_mysql_with_initial_tutor_sources)...'
+        print('About to: populate_mysql_with_initial_tutor_sources)...')
         aitc.drop_table()
         aitc.create_mysql_table()
         # NOTE: Use param: test_aitc=aitc for non-parallel testing:
@@ -885,29 +885,29 @@ if __name__ == '__main__':
             queued_running_tasks[i] = task
         while len(queued_running_tasks) > 0:
             taskids_to_pop = []
-            for i,task  in queued_running_tasks.iteritems():
+            for i,task  in queued_running_tasks.items():
                 try:
                     run_duration = tc.get_task_result(task, block=False).duration
                     taskids_to_pop.append(i)
                     completed_tasks[i] = run_duration
-                    print " Finish: %d, duration=%0.2lf, id=%d %s" % \
+                    print(" Finish: %d, duration=%0.2lf, id=%d %s" % \
                           (i, run_duration, tc.get_task_result(task, block=False).taskid, \
-                           vosource_fpath_list[i])
+                           vosource_fpath_list[i]))
                 except:
                     pass # this task is still queued / running
             for task_id in taskids_to_pop:
                 queued_running_tasks.pop(task_id)
 
-            task_ids_sort = queued_running_tasks.keys()
+            task_ids_sort = list(queued_running_tasks.keys())
             task_ids_sort.sort()
-            print "%s : %d queued/running;  %d completed. Running tasks:" % (\
+            print("%s : %d queued/running;  %d completed. Running tasks:" % (\
                       datetime.datetime.utcnow(),
                       len(queued_running_tasks),
-                      len(completed_tasks))
+                      len(completed_tasks)))
             for task_id in task_ids_sort[:10]:
-                print "Running: %d %s" % (task_id, vosource_fpath_list[task_id])
+                print("Running: %d %s" % (task_id, vosource_fpath_list[task_id]))
             time.sleep(120)
-        print "Done!"
+        print("Done!")
 
     """
     ##### This generates & prints a dictionary of colors for 2D plotting:

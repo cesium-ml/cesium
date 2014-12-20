@@ -123,7 +123,7 @@ class Rpy2Classifier:
                     out_list.append(float(feat_val))
                     feat_val_dict[feat_names[i_f]].append(float(feat_val))
 
-        for feat_name, feat_list in feat_val_dict.iteritems():
+        for feat_name, feat_list in feat_val_dict.items():
             feat_val_dict[feat_name] = robjects.FloatVector(feat_list)
             
         return {'feat_list':out_list,
@@ -300,7 +300,7 @@ class Rpy2Classifier:
             attribs = line.split(',')
             new_attribs = []
             for i, attrib_val in enumerate(attribs):
-                if i in misattrib_name_to_id.values():
+                if i in list(misattrib_name_to_id.values()):
                     if random.random() <= prob_misattrib_is_missing:
                         new_attribs.append('?')
                         continue
@@ -318,7 +318,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         data_dict['features'] = robjects.r['data.frame'](**featname_longfeatval_dict)
         data_dict['classes'] = robjects.StrVector(data_dict['class_list'])
@@ -368,11 +368,11 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in train_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in train_featname_longfeatval_dict.items():
             train_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         traindata_dict['features'] = robjects.r['data.frame'](**train_featname_longfeatval_dict)
         traindata_dict['classes'] = robjects.StrVector(traindata_dict['class_list'])
@@ -381,7 +381,7 @@ class Rpy2Classifier:
         robjects.globalenv['ytr'] = traindata_dict['classes']
         
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in test_featname_longfeatval_dict.items():
             test_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         testdata_dict['features'] = robjects.r['data.frame'](**test_featname_longfeatval_dict)
         testdata_dict['classes'] = robjects.StrVector(testdata_dict['class_list'])
@@ -390,7 +390,7 @@ class Rpy2Classifier:
         robjects.globalenv['yte'] = testdata_dict['classes']
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
         r_str  = '''
 
@@ -465,7 +465,7 @@ class Rpy2Classifier:
         allsrc_tups = []
         #  Nice and kludgey.  Could do this in R if I knew it a bit better
         for i, srcid in enumerate(testdata_dict['srcid_list']):
-            tups_list = zip(list(robjects.r("rf_clfr$test$votes[%d,]" % (i+1))),  possible_classes)
+            tups_list = list(zip(list(robjects.r("rf_clfr$test$votes[%d,]" % (i+1))),  possible_classes))
             tups_list.sort(reverse=True)
             for j in range(3):
                 allsrc_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
@@ -503,7 +503,7 @@ class Rpy2Classifier:
         """
         import datetime
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
         features_r_data = robjects.r['data.frame'](**r_data_dict)
 
@@ -535,7 +535,7 @@ class Rpy2Classifier:
             fp.write("%d %lf %s\n" % (ntree, err, str(datetime.datetime.now() - now)))
             fp.close()
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_imputed_arff_for_ntree(self, feature_data_dict, mtry=None, ntree=None, header_str=None, feature_list=[], srcid_list=[], class_list=[], train_srcids=[]):
@@ -594,11 +594,11 @@ class Rpy2Classifier:
         """
         #import numpy
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             try:
                 r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
             except:
-                print 'feat_longlist.count(None)=', feat_longlist.count(None), '\t', feat_name
+                print('feat_longlist.count(None)=', feat_longlist.count(None), '\t', feat_name)
                 raise # apparently None values are not automatically converted to numpy.nan.  Must do earlier.
             #print feat_longlist.count(numpy.nan), '\t', feat_name
         #import pdb; pdb.set_trace()
@@ -633,11 +633,11 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in train_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in train_featname_longfeatval_dict.items():
             train_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         traindata_dict['features'] = robjects.r['data.frame'](**train_featname_longfeatval_dict)
         traindata_dict['classes'] = robjects.StrVector(traindata_dict['class_list'])
@@ -646,7 +646,7 @@ class Rpy2Classifier:
         robjects.globalenv['ytr'] = traindata_dict['classes']
         
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in test_featname_longfeatval_dict.items():
             test_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         testdata_dict['features'] = robjects.r['data.frame'](**test_featname_longfeatval_dict)
         testdata_dict['classes'] = robjects.StrVector(testdata_dict['class_list'])
@@ -771,18 +771,18 @@ class Rpy2Classifier:
         trainset_everyclass_tups = []
         #  Nice and kludgey.  Could do this in R if I knew it a bit better
         for i, srcid in enumerate(testdata_dict['srcid_list']):
-            tups_list = zip(list(robjects.r("rf_clfr$test$votes[%d,]" % (i+1))),  possible_classes)
+            tups_list = list(zip(list(robjects.r("rf_clfr$test$votes[%d,]" % (i+1))),  possible_classes))
             tups_list.sort(reverse=True)
-            for j in xrange(len(tups_list)):
+            for j in range(len(tups_list)):
                 if j < 3:
                     allsrc_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
                 everyclass_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
 
         # # # This is just needed for filling the ASAS catalog tables:
         for i, srcid in enumerate(traindata_dict['srcid_list']):
-            tups_list = zip(list(robjects.r("rf_applied_to_train$test$votes[%d,]" % (i+1))),  possible_classes)
+            tups_list = list(zip(list(robjects.r("rf_applied_to_train$test$votes[%d,]" % (i+1))),  possible_classes))
             tups_list.sort(reverse=True)
-            for j in xrange(len(tups_list)):
+            for j in range(len(tups_list)):
                 trainset_everyclass_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
         # # #
 
@@ -848,9 +848,9 @@ class Rpy2Classifier:
         IDAdd = robjects.globalenv['IDAdd']
         predAdd = robjects.globalenv['predAdd']
 
-        print "Chosen high confidence sources:"
+        print("Chosen high confidence sources:")
         for i, source_id in enumerate(list(IDAdd)):
-            print source_id, list(predAdd)[i]
+            print(source_id, list(predAdd)[i])
 
         # Want to return a list of one source_id from each class, and also a list of the rest.
 
@@ -878,7 +878,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         data_dict['features'] = robjects.r['data.frame'](**featname_longfeatval_dict)
         data_dict['classes'] = robjects.StrVector(data_dict['class_list'])
@@ -930,7 +930,7 @@ class Rpy2Classifier:
         # TODO: just remove features here:
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
         new_featname_longfeatval_dict = {}
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             if feat_name in ignore_feats:
                 continue # skip these
             #print feat_name
@@ -1001,7 +1001,7 @@ class Rpy2Classifier:
             predictions['tups'] = []
             #  Nice and kludgey.  Could do this in R if I knew it a bit better
             for i, srcid in enumerate(data_dict['srcid_list']):
-                tups_list = zip(list(robjects.r("predictions[%d,]" % (i+1))),  possible_classes)
+                tups_list = list(zip(list(robjects.r("predictions[%d,]" % (i+1))),  possible_classes))
                 tups_list.sort(reverse=True)
                 for j in range(3):
                     try:
@@ -1084,7 +1084,7 @@ class Rpy2Classifier:
         # TODO: just remove features here:
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
         new_featname_longfeatval_dict = {}
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             if feat_name in ignore_feats:
                 continue # skip these
             #print feat_name
@@ -1117,7 +1117,7 @@ class Rpy2Classifier:
             predictions['tups'] = []
             #  Nice and kludgey.  Could do this in R if I knew it a bit better
             for i, srcid in enumerate(data_dict['srcid_list']):
-                tups_list = zip(list(robjects.r("predictions[%d,]" % (i+1))),  possible_classes)
+                tups_list = list(zip(list(robjects.r("predictions[%d,]" % (i+1))),  possible_classes))
                 tups_list.sort(reverse=True)
                 for j in range(3):
                     try:
@@ -1141,7 +1141,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L85)
         """
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         data_dict['features'] = robjects.r['data.frame'](**featname_longfeatval_dict)
         data_dict['classes'] = robjects.StrVector(data_dict['class_list'])
@@ -1283,7 +1283,7 @@ class Rpy2Classifier:
 
         """
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
         features_r_data = robjects.r['data.frame'](**r_data_dict)
         robjects.globalenv['features'] = features_r_data
@@ -1370,7 +1370,7 @@ class GenerateFoldedClassifiers:
 
         class_indlist = {}
         for i, class_name in enumerate(full_data_dict['class_list']):
-            if not class_indlist.has_key(class_name):
+            if class_name not in class_indlist:
                 class_indlist[class_name]  = []
             class_indlist[class_name].append(i)
 
@@ -1390,29 +1390,29 @@ class GenerateFoldedClassifiers:
                                                 'percent_list':[],
                                                 'class_list':[],
                                                 'arff_rows':[]}}
-            for feat_name in full_data_dict['featname_longfeatval_dict'].keys():
+            for feat_name in list(full_data_dict['featname_longfeatval_dict'].keys()):
                 all_fold_dict[i]['train_data']['featname_longfeatval_dict'][feat_name] = []
                 all_fold_dict[i]['classif_data']['featname_longfeatval_dict'][feat_name] = []
 
         if do_stratified:
             ### Stratified case will have to keep track of which srcids were used in each train/classif fold.
-            print 'do_stratified!!!  Case not coded yet!'
+            print('do_stratified!!!  Case not coded yet!')
             
             raise
         else:
-            for class_name, ind_list in class_indlist.iteritems():
+            for class_name, ind_list in class_indlist.items():
                 src_count = len(ind_list)
                 if classify_percent == None:
                     n_to_classify = src_count / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
                 else:
                     n_to_classify = int(src_count * (classify_percent / 100.))
 
-                for i_fold, fold_dict in all_fold_dict.iteritems():
+                for i_fold, fold_dict in all_fold_dict.items():
                     random.shuffle(ind_list)
                     sub_range = ind_list[:n_to_classify]
                     for i in sub_range:
                         fold_dict['classif_data']['srcid_list'].append(full_data_dict['srcid_list'][i])
-                        for feat_name in full_data_dict['featname_longfeatval_dict'].keys():
+                        for feat_name in list(full_data_dict['featname_longfeatval_dict'].keys()):
                             fold_dict['classif_data']['featname_longfeatval_dict'][feat_name].append( \
                                                  full_data_dict['featname_longfeatval_dict'][feat_name][i])
                         if len(full_data_dict['iters_list']) > 0:
@@ -1423,10 +1423,10 @@ class GenerateFoldedClassifiers:
                         if len(full_data_dict['arff_rows']) > 0:
                             fold_dict['classif_data']['arff_rows'].append(full_data_dict['arff_rows'][i])
 
-                    train_inds = filter(lambda x: x not in sub_range, ind_list)
+                    train_inds = [x for x in ind_list if x not in sub_range]
                     for i in train_inds:
                         fold_dict['train_data']['srcid_list'].append(full_data_dict['srcid_list'][i])
-                        for feat_name in full_data_dict['featname_longfeatval_dict'].keys():
+                        for feat_name in list(full_data_dict['featname_longfeatval_dict'].keys()):
                             fold_dict['train_data']['featname_longfeatval_dict'][feat_name].append( \
                                                  full_data_dict['featname_longfeatval_dict'][feat_name][i])
                         if len(full_data_dict['iters_list']) > 0:
@@ -1463,12 +1463,12 @@ class GenerateFoldedClassifiers:
                                                 do_ignore_NA_features=do_ignore_NA_features,
                                                 ntrees=ntrees, mtry=mtry, nfolds=nfolds, nodesize=nodesize)
         else:
-            print 'incorrect classifier_type!'
+            print('incorrect classifier_type!')
             raise
 
         rc.save_classifier(classifier_dict=classifier_dict,
                            fpath=classifier_fpath)
-        print 'WROTE:', classifier_fpath
+        print('WROTE:', classifier_fpath)
 
 
 
@@ -1491,7 +1491,7 @@ if __name__ == '__main__':
 
     if 1:
         # generate multiple (folded) classifiers:
-        import cPickle
+        import pickle
         
         Gen_Fold_Classif = GenerateFoldedClassifiers()
         all_fold_data = Gen_Fold_Classif.generate_fold_subset_data(full_data_dict=traindata_dict,
@@ -1499,7 +1499,7 @@ if __name__ == '__main__':
                                                                    do_stratified=False,
                                                                    classify_percent=40.)
 
-        for i_fold, fold_data in all_fold_data.iteritems():
+        for i_fold, fold_data in all_fold_data.items():
             classifier_fpath =    os.path.expandvars("$HOME/scratch/classifier_deboss_RF_%d.rdata" % ( \
                                                                                       i_fold))
             src_data_pkl_fpath =  os.path.expandvars("$HOME/scratch/classifier_deboss_RF_%d.srcs.pkl" % ( \
@@ -1507,7 +1507,7 @@ if __name__ == '__main__':
             if os.path.exists(src_data_pkl_fpath):
                 os.system('rm ' + src_data_pkl_fpath)
             fp = open(src_data_pkl_fpath, 'wb')
-            cPickle.dump({'srcid_list':all_fold_data[i_fold]['classif_data']['srcid_list']},fp,1)
+            pickle.dump({'srcid_list':all_fold_data[i_fold]['classif_data']['srcid_list']},fp,1)
             fp.close()
 
             Gen_Fold_Classif.generate_R_randomforest_classifier_rdata(train_data=fold_data['train_data'],
@@ -1523,7 +1523,7 @@ if __name__ == '__main__':
                                                 do_ignore_NA_features=do_ignore_NA_features)
             rc.save_classifier(classifier_dict=classifier_dict,
                                fpath=classifier_fpath)
-            print 'WROTE:', classifier_fpath
+            print('WROTE:', classifier_fpath)
             sys.exit()
         else:
             r_name='rf_clfr'
