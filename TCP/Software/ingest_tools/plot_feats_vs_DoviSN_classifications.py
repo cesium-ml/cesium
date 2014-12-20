@@ -149,7 +149,7 @@ This code saves XMLs into a seperate directory.
             weka_line_list.append("'" + str(orig_sci_class) + "'")
 
             weka_line = ','.join(weka_line_list)
-            print '!', weka_line
+            print('!', weka_line)
             body_lines_list.append(weka_line)
 
         header_str = """% date = 2009-03-06 05:00:37.323219

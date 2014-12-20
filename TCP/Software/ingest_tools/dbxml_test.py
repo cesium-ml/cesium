@@ -30,7 +30,7 @@ pars = {\
 def make_wwwable(messy_str, replace_dict):
     """ Make a messy string www printable.
     """
-    for bad_str,new_str in replace_dict.iteritems():
+    for bad_str,new_str in replace_dict.items():
         messy_str = messy_str.replace(bad_str,new_str)
     return messy_str
 
@@ -83,7 +83,7 @@ class DBXML_Container_Instance:
 
 
     def conform_xml_str(self, xml_string):
-        for bad_str,new_str in self.xml_replace_dict.iteritems():
+        for bad_str,new_str in self.xml_replace_dict.items():
             xml_string = xml_string.replace(bad_str,new_str)
         return xml_string
 
@@ -134,7 +134,7 @@ class DBXML_Container_Instance:
             result_list.append(value.asString())
         if verbose == 'yes':
             for result in result_list:
-                print result
+                print(result)
         return result_list
 
 
@@ -157,7 +157,7 @@ if __name__ == '__main__':
         ao = amara.parse(xml_fpath) # = open(xml_fpath).read()
         xml_str = ao.xml()
         try:
-            voevent_id_raw = str(ao.VOEvent.xml_properties[u'id'])
+            voevent_id_raw = str(ao.VOEvent.xml_properties['id'])
         except:
             voevent_id_raw = str(xml_fpath) #OR some kind of somewhat useful id
         voevent_id = voevent_id_raw # make_wwwable(voevent_id_raw, pars['wwwable_replace_dict'])

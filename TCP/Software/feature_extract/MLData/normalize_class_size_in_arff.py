@@ -47,12 +47,12 @@ if __name__ == '__main__':
     fp_out = open(out_arff_fpath, 'w')
     
     class_name_to_arff_lines_list = {}
-    for class_name in class_num_rows_dict.keys():
+    for class_name in list(class_num_rows_dict.keys()):
         class_name_to_arff_lines_list[class_name] = []
 
     lines = open(arff_fpath).readlines()
 
-    for i in xrange(len(lines)):
+    for i in range(len(lines)):
         fp_out.write(lines[i])
         if "@data" in lines[i]:
             break
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     max_n_rows = max(class_num_rows_dict.values())
 
-    for class_name, n_rows in class_num_rows_dict.iteritems():
+    for class_name, n_rows in class_num_rows_dict.items():
         if n_rows == max_n_rows:
             for line in class_name_to_arff_lines_list[class_name]:
                 fp_out.write(line)

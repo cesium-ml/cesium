@@ -1,6 +1,7 @@
 from weakref import ref
 
 from blinker._saferef import BoundMethodWeakref
+import collections
 
 
 try:
@@ -39,7 +40,7 @@ except:
                 args = tuple()
             else:
                 args = self.default_factory,
-            return type(self), args, None, None, self.items()
+            return type(self), args, None, None, list(self.items())
 
         def copy(self):
             return self.__copy__()
@@ -50,7 +51,7 @@ except:
         def __deepcopy__(self, memo):
             import copy
             return type(self)(self.default_factory,
-                              copy.deepcopy(self.items()))
+                              copy.deepcopy(list(self.items())))
 
         def __repr__(self):
             return 'defaultdict(%s, %s)' % (self.default_factory,
@@ -106,7 +107,7 @@ class symbol(object):
 
 def hashable_identity(obj):
     if hasattr(obj, 'im_func'):
-        return (id(obj.im_func), id(obj.im_self))
+        return (id(obj.__func__), id(obj.__self__))
     else:
         return id(obj)
 
@@ -120,18 +121,18 @@ class annotatable_weakref(ref):
 
 def reference(object, callback=None, **annotations):
     """Return an annotated weak ref."""
-    if callable(object):
+    if isinstance(object, collections.Callable):
         weak = callable_reference(object, callback)
     else:
         weak = annotatable_weakref(object, callback)
-    for key, value in annotations.items():
+    for key, value in list(annotations.items()):
         setattr(weak, key, value)
     return weak
 
 
 def callable_reference(object, callback=None):
     """Return an annotated weak ref, supporting bound instance methods."""
-    if hasattr(object, 'im_self') and object.im_self is not None:
+    if hasattr(object, 'im_self') and object.__self__ is not None:
         return BoundMethodWeakref(target=object, on_delete=callback)
     elif hasattr(object, '__self__') and object.__self__ is not None:
         return BoundMethodWeakref(target=object, on_delete=callback)

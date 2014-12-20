@@ -52,7 +52,7 @@ UPDATE project_classes SET class_id=282 where pclass_id=402 and project_id=126;
 """
 import os, sys
 import MySQLdb
-import cPickle
+import pickle
 import pprint
 import glob
 import gzip
@@ -67,7 +67,7 @@ def invoke_pdb(type, value, tb):
     """
     import traceback, pdb
     traceback.print_exception(type, value, tb)
-    print
+    print()
     pdb.pm()
 
 
@@ -135,8 +135,8 @@ class TutorDb():
     def update_with_sourceids(self, sourceid_lookup={}, source_data={}):
         """ Match sourceids to source names.  Store in source_data dict.
         """
-        for source_dict in source_data.values():
-            assert(sourceid_lookup.has_key(source_dict['source_name']))
+        for source_dict in list(source_data.values()):
+            assert(source_dict['source_name'] in sourceid_lookup)
             source_dict['source_id'] = sourceid_lookup[source_dict['source_name']]
 
 
@@ -159,10 +159,10 @@ class TutorDb():
 
         observation_time_format = self.pars.get('observation_time_format','')
 
-        for source_dict in source_data.values():
+        for source_dict in list(source_data.values()):
             source_id = source_dict['source_id']
-            for filt_name, filt_dict in source_dict['ts_data'].iteritems():
-                assert(self.filter_name_to_id.has_key(filt_name))
+            for filt_name, filt_dict in source_dict['ts_data'].items():
+                assert(filt_name in self.filter_name_to_id)
                 filter_id = self.filter_name_to_id[filt_name]
 
                 observation_start = min(filt_dict['t'])
@@ -180,7 +180,7 @@ class TutorDb():
                 if src_count > n_src_per_insert:
                     sources_insert_str = ''.join(sources_insert_list)[:-2]
                     if not debug:
-                        print 'INSERTing: ...'
+                        print('INSERTing: ...')
                         self.cursor.execute(sources_insert_str)
                         sources_insert_list = ["INSERT INTO observations (source_id, instrument_id , filter_id , user_id , observation_ucd , observation_units , observation_time_format , observation_time_scale , observation_description , observation_bright_limit_low , observation_bright_limit_high , observation_start , observation_end) VALUES "]
                         
@@ -190,17 +190,17 @@ class TutorDb():
             if debug:
                 #print sources_insert_str
                 for elem in sources_insert_list:
-                    print elem
+                    print(elem)
                 #print sources_insert_list[0]
                 #print sources_insert_list[1]
                 #print sources_insert_list[2]
                 #print sources_insert_list[3]
             else:
-                print sources_insert_list[0]
-                print sources_insert_list[1]
+                print(sources_insert_list[0])
+                print(sources_insert_list[1])
                 #print sources_insert_list[2]
                 #print sources_insert_list[3]
-                print 'INSERTing: ...'
+                print('INSERTing: ...')
                 self.cursor.execute(sources_insert_str)
 
 
@@ -223,10 +223,10 @@ class TutorDb():
 
         observation_time_format = self.pars.get('observation_time_format','')
 
-        for source_dict in source_data.values():
+        for source_dict in list(source_data.values()):
             source_id = source_dict['source_id']
-            for filt_name, filt_dict in source_dict['ts_data'].iteritems():
-                assert(self.filter_name_to_id.has_key(filt_name))
+            for filt_name, filt_dict in source_dict['ts_data'].items():
+                assert(filt_name in self.filter_name_to_id)
                 filter_id = self.filter_name_to_id[filt_name]
 
                 observation_start = min(filt_dict['t'])
@@ -244,7 +244,7 @@ class TutorDb():
                 if src_count > n_src_per_insert:
                     sources_insert_str = ''.join(sources_insert_list)[:-2]  + " ON DUPLICATE KEY UPDATE observation_start=VALUES(observation_start), observation_end=VALUES(observation_end)"
                     if not debug:
-                        print 'INSERTing: ...'
+                        print('INSERTing: ...')
                         self.cursor.execute(sources_insert_str)
                         sources_insert_list = ["INSERT INTO observations (observation_id, source_id, instrument_id , filter_id , user_id , observation_ucd , observation_units , observation_time_format , observation_time_scale , observation_description , observation_bright_limit_low , observation_bright_limit_high , observation_start , observation_end) VALUES "]
                         
@@ -254,17 +254,17 @@ class TutorDb():
             if debug:
                 #print sources_insert_str
                 for elem in sources_insert_list:
-                    print elem
+                    print(elem)
                 #print sources_insert_list[0]
                 #print sources_insert_list[1]
                 #print sources_insert_list[2]
                 #print sources_insert_list[3]
             else:
-                print sources_insert_list[0]
-                print sources_insert_list[1]
+                print(sources_insert_list[0])
+                print(sources_insert_list[1])
                 #print sources_insert_list[2]
                 #print sources_insert_list[3]
-                print 'INSERTing: ...'
+                print('INSERTing: ...')
                 self.cursor.execute(sources_insert_str)
 
 
@@ -273,25 +273,25 @@ class TutorDb():
         """
         obsdata_limit = False
         obsdata_limit_sigma = 0
-        for source_dict in source_data.values():
+        for source_dict in list(source_data.values()):
             source_id = source_dict['source_id']
             sources_insert_list = ["INSERT IGNORE INTO obs_data (observation_id, obsdata_time, obsdata_val, obsdata_err, obsdata_limit, obsdata_limit_sigma) VALUES "]
 
-            for filt_name, filt_dict in source_dict['ts_data'].iteritems():
+            for filt_name, filt_dict in source_dict['ts_data'].items():
                 observation_id = filt_dict['observation_id']
 
                 if (not debug) and delete_entries_first:
                     del_str = "DELETE FROM obs_data WHERE observation_id=%d" % (observation_id)
                     self.cursor.execute(del_str)
 
-                for i in xrange(len(filt_dict['t'])):
+                for i in range(len(filt_dict['t'])):
                     obsdata_time = filt_dict['t'][i]
                     if filt_dict['m'][i] <= self.pars.get('mag_null_value', -999999999):
                         #obsdata_val = "NULL"
                         continue  # we skip observation epochs which have no data (and assuming no limiting mag info as well)
                     else:
                         obsdata_val = str(filt_dict['m'][i])
-                    if filt_dict.has_key('merr'):
+                    if 'merr' in filt_dict:
                         obsdata_err = filt_dict['merr'][i]
                     else:
                         obsdata_err = 0.
@@ -299,7 +299,7 @@ class TutorDb():
                     sources_insert_list.append("""(%d, %lf, %s, %lf, '%s', %d), """ %  insert_tup)
 
                 if ((len(filt_dict.get('lim_t',[])) > 0) and (insert_limits)):
-                    for i in xrange(len(filt_dict['lim_t'])):
+                    for i in range(len(filt_dict['lim_t'])):
                         insert_tup = (observation_id,
                                       filt_dict['lim_t'][i],
                                       filt_dict['lim_m'][i],
@@ -332,22 +332,22 @@ class TutorDb():
         """
         obsdata_limit = False
         obsdata_limit_sigma = 0
-        for source_dict in source_data.values():
+        for source_dict in list(source_data.values()):
             source_id = source_dict['source_id']
             sources_insert_list = ["INSERT IGNORE INTO obs_data (observation_id, obsdata_time, obsdata_val, obsdata_err, obsdata_limit, obsdata_limit_sigma) VALUES "]
 
-            for filt_name, filt_dict in source_dict['ts_data'].iteritems():
+            for filt_name, filt_dict in source_dict['ts_data'].items():
                 observation_id = filt_dict['observation_id']
 
 
-                for i in xrange(len(filt_dict['t'])):
+                for i in range(len(filt_dict['t'])):
                     obsdata_time = filt_dict['t'][i]
                     if filt_dict['m'][i] <= self.pars.get('mag_null_value', -999999999):
                         #obsdata_val = "NULL"
                         continue  # we skip observation epochs which have no data (and assuming no limiting mag info as well)
                     else:
                         obsdata_val = str(filt_dict['m'][i])
-                    if filt_dict.has_key('merr'):
+                    if 'merr' in filt_dict:
                         obsdata_err = filt_dict['merr'][i]
                     else:
                         obsdata_err = 0.
@@ -357,16 +357,16 @@ class TutorDb():
         
             if debug:
                 #print sources_insert_str
-                print sources_insert_list[0]
-                print sources_insert_list[1]
-                print sources_insert_list[2]
-                print sources_insert_list[3]
+                print(sources_insert_list[0])
+                print(sources_insert_list[1])
+                print(sources_insert_list[2])
+                print(sources_insert_list[3])
             else:
-                print sources_insert_list[0]
-                print sources_insert_list[1]
-                print sources_insert_list[2]
-                print sources_insert_list[3]
-                print 'INSERTing: ...'
+                print(sources_insert_list[0])
+                print(sources_insert_list[1])
+                print(sources_insert_list[2])
+                print(sources_insert_list[3])
+                print('INSERTing: ...')
                 self.cursor.execute(sources_insert_str)
 
 
@@ -375,7 +375,7 @@ class TutorDb():
         """
         select observation_id from observations table
         """
-        for source_dict in source_data.values():
+        for source_dict in list(source_data.values()):
             source_id = source_dict['source_id']
 
             select_str = "SELECT observation_id, filter_id FROM observations WHERE source_id=%d" % \
@@ -460,7 +460,7 @@ class TutorDebosscherProjectInsert(TutorDb):
 
         """
         fp = open('/home/pteluser/scratch/debosscher_paper_tools__assocdict.pkl') # from debosscher_paper_tools.py
-        deboss_class_assoc = cPickle.load(fp)
+        deboss_class_assoc = pickle.load(fp)
         fp.close()
 
 
@@ -475,12 +475,12 @@ class TutorDebosscherProjectInsert(TutorDb):
         """
 
         if debug:
-            for insert_name, insert_str in proj_tables['insert'].iteritems():
-                print insert_str
+            for insert_name, insert_str in proj_tables['insert'].items():
+                print(insert_str)
         else:
-            print 'INSERTing: ...'
-            for insert_name, insert_str in proj_tables['insert'].iteritems():
-                print insert_str
+            print('INSERTing: ...')
+            for insert_name, insert_str in proj_tables['insert'].items():
+                print(insert_str)
                 self.cursor.execute(insert_str)
 
 
@@ -490,7 +490,7 @@ class TutorDebosscherProjectInsert(TutorDb):
         """ Insert known sources from old project into tutor.sources TABLE.
         """
         sources_insert_list = ["INSERT INTO sources (project_id, pclass_id, user_id, class_id , source_pclass_confidence , source_class_confidence , source_oid     , source_name    , source_ra , source_ra_err , source_dec , source_dec_err , source_epoch , source_redshift_type , source_redshift , source_redshift_err , Source_Extinction_Type , Source_Extinction , Source_Extinction_Err) VALUES "]
-        for hip_id, hip_dict in data_with_tutorids.iteritems():
+        for hip_id, hip_dict in data_with_tutorids.items():
             # TODO get rows and all info from sources table, then append to insert list
             select_str = """SELECT class_id , source_pclass_confidence , source_class_confidence , source_oid     , source_name    , source_ra , source_ra_err , source_dec , source_dec_err , source_epoch , source_redshift_type , source_redshift , source_redshift_err , Source_Extinction_Type , Source_Extinction , Source_Extinction_Err
                             FROM sources
@@ -501,11 +501,11 @@ class TutorDebosscherProjectInsert(TutorDb):
             assert(len(results) == 1)
             row = results[0]
 
-            if hip_dict.has_key('pclass_id'):
+            if 'pclass_id' in hip_dict:
                 pclass_id = hip_dict['pclass_id']
             else:
                 pclass_id = class_name_id_dict[hip_dict['tcp_class']]['pclass_id']  # This dict is the new project
-            if hip_dict.has_key('class_id'):
+            if 'class_id' in hip_dict:
                 class_id = hip_dict['class_id']
             else:
                 class_id = class_name_id_dict[hip_dict['tcp_class']]['class_id']  # This dict is the new project
@@ -522,13 +522,13 @@ class TutorDebosscherProjectInsert(TutorDb):
             #print sources_insert_list[2]
             #print sources_insert_list[3]
            for elem in sources_insert_list:
-               print elem
+               print(elem)
         else:
-            print sources_insert_list[0]
-            print sources_insert_list[1]
-            print sources_insert_list[2]
-            print sources_insert_list[3]
-            print 'INSERTing: ...'
+            print(sources_insert_list[0])
+            print(sources_insert_list[1])
+            print(sources_insert_list[2])
+            print(sources_insert_list[3])
+            print('INSERTing: ...')
             self.cursor.execute(sources_insert_str)
 
 
@@ -555,12 +555,12 @@ class TutorDebosscherProjectInsert(TutorDb):
         Source_Extinction_Err = 0
 
         sources_insert_list = ["INSERT INTO sources (project_id, pclass_id, user_id, class_id , source_pclass_confidence , source_class_confidence , source_oid     , source_name    , source_ra , source_ra_err , source_dec , source_dec_err , source_epoch , source_redshift_type , source_redshift , source_redshift_err , Source_Extinction_Type , Source_Extinction , Source_Extinction_Err) VALUES "]
-        for hip_id, hip_dict in data_without_tutorids.iteritems():
+        for hip_id, hip_dict in data_without_tutorids.items():
 
             try:
                 pclass_id = class_name_id_dict[hip_dict['tcp_class']]['pclass_id']  # This dict is the new project
             except:
-                print '!!!', hip_id, hip_dict['tcp_class']
+                print('!!!', hip_id, hip_dict['tcp_class'])
                 raise#continue
             class_id = class_name_id_dict[hip_dict['tcp_class']]['class_id']  # This dict is the new project
 
@@ -575,16 +575,16 @@ class TutorDebosscherProjectInsert(TutorDb):
         sources_insert_str = ''.join(sources_insert_list)[:-2]
         if debug:
             #print sources_insert_str
-            print sources_insert_list[0]
-            print sources_insert_list[1]
-            print sources_insert_list[2]
-            print sources_insert_list[3]
+            print(sources_insert_list[0])
+            print(sources_insert_list[1])
+            print(sources_insert_list[2])
+            print(sources_insert_list[3])
         else:
-            print sources_insert_list[0]
-            print sources_insert_list[1]
-            print sources_insert_list[2]
-            print sources_insert_list[3]
-            print 'INSERTing: ...'
+            print(sources_insert_list[0])
+            print(sources_insert_list[1])
+            print(sources_insert_list[2])
+            print(sources_insert_list[3])
+            print('INSERTing: ...')
             self.cursor.execute(sources_insert_str)
 
 
@@ -598,7 +598,7 @@ class TutorDebosscherProjectInsert(TutorDb):
               so my parsing method will not be an xml parser, to elliviate some potential headaches.
 
         """
-        for hip_id, hip_dict  in debos_subset.iteritems():
+        for hip_id, hip_dict  in debos_subset.items():
 
             xml_fpath = "%s/%s" % (self.pars['joey_xml_dirpath'], hip_dict['xml'])
             lines = open(xml_fpath).readlines()
@@ -659,7 +659,7 @@ class TutorDebosscherProjectInsert(TutorDb):
                 hip_ids = simbad_id_lookup.parse_html_for_ids(html_str, instr_identifier='HIP')
                 hip_id = int(hip_ids[0].replace('HIP',''))
             else:
-                print "ERROR"
+                print("ERROR")
                 raise
             debos_subset[hip_id]['new_srcid'] = source_id
 
@@ -681,11 +681,11 @@ class TutorDebosscherProjectInsert(TutorDb):
             srcname_srcid_dict[source_name] = source_id
 
 
-        for s_id, s_dict in debos_subset.iteritems():
-            if srcname_srcid_dict.has_key(s_dict['tutor_name']):
+        for s_id, s_dict in debos_subset.items():
+            if s_dict['tutor_name'] in srcname_srcid_dict:
                 s_dict['new_srcid'] = srcname_srcid_dict[s_dict['tutor_name']]
             else:
-                print 'MISSED:', s_id, s_dict
+                print('MISSED:', s_id, s_dict)
                 raise
 
 
@@ -704,7 +704,7 @@ class TutorDebosscherProjectInsert(TutorDb):
         observation_bright_limit_high = None
         
         sources_insert_list = ["INSERT INTO observations (source_id, instrument_id , filter_id , user_id , observation_ucd , observation_units , observation_time_format , observation_time_scale , observation_description , observation_bright_limit_low , observation_bright_limit_high , observation_start , observation_end) VALUES "]
-        for hip_id, hip_dict in debos_subset.iteritems():
+        for hip_id, hip_dict in debos_subset.items():
             source_id = hip_dict['new_srcid']
             observation_start = min(hip_dict['t'])
             observation_end = max(hip_dict['t'])
@@ -721,17 +721,17 @@ class TutorDebosscherProjectInsert(TutorDb):
         if debug:
             #print sources_insert_str
             for elem in sources_insert_list:
-                print elem
+                print(elem)
             #print sources_insert_list[0]
             #print sources_insert_list[1]
             #print sources_insert_list[2]
             #print sources_insert_list[3]
         else:
-            print sources_insert_list[0]
-            print sources_insert_list[1]
-            print sources_insert_list[2]
-            print sources_insert_list[3]
-            print 'INSERTing: ...'
+            print(sources_insert_list[0])
+            print(sources_insert_list[1])
+            print(sources_insert_list[2])
+            print(sources_insert_list[3])
+            print('INSERTing: ...')
             self.cursor.execute(sources_insert_str)
 
 
@@ -742,12 +742,12 @@ class TutorDebosscherProjectInsert(TutorDb):
         import pdb; pdb.set_trace()
         obsdata_limit = False
         obsdata_limit_sigma = 0
-        for hip_id, hip_dict in debos_subset.iteritems():
+        for hip_id, hip_dict in debos_subset.items():
             observation_id = hip_dict['new_observationid']
 
             sources_insert_list = ["INSERT INTO obs_data (observation_id, obsdata_time, obsdata_val, obsdata_err, obsdata_limit, obsdata_limit_sigma) VALUES "]
 
-            for i in xrange(len(hip_dict['t'])):
+            for i in range(len(hip_dict['t'])):
                 obsdata_time = hip_dict['t'][i]
                 obsdata_val = hip_dict['m'][i]
                 obsdata_err = hip_dict['merr'][i]
@@ -757,17 +757,17 @@ class TutorDebosscherProjectInsert(TutorDb):
         
             if debug:
                 #print sources_insert_str
-                print sources_insert_list[0]
-                print sources_insert_list[1]
-                print sources_insert_list[2]
-                print sources_insert_list[3]
+                print(sources_insert_list[0])
+                print(sources_insert_list[1])
+                print(sources_insert_list[2])
+                print(sources_insert_list[3])
                 import pdb; pdb.set_trace()
             else:
-                print sources_insert_list[0]
-                print sources_insert_list[1]
-                print sources_insert_list[2]
-                print sources_insert_list[3]
-                print 'INSERTing: ...'
+                print(sources_insert_list[0])
+                print(sources_insert_list[1])
+                print(sources_insert_list[2])
+                print(sources_insert_list[3])
+                print('INSERTing: ...')
                 self.cursor.execute(sources_insert_str)
 
 
@@ -775,7 +775,7 @@ class TutorDebosscherProjectInsert(TutorDb):
         """
         select observation_id from observations table
         """
-        for hip_id, hip_dict in debos_subset.iteritems():
+        for hip_id, hip_dict in debos_subset.items():
             
             select_str = "SELECT observation_id FROM observations WHERE source_id=%d" % \
                              (hip_dict['new_srcid'])
@@ -801,8 +801,8 @@ class TutorDebosscherProjectInsert(TutorDb):
         """
         data_with_tutorids = {}
         data_without_tutorids = {}
-        for hip_id, hip_dict in debos_subset.iteritems():
-            if hip_dict.has_key('tutorid'):
+        for hip_id, hip_dict in debos_subset.items():
+            if 'tutorid' in hip_dict:
                 data_with_tutorids[hip_id] = hip_dict
             else:
                 data_without_tutorids[hip_id] = hip_dict
@@ -830,8 +830,8 @@ class TutorDebosscherProjectInsert(TutorDb):
         # print / ensure that these unmatched sources are all OGLE (and there are no HD / HIP)
         """
         old_hip_srcids = []
-        for hip_id, hip_dict in debos_subset.iteritems():
-            if hip_dict.has_key('tutorid'):
+        for hip_id, hip_dict in debos_subset.items():
+            if 'tutorid' in hip_dict:
                 old_hip_srcids.append(hip_dict['tutorid'])
                 #print hip_dict['tutorid'], hip_dict['tutor_name'], hip_dict['xml']
 
@@ -885,7 +885,7 @@ class TutorDebosscherProjectInsert(TutorDb):
         for dat_fpath in dat_fpaths:
             fname = dat_fpath[dat_fpath.rfind('/')+1:dat_fpath.rfind('.dat')]
             match_found = False
-            for k,v in data_dict.iteritems():
+            for k,v in data_dict.items():
                 if (('OGLE' in fname) and
                     (v['tutor_name'] == fname)):
                     #print fname, k, v
@@ -901,10 +901,10 @@ class TutorDebosscherProjectInsert(TutorDb):
                     match_found = True
                     break
             if fname == '13365':
-                print 'yo', fname, k, v
+                print('yo', fname, k, v)
                 #import pdb; pdb.set_trace()
             if match_found == False:
-                print 'NO MATCH:', fname
+                print('NO MATCH:', fname)
                 raise
 
 
@@ -1003,12 +1003,12 @@ ORDER BY sources.pclass_id;
             self.parse_add_timeseries_data_from_files(debos_subset=debos_subset)
 
             fp = gzip.open(self.pars['hipdict_with_ts_pklgz_fpath'],'wb')
-            cPickle.dump(debos_subset,fp,1) # ,1) means a binary pkl is used.
+            pickle.dump(debos_subset,fp,1) # ,1) means a binary pkl is used.
             fp.close()
             
         else:
             fp=gzip.open(self.pars['hipdict_with_ts_pklgz_fpath'],'rb')
-            debos_subset=cPickle.load(fp)
+            debos_subset=pickle.load(fp)
             fp.close()
             
         #BROKE# self.insert_HIP_objects_into_tables(debug=True, debos_subset=debos_subset, class_name_id_dict=class_name_id_dict)
@@ -1116,10 +1116,10 @@ class TimeseriesInsert(TutorDb):
                     out_dict['U']['m'].append(float(ts_dicts['U-B'][t]) + float(ts_dicts['B-V'][t]) + float(ts_dicts['V'][t]))
                     out_dict['U']['t'].append(float(t))
                 except:
-                    print " !!! MISSING B-V (%s): t=%s V=%s U-B=%s" % (fpath[fpath.rfind('/')+1:],
+                    print(" !!! MISSING B-V (%s): t=%s V=%s U-B=%s" % (fpath[fpath.rfind('/')+1:],
                                                                   t,
                                                                   ts_dicts['V'][t],
-                                                                  ts_dicts['U-B'][t])
+                                                                  ts_dicts['U-B'][t]))
 
 
         return out_dict
@@ -1144,7 +1144,7 @@ class TimeseriesInsert(TutorDb):
 
         #for filt_name in ['u', 'g', 'r', 'i', 'z']:
         for filt_name in ['U', 'G', 'R', 'I', 'z']:
-            if not out_dict.has_key(filt_name):
+            if filt_name not in out_dict:
                 out_dict[filt_name] = {'t':[],
                                        'm':[],
                                        'merr':[]}
@@ -1195,9 +1195,9 @@ class TimeseriesInsert(TutorDb):
         srcname_srcid_dict = {}
         insert_list = ["INSERT INTO sources (source_id, source_oid, project_id, source_name, source_ra, source_dec, source_ra_err, source_dec_err, source_epoch, class_id, pclass_id) VALUES "]
         import pdb; pdb.set_trace()
-        print
+        print()
         cur_srcid = srcid_max + 1
-        for src_name, src_dict in source_data.iteritems():
+        for src_name, src_dict in source_data.items():
             insert_list.append('(%d, "%s", %d, "%s", %lf, %lf, 0.0, 0.0, "J2000.0", 0, 0), ' % ( \
                 cur_srcid,
                 src_name,
@@ -1246,7 +1246,7 @@ class TimeseriesInsert(TutorDb):
         srcname_srcid_dict = {}
         insert_list = ["INSERT INTO sources (source_id, source_oid, project_id, source_name, source_ra, source_dec, source_ra_err, source_dec_err, source_epoch, class_id, pclass_id) VALUES "]
         cur_srcid = srcid_max + 1
-        for src_name, src_dict in source_data.iteritems():
+        for src_name, src_dict in source_data.items():
             insert_list.append('(%d, %d, %d, "%s", %lf, %lf, 0.0, 0.0, "J2000.0", 0, 0), ' % ( \
                 cur_srcid,
                 cur_src_oid,
@@ -1393,7 +1393,7 @@ class ASAS_Data_Tools:
             if (int(self.frame_mag_tally['n'][frame_id]) < 1) and (float(self.frame_mag_tally['m0'][frame_id]) > 0.1):
                 ### debug
                 import pdb; pdb.set_trace()
-                print
+                print()
             insert_list.append('(%d, %d, %d, %d, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf), ' % (frame_id,
                                                                                   self.frame_mag_tally['n'][frame_id],
                                                                                   self.frame_mag_tally['n_c_lim'][frame_id],
@@ -1408,7 +1408,7 @@ class ASAS_Data_Tools:
                                                                                   self.frame_mag_tally['m4'][frame_id]))
 
             if len(insert_list) > 10000:
-                print 'insert > 100000', frame_id
+                print('insert > 100000', frame_id)
                 insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE n=VALUES(n), n_c_lim=VALUES(n_c_lim), n_c_nolim=VALUES(n_c_nolim), n_d=VALUES(n_d), m_avg=VALUES(m_avg), m_var=VALUES(m_var), m0=VALUES(m0), m1=VALUES(m1), m2=VALUES(m2), m3=VALUES(m3), m4=VALUES(m4)"
                 #import pdb; pdb.set_trace()
                 #print
@@ -1514,7 +1514,7 @@ class ASAS_Data_Tools:
 
         #fp_radec.close()
         import pdb; pdb.set_trace()
-        print 
+        print() 
 
 
     def convert_ra_hrs_to_deg(self):
@@ -1535,10 +1535,10 @@ class ASAS_Data_Tools:
         """ derived from download_timeseries_datasets_from_web()
         """
 
-        import urllib
+        import urllib.request, urllib.parse, urllib.error
         import matplotlib.pyplot as pyplot
 
-        f_url = urllib.urlopen(url)
+        f_url = urllib.request.urlopen(url)
         ts_str = f_url.read()
         f_url.close()
         #f_disk = open(ts_fpath, 'w')
@@ -1547,7 +1547,7 @@ class ASAS_Data_Tools:
         source_intermed_dict = self.parse_asas_ts_data_str(ts_str)
         v_mag = self.filter_best_ts_aperture(source_intermed_dict)
         import pdb; pdb.set_trace()
-        print 
+        print() 
         
 
 
@@ -1599,7 +1599,7 @@ class ASAS_Data_Tools:
         ### list of files sorted by mod-time:
         def sorted_ls(path):
             mtime = lambda f: os.stat(f).st_mtime
-            fullpaths = map(lambda fname: os.path.join(path, fname), os.listdir(path))
+            fullpaths = [os.path.join(path, fname) for fname in os.listdir(path)]
             return list(sorted(fullpaths, key=mtime))
         fpaths = sorted_ls(self.pars['asas_timeseries_dirpath'])        
 
@@ -1607,7 +1607,7 @@ class ASAS_Data_Tools:
             #proj131: source_name = fpath[fpath.rfind('/') + 1:fpath.rfind('.')]
             source_name = fpath[fpath.rfind('/') + 1:] # proj 126 # asas 50k
             if source_name in existing_sources:
-                print "ALREADY in TUTOR.sources!", source_name
+                print("ALREADY in TUTOR.sources!", source_name)
                 #import pdb; pdb.set_trace()
                 #print 
                 continue
@@ -1627,7 +1627,7 @@ class ASAS_Data_Tools:
         """
         """
         from numpy import loadtxt
-        from cStringIO import StringIO
+        from io import StringIO
         dtype_lookup = { \
             'HJD'  :'f8',  
             'MAG_3':'f8',
@@ -1646,7 +1646,7 @@ class ASAS_Data_Tools:
 
         ts_substr = '\n'.join(ts_sublist)
         fp_strio = StringIO(ts_substr)
-        ts_dtypes = map(lambda x: str(dtype_lookup[x]), ts_col_names)
+        ts_dtypes = [str(dtype_lookup[x]) for x in ts_col_names]
             
         ts_ndarray = loadtxt(fp_strio, comments='#',
                      dtype={'names':ts_col_names,
@@ -1745,7 +1745,7 @@ class ASAS_Data_Tools:
                     out_dict[dataset_name]['ts_ndarray'] = self.get_sub_ts_ndarray(ts_sublist, ts_col_names=ts_col_names)
                     out_dict[dataset_name]['ndata'] = len(ts_sublist) #len(out_dict[dataset_name]['ts_ndarray'])
                 except:
-                    print "EXCEPT: calling self.get_sub_ts_ndarray(ts_sublist, ts_col_names)"
+                    print("EXCEPT: calling self.get_sub_ts_ndarray(ts_sublist, ts_col_names)")
         return out_dict
 
 
@@ -1764,7 +1764,7 @@ class ASAS_Data_Tools:
         #import pdb; pdb.set_trace()
         #print
         ndata_mstd_aperture_tups = []
-        for d_name, d_dict in source_intermed_dict.iteritems():
+        for d_name, d_dict in source_intermed_dict.items():
             valid_inds = []
             if d_dict['ts_ndarray']['GRADE'].size == 1:
                 #if ((d_dict['ts_ndarray']['GRADE'] == 'A')):
@@ -1821,7 +1821,7 @@ class ASAS_Data_Tools:
         field_aperture_avgmag_dict = {}
         field_aperture_data_dict = {}
         limitmag_dname_data_dict = {}
-        for d_name, d_dict in intermed_dict.iteritems():
+        for d_name, d_dict in intermed_dict.items():
             #if d_name == "4 ; 2 F1840-24_233":
             #    import pdb; pdb.set_trace()
             #    print
@@ -1830,7 +1830,7 @@ class ASAS_Data_Tools:
             c_lim_inds = []
             d_inds = []
             limit_mag_inds = (numpy.ndarray((0)),)
-            if not d_dict.has_key('ts_ndarray'):
+            if 'ts_ndarray' not in d_dict:
                 continue # skip this d_name
             # # #
             #c_lim_inds = numpy.where(numpy.logical_and((d_dict['ts_ndarray']['MAG_0'] == 29.999), (d_dict['ts_ndarray']['GRADE'] == 'C')))
@@ -1878,7 +1878,7 @@ class ASAS_Data_Tools:
                     #     RDB table
                     for ind in limit_mag_inds[0]:
                         frame_name = d_dict['ts_ndarray']['FRAME'][ind]
-                        if self.frame_limitmags.has_key(frame_name):
+                        if frame_name in self.frame_limitmags:
                             d_dict['ts_ndarray']['MAG_0'][ind] = self.frame_limitmags[frame_name]
                             d_dict['ts_ndarray']['MER_0'][ind] = 0.1 # TODO: have similar dict for errors: self.frame_limitmags[frame_name]
                         else:
@@ -1992,7 +1992,7 @@ class ASAS_Data_Tools:
         (final_ndata, final_dname) = ndata_mstd_aperture_tups[0]
         # so final dict is: field_aperture_avgmag_dict[final_dname]
         # now need to find the median
-        mag_median = numpy.median(field_aperture_avgmag_dict[final_dname].values())
+        mag_median = numpy.median(list(field_aperture_avgmag_dict[final_dname].values()))
 
 
         ### determine aperture:
@@ -2061,7 +2061,7 @@ class ASAS_Data_Tools:
         frame_c_lim_mag_dict = {}
         frame_c_nolim_mag_dict = {}
         frame_d_mag_dict = {}
-        for d_name, d_dict in field_aperture_data_dict.iteritems():
+        for d_name, d_dict in field_aperture_data_dict.items():
             for i, frame in enumerate(d_dict[mag_name]['frame_c_lim']):
                 frame_c_lim_mag_dict[frame] = d_dict[mag_name]['m_c_lim'][i]
             for i, frame in enumerate(d_dict[mag_name]['frame_c_nolim']):
@@ -2094,7 +2094,7 @@ class ASAS_Data_Tools:
                     t_final.append(d_dict[mag_name]['t'][i])
                     m_final.append(d_dict[mag_name]['m'][i])
                     merr_final.append(d_dict[mag_name]['merr'][i])
-        print mag_name, ':::', final_dname
+        print(mag_name, ':::', final_dname)
 
         return {'t':t_final,
                 'm':m_final,
@@ -2149,7 +2149,7 @@ class ASAS_Data_Tools:
                             alpha=0.6, label='%d pixel, %d" aperture' % (aper_val + 2, 15*(aper_val + 2)),
                                                range=(6,15))
                 hist_aper_n_per_bin[aper_val] = n
-                print 'aper, max(n)', aper_val, max(n)
+                print('aper, max(n)', aper_val, max(n))
                 #pyplot.plot(mags, probs, color_list[aper_val] + 'o', ms=3)
             ##
             # obsolete# stat_mag_avg.append(numpy.average(mag[aper_inds]))
@@ -2198,24 +2198,24 @@ class ASAS_Data_Tools:
             m_lim_1 = max(mag_vec[numpy.where(apers_vec==1)])
             m_lim_2 = max(mag_vec[numpy.where(apers_vec==2)])
             m_lim_4 = max(mag_vec[numpy.where(apers_vec==4)])
-            print 'mag_vec: m_lim_0,1,2,4:', m_lim_0, m_lim_1, m_lim_2, m_lim_4
+            print('mag_vec: m_lim_0,1,2,4:', m_lim_0, m_lim_1, m_lim_2, m_lim_4)
 
             m_lim_0 = max(mag[numpy.where(asas_new_apers==0)])
             m_lim_1 = max(mag[numpy.where(asas_new_apers==1)])
             m_lim_2 = max(mag[numpy.where(asas_new_apers==2)])
             m_lim_4 = max(mag[numpy.where(asas_new_apers==4)])
 
-            print 'mag: m_lim_0,1,2,4:', m_lim_0, m_lim_1, m_lim_2, m_lim_4
+            print('mag: m_lim_0,1,2,4:', m_lim_0, m_lim_1, m_lim_2, m_lim_4)
 
             # TODO: need to get all True values, not just len()
-            print 'orig std min chosen apertures:', n_mag0, n_mag1, n_mag2, n_mag3, n_mag4
-            print 'len(numpy.where(asas_new_apers==0)[0])', \
+            print('orig std min chosen apertures:', n_mag0, n_mag1, n_mag2, n_mag3, n_mag4)
+            print('len(numpy.where(asas_new_apers==0)[0])', \
                   len(numpy.where(asas_new_apers==0)[0]), \
                   len(numpy.where(asas_new_apers==1)[0]), \
                   len(numpy.where(asas_new_apers==2)[0]), \
                   len(numpy.where(asas_new_apers==3)[0]), \
-                  len(numpy.where(asas_new_apers==4)[0])
-            print 'on aperture 3 point: ', mag[numpy.where(asas_new_apers==3)]
+                  len(numpy.where(asas_new_apers==4)[0]))
+            print('on aperture 3 point: ', mag[numpy.where(asas_new_apers==3)])
             #import pdb; pdb.set_trace()
             #print
 
@@ -2328,7 +2328,7 @@ class ASAS_Data_Tools:
         aperture = numpy.array(aperture_list)
         mag = numpy.array(mag_list)
 
-        stat_aper = [-2,-1] + range(5)
+        stat_aper = [-2,-1] + list(range(5))
         stat_mag_avg = [14.9, 13.75]
         #CRAP#stat_mag_avg = [15.5, 14]
         stat_mag_std = [0, 0]
@@ -2339,14 +2339,14 @@ class ASAS_Data_Tools:
 
         ###
         poly = numpy.polyfit(stat_mag_avg, stat_aper, 4)
-        print '4 POLY:', poly
+        print('4 POLY:', poly)
         x = numpy.arange(9, 15, 0.1)
         y = poly[0]*x*x*x*x + poly[1]*x*x*x + poly[2]*x*x + poly[3]*x + poly[4]
         pyplot.plot(y, x, 'mo-', ms=2) #color='green')
 
         ###
         poly = numpy.polyfit(stat_mag_avg, stat_aper, 3)
-        print '3 POLY:', poly
+        print('3 POLY:', poly)
         x = numpy.arange(9, 15, 0.1)
         y = poly[0]*x*x*x + poly[1]*x*x + poly[2]*x + poly[3]
         pyplot.plot(y, x, 'ko-', ms=2) #color='green')
@@ -2360,7 +2360,7 @@ class ASAS_Data_Tools:
 
         ###
         poly = numpy.polyfit(stat_mag_avg, stat_aper, 1)
-        print '1 POLY:', poly
+        print('1 POLY:', poly)
         x = numpy.arange(9, 15, 0.1)
         y = poly[0]*x + poly[1]
         pyplot.plot(y, x, 'bo-', ms=2) #color='green')
@@ -2391,7 +2391,7 @@ class ASAS_Data_Tools:
          - I expect this to be a several GB file.
         """
         line_list = []
-        for frame_id, f_mag in frame_mag_dict.iteritems():
+        for frame_id, f_mag in frame_mag_dict.items():
             line_list.append("%d %f\n" % (frame_id, f_mag))
         fp = open('/home/pteluser/scratch/asas_fullcat_idmag.dat', 'a')
         fp.write(''.join(line_list) + '\n')
@@ -2415,20 +2415,20 @@ class ASAS_Data_Tools:
             variance = 0
             for x in a:
                 (n, mean, variance) = calc_variance(x, n, mean, variance)
-            print n, mean, variance
+            print(n, mean, variance)
 
-            print "len(a)=%d   mean=%f   var=%f" % (len(a), scipy.mean(a), scipy.var(a))
+            print("len(a)=%d   mean=%f   var=%f" % (len(a), scipy.mean(a), scipy.var(a)))
 
-        for frame_id in frame_c_lim_mag_dict.keys():
+        for frame_id in list(frame_c_lim_mag_dict.keys()):
             self.frame_mag_tally['n_c_lim'][frame_id] += 1
 
-        for frame_id in frame_c_nolim_mag_dict.keys():
+        for frame_id in list(frame_c_nolim_mag_dict.keys()):
             self.frame_mag_tally['n_c_nolim'][frame_id] += 1
 
-        for frame_id in frame_d_mag_dict.keys():
+        for frame_id in list(frame_d_mag_dict.keys()):
             self.frame_mag_tally['n_d'][frame_id] += 1
 
-        for frame_id, f_mag in frame_mag_dict.iteritems():
+        for frame_id, f_mag in frame_mag_dict.items():
             (n, mean, variance) = calc_variance(f_mag,
                                                 self.frame_mag_tally['n'][frame_id],
                                                 self.frame_mag_tally['m_avg'][frame_id],
@@ -2436,7 +2436,7 @@ class ASAS_Data_Tools:
             if n == 0:
                 ### debug
                 import pdb; pdb.set_trace()
-                print
+                print()
             self.frame_mag_tally['n'][frame_id] = n
             self.frame_mag_tally['m_avg'][frame_id] = mean
             self.frame_mag_tally['m_var'][frame_id] = variance
@@ -2467,7 +2467,7 @@ class ASAS_Data_Tools:
         http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?005924-1556.6,asas3
         http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?183627-3149.5,asas3
         """
-        import urllib
+        import urllib.request, urllib.parse, urllib.error
         import matplotlib.pyplot as pyplot
         aperture_mag_debug_dict = {'mag':[], 'aperture':[]} # for debug / diagnostic use only
         source_data = {}
@@ -2477,7 +2477,7 @@ class ASAS_Data_Tools:
             #    print
             #else:
             #    continue
-            print 'i_src::', i_src,
+            print('i_src::', i_src, end=' ')
             ts_fpath = "%s/%s" % (self.pars['asas_timeseries_dirpath'], source_name) # #ACVS 126:
             #proj=131 asas: ts_fpath = "%s/%s.dat" % (self.pars['asas_timeseries_dirpath'], source_name)
             #import pdb; pdb.set_trace()
@@ -2488,7 +2488,7 @@ class ASAS_Data_Tools:
             else:
                 url_str = "%s%s%s" % (self.pars['asas_url_prefix'], source_name,
                                       self.pars['asas_url_suffix'])
-                f_url = urllib.urlopen(url_str)
+                f_url = urllib.request.urlopen(url_str)
                 ts_str = f_url.read()
                 f_url.close()
                 f_disk = open(ts_fpath, 'w')
@@ -2498,13 +2498,13 @@ class ASAS_Data_Tools:
                 source_intermed_dict = self.parse_asas_ts_data_str(ts_str)
             except:
                 ### If the ts-datafile/string has malformed header (random characters), we will skip it here.
-                print "EXCEPT: Calling parse_asas_ts_data_str(ts_str)"
+                print("EXCEPT: Calling parse_asas_ts_data_str(ts_str)")
                 source_intermed_dict = {}
             if do_plot:
                 ##### For PLOTTING ONLY:
                 self.add_aperture_mag_debug_info(aperture_mag_debug_dict=aperture_mag_debug_dict,
                                                  source_intermed_dict=source_intermed_dict)
-                print i_src, source_name, aperture_mag_debug_dict['aperture'][-1], aperture_mag_debug_dict['mag'][-1]
+                print(i_src, source_name, aperture_mag_debug_dict['aperture'][-1], aperture_mag_debug_dict['mag'][-1])
             ### probably no need to add source_data[source_name]['fname']
             if do_generate_ts_source_data:
                 if len(source_intermed_dict) == 0:
@@ -2520,7 +2520,7 @@ class ASAS_Data_Tools:
                     # # # now we want to incorperate source_data[source_name]['ts_data']['V']['frame_mag_dict']
                     #     to some tally dict
                     # - want to delete other data structures, and after adding, delete the ['frame_mag_dict'] dict
-                    if source_data[source_name]['ts_data']['V'].has_key('frame_mag_dict'):
+                    if 'frame_mag_dict' in source_data[source_name]['ts_data']['V']:
                         self.append_frameid_fmag_to_disk(frame_mag_dict=source_data[source_name]['ts_data']['V']['frame_mag_dict'])
 
                         self.update_frame_mag_tally(frame_mag_dict=source_data[source_name]['ts_data']['V']['frame_mag_dict'],
@@ -2571,7 +2571,7 @@ class ASAS_Data_Tools:
             'RRC':'rr-c',
             'SR':'sreg'}
 
-        asas_classes = asas_to_tutor_classes.keys()
+        asas_classes = list(asas_to_tutor_classes.keys())
 
         write_lines = []
         for i, asas_type in enumerate(source_dict['TYPE'][:n_src_cut+1]):
@@ -2593,7 +2593,7 @@ class ASAS_Data_Tools:
             #lines = open(ts_fpath).readlines()
             #for line in lines:
         import pdb; pdb.set_trace()
-        print
+        print()
         if os.path.exists(self.pars['new_source_tutoringest_fpath']):
             os.system ('rm ' + self.pars['new_source_tutoringest_fpath'])
         fp_out = open(self.pars['new_source_tutoringest_fpath'], 'w')
@@ -2625,15 +2625,15 @@ class ASAS_Data_Tools:
         i_count = 0
         for src_name in iband_per_ndarray['ID']:
             if src_name in source_dict['ID']:
-                print 'I per also in ACVS:', src_name
+                print('I per also in ACVS:', src_name)
                 i_count += 1
 
         for src_name in iband_misc_ndarray['ID']:
             if src_name in source_dict['ID']:
-                print 'Imisc also in ACVS:', src_name
+                print('Imisc also in ACVS:', src_name)
                 i_count += 1
 
-        print 'Count of ACVS matching sources:', i_count
+        print('Count of ACVS matching sources:', i_count)
         import pdb; pdb.set_trace()
 
         #'source_data_iband_allsrc_fpath':'/home/pteluser/scratch/asas_data/i_band/asas2-cat',
@@ -2672,7 +2672,7 @@ class ASAS_Data_Tools:
         if 1:
             ### This condition is used when all 50k timeseries files are available and a new 
             ###       source file needs to be generated.
-            print "starting loop"
+            print("starting loop")
 
             self.retrieve_fullcat_frame_limitmags()
 
@@ -2689,7 +2689,7 @@ class ASAS_Data_Tools:
             if do_update_frame_mag_table:
                 self.initialize_frame_mag_tally_dict() 
             for i_low in range(0, n_max, num_n_for_insert):
-                print 'i_low', i_low, n_max
+                print('i_low', i_low, n_max)
                 i_src_low = i_low
                 i_src_high = i_low + num_n_for_insert
                 source_ts_dict = self.download_timeseries_datasets_from_web( \
@@ -2732,7 +2732,7 @@ class ASAS_Data_Tools:
         #print 'Pickling DONE.'
         
         import pdb; pdb.set_trace()
-        print
+        print()
 
         ### TODO: ingest the ASAS source file into TUTOR using web interface.
 

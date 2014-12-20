@@ -41,7 +41,7 @@ class Summarize_Available_Features:
 
         ### Now parse arffify and see which features are actually used.
         skipped_features = arffify.skip_features
-        for extr_dict in import_dict.values():
+        for extr_dict in list(import_dict.values()):
             for feat_name in extr_dict['extractor_list']:
                 out_feat_dict[feat_name] = {'used_in_classifications':True,
                                             'is_extracted':False,
@@ -65,17 +65,17 @@ class Summarize_Available_Features:
         gen.generate(xml_handle="../../Data/vosource_9026.xml")
         gen.sig.add_features_to_xml_string(gen.signals_list)
 
-	for filter_name,filt_dict in signals_list[0].properties['data'].iteritems():
-		for feat_name,value_object in signals_list[0].properties['data']\
-		                                [filter_name]['features'].iteritems():
+    for filter_name,filt_dict in signals_list[0].properties['data'].items():
+        for feat_name,value_object in signals_list[0].properties['data']\
+                                        [filter_name]['features'].items():
                     # KLUDGE: some inconsistancy in feature naming for closest_in_light...
                     #    - these seem to be due to various users creating extractors with non conforming names / defintions
                     #        - if everyone named their extractors with a '_extractor' suffix, this would work!!!
                     if 'closest_light' in feat_name:
                         feat_name = feat_name.replace('closest_light','closest_in_light')
-                    if not out_feat_dict.has_key(feat_name):
+                    if feat_name not in out_feat_dict:
                         feat_name = feat_name + '_extractor'
-                    if not out_feat_dict.has_key(feat_name):
+                    if feat_name not in out_feat_dict:
                         feat_name = feat_name.replace('_extractor','extractor')
 
                     if feat_name in skipped_features:

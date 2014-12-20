@@ -8,10 +8,10 @@ wget http://www.astro.uni.wroc.pl/ldb/asas/Table_1.txt
 """
 
 import os, sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from BeautifulSoup import BeautifulSoup
 import subprocess
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import numpy
 
 def load_csv_into_data_dict(fpath='', delimiter=',', comments='#'):
@@ -83,12 +83,12 @@ def get_file_from_url(dirpath, url_modifier, asas_id):
             asas_id=asas_id,
             dir=dirpath,
             url_modifier=url_modifier)
-        data_str = urllib.urlopen(url).read()
+        data_str = urllib.request.urlopen(url).read()
         fp = open(fpath, 'w')
         fp.write(data_str)
         fp.close()
         f_size = os.stat(fpath).st_size
-        print "Got:", asas_id
+        print("Got:", asas_id)
     
 
 def retrieve_ts_data(out_dict, asas_v_dirpath='', asas_i_dirpath=''):
@@ -109,17 +109,17 @@ def retrieve_ts_data(out_dict, asas_v_dirpath='', asas_i_dirpath=''):
             get_file_from_url(asas_v_dirpath, 'lcv',
                           out_dict['data_dict']['ASAS_ID_V'][i])
         except:
-            print "EXCEPT: V", asas_id
+            print("EXCEPT: V", asas_id)
 
         ### I:
         try:
             get_file_from_url(asas_i_dirpath, 'lci',
                           out_dict['data_dict']['ASAS_ID_I'][i])
         except:
-            print "EXCEPT: I", asas_id
+            print("EXCEPT: I", asas_id)
 
     import pdb; pdb.set_trace()
-    print
+    print()
 
 
 def retrieve_nomad_color_files(data_dict={}, pars={}):
@@ -174,7 +174,7 @@ def remove_sources_with_many_missing_attribs(data_dict, exclude_feats=['freq_sig
     exclude_src_i_set = set(exclude_src_i_list)
 
     new_featname_longfeatval_dict = {}
-    for feat_name, feat_longlist in data_dict['featname_longfeatval_dict'].iteritems():
+    for feat_name, feat_longlist in data_dict['featname_longfeatval_dict'].items():
         new_list = []
         for i,val in enumerate(feat_longlist):
             if i in exclude_src_i_set:
@@ -191,7 +191,7 @@ def remove_sources_with_many_missing_attribs(data_dict, exclude_feats=['freq_sig
         else:
             new_list.append(srcid)
     data_dict['srcid_list'] = new_list
-    print "Removed %d sources with few useful features" % (len(exclude_src_i_set))
+    print("Removed %d sources with few useful features" % (len(exclude_src_i_set)))
 
         
     
@@ -239,7 +239,7 @@ if __name__ == '__main__':
         classify_best_nomad_sources(nomad_sources=nomad_sources, asas_data_dict=asas_data_dict, pars=pars)
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
     ### NEXT step is to use
     ### starvars_feature_generation.py::ipp.main_ipython13() to
@@ -309,7 +309,7 @@ if __name__ == '__main__':
 
         # KLUDGEY conversion of missing-value features None into numpy.nan:
         new_featname_longfeatval_dict = {}
-        for feat_name, feat_longlist in testdata_dict['featname_longfeatval_dict'].iteritems():
+        for feat_name, feat_longlist in testdata_dict['featname_longfeatval_dict'].items():
             new_list = []
             if feat_name in ignore_feats_list:
                 continue # skip the features in the Ignore_feats_list for use in imputation and classification
@@ -338,8 +338,8 @@ if __name__ == '__main__':
         for tup in classif_results['predictions']['tups']:
             #final_dict[tup[3]] = tup[2]
             if ((tup[1] == 0) or (tup[1] == 1)):
-                print tup[0], tup[1], tup[3], '\t', tup[2]
+                print(tup[0], tup[1], tup[3], '\t', tup[2])
         import pdb; pdb.set_trace()
-        print
+        print()
 
 

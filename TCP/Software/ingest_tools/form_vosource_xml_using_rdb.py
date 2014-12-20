@@ -87,20 +87,20 @@ class MakeVosourceUsingRdb:
         filter_conv_dict = {'g':'ptf_g', 'R':'ptf_r'}
         #for srcid in source_dict.keys():
         if 1:
-            if s_dict.has_key('ra'):
+            if 'ra' in s_dict:
                 ra = s_dict['ra']
                 dec = s_dict['dec']
             
-            for filt_name in filter_conv_dict.values():
-                if not s_dict['ts'].has_key(filt_name):
+            for filt_name in list(filter_conv_dict.values()):
+                if filt_name not in s_dict['ts']:
                     s_dict['ts'][filt_name] = {}
-                if not s_dict['ts'][filt_name].has_key('limitmags'):
+                if 'limitmags' not in s_dict['ts'][filt_name]:
                     s_dict['ts'][filt_name]['limitmags'] = {'t':[], 'lmt_mg':[]}
             select_str = "SELECT filter, ujd, lmt_mg from %s WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (self.pars['ptf_mysql_candidate_footprint'], ra, dec)
             self.obj_cursor.execute(select_str)
             rdb_rows = self.obj_cursor.fetchall()
 
-            for filt_name,filt_dict in s_dict['ts'].iteritems():
+            for filt_name,filt_dict in s_dict['ts'].items():
                 for row in rdb_rows: 
                     (filt, ujd, lmt_mg) = row
                     filt_name = filter_conv_dict[filt]
@@ -128,7 +128,7 @@ class MakeVosourceUsingRdb:
         data_dict = {}
         for result in results:
             filt_name = self.pars['filter_conv_dict'][result[3]] # this translates to: ptf_g or ptf_r
-            if not data_dict.has_key(filt_name):
+            if filt_name not in data_dict:
                 data_dict[filt_name] = {'t_list':[],
                                         'm_list':[],
                                         'm_err_list':[]}
@@ -136,7 +136,7 @@ class MakeVosourceUsingRdb:
             data_dict[filt_name]['m_list'].append(result[1])
             data_dict[filt_name]['m_err_list'].append(result[2])
 
-        for filt_name,filt_dict in data_dict.iteritems():
+        for filt_name,filt_dict in data_dict.items():
             sdict['ts'] = {filt_name:{'IDs': ['col1', 'col2', 'col3'],
                                       'ordered_column_names': ['t', 'm', 'm_err'],
                                       'units': ['day', 'mag', 'mag'],
@@ -285,17 +285,17 @@ class MakeVosourceUsingRdb:
         sdict = self.retrieve_sdict_for_srcid(src_id, vosource_class_obj)
 
         source = db_importer.Source(make_dict_if_given_xml=False,
-	                         make_xml_if_given_dict=False,
-	                         doplot=False)
+                             make_xml_if_given_dict=False,
+                             doplot=False)
 
         source.source_dict_to_xml(sdict)
         xmlstr_with_classes = vosource_class_obj.add_class_xml_to_existing_vosource_xml(\
                                                                       source.xml_string)
         source.xml_string = xmlstr_with_classes
         if len(out_xml_fpath) > 3:
-	        source.write_xml(out_xml_fpath=out_xml_fpath)
-	else:
-		print source.xml_string
+            source.write_xml(out_xml_fpath=out_xml_fpath)
+    else:
+        print(source.xml_string)
 
 
 if __name__ == '__main__':

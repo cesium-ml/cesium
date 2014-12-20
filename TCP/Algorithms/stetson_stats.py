@@ -1,12 +1,12 @@
 from numpy import ones,empty,median,sqrt,mean,abs,sign
 
 
-def	stetson_mean( x, weight=100.,alpha=2.,beta=2.,tol=1.e-6,nmax=20):
+def stetson_mean( x, weight=100.,alpha=2.,beta=2.,tol=1.e-6,nmax=20):
   """An iteratively weighted mean"""
 
   x0 = median( x )
 
-  for i in xrange(nmax):
+  for i in range(nmax):
     resid = x - x0
     resid_err = abs(resid)*sqrt(weight)
     weight1 = weight/(1. + (resid_err/alpha)**beta)
@@ -19,7 +19,7 @@ def	stetson_mean( x, weight=100.,alpha=2.,beta=2.,tol=1.e-6,nmax=20):
   return x0
 
 
-def	stetson_j(x,y=[],dx=0.1,dy=0.1):
+def stetson_j(x,y=[],dx=0.1,dy=0.1):
   """Robust covariance statistic between pairs of observations x,y
        whose uncertainties are dx,dy.  if y is not given, calculates
        a robust variance for x."""
@@ -39,7 +39,7 @@ def	stetson_j(x,y=[],dx=0.1,dy=0.1):
   return mean( sign(p_k) * sqrt(abs(p_k)) ) 
 
 
-def	stetson_k(x,dx=0.1):
+def stetson_k(x,dx=0.1):
   """A kurtosis statistic."""
 
   nels = len(x)

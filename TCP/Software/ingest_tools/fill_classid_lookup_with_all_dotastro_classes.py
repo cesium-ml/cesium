@@ -47,7 +47,7 @@ class Fill_Classid_Lookup_With_All_Dotastro_Classes:
 
         self.class_cursor.execute(''.join(insert_list)[:-2])
 
-        print
+        print()
 
 
 if __name__ == '__main__':

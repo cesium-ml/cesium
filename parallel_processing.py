@@ -8,10 +8,12 @@ import sklearn as skl
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 
-import cPickle
+import pickle
+#from . import lc_tools
 import lc_tools
 import sys
 import os
+#from . import cfg
 import cfg
 
 import numpy as np
@@ -20,7 +22,9 @@ import pytz
 import tarfile
 import glob
 import tarfile
+#from . import disco_tools
 import disco_tools
+#from . import custom_exceptions
 import custom_exceptions
 import uuid
 import shutil
@@ -33,12 +37,14 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 # For when run from inside Docker container:
-sys.path.append("/home/mltp/TCP/Software/ingest_tools")
+sys.path.append("/home/mltsp/TCP/Software/ingest_tools")
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import generate_science_features
 from generate_science_features import currently_running_in_docker_container
+#from . import build_rf_model
 import build_rf_model
+#from . import predict_class as predict
 import predict_class as predict
 
 
@@ -136,17 +142,23 @@ def pred_featurize_reduce(iter, params):
     import uuid
     import os
     import sys
+    #from . import cfg
     import cfg
     sys.path.append(cfg.PROJECT_PATH)
     # for when run from inside docker container
     sys.path.append("/home/mltp/TCP/Software/ingest_tools")
     sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+    #from . import custom_exceptions
     import custom_exceptions
     import generate_science_features
     from generate_science_features import currently_running_in_docker_container
+    #from . import predict_class as predict
     import predict_class as predict
+    #from . import build_rf_model
     import build_rf_model
+    #from . import lc_tools
     import lc_tools
+    #from . import custom_feature_tools as cft
     import custom_feature_tools as cft
     
     if currently_running_in_docker_container():
@@ -174,13 +186,13 @@ def pred_featurize_reduce(iter, params):
             fpath = os.path.join(
                 os.path.join(uploads_folder, "unzipped"), fname)
         else:
-            print (fname if uploads_folder in fname else 
-                os.path.join(uploads_folder,fname)) + " is not a file..."
+            print((fname if uploads_folder in fname else 
+                os.path.join(uploads_folder,fname)) + " is not a file...")
             if (os.path.exists(os.path.join(uploads_folder, fname)) or
                     os.path.exists(fname)):
-                print "But it does exist on the disk."
+                print("But it does exist on the disk.")
             else:
-                print "and in fact it doesn't even exist."
+                print("and in fact it doesn't even exist.")
             continue
         
         lines=f.readlines()
@@ -231,15 +243,18 @@ def pred_featurize_reduce(iter, params):
                 custom_script_path=custom_features_script,
                 path_to_csv=None, 
                 features_already_known=dict(
-                    timeseries_features.items() + science_features.items() + 
-                    meta_features.items()),
+                    list(timeseries_features.items()) + list(science_features.items()) + 
+                    list(meta_features.items())),
                 ts_data=deepcopy(ts_data))
+            if (type(custom_features) == list and 
+                len(custom_features) == 1):
+                    custom_features = custom_features[0]
         else:
             custom_features = {}
         
         all_features = dict(
-            timeseries_features.items() + science_features.items() + 
-            custom_features.items() + meta_features.items())
+            list(timeseries_features.items()) + list(science_features.items()) + 
+            list(custom_features.items()) + list(meta_features.items()))
         
         os.remove(fpath)
         
@@ -280,19 +295,19 @@ def featurize_reduce(iter, params):
         if len(class_names) == 1:
             class_name = str(class_names[0])
         elif len(class_names) == 0:
-            print ("CLASS_NAMES: " + str(class_names) + "\n" + 
-                   "CLASS_NAME: " + str(class_name))
+            print(("CLASS_NAMES: " + str(class_names) + "\n" + 
+                   "CLASS_NAME: " + str(class_name)))
             yield "",""
         else:
-            print ("CLASS_NAMES: " + str(class_names) + "\n" + 
+            print(("CLASS_NAMES: " + str(class_names) + "\n" + 
                    "CLASS_NAME: " + str(class_name) + 
-                   "  - Choosing first class name in list.")
+                   "  - Choosing first class name in list."))
             class_name = str(class_names[0])
         
-        print "fname: " + fname + ", class_name: " + class_name
+        print("fname: " + fname + ", class_name: " + class_name)
         import os
         import sys
-        import cfg
+        from . import cfg
         sys.path.append(cfg.PROJECT_PATH)
         sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
         # For when run in Docker container:
@@ -311,8 +326,11 @@ def featurize_reduce(iter, params):
         
         
         import generate_science_features
+        #from . import build_rf_model
         import build_rf_model
+        #from . import lc_tools
         import lc_tools
+        #from . import custom_feature_tools as cft
         import custom_feature_tools as cft
         
         short_fname = fname.split("/")[-1].replace(
@@ -321,9 +339,9 @@ def featurize_reduce(iter, params):
         path_to_csv = os.path.join(
             uploads_folder, os.path.join("unzipped",fname))
         all_features = {}
-        print "path_to_csv: " + path_to_csv
+        print("path_to_csv: " + path_to_csv)
         if os.path.isfile(path_to_csv):
-            print "Extracting features for " + fname
+            print("Extracting features for " + fname)
         
             ## generate features:
             if (len(list(set(params['features_to_use']) & 
@@ -343,19 +361,22 @@ def featurize_reduce(iter, params):
                     custom_script_path=params['custom_script_path'],
                     path_to_csv=path_to_csv,
                     features_already_known=dict(
-                        timeseries_features.items() +
-                        science_features.items() +
-                        (params['meta_features'][fname].items() if
-                         fname in params['meta_features'] else {}.items())))
+                        list(timeseries_features.items()) +
+                        list(science_features.items()) +
+                        (list(params['meta_features'][fname].items()) if
+                         fname in params['meta_features'] else list({}.items()))))
+                if (type(custom_features) == list and 
+                    len(custom_features) == 1):
+                        custom_features = custom_features[0]
             else:
                 custom_features = {}
             
             all_features = dict(
-                timeseries_features.items() + science_features.items() +
-                custom_features.items() + [("class",class_name)])
+                list(timeseries_features.items()) + list(science_features.items()) +
+                list(custom_features.items()) + [("class",class_name)])
         
         else:
-            print fname + " is not a file."
+            print(fname + " is not a file.")
             yield "", ""
         
         yield short_fname, all_features
@@ -506,7 +527,7 @@ def featurize_prediction_data_in_parallel(
             big_features_and_tsdata_dict[fname] = {
                 "features_dict": features_dict, "ts_data": ts_data}
     
-    print "Feature generation complete."
+    print("Feature generation complete.")
     os.remove(f.name)
     return big_features_and_tsdata_dict
 
@@ -586,9 +607,9 @@ def featurize_in_parallel(
     zipfile_name = zipfile_path.split("/")[-1]
     
     count=0
-    print "Generating science features..."
+    print("Generating science features...")
     
-    fname_class_list = list(fname_class_dict.iteritems())
+    fname_class_list = list(fname_class_dict.items())
     input_fname_list = all_fnames
     longfname_class_list = []
     if is_test:
@@ -621,7 +642,7 @@ def featurize_in_parallel(
         fname_features_dict[k] = v
     
     os.remove(f.name)
-    print "Done generating features."
+    print("Done generating features.")
     
     return fname_features_dict
 
@@ -704,17 +725,17 @@ def featurize_in_parallel_newtest(
     zipfile_name = zipfile_path.split("/")[-1]
     
     count=0
-    print "Generating science features..."
+    print("Generating science features...")
     
     
     from disco.core import DDFS
     # push to ddfs
-    print "Pushing all files to DDFS..."
+    print("Pushing all files to DDFS...")
     
     
     
     
-    print "Done pushing files to DDFS."
+    print("Done pushing files to DDFS.")
     
     # pass tags (or urls?) as input_list
     
@@ -754,7 +775,7 @@ def featurize_in_parallel_newtest(
         fname_features_dict[k] = v
     
     os.remove(f.name)
-    print "Done."
+    print("Done.")
     
     return fname_features_dict
     

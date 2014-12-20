@@ -13,7 +13,7 @@ import logging
 import os
 import pickle
 import simplejson
-import StringIO
+import io
 import sys
 from types import GeneratorType
 import zlib
@@ -109,7 +109,7 @@ class RequestStats(object):
         import pstats
 
         # Make sure nothing is printed to stdout
-        output = StringIO.StringIO()
+        output = io.StringIO()
         stats = pstats.Stats(middleware.prof, stream=output)
         stats.sort_stats("cumulative")
 
@@ -125,10 +125,8 @@ class RequestStats(object):
 
             func_desc = pstats.func_std_string(func_name)
 
-            callers_names = map(lambda func_name: pstats.func_std_string(func_name), callers.keys())
-            callers_desc = map(
-                    lambda name: {"func_desc": name, "func_desc_short": RequestStats.short_method_fmt(name)}, 
-                    callers_names)
+            callers_names = [pstats.func_std_string(func_name) for func_name in list(callers.keys())]
+            callers_desc = [{"func_desc": name, "func_desc_short": RequestStats.short_method_fmt(name)} for name in callers_names]
 
             results["calls"].append({
                 "primitive_call_count": primitive_call_count, 
@@ -158,7 +156,7 @@ class RequestStats(object):
 
             dict_requests = {}
 
-            appstats_key = long(middleware.recorder.start_timestamp * 1000)
+            appstats_key = int(middleware.recorder.start_timestamp * 1000)
 
             for trace in middleware.recorder.traces:
                 total_call_count += 1
@@ -169,7 +167,7 @@ class RequestStats(object):
                 if "." in service_prefix:
                     service_prefix = service_prefix[:service_prefix.find(".")]
 
-                if not service_totals_dict.has_key(service_prefix):
+                if service_prefix not in service_totals_dict:
                     service_totals_dict[service_prefix] = {"total_call_count": 0, "total_time": 0}
 
                 service_totals_dict[service_prefix]["total_call_count"] += 1
@@ -187,7 +185,7 @@ class RequestStats(object):
                 if len(request_short) > 100:
                     request_short = request_short[:100] + "..."
 
-                likely_dupe = dict_requests.has_key(request)
+                likely_dupe = request in dict_requests
                 likely_dupes = likely_dupes or likely_dupe
 
                 dict_requests[request] = True
@@ -283,7 +281,7 @@ class ProfilerWSGIMiddleware(object):
 
                 while True:
                     try:
-                        yield self.prof.runcall(result.next)
+                        yield self.prof.runcall(result.__next__)
                     except StopIteration:
                         break
 

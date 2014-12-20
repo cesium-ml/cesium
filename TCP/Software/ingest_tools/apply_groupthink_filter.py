@@ -18,7 +18,7 @@ import os, sys
 try:
     import psycopg2
 except:
-    print "cant: import psycopg2"
+    print("cant: import psycopg2")
     pass
 import ingest_tools
 import datetime
@@ -107,16 +107,16 @@ class Classify_LBL_PTF_Using_GroupThink:
         try:
             import jpype
         except:
-            print "EXCEPT: import jpype"
+            print("EXCEPT: import jpype")
         import weka_classifier
         os.environ["JAVA_HOME"] = '/usr/lib/jvm/java-6-sun-1.6.0.03'
         os.environ["CLASSPATH"] += os.path.expandvars(':$TCP_DIR/Software/ingest_tools')
         if not jpype.isJVMStarted():
             #TODO / DEBUG: disable the next line for speed-ups once stable?
-        	_jvmArgs = ["-ea"] # enable assertions
-        	_jvmArgs.append("-Djava.class.path=" + \
+            _jvmArgs = ["-ea"] # enable assertions
+            _jvmArgs.append("-Djava.class.path=" + \
                                 os.environ["CLASSPATH"])
-        	jpype.startJVM(jpype.getDefaultJVMPath(), *_jvmArgs)
+            jpype.startJVM(jpype.getDefaultJVMPath(), *_jvmArgs)
 
         model_fpath = '/home/pteluser/scratch/groupthink_training/PTFgray-short-weka357.model'
         training_arff_fpath = '/home/pteluser/scratch/groupthink_training/PTFgray-short-train-noid.arff'
@@ -153,7 +153,7 @@ class Classify_LBL_PTF_Using_GroupThink:
                     import psycopg2 # KLUDGE
                 except:
                     pass
-                print datetime.datetime.utcnow(), 'EXCEPT near apply_groupthink_filter.py:L147: self.pg_cursor.execute().   Waiting 30 secs...'
+                print(datetime.datetime.utcnow(), 'EXCEPT near apply_groupthink_filter.py:L147: self.pg_cursor.execute().   Waiting 30 secs...')
                 time.sleep(30) # something happened to the LBL PostgreSQL server.  Wait a bit.
                 try:
                     conn = psycopg2.connect(\
@@ -165,7 +165,7 @@ class Classify_LBL_PTF_Using_GroupThink:
                              ingest_tools.pars['ptf_postgre_port']))
                     self.pg_cursor = conn.cursor()
                 except:
-                    print "unable to do: conn = psycopg2.connect()"
+                    print("unable to do: conn = psycopg2.connect()")
 
 
         #self.pg_cursor.execute(select_str)
@@ -257,6 +257,6 @@ if __name__ == '__main__':
                         id_classif_dict=id_classif_dict,
                         gt_perc_cut=0.05)
     for row in real_rows:
-        print row[0], id_classif_dict[row[0]], row
+        print(row[0], id_classif_dict[row[0]], row)
 
-    print 'done'
+    print('done')

@@ -129,10 +129,10 @@ class Setup_System:
                 thread_list.append(t)
 
         for t in thread_list:
-            print "scp/ssh thread (%s) waiting..." % (client_dict['hostname'])
+            print("scp/ssh thread (%s) waiting..." % (client_dict['hostname']))
             t.join(10.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
-                print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
+                print("! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname']))
                 
 
     def kill_engines_on_taskclients(self):
@@ -142,7 +142,7 @@ class Setup_System:
         thread_list = []
 
         #DISABLED: try doing this 2x:
-        for i in xrange(1):
+        for i in range(1):
             for client_dict in self.pars['client_defs']:
                 # Comment this out if I want to KILL engines on trans[123]
                 #if ('__trans' in client_dict['name']):
@@ -157,16 +157,16 @@ class Setup_System:
                                        client_dict['username'],
                                        client_dict['hostname'],
                                        home_dirpath)
-                print exec_str
+                print(exec_str)
                 t = threading.Thread(target=os.system, args=[exec_str])
                 t.start()
                 thread_list.append(t)
 
         for t in thread_list:
-            print "scp/ssh thread (%s) waiting..." % (client_dict['hostname'])
+            print("scp/ssh thread (%s) waiting..." % (client_dict['hostname']))
             t.join(10.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
-                print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
+                print("! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname']))
 
 
     def start_engines_on_taskclients(self):
@@ -182,7 +182,7 @@ class Setup_System:
 
         thread_list = []
         for client_dict in self.pars['client_defs']:
-            for i in xrange(client_dict['n_engines']):
+            for i in range(client_dict['n_engines']):
                 if ('__local__' in client_dict['name']):
                     exec_str = "ipengine &"
                     os.system(exec_str)
@@ -190,7 +190,7 @@ class Setup_System:
                     # here we spawn a remote ssh session.
                     ### NOTE: nice -19 works, but since I run on my onw machines, I dont do:
                     #exec_str = "ssh -fn -p %d %s@%s nice -19 ipengine &" % ( \
-                    if client_dict.has_key('nice'):
+                    if 'nice' in client_dict:
                         exec_str = "ssh -fn -p %d %s@%s nice -%d ipengine &" % ( \
                                            client_dict['ssh_port'],
                                            client_dict['username'],
@@ -201,15 +201,15 @@ class Setup_System:
                                            client_dict['ssh_port'],
                                            client_dict['username'],
                                            client_dict['hostname'])
-                    print exec_str
+                    print(exec_str)
                     t = threading.Thread(target=os.system, args=[exec_str])
                     t.start()
                     thread_list.append(t)
         for t in thread_list:
-            print "scp/ssh thread (%s) waiting..." % (client_dict['hostname'])
+            print("scp/ssh thread (%s) waiting..." % (client_dict['hostname']))
             t.join(20.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
-                print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
+                print("! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname']))
 
 
     def main(self):
@@ -230,7 +230,7 @@ class Setup_System:
                 self.start_engines_on_taskclients()
                 flag_done = True
             except:
-                print "Setup_System.main() Except.  sleeping(20)"
+                print("Setup_System.main() Except.  sleeping(20)")
                 time.sleep(20) # wait a couple seconds, probably an incomplete file scp or .mec() initialization failure.
 
 
@@ -263,7 +263,7 @@ os.environ['CLASSPATH']=os.path.expandvars('$HOME/src/install/weka-3-5-7/weka.ja
 
         n_iters_total = 8
         n_iters_per_clear = 10
-        for i in xrange(n_iters_total):
+        for i in range(n_iters_total):
             task_str = """cat = os.getpid()""" # os.getpid() # os.environ
             taskid = tc.run(client.StringTask(task_str, pull="cat"))
             task_list.append(taskid)
@@ -271,14 +271,14 @@ os.environ['CLASSPATH']=os.path.expandvars('$HOME/src/install/weka-3-5-7/weka.ja
             ###       finished tasks, but afterwards you cannot retrieve values (below):
             #if (i % n_iters_per_clear == 0):
             #    tc.clear()
-        print '!!! NUMBER OF TASKS STILL SCHEDULED: ', tc.queue_status()['scheduled']
+        print('!!! NUMBER OF TASKS STILL SCHEDULED: ', tc.queue_status()['scheduled'])
         for i,taskid in enumerate(task_list):
             ### NOTE: The following retrieval doesnt work if 
             ###       tc.clear()      was called earlier:
             task_result = tc.get_task_result(taskid, block=True)
-            print task_result['cat']
-        print 'done'
-        print tc.queue_status()
+            print(task_result['cat'])
+        print('done')
+        print(tc.queue_status())
         #del tc
         #time.sleep(1)
 
@@ -288,7 +288,7 @@ if __name__ == '__main__':
         # We can assume we were given a python file to exec() which contains a pars={} dict.
         # TODO: read pars from file.
         f = open(os.path.abspath(os.path.expandvars(sys.argv[1])))# Import the standard Parameter file
-        exec f
+        exec(f)
         f.close()
     else:
         pars = { \

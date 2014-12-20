@@ -26,11 +26,11 @@ class ExceptionsTestCase(WerkzeugTestCase):
         orig_resp = Response('Hello World')
         try:
             exceptions.abort(orig_resp)
-        except exceptions.HTTPException, e:
+        except exceptions.HTTPException as e:
             resp = e.get_response({})
         else:
             self.fail('exception not raised')
-        self.assert_(resp is orig_resp)
+        self.assertTrue(resp is orig_resp)
         self.assert_equal(resp.data, 'Hello World')
 
     def test_aborter(self):
@@ -63,18 +63,18 @@ class ExceptionsTestCase(WerkzeugTestCase):
 
     def test_exception_repr(self):
         exc = exceptions.NotFound()
-        self.assert_equal(unicode(exc), '404: Not Found')
+        self.assert_equal(str(exc), '404: Not Found')
         self.assert_equal(repr(exc), "<NotFound '404: Not Found'>")
 
         exc = exceptions.NotFound('Not There')
-        self.assert_equal(unicode(exc), '404: Not There')
+        self.assert_equal(str(exc), '404: Not There')
         self.assert_equal(repr(exc), "<NotFound '404: Not There'>")
 
     def test_special_exceptions(self):
         exc = exceptions.MethodNotAllowed(['GET', 'HEAD', 'POST'])
         h = dict(exc.get_headers({}))
         self.assert_equal(h['Allow'], 'GET, HEAD, POST')
-        self.assert_('The method DELETE is not allowed' in exc.get_description({
+        self.assertTrue('The method DELETE is not allowed' in exc.get_description({
             'REQUEST_METHOD': 'DELETE'
         }))
 

@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import with_statement
+
 
 import os
 import sys
@@ -332,7 +332,7 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
     :param cache_timeout: the timeout in seconds for the headers.
     """
     mtime = None
-    if isinstance(filename_or_fp, basestring):
+    if isinstance(filename_or_fp, str):
         filename = filename_or_fp
         file = None
     else:
@@ -343,7 +343,7 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
         # XXX: this behaviour is now deprecated because it was unreliable.
         # removed in Flask 1.0
         if not attachment_filename and not mimetype \
-           and isinstance(filename, basestring):
+           and isinstance(filename, str):
             warn(DeprecationWarning('The filename support for file objects '
                 'passed to send_file is now deprecated.  Pass an '
                 'attach_filename if you want mimetypes to be guessed.'),
@@ -402,7 +402,7 @@ def send_file(filename_or_fp, mimetype=None, as_attachment=False,
             os.path.getmtime(filename),
             os.path.getsize(filename),
             adler32(
-                filename.encode('utf8') if isinstance(filename, unicode)
+                filename.encode('utf8') if isinstance(filename, str)
                 else filename
             ) & 0xffffffff
         ))

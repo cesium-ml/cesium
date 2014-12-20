@@ -53,7 +53,7 @@ kiIzwKucd0wsEHlLpe5yHXuc6FrNelOl7pY2+11kTWx7VpRu97dXA3DO1vbkhcb4zyvERYajQgAADs
 ='''.decode('base64'), mimetype='image/png')
 
 
-TEMPLATE = u'''\
+TEMPLATE = '''\
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
   "http://www.w3.org/TR/html4/loose.dtd">
 <title>WSGI Information</title>
@@ -170,7 +170,7 @@ def render_testapp(req):
         ))
 
     wsgi_env = []
-    sorted_environ = req.environ.items()
+    sorted_environ = list(req.environ.items())
     sorted_environ.sort(key=lambda x: repr(x[0]).lower())
     for key, value in sorted_environ:
         wsgi_env.append('<tr><th>%s<td><code>%s</code>' % (

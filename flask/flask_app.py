@@ -3,7 +3,7 @@
 
 # Machine Learning Timeseries Platform flask application
 
-from __future__ import division
+
 import sys
 import os
 
@@ -31,7 +31,7 @@ import string
 import datetime
 import pytz
 import simplejson
-import cPickle
+import pickle
 from flask import (
     Flask, request, abort, redirect, url_for, render_template, 
     escape, session, Response, jsonify, g)
@@ -54,9 +54,9 @@ try:
     from disco.util import kvgroup
     DISCO_INSTALLED = True
 except Exception as theError:
-    print theError
+    print(theError)
     DISCO_INSTALLED = False
-    print "Warning: no installation of Disco found"
+    print("Warning: no installation of Disco found")
 
 import pandas as pd
 import tables
@@ -117,7 +117,7 @@ def before_request():
     try:
         g.rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLWS_DB)
     except RqlDriverError:
-        print "No database connection could be established."
+        print("No database connection could be established.")
         abort(503, "No database connection could be established.")
 
 
@@ -132,10 +132,10 @@ def teardown_request(exception):
 
 #sys.excepthook = excepthook_replacement
 def excepthook_replacement(exctype, value, tb):
-    print "\n\nError occurred in flask_app.py"
-    print "Type:", exctype
-    print "Value:", value
-    print "Traceback:", tb,"\n\n"
+    print("\n\nError occurred in flask_app.py")
+    print("Type:", exctype)
+    print("Value:", value)
+    print("Traceback:", tb,"\n\n")
     logging.exception("Error occurred in flask_app.py")
 
 
@@ -256,9 +256,9 @@ def db_init(force=False):
     try:
         connection = r.connect(host=RDB_HOST, port=RDB_PORT)
     except RqlDriverError as e:
-        print 'db_init:', e.message
+        print('db_init:', e.message)
         if 'not connect' in e.message:
-            print 'Launch the database by executing `rethinkdb`.'
+            print('Launch the database by executing `rethinkdb`.')
         return
     if force:
         try:
@@ -268,7 +268,7 @@ def db_init(force=False):
     try:
         r.db_create(MLWS_DB).run(connection)
     except RqlRuntimeError as e:
-        print 'db_init:', e.message
+        print('db_init:', e.message)
         print ('The table may already exist.  Specify the --force flag '
               'to clear existing data.')
         return
@@ -278,11 +278,11 @@ def db_init(force=False):
     db = r.db(MLWS_DB)
     
     for table_name in table_names:
-        print 'Creating table', table_name
+        print('Creating table', table_name)
         result = db.table_create(table_name).run(connection)
     connection.close()
 
-    print 'Database setup completed.'
+    print('Database setup completed.')
 
 
 @app.route('/add_user',methods=['POST'])
@@ -314,11 +314,11 @@ def check_user_table():
             "id":g.user['email'],
             "created":str(r.now().in_timezone("-08:00").run(g.rdb_conn))
         }).run(g.rdb_conn)
-        print "User", g.user['name'], "with email", \
-            g.user['email'], "added to users db."
+        print("User", g.user['name'], "with email", \
+            g.user['email'], "added to users db.")
     else:
-        print "User", g.user['name'], "with email", \
-            g.user['email'], "already in users db."
+        print("User", g.user['name'], "with email", \
+            g.user['email'], "already in users db.")
 
 
 def update_model_entry_with_pid(new_model_key,pid):
@@ -515,13 +515,13 @@ def get_current_userkey():
         n_entries += 1
         entries.append(entry)
     if len(entries) == 0:
-        print ("ERROR!!! get_current_userkey() - no matching entries in users "
-            "table with email"), g.user['email']
+        print(("ERROR!!! get_current_userkey() - no matching entries in users "
+            "table with email"), g.user['email'])
         raise Exception(("dbError - No matching entries in users table for "
             "email address %s.") % str(g.user['email']))
     elif len(entries) > 1:
-        print ("WARNING!! get_current_userkey() - more than one entry in "
-        "users table with email"), g.user['email']
+        print(("WARNING!! get_current_userkey() - more than one entry in "
+        "users table with email"), g.user['email'])
     else:
         return entries[0]['id']
 
@@ -940,9 +940,9 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
             "projkey":new_projkey,
             "active":"y" })
     r.table("userauth").insert(new_entries).run(g.rdb_conn)
-    print "Project", name, "created and added to db; users", \
+    print("Project", name, "created and added to db; users", \
         [user_email] + addl_authed_users, \
-        "added to userauth db for this project."
+        "added to userauth db for this project.")
     return new_projkey
 
 
@@ -990,7 +990,7 @@ def add_featureset(
         "headerfile_path":headerfile_path,
         "zipfile_path":zipfile_path
     }).run(g.rdb_conn)['generated_keys'][0]
-    print "Feature set %s entry added to mltp_app db." % name
+    print("Feature set %s entry added to mltp_app db." % name)
     return new_featset_key
 
 
@@ -1035,7 +1035,7 @@ def add_model(
         "pid": pid,
         "meta_feats":meta_feats
     }).run(g.rdb_conn)['generated_keys'][0]
-    print "New model entry %s added to mltp_app db." % featureset_name
+    print("New model entry %s added to mltp_app db." % featureset_name)
     return new_model_key
 
 
@@ -1077,7 +1077,7 @@ def add_prediction(
         "pid": pid,
         "metadata_file": metadata_file
     }).run(g.rdb_conn)['generated_keys'][0]
-    print "New prediction entry added to mltp_app db."
+    print("New prediction entry added to mltp_app db.")
     return new_prediction_key
 
 
@@ -1108,17 +1108,17 @@ def delete_project(project_name):
     for entry in cursor:
         proj_keys.append(entry["id"])
     if len(proj_keys)>1:
-        print (
+        print((
             "#######  WARNING: DELETING MORE THAN ONE PROJECT WITH NAME %s. "
             "DELETING PROJECTS WITH KEYS %s  ########") % (
-            project_name, ", ".join(proj_keys))
+            project_name, ", ".join(proj_keys)))
     elif len(proj_keys) == 0:
-        print (
+        print((
             "####### WARNING: flask_app.delete_project() - NO PROJECT "
-            "WITH NAME %s.") % project_name
+            "WITH NAME %s.") % project_name)
         return 0
     msg = r.table("projects").get_all(*proj_keys).delete().run(g.rdb_conn)
-    print msg
+    print(msg)
     for proj_key in proj_keys:
         delete_prediction_keys = []
         delete_features_keys = []
@@ -1150,7 +1150,7 @@ def delete_project(project_name):
                             cfg.FEATURES_FOLDER, 
                             "%s_features.csv"%features_key))
                 except Exception as err:
-                    print "delete_project() - " + str(err)
+                    print("delete_project() - " + str(err))
                     logging.exception(
                         "Tried to delete a file that does not exist.")
                 try:
@@ -1159,7 +1159,7 @@ def delete_project(project_name):
                             cfg.FEATURES_FOLDER, 
                             "%s_features_with_classes.csv"%features_key))
                 except Exception as err:
-                    print "delete_project() - " + str(err)
+                    print("delete_project() - " + str(err))
                     logging.exception(
                         "Tried to delete a file that does not exist.")
                 try:
@@ -1168,7 +1168,7 @@ def delete_project(project_name):
                             cfg.FEATURES_FOLDER, 
                             "%s_classes.pkl"%features_key))
                 except Exception as err:
-                    print "delete_project() - " + str(err)
+                    print("delete_project() - " + str(err))
                     logging.exception(
                         "Tried to delete a file that does not exist.")
                 try:
@@ -1178,11 +1178,11 @@ def delete_project(project_name):
                             ("flask/static/data/%s_features_with_classes.csv"
                                 %features_key)))
                 except Exception as err:
-                    print "delete_project() - " + str(err)
+                    print("delete_project() - " + str(err))
                     logging.exception(
                         "Tried to delete a file that does not exist.")
         else:
-            print "No feature sets matching this project key"
+            print("No feature sets matching this project key")
         if len(delete_model_keys) > 0:
             for model_key in delete_model_keys:
                 cursor = (
@@ -1197,20 +1197,20 @@ def delete_project(project_name):
                                 "%s_%s.pkl"%(
                                     str(model_entry["featset_key"]),
                                     str(model_entry["type"]))))
-                        print "Removed", os.path.join(
+                        print("Removed", os.path.join(
                         cfg.MODELS_FOLDER, 
                         "%s_%s.pkl"%(
                             model_entry["featset_key"],
-                            model_entry["type"]))
+                            model_entry["type"])))
                     except Exception as err:
-                        print "delete_project() - " + str(err)
+                        print("delete_project() - " + str(err))
                         logging.exception(
                             "Tried to delete a file that does not exist.")
             
             (r.table("models").get_all(*delete_model_keys)
                 .delete().run(g.rdb_conn))
         else:
-            print "No models matching this project key"
+            print("No models matching this project key")
         (r.table("userauth").filter({"projkey":proj_key})
             .delete().run(g.rdb_conn))
     return msg['deleted']
@@ -1262,12 +1262,12 @@ def get_project_details(project_name):
             by_project=project_name, as_html_table_string=True)
         return proj_info
     elif len(entries)>1:
-        print ("###### get_project_details() - ERROR: MORE THAN ONE PROJECT "
-        "WITH NAME %s. ######") % project_name
+        print(("###### get_project_details() - ERROR: MORE THAN ONE PROJECT "
+        "WITH NAME %s. ######") % project_name)
         return False
     elif len(entries) == 0:
-        print ("###### get_project_details() - ERROR: NO PROJECTS WITH "
-        "NAME %s. ######") % project_name
+        print(("###### get_project_details() - ERROR: NO PROJECTS WITH "
+        "NAME %s. ######") % project_name)
         return False
 
 
@@ -1387,7 +1387,7 @@ def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
         try:
             featureset_key = featureset_key[0]
         except Exception as theError:
-            print theError
+            print(theError)
             return False
         return featureset_key
 
@@ -1458,7 +1458,7 @@ def update_project_info(
             except Exception as theErr:
                 logging.exception(
                     "Tried to delete a file that does not exist.")
-                print theErr
+                print(theErr)
             try:
                 os.remove(
                     os.path.join(
@@ -1467,13 +1467,13 @@ def update_project_info(
             except Exception as theErr:
                 logging.exception(
                     "Tried to delete a file that does not exist.")
-                print theErr
+                print(theErr)
             try:
                 os.remove(
                     os.path.join(
                         cfg.FEATURES_FOLDER, "%s_classes.pkl"%features_key))
             except Exception as theErr:
-                print theErr
+                print(theErr)
                 logging.exception(
                     "Tried to delete a file that does not exist.")
             try:
@@ -1483,7 +1483,7 @@ def update_project_info(
                         ("flask/static/data/%s_features_with_classes.csv"
                         %features_key)))
             except Exception as theErr:
-                print theErr
+                print(theErr)
                 logging.exception(
                     "Tried to delete a file that does not exist.")
     if len(delete_model_keys) > 0:
@@ -1507,12 +1507,12 @@ def update_project_info(
                                     (featset_entry["id"],
                                      model_entry["type"]))))
                     except Exception as theErr:
-                        print theErr
+                        print(theErr)
                         logging.exception(
                             "Tried to delete a file that does not exist.")
-                    print "Removed", os.path.join(
+                    print("Removed", os.path.join(
                         cfg.MODELS_FOLDER, 
-                        "%s_%s.pkl"%(featset_entry["id"],model_entry["type"]))
+                        "%s_%s.pkl"%(featset_entry["id"],model_entry["type"])))
         r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
     new_proj_details = get_project_details(new_name)
     return new_proj_details
@@ -1634,7 +1634,7 @@ def testNewScript():
             test_results = cft.test_new_script(script_fpath=scriptfile_path)
             ks=[]
             for thisone in test_results:
-                for k,v in thisone.iteritems():
+                for k,v in thisone.items():
                     if k not in ks:
                         ks.append(k)
             res_str = ""
@@ -1644,7 +1644,7 @@ def testNewScript():
                         "id='custom_feature_checkbox' checked>%s<br>")
                     %(str(k),str(k)))
         except Exception as theErr:
-            print theErr
+            print(theErr)
             logging.exception("testNewScript error.")
             return str(theErr)
         os.remove(scriptfile_path)
@@ -1736,8 +1736,8 @@ def newProject(
         new_projkey = add_project(
             proj_name, desc=proj_description, addl_authed_users=addl_users, 
             user_email=user_email)
-        print ("New project %s with key %s successfully created."
-               %(str(proj_name),str(new_projkey)))
+        print(("New project %s with key %s successfully created."
+               %(str(proj_name),str(new_projkey))))
         return jsonify({
             "result":("New project %s with key %s successfully created."
                       %(str(proj_name),str(new_projkey)))})
@@ -1769,7 +1769,7 @@ def newProject(
         new_projkey = add_project(
             proj_name, desc=proj_description, addl_authed_users=addl_users, 
             user_email=user_email)
-        print "added new proj"
+        print("added new proj")
         return jsonify({"result":"New project successfully created."})
 
 
@@ -1794,7 +1794,7 @@ def editOrDeleteProject():
                 return jsonify(proj_info)
         elif action == "Delete":
             result = delete_project(proj_name)
-            print result
+            print(result)
             return jsonify({"result":"Deleted %s project(s)."%result})
             #return Response(status=str(result))
         else:
@@ -1835,7 +1835,7 @@ def get_featureset_id_by_projname_and_featsetname(
         .pluck("id").run(g.rdb_conn))
     featureset_id = []
     for entry in cursor:
-        print entry
+        print(entry)
         featureset_id.append(entry["id"])
     featureset_id = featureset_id[0]
     return jsonify({"featureset_id":featureset_id})
@@ -1939,6 +1939,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
         all_header_fnames = []
         column_header_line = f.readline()
         for line in f:
+            line = str(line)
             if line.strip() != '':
                 if len(line.strip().split(",")) < 2:
                     raise custom_exceptions.DataFormatError((
@@ -1951,6 +1952,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
     file_list = list(the_zipfile.getnames())
     all_fname_variants = []
     for file_name in file_list:
+        file_name = str(file_name)
         this_file = the_zipfile.getmember(file_name)
         if this_file.isfile():
             file_name_variants = [
@@ -1966,9 +1968,11 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                     % str(file_name))
             f = the_zipfile.extractfile(this_file)
             all_lines = [
-                line.strip() for line in f.readlines() if line.strip() != '']
+                str(line).strip() for line in f.readlines() if str(line).strip() != '']
             line_no = 1
             for line in all_lines:
+                # was throwing TypeError after running 2to3:
+                #line = line.decode()
                 if line_no == 1:
                     num_labels = len(line.split(','))
                     if num_labels < 2:
@@ -2033,6 +2037,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
         file_list = list(the_zipfile.getnames())
         
         for file_name in file_list:
+            file_name = str(file_name)
             this_file = the_zipfile.getmember(file_name)
             if this_file.isfile():
                 
@@ -2046,8 +2051,8 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                 
                 f = the_zipfile.extractfile(this_file)
                 all_lines = [
-                    line.strip() for line in 
-                    f.readlines() if line.strip() != '']
+                    str(line).strip() for line in 
+                    f.readlines() if str(line).strip() != '']
                 line_no = 1
                 for line in all_lines:
                     if line_no == 1:
@@ -2072,10 +2077,11 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
     else:
         with open(newpred_file_path) as f:
             all_lines = [
-                line.strip() for line in f.readlines() if line.strip() != '']
+                str(line).strip() for line in f.readlines() 
+                if str(line).strip() != '']
         file_name_variants = [
-            f.name, f.name.split("/")[-1], 
-            (f.name.split("/")[-1].replace("."+f.name.split("/")[-1].
+            str(f.name), str(f.name).split("/")[-1], 
+            (str(f.name).split("/")[-1].replace("."+str(f.name).split("/")[-1].
                 split(".")[-1],""))]
         all_fname_variants.extend(file_name_variants)
         all_fname_variants_list_of_lists.append(file_name_variants)
@@ -2108,6 +2114,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
         with open(metadata_file_path) as f:
             line_count = 0
             for line in f:
+                line = str(line)
                 if line.strip() != '':
                     if len(line.strip().split(",")) < 2:
                         raise custom_exceptions.DataFormatError((
@@ -2154,7 +2161,7 @@ def uploadFeaturesForm():
             str(secure_filename(features_file.filename)))
         path = os.path.join(app.config['UPLOAD_FOLDER'], features_file_name)
         features_file.save(path)
-        print "Saved", path
+        print("Saved", path)
         return featurizationPage(
             featureset_name=featureset_name, project_name=project_name, 
             headerfile_name=features_file_name, zipfile_name=None, sep=',', 
@@ -2201,7 +2208,7 @@ def uploadDataFeaturize(
         if custom_script_tested == "yes":
             custom_script = request.files["custom_feat_script_file"]
             customscript_fname = str(secure_filename(custom_script.filename))
-            print customscript_fname, 'uploaded.'
+            print(customscript_fname, 'uploaded.')
             customscript_path = os.path.join(
                 os.path.join(
                     app.config['UPLOAD_FOLDER'], "custom_feature_scripts"), 
@@ -2211,7 +2218,7 @@ def uploadDataFeaturize(
             features_to_use += custom_features
         else:
             customscript_path = False
-        print "Selected features:", features_to_use
+        print("Selected features:", features_to_use)
         try:
             email_user = request.form["email_user"]
             if email_user == "True":
@@ -2232,25 +2239,25 @@ def uploadDataFeaturize(
             str(secure_filename(zipfile.filename)))
         proj_key = project_name_to_key(project_name)
         if not sep or sep == "":
-            print filename, "uploaded but no sep info. Setting sep=,"
+            print(filename, "uploaded but no sep info. Setting sep=,")
             sep = ","
         headerfile_path = os.path.join(
             app.config['UPLOAD_FOLDER'], headerfile_name)
         zipfile_path = os.path.join(app.config['UPLOAD_FOLDER'], zipfile_name)
         headerfile.save(headerfile_path)
         zipfile.save(zipfile_path)
-        print "Saved", headerfile_name, "and", zipfile_name
+        print("Saved", headerfile_name, "and", zipfile_name)
         try:
             check_headerfile_and_tsdata_format(headerfile_path, zipfile_path)
         except custom_exceptions.DataFormatError as err:
             os.remove(headerfile_path)
             os.remove(zipfile_path)
-            print "Removed", headerfile_name, "and", zipfile_name
+            print("Removed", headerfile_name, "and", zipfile_name)
             return jsonify({"message":str(err),"type":"error"})
         except custom_exceptions.TimeSeriesFileNameError as err:
             os.remove(headerfile_path)
             os.remove(zipfile_path)
-            print "Removed", headerfile_name, "and", zipfile_name
+            print("Removed", headerfile_name, "and", zipfile_name)
             return jsonify({"message":str(err),"type":"error"})
         except:
             raise
@@ -2264,7 +2271,7 @@ def uploadDataFeaturize(
             # suffix of _2, _3, etc...
             file_suffix = filename.split('.')[-1]
             number_suffixes = ['']
-            number_suffixes.extend(range(1,999))
+            number_suffixes.extend(list(range(1,999)))
             for number_suffix in number_suffixes:
                 number_suffix = str(number_suffix)
                 if number_suffix == '':
@@ -2293,12 +2300,12 @@ def uploadDataFeaturize(
                     if is_match:
                         # filename_test exists and is the same as file being 
                         # uploaded
-                        print filename_test, ": is_match = True."
+                        print(filename_test, ": is_match = True.")
                         session['headerfile_name'] = filename_test
                         break
                     else:
                         # filename_test already exists but files don't match
-                        print filename_test, ": is_match = False."
+                        print(filename_test, ": is_match = False.")
                 else:
                     # filename_test does not exist on disk and we now save it
                     for i in range(len(header_lines)):
@@ -2309,7 +2316,7 @@ def uploadDataFeaturize(
                     f.close()
                     del header_lines
                     session['headerfile_name'] = filename_test
-                    print "no match found for", filename_test, ". Now saved."
+                    print("no match found for", filename_test, ". Now saved.")
                     break
         else:
             # filename doesn't exist on disk, we create it now:
@@ -2373,8 +2380,8 @@ def featurize_proc(
         results_str = ("An error occurred while processing your request. "
             "Please ensure that the header file and tarball of time series "
             "data files conform to the formatting requirements.")
-        print ("   #########      Error:    flask_app.featurize_proc: %s" % 
-            str(theErr))
+        print(("   #########      Error:    flask_app.featurize_proc: %s" % 
+            str(theErr)))
         logging.exception(("Error occurred during build_rf_model.featurize() "
             "call."))
         try:
@@ -2385,7 +2392,7 @@ def featurize_proc(
         except Exception as err:
             print ("An error occurred while attempting to remove files "
                 "associated with failed featurization attempt.")
-            print err
+            print(err)
             logging.exception(("An error occurred while attempting to remove "
                 "files associated with failed featurization attempt."))
     update_featset_entry_with_results_msg(featureset_key,results_str)
@@ -2513,9 +2520,9 @@ def featurizationPage(
             features_filepath, None, featlist, new_featset_key, is_test, 
             email_user, already_featurized, custom_script_path))
         proc.start()
-        print "NEW FEATURESET ADDED WITH featset_key =", new_featset_key
+        print("NEW FEATURESET ADDED WITH featset_key =", new_featset_key)
         PID = str(proc.pid)
-        print "PROCESS ID IS", PID
+        print("PROCESS ID IS", PID)
         session["PID"] = PID
         update_featset_entry_with_pid(new_featset_key,PID)
         return jsonify({
@@ -2536,7 +2543,7 @@ def featurizationPage(
             featlist = featlist, custom_features_script = custom_script_path, 
             meta_feats = meta_feats, headerfile_path = headerfile_path, 
             zipfile_path = zipfile_path)
-        print "NEW FEATURESET ADDED WITH featset_key =", new_featset_key
+        print("NEW FEATURESET ADDED WITH featset_key =", new_featset_key)
         multiprocessing.log_to_stderr()
         proc = multiprocessing.Process(
             target=featurize_proc,
@@ -2545,7 +2552,7 @@ def featurizationPage(
                 is_test, email_user, already_featurized, custom_script_path))
         proc.start()
         PID = str(proc.pid)
-        print "PROCESS ID IS", PID
+        print("PROCESS ID IS", PID)
         session["PID"] = PID
         update_featset_entry_with_pid(new_featset_key,PID)
         return jsonify({
@@ -2650,7 +2657,7 @@ def load_prediction_results(prediction_key):
         if ("An error occurred" in results_dict["results_str_html"] or 
                 "Error occurred" in results_dict["results_str_html"]):
             r.table("predictions").get(prediction_key).delete().run(g.rdb_conn)
-            print "Deleted prediction entry with key", prediction_key
+            print("Deleted prediction entry with key", prediction_key)
             
         return jsonify(results_dict)
     else:
@@ -2683,7 +2690,7 @@ def load_model_build_results(model_key):
         if ("Error occurred" in results_dict["results_msg"] or 
                 "An error occurred" in results_dict["results_msg"]):
             r.table("models").get(model_key).delete().run(g.rdb_conn)
-            print "Deleted model entry with key", model_key
+            print("Deleted model entry with key", model_key)
         return jsonify(results_dict)
     else:
         return jsonify({
@@ -2720,16 +2727,16 @@ def load_featurization_results(new_featset_key):
                     results_dict["headerfile_path"] is not None):
                 try:
                     os.remove(results_dict["headerfile_path"])
-                    print "Deleted", results_dict["headerfile_path"]
+                    print("Deleted", results_dict["headerfile_path"])
                 except Exception as err:
                     pass
             else:
-                print "headerfile_path not in asdfasdf or is None"
+                print("headerfile_path not in asdfasdf or is None")
             if ("zipfile_path" in results_dict and 
                     results_dict["zipfile_path"] is not None):
                 try:
                     os.remove(results_dict["zipfile_path"])
-                    print "Deleted", results_dict["zipfile_path"]
+                    print("Deleted", results_dict["zipfile_path"])
                 except Exception as err:
                     pass
             if ("custom_features_script" in results_dict and 
@@ -2737,18 +2744,18 @@ def load_featurization_results(new_featset_key):
                 try:
                     (os.remove(str(results_dict["custom_features_script"])
                         .replace(".py",".pyc")))
-                    print ("Deleted", 
+                    print(("Deleted", 
                         (str(results_dict["custom_features_script"])
-                        .replace(".py",".pyc")))
+                        .replace(".py",".pyc"))))
                 except Exception as err:
                     pass
                 try:
                     os.remove(results_dict["custom_features_script"])
-                    print "Deleted", results_dict["custom_features_script"]
+                    print("Deleted", results_dict["custom_features_script"])
                 except Exception as err:
                     pass
             r.table("features").get(new_featset_key).delete().run(g.rdb_conn)
-            print "Deleted feature set entry with key", new_featset_key
+            print("Deleted feature set entry with key", new_featset_key)
             
         return jsonify(results_dict)
     else:
@@ -2849,7 +2856,7 @@ def prediction_proc(
         update_prediction_entry_with_results(
             prediction_entry_key, html_str = msg, features_dict = {},
             ts_data_dict = {}, err = str(theErr))
-        print "   #########      Error:   flask_app.prediction_proc:", theErr
+        print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
             "Error occurred during predict_class.predict() call.")
     else:
@@ -2857,7 +2864,7 @@ def prediction_proc(
             big_features_dict = {}
             ts_data_dict = {}
             pred_results_list_dict = {}
-            for fname,data_dict in results_dict.iteritems():
+            for fname,data_dict in results_dict.items():
                 pred_results = data_dict['results_str']
                 ts_data = data_dict['ts_data']
                 features_dict = data_dict['features_dict']
@@ -2980,7 +2987,7 @@ def predictionPage(
             metadata_file_path is not None else None))
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
     pred_file_name = newpred_file_path.split("/")[-1]
-    print "starting prediction_proc..."
+    print("starting prediction_proc...")
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target = prediction_proc,
@@ -2995,7 +3002,7 @@ def predictionPage(
             path_to_tmp_dir))
     proc.start()
     PID = str(proc.pid)
-    print "PROCESS ID IS", PID
+    print("PROCESS ID IS", PID)
     session["PID"] = PID
     update_prediction_entry_with_pid(new_prediction_key,PID)
     return jsonify({
@@ -3031,7 +3038,7 @@ def uploadPredictionData():
             prediction_files_metadata = request.files[
                 "prediction_files_metadata"]
             if prediction_files_metadata.filename in [""," "]:
-                print "prediction_files_metadata file not provided"
+                print("prediction_files_metadata file not provided")
                 prediction_files_metadata = None
                 metadata_file_path = None
             else:
@@ -3049,10 +3056,10 @@ def uploadPredictionData():
         model_name, model_type_and_time = str(
             request.form["prediction_model_name_and_type"]).split(" - ")
         model_type = model_type_and_time.split(" ")[0]
-        print project_name, model_name, model_type
+        print(project_name, model_name, model_type)
         newpred_filename = secure_filename(newpred_file.filename)
         if not sep or sep == "":
-            print filename, "uploaded but no sep info. Setting sep=','"
+            print(filename, "uploaded but no sep info. Setting sep=','")
             sep = ","
         newpred_file_path = os.path.join(path_to_tmp_dir, newpred_filename)
         # CHECKING AGAINST EXISTING UPLOADED FILES:
@@ -3062,7 +3069,7 @@ def uploadPredictionData():
             # suffix of _2, _3, etc...
             file_suffix = newpred_filename.split('.')[-1]
             number_suffixes = ['']
-            number_suffixes.extend(range(1,999))
+            number_suffixes.extend(list(range(1,999)))
             for number_suffix in number_suffixes:
                 number_suffix = str(number_suffix)
                 if number_suffix == '':
@@ -3092,12 +3099,12 @@ def uploadPredictionData():
                     if is_match:
                         # filename_test exists and is the same as file 
                         # being uploaded
-                        print filename_test, ": is_match = True."
+                        print(filename_test, ": is_match = True.")
                         session['newpred_filename'] = filename_test
                         break
                     else:
                         # filename_test already exists but files don't match
-                        print filename_test, ": is_match = False."
+                        print(filename_test, ": is_match = False.")
                 else:
                     # filename_test does not exist on disk and we now save it
                     for i in range(len(header_lines)):
@@ -3108,12 +3115,12 @@ def uploadPredictionData():
                     f.close()
                     del header_lines
                     session['newpred_filename'] = filename_test
-                    print "no match found for", filename_test, ". Now saved."
+                    print("no match found for", filename_test, ". Now saved.")
                     break
         else:
             # filename doesn't exist on disk, we create it now:
             newpred_file.save(newpred_file_path)
-            print "Saved", newpred_filename
+            print("Saved", newpred_filename)
             if prediction_files_metadata is not None:
                 prediction_files_metadata.save(metadata_file_path)
         try:
@@ -3121,24 +3128,24 @@ def uploadPredictionData():
                 newpred_file_path, 
                 metadata_file_path)
         except custom_exceptions.DataFormatError as err:
-            print "DataFormatError"
-            print err
+            print("DataFormatError")
+            print(err)
             os.remove(newpred_file_path)
             if metadata_file_path is not None:
                 os.remove(metadata_file_path)
-            print "Removed ", str(newpred_file_path), (
+            print("Removed ", str(newpred_file_path), (
                 ("and"+str(metadata_file_path) if metadata_file_path is 
-                not None else ""))
+                not None else "")))
             return jsonify({"message":str(err),"type":"error"})
         except Exception as err:
-            print "Uploaded Data Files Improperly Formatted."
-            print err
+            print("Uploaded Data Files Improperly Formatted.")
+            print(err)
             os.remove(newpred_file_path)
             if metadata_file_path is not None:
                 os.remove(metadata_file_path)
-            print "Removed ", str(newpred_file_path), (
+            print("Removed ", str(newpred_file_path), (
                 ("and"+str(metadata_file_path) if metadata_file_path is not 
-                None else ""))
+                None else "")))
             return jsonify({
             "message":(
                 "Uploaded data files improperly "
@@ -3180,16 +3187,16 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
     # needed to establish database connect because we're now in a subprocess 
     # that is separate from main app:
     before_request()
-    print "Building model..."
+    print("Building model...")
     try:
         model_built_msg = (run_in_docker_container.
             build_model_in_docker_container(
                 featureset_name=featureset_name,
                 featureset_key=featureset_key,
                 model_type=model_type))
-        print "Done!"
+        print("Done!")
     except Exception as theErr:
-        print "  #########   Error: flask_app.build_model_proc() -", theErr
+        print("  #########   Error: flask_app.build_model_proc() -", theErr)
         model_built_msg = (
             "An error occurred while processing your request. "
             "Please try again at a later time. If the problem persists, please"
@@ -3300,8 +3307,8 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
         featureset_key=featureset_key,
         model_type=model_type,
         projkey=projkey,pid="None")
-    print "new model key =", new_model_key
-    print "New model featureset_key =", featureset_key
+    print("new model key =", new_model_key)
+    print("New model featureset_key =", featureset_key)
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target=build_model_proc,
@@ -3311,7 +3318,7 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
               str(new_model_key).strip()))
     proc.start()
     PID = str(proc.pid)
-    print "PROCESS ID IS", PID
+    print("PROCESS ID IS", PID)
     session["PID"] = PID
     update_model_entry_with_pid(new_model_key,PID)
     return jsonify({
@@ -3341,7 +3348,7 @@ def emailUser(user_email=None):
         Human readable success/failure message.
     
     """
-    print '/emailUser() called.'
+    print('/emailUser() called.')
     try:
         if user_email is None:
             user_email = str(get_current_userkey())
@@ -3384,6 +3391,6 @@ if __name__ == '__main__':
         db_init(force=args.force)
         sys.exit(0)
 
-    print "Launching server on %s:%s" % (args.host, args.port)
-    print "Logging to:", cfg.ERR_LOG_PATH
+    print("Launching server on %s:%s" % (args.host, args.port))
+    print("Logging to:", cfg.ERR_LOG_PATH)
     app.run(port=args.port, debug=args.debug, host=args.host, threaded=True)

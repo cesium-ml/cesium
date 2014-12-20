@@ -13,8 +13,8 @@ script_output = p.stdout.readlines()
 
 """
 import sys, os
-import urllib
-import cStringIO
+import urllib.request, urllib.parse, urllib.error
+import io
 
 os.environ["TCP_DIR"] = "/Data/dstarr/src/TCP/"
 from rpy2.robjects.packages import importr
@@ -35,7 +35,7 @@ import rpy2_classifiers
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+    <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -55,11 +55,11 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+            <TimeType ucd="frame.time.system?">MJD</TimeType> 
+            <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+            <TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+            <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+        </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -89,7 +89,7 @@ def generate_feature_xml_using_raw_xml(raw_xml_str):
     gen.generate(xml_handle=raw_xml_str)
     gen.sig.add_features_to_xml_string(gen.signals_list)
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     gen.sig.write_xml(out_xml_fpath=fp_out)
     xml_str = fp_out.getvalue()
     sys.stdout.close()
@@ -133,8 +133,8 @@ def generate_arff_using_raw_xml(xml_str):
         master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-    master_features = master_features_dict.keys()
-    master_classes = master_classes_dict.keys()
+    master_features = list(master_features_dict.keys())
+    master_classes = list(master_classes_dict.keys())
     a = arffify.Maker(search=[], skip_class=True, local_xmls=True, 
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -145,7 +145,7 @@ def generate_arff_using_raw_xml(xml_str):
     a.master_list = master_list
 
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     a.write_arff(outfile=fp_out, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,
@@ -166,7 +166,7 @@ def main():
     m_list = []
     merr_list = []
     try:
-        f = urllib.urlopen(timeseries_url)
+        f = urllib.request.urlopen(timeseries_url)
         ts_str = f.read()
         f.close()
         ts_list = eval(ts_str)
@@ -278,5 +278,5 @@ if __name__ == '__main__':
     #print "blahblah"
     out_dict = main()
     #print "yoyoyo"
-    print out_dict
+    print(out_dict)
 

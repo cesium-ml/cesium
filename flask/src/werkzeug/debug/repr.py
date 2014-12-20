@@ -122,7 +122,7 @@ class DebugReprGenerator(object):
             if have_extended_section:
                 buf.append('</span>')
             buf.append(right)
-            return _add_subclass_info(u''.join(buf), obj, base)
+            return _add_subclass_info(''.join(buf), obj, base)
         return proxy
 
     list_repr = _sequence_repr_maker('[', ']', list)
@@ -140,14 +140,14 @@ class DebugReprGenerator(object):
             pattern = 'ur' + pattern[1:]
         else:
             pattern = 'r' + pattern
-        return u're.compile(<span class="string regex">%s</span>)' % pattern
+        return 're.compile(<span class="string regex">%s</span>)' % pattern
 
     def string_repr(self, obj, limit=70):
         buf = ['<span class="string">']
         escaped = escape(obj)
         a = repr(escaped[:limit])
         b = repr(escaped[limit:])
-        if isinstance(obj, unicode):
+        if isinstance(obj, str):
             buf.append('u')
             a = a[1:]
             b = b[1:]
@@ -156,14 +156,14 @@ class DebugReprGenerator(object):
         else:
             buf.append(a)
         buf.append('</span>')
-        return _add_subclass_info(u''.join(buf), obj, (str, unicode))
+        return _add_subclass_info(''.join(buf), obj, (str, str))
 
     def dict_repr(self, d, recursive, limit=5):
         if recursive:
-            return _add_subclass_info(u'{...}', d, dict)
+            return _add_subclass_info('{...}', d, dict)
         buf = ['{']
         have_extended_section = False
-        for idx, (key, value) in enumerate(d.iteritems()):
+        for idx, (key, value) in enumerate(d.items()):
             if idx:
                 buf.append(', ')
             if idx == limit - 1:
@@ -175,18 +175,18 @@ class DebugReprGenerator(object):
         if have_extended_section:
             buf.append('</span>')
         buf.append('}')
-        return _add_subclass_info(u''.join(buf), d, dict)
+        return _add_subclass_info(''.join(buf), d, dict)
 
     def object_repr(self, obj):
-        return u'<span class="object">%s</span>' % \
+        return '<span class="object">%s</span>' % \
                escape(repr(obj).decode('utf-8', 'replace'))
 
     def dispatch_repr(self, obj, recursive):
         if obj is helper:
-            return u'<span class="help">%r</span>' % helper
-        if isinstance(obj, (int, long, float, complex)):
-            return u'<span class="number">%r</span>' % obj
-        if isinstance(obj, basestring):
+            return '<span class="help">%r</span>' % helper
+        if isinstance(obj, (int, float, complex)):
+            return '<span class="number">%r</span>' % obj
+        if isinstance(obj, str):
             return self.string_repr(obj)
         if isinstance(obj, RegexType):
             return self.regex_repr(obj)
@@ -209,8 +209,8 @@ class DebugReprGenerator(object):
             info = ''.join(format_exception_only(*sys.exc_info()[:2]))
         except Exception: # pragma: no cover
             info = '?'
-        return u'<span class="brokenrepr">&lt;broken repr (%s)&gt;' \
-               u'</span>' % escape(info.decode('utf-8', 'ignore').strip())
+        return '<span class="brokenrepr">&lt;broken repr (%s)&gt;' \
+               '</span>' % escape(info.decode('utf-8', 'ignore').strip())
 
     def repr(self, obj):
         recursive = False
@@ -232,8 +232,8 @@ class DebugReprGenerator(object):
         if isinstance(obj, dict):
             title = 'Contents of'
             items = []
-            for key, value in obj.iteritems():
-                if not isinstance(key, basestring):
+            for key, value in obj.items():
+                if not isinstance(key, str):
                     items = None
                     break
                 items.append((key, self.repr(value)))
@@ -250,7 +250,7 @@ class DebugReprGenerator(object):
         return self.render_object_dump(items, title, repr)
 
     def dump_locals(self, d):
-        items = [(key, self.repr(value)) for key, value in d.items()]
+        items = [(key, self.repr(value)) for key, value in list(d.items())]
         return self.render_object_dump(items, 'Local variables in frame')
 
     def render_object_dump(self, items, title, repr=None):

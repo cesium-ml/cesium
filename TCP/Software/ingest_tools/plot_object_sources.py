@@ -12,7 +12,7 @@
 """
 import sys, os
 import MySQLdb
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import numpy 
 
 pars = {\
@@ -53,14 +53,14 @@ def get_field_cam_run_using_radec(pars, ra, dec, survey='DRSN1'):
     """
     # http://sdssw1.fnal.gov/DRSN1-cgi-bin/FOOT?csvIn=ra%2Cdec%0D%0A30.0%2C-1.0%0D%0A;inputFile=;do_bestBox=yes;Submit=Submit%20Request
     tmp = """ra,dec\n%f,%f""" % (ra,dec)
-    params = urllib.urlencode({'csvIn': tmp})
+    params = urllib.parse.urlencode({'csvIn': tmp})
     random_fpath ="/tmp/%d.wget"%(numpy.random.random_integers(1000000000))
     wget_str = 'wget -t 1 -T 5 -O %s "%s%s;%s"' % (random_fpath, \
                                      pars['sdss_footprint_urls'][survey], \
                                      params, pars['footprint_preamble'])
-    print "wget do:", wget_str
+    print("wget do:", wget_str)
     os.system(wget_str)
-    print "wget done"
+    print("wget done")
     footret = open(random_fpath).read()
     os.system("rm %s" % (random_fpath))
     #f =urllib.urlopen(pars['sdss_footprint_urls'][survey], "%s;%s" % (params,pars['footprint_preamble']))
@@ -69,7 +69,7 @@ def get_field_cam_run_using_radec(pars, ra, dec, survey='DRSN1'):
     start = footret.find("<pre>")
     end = footret.find("</pre>")
     if start == -1 or end == -1:
-        print "ERROR: Bad return from footprint server.(ra,dec):", ra, dec
+        print("ERROR: Bad return from footprint server.(ra,dec):", ra, dec)
         return
     res_string = footret[start+5:end]
     res_str_list = res_string.split('\n')
@@ -250,7 +250,7 @@ class Plot_Object_Sources:
                                                  retrieve_remote_sdss_fits_tgz=\
                                                         self.use_remote_servers)
         if len(fits_list) == 0:
-            print "Unable to find SDSS-II Fits image for:", ra, dec
+            print("Unable to find SDSS-II Fits image for:", ra, dec)
             return
 
         source_coords_fpath = self.rdb_get_object_source_lists(ra, dec, radius,\
@@ -262,7 +262,7 @@ class Plot_Object_Sources:
             ds9_string = "%s %s -regions load %s " % (ds9_string, individ_fits_fpath, source_coords_fpath)
 
         ds9_string += ' -frame first -match frames wcs -blink' # -single' # -blink'
-        print ds9_string
+        print(ds9_string)
         os.system(ds9_string)
 
 if __name__ == '__main__':

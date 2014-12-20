@@ -24,10 +24,10 @@ from numpy import array,matrix,arange,sqrt,exp,mean,sum,zeros,clip,fix,\
 # sdss_best_offset_in_petro_g
 # sdss_best_z + sdss_best_dz
 # sdss_colors:
-# 	sdss_photo_rest_ug
-# 	sdss_photo_rest_gr
-# 	sdss_photo_rest_ri
-# 	sdss_photo_rest_iz
+#   sdss_photo_rest_ug
+#   sdss_photo_rest_gr
+#   sdss_photo_rest_ri
+#   sdss_photo_rest_iz
 
 
 #(2) find host
@@ -46,39 +46,39 @@ used_z=False
 light_threshold=1.5
 if  (closest_in_light is not None) and (closest_in_light<light_threshold)
 #    this is the host
-	nearby=True
-	if (closest_in_light_ttype is not None) 
-		gal_type=closest_in_light_ttype
-	else
-		gal_type=4
-		
-	if closest_in_light_dm is not None
-		H0=70;
-		near_z=H0/30*10**(closest_in_light_dm/5-9)
-		dm_err=0.4 # (about 20% in distance)
-		near_dz=dm_err*H0/30*log(10)/5*10**(closest_in_light_dm/5-9)
-		used_z=True
+    nearby=True
+    if (closest_in_light_ttype is not None) 
+        gal_type=closest_in_light_ttype
+    else
+        gal_type=4
+        
+    if closest_in_light_dm is not None
+        H0=70;
+        near_z=H0/30*10**(closest_in_light_dm/5-9)
+        dm_err=0.4 # (about 20% in distance)
+        near_dz=dm_err*H0/30*log(10)/5*10**(closest_in_light_dm/5-9)
+        used_z=True
 
 sdss_threshold=2
 if (sdss_best_offset_in_petro_g is not None) and (sdss_nearest_obj_type is 'Galaxy' ) and (sdss_best_offset_in_petro_g<sdss_threshold) and 
 
-	if (sdss_best_z is not None) and (near_z is None)
-		z=sdss_best_z
-		dz=sdss_best_dz
-		used_z=True
-	else
-		z=near_z
-		dz=near_dz
-		used_sdss_colors=True
-		
-	if (sdss_photo_rest_ug is not None) and (sdss_photo_rest_gr is not None) and (sdss_photo_rest_ri is not None) and (sdss_photo_rest_iz is not None) 
-		sloan_colors=[sdss_photo_rest_ug,sdss_photo_rest_gr,sdss_photo_rest_ri,sdss_photo_rest_iz]
-		
+    if (sdss_best_z is not None) and (near_z is None)
+        z=sdss_best_z
+        dz=sdss_best_dz
+        used_z=True
+    else
+        z=near_z
+        dz=near_dz
+        used_sdss_colors=True
+        
+    if (sdss_photo_rest_ug is not None) and (sdss_photo_rest_gr is not None) and (sdss_photo_rest_ri is not None) and (sdss_photo_rest_iz is not None) 
+        sloan_colors=[sdss_photo_rest_ug,sdss_photo_rest_gr,sdss_photo_rest_ri,sdss_photo_rest_iz]
+        
 #(3) run the classifier?
 PTF_SN_classifier(z,dz,sloan_colors=sloan_colors,gal_type=gal_type)
 
-	
-	
+    
+    
 # (4) add flags to the out_dict:
 # {'name': "nearby",           'type': "bool", 'val': nearby, "comment": "Object has a host is in Nearby galaxies catalog"}],\
 # {'name': "used_sdss_colors", 'type': "bool", 'val': used_sdss_colors, "comment": "Used sloan colors to derive host-galaxy type"}],\
@@ -299,51 +299,51 @@ def PTF_SN_classifier(z,dz=0.1,sloan_colors=[],sloan_type=4,gal_type=0):
       'z_1sigma|IIp':z1sigma,'z_1sigma|Ibc':z1sigma,'z_1sigma|IIp':z1sigma}
   
   
-  out_dict={	'<SN classify Plugin v0.1>': { \
-	  'class_results':{ \
-	        'SN Ia':{'prob':  out_dict1['prob_Ia'],\
-	                 'weight':1.0,\
-	                 'TUTOR_name': "tia",\
-	                 'comments': "No Ia subtypes",\
-	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['Ia_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a Ia"},\
-	                 'subclass': { \
-	                     '1991bg-like'  : {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
-	                     'super-Chandra': {'prob': None, 'weight': 0.0, 'TUTOR-name': "tiasc"},\
-	                     'Branch-Normal': {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
-	                     'peculiar':      {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
-			'SN CC':{'prob':  out_dict1['prob_CC'],\
-					'weight':1.0,\
-					'TUTOR_name': "cc",\
-					'comments': None,\
-					'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['cc_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a CC-SN"}},
-	        'SN Ibc':{'prob':  out_dict1['prob_Ibc'],\
-	                 'weight':1.0,\
-	                 'TUTOR_name': None,\
-	                 'comments': "no Ib Ic differenciation",\
-	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['Ibc_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a Ibc"},\
-	                 'subclass': { \
-	                     'Ib'  : 	 {'prob': None, 'weight': 0.0, 'TUTOR-name': "tib"},\
-	                     'Ic': 		 {'prob': None, 'weight': 0.0, 'TUTOR-name': "tic"},\
-	                     'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
-	      'SN IIP':{'prob':  out_dict1['prob_IIp'],\
-	                 'weight':1.0,\
-	                 'TUTOR_name': "iip",\
-	                 'comments': "Type II SNe are broken to IIP and IIn",\
-	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['IIp_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a IIp"},\
-	                 'subclass': { \
-	                     'IIP'  : 	 {'prob': None, 'weight': 0.0, 'TUTOR-name': "iip"},\
-	                     'IIL': 		 {'prob': None, 'weight': 0.0, 'TUTOR-name': "iil"},\
-	                     'IIb': 		 {'prob': None, 'weight': 0.0, 'TUTOR-name': "iib"},\
-	                     'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
-	      'SN IIn':{'prob':  out_dict1['prob_IIn'],\
-	                 'weight':1.0,\
-	                 'TUTOR_name': "iin",\
-	                 'comments': "Type II SNe are broken to IIP and IIn",\
-	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['IIn_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a IIn"}}},
-	 'global_statements_and_flags': [\
-	           {'name': "interesting_object", 'type': "bool", 'val': None, "comment": None},\
-	           {'name': "high-z", 'type': "bool", 'val': out_dict1['high_z'], "comment": None}],\
-	 'comments' : "in this version weights are 0 or 1, the first for unconstrained questions, the latter for any derived value.",\
-	 'version': "v0.1"}}
+  out_dict={    '<SN classify Plugin v0.1>': { \
+      'class_results':{ \
+            'SN Ia':{'prob':  out_dict1['prob_Ia'],\
+                     'weight':1.0,\
+                     'TUTOR_name': "tia",\
+                     'comments': "No Ia subtypes",\
+                     'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['Ia_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a Ia"},\
+                     'subclass': { \
+                         '1991bg-like'  : {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
+                         'super-Chandra': {'prob': None, 'weight': 0.0, 'TUTOR-name': "tiasc"},\
+                         'Branch-Normal': {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
+                         'peculiar':      {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
+            'SN CC':{'prob':  out_dict1['prob_CC'],\
+                    'weight':1.0,\
+                    'TUTOR_name': "cc",\
+                    'comments': None,\
+                    'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['cc_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a CC-SN"}},
+            'SN Ibc':{'prob':  out_dict1['prob_Ibc'],\
+                     'weight':1.0,\
+                     'TUTOR_name': None,\
+                     'comments': "no Ib Ic differenciation",\
+                     'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['Ibc_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a Ibc"},\
+                     'subclass': { \
+                         'Ib'  :     {'prob': None, 'weight': 0.0, 'TUTOR-name': "tib"},\
+                         'Ic':       {'prob': None, 'weight': 0.0, 'TUTOR-name': "tic"},\
+                         'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
+          'SN IIP':{'prob':  out_dict1['prob_IIp'],\
+                     'weight':1.0,\
+                     'TUTOR_name': "iip",\
+                     'comments': "Type II SNe are broken to IIP and IIn",\
+                     'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['IIp_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a IIp"},\
+                     'subclass': { \
+                         'IIP'  :    {'prob': None, 'weight': 0.0, 'TUTOR-name': "iip"},\
+                         'IIL':          {'prob': None, 'weight': 0.0, 'TUTOR-name': "iil"},\
+                         'IIb':          {'prob': None, 'weight': 0.0, 'TUTOR-name': "iib"},\
+                         'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
+          'SN IIn':{'prob':  out_dict1['prob_IIn'],\
+                     'weight':1.0,\
+                     'TUTOR_name': "iin",\
+                     'comments': "Type II SNe are broken to IIP and IIn",\
+                     'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['IIn_z_1sigma'], 'comments': "This is the 1sigma redshift interval if it is a IIn"}}},
+     'global_statements_and_flags': [\
+               {'name': "interesting_object", 'type': "bool", 'val': None, "comment": None},\
+               {'name': "high-z", 'type': "bool", 'val': out_dict1['high_z'], "comment": None}],\
+     'comments' : "in this version weights are 0 or 1, the first for unconstrained questions, the latter for any derived value.",\
+     'version': "v0.1"}}
   
   return out_dict

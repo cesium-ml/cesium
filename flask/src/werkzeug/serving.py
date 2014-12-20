@@ -39,12 +39,12 @@ import os
 import socket
 import sys
 import time
-import thread
+import _thread
 import signal
 import subprocess
-from urllib import unquote
-from SocketServer import ThreadingMixIn, ForkingMixIn
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import unquote
+from socketserver import ThreadingMixIn, ForkingMixIn
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import werkzeug
 from werkzeug._internal import _log
@@ -93,7 +93,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
             'SERVER_PROTOCOL':      self.request_version
         }
 
-        for key, value in self.headers.items():
+        for key, value in list(self.headers.items()):
             key = 'HTTP_' + key.upper().replace('-', '_')
             if key not in ('HTTP_CONTENT_TYPE', 'HTTP_CONTENT_LENGTH'):
                 environ[key] = value
@@ -134,7 +134,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
             if exc_info:
                 try:
                     if headers_sent:
-                        raise exc_info[0], exc_info[1], exc_info[2]
+                        raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
                 finally:
                     exc_info = None
             elif headers_set:
@@ -157,7 +157,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
 
         try:
             execute(app)
-        except (socket.error, socket.timeout), e:
+        except (socket.error, socket.timeout) as e:
             self.connection_dropped(e, environ)
         except Exception:
             if self.server.passthrough_errors:
@@ -180,7 +180,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler, object):
         rv = None
         try:
             rv = BaseHTTPRequestHandler.handle(self)
-        except (socket.error, socket.timeout), e:
+        except (socket.error, socket.timeout) as e:
             self.connection_dropped(e)
         except Exception:
             if self.server.ssl_context is None or not is_ssl_error():
@@ -256,7 +256,7 @@ def generate_adhoc_ssl_context():
     from OpenSSL import crypto, SSL
 
     cert = crypto.X509()
-    cert.set_serial_number(int(random() * sys.maxint))
+    cert.set_serial_number(int(random() * sys.maxsize))
     cert.gmtime_adj_notBefore(0)
     cert.gmtime_adj_notAfter(60 * 60 * 24 * 365)
 
@@ -409,7 +409,7 @@ def make_server(host, port, app=None, threaded=False, processes=1,
 
 
 def _iter_module_files():
-    for module in sys.modules.values():
+    for module in list(sys.modules.values()):
         filename = getattr(module, '__file__', None)
         if filename:
             old = None
@@ -514,8 +514,8 @@ def restart_with_reloader():
         # environment and subprocess.call does not like this, encode them
         # to latin1 and continue.
         if os.name == 'nt':
-            for key, value in new_environ.iteritems():
-                if isinstance(value, unicode):
+            for key, value in new_environ.items():
+                if isinstance(value, str):
                     new_environ[key] = value.encode('iso-8859-1')
 
         exit_code = subprocess.call(args, env=new_environ)
@@ -528,7 +528,7 @@ def run_with_reloader(main_func, extra_files=None, interval=1):
     import signal
     signal.signal(signal.SIGTERM, lambda *args: sys.exit(0))
     if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-        thread.start_new_thread(main_func, ())
+        _thread.start_new_thread(main_func, ())
         try:
             reloader_loop(extra_files, interval)
         except KeyboardInterrupt:

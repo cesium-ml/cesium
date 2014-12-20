@@ -68,8 +68,8 @@ class Dovi_SN:
         
         x10=min(x1); x20=max(x2);
         delta0=x20-x10
-        for i in xrange(lx-2):
-          for j0 in xrange(lx-i):
+        for i in range(lx-2):
+          for j0 in range(lx-i):
             j = j0 + i
             delta = x2[j] - x1[i]
             if (cprob[j+1]-cprob[i]>=conf*mcprob and delta<delta0):
@@ -285,51 +285,51 @@ class Dovi_SN:
                          'prob_weight':1.0},
                 },
             'values_added_properties':[{\
-      	       'class_results':{ \
-      	        'SN Ia':{'prob':  out_dict1['Prob_Ia'],\
-      	                 'weight':1.0,\
-      	                 'TUTOR_name': "tia",\
-      	                 'comments': "No Ia subtypes",\
-      	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|Ia'], 'comments': "This is the 1sigma redshift interval if it is a Ia"},\
-      	                 'subclass': { \
-      	                     '1991bg-like'  : {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
-      	                     'super-Chandra': {'prob': None, 'weight': 0.0, 'TUTOR-name': "tiasc"},\
-      	                     'Branch-Normal': {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
-      	                     'peculiar':      {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
-      		 'SN CC':{'prob':  out_dict1['Prob_CC'],\
-      					'weight':1.0,\
-      					'TUTOR_name': "cc",\
-      					'comments': None,\
-      					'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|CC'], 'comments': "This is the 1sigma redshift interval if it is a CC-SN"}},
-      	        'SN Ibc':{'prob':  out_dict1['Prob_Ibc|CC'],\
-      	                 'weight':1.0, \
-      	                 'TUTOR_name': None,\
-      	                 'comments': "no Ib Ic differenciation",\
-      	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|Ibc'], 'comments': "This is the 1sigma redshift interval if it is a Ibc"},\
-      	                 'subclass': { \
-      	                     'Ib'  : 	 {'prob': None, 'weight': 0.0, 'TUTOR-name': "tib"},\
-      	                     'Ic': 		 {'prob': None, 'weight': 0.0, 'TUTOR-name': "tic"},\
-      	                     'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
-      	      'SN IIP':{'prob':  out_dict1['Prob_IIp|CC'],\
-      	                 'weight':1.0,\
-      	                 'TUTOR_name': "iip",\
-      	                 'comments': "Type II SNe are broken to IIP and IIn",\
-      	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|IIp'], 'comments': "This is the 1sigma redshift interval if it is a IIp"},\
-      	                 'subclass': { \
-      	                     'IIP'  : 	 {'prob': None, 'weight': 0.0, 'TUTOR-name': "iip"},\
-      	                     'IIL': 		 {'prob': None, 'weight': 0.0, 'TUTOR-name': "iil"},\
-      	                     'IIb': 		 {'prob': None, 'weight': 0.0, 'TUTOR-name': "iib"},\
-      	                     'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
-      	      'SN IIn':{'prob':  out_dict1['Prob_IIn|CC'],\
-      	                 'weight':1.0,\
-      	                 'TUTOR_name': "iin",\
-      	                 'comments': "Type II SNe are broken to IIP and IIn",\
-      	                 'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|IIn'], 'comments': "This is the 1sigma redshift interval if it is a IIn"}}},
-      	 'global_statements_and_flags': [\
-      	           {'name': "interesting_object", 'type': "bool", 'val': None, "comment": None},\
-      	           {'name': "high-z", 'type': "bool", 'val': out_dict1['high_z'], "comment": None}],\
-      	 'comments' : "in this version weights are 0 or 1, the first for unconstrained questions, the latter for any derived value.",\
-      	 'version': "v0.1"}]}        
+               'class_results':{ \
+                'SN Ia':{'prob':  out_dict1['Prob_Ia'],\
+                         'weight':1.0,\
+                         'TUTOR_name': "tia",\
+                         'comments': "No Ia subtypes",\
+                         'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|Ia'], 'comments': "This is the 1sigma redshift interval if it is a Ia"},\
+                         'subclass': { \
+                             '1991bg-like'  : {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
+                             'super-Chandra': {'prob': None, 'weight': 0.0, 'TUTOR-name': "tiasc"},\
+                             'Branch-Normal': {'prob': None, 'weight': 0.0, 'TUTOR-name': None},\
+                             'peculiar':      {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
+             'SN CC':{'prob':  out_dict1['Prob_CC'],\
+                        'weight':1.0,\
+                        'TUTOR_name': "cc",\
+                        'comments': None,\
+                        'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|CC'], 'comments': "This is the 1sigma redshift interval if it is a CC-SN"}},
+                'SN Ibc':{'prob':  out_dict1['Prob_Ibc|CC'],\
+                         'weight':1.0, \
+                         'TUTOR_name': None,\
+                         'comments': "no Ib Ic differenciation",\
+                         'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|Ibc'], 'comments': "This is the 1sigma redshift interval if it is a Ibc"},\
+                         'subclass': { \
+                             'Ib'  :     {'prob': None, 'weight': 0.0, 'TUTOR-name': "tib"},\
+                             'Ic':       {'prob': None, 'weight': 0.0, 'TUTOR-name': "tic"},\
+                             'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
+              'SN IIP':{'prob':  out_dict1['Prob_IIp|CC'],\
+                         'weight':1.0,\
+                         'TUTOR_name': "iip",\
+                         'comments': "Type II SNe are broken to IIP and IIn",\
+                         'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|IIp'], 'comments': "This is the 1sigma redshift interval if it is a IIp"},\
+                         'subclass': { \
+                             'IIP'  :    {'prob': None, 'weight': 0.0, 'TUTOR-name': "iip"},\
+                             'IIL':          {'prob': None, 'weight': 0.0, 'TUTOR-name': "iil"},\
+                             'IIb':          {'prob': None, 'weight': 0.0, 'TUTOR-name': "iib"},\
+                             'peculiar': {'prob': None, 'weight': 0.0, 'TUTOR-name': None}}},
+              'SN IIn':{'prob':  out_dict1['Prob_IIn|CC'],\
+                         'weight':1.0,\
+                         'TUTOR_name': "iin",\
+                         'comments': "Type II SNe are broken to IIP and IIn",\
+                         'class_value_added_statements': {'name': "z_1sigma",'value' : out_dict1['z_1sigma|IIn'], 'comments': "This is the 1sigma redshift interval if it is a IIn"}}},
+         'global_statements_and_flags': [\
+                   {'name': "interesting_object", 'type': "bool", 'val': None, "comment": None},\
+                   {'name': "high-z", 'type': "bool", 'val': out_dict1['high_z'], "comment": None}],\
+         'comments' : "in this version weights are 0 or 1, the first for unconstrained questions, the latter for any derived value.",\
+         'version': "v0.1"}]}        
         return out_dict
 
 

@@ -12,7 +12,7 @@ def main():
     #configdict['settings']['color'] = 'red'
 
     # or you can access it like object attributes
-    print configdict.tdf.created_by
+    print(configdict.tdf.created_by)
     configdict.tdf.created_by = 'red'
 
     root = ConvertDictToXml(configdict)
@@ -36,7 +36,7 @@ class XmlDictObject(dict):
         self.__setitem__(item, value)
     
     def __str__(self):
-        if self.has_key('_text'):
+        if '_text' in self:
             return self.__getitem__('_text')
         else:
             return ''
@@ -44,7 +44,7 @@ class XmlDictObject(dict):
     @staticmethod
     def Wrap(x):
         if isinstance(x, dict):
-            return XmlDictObject((k, XmlDictObject.Wrap(v)) for (k, v) in x.iteritems())
+            return XmlDictObject((k, XmlDictObject.Wrap(v)) for (k, v) in x.items())
         elif isinstance(x, list):
             return [XmlDictObject.Wrap(v) for v in x]
         else:
@@ -53,7 +53,7 @@ class XmlDictObject(dict):
     @staticmethod
     def _UnWrap(x):
         if isinstance(x, dict):
-            return dict((k, XmlDictObject._UnWrap(v)) for (k, v) in x.iteritems())
+            return dict((k, XmlDictObject._UnWrap(v)) for (k, v) in x.items())
         elif isinstance(x, list):
             return [XmlDictObject._UnWrap(v) for v in x]
         else:
@@ -66,7 +66,7 @@ def _ConvertDictToXmlRecurse(parent, dictitem):
     assert type(dictitem) is not type([])
 
     if isinstance(dictitem, dict):
-        for (tag, child) in dictitem.iteritems():
+        for (tag, child) in dictitem.items():
             if str(tag) == '_text':
                 parent.text = str(child)
             elif type(child) is type([]):
@@ -82,7 +82,7 @@ def _ConvertDictToXmlRecurse(parent, dictitem):
         parent.text = str(dictitem)
     
 def ConvertDictToXml(xmldict):
-    roottag = xmldict.keys()[0]
+    roottag = list(xmldict.keys())[0]
     root = ElementTree.Element(roottag)
     _ConvertDictToXmlRecurse(root, xmldict[roottag])
     return root
@@ -90,14 +90,14 @@ def ConvertDictToXml(xmldict):
 def _ConvertXmlToDictRecurse(node, dictclass):
     nodedict = dictclass()
     
-    if len(node.items()) > 0:
+    if len(list(node.items())) > 0:
         # if we have attributes, set them
-        nodedict.update(dict(node.items()))
+        nodedict.update(dict(list(node.items())))
     
     for child in node:
         # recursively add the element's children
         newitem = _ConvertXmlToDictRecurse(child, dictclass)
-        if nodedict.has_key(child.tag):
+        if child.tag in nodedict:
             # found duplicate tag, force a list
             if type(nodedict[child.tag]) is type([]):
                 # append to existing list

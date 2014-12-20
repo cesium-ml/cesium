@@ -21,6 +21,6 @@ if __name__ == '__main__':
         # QSO-like:  res[0]<~2
         # non-QSO: res[1]/res[0]<~2
 
-        print ("%s %f %f") % (id,res[0],res[1]/res[0])
+        print(("%s %f %f") % (id,res[0],res[1]/res[0]))
         import pprint
         pprint.pprint(od)

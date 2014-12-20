@@ -4,7 +4,7 @@
 
 # to be run from INSIDE a docker container
 
-from __future__ import print_function
+
 import subprocess
 import sys
 import os

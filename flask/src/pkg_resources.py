@@ -41,7 +41,7 @@ from os.path import isdir, split
 # attribute is present to decide wether to reinstall the package
 _distribute = True
 
-def _bypass_ensure_directory(name, mode=0777):
+def _bypass_ensure_directory(name, mode=0o777):
     # Sandbox-bypassing version of ensure_directory()
     if not WRITE_SUPPORT:
         raise IOError('"os.mkdir" not supported on this platform.')
@@ -288,7 +288,7 @@ run_main = run_script   # backward compatibility
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist,basestring): dist = Requirement.parse(dist)
+    if isinstance(dist,str): dist = Requirement.parse(dist)
     if isinstance(dist,Requirement): dist = get_provider(dist)
     if not isinstance(dist,Distribution):
         raise TypeError("Expected string, Requirement, or Distribution", dist)
@@ -447,7 +447,7 @@ class WorkingSet(object):
         for dist in self:
             entries = dist.get_entry_map(group)
             if name is None:
-                for ep in entries.values():
+                for ep in list(entries.values()):
                     yield ep
             elif name in entries:
                 yield entries[name]
@@ -601,7 +601,7 @@ class WorkingSet(object):
             env = full_env + plugin_env
 
         shadow_set = self.__class__([])
-        map(shadow_set.add, self)   # put all our entries in shadow_set
+        list(map(shadow_set.add, self))   # put all our entries in shadow_set
 
         for project_name in plugin_projects:
 
@@ -612,7 +612,7 @@ class WorkingSet(object):
                 try:
                     resolvees = shadow_set.resolve(req, env, installer)
 
-                except ResolutionError,v:
+                except ResolutionError as v:
                     error_info[dist] = v    # save error info
                     if fallback:
                         continue    # try the next older version of project
@@ -620,7 +620,7 @@ class WorkingSet(object):
                         break       # give up on this project, keep going
 
                 else:
-                    map(shadow_set.add, resolvees)
+                    list(map(shadow_set.add, resolvees))
                     distributions.update(dict.fromkeys(resolvees))
 
                     # success, no need to try any more versions of this project
@@ -793,7 +793,7 @@ class Environment(object):
 
     def __iter__(self):
         """Yield the unique project names of the available distributions"""
-        for key in self._distmap.keys():
+        for key in list(self._distmap.keys()):
             if self[key]: yield key
 
 
@@ -980,7 +980,7 @@ variable to point to an accessible directory.
 
         if os.name == 'posix':
             # Make the resource executable
-            mode = ((os.stat(tempname).st_mode) | 0555) & 07777
+            mode = ((os.stat(tempname).st_mode) | 0o555) & 0o7777
             os.chmod(tempname, mode)
 
 
@@ -1191,14 +1191,14 @@ class NullProvider:
         script_filename = self._fn(self.egg_info,script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            execfile(script_filename, namespace, namespace)
+            exec(compile(open(script_filename).read(), script_filename, 'exec'), namespace, namespace)
         else:
             from linecache import cache
             cache[script_filename] = (
                 len(script_text), 0, script_text.split('\n'), script_filename
             )
             script_code = compile(script_text,script_filename,'exec')
-            exec script_code in namespace, namespace
+            exec(script_code, namespace, namespace)
 
     def _has(self, path):
         raise NotImplementedError(
@@ -1668,9 +1668,9 @@ def StringIO(*args, **kw):
     """Thunk to load the real StringIO on demand"""
     global StringIO
     try:
-        from cStringIO import StringIO
+        from io import StringIO
     except ImportError:
-        from StringIO import StringIO
+        from io import StringIO
     return StringIO(*args,**kw)
 
 def find_nothing(importer, path_item, only=False):
@@ -1839,7 +1839,7 @@ def _set_parent_ns(packageName):
 
 def yield_lines(strs):
     """Yield non-empty/non-comment lines of a ``basestring`` or sequence"""
-    if isinstance(strs,basestring):
+    if isinstance(strs,str):
         for s in strs.splitlines():
             s = s.strip()
             if s and not s.startswith('#'):     # skip blank lines/comments
@@ -1956,8 +1956,8 @@ class EntryPoint(object):
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
             raise UnknownExtra("Can't require() without a distribution", self)
-        map(working_set.add,
-            working_set.resolve(self.dist.requires(self.extras),env,installer))
+        list(map(working_set.add,
+            working_set.resolve(self.dist.requires(self.extras),env,installer)))
 
 
 
@@ -2021,7 +2021,7 @@ class EntryPoint(object):
     def parse_map(cls, data, dist=None):
         """Parse a map of entry point groups"""
         if isinstance(data,dict):
-            data = data.items()
+            data = list(data.items())
         else:
             data = split_sections(data)
         maps = {}
@@ -2177,7 +2177,7 @@ class Distribution(object):
         self.insert_on(path)
         if path is sys.path:
             fixup_namespace_packages(self.location)
-            map(declare_namespace, self._get_metadata('namespace_packages.txt'))
+            list(map(declare_namespace, self._get_metadata('namespace_packages.txt')))
 
 
     def egg_name(self):
@@ -2206,7 +2206,7 @@ class Distribution(object):
     def __getattr__(self,attr):
         """Delegate all unrecognized public attributes to .metadata provider"""
         if attr.startswith('_'):
-            raise AttributeError,attr
+            raise AttributeError(attr)
         return getattr(self._provider, attr)
 
     #@classmethod
@@ -2285,7 +2285,7 @@ class Distribution(object):
 
         nloc = _normalize_cached(loc)
         bdir = os.path.dirname(nloc)
-        npath= map(_normalize_cached, path)
+        npath= list(map(_normalize_cached, path))
 
         bp = None
         for p, item in enumerate(npath):
@@ -2413,7 +2413,7 @@ def parse_requirements(strs):
         while not TERMINATOR(line,p):
             if CONTINUE(line,p):
                 try:
-                    line = lines.next(); p = 0
+                    line = next(lines); p = 0
                 except StopIteration:
                     raise ValueError(
                         "\\ must not appear on the last nonblank line"
@@ -2505,9 +2505,9 @@ class Requirement:
 
     def __contains__(self,item):
         if isinstance(item,Distribution):
-            if item.key <> self.key: return False
+            if item.key != self.key: return False
             if self.index: item = item.parsed_version  # only get if we need it
-        elif isinstance(item,basestring):
+        elif isinstance(item,str):
             item = parse_version(item)
         last = None
         compare = lambda a, b: (a > b) - (a < b) # -1, 0, 1
@@ -2673,5 +2673,5 @@ run_main = run_script   # backward compatibility
 # all distributions added to the working set in the future (e.g. by
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
-working_set.entries=[]; map(working_set.add_entry,sys.path) # match order
+working_set.entries=[]; list(map(working_set.add_entry,sys.path)) # match order
 

@@ -6,6 +6,7 @@ import inspect
 from wtforms import fields as f
 from wtforms import validators
 from wtforms.form import Form
+import collections
 
 
 __all__ = (
@@ -53,7 +54,7 @@ class ModelConverterBase(object):
             # 'arg' that's callable.
             callable_default = getattr(default, 'arg', None)
 
-            if callable_default and callable(callable_default):
+            if callable_default and isinstance(callable_default, collections.Callable):
                 default = callable_default(None)
 
         kwargs = {
@@ -144,19 +145,19 @@ class ModelConverter(ModelConverterBase):
 
     @converts('databases.postgres.PGInet', 'dialects.postgresql.base.INET')
     def conv_PGInet(self, field_args, **extra):
-        field_args.setdefault('label', u'IP Address')
+        field_args.setdefault('label', 'IP Address')
         field_args['validators'].append(validators.IPAddress())
         return f.TextField(**field_args)
 
     @converts('dialects.postgresql.base.MACADDR')
     def conv_PGMacaddr(self, field_args, **extra):
-        field_args.setdefault('label', u'MAC Address')
+        field_args.setdefault('label', 'MAC Address')
         field_args['validators'].append(validators.MacAddress())
         return f.TextField(**field_args)
 
     @converts('dialects.postgresql.base.UUID')
     def conv_PGUuid(self, field_args, **extra):
-        field_args.setdefault('label', u'UUID')
+        field_args.setdefault('label', 'UUID')
         field_args['validators'].append(validators.UUID())
         return f.TextField(**field_args)
 

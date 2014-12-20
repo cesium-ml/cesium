@@ -26,4 +26,4 @@ if __name__ == '__main__':
                   "Correctly Classified Instances" in line):
                 percent = float(line[52:line.rfind('%')-1])
                 break
-        print "%0.2f %s" % (percent, case_name)
+        print("%0.2f %s" % (percent, case_name))

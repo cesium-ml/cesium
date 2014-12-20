@@ -5,12 +5,12 @@
 import subprocess
 import sys
 import os
-sys.path.append("/home/mltsp/mltsp")
+sys.path.append("/home/mltsp")
 import custom_feature_tools as cft
 import build_rf_model
 
 from subprocess import Popen, PIPE, call
-import cPickle
+import pickle
 
 
 def build_model():
@@ -26,8 +26,8 @@ def build_model():
     
     """
     # load pickled ts_data and known features
-    with open("/home/mltsp/mltsp/copied_data_files/function_args.pkl","rb") as f:
-        function_args = cPickle.load(f)
+    with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
+        function_args = pickle.load(f)
     
     results_str = build_rf_model.build_model(
         featureset_name=function_args["featureset_name"],
@@ -40,4 +40,4 @@ def build_model():
 
 if __name__=="__main__":
     results_str = build_model()
-    print results_str
+    print(results_str)

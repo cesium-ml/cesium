@@ -10,8 +10,8 @@
 """
 import re
 import os
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import posixpath
 import mimetypes
 from itertools import chain
@@ -21,6 +21,7 @@ from datetime import datetime
 
 from werkzeug._internal import _patch_wrapper
 from werkzeug.http import is_resource_modified, http_date
+import collections
 
 
 def responder(f):
@@ -61,11 +62,11 @@ def get_current_url(environ, root_only=False, strip_querystring=False,
     cat = tmp.append
     if host_only:
         return ''.join(tmp) + '/'
-    cat(urllib.quote(environ.get('SCRIPT_NAME', '').rstrip('/')))
+    cat(urllib.parse.quote(environ.get('SCRIPT_NAME', '').rstrip('/')))
     if root_only:
         cat('/')
     else:
-        cat(urllib.quote('/' + environ.get('PATH_INFO', '').lstrip('/')))
+        cat(urllib.parse.quote('/' + environ.get('PATH_INFO', '').lstrip('/')))
         if not strip_querystring:
             qs = environ.get('QUERY_STRING')
             if qs:
@@ -195,22 +196,22 @@ def extract_path_info(environ_or_baseurl, path_or_url, charset='utf-8',
     from werkzeug.urls import uri_to_iri, url_fix
 
     def _as_iri(obj):
-        if not isinstance(obj, unicode):
+        if not isinstance(obj, str):
             return uri_to_iri(obj, charset, errors)
         return obj
 
     def _normalize_netloc(scheme, netloc):
-        parts = netloc.split(u'@', 1)[-1].split(u':', 1)
+        parts = netloc.split('@', 1)[-1].split(':', 1)
         if len(parts) == 2:
             netloc, port = parts
-            if (scheme == u'http' and port == u'80') or \
-               (scheme == u'https' and port == u'443'):
+            if (scheme == 'http' and port == '80') or \
+               (scheme == 'https' and port == '443'):
                 port = None
         else:
             netloc = parts[0]
             port = None
         if port is not None:
-            netloc += u':' + port
+            netloc += ':' + port
         return netloc
 
     # make sure whatever we are working on is a IRI and parse it
@@ -220,9 +221,9 @@ def extract_path_info(environ_or_baseurl, path_or_url, charset='utf-8',
                                              root_only=True)
     base_iri = _as_iri(environ_or_baseurl)
     base_scheme, base_netloc, base_path, = \
-        urlparse.urlsplit(base_iri)[:3]
+        urllib.parse.urlsplit(base_iri)[:3]
     cur_scheme, cur_netloc, cur_path, = \
-        urlparse.urlsplit(urlparse.urljoin(base_iri, path))[:3]
+        urllib.parse.urlsplit(urllib.parse.urljoin(base_iri, path))[:3]
 
     # normalize the network location
     base_netloc = _normalize_netloc(base_scheme, base_netloc)
@@ -231,10 +232,10 @@ def extract_path_info(environ_or_baseurl, path_or_url, charset='utf-8',
     # is that IRI even on a known HTTP scheme?
     if collapse_http_schemes:
         for scheme in base_scheme, cur_scheme:
-            if scheme not in (u'http', u'https'):
+            if scheme not in ('http', 'https'):
                 return None
     else:
-        if not (base_scheme in (u'http', u'https') and \
+        if not (base_scheme in ('http', 'https') and \
                 base_scheme == cur_scheme):
             return None
 
@@ -243,11 +244,11 @@ def extract_path_info(environ_or_baseurl, path_or_url, charset='utf-8',
         return None
 
     # are we below the application path?
-    base_path = base_path.rstrip(u'/')
+    base_path = base_path.rstrip('/')
     if not cur_path.startswith(base_path):
         return None
 
-    return u'/' + cur_path[len(base_path):].lstrip(u'/')
+    return '/' + cur_path[len(base_path):].lstrip('/')
 
 
 class SharedDataMiddleware(object):
@@ -312,10 +313,10 @@ class SharedDataMiddleware(object):
         self.exports = {}
         self.cache = cache
         self.cache_timeout = cache_timeout
-        for key, value in exports.iteritems():
+        for key, value in exports.items():
             if isinstance(value, tuple):
                 loader = self.get_package_loader(*value)
-            elif isinstance(value, basestring):
+            elif isinstance(value, str):
                 if os.path.isfile(value):
                     loader = self.get_file_loader(value)
                 else:
@@ -396,7 +397,7 @@ class SharedDataMiddleware(object):
         path = '/'.join([''] + [x for x in cleaned_path.split('/')
                                 if x and x != '..'])
         file_loader = None
-        for search_path, loader in self.exports.iteritems():
+        for search_path, loader in self.exports.items():
             if search_path == path:
                 real_filename, file_loader = loader(None)
                 if file_loader is not None:
@@ -494,10 +495,10 @@ class ClosingIterator(object):
 
     def __init__(self, iterable, callbacks=None):
         iterator = iter(iterable)
-        self._next = iterator.next
+        self._next = iterator.__next__
         if callbacks is None:
             callbacks = []
-        elif callable(callbacks):
+        elif isinstance(callbacks, collections.Callable):
             callbacks = [callbacks]
         else:
             callbacks = list(callbacks)
@@ -509,7 +510,7 @@ class ClosingIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return self._next()
 
     def close(self):
@@ -565,7 +566,7 @@ class FileWrapper(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         data = self.file.read(self.buffer_size)
         if data:
             return data
@@ -845,7 +846,7 @@ class LimitedStream(object):
                 last_pos = self._pos
         return result
 
-    def next(self):
+    def __next__(self):
         line = self.readline()
         if line is None:
             raise StopIteration()

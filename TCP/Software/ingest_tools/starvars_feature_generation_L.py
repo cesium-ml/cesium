@@ -38,10 +38,10 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 # CALLING SEQUENCE: files = index( directory )
 #
 # INPUTS:
-#	indir   - a directory path
+#   indir   - a directory path
 #
 # OUTPUTS:
-#	files = a list containing the full path names of all files in the directory
+#   files = a list containing the full path names of all files in the directory
 #-
 """
 def index( directory ):
@@ -89,7 +89,7 @@ def readLC(infile):
     lines   = open(infile).readlines()
 
     for line in lines:
-        fields = map( float, line.split() )
+        fields = list(map( float, line.split() ))
         date.append( fields[0] )
         mag.append( fields[1] )
         dmag.append( fields[2] )
@@ -112,7 +112,7 @@ class StarVars_LINEAR_Feature_Generation:
     def __init__(self, pars={}):
         self.head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+    <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -132,11 +132,11 @@ class StarVars_LINEAR_Feature_Generation:
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+            <TimeType ucd="frame.time.system?">MJD</TimeType> 
+            <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+            <TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+            <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+        </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -162,11 +162,11 @@ class StarVars_LINEAR_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         ### This is just for writing the pickle file:
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'w')
-        cPickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
+        pickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
         fp.close()
 
 
@@ -175,17 +175,17 @@ class StarVars_LINEAR_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'rb')
-        frame_limitmags = cPickle.load(fp)
+        frame_limitmags = pickle.load(fp)
         fp.close()
         return frame_limitmags
 
     
     def form_xml_string(self, mag_data_dict):
         """
-    	Take timeseries dict data and place into VOSource XML format, 
+        Take timeseries dict data and place into VOSource XML format, 
         which TCP feature generation code expects.
        
         Adapted from: TCP/Software/feature_extract/format_csv_getfeats.py
@@ -229,7 +229,7 @@ class StarVars_LINEAR_Feature_Generation:
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None):
@@ -296,8 +296,8 @@ class StarVars_LINEAR_Feature_Generation:
                 master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-        master_features = master_features_dict.keys()
-        master_classes = master_classes_dict.keys()
+        master_features = list(master_features_dict.keys())
+        master_classes = list(master_classes_dict.keys())
         a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -318,8 +318,8 @@ class StarVars_LINEAR_Feature_Generation:
 if __name__ == '__main__':
 
     startTime = time.time()
-    flist	  = sys.argv[1]
-    print '\n flist =', flist
+    flist     = sys.argv[1]
+    print('\n flist =', flist)
     indir = '/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat'
 #    print '\n indir =', indir
     files = index( indir )
@@ -362,205 +362,205 @@ if __name__ == '__main__':
 
     if flist == "4":
         runfiles = files[15:20]
-	
+    
     if flist == "5":
         runfiles = files[400:500]
-	
+    
     if flist == "6":
         runfiles = files[500:600]
-	
+    
     if flist == "7":
         runfiles = files[600:700]
-	
+    
     if flist == "8":
         runfiles = files[700:800]
-	
+    
     if flist == "9":
         runfiles = files[800:900]
-	  
+      
     if flist == "10":
         runfiles = files[900:1000]
-	  
+      
     if flist == "11":
         runfiles = files[1000:1100]
-	  
+      
     if flist == "12":
         runfiles = files[1100:1200]
-	  
+      
     if flist == "13":
         runfiles = files[1200:1300]
-	  
+      
     if flist == "14":
         runfiles = files[1300:1400]
-	  
+      
     if flist == "15":
         runfiles = files[1400:1500]
-	  
+      
     if flist == "16":
         runfiles = files[1500:1600]
-	  
+      
     if flist == "17":
         runfiles = files[1600:1700]
-	  
+      
     if flist == "18":
         runfiles = files[1700:1800]
-	
+    
     if flist == "19":
         runfiles = files[1800:1900]
-	  
+      
     if flist == "20":
         runfiles = files[1900:2000]
-	  
+      
     if flist == "21":
         runfiles = files[2000:2100]
-	  
+      
     if flist == "22":
         runfiles = files[2100:2200]
-	  
+      
     if flist == "23":
         runfiles = files[2200:2300]
-	  
+      
     if flist == "24":
         runfiles = files[2300:2400]
-	  
+      
     if flist == "25":
         runfiles = files[2400:2500]
-	  
+      
     if flist == "26":
         runfiles = files[2500:2600]
-	  
+      
     if flist == "27":
         runfiles = files[2600:2700]
-	 
+     
     if flist == "28":
         runfiles = files[2700:2800]
-	  
+      
     if flist == "29":
         runfiles = files[2800:2900]
-	  
+      
     if flist == "30":
         runfiles = files[2900:3000]
-	  
+      
     if flist == "31":
         runfiles = files[3000:3100]
-	  
+      
     if flist == "32":
         runfiles = files[3100:3200]
-	  
+      
     if flist == "33":
         runfiles = files[3200:3300]
-	  
+      
     if flist == "34":
         runfiles = files[3300:3400]
-	  
+      
     if flist == "35":
         runfiles = files[3400:3500]
-	  
+      
     if flist == "36":
         runfiles = files[3500:3600]
-	  
+      
     if flist == "37":
         runfiles = files[3600:3700]
-	  
+      
     if flist == "38":
         runfiles = files[3700:3800]
-	  
+      
     if flist == "39":
         runfiles = files[3800:3900]
-	  
+      
     if flist == "40":
         runfiles = files[3900:4000]
-	  
+      
     if flist == "41":
         runfiles = files[4000:4100]
-	
+    
     if flist == "42":
         runfiles = files[4100:4200]
-	  
+      
     if flist == "43":
         runfiles = files[4200:4300]
-	  
+      
     if flist == "44":
         runfiles = files[4300:4400]
-	  
+      
     if flist == "45":
         runfiles = files[4400:4500]
-	  
+      
     if flist == "46":
         runfiles = files[4500:4600]
-	  
+      
     if flist == "47":
         runfiles = files[4600:4700]
-	  
+      
     if flist == "48":
         runfiles = files[4700:4800]
-	  
+      
     if flist == "49":
         runfiles = files[4800:4900]
-	  
+      
     if flist == "50":
         runfiles = files[4900:5000]
-	  
+      
     if flist == "51":
         runfiles = files[5000:5100]
-	  
+      
     if flist == "52":
         runfiles = files[5100:5200]
-	  
+      
     if flist == "53":
         runfiles = files[5200:5300]
-	  
+      
     if flist == "54":
         runfiles = files[5300:5400]
-	  
+      
     if flist == "55":
         runfiles = files[5400:5500]
-	  
+      
     if flist == "56":
         runfiles = files[5500:5600]
-	  
+      
     if flist == "57":
         runfiles = files[5600:5700]
-	  
+      
     if flist == "58":
         runfiles = files[5700:5800]
-	  
+      
     if flist == "59":
         runfiles = files[5800:5900]
-	  
+      
     if flist == "60":
         runfiles = files[5900:6000]
-	  
+      
     if flist == "61":
         runfiles = files[6000:6100]
-		  
+          
     if flist == "62":
         runfiles = files[6100:6200]
-	  
+      
     if flist == "63":
         runfiles = files[6200:6300]
-	  
+      
     if flist == "64":
         runfiles = files[6300:6400]
-	  
+      
     if flist == "65":
         runfiles = files[6400:6500]
-	  
+      
     if flist == "66":
         runfiles = files[6500:6600]
-	  
+      
     if flist == "67":
         runfiles = files[6600:6700]
-	  
+      
     if flist == "68":
         runfiles = files[6700:6800]
-	  
+      
     if flist == "69":
         runfiles = files[6800:6900]
-	  
+      
     if flist == "70":
         runfiles = files[6900:7000]
-		  
+          
     if flist == "71":
         runfiles = files[7000:7010]
 
@@ -573,9 +573,9 @@ if __name__ == '__main__':
     j = 0
     for file in runfiles:
         j += 1
-        print 'writing features for file', j, 'of', len(runfiles)
+        print('writing features for file', j, 'of', len(runfiles))
         mag_data_dict = readLC(file)
-        print 'mag_data_dict generated for LC', j, 'of', len(runfiles)
+        print('mag_data_dict generated for LC', j, 'of', len(runfiles))
         arff_output_fp = open( 'out' + str(flist) + '.arff', 'w' )
         sv_asas.generate_arff_using_asasdat(data_fpaths=runfiles,
                                             include_arff_header=False,
@@ -583,9 +583,9 @@ if __name__ == '__main__':
 
         sleep(20)
 
-        print '\nCompleted writing features for LC', j, 'of', len(runfiles)
+        print('\nCompleted writing features for LC', j, 'of', len(runfiles))
         arff_output_fp.close()
-        print '\nClosed output file successfully'
+        print('\nClosed output file successfully')
 #        arff_rows_str = arff_output_fp.getvalue()
 #        print arff_rows_str
 
@@ -678,7 +678,7 @@ if __name__ == '__main__':
     endTime = time.time()
     
     totalTime = endTime - startTime
-    print '\nTotal time:', totalTime, 's'
+    print('\nTotal time:', totalTime, 's')
 
 #     if 1:
 #         ### Example: generate arff feature string, do not write to file:

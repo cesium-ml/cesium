@@ -21,7 +21,7 @@ class HTTPUtilityTestCase(WerkzeugTestCase):
 
     def test_accept(self):
         a = http.parse_accept_header('en-us,ru;q=0.5')
-        self.assert_equal(a.values(), ['en-us', 'ru'])
+        self.assert_equal(list(a.values()), ['en-us', 'ru'])
         self.assert_equal(a.best, 'en-us')
         self.assert_equal(a.find('ru'), 1)
         self.assert_raises(ValueError, a.index, 'de')
@@ -46,7 +46,7 @@ class HTTPUtilityTestCase(WerkzeugTestCase):
         self.assert_equal(a.best_match(['text/html', 'application/xhtml+xml']),
                           'application/xhtml+xml')
         self.assert_equal(a.best_match(['text/html']),  'text/html')
-        self.assert_(a.best_match(['foo/bar']) is None)
+        self.assertTrue(a.best_match(['foo/bar']) is None)
         self.assert_equal(a.best_match(['foo/bar', 'bar/foo'],
                           default='foo/bar'),  'foo/bar')
         self.assert_equal(a.best_match(['application/xml', 'text/xml']),  'application/xml')
@@ -63,16 +63,16 @@ class HTTPUtilityTestCase(WerkzeugTestCase):
         a = http.parse_accept_header('de-AT,de;q=0.8,en;q=0.5',
                                      datastructures.LanguageAccept)
         self.assert_equal(a.best,  'de-AT')
-        self.assert_('de_AT' in a)
-        self.assert_('en' in a)
+        self.assertTrue('de_AT' in a)
+        self.assertTrue('en' in a)
         self.assert_equal(a['de-at'], 1)
         self.assert_equal(a['en'], 0.5)
 
     def test_set_header(self):
         hs = http.parse_set_header('foo, Bar, "Blah baz", Hehe')
-        self.assert_('blah baz' in hs)
-        self.assert_('foobar' not in hs)
-        self.assert_('foo' in hs)
+        self.assertTrue('blah baz' in hs)
+        self.assertTrue('foobar' not in hs)
+        self.assertTrue('foo' in hs)
         self.assert_equal(list(hs), ['foo', 'Bar', 'Blah baz', 'Hehe'])
         hs.add('Foo')
         self.assert_equal(hs.to_header(), 'foo, Bar, "Blah baz", Hehe')
@@ -271,10 +271,10 @@ class HTTPUtilityTestCase(WerkzeugTestCase):
     def test_cookies(self):
         assert http.parse_cookie('dismiss-top=6; CP=null*; PHPSESSID=0a539d42abc001cd'
                             'c762809248d4beed; a=42') == {
-            'CP':           u'null*',
-            'PHPSESSID':    u'0a539d42abc001cdc762809248d4beed',
-            'a':            u'42',
-            'dismiss-top':  u'6'
+            'CP':           'null*',
+            'PHPSESSID':    '0a539d42abc001cdc762809248d4beed',
+            'a':            '42',
+            'dismiss-top':  '6'
         }
         assert set(http.dump_cookie('foo', 'bar baz blub', 360, httponly=True,
                                sync_expires=False).split('; ')) == \
