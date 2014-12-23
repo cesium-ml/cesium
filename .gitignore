@@ -2,3 +2,4 @@ flask/rethinkdb_data/
 flask/static/data/*classes.csv
 *~
 *.pyc
+*.bak
