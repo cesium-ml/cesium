@@ -3,7 +3,7 @@ import numpy
 from numpy import random
 from scipy import fftpack, stats, optimize
 from pylab import *
-from common_functions import *
+from .common_functions import *
 
 class watt_per_m2_flux_extractor(InterExtractor):
     """ Convert the magnitudes to SI units"""
@@ -40,7 +40,7 @@ class watt_per_m2_flux_extractor(InterExtractor):
             self.uncertainty = self.uncer_calc(fm2)
             return fm2
         else:
-            print "units not recognized", self.flux_data_unit, self.extname
+            print("units not recognized", self.flux_data_unit, self.extname)
             self.uncertainty = self.rms_data
             return self.flux_data # else assume it's already in those units, no unit conversion implemented for the moment
     def uncer_calc(self, flux_wm2):

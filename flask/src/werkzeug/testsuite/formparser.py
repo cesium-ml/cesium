@@ -9,10 +9,10 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import with_statement
+
 
 import unittest
-from StringIO import StringIO
+from io import StringIO
 from os.path import join, dirname
 
 from werkzeug.testsuite import WerkzeugTestCase
@@ -145,25 +145,25 @@ class MultiPartTestCase(WerkzeugTestCase):
 
         repository = [
             ('firefox3-2png1txt', '---------------------------186454651713519341951581030105', [
-                (u'anchor.png', 'file1', 'image/png', 'file1.png'),
-                (u'application_edit.png', 'file2', 'image/png', 'file2.png')
-            ], u'example text'),
+                ('anchor.png', 'file1', 'image/png', 'file1.png'),
+                ('application_edit.png', 'file2', 'image/png', 'file2.png')
+            ], 'example text'),
             ('firefox3-2pnglongtext', '---------------------------14904044739787191031754711748', [
-                (u'accept.png', 'file1', 'image/png', 'file1.png'),
-                (u'add.png', 'file2', 'image/png', 'file2.png')
-            ], u'--long text\r\n--with boundary\r\n--lookalikes--'),
+                ('accept.png', 'file1', 'image/png', 'file1.png'),
+                ('add.png', 'file2', 'image/png', 'file2.png')
+            ], '--long text\r\n--with boundary\r\n--lookalikes--'),
             ('opera8-2png1txt', '----------zEO9jQKmLc2Cq88c23Dx19', [
-                (u'arrow_branch.png', 'file1', 'image/png', 'file1.png'),
-                (u'award_star_bronze_1.png', 'file2', 'image/png', 'file2.png')
-            ], u'blafasel öäü'),
+                ('arrow_branch.png', 'file1', 'image/png', 'file1.png'),
+                ('award_star_bronze_1.png', 'file2', 'image/png', 'file2.png')
+            ], 'blafasel öäü'),
             ('webkit3-2png1txt', '----WebKitFormBoundaryjdSFhcARk8fyGNy6', [
-                (u'gtk-apply.png', 'file1', 'image/png', 'file1.png'),
-                (u'gtk-no.png', 'file2', 'image/png', 'file2.png')
-            ], u'this is another text with ümläüts'),
+                ('gtk-apply.png', 'file1', 'image/png', 'file1.png'),
+                ('gtk-no.png', 'file2', 'image/png', 'file2.png')
+            ], 'this is another text with ümläüts'),
             ('ie6-2png1txt', '---------------------------7d91b03a20128', [
-                (u'file1.png', 'file1', 'image/x-png', 'file1.png'),
-                (u'file2.png', 'file2', 'image/x-png', 'file2.png')
-            ], u'ie6 sucks :-/')
+                ('file1.png', 'file1', 'image/x-png', 'file1.png'),
+                ('file2.png', 'file2', 'image/x-png', 'file2.png')
+            ], 'ie6 sucks :-/')
         ]
 
         for name, boundary, files, text in repository:
@@ -192,7 +192,7 @@ class MultiPartTestCase(WerkzeugTestCase):
                                    'multipart/form-data; boundary="%s"' % boundary, content_length=len(data))
         lines = response.data.split('\n', 3)
         self.assert_equal(lines[0],
-                          repr(u'Sellersburg Town Council Meeting 02-22-2010doc.doc'))
+                          repr('Sellersburg Town Council Meeting 02-22-2010doc.doc'))
 
     def test_end_of_file(self):
         # This test looks innocent but it was actually timeing out in
@@ -329,7 +329,7 @@ class MultiPartTestCase(WerkzeugTestCase):
                                      content_length=len(data),
                                      content_type='multipart/form-data; boundary=foo',
                                      method='POST')
-        self.assert_equal(req.form['test'], u'Sk\xe5ne l\xe4n')
+        self.assert_equal(req.form['test'], 'Sk\xe5ne l\xe4n')
 
 
 class InternalFunctionsTestCase(WerkzeugTestCase):

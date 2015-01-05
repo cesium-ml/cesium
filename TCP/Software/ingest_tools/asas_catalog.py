@@ -136,7 +136,7 @@ alter table asascat_source_attribs add column delta_t DOUBLE;
                 try:
                     self.tcp_cursor.execute("DROP TABLE %s" % (table_name))
                 except:
-                    print "Table doesn't exist for DELETE:", table_name
+                    print("Table doesn't exist for DELETE:", table_name)
 
 
         create_str = """
@@ -367,7 +367,7 @@ PRIMARY KEY (catalog_id, tutor_srcid))
 
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
         # TODO: retrieve all info from tranx tables & fill mondo_dict for all sources
@@ -387,9 +387,9 @@ PRIMARY KEY (catalog_id, tutor_srcid))
             srcid = int(srcidflt)
             try:
                 i_src = src_dict['srcid'].index(srcid)
-                print srcid, src_dict['m_avg'][i_src], src_dict['m_std'][i_src]
+                print(srcid, src_dict['m_avg'][i_src], src_dict['m_std'][i_src])
             except:
-                print srcid
+                print(srcid)
 
 
 
@@ -412,16 +412,16 @@ if __name__ == '__main__':
     #AsasCatalog.create_tables()
     #sys.exit()
 
-    import cPickle, gzip
+    import pickle, gzip
     srcdict_pkl_fpath = '/home/pteluser/scratch/asas_catalog_srcdict.pkl.gz'
     if os.path.exists(srcdict_pkl_fpath):
         fp = gzip.open(srcdict_pkl_fpath,'rb')
-        src_dict = cPickle.load(fp)
+        src_dict = pickle.load(fp)
         fp.close()
     else:
         src_dict = AsasCatalog.retrieve_tutor_source_info(catalog_id=pars['catalog_id'])
         fp = gzip.open(srcdict_pkl_fpath,'wb')
-        cPickle.dump(src_dict,fp,1) # ,1) means a binary pkl is used.
+        pickle.dump(src_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
     #ONETIMEUSE# AsasCatalog.temp_find_avgmags_for_miller_wtts(src_dict=src_dict)
@@ -430,7 +430,7 @@ if __name__ == '__main__':
     #                                                            src_dict=src_dict)
 
     import pdb; pdb.set_trace()
-    print
+    print()
     AsasCatalog.retrieve_tranx_asascat_info(catalog_id=pars['catalog_id'],
                                             src_dict=src_dict) # retrieve_tutor_source_info() must have been called
 

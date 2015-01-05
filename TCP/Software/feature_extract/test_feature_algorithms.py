@@ -67,9 +67,9 @@ if 0:
     ### Sigma clipping example:
     from data_cleaning import sigmaclip_sdict_ts
     sigma = 1
-    print sigma, 'before:', len(gen.sig.x_sdict['ts']['V']['m'])
+    print(sigma, 'before:', len(gen.sig.x_sdict['ts']['V']['m']))
     sigmaclip_sdict_ts(gen.sig.x_sdict['ts'], sigma_low=sigma, sigma_high=sigma)
-    print sigma, 'after:', len(gen.sig.x_sdict['ts']['V']['m'])
+    print(sigma, 'after:', len(gen.sig.x_sdict['ts']['V']['m']))
 
 gen.sig.add_features_to_xml_string(gen.signals_list)
 
@@ -77,7 +77,7 @@ gen.sig.add_features_to_xml_string(gen.signals_list)
 feature_added_VOSource_XML_fpath = '/tmp/vosource_out.xml'
 #gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
+print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
 
 #print "signals_list[0].properties['data'].keys()"
 #for f in signals_list[0].properties['data'].keys():

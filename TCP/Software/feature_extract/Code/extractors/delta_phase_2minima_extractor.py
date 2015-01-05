@@ -55,14 +55,14 @@ class delta_phase_2minima_extractor(FeatureExtractor):
             bandwidth = float(optimal_window)/len(p)
             model = self.kernelSmooth(p, m, bandwidth)
             # resort into proper order
-            zpm = zip(p, model)
+            zpm = list(zip(p, model))
             zpm.sort()
             zpm_arr = numpy.array(zpm)
             phs = zpm_arr[:,0]
             model = zpm_arr[:,1]
             # identify and rank the peaks
             peaks_ind = self.find_peaks(model)
-            zppi = zip(model[peaks_ind], phs[peaks_ind], peaks_ind)
+            zppi = list(zip(model[peaks_ind], phs[peaks_ind], peaks_ind))
             zppi.sort(reverse=True)
             # only report a minima as seperate if the model goes back past the mean and returns in between them
             threshold = numpy.mean(model)
@@ -93,7 +93,7 @@ class delta_phase_2minima_extractor(FeatureExtractor):
 
     def GCV(self, window, X,Y):
         # put in proper order
-        zpm = zip(X,Y)
+        zpm = list(zip(X,Y))
         zpm.sort()
         zpm_arr = numpy.array(zpm)
         phs = zpm_arr[:,0]

@@ -57,7 +57,7 @@ From the command line, the meat of the code can be run in three different ways:
 
 """
 
-import urllib2, urllib
+import urllib.request, urllib.error, urllib.parse, urllib.request, urllib.parse, urllib.error
 import os, sys
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract/Code'))
@@ -111,7 +111,7 @@ class EB:
 
         inf, outf, outpar, outfit = self._prep_infiles(fittype=fittype,sigma=sigma,try_alt=try_alt,altnum=altnum)
         if inf is None or outf is None:
-            print "Sorry. Refusing to go further here."
+            print("Sorry. Refusing to go further here.")
             return
         for x in [outf, outpar, outfit]:
             if os.path.exists(x):
@@ -124,7 +124,7 @@ class EB:
         ff = f.readlines()
         f.close()
         if len(ff) == 0:
-            print "!!! len(ff) == 0",
+            print("!!! len(ff) == 0", end=' ')
             self.outrez = {'valid': False, 'okfit': False, 'fittype':fittype,'chisq':None, "parameter_file": "", "outfile": ""}
             return
         ff[0] = ff[0].replace("#"," ")
@@ -136,26 +136,26 @@ class EB:
         # gobble up the output
         self.outrez = self._gobbleout(outpar,fittype=fittype)
         if self.verbose:
-            print "Summary of Results (see %s for more info):" % self.outrez.get('parameter_file')
-            print "*"*40
-            print "Chisq/dof:", self.outrez.get('chisq')
-            print "Is this an Ok fit (chisq aside)?", self.outrez.get("okfit")
-            print "period:", self.outrez.get('period'), "day"
-            print 'eccentricity', self.outrez.get('e')
+            print("Summary of Results (see %s for more info):" % self.outrez.get('parameter_file'))
+            print("*"*40)
+            print("Chisq/dof:", self.outrez.get('chisq'))
+            print("Is this an Ok fit (chisq aside)?", self.outrez.get("okfit"))
+            print("period:", self.outrez.get('period'), "day")
+            print('eccentricity', self.outrez.get('e'))
             try:
-                print "(r1 + r2)/a:", self.outrez.get('r1') + self.outrez.get('r2')
-                print "r1/r2:", self.outrez.get('r1')/self.outrez.get('r2')
+                print("(r1 + r2)/a:", self.outrez.get('r1') + self.outrez.get('r2'))
+                print("r1/r2:", self.outrez.get('r1')/self.outrez.get('r2'))
             except:
                 pass
 
-            print 'r1 overflow:', self.outrez.get('r1overflow')
-            print 'r2 overflow:', self.outrez.get('r2overflow')
-            print 'classification:', self.outrez.get('class')
-            print "inclination:", self.outrez.get('i'), "+-", self.outrez.get('i_err'), " deg"
-            print "mass ratio (q):", self.outrez.get('q'), "+-", self.outrez.get('q_err')
-            print "lum ratio (l1/l2):", self.outrez.get('l1/l2'), "+-", self.outrez.get('l1/l2_err')
-            print "*"*40
-            print ""
+            print('r1 overflow:', self.outrez.get('r1overflow'))
+            print('r2 overflow:', self.outrez.get('r2overflow'))
+            print('classification:', self.outrez.get('class'))
+            print("inclination:", self.outrez.get('i'), "+-", self.outrez.get('i_err'), " deg")
+            print("mass ratio (q):", self.outrez.get('q'), "+-", self.outrez.get('q_err'))
+            print("lum ratio (l1/l2):", self.outrez.get('l1/l2'), "+-", self.outrez.get('l1/l2_err'))
+            print("*"*40)
+            print("")
 
     def _gobbleout(self,outfile,fittype=None):
         rez = {'valid': False, 'okfit': False, 'fittype':fittype,'chisq':None, "parameter_file": outfile, "outfile": self.outf}
@@ -167,7 +167,7 @@ class EB:
         f.close()
         ff.reverse()  # look backwards
         failed = False
-        kys = rez_dict.keys()
+        kys = list(rez_dict.keys())
         for l in ff:
             for k in kys:
                 if l.find(k) != -1:
@@ -201,14 +201,14 @@ class EB:
         except:
             rez['okfit'] = False
 
-        if ((not rez.has_key('r2')) or (not rez.has_key('r1'))) and (rez['okfit'] == False):
+        if (('r2' not in rez) or ('r1' not in rez)) and (rez['okfit'] == False):
             return rez
         if rez['r2'] > 0 and rez['r1'] > 0:
 
             q = (rez['r2']/rez['r1'])**1.534
             vv1 = (0.49*q**(-2./3))/(0.6*q**(-2./3) + numpy.log(1 + q**(-1./3)))
             vv2 = (0.49*q**(2./3))/(0.6*q**(2./3) + numpy.log(1 + q**(1./3)))
-            print q, rez['r1'], vv1, rez['r2'], vv2
+            print(q, rez['r1'], vv1, rez['r2'], vv2)
             if q <= 1:
                 r1over = rez['r1'] > vv1*0.95
                 r2over = rez['r2'] > vv2*0.95
@@ -251,7 +251,7 @@ class EB:
             if not os.path.isdir(savedir):
                 os.mkdir(savedir)
             plt.savefig("%splot%i.png" % (savedir,self.dotastro_id))#,self.period))
-            print "Saved", "%splot%i.png" % (savedir,self.dotastro_id)#,self.period)
+            print("Saved", "%splot%i.png" % (savedir,self.dotastro_id))#,self.period)
         plt.clf()
 
     def _prep_infiles(self,dotastro_id=None,fittype=3,sigma=3.0,ntries=20,try_alt=False,altnum=1):
@@ -262,16 +262,16 @@ class EB:
             if dotastro_id is None or not isinstance(dotastro_id,int):
                 return (None,None,None,None)
 
-        print "preppin the infile"
+        print("preppin the infile")
         photname, hjd = self._make_intable(dotastro_id=dotastro_id)
         if photname is None:
             return (None,None,None,None)
 
         alt = "" if not try_alt else ".alt" + str(altnum)
         template_file = "Templates/" +  "eb." + str(fittype) + alt + ".template"
-        print "using template", template_file
+        print("using template", template_file)
         if not os.path.exists(template_file):
-            print "no template file for that type"
+            print("no template file for that type")
             return (None,None,None,None)
 
         # #import pdb; pdb.set_trace()
@@ -297,7 +297,7 @@ class EB:
         f = open(inname,"w")
         f.writelines(b)
         f.close()
-        print "wrote %s" % (inname)
+        print("wrote %s" % (inname))
         return (inname, tmp + ".out", tmp + ".par", tmp + ".fit")
 
 
@@ -323,9 +323,9 @@ class EB:
         self.ts[self.photkey]['m_err'] = list(merr)
 
         try:
-            rez = zip(self.ts[self.photkey]['t'],self.ts[self.photkey]['m'],self.ts[self.photkey]['m_err'])
+            rez = list(zip(self.ts[self.photkey]['t'],self.ts[self.photkey]['m'],self.ts[self.photkey]['m_err']))
         except:
-            print "problem with the timeseries of that source. Bailing"
+            print("problem with the timeseries of that source. Bailing")
             return (None, None)
 
         tmp = [f.write("%f %f %f\n" % (x[0], x[1], x[2])) for x in rez]
@@ -340,18 +340,18 @@ class EB:
     def _get_timeseries(self):
         if self.use_xml:
             if not self.gotxml or self.outname is None:
-                print "dont have the xml to build the timeseries"
+                print("dont have the xml to build the timeseries")
                 return
             try:
                 self.b = db_importer.Source(xml_handle=self.outname)
             except:
-                print "timeseries import failed. Check your XML file. Maybe rm %s" % self.outname
+                print("timeseries import failed. Check your XML file. Maybe rm %s" % self.outname)
                 return
 
-            kk = self.b.ts.keys()
+            kk = list(self.b.ts.keys())
             ind = 0
             if len(kk) > 1:
-                print "note: lots of phototometry keys to choose from...using the first FIXME"
+                print("note: lots of phototometry keys to choose from...using the first FIXME")
                 ind = -1
                 for i,k in enumerate(kk):
                     if k[0].lower() == 'r':
@@ -361,11 +361,11 @@ class EB:
                     ind = 0
 
             self.photkey = kk[ind]
-            print "phot key = ", kk[ind] ## FIXME...maybe want to choose V band first
+            print("phot key = ", kk[ind]) ## FIXME...maybe want to choose V band first
             self.ts = self.b.ts
         else:
             if self.rec_array is None:
-                print "must give me a recarray!"
+                print("must give me a recarray!")
                 return
             self.photkey = "V"
             self.ts = {self.photkey: self.rec_array}
@@ -375,15 +375,15 @@ class EB:
             dotastro_id = self.dotastro_id
         if dotastro_id is None or not isinstance(dotastro_id,int):
             self.gotxml = False
-            print "no dotastro"
+            print("no dotastro")
             return
 
         if not os.path.isdir(self.xml_dir):
             os.mkdir(self.xml_dir)
         self.outname = self.xml_dir + "dotastro" + str(dotastro_id) + ".xml"
         if not os.path.exists(self.outname):
-            print self.dotastro_url + str(dotastro_id)
-            urllib.urlretrieve(self.dotastro_url + str(dotastro_id), self.outname)
+            print(self.dotastro_url + str(dotastro_id))
+            urllib.request.urlretrieve(self.dotastro_url + str(dotastro_id), self.outname)
 
             #f = open(self.outname,"w")
             #r = urllib2.urlopen(self.dotastro_url + str(dotastro_id))
@@ -391,7 +391,7 @@ class EB:
             #f.close()
         else:
             if verbose:
-                print "already have file %s locally." % (self.outname)
+                print("already have file %s locally." % (self.outname))
         self.gotxml = True
 
 
@@ -401,7 +401,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
     if try_alt and all_models:
         #alts  = [-1,0,1] # OLD
         #alts  = range(-1, 1 + 126)
-        alts  = range(-1, 1 + 5)
+        alts  = list(range(-1, 1 + 5))
     else:
         alts = [-1]
     tt    = []
@@ -440,7 +440,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
     for i,t in enumerate(trials):
         for alt in alts:
             a = EB(idd,per*t,use_xml=use_xml,rec_array=rec_array)
-            print "trying period = %f" % (per*t)
+            print("trying period = %f" % (per*t))
             #if alt < 0:
             #       a.run(fittype=3,try_alt=False,altnum=alt)
             #else:
@@ -451,7 +451,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
                 a.run(fittype=fittype,try_alt=False,altnum=alt)
             else:
                 a.run(fittype=fittype,try_alt=True,altnum=alt)
-            for result_k, result_list in results.iteritems():
+            for result_k, result_list in results.items():
                 #result_list.append(a.outrez.get(result_k, 999999)) # 999999 is a KLUDGE
                 result_list.append(a.outrez.get(result_k, numpy.nan)) # 999999 is a KLUDGE
                 ### doesnt work:
@@ -461,7 +461,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
             altuse.append(alt)
             #print '>>>', i, t, alt
 
-    for k in results.keys():
+    for k in list(results.keys()):
         results[k] = numpy.array(results[k])
 
     trials = numpy.array(tt)
@@ -474,12 +474,12 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
     #print ok, trials, chisq, altuse
 
     ok_results = {}
-    for k in results.keys():
+    for k in list(results.keys()):
         ok_results[k] = results[k][oks]
 
 
     if len(oks) == 0:
-        print "warning...no EB models seem like ok fits"
+        print("warning...no EB models seem like ok fits")
         bestt = trials[numpy.where(chisq == min(chisq))]
         bestalt = altuse[numpy.where(chisq == min(chisq))]
 
@@ -491,14 +491,14 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
         bestt = trials[numpy.where(chisq == min(chisq))]
         bestalt = altuse[numpy.where(chisq == min(chisq))]
         rez =  {'okfit': True, 'best_period': bestt[0]*per, "best_chisq": min(chisq), "best_alt": bestalt[0]}
-    print rez
+    print(rez)
 
     from scipy.stats import scoreatpercentile
 
     results_for_class = {}
     for class_name in ['detached', 'semi-detached', 'contact']:
         results_for_class[class_name] = {}
-        for k in ok_results.keys():
+        for k in list(ok_results.keys()):
             results_for_class[class_name][k] = ok_results[k][numpy.where(ok_results['class'] == class_name)]
     results_class_perc = {}
     chosen_chisq_class_tups = []
@@ -514,7 +514,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
         vals_for_attribute[cur_attrib] = []
         #for perc in [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90]:
         #       npass_vs_attrib_percentile[cur_attrib][perc] = 0
-        for class_name in results_for_class.keys():
+        for class_name in list(results_for_class.keys()):
             subarr = results_for_class[class_name][cur_attrib][numpy.where(results_for_class[class_name][cur_attrib] > -numpy.inf)] # excludes: None, Nan
             rez['nmodels'][cur_attrib][class_name] = len(subarr)
             vals_for_attribute[cur_attrib].extend(list(subarr))
@@ -535,7 +535,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
                 ### KLUGEY
                 results_class_perc[class_name] = {}
                 chisq_percentile_cut = scoreatpercentile(results_for_class[class_name]['chisq'], 10)
-                for k in results_for_class[class_name].keys():
+                for k in list(results_for_class[class_name].keys()):
                     results_class_perc[class_name][k] = results_for_class[class_name][k][numpy.where(results_for_class[class_name]['chisq'] <= chisq_percentile_cut)]
                 #import pdb; pdb.set_trace()
                 #print
@@ -593,7 +593,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
     #import pdb; pdb.set_trace()
     #print
     if plot:
-        print dosave,show
+        print(dosave,show)
         a.plot(dosave=dosave,show=show)
 
     return rez, a.outrez
@@ -607,7 +607,7 @@ def period_select__old(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plo
     ok    = []
     if try_alt and all_models:
         #alts  = [-1,0,1] # OLD
-        alts  = range(-1, 1 + 126)
+        alts  = list(range(-1, 1 + 126))
     else:
         alts = [-1]
     tt    = []
@@ -616,7 +616,7 @@ def period_select__old(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plo
     for i,t in enumerate(trials):
         for alt in alts:
             a = EB(idd,per*t,use_xml=use_xml,rec_array=rec_array)
-            print "trying period = %f" % (per*t)
+            print("trying period = %f" % (per*t))
             #if alt < 0:
             #       a.run(fittype=3,try_alt=False,altnum=alt)
             #else:
@@ -632,7 +632,7 @@ def period_select__old(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plo
             tt.append(t)
             altuse.append(alt)
             classif.append(a.outrez['class'])
-            print '>>>', i, t, alt
+            print('>>>', i, t, alt)
             #import pdb; pdb.set_trace()
             #print
 
@@ -651,7 +651,7 @@ def period_select__old(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plo
     #print ok, trials, chisq, altuse
 
     if len(oks) == 0:
-        print "warning...no EB models seem like ok fits"
+        print("warning...no EB models seem like ok fits")
         bestt = trials[numpy.where(chisq == min(chisq))]
         bestalt = altuse[numpy.where(chisq == min(chisq))]
 
@@ -665,13 +665,13 @@ def period_select__old(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plo
         bestalt = altuse[numpy.where(chisq == min(chisq))]
         rez =  {'okfit': True, 'best_period': bestt[0]*per, "best_chisq": min(chisq), "best_alt": bestalt[0]}
 
-    print rez
+    print(rez)
     a = EB(idd,per*bestt[0],use_xml=use_xml,rec_array=rec_array)
     a.run(fittype=fittype, try_alt=(bestalt[0] >= 0), altnum=bestalt[0])
     #import pdb; pdb.set_trace()
     #print
     if plot:
-        print dosave,show
+        print(dosave,show)
         a.plot(dosave=dosave,show=show)
 
     return rez, a.outrez

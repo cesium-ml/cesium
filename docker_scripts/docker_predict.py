@@ -11,7 +11,7 @@ import build_rf_model
 import predict_class
 import time
 from subprocess import Popen, PIPE, call
-import cPickle
+import pickle
 
 
 def predict():
@@ -35,7 +35,7 @@ def predict():
     
     # load pickled ts_data and known features
     with open("/home/mltsp/mltsp/copied_data_files/function_args.pkl","rb") as f:
-        function_args = cPickle.load(f)
+        function_args = pickle.load(f)
     
     # ensure required files successfully copied into container:
     if "newpred_file_path" in function_args:
@@ -82,9 +82,9 @@ def predict():
     
     with open("/tmp/%s_pred_results.pkl" % 
               function_args["prediction_entry_key"], "wb") as f:
-        cPickle.dump(results_dict, f)
+        pickle.dump(results_dict, f)
     
-    print "Done."
+    print("Done.")
     
     return "Featurization and prediction complete."
 
@@ -94,4 +94,4 @@ def predict():
 if __name__=="__main__":
     
     results_str = predict()
-    print results_str
+    print(results_str)

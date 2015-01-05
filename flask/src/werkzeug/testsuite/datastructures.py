@@ -17,7 +17,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import with_statement
+
 
 import unittest
 import pickle
@@ -34,7 +34,7 @@ class MutableMultiDictBaseTestCase(WerkzeugTestCase):
     def test_pickle(self):
         cls = self.storage_class
 
-        for protocol in xrange(pickle.HIGHEST_PROTOCOL + 1):
+        for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
             d = cls()
             d.setlist('foo', [1, 2, 3, 4])
             d.setlist('bar', 'foo bar baz'.split())
@@ -99,15 +99,15 @@ class MutableMultiDictBaseTestCase(WerkzeugTestCase):
 
         # keys, values, items, lists
         assert list(sorted(md.keys())) == ['a', 'b', 'c']
-        assert list(sorted(md.iterkeys())) == ['a', 'b', 'c']
+        assert list(sorted(md.keys())) == ['a', 'b', 'c']
 
         assert list(sorted(md.values())) == [1, 2, 3]
-        assert list(sorted(md.itervalues())) == [1, 2, 3]
+        assert list(sorted(md.values())) == [1, 2, 3]
 
         assert list(sorted(md.items())) == [('a', 1), ('b', 2), ('c', 3)]
         assert list(sorted(md.items(multi=True))) == \
                [('a', 1), ('a', 2), ('a', 3), ('b', 2), ('c', 3)]
-        assert list(sorted(md.iteritems())) == [('a', 1), ('b', 2), ('c', 3)]
+        assert list(sorted(md.items())) == [('a', 1), ('b', 2), ('c', 3)]
         assert list(sorted(md.iteritems(multi=True))) == \
                [('a', 1), ('a', 2), ('a', 3), ('b', 2), ('c', 3)]
 
@@ -313,9 +313,9 @@ class MultiDictTestCase(MutableMultiDictBaseTestCase):
         mapping = [('a', 1), ('b', 2), ('a', 2), ('d', 3),
                    ('a', 1), ('a', 3), ('d', 4), ('c', 3)]
         md = self.storage_class(mapping)
-        assert list(zip(md.keys(), md.listvalues())) == list(md.lists())
+        assert list(zip(list(md.keys()), md.listvalues())) == list(md.lists())
         assert list(zip(md, md.iterlistvalues())) == list(md.iterlists())
-        assert list(zip(md.iterkeys(), md.iterlistvalues())) == list(md.iterlists())
+        assert list(zip(iter(md.keys()), md.iterlistvalues())) == list(md.iterlists())
 
 
 class OrderedMultiDictTestCase(MutableMultiDictBaseTestCase):
@@ -330,7 +330,7 @@ class OrderedMultiDictTestCase(MutableMultiDictBaseTestCase):
         assert len(d) == 1
         d.add('foo', 'baz')
         assert len(d) == 1
-        assert d.items() == [('foo', 'bar')]
+        assert list(d.items()) == [('foo', 'bar')]
         assert list(d) == ['foo']
         assert d.items(multi=True) == [('foo', 'bar'),
                                        ('foo', 'baz')]
@@ -343,8 +343,8 @@ class OrderedMultiDictTestCase(MutableMultiDictBaseTestCase):
         d.add('foo', 3)
         assert d.getlist('foo') == [1, 2, 3]
         assert d.getlist('bar') == [42]
-        assert d.items() == [('foo', 1), ('bar', 42)]
-        assert d.keys() == list(d) == list(d.iterkeys()) == ['foo', 'bar']
+        assert list(d.items()) == [('foo', 1), ('bar', 42)]
+        assert list(d.keys()) == list(d) == list(d.keys()) == ['foo', 'bar']
         assert d.items(multi=True) == [('foo', 1), ('foo', 2),
                                        ('bar', 42), ('foo', 3)]
         assert len(d) == 2
@@ -415,7 +415,7 @@ class CombinedMultiDictTestCase(WerkzeugTestCase):
         assert d['bar'] == '2'
         assert d.getlist('bar') == ['2', '3']
 
-        assert sorted(d.items()) == [('bar', '2'), ('foo', '1')], d.items()
+        assert sorted(d.items()) == [('bar', '2'), ('foo', '1')], list(d.items())
         assert sorted(d.items(multi=True)) == [('bar', '2'), ('bar', '3'), ('foo', '1')]
         assert 'missingkey' not in d
         assert 'foo' in d

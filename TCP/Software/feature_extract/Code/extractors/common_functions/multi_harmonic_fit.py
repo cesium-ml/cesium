@@ -1,7 +1,7 @@
 from numpy import sin,cos,sqrt,empty,pi,dot,arctan2,atleast_1d,diag,arange,abs,ones,array,zeros,log,trace
 from scipy.linalg import cho_solve,cho_factor
 
-from pre_whiten import chi2sigma
+from .pre_whiten import chi2sigma
 
 def CholeskyInverse(t,B):
     """
@@ -9,11 +9,11 @@ def CholeskyInverse(t,B):
     """
     nrows = len(t)
     # Backward step for inverse.
-    for j in reversed(range(nrows)):
+    for j in reversed(list(range(nrows))):
         tjj = t[j,j]
         S = sum([t[j,k]*B[j,k] for k in range(j+1, nrows)])
         B[j,j] = 1.0/ tjj**2 - S/ tjj
-        for i in reversed(range(j)):
+        for i in reversed(list(range(j))):
             B[j,i] = B[i,j] = -sum([t[i,k]*B[k,j] for k in range(i+1,nrows)])/t[i,i]
 
 def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=0.01,fit_mean=True,fit_slope=False):
@@ -80,7 +80,7 @@ def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=
     #
     sx0,cx0 = sin(2*pi*t*freq), cos(2*pi*t*freq)
     sx[0,:] = sx0/dr; cx[0,:] = cx0/dr
-    for i in xrange(nharm-1):
+    for i in range(nharm-1):
         sx[i+1,:] = cx0*sx[i,:] + sx0*cx[i,:]
         cx[i+1,:] = -sx0*sx[i,:] + cx0*cx[i,:]
 
@@ -89,7 +89,7 @@ def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=
     if (nfit>1):
         vec[1] = matr[0,1] = matr[1,0] = 0.; matr[1,1] = s1
 
-    for i in xrange(nharm):
+    for i in range(nharm):
         vec[i+nfit] = dot(sx[i,:],rr)
         vec[nharm+i+nfit] = dot(cx[i,:],rr)
         if (nfit>0):
@@ -98,7 +98,7 @@ def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=
         if (nfit>1):
             matr[1,i+nfit] = matr[i+nfit,1] = dot(sx[i,:],tt)
             matr[1,nharm+i+nfit] = matr[nharm+i+nfit,1] = dot(cx[i,:],tt)
-        for j in xrange(i+1):
+        for j in range(i+1):
             matr[j+nfit,i+nfit] = matr[i+nfit,j+nfit] = dot(sx[i,:],sx[j,:])
             matr[j+nfit,nharm+i+nfit] = matr[nharm+i+nfit,j+nfit] = dot(cx[i,:],sx[j,:])
             matr[nharm+j+nfit,i+nfit] = matr[i+nfit,nharm+j+nfit] = dot(sx[i,:],cx[j,:])
@@ -139,7 +139,7 @@ def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=
 
         err2 = diag(matr)/s0
         vA0, vB0 = err2[nfit:nharm+nfit], err2[nharm+nfit:]
-        for i in xrange(nharm):
+        for i in range(nharm):
             covA0B0[i] = matr[nfit+i,nharm+nfit+i]/s0
 
         damp = sqrt( A0**2*vA0 + B0**2*vB0 + 2.*A0*B0*covA0B0 )/amp

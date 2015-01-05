@@ -7,11 +7,11 @@ try:
     from pylab import *
 except:
     pass
-from common_functions import *
+from .common_functions import *
 
-from second_extractor import second_extractor
-from lomb_extractor import lomb_extractor
-from first_lomb_extractor import first_lomb_extractor
+from .second_extractor import second_extractor
+from .lomb_extractor import lomb_extractor
+from .first_lomb_extractor import first_lomb_extractor
 #from common_functions.plot_methods import plot_vertical_line
 
 class second_lomb_extractor(second_extractor):

@@ -1,9 +1,9 @@
 import numpy, sys
 import db_importer
-from storage import storage
+from .storage import storage
 from numpy import log, exp, arange, median, ceil, pi
 
-from gen_or_imp import gen_or_imp
+from .gen_or_imp import gen_or_imp
 import types
 
 class from_xml(gen_or_imp):
@@ -24,12 +24,12 @@ class from_xml(gen_or_imp):
 
     def reckon_err_axis(self,d,obs_ind,ucd_error_values=['stat.error','error']):
         """ figure out the column number for the error associated with index obs_ind """
-        if d.has_key('units') and d.has_key('ordered_column_names') and d.has_key('ucds'):
+        if 'units' in d and 'ordered_column_names' in d and 'ucds' in d:
             ucd_obs = d['ucds'][obs_ind]
             for i in range(len(d['ucds'])):
                 if i == obs_ind:
                     continue
-                if type(d['ucds'][i]) == types.StringType and d['ucds'][i].find(ucd_obs) != -1:
+                if type(d['ucds'][i]) == bytes and d['ucds'][i].find(ucd_obs) != -1:
                     for e in ucd_error_values:
                         if d['ucds'][i].find(e) != -1:
                             return i
@@ -45,18 +45,18 @@ class from_xml(gen_or_imp):
             self.signaldata[band] = {} #20071206 dstarr adds this
             input_dic = self.sub_dics(self.signaldata[band]) # creates sub-dictionaries in this particular band, chooses the right one to receive input data
             #input_dic = dict(time_data=numpy.array(dic['t']), flux_data=numpy.array(dic['m']), rms_data=numpy.array(dic['m_err']))
-            if dic.has_key("t"):
+            if "t" in dic:
                 time = numpy.array(dic['t'])
             else:
                 time = numpy.array([])
 
             ## JSB...adding units to the dictionary. Note that there is also UCD availability
             ## TODO....allow for multiple flux measurements in the same instance
-            if dic.has_key('units') and dic.has_key('ordered_column_names') and dic.has_key('ucds'):
+            if 'units' in dic and 'ordered_column_names' in dic and 'ucds' in dic:
                 # PTF characteristics:
                 if 'mag_subtr' in dic['ordered_column_names']:
                     # NOTE: for PTF VOSource, which db_importer generated, the first 3 items (t,m,merr) are handled below.
-                    for i_colname in xrange(3,len(dic['ordered_column_names'])):
+                    for i_colname in range(3,len(dic['ordered_column_names'])):
                         colname = dic['ordered_column_names'][i_colname]
                         input_dic.update({(colname + '_unit'): dic['units'][i_colname],
                                           (colname + '_ucd'): dic['ucds'][i_colname],
@@ -98,14 +98,14 @@ class from_xml(gen_or_imp):
                 ##    positional info will have a UCD like pos.something.something
                 pos_header_names = [x for x in dic['ucds'][1:] if x.find("pos.") != -1]
                 if len(pos_header_names) in [2,4]:
-                    print "FUTURE: There appears to be time_dependent positional information passed. You'll want to load input_dict with this."
+                    print("FUTURE: There appears to be time_dependent positional information passed. You'll want to load input_dict with this.")
                 else:
-                    print "        NOTE: No apparent time depdendent position information passes to from_xml()."
+                    print("        NOTE: No apparent time depdendent position information passes to from_xml().")
 
             else:
                 ## warning!
                 ## TODO: this is volitile because 1) we might not require m_err and 2) the name of the flux and time axes could be different
-                if dic.has_key("t"):
+                if "t" in dic:
                     time = numpy.array(dic['t'])
                 else:
                     time = numpy.array([])
@@ -152,7 +152,7 @@ class from_xml(gen_or_imp):
             fmax = 48 # 48cyc/day : this cooresponds to 30 minute period, a minimum period of interest.    #n0 / (2.*max(tt))
 
             df = 0.1/max(tt)
-            numf = long( ceil( (fmax-fmin)/df ) )
+            numf = int( ceil( (fmax-fmin)/df ) )
             num_freq_max=10000
             if (numf>num_freq_max):
                 numf = num_freq_max

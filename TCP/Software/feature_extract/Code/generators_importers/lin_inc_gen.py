@@ -1,7 +1,7 @@
 import numpy
-from storage import storage
+from .storage import storage
 
-from sgwindn_gen import sgwindn_gen
+from .sgwindn_gen import sgwindn_gen
 
 class lin_inc_gen(sgwindn_gen): #data with a slope
     name = 'linearly increasing generator'

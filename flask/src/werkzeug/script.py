@@ -138,7 +138,7 @@ def run(namespace=None, action_prefix='action_', args=None):
 
     try:
         optlist, posargs = getopt.gnu_getopt(args, formatstring, long_options)
-    except getopt.GetoptError, e:
+    except getopt.GetoptError as e:
         fail(str(e))
 
     specified_arguments = set()
@@ -168,7 +168,7 @@ def run(namespace=None, action_prefix='action_', args=None):
             fail('Invalid value for \'%s\': %s' % (key, value))
 
     newargs = {}
-    for k, v in arguments.iteritems():
+    for k, v in arguments.items():
         newargs[k.startswith('no_') and k[3:] or k] = v
     arguments = newargs
     return func(**arguments)
@@ -176,14 +176,14 @@ def run(namespace=None, action_prefix='action_', args=None):
 
 def fail(message, code=-1):
     """Fail with an error."""
-    print >> sys.stderr, 'Error:', message
+    print('Error:', message, file=sys.stderr)
     sys.exit(code)
 
 
 def find_actions(namespace, action_prefix):
     """Find all the actions in the namespace."""
     actions = {}
-    for key, value in namespace.iteritems():
+    for key, value in namespace.items():
         if key.startswith(action_prefix):
             actions[key[len(action_prefix):]] = analyse_action(value)
     return actions
@@ -191,29 +191,29 @@ def find_actions(namespace, action_prefix):
 
 def print_usage(actions):
     """Print the usage information.  (Help screen)"""
-    actions = actions.items()
+    actions = list(actions.items())
     actions.sort()
-    print 'usage: %s <action> [<options>]' % basename(sys.argv[0])
-    print '       %s --help' % basename(sys.argv[0])
-    print
-    print 'actions:'
+    print('usage: %s <action> [<options>]' % basename(sys.argv[0]))
+    print('       %s --help' % basename(sys.argv[0]))
+    print()
+    print('actions:')
     for name, (func, doc, arguments) in actions:
-        print '  %s:' % name
+        print('  %s:' % name)
         for line in doc.splitlines():
-            print '    %s' % line
+            print('    %s' % line)
         if arguments:
-            print
+            print()
         for arg, shortcut, default, argtype in arguments:
             if isinstance(default, bool):
-                print '    %s' % (
+                print('    %s' % (
                     (shortcut and '-%s, ' % shortcut or '') + '--' + arg
-                )
+                ))
             else:
-                print '    %-30s%-10s%s' % (
+                print('    %-30s%-10s%s' % (
                     (shortcut and '-%s, ' % shortcut or '') + '--' + arg,
                     argtype, default
-                )
-        print
+                ))
+        print()
 
 
 def analyse_action(func):

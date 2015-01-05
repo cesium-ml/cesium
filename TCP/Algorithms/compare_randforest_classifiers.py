@@ -48,9 +48,9 @@ def example_initial_r_randomforest():
                                     data_dict=fold_data['classif_data'],
                                     do_ignore_NA_features=do_ignore_NA_features)
 
-    print "classif_results['error_rate']=", classif_results['error_rate']
+    print("classif_results['error_rate']=", classif_results['error_rate'])
     import pdb; pdb.set_trace()
-    print
+    print()
 
 
 
@@ -59,7 +59,7 @@ def count_classes(class_list=[]):
     """
     count_dict = {}
     for class_name in class_list:
-        if not count_dict.has_key(class_name):
+        if class_name not in count_dict:
             count_dict[class_name] = 0
         count_dict[class_name] += 1
     return count_dict
@@ -94,7 +94,7 @@ def generate_parf_header_with_weighted_classes(count_dict={},
 
             total_weight += class_weight
         new_line = new_line[:-2] + line[line.rfind('}'):]
-        print 'total_weight=', total_weight
+        print('total_weight=', total_weight)
         #print 'line:    ', line
         #print 'new_line:', new_line
         new_arff_header.append(new_line)
@@ -191,10 +191,10 @@ if __name__ == '__main__':
     for k in range(50):
         parf_fpath_dict = {}
         results_dict = {}
-        for i_fold, fold_dict in all_fold_data.iteritems():
+        for i_fold, fold_dict in all_fold_data.items():
             parf_fpath_dict[i_fold] = {}
             results_dict[i_fold] = {}
-            for data_case in fold_dict.keys():
+            for data_case in list(fold_dict.keys()):
                 if data_case == 'train_data':
                     count_dict = count_classes(class_list=fold_dict['train_data']['class_list'])
                     n_sources = len(fold_dict['train_data']['class_list'])
@@ -219,7 +219,7 @@ if __name__ == '__main__':
                                                 parf_fpath_dict[i_fold]['train_data'],
                                                 parf_fpath_dict[i_fold]['classif_data'],
                                                 ntrees, mtry, nodesize)
-            print exec_parf_str
+            print(exec_parf_str)
             (a,b,c) = os.popen3(exec_parf_str)
             a.close()
             c.close()
@@ -239,7 +239,7 @@ if __name__ == '__main__':
         if not use_missing_values:
             ### Do the R randomForest here:
             do_ignore_NA_features = False
-            for i_fold, fold_data in all_fold_data.iteritems():
+            for i_fold, fold_data in all_fold_data.items():
                 classifier_fpath = os.path.expandvars("$HOME/scratch/classifier_RF_%d.rdata" % (i_fold))
                 Gen_Fold_Classif.generate_R_randomforest_classifier_rdata(train_data=fold_data['train_data'],
                                                                  classifier_fpath=classifier_fpath,
@@ -256,7 +256,7 @@ if __name__ == '__main__':
                                                 data_dict=fold_data['classif_data'],
                                                 do_ignore_NA_features=do_ignore_NA_features)
 
-                print "classif_results['error_rate']=", classif_results['error_rate']
+                print("classif_results['error_rate']=", classif_results['error_rate'])
 
                 results_dict[i_fold]['randomForest'] = {'class_error':classif_results['error_rate']}
 
@@ -266,9 +266,9 @@ if __name__ == '__main__':
         # # # # # #
         ### Do the R cforest here:
         do_ignore_NA_features = False
-        for i_fold, fold_data in all_fold_data.iteritems():
+        for i_fold, fold_data in all_fold_data.items():
             classifier_fpath = os.path.expandvars("$HOME/scratch/classifier_RF_%d.rdata" % (i_fold))
-            print 'generating cforest...'
+            print('generating cforest...')
             Gen_Fold_Classif.generate_R_randomforest_classifier_rdata(train_data=fold_data['train_data'],
                                                              classifier_fpath=classifier_fpath,
                                                              do_ignore_NA_features=do_ignore_NA_features,
@@ -282,12 +282,12 @@ if __name__ == '__main__':
             rc.load_classifier(r_name=r_name,
                            fpath=classifier_fpath)
 
-            print 'applying cforest...'
+            print('applying cforest...')
             classif_results_cforest = rc.apply_cforest(classifier_dict=classifier_dict,
                                             data_dict=fold_data['classif_data'],
                                             do_ignore_NA_features=do_ignore_NA_features)
 
-            print "classif_results['error_rate']=", classif_results_cforest['error_rate']
+            print("classif_results['error_rate']=", classif_results_cforest['error_rate'])
 
             results_dict[i_fold]['cforest'] = {'class_error':classif_results_cforest['error_rate']}
 
@@ -298,7 +298,7 @@ if __name__ == '__main__':
         parf_errors = []
         randomForest_errors = []
         cforest_errors = []
-        for i_fold in all_fold_data.keys():
+        for i_fold in list(all_fold_data.keys()):
             parf_errors.append(results_dict[i_fold]['parf']['class_error'] / 100.)
             randomForest_errors.append(results_dict[i_fold].get('randomForest',{}).get('class_error',-1))
             cforest_errors.append(results_dict[i_fold]['cforest']['class_error'])
@@ -310,19 +310,19 @@ if __name__ == '__main__':
         meta_R_randomForest_avgs.extend(randomForest_errors)
         meta_R_cforest_avgs.extend(cforest_errors)
 
-        print "PARF         mean=%lf,  std=%lf" % (numpy.mean(parf_errors), numpy.std(parf_errors))
-        print "randomForest mean=%lf,  std=%lf" % (numpy.mean(randomForest_errors), numpy.std(randomForest_errors))
-        print "cforest mean=%lf,  std=%lf" % (numpy.mean(cforest_errors), numpy.std(cforest_errors))
+        print("PARF         mean=%lf,  std=%lf" % (numpy.mean(parf_errors), numpy.std(parf_errors)))
+        print("randomForest mean=%lf,  std=%lf" % (numpy.mean(randomForest_errors), numpy.std(randomForest_errors)))
+        print("cforest mean=%lf,  std=%lf" % (numpy.mean(cforest_errors), numpy.std(cforest_errors)))
 
 
         #### Put this within the inner loop so can see how this is improving:
-        print 'META PARF        :', numpy.mean(meta_parf_avgs), numpy.std(meta_parf_avgs), k*10 + i_fold
-        print 'META randomForest:', numpy.mean(meta_R_randomForest_avgs), numpy.std(meta_R_randomForest_avgs), k*10 + i_fold
-        print 'META cforest     :', numpy.mean(meta_R_cforest_avgs), numpy.std(meta_R_cforest_avgs), k*10 + i_fold
+        print('META PARF        :', numpy.mean(meta_parf_avgs), numpy.std(meta_parf_avgs), k*10 + i_fold)
+        print('META randomForest:', numpy.mean(meta_R_randomForest_avgs), numpy.std(meta_R_randomForest_avgs), k*10 + i_fold)
+        print('META cforest     :', numpy.mean(meta_R_cforest_avgs), numpy.std(meta_R_cforest_avgs), k*10 + i_fold)
 
-    print 'Final META PARF        :', numpy.mean(meta_parf_avgs), numpy.std(meta_parf_avgs)
-    print 'Final META randomForest:', numpy.mean(meta_R_randomForest_avgs), numpy.std(meta_R_randomForest_avgs)
-    print 'Final META cforest     :', numpy.mean(meta_R_cforest_avgs), numpy.std(meta_R_cforest_avgs)
+    print('Final META PARF        :', numpy.mean(meta_parf_avgs), numpy.std(meta_parf_avgs))
+    print('Final META randomForest:', numpy.mean(meta_R_randomForest_avgs), numpy.std(meta_R_randomForest_avgs))
+    print('Final META cforest     :', numpy.mean(meta_R_cforest_avgs), numpy.std(meta_R_cforest_avgs))
 
     import pdb; pdb.set_trace()
-    print
+    print()

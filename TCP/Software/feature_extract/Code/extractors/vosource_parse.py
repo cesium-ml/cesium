@@ -64,13 +64,13 @@ class vosource_parser:
             else:
                 ts_dict = self.d['VOSOURCE']['VOTimeseries']['Resource']['TABLE']
         except:
-            print "Error"
+            print("Error")
             return
 
         for filt in ts_dict:
             name = filt['name']
             if not isinstance(filt.get('FIELD',''),list):
-                print "field is not a list"
+                print("field is not a list")
                 continue
             allcol = []
             ncols = len(filt['FIELD'])
@@ -85,7 +85,7 @@ class vosource_parser:
             if isinstance(xml_obj,xmldict.XmlDictObject):
                 xml_obj = [filt['DATA']['TABLEDATA']['TR']]
             elif not isinstance(xml_obj,list):
-                print "data is not a list"
+                print("data is not a list")
                 continue
             ndata = len(xml_obj)
             limit = empty(ndata,dtype="S5")
@@ -97,10 +97,10 @@ class vosource_parser:
                     if isinstance(c[1],str):
                         allcol[c[0]]['val'].append(float(c[1]))
                     elif isinstance(c[1],dict):
-                        if c[1].has_key("_text"):
+                        if "_text" in c[1]:
                             if isinstance(c[1]['_text'],str):
                                 allcol[c[0]]['val'].append(float(c[1]['_text']))
-                        if      c[1].has_key("limit"):
+                        if      "limit" in c[1]:
                             limit[c[0]] = c[1]['limit']
             #make the limits
             lim = {'ID': 'col%i' % (ncols + 1), 'datatype': 'string', 'name': "limit", \

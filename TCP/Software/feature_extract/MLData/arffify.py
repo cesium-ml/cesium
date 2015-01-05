@@ -20,8 +20,8 @@ import os,sys
 #       import amara
 #except:
 #       pass
-import xmlrpclib
-import urllib
+import xmlrpc.client
+import urllib.request, urllib.parse, urllib.error
 import copy
 import datetime
 try:
@@ -168,7 +168,7 @@ class Maker:
             'classdb_database':'source_test_db', #'source_db',
             't_sleep':0.2,
             'number_threads':4,
-            'tcp_tutor_srcid_offset':100000000L,
+            'tcp_tutor_srcid_offset':100000000,
             'local_xmls_fpath':os.path.expandvars('$HOME/scratch/TUTOR_vosources'),
             'skip_sci_class_list':['','Variable Stars'], #20110202: dstarr excludes  'UNKNOWN', since unclassified ASAS sources need o be included in the arff files.  # Science classes to skip from adding to .arff
             'disambiguate_sci_class_dict':{'Pulsating Variable Stars':'Pulsating Variable',#'Pulsating Variable':'Pulsating Variable Stars', #20100702 disable: 'Pulsating Variable Stars':'Pulsating Variable', # Ambiguous key classes are given value class_name
@@ -540,12 +540,12 @@ class Maker:
         for s in search:
             if s is None or s == "":
                 continue
-            params = urllib.urlencode({'fmt': "json", 't': "Source", 'f1': "Class_Name", "o1": "IS","v1": s})
-            f = urllib.urlopen("http://lyra.berkeley.edu/tutor/pub/find_ids.php?%s" % params)
+            params = urllib.parse.urlencode({'fmt': "json", 't': "Source", 'f1': "Class_Name", "o1": "IS","v1": s})
+            f = urllib.request.urlopen("http://lyra.berkeley.edu/tutor/pub/find_ids.php?%s" % params)
             b =  """a = %s""" % f.read()
-            exec b
+            exec(b)
             if self.verbose:
-                print "[%s] %i objects returned" % (s,len(a))
+                print("[%s] %i objects returned" % (s,len(a)))
             tmplist.extend([int(x) + self.pars['tcp_tutor_srcid_offset'] for x in a])
         tmplist = list(set(tmplist))
         return tmplist
@@ -590,7 +590,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
 
         # TODO: form lookup dict string here:
         class_lookup_dict_str = "%% class_lookup_dict={"
-        for abrv_class,long_class in self.class_abrv_lookup.iteritems():
+        for abrv_class,long_class in self.class_abrv_lookup.items():
             class_lookup_dict_str += "'%s':'%s', " % (abrv_class,long_class)
         class_lookup_dict_str = class_lookup_dict_str[:-2] + '}\n'
 
@@ -674,7 +674,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
             #for fea in self.master_features:
             for fea in condensed_master_features:
                 val = "?"
-                if obj['features'].has_key(fea):
+                if fea in obj['features']:
                     if fea[1] == 'float':
                         if ((obj['features'][fea] == "False") or
                             (str(obj['features'][fea]) == "inf") or
@@ -734,7 +734,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
         #if type(outfile) != type(sys.stdout):
         if type(outfile) == type(''):
             f.close()
-            print "Wrote:", self.outfile
+            print("Wrote:", self.outfile)
 
     def populate_features_and_classes(self):
 
@@ -743,7 +743,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
         self.master_features = []
         self.grabber = XMLgrabber(verbose=self.verbose)
         for num in self.therange:
-            print num
+            print(num)
             x = self.grabber.grab(num)
 
             if x is not None:
@@ -754,7 +754,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
                     tmpdict['class'] = theclass
                 feat     = self._get_features(x)
                 tmpdict.update({'num': num, 'file': os.path.basename(self.grabber.fname), 'features': feat})
-                self.master_features.extend(feat.keys())
+                self.master_features.extend(list(feat.keys()))
                 self.master_list.append(copy.copy(tmpdict))
 
         self.master_features = set(self.master_features)
@@ -809,26 +809,26 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
             if (not self.skip_class) and (len(raw_class) > 0):
                 if self.convert_class_abrvs_to_names:
                     if raw_class in self.pars['skip_sci_class_list']:
-                        print "Skipping GENERIC class:", raw_class, "for source:", num
+                        print("Skipping GENERIC class:", raw_class, "for source:", num)
                         continue # skip this class since probably too generic to be useful for classification.
-                    if not self.class_abrv_lookup.has_key(raw_class):
-                        print "Skipping UNKNOWN class:", raw_class, "for source:", num
+                    if raw_class not in self.class_abrv_lookup:
+                        print("Skipping UNKNOWN class:", raw_class, "for source:", num)
                         continue # This class isn't in the lookup_dict{}, which is probably due to this class being added recently.  We will skip this source.
-                    if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
+                    if raw_class in list(self.pars['disambiguate_sci_class_dict'].keys()):
                         raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
                     theclass = self.class_abrv_lookup[raw_class]
                 else:
                     if raw_class in self.pars['skip_sci_class_list']:
-                        print "Skipping GENERIC class:", raw_class, "for source:", num
+                        print("Skipping GENERIC class:", raw_class, "for source:", num)
                         continue # skip this class since probably too generic to be useful for classification.
-                    if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
+                    if raw_class in list(self.pars['disambiguate_sci_class_dict'].keys()):
                         raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
                     theclass = raw_class
                 self.master_classes.append(theclass)
                 tmpdict['class'] = theclass
             feat = self._get_features(d)
             tmpdict.update({'num': num, 'file': xml_fname  , 'features': feat})
-            self.master_features.extend(feat.keys())
+            self.master_features.extend(list(feat.keys()))
             self.master_list.append(copy.copy(tmpdict))
         self.master_features = set(self.master_features)
         self.all_class_list = copy.copy(self.master_classes)
@@ -852,19 +852,19 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
         if (not self.skip_class) and (len(raw_class) > 0):
             if self.convert_class_abrvs_to_names:
                 if raw_class in self.pars['skip_sci_class_list']:
-                    print "Skipping GENERIC class:", raw_class, "for source:", num
+                    print("Skipping GENERIC class:", raw_class, "for source:", num)
                     return # skip this class since probably too generic to be useful for classification.
-                if not self.class_abrv_lookup.has_key(raw_class):
-                    print "Skipping UNKNOWN class:", raw_class, "for source:", num
+                if raw_class not in self.class_abrv_lookup:
+                    print("Skipping UNKNOWN class:", raw_class, "for source:", num)
                     return # This class isn't in the lookup_dict{}, which is probably due to this class being added recently.  We will skip this source.
-                if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
+                if raw_class in list(self.pars['disambiguate_sci_class_dict'].keys()):
                     raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
                 theclass = self.class_abrv_lookup[raw_class]
             else:
                 if raw_class in self.pars['skip_sci_class_list']:
-                    print "Skipping GENERIC class:", raw_class, "for source:", num
+                    print("Skipping GENERIC class:", raw_class, "for source:", num)
                     return#skip this class since probably too generic to be useful for classification
-                if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
+                if raw_class in list(self.pars['disambiguate_sci_class_dict'].keys()):
                     raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
                 theclass = raw_class
             tmpdict['class'] = theclass
@@ -890,7 +890,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
         #doc.feat_dict[filt][feat]
         #features = doc.xml_xpath(u"//Feature")
         n_epoch_filt_list = []
-        for filt_name,filt_dict in doc.data['ts'].iteritems():
+        for filt_name,filt_dict in doc.data['ts'].items():
             n_epoch_filt_list.append((len(dict(filt_dict[0])['val']),filt_name))
         n_epoch_filt_list.sort(reverse=True)
         try:
@@ -901,7 +901,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
         feat_xmldicts = doc.feat_dict.get('multiband',{})
         feat_xmldicts.update(doc.feat_dict.get(filt_most_sampled,{}))
 
-        for feat_name,feat_dict in feat_xmldicts.iteritems():
+        for feat_name,feat_dict in feat_xmldicts.items():
             #tmp = f.xml_xpath(u"val")[0]
             tmp = feat_dict['val']['_text']
             #if tmp.is_reliable == 'True':
@@ -929,10 +929,10 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
                 # if this is float, replace string if string exists
                 # This is KLUDGY, since it shows that we should not index dict with type() in the index tuple, but instead should just use the feature only:
                 if thetype == 'string':
-                    if not ret.has_key((str(feat_name),'float')):
+                    if (str(feat_name),'float') not in ret:
                         ret.update({(str(feat_name),thetype): val})
                 elif thetype == 'float':
-                    if ret.has_key((str(feat_name),'string')):
+                    if (str(feat_name),'string') in ret:
                         ret.pop((str(feat_name),'string'))
                     ret.update({(str(feat_name),thetype): val})
                 else:
@@ -942,9 +942,9 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
     # obsolete: 20090130: This wouldnt set <None> values for 'False', etc...
     def _get_features__old(self,doc):
         ret = {}
-        features = doc.xml_xpath(u"//feature")
+        features = doc.xml_xpath("//feature")
         for f in features:
-            tmp = f.xml_xpath(u"val")[0]
+            tmp = f.xml_xpath("val")[0]
             if tmp.is_reliable == 'True':
                 thetype = tmp.datatype
                 v = str(tmp)
@@ -972,14 +972,14 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
                 ## we got a range
                 tmp = i.strip().split("-")
                 try:
-                    tmp = range(int(tmp[0]),int(tmp[1]) + 1)
+                    tmp = list(range(int(tmp[0]),int(tmp[1]) + 1))
                     self.therange.extend(tmp)
                 except:
                     pass
 
                 continue
             try:
-                print i
+                print(i)
                 tmp = int(i)
                 self.therange.append(tmp)
             except:
@@ -1010,11 +1010,11 @@ class XMLgrabber:
                     return None
                 if tmp.find('database_query_error') != -1:
                     if self.verbose:
-                        print "No object number %i" % num
+                        print("No object number %i" % num)
                     return None
                 tmp1 = amara.parse(tmp)
-                fileloc = str(unicode(tmp1.A.href))
-                h = urllib.urlretrieve(fileloc,self.fname)
+                fileloc = str(str(tmp1.A.href))
+                h = urllib.request.urlretrieve(fileloc,self.fname)
 
             if os.path.exists(self.fname):
                 return amara.parse(self.fname)
@@ -1025,7 +1025,7 @@ class XMLgrabber:
 
     def _connect(self):
         if self.server == None:
-            self.server = xmlrpclib.ServerProxy(self.server_url)
+            self.server = xmlrpc.client.ServerProxy(self.server_url)
         return
 
     def _disconnect(self):

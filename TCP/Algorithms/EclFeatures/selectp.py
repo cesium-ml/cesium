@@ -15,7 +15,7 @@ from ctypes import c_char_p
 from matplotlib.mlab import csv2rec
 from matplotlib import pylab as plt
 from numpy import where
-import StringIO
+import io
 import traceback
 import time
 # path to polyfit executable if dynamic = False
@@ -53,7 +53,7 @@ class selectp:
             try:
                 self.polyfit = ctypes.cdll.LoadLibrary(os.path.abspath(os.environ.get("TCP_DIR") + 'Algorithms/EclFeatures/polyfit.so'))
             except:
-                print "cannot load polyfit.so"
+                print("cannot load polyfit.so")
 
         self.ok = True
 
@@ -63,7 +63,7 @@ class selectp:
 
         ## try running with that period
         if self.verbose:
-            print "   --> running with period ... %f" % p
+            print("   --> running with period ... %f" % p)
         # write out phased photometry to the file -- center the most faint point at 0
         tt=(self.t/p) % 1.; s=tt.argsort()
         x = tt[s]; y = self.y[s] ; z = self.dy[s]
@@ -74,7 +74,7 @@ class selectp:
         pmm = x[mm]
         tt = (((self.t/p) % 1.0) - pmm + 0.5) % 1.0; s=tt.argsort()
         x = tt[s]; y = self.y[s] ; z = self.dy[s]
-        z = zip(x - 0.5,y,z)
+        z = list(zip(x - 0.5,y,z))
         f = tempfile.NamedTemporaryFile(dir="/tmp",suffix=".dat",delete=False)
         name = f.name
         #(f,name) = tempfile.mkstemp(dir="/tmp",suffix=".dat")
@@ -144,7 +144,7 @@ class selectp:
             if len(ttt) == 0 and len(ttt1) == 0:
                 # probably a seg fault
                 if self.verbose:
-                    print "  --> trying",alttmp
+                    print("  --> trying",alttmp)
                 pp = Popen(alttmp, shell=True,stdin=PIPE, stdout=PIPE, \
                                      stderr=PIPE, close_fds=True)
                 pp.wait()
@@ -155,7 +155,7 @@ class selectp:
                     self.rez["models"].append({"period": p, "phase": None, 'f': None, 'chi2': 100000})
                     os.remove(name)
                     return
-            ttt1 = StringIO.StringIO("".join(ttt))  # make a new file
+            ttt1 = io.StringIO("".join(ttt))  # make a new file
             s = csv2rec(ttt1,delimiter="\t")
             chi2 = 100000
             for l in ttt:
@@ -171,7 +171,7 @@ class selectp:
         r = [(x['chi2'],x['period']) for x in self.rez['models']]
         r.sort()
         if self.verbose:
-            print "   .... best p = ", r[0][1], "best chi2 = ", r[0][0]
+            print("   .... best p = ", r[0][1], "best chi2 = ", r[0][0])
         self.rez.update({"best_period": r[0][1], "best_chi2": r[0][0]})
 
     def plot_best(self,extra=""):
@@ -200,5 +200,5 @@ def test():
     x = csv2rec("lc.dat",delimiter=" ",names=["t","y","dy"])
     s = selectp(x['t'],x['y'],x['dy'],21.93784630,dynamic=False,verbose=True)
     s.select()
-    print s.rez
+    print(s.rez)
     s.plot_best()

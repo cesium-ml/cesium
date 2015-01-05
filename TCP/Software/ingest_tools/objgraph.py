@@ -101,13 +101,13 @@ def show_most_common_types(limit=10):
     Note that classes with the same name but defined in different modules
     will be lumped together.
     """
-    stats = sorted(typestats().items(), key=operator.itemgetter(1),
+    stats = sorted(list(typestats().items()), key=operator.itemgetter(1),
                    reverse=True)
     if limit:
         stats = stats[:limit]
     width = max(len(name) for name, count in stats)
     for name, count in stats[:limit]:
-        print name.ljust(width), count
+        print(name.ljust(width), count)
 
 
 def by_type(typename):
@@ -268,8 +268,8 @@ def show_graph(objs, edge_func, swap_source_target,
     if not isinstance(objs, (list, tuple)):
         objs = [objs]
     f = file('objects.dot', 'w')
-    print >> f, 'digraph ObjectGraph {'
-    print >> f, '  node[shape=box, style=filled, fillcolor=white];'
+    print('digraph ObjectGraph {', file=f)
+    print('  node[shape=box, style=filled, fillcolor=white];', file=f)
     queue = []
     depth = {}
     ignore = set(extra_ignore)
@@ -279,7 +279,7 @@ def show_graph(objs, edge_func, swap_source_target,
     ignore.add(id(depth))
     ignore.add(id(ignore))
     for obj in objs:
-        print >> f, '  %s[fontcolor=red];' % (obj_node_id(obj))
+        print('  %s[fontcolor=red];' % (obj_node_id(obj)), file=f)
         depth[id(obj)] = 0
         queue.append(obj)
     gc.collect()
@@ -288,7 +288,7 @@ def show_graph(objs, edge_func, swap_source_target,
         nodes += 1
         target = queue.pop(0)
         tdepth = depth[id(target)]
-        print >> f, '  %s[label="%s"];' % (obj_node_id(target), obj_label(target, tdepth))
+        print('  %s[label="%s"];' % (obj_node_id(target), obj_label(target, tdepth)), file=f)
         h, s, v = gradient((0, 0, 1), (0, 0, .3), tdepth, max_depth)
         if inspect.ismodule(target):
             h = .3
@@ -297,9 +297,9 @@ def show_graph(objs, edge_func, swap_source_target,
             h = .6
             s = .6
             v = 0.5 + v * 0.5
-        print >> f, '  %s[fillcolor="%g,%g,%g"];' % (obj_node_id(target), h, s, v)
+        print('  %s[fillcolor="%g,%g,%g"];' % (obj_node_id(target), h, s, v), file=f)
         if v < 0.5:
-            print >> f, '  %s[fontcolor=white];' % (obj_node_id(target))
+            print('  %s[fontcolor=white];' % (obj_node_id(target)), file=f)
         if inspect.ismodule(target) or tdepth >= max_depth:
             continue
         neighbours = edge_func(target)
@@ -308,30 +308,30 @@ def show_graph(objs, edge_func, swap_source_target,
         for source in neighbours:
             if inspect.isframe(source) or id(source) in ignore:
                 continue
-            if filter and not filter(source):
+            if filter and not list(filter(source)):
                 continue
             if swap_source_target:
                 srcnode, tgtnode = target, source
             else:
                 srcnode, tgtnode = source, target
             elabel = edge_label(srcnode, tgtnode)
-            print >> f, '  %s -> %s%s;' % (obj_node_id(srcnode), obj_node_id(tgtnode), elabel)
+            print('  %s -> %s%s;' % (obj_node_id(srcnode), obj_node_id(tgtnode), elabel), file=f)
             if id(source) not in depth:
                 depth[id(source)] = tdepth + 1
                 queue.append(source)
             n += 1
             if n >= too_many:
-                print >> f, '  %s[color=red];' % obj_node_id(target)
+                print('  %s[color=red];' % obj_node_id(target), file=f)
                 break
-    print >> f, "}"
+    print("}", file=f)
     f.close()
-    print "Graph written to objects.dot (%d nodes)" % nodes
+    print("Graph written to objects.dot (%d nodes)" % nodes)
     if os.system('which xdot >/dev/null') == 0:
-        print "Spawning graph viewer (xdot)"
+        print("Spawning graph viewer (xdot)")
         os.system("xdot objects.dot &")
     else:
         os.system("dot -Tpng objects.dot > objects.png")
-        print "Image generated as objects.png"
+        print("Image generated as objects.png")
 
 
 def obj_node_id(obj):
@@ -361,10 +361,10 @@ def short_repr(obj):
                         types.BuiltinFunctionType)):
         return obj.__name__
     if isinstance(obj, types.MethodType):
-        if obj.im_self is not None:
-            return obj.im_func.__name__ + ' (bound)'
+        if obj.__self__ is not None:
+            return obj.__func__.__name__ + ' (bound)'
         else:
-            return obj.im_func.__name__
+            return obj.__func__.__name__
     if isinstance(obj, (tuple, list, dict, set)):
         return '%d items' % len(obj)
     if isinstance(obj, weakref.ref):
@@ -389,9 +389,9 @@ def edge_label(source, target):
     if isinstance(target, dict) and target is getattr(source, '__dict__', None):
         return ' [label="__dict__",weight=10]'
     elif isinstance(source, dict):
-        for k, v in source.iteritems():
+        for k, v in source.items():
             if v is target:
-                if isinstance(k, basestring) and k:
+                if isinstance(k, str) and k:
                     return ' [label="%s",weight=2]' % quote(k)
                 else:
                     return ' [label="%s"]' % quote(safe_repr(k))

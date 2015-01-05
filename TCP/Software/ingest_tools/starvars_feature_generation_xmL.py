@@ -95,11 +95,11 @@ class StarVars_LINEAR_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         ### This is just for writing the pickle file:
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'w')
-        cPickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
+        pickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
         fp.close()
 
 
@@ -108,10 +108,10 @@ class StarVars_LINEAR_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'rb')
-        frame_limitmags = cPickle.load(fp)
+        frame_limitmags = pickle.load(fp)
         fp.close()
         return frame_limitmags
 
@@ -203,8 +203,8 @@ class StarVars_LINEAR_Feature_Generation:
                 master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-        master_features = master_features_dict.keys()
-        master_classes = master_classes_dict.keys()
+        master_features = list(master_features_dict.keys())
+        master_classes = list(master_classes_dict.keys())
         a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -259,7 +259,7 @@ if __name__ == '__main__':
 
     # open the pickle file containing the xml string light curves an load them into memory as the list 'files'
     buff  = open('/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat/xml.pickle', 'wb')
-    files = cPickle.load( buff )
+    files = pickle.load( buff )
     buff.close()
 
     # select from the full set of light curves the range of light curves that you specify
@@ -276,11 +276,11 @@ if __name__ == '__main__':
                                         arff_output_fp=arff_output_fp)
 
     arff_output_fp.close()
-    print '\n\nCompleted writing features for LC', j, 'of', len(runfiles), '\n\n'
+    print('\n\nCompleted writing features for LC', j, 'of', len(runfiles), '\n\n')
 
     endTime = time.time()
     totalTime = endTime - startTime
-    print '\nDone! Total time =', totalTime, 's'
+    print('\nDone! Total time =', totalTime, 's')
     time.sleep(30)
 
     # need to add code that checks the output file for correctness using os.stat

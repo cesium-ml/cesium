@@ -168,7 +168,7 @@ def convert_datetime_to_float(dtime):
     total_days = days_upto_2003
 
     # iterate over all year past 2003
-    year_list = range(2003,cur_year+1)
+    year_list = list(range(2003,cur_year+1))
     for i_year in year_list:
         if not i_year == cur_year:
             last_mon = 12

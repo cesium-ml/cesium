@@ -41,7 +41,7 @@ def fetch_noisified(signal, band):
 
 feature_added_VOSource_XML_fpath = '/tmp/test_feature_algorithms.VOSource.xml'
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
+print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
 
 
 def main():

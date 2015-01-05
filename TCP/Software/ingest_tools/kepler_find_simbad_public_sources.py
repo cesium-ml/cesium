@@ -8,9 +8,9 @@ TODO: then with the ra,dec query simbad/NED to see if any classifications / know
 import sys, os
 import socket
 socket.setdefaulttimeout(20) # for urllib2 timeout of urlopen()
-import urllib
-import urllib2
-import cPickle
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
+import pickle
 import gzip
 import amara
 
@@ -146,9 +146,9 @@ LOAD DATA INFILE '%s' INTO TABLE kepler_kic
         self.cursor.execute(alter_table)
 
 
-        print "DONE."
+        print("DONE.")
         import pdb; pdb.set_trace()
-        print
+        print()
 
 class Kepler_Sources:
     """
@@ -163,10 +163,10 @@ class Kepler_Sources:
 
         if os.path.exists(self.pars['kepid_pkl_fpath']):
             fp=gzip.open(self.pars['kepid_pkl_fpath'],'rb')
-            kepid_dict=cPickle.load(fp)
+            kepid_dict=pickle.load(fp)
             fp.close()
         else:
-            out = urllib.urlopen(self.pars['pubfits_base_url']).read()
+            out = urllib.request.urlopen(self.pars['pubfits_base_url']).read()
             kepid_4char_list = []
             for line in out.split('\n'):
                 if "folder.gif" in line:
@@ -176,14 +176,14 @@ class Kepler_Sources:
                     if substr == 'tarfiles':
                         pass
                     else:
-                        print substr
+                        print(substr)
                         kepid_4char_list.append(substr)
 
             kepid_dict = {}
             ### Now, form a new URLs and look for all sources within these
             for kepid_4char in kepid_4char_list:
                 url_str = "%s%s/" % (self.pars['pubfits_base_url'], kepid_4char)
-                out = urllib.urlopen(url_str).read()
+                out = urllib.request.urlopen(url_str).read()
                 for line in out.split('\n'):
                     if "folder.gif" in line:
                         i_end = line.rfind('</a>') - 1
@@ -198,7 +198,7 @@ class Kepler_Sources:
 
 
             fp = gzip.open(self.pars['kepid_pkl_fpath'],'wb')
-            cPickle.dump(kepid_dict,fp,1) # ,1) means a binary pkl is used.
+            pickle.dump(kepid_dict,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         return kepid_dict
 
@@ -214,7 +214,7 @@ class Kepler_Sources:
         """
         ra_dict = {}
         dec_dict = {}
-        n_kepids = len(kepid_dict.keys())
+        n_kepids = len(list(kepid_dict.keys()))
         for i, kepid in enumerate(kepid_dict.keys()):
             command_str = "grep \|%d$ %s" % (kepid, self.pars['kic.txt_3col_fpath'])
             (a,b,c) = os.popen3(command_str)
@@ -226,7 +226,7 @@ class Kepler_Sources:
             for line in lines[:-1]:
                 elems = line.split('|')
                 if int(elems[2]) == kepid:
-                    print i, n_kepids, len(lines)
+                    print(i, n_kepids, len(lines))
                     ra_dict[kepid] = float(elems[0])
                     dec_dict[kepid] = float(elems[1])
 
@@ -244,20 +244,20 @@ class Kepler_Sources:
             radec_dict = self.get_radecs(kepid_dict=kepid_dict)
 
             fp = gzip.open(self.pars['ra_dict_pkl_fpath'],'wb')
-            cPickle.dump(radec_dict['ra_dict'],fp,1) # ,1) means a binary pkl is used.
+            pickle.dump(radec_dict['ra_dict'],fp,1) # ,1) means a binary pkl is used.
             fp.close()
 
             fp = gzip.open(self.pars['dec_dict_pkl_fpath'],'wb')
-            cPickle.dump(radec_dict['dec_dict'],fp,1) # ,1) means a binary pkl is used.
+            pickle.dump(radec_dict['dec_dict'],fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             radec_dict = {}
             fp=gzip.open(self.pars['ra_dict_pkl_fpath'],'rb')
-            radec_dict['ra_dict']=cPickle.load(fp)
+            radec_dict['ra_dict']=pickle.load(fp)
             fp.close()
 
             fp=gzip.open(self.pars['dec_dict_pkl_fpath'],'rb')
-            radec_dict['dec_dict']=cPickle.load(fp)
+            radec_dict['dec_dict']=pickle.load(fp)
             fp.close()
 
         return radec_dict
@@ -274,9 +274,9 @@ class Kepler_Sources:
         #                               'Radius': rad, 'Radius.unit': "arcsec"})
 
         html = "http://simbad.harvard.edu/simbad/sim-id?"
-        params = urllib.urlencode({'output.format':"VOTABLE","Ident":name,"NbIdent":1,\
+        params = urllib.parse.urlencode({'output.format':"VOTABLE","Ident":name,"NbIdent":1,\
                                    'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
-        f = urllib2.urlopen("%s%s" % (html,params))
+        f = urllib.request.urlopen("%s%s" % (html,params))
         s = f.read()
         f.close()
         #print s
@@ -292,13 +292,13 @@ class Kepler_Sources:
 
 
         html = "http://simbad.harvard.edu/simbad/sim-coo?"
-        params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
+        params = urllib.parse.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
                                        'Radius': rad, 'Radius.unit': "arcsec"})
 
         #html = "http://simbad.harvard.edu/simbad/sim-id?"
         #params = urllib.urlencode({'output.format':"VOTABLE","Ident":"HD 27290","NbIdent":1,\
         #                           'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
-        f = urllib.urlopen("%s%s" % (html,params))
+        f = urllib.request.urlopen("%s%s" % (html,params))
         s = f.read()
         f.close()
         #print s
@@ -352,7 +352,7 @@ class Kepler_Sources:
             for row in results:
                 (kepid, ra_deg, dec_deg, gmag, rmag, tm_designation) = row
                 import pdb; pdb.set_trace()
-                print
+                print()
                 xml_fpath = "%s/%d.xml" % (self.pars['simbad_votable_cache_dirpath'], kepid)
                 ### This condition can be done if we think we will be querying previously retrieved sources:
                 ###    - we have saved xmls for kepids >= 154612 (and not explicitly public_timeseries 150k)
@@ -361,7 +361,7 @@ class Kepler_Sources:
                 name_str = "2MASS J%s" % (tm_designation)
                 votable_str = self.query_votable_name(name=name_str)
                 if len(votable_str) < 310:
-                    print "NO SIMBAD: %d len:%d RA,D: %lf %lf %s " % (kepid, len(votable_str), ra_deg, dec_deg, name_str)
+                    print("NO SIMBAD: %d len:%d RA,D: %lf %lf %s " % (kepid, len(votable_str), ra_deg, dec_deg, name_str))
                     continue
 
                 #print "Y! SIMBAD info: %d RA, Dec: %lf %lf %s" % (kepid, ra_deg, dec_deg, name_str)
@@ -374,7 +374,7 @@ class Kepler_Sources:
                     continue
 
                 out_str = "%d '%s'" % (kepid, class_str)
-                print out_str
+                print(out_str)
                 fp_txt.write(out_str + '\n')
 
                 class_dict[kepid] = class_str
@@ -390,7 +390,7 @@ class Kepler_Sources:
 
         fp_txt.close()
         fp = gzip.open(self.pars['kep_simbad_class_pkl_fpath'],'wb')
-        cPickle.dump(class_dict,fp,1) # ,1) means a binary pkl is used.
+        pickle.dump(class_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
 
@@ -424,7 +424,7 @@ class Kepler_Sources:
                 continue
 
             out_str = "%d '%s'" % (kepid, class_str)
-            print out_str
+            print(out_str)
             fp_txt.write(out_str + '\n')
 
             class_dict[kepid] = class_str
@@ -437,7 +437,7 @@ class Kepler_Sources:
 
         fp_txt.close()
         fp = gzip.open(self.pars['kep_simbad_class_pkl_fpath'],'wb')
-        cPickle.dump(class_dict,fp,1) # ,1) means a binary pkl is used.
+        pickle.dump(class_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
 
@@ -455,7 +455,7 @@ class Kepler_Sources:
         fp = open(self.pars['kep_simbad_class_txt_fpath'])
 
         for row in results:
-            print row
+            print(row)
 
 
 
@@ -484,7 +484,7 @@ class Kepler_Sources:
         # TODO: query simbad code with given ra, dec
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 if __name__ == '__main__':
 

@@ -166,7 +166,7 @@ import db_importer
                 threads.append(t)
                 t.start()
                 #time.sleep(1)
-                print 'i_cpu:', i_cpu, 'i_node:', i_node
+                print('i_cpu:', i_cpu, 'i_node:', i_node)
 
         while len(threads) > 0:
             for i,t in enumerate(threads):
@@ -175,10 +175,10 @@ import db_importer
                     break # need to do this since in threads[] based loop.
             if i == (len(threads) - 1):
                 # went through list without removing
-                print "threads left:", len(threads)
+                print("threads left:", len(threads))
                 time.sleep(5)
 
-        print "Done: spawn_tasks_using_beowulf_beorun()"
+        print("Done: spawn_tasks_using_beowulf_beorun()")
 
 
     def spawn_tasks_for_xmlfile(self):
@@ -240,10 +240,10 @@ if 1:
         """
         while ((self.tc.queue_status()['scheduled'] > 0) or
                (self.tc.queue_status()['pending'] > 0)):
-            print self.tc.queue_status()
-            print 'Sleep... 3 in regenerate_vosource_xmls.py'
+            print(self.tc.queue_status())
+            print('Sleep... 3 in regenerate_vosource_xmls.py')
             time.sleep(3)
-        print 'done with while loop'
+        print('done with while loop')
 
 
     def run_debug_task(self):
@@ -294,7 +294,7 @@ if __name__ == '__main__':
                       help="")
 
     (options, args) = parser.parse_args()
-    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
+    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
 
     #pars = {'old_xmls_dirpath':os.path.expandvars('/home/pteluser/scratch/TUTOR_vosources/SNIa_from_20080707tutor'),
     #        'new_xmls_dirpath':os.path.expandvars('/home/pteluser/scratch/TUTOR_vosources/SNIa_from_20080707tutor_new')}

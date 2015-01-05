@@ -1,11 +1,11 @@
 import os, sys
 import numpy
 from numpy import *
-import extractors
-from extractors import *
-import FeatureExtractor
+from . import extractors
+from .extractors import *
+from . import FeatureExtractor
 #from fetchers import *
-import internal_generated_extractors_holder
+from . import internal_generated_extractors_holder
 
 avtype = [('extname','S100') , ('extractor',object_), ('active',bool_)] # format of available_extractors
 
@@ -74,7 +74,7 @@ class FeatureInterface(object):
                    self.available_extractors['extractor'] != extractor)] # slice off the corresponding extractor
         sizeafterremoving = self.available_extractors.size
         if sizebeforeremoving == sizeafterremoving:
-            print "Key does not exist, can't be removed from active list", extractor.extname
+            print("Key does not exist, can't be removed from active list", extractor.extname)
 
 
     def remove_extname(self,extname):
@@ -86,7 +86,7 @@ class FeatureInterface(object):
                        self.available_extractors['extname'] != extname)] # slice off the corresponding extractor
         sizeafterremoving = self.available_extractors.size
         if sizebeforeremoving == sizeafterremoving:
-            print "Key does not exist, can't be removed from active list", extractor.extname
+            print("Key does not exist, can't be removed from active list", extractor.extname)
 
 
     def switch_extname(self,extractor_name,activate=False,deactivate=False):
@@ -95,16 +95,16 @@ class FeatureInterface(object):
             extractor_row = self.available_extractors[\
                                                     extractor_index]
             active = extractor_row['active']
-            print "This extractor %s was in state %s" % (\
-                                             extractor_name, active)
+            print("This extractor %s was in state %s" % (\
+                                             extractor_name, active))
             if activate:
                 active = True
             elif deactivate:
                 active = False
             else:
                 active = not active
-            print "This extractor %s is now in state %s" % (\
-                                              extractor_name,active)
+            print("This extractor %s is now in state %s" % (\
+                                              extractor_name,active))
             self.available_extractors[extractor_index] = array(\
                     (extractor_row['extname'][0], \
                      extractor_row['extractor'][0], active),avtype)
@@ -117,8 +117,8 @@ class FeatureInterface(object):
         extractor_index = where(self.available_extractors['extname'] ==\
                                 extractor_name)[0]
         if size(extractor_index) is 0:
-            print "find_extname couldn't find extractor %s" % \
-                                                    (extractor_name)
+            print("find_extname couldn't find extractor %s" % \
+                                                    (extractor_name))
             return False # if we didn't find the object
         if index:
             return extractor_index[0]

@@ -69,8 +69,8 @@ class Dovi_SN:
 
         x10=min(x1); x20=max(x2);
         delta0=x20-x10
-        for i in xrange(lx-2):
-            for j0 in xrange(lx-i):
+        for i in range(lx-2):
+            for j0 in range(lx-i):
                 j = j0 + i
                 delta = x2[j] - x1[i]
                 if (cprob[j+1]-cprob[i]>=conf*mcprob and delta<delta0):
@@ -105,7 +105,7 @@ class Dovi_SN:
         # dstarr: looks like we want a list with each filter character as an element.
         #   currently it looks like: print model['filters'][0] = 'RugrizJHK'
         new_filt_list = []
-        for i_filt in xrange(len(model['filters'][0])):
+        for i_filt in range(len(model['filters'][0])):
             new_filt_list.append(model['filters'][0][i_filt])
         model['filters'] = new_filt_list
 
@@ -169,7 +169,7 @@ class Dovi_SN:
             i+=1
             if ( abs(z-z0) < nzsig*dz0 ):
 
-                for filt in data.keys():
+                for filt in list(data.keys()):
                     # j = string.find( model['filters'] , filt )
                     # dstarr thinks this is what was intended in the above line:
                     if (filt == 'combo_band') or (filt == 'filters'):
@@ -352,7 +352,7 @@ class Dovi_SN:
         ###WANT:# data['filters'] = [<filter names, ...>]
         ###WANT:# data[<filt name>] = [filt]{'time':[], 'mag':[], 'err':[]     ...}
         data = {}
-        data['filters'] = self.x_sdict['ts'].keys()
+        data['filters'] = list(self.x_sdict['ts'].keys())
 
         for filter_name in data['filters']:
             data[filter_name] = {}

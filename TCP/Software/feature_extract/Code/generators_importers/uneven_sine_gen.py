@@ -1,8 +1,8 @@
 import numpy
 from numpy import log, exp, random, ones, arange
-from storage import storage
+from .storage import storage
 
-from sgwindn_gen import sgwindn_gen
+from .sgwindn_gen import sgwindn_gen
 
 class uneven_sine_gen(sgwindn_gen):
     name = 'uneven sine with individual noise'

@@ -6,7 +6,7 @@ def     stetson_mean( x, weight=100.,alpha=2.,beta=2.,tol=1.e-6,nmax=20):
 
     x0 = median( x )
 
-    for i in xrange(nmax):
+    for i in range(nmax):
         resid = x - x0
         resid_err = abs(resid)*sqrt(weight)
         weight1 = weight/(1. + (resid_err/alpha)**beta)

@@ -30,7 +30,7 @@ try:
     import jpype
     from jpype import java
 except:
-    print "EXCEPT: plugin_classifier.py.  Possibly on a development system without Java Weka of JPype installed."
+    print("EXCEPT: plugin_classifier.py.  Possibly on a development system without Java Weka of JPype installed.")
     pass # KLUDGE: This would except on a development system without Java Weka of JPype installed.
 
 class WekaClassifier(object):
@@ -124,14 +124,14 @@ if __name__ == '__main__':
 
     #classified_result = wc.classify(arff_record)
     classified_result = wc.get_class_distribution(arff_record)
-    print classified_result
+    print(classified_result)
 
     # TODO: replace classificatioN_interface.py ' arf writing & weka calling.
 
     #jpype.shutdownJVM() is not called ATM
 
 
-    print 'done'
+    print('done')
 
 
 #######################

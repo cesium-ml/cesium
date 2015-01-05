@@ -13,8 +13,8 @@ script_output = p.stdout.readlines()
 
 """
 import sys, os
-import urllib
-import cStringIO
+import urllib.request, urllib.parse, urllib.error
+import io
 
 os.environ["TCP_DIR"] = "/big_data/dstarr/src/TCP/"
 from rpy2.robjects.packages import importr
@@ -89,7 +89,7 @@ def generate_feature_xml_using_raw_xml(raw_xml_str):
     gen.generate(xml_handle=raw_xml_str)
     gen.sig.add_features_to_xml_string(gen.signals_list)
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     gen.sig.write_xml(out_xml_fpath=fp_out)
     xml_str = fp_out.getvalue()
     sys.stdout.close()
@@ -133,8 +133,8 @@ def generate_arff_using_raw_xml(xml_str):
         master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-    master_features = master_features_dict.keys()
-    master_classes = master_classes_dict.keys()
+    master_features = list(master_features_dict.keys())
+    master_classes = list(master_classes_dict.keys())
     a = arffify.Maker(search=[], skip_class=True, local_xmls=True,
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -145,7 +145,7 @@ def generate_arff_using_raw_xml(xml_str):
     a.master_list = master_list
 
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     a.write_arff(outfile=fp_out, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,
@@ -159,16 +159,16 @@ def main():
     """ Main function
     """
     if len(sys.argv) < 2:
-        print "lcs_classif.py - len(sys.argv) < 2. Returning..."
+        print("lcs_classif.py - len(sys.argv) < 2. Returning...")
         return {}
-    print "lcs_classif.py - sys.argv[1] =", sys.argv[1]
+    print("lcs_classif.py - sys.argv[1] =", sys.argv[1])
     timeseries_url = sys.argv[1]
 
     t_list = []
     m_list = []
     merr_list = []
     try:
-        f = urllib.urlopen(timeseries_url)
+        f = urllib.request.urlopen(timeseries_url)
         ts_str = f.read()
         f.close()
         ts_list = eval(ts_str)
@@ -280,4 +280,4 @@ if __name__ == '__main__':
     #print "blahblah"
     out_dict = main()
     #print "yoyoyo"
-    print out_dict
+    print(out_dict)

@@ -21,7 +21,7 @@ class HTTPUtilityTestCase(WerkzeugTestCase):
 
     def test_accept(self):
         a = http.parse_accept_header('en-us,ru;q=0.5')
-        self.assert_equal(a.values(), ['en-us', 'ru'])
+        self.assert_equal(list(a.values()), ['en-us', 'ru'])
         self.assert_equal(a.best, 'en-us')
         self.assert_equal(a.find('ru'), 1)
         self.assert_raises(ValueError, a.index, 'de')
@@ -271,10 +271,10 @@ class HTTPUtilityTestCase(WerkzeugTestCase):
     def test_cookies(self):
         assert http.parse_cookie('dismiss-top=6; CP=null*; PHPSESSID=0a539d42abc001cd'
                             'c762809248d4beed; a=42') == {
-            'CP':           u'null*',
-            'PHPSESSID':    u'0a539d42abc001cdc762809248d4beed',
-            'a':            u'42',
-            'dismiss-top':  u'6'
+            'CP':           'null*',
+            'PHPSESSID':    '0a539d42abc001cdc762809248d4beed',
+            'a':            '42',
+            'dismiss-top':  '6'
         }
         assert set(http.dump_cookie('foo', 'bar baz blub', 360, httponly=True,
                                sync_expires=False).split('; ')) == \

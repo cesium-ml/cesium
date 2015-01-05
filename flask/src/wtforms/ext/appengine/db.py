@@ -408,7 +408,7 @@ def model_fields(model, only=None, exclude=None, field_args=None,
     # Get the field names we want to include or exclude, starting with the
     # full list of model properties.
     props = model.properties()
-    sorted_props = sorted(props.iteritems(), key=lambda prop: prop[1].creation_counter)
+    sorted_props = sorted(iter(props.items()), key=lambda prop: prop[1].creation_counter)
     field_names = list(x[0] for x in sorted_props)
 
     if only:

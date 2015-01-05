@@ -8,7 +8,7 @@ for the matching sources.
 import os, sys
 import MySQLdb
 from optparse import OptionParser
-import cPickle
+import pickle
 import gzip
 import copy
 import time
@@ -50,7 +50,7 @@ def parse_options():
                       help="Analysis of feature, classification, vote confidence values for pairwise component classifiers applied to percent sampled debosscher data.")
 
     (options, args) = parser.parse_args()
-    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
+    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
     return options
 
 
@@ -106,7 +106,7 @@ class Analysis_Deboss_TCP_Source_Compare:
         dotastro_srcid_to_attribfiles = {}
         dotastro_srcid_to_debos_srcname = {}
 
-        for source_name, fname_list in deboss_srcname_fname_lookup.iteritems():
+        for source_name, fname_list in deboss_srcname_fname_lookup.items():
             #if 'HIP 54413' in source_name:
             #    print 'yo'
             debos_srcname_to_dotastro_srcid[source_name] = []
@@ -118,10 +118,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -132,10 +132,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -146,10 +146,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -160,10 +160,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -176,10 +176,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -192,10 +192,10 @@ class Analysis_Deboss_TCP_Source_Compare:
         #    print dotastro_srcid, debos_srcname
 
         dotastro_srcid_to_debos_attribs = {}
-        for dotastro_srcid, attribfiles in dotastro_srcid_to_attribfiles.iteritems():
+        for dotastro_srcid, attribfiles in dotastro_srcid_to_attribfiles.items():
             matches_found = 0
             for attrib_file in attribfiles:
-                if deboss_attrib_dict.has_key(attrib_file):
+                if attrib_file in deboss_attrib_dict:
                     if os.path.exists("/home/pteluser/analysis/debosscher_20100707/TS-HIPPARCOS/" + attrib_file):
                         matches_found += 1
                         # I've checked that this only occurs once per dotastro sourceid (no multi LCs in there):
@@ -222,11 +222,11 @@ class Analysis_Deboss_TCP_Source_Compare:
         if not os.path.exists(self.pars['srcid_debos_attribs_pkl_fpath']):
             srcid_to_debos_attribs = self.get_deboss_dotastro_source_lookup()
             fp = gzip.open(self.pars['srcid_debos_attribs_pkl_fpath'],'wb')
-            cPickle.dump(srcid_to_debos_attribs,fp,1) # ,1) means a binary pkl is used.
+            pickle.dump(srcid_to_debos_attribs,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp = gzip.open(self.pars['srcid_debos_attribs_pkl_fpath'],'rb')
-            srcid_to_debos_attribs = cPickle.load(fp)
+            srcid_to_debos_attribs = pickle.load(fp)
             fp.close()
 
         class_shortname = 'alg'#
@@ -237,7 +237,7 @@ class Analysis_Deboss_TCP_Source_Compare:
 
         ### pairwise_pruned_dict is needed to get srcids for each sci-class
         fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
-        pairwise_pruned_dict=cPickle.load(fp)
+        pairwise_pruned_dict=pickle.load(fp)
         fp.close()
 
         pairwise_pruned_dict[class_shortname]['srcid_list'].sort()
@@ -249,13 +249,13 @@ class Analysis_Deboss_TCP_Source_Compare:
             d = mlens3.EventData(xml_fpath)
 
             ts_dict = {}
-            for filter_name, elem_list in d.data['ts'].iteritems():
+            for filter_name, elem_list in d.data['ts'].items():
                 ts_dict[filter_name] = {}
                 for xml_elem in elem_list:
                     ts_dict[filter_name][xml_elem['name']] = xml_elem['val']
 
 
-            print ### find matching vosource.xml fpath
+            print() ### find matching vosource.xml fpath
 
 
         ### retrieve the mag[], merr[], time[] from (Joey-like) vosourcexml string
@@ -286,7 +286,7 @@ class Analysis_Deboss_TCP_Source_Compare:
         ### NOTE: this generates a pkl file containing the arff_sciclass_dict structure:
         arff_sciclass_dict = pc.parse_arff(arff_has_ids=True, arff_has_classes=True, has_srcid=True, get_features=True)
         feat_id_name_dict = pc.feat_id_names
-        print
+        print()
 
 
 
@@ -298,11 +298,11 @@ class Analysis_Deboss_TCP_Source_Compare:
         if not os.path.exists(self.pars['srcid_debos_attribs_pkl_fpath']):
             srcid_to_debos_attribs = self.get_deboss_dotastro_source_lookup()
             fp = gzip.open(self.pars['srcid_debos_attribs_pkl_fpath'],'wb')
-            cPickle.dump(srcid_to_debos_attribs,fp,1) # ,1) means a binary pkl is used.
+            pickle.dump(srcid_to_debos_attribs,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp = gzip.open(self.pars['srcid_debos_attribs_pkl_fpath'],'rb')
-            srcid_to_debos_attribs = cPickle.load(fp)
+            srcid_to_debos_attribs = pickle.load(fp)
             fp.close()
 
         #import pdb; pdb.set_trace()
@@ -320,7 +320,7 @@ class Analysis_Deboss_TCP_Source_Compare:
         debos_feat_name = 'f1'
 
         fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
-        pairwise_pruned_dict=cPickle.load(fp)
+        pairwise_pruned_dict=pickle.load(fp)
         fp.close()
 
         # select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_id from feat_values join feat_lookup ON (feat_values.feat_id=feat_lookup.feat_id and filter_id=8) where src_id=100149362 order by feat_name;
@@ -360,20 +360,20 @@ class Analysis_Deboss_TCP_Source_Compare:
             #print srcid, "%6.6f" % (debos_featval), freq1, freq2, freq3
             #"""
             if abs(freq1 - debos_featval) < 0.2:
-                print srcid, "%6.6f" % (debos_featval), 'freq1', \
-                      "%6.6f" % (freq1 - debos_featval), freq1, '\t', freq2, freq3
+                print(srcid, "%6.6f" % (debos_featval), 'freq1', \
+                      "%6.6f" % (freq1 - debos_featval), freq1, '\t', freq2, freq3)
 
             elif abs(freq2 - debos_featval) < 0.2:
-                print srcid, "%6.6f" % (debos_featval), 'freq2', \
-                      "%6.6f" % (freq2 - debos_featval), freq2, '\t', freq1, freq3
+                print(srcid, "%6.6f" % (debos_featval), 'freq2', \
+                      "%6.6f" % (freq2 - debos_featval), freq2, '\t', freq1, freq3)
 
             elif abs(freq3 - debos_featval) < 0.2:
-                print srcid, "%6.6f" % (debos_featval), 'freq3', \
-                      "%6.6f" % (freq3 - debos_featval), freq3, '\t', freq1, freq2
+                print(srcid, "%6.6f" % (debos_featval), 'freq3', \
+                      "%6.6f" % (freq3 - debos_featval), freq3, '\t', freq1, freq2)
 
             else:
                 #print srcid, "%6.6f" % (debos_featval), ' NONE         ', freq1, freq2, freq3
-                print srcid, "%6.6f" % (debos_featval), ' NO_MATCH\t\t\t', freq1, freq2, freq3
+                print(srcid, "%6.6f" % (debos_featval), ' NO_MATCH\t\t\t', freq1, freq2, freq3)
             #"""
 
 
@@ -410,7 +410,7 @@ class Analysis_Deboss_TCP_Source_Compare:
         #for perc in [0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1.0]:
         for perc in self.pars['subsample_percents_to_generate_xmls']:
             ### We generate several random, percent-subsampled vosource in order to include error info:
-            for i in xrange(self.pars['num_percent_epoch_error_iterations']):
+            for i in range(self.pars['num_percent_epoch_error_iterations']):
                 new_srcid = "%d_%2.2f_%d" % (src_id, perc, i)
                 new_fpath = os.path.expandvars("$HOME/scratch/xmls_deboss_percentage_exclude_2/%s.xml" % (new_srcid))
 
@@ -419,7 +419,7 @@ class Analysis_Deboss_TCP_Source_Compare:
                 #    continue
 
                 dbi_src = db_importer.Source(make_dict_if_given_xml=False)
-                for band, band_dict in gen_orig.sig.x_sdict['ts'].iteritems():
+                for band, band_dict in gen_orig.sig.x_sdict['ts'].items():
                     i_start = int(((len(band_dict['m'])+1) * (1 - perc)) * random.random())
                     i_end = i_start + int(perc * (len(band_dict['m'])+1))
                     gen_temp.sig.x_sdict['ts'][band]['m'] = band_dict['m'][i_start:i_end]
@@ -571,8 +571,8 @@ os.system(os.path.expandvars("rm $HOME/scratch/xmls_deboss_percentage_exclude_2/
                     tasks_to_pop.append(task_id)
             for task_id in tasks_to_pop:
                 self.task_id_list.remove(task_id)
-            print self.tc.queue_status()
-            print 'Sleep... 20  in generate_pairwise_classifications_for_perc_subset_lightcurves()'
+            print(self.tc.queue_status())
+            print('Sleep... 20  in generate_pairwise_classifications_for_perc_subset_lightcurves()')
             time.sleep(20)
 
 
@@ -652,19 +652,19 @@ if (pid == pid_read) and (gethostname() != 'tranx'):
         fpath = '/home/pteluser/scratch/classifier_confidence_analysis.pkl.gz'
 
         fp=gzip.open(fpath,'rb')
-        big_dict=cPickle.load(fp)
+        big_dict=pickle.load(fp)
         fp.close()
 
         class_summary = {}
-        for class_name in big_dict.values()[0][0]['confusion_matrix_index_list']:
+        for class_name in list(big_dict.values())[0][0]['confusion_matrix_index_list']:
             class_summary[class_name] = {'x_perc':[],
                                          'y_avg_conf':[],
                                          'perc_conf_lists':{'perc':[],
                                                             'conf':[]}}
-        for perc_str, perc_dict in big_dict.iteritems():
+        for perc_str, perc_dict in big_dict.items():
             perc_flt = float(perc_str)
-            for set_num, set_dict in perc_dict.iteritems():
-                for classif_name, classif_dict in set_dict['confids'].iteritems():
+            for set_num, set_dict in perc_dict.items():
+                for classif_name, classif_dict in set_dict['confids'].items():
                     # NOTE: classif_dict{'class_pred':[u'cm', u'cm', u'cm']
                     #                    'orig_class':['cm', 'cm', 'cm']
                     #                    'class_conf':[1.0, 1.0, 1.0]
@@ -684,10 +684,10 @@ if (pid == pid_read) and (gethostname() != 'tranx'):
 
         perc_list = []
         perc_list.sort()
-        for perc in big_dict.keys():
+        for perc in list(big_dict.keys()):
             perc_list.append(float(perc))
         perc_list.sort()
-        for i_class, class_name in enumerate(big_dict.values()[0][0]['confusion_matrix_index_list']):
+        for i_class, class_name in enumerate(list(big_dict.values())[0][0]['confusion_matrix_index_list']):
             perc_summary_dict = {}
             for perc_flt in perc_list:
                 perc_summary_dict[perc_flt] = []
@@ -787,21 +787,21 @@ if (pid == pid_read) and (gethostname() != 'tranx'):
         #fpath = '/media/raid_0/debosscher_classification_analysis/20100918a/classifier_confidence_analysis.pkl.gz'
 
         fp=gzip.open(fpath,'rb')
-        big_dict=cPickle.load(fp)
+        big_dict=pickle.load(fp)
         fp.close()
 
         class_summary = {}
-        for classifier_name in big_dict.values()[0].values()[0]['confids'].keys():
+        for classifier_name in list(big_dict.values())[0].values()[0]['confids'].keys():
             class_summary[classifier_name] = {}
             classnames = classifier_name.split(';')
             for class_name in classnames:
                 class_summary[classifier_name][class_name] = {'perc_conf_lists':{'perc':[],
                                                                                  'conf':[]}}
 
-        for perc_str, perc_dict in big_dict.iteritems():
+        for perc_str, perc_dict in big_dict.items():
             perc_flt = float(perc_str)
-            for set_num, set_dict in perc_dict.iteritems():
-                for classifier_name, classif_dict in set_dict['confids'].iteritems():
+            for set_num, set_dict in perc_dict.items():
+                for classifier_name, classif_dict in set_dict['confids'].items():
                     # NOTE: classif_dict{'class_pred':[u'cm', u'cm', u'cm']  len() = 1380
                     #                    'orig_class':['cm', 'cm', 'cm']     len() = 1380
                     #                    'class_conf':[1.0, 1.0, 1.0]        len() = 1380
@@ -814,15 +814,15 @@ if (pid == pid_read) and (gethostname() != 'tranx'):
 
         perc_list = []
         perc_list.sort()
-        for perc in big_dict.keys():
+        for perc in list(big_dict.keys()):
             perc_list.append(float(perc))
         perc_list.sort()
         #for i_class, class_name in enumerate(big_dict.values()[0][0]['confusion_matrix_index_list']):
-        class_summary_keys = class_summary.keys()
+        class_summary_keys = list(class_summary.keys())
         class_summary_keys.sort()
 
         i_class = 0
-        sorted_class_name_list = big_dict.values()[0][0]['confusion_matrix_index_list']
+        sorted_class_name_list = list(big_dict.values())[0][0]['confusion_matrix_index_list']
 
         #import pdb; pdb.set_trace()
         #print
@@ -840,11 +840,11 @@ if (pid == pid_read) and (gethostname() != 'tranx'):
             ax = fig.add_subplot(1, 1, 1) # (n_row, n_cols, i_feat + 1)
 
             for i_class, classname_1 in enumerate(sorted_class_name_list):
-                if not classname_1_dict.has_key(classname_1):
+                if classname_1 not in classname_1_dict:
                     continue
                 classifier_name = classname_1_dict[classname_1]
 
-                for a_class in class_summary[classifier_name].keys():
+                for a_class in list(class_summary[classifier_name].keys()):
 
                     perc_summary_dict = {}
                     for perc_flt in perc_list:

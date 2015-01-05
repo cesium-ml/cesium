@@ -170,7 +170,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
             #exec_str = "/home/dstarr/src/TCP/Software/ingest_tools/ingest_tools.py do_get_sources_using_xml_file_with_feature_extraction=1 vosource_srcid=%d vosource_url=%s xmlrpc_server_name=127.0.0.1 xmlrpc_server_port=8000 rdb_name_2=object_test_db rdb_name_3=object_test_db rdb_user_4=dstarr rdb_name_4=source_test_db rdb_features_host_ip=127.0.0.1 rdb_features_user=dstarr rdb_features_db_name=source_test_db source_region_lock_host_ip=127.0.0.1 source_region_lock_user=dstarr source_region_lock_dbname=source_test_db footprint_host_ip=127.0.0.1 footprint_user=dstarr footprint_dbname=object_test_db sdss_astrom_repo_host_ip=192.168.1.55 sdss_astrom_repo_dirpath=/media/disk-4/sdss_astrom_repository rdb_host_ip_2=127.0.0.1 rdb_user=dstarr rdb_host_ip_3=127.0.0.1 rdb_host_ip_4=127.0.0.1 sci_class_schema_id=%d" % (offset_source_id, source_url, schema_id)
             # For transx Testing-DB run:
             exec_str = "/home/pteluser/src/TCP/Software/ingest_tools/ingest_tools.py do_get_sources_using_xml_file_with_feature_extraction=1 vosource_srcid=%d vosource_url=%s xmlrpc_server_name=192.168.1.25 xmlrpc_server_port=8000 rdb_name_2=object_test_db rdb_name_3=object_test_db rdb_user_4=pteluser rdb_name_4=source_test_db rdb_features_host_ip=192.168.1.25 rdb_features_user=pteluser rdb_features_db_name=source_test_db source_region_lock_host_ip=192.168.1.25 source_region_lock_user=pteluser source_region_lock_dbname=source_test_db footprint_host_ip=192.168.1.25 footprint_user=pteluser footprint_dbname=object_test_db sdss_astrom_repo_host_ip=192.168.1.55 sdss_astrom_repo_dirpath=/media/disk-4/sdss_astrom_repository rdb_host_ip_2=192.168.1.25 rdb_user=pteluser rdb_host_ip_3=192.168.1.25 rdb_host_ip_4=192.168.1.25 sci_class_schema_id=%d do_delete_existing_featvals=1 local_vosource_xml_write_dir=%s" % (offset_source_id, source_url, schema_id, xml_write_dirpath)
-            print exec_str
+            print(exec_str)
             # For transx/192.168.1.25 production run:
             #exec_str = "/home/pteluser/src/TCP/Software/ingest_tools/ingest_tools.py do_get_sources_using_xml_file_with_feature_extraction=1 vosource_srcid=%d vosource_url=%s xmlrpc_server_name=192.168.1.45 xmlrpc_server_port=8000 rdb_name_2=object_db rdb_name_3=object_db rdb_user_4=pteluser rdb_name_4=source_db rdb_features_host_ip=192.168.1.25 rdb_features_user=pteluser rdb_features_db_name=source_db source_region_lock_host_ip=192.168.1.25 source_region_lock_user=pteluser source_region_lock_dbname=source_db footprint_host_ip=192.168.1.25 footprint_user=pteluser footprint_dbname=object_db sdss_astrom_repo_host_ip=192.168.1.55 sdss_astrom_repo_dirpath=/media/disk-4/sdss_astrom_repository rdb_host_ip_2=192.168.1.25 rdb_user=pteluser rdb_host_ip_3=192.168.1.25 rdb_host_ip_4=192.168.1.25" % (offset_source_id, source_url)
             # For testing on 192.168.1.65 test database:
@@ -218,7 +218,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
         if results[0][0] == None:
             i_schema = 0
         else:
-            print results
+            print(results)
             i_schema = int(results[0][0]) + 1
 
         select_str ="SELECT class_id, class_short_name, class_name FROM classes"
@@ -232,7 +232,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
 
         result_list = list(results)
         # We add extra Plugin Classifiers:
-        for class_schema_name,schema_dict in self.pars['class_schema_definition_dicts'].iteritems():
+        for class_schema_name,schema_dict in self.pars['class_schema_definition_dicts'].items():
             if 'weka' in class_schema_name.lower():
                 continue # go to the next class_schema since WEKA is done.
             for short_class_name in schema_dict['class_list']:

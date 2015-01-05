@@ -111,7 +111,7 @@ class IterIO(object):
             raise ValueError('I/O operation on closed file')
         raise IOError(9, 'Bad file descriptor')
 
-    def next(self):
+    def __next__(self):
         if self.closed:
             raise StopIteration()
         line = self.readline()
@@ -199,7 +199,7 @@ class IterO(IterIO):
         try:
             tmp_end_pos = len(self._buf)
             while pos > tmp_end_pos:
-                item = self._gen.next()
+                item = next(self._gen)
                 tmp_end_pos += len(item)
                 buf.append(item)
         except StopIteration:
@@ -221,7 +221,7 @@ class IterO(IterIO):
         try:
             tmp_end_pos = len(self._buf)
             while new_pos > tmp_end_pos:
-                item = self._gen.next()
+                item = next(self._gen)
                 tmp_end_pos += len(item)
                 buf.append(item)
         except StopIteration:
@@ -242,7 +242,7 @@ class IterO(IterIO):
         try:
             pos = self.pos
             while nl_pos < 0:
-                item = self._gen.next()
+                item = next(self._gen)
                 local_pos = item.find('\n')
                 buf.append(item)
                 if local_pos >= 0:

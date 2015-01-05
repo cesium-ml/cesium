@@ -61,7 +61,7 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
 
     def GCV(self, window, X,Y):
         # put in proper order
-        zpm = zip(X,Y)
+        zpm = list(zip(X,Y))
         zpm.sort()
         zpm_arr = numpy.array(zpm)
         phs = zpm_arr[:,0]
@@ -97,7 +97,7 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
         frequencies = numpy.linspace( f0, f0+df*numf, numf )
         periods = 1./frequencies
         peaks_ind = self.find_peaks(psd)
-        zpp = zip(psd[peaks_ind], periods[peaks_ind])
+        zpp = list(zip(psd[peaks_ind], periods[peaks_ind]))
         zpp.sort(reverse=True)
         test_periods = numpy.array([zed[1] for zed in zpp[:numpeaks]])
         # return periods and a few harmonics

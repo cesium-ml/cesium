@@ -50,22 +50,22 @@ class lcmodel_extractor(InterExtractor):
         rcParams.update({'legend.fontsize':8})
         ms = 4
         fig = pl.figure()
-        pl.plot(x, [numpy.median(y)]*len(x), 'c', label=u'median')
+        pl.plot(x, [numpy.median(y)]*len(x), 'c', label='median')
         #pl.plot(x, [numpy.mean(y)]*len(x), 'm', label=u'mean')
         #pl.plot(X, y, 'r:', label=u'orig $m(t)$')
-        pl.errorbar(X.ravel(), y, dy, fmt='ro', ms=5, label=u'Observations')
-        pl.plot(X, shivv_model, 'g', ms=ms, label=u'Shivvers model')
+        pl.errorbar(X.ravel(), y, dy, fmt='ro', ms=5, label='Observations')
+        pl.plot(X, shivv_model, 'g', ms=ms, label='Shivvers model')
         pl.plot(X, shivv_model, 'go', ms=ms)
-        pl.plot(x, y_pred, 'b-', ms=ms, label=u'exp corr prediction')
+        pl.plot(x, y_pred, 'b-', ms=ms, label='exp corr prediction')
         pl.fill(np.concatenate([x, x[::-1]]), \
                 np.concatenate([y_pred - 1.9600 * sigma,
                                (y_pred + 1.9600 * sigma)[::-1]]), \
                 alpha=.5, fc='b', ec='None', label='95% confidence interval')
         if len(debug_x) > 0:
-            pl.plot(debug_x, debug_y, 'y*', ms=10, label=u'cross threshhold')
+            pl.plot(debug_x, debug_y, 'y*', ms=10, label='cross threshhold')
         if pos_delta_mag != None:
-            pl.plot(x, [pos_delta_mag]*len(x), 'y', label=u'median delta thresh')
-            pl.plot(x, [neg_delta_mag]*len(x), 'y', label=u'median delta thresh')
+            pl.plot(x, [pos_delta_mag]*len(x), 'y', label='median delta thresh')
+            pl.plot(x, [neg_delta_mag]*len(x), 'y', label='median delta thresh')
 
 
         pl.xlabel('$t$')
@@ -238,7 +238,7 @@ class lcmodel_extractor(InterExtractor):
 
     def GCV(self, window, X,Y):
         # put in proper order
-        zpm = zip(X,Y)
+        zpm = list(zip(X,Y))
         zpm.sort()
         zpm_arr = numpy.array(zpm)
         phs = zpm_arr[:,0]

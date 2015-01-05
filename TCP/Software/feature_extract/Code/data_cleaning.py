@@ -48,7 +48,7 @@ def sigmaclip_sdict_ts(sdict_ts={}, sigma_low=4., sigma_high=4.):
            c > mean(c)-std(c)*low and c < mean(c) + std(c)*high
 
     """
-    for band_name, band_dict in sdict_ts.iteritems():
+    for band_name, band_dict in sdict_ts.items():
 
         if ":NOMAD" in band_name:
             continue  # skip from sigmaclipping the 1 pseudo epoch NOMAD epoch

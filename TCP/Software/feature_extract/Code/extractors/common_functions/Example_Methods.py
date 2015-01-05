@@ -18,7 +18,7 @@ class Example_Methods(object): # Extractors which inherit this object can make u
         if rms == None:
             rms = ones(len(y))
         if x == None:
-            x = range(len(y))
+            x = list(range(len(y)))
 
         # Do work here.  Call inherited methods if needed.
         # - NOTE: use numpy module for basic math/array tasks.

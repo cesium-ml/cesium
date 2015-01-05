@@ -214,14 +214,14 @@ class Source_Reevaluation:
         #          Database-valid src-id indexes, and assign them instead.
         skipped_obj_dicts = []
 
-        for i_reeval in xrange(n_reeval_iterations):
+        for i_reeval in range(n_reeval_iterations):
 
             local_srcdbt_sources = []
 
-            reordered_obj_lists = source_dict_alldict.values()
+            reordered_obj_lists = list(source_dict_alldict.values())
             random.shuffle(reordered_obj_lists)
 
-            for obj_id,obj_dict in obj_dict_alldict.iteritems():
+            for obj_id,obj_dict in obj_dict_alldict.items():
 
                 for i in range(len(obj_dict['obj_ids'])):
                     objid_to_filt_dict[obj_dict['obj_ids'][i]] = \
@@ -252,17 +252,17 @@ class Source_Reevaluation:
         source_dict_alldict = self.retrieve_source_dict_alldict()
 
         objid_srcid_lookup = self.retrieve_objid_srcid_lookupdict(
-                                                    source_dict_alldict.keys())
+                                                    list(source_dict_alldict.keys()))
 
-        for obj_id,obj_dict in obj_dict_alldict.iteritems():
-            (odds_list, matching_src_dict) = self.dosp.srcdbt.is_object_associated_with_source(obj_dict, source_dict_alldict.values(), sigma_0=3.0)
+        for obj_id,obj_dict in obj_dict_alldict.items():
+            (odds_list, matching_src_dict) = self.dosp.srcdbt.is_object_associated_with_source(obj_dict, list(source_dict_alldict.values()), sigma_0=3.0)
             #print obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
             if len(matching_src_dict) > 1:
-                print "+1 ASSOCIATED SOURCE", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
-            if objid_srcid_lookup.get(obj_id,'NONE') != matching_src_dict.values()[0]['src_id']:
-                print "MISMATCH", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
-            print '! odds_list = %d \tmatching_src_dict = %d\tnobjs = %d' % (len(odds_list), len(matching_src_dict), matching_src_dict.values()[0]['nobjs'])
-        print 'yo'
+                print("+1 ASSOCIATED SOURCE", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict)
+            if objid_srcid_lookup.get(obj_id,'NONE') != list(matching_src_dict.values())[0]['src_id']:
+                print("MISMATCH", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict)
+            print('! odds_list = %d \tmatching_src_dict = %d\tnobjs = %d' % (len(odds_list), len(matching_src_dict), list(matching_src_dict.values())[0]['nobjs']))
+        print('yo')
 
         # TODO: what I really want is to re-generate all sources using
         #     obj_dict_alldict.

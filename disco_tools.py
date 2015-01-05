@@ -31,7 +31,7 @@ def push_all_objects(file_paths,tags=None):
                     tags_to_fname_list_dict[tags[i]] = [file_paths[i]]
                 else:
                     tags_to_fname_list_dict[tags[i]].append(file_paths[i])
-            for tag_name in tags_to_fname_list_dict.keys():
+            for tag_name in list(tags_to_fname_list_dict.keys()):
                 push_by_tag(
                     file_paths=tags_to_fname_list_dict[tag_name], 
                     tag=tag_name)
@@ -40,7 +40,7 @@ def push_all_objects(file_paths,tags=None):
                 "file_paths and tags parameters are not of the same length!")
     else:
         push_by_tag(file_paths)
-    print "All files pushed to DDFS"
+    print("All files pushed to DDFS")
 
 
 
@@ -64,9 +64,9 @@ def headerfile_to_fname_dict(headerfile_path):
                 this_dict[column_titles[i]] = els[i]
             dict_of_dicts[els[0]] = this_dict
         else:
-            print ("Column titles (" + str(column_titles) + 
+            print(("Column titles (" + str(column_titles) + 
                    ") and line elements (" + str(els) + 
-                   ") not of the same length.. ")
+                   ") not of the same length.. "))
         
     
     return dict_of_dicts

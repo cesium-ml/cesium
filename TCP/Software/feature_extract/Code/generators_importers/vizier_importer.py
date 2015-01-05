@@ -1,7 +1,7 @@
 import numpy
-from storage import storage
+from .storage import storage
 
-from gen_or_imp import gen_or_imp
+from .gen_or_imp import gen_or_imp
 
 class vizier_importer(gen_or_imp):
     name = 'vizier cepheids'

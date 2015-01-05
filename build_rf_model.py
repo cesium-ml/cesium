@@ -12,11 +12,11 @@ from sklearn.externals import joblib
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import confusion_matrix
 from random import shuffle
-import cPickle
-import lc_tools
+import pickle
+from . import lc_tools
 import sys
 import os
-import cfg
+from . import cfg
 import numpy as np
 import datetime
 import pytz
@@ -29,13 +29,13 @@ try:
 except Exception as theError:
     DISCO_INSTALLED = False
 if DISCO_INSTALLED:
-    import parallel_processing
-import custom_exceptions
+    from . import parallel_processing
+from . import custom_exceptions
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 # for when run from inside docker container:
 sys.path.append("/home/mltp/TCP/Software/ingest_tools")
 import generate_science_features
-import custom_feature_tools as cft
+from . import custom_feature_tools as cft
 
 
 def read_data_from_csv_file(fname,sep=',',skip_lines=0):
@@ -79,7 +79,7 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
         linecount+=1
     for i in range(len(colnames)):
         colnames[i] = colnames[i].strip('"')
-    print linecount-1, "lines of data successfully read."
+    print(linecount-1, "lines of data successfully read.")
     f.close()
     #return all_rows
     return [colnames,data_rows]
@@ -144,25 +144,25 @@ def build_model(
     class_list = []
     cv_objs = []
     # count up total num of objects per class
-    print "Starting class count..."
+    print("Starting class count...")
     for classname in classes:
         if classname not in class_list:
             class_list.append(classname)
             class_count[classname] = 1
         else:
             class_count[classname] += 1
-    print "Done."
-    print "class_count:", class_count
+    print("Done.")
+    print("class_count:", class_count)
 
     sorted_class_list = sorted(class_list)
     del classes
     
     ## remove any empty lines from data:
-    print "\n\n"
+    print("\n\n")
     line_lens = []
     indices_for_deletion = []
     line_no = 0
-    print type(data_dict['features']), len(data_dict['features'])
+    print(type(data_dict['features']), len(data_dict['features']))
     for i in range(len(data_dict['features'])):
         line = data_dict['features'][i]
         if len(line) not in line_lens:
@@ -170,14 +170,14 @@ def build_model(
             if len(line) == 1:
                 indices_for_deletion.append(i)
         line_no += 1
-    print line_no, "total lines in features csv."
-    print "line_lens:", line_lens
-    print len(data_dict['features'])
+    print(line_no, "total lines in features csv.")
+    print("line_lens:", line_lens)
+    print(len(data_dict['features']))
     if len(indices_for_deletion) == 1:
         del data_dict['features'][indices_for_deletion[0]]
         del data_dict['classes'][indices_for_deletion[0]]
-    print len(data_dict['features'])
-    print "\n\n"
+    print(len(data_dict['features']))
+    print("\n\n")
     
     ntrees = 1000
     njobs = -1
@@ -185,21 +185,21 @@ def build_model(
     #### build the model:
     # initialize:
     rf_fit = RFC(n_estimators=ntrees,max_features='auto',n_jobs=njobs)
-    print "Model initialized."
+    print("Model initialized.")
     
     # fit the model:
-    print "Fitting the model..."
+    print("Fitting the model...")
     rf_fit.fit(data_dict['features'],data_dict['classes'])
-    print "Done."
+    print("Done.")
     del data_dict
     
     # store the model:
-    print "Pickling model..."
+    print("Pickling model...")
     foutname = os.path.join(
         ("/tmp" if in_docker_container else models_folder), 
         "%s_%s.pkl" % (featureset_key,model_type))
     joblib.dump(rf_fit,foutname,compress=3)
-    print foutname, "created."
+    print(foutname, "created.")
     
     if 0: # cross validation
         ############# CROSS-VALIDATION ##################
@@ -216,7 +216,7 @@ def build_model(
                 classifier_preds = rf_fit.predict_proba(newFeatures)
                 class_probs = classifier_preds[0]
             except ValueError as the_error:
-                print the_error
+                print(the_error)
                 continue
             results_arr = []
             
@@ -225,23 +225,23 @@ def build_model(
                     [sorted_class_list[i],float(class_probs[i])])
             results_arr.sort(key=itemgetter(1),reverse=True)
             top_class = results_arr[0][0]
-            print results_arr
-            print obj['class']
+            print(results_arr)
+            print(obj['class'])
             if top_class == obj['class']:
                 cv_results_dict[obj['class']]['correct'] += 1
-                print "Correct."
+                print("Correct.")
             else:
                 cv_results_dict[obj['class']]['incorrect'] += 1
-                print "Incorrect."
-        print cv_results_dict
+                print("Incorrect.")
+        print(cv_results_dict)
 
         for class_name in class_list:
-            print class_name,"percent correct:",\
+            print(class_name,"percent correct:",\
                 float(cv_results_dict[class_name]['correct'])/float(
                     cv_results_dict[class_name]['correct']
-                    +cv_results_dict[class_name]['incorrect'])
+                    +cv_results_dict[class_name]['incorrect']))
     del rf_fit
-    print "DONE!"
+    print("DONE!")
     return ("New model successfully created. Click the Predict tab to "
         "start using it.")
 
@@ -363,31 +363,31 @@ def featurize(
                                 'class':class_name}
                             
                             fname_metadata_dict[fname] = dict(
-                                zip(other_metadata_labels, other_metadata))
+                                list(zip(other_metadata_labels, other_metadata)))
                 line_no += 1
         # disco may be installed in docker container, but 
         # it is not working yet, thus the " and not in_docker_container"
         if DISCO_INSTALLED and USE_DISCO:# and not in_docker_container:
-            print "FEATURIZE - USING DISCO"
+            print("FEATURIZE - USING DISCO")
             fname_features_data_dict = (
                 parallel_processing.featurize_in_parallel(
                     headerfile_path=headerfile_path, zipfile_path=zipfile_path,
                     features_to_use=features_to_use, is_test=is_test, 
                     custom_script_path=custom_script_path, 
                     meta_features=fname_metadata_dict))
-            for k,v in fname_features_data_dict.iteritems():
+            for k,v in fname_features_data_dict.items():
                 if k in fname_metadata_dict:
-                    v = dict(v.items() + fname_metadata_dict[k].items())
+                    v = dict(list(v.items()) + list(fname_metadata_dict[k].items()))
                 objects.append(v)
         else:
-            print "FEATURIZE - NOT USING DISCO"
+            print("FEATURIZE - NOT USING DISCO")
             zipfile = tarfile.open(zipfile_path)
             zipfile.extractall(path=os.path.join(uploads_folder,"unzipped"))
             all_fnames = zipfile.getnames()
             num_objs = len(fname_class_dict)
             zipfile_name = zipfile_path.split("/")[-1]
             count=0
-            print "Generating science features..."
+            print("Generating science features...")
             for fname in sorted(all_fnames):
                 short_fname = (
                     fname.split("/")[-1]
@@ -397,9 +397,9 @@ def featurize(
                 path_to_csv = os.path.join(
                     uploads_folder, os.path.join("unzipped",fname))
                 if os.path.isfile(path_to_csv):
-                    print "Extracting features for", fname,"-", count, \
-                        "of", num_objs
-                    print "path_to_csv =", path_to_csv
+                    print("Extracting features for", fname,"-", count, \
+                        "of", num_objs)
+                    print("path_to_csv =", path_to_csv)
                     ## generate features:
                     if len(set(features_to_use) & set(cfg.features_list)) > 0:
                         timeseries_features = (
@@ -422,18 +422,18 @@ def featurize(
                             custom_script_path=custom_script_path,
                             path_to_csv=path_to_csv,
                             features_already_known=dict(
-                                timeseries_features.items() + 
-                                science_features.items()))
+                                list(timeseries_features.items()) + 
+                                list(science_features.items())))
                     else:
                         custom_features = {}
                     all_features = dict(
-                        timeseries_features.items() + 
-                        science_features.items() + 
-                        custom_features.items())
+                        list(timeseries_features.items()) + 
+                        list(science_features.items()) + 
+                        list(custom_features.items()))
                     if short_fname in fname_metadata_dict:
                         all_features = dict(
-                            all_features.items() + 
-                            fname_metadata_dict[short_fname].items())
+                            list(all_features.items()) + 
+                            list(fname_metadata_dict[short_fname].items()))
                     fname_class_science_features_dict[
                         short_fname]['features'] = all_features
                     
@@ -446,7 +446,7 @@ def featurize(
                         break
                 else:
                     pass
-            print "Done."
+            print("Done.")
         try:
             all_fnames
         except:
@@ -458,7 +458,7 @@ def featurize(
                     uploads_folder, os.path.join("unzipped",fname))
                 if os.path.isfile(path_to_csv):
                     os.remove(path_to_csv)
-    features_extracted = objects[-1].keys()
+    features_extracted = list(objects[-1].keys())
     if "class" in features_extracted:
         features_extracted.remove("class")
     if len(set(cfg.features_to_plot) & set(features_extracted)) < 2:
@@ -478,7 +478,7 @@ def featurize(
     line2 = ['class']
     for feat in sorted(features_extracted):
         if feat in features_to_use:
-            print "Using feature", feat
+            print("Using feature", feat)
             line.append(feat)
             if feat in features_to_plot:
                 line2.append(feat)
@@ -494,7 +494,7 @@ def featurize(
     class_list = []
     cv_objs = []
     # count up total num of objects per class
-    print "Starting class count..."
+    print("Starting class count...")
     shuffle(objects) 
     for obj in objects:
         if str(obj['class']) not in class_list:
@@ -504,10 +504,10 @@ def featurize(
             num_held_back[str(obj['class'])] = 0
         else:
             class_count[str(obj['class'])] += 1
-    print "Done."
-    print "class_count:", class_count
+    print("Done.")
+    print("class_count:", class_count)
     sorted_class_list = sorted(class_list)
-    print "Writing object features to file..."
+    print("Writing object features to file...")
     for obj in objects:
         # total number of lcs for given class encountered < 70% total num lcs
         #if (num_used[str(obj['class'])] + num_held_back[str(obj['class'])] 
@@ -537,7 +537,7 @@ def featurize(
                             else:
                                 line2.append(str(obj[feat]))
                     except KeyError:
-                        print feat, "NOT IN DICT KEYS!!!! SKIPPING..."
+                        print(feat, "NOT IN DICT KEYS!!!! SKIPPING...")
             f.write(','.join(line) + '\n')
             if numobjs < 300:
                 f2.write(','.join(line2) + '\n')
@@ -552,7 +552,7 @@ def featurize(
     if not in_docker_container:
         shutil.copy2(
             f2.name,os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
-    print "Done."
+    print("Done.")
     del objects
     if not in_docker_container:
         os.remove(os.path.join(
@@ -560,15 +560,15 @@ def featurize(
     joblib.dump(classes,os.path.join(
         ("/tmp" if in_docker_container else features_folder),
         "%s_classes.pkl" % featureset_id),compress=3)
-    print foutname.replace(".pkl","_features.csv"), "and", \
+    print(foutname.replace(".pkl","_features.csv"), "and", \
         foutname.replace(".pkl","_features_with_classes.csv"), "and", \
-        foutname.replace(".pkl","_classes.pkl"), "created."
+        foutname.replace(".pkl","_classes.pkl"), "created.")
     os.remove(headerfile_path)
     if zipfile_path is not None:
         os.remove(zipfile_path)
-    print (str(foutname.replace(".pkl","_features.csv").split('/')[-1] + 
+    print((str(foutname.replace(".pkl","_features.csv").split('/')[-1] + 
         " and " + foutname.replace(".pkl","_classes.pkl").split('/')[-1] + 
-        " created."))
+        " created.")))
     return "Featurization of timeseries data complete."
 
 

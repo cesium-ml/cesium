@@ -4,11 +4,11 @@ sdss -- query tools
 +18.534407
 """
 
-import os, sys, string,urllib,copy
+import os, sys, string,urllib.request,urllib.parse,urllib.error,copy
 from math import log10, radians, pi
 import time, traceback, datetime
 import threading
-import StringIO
+import io
 
 global limit_per_min, recent_query_list, do_limit
 limit_per_min = 19.99
@@ -84,7 +84,7 @@ class sdssq:
         t.start()
         t.join(120.0) # wait 120 seconds before giving up on SDSS queries (I've seen some take ~50 seconds)
         if t.isAlive():
-            print "! Thread has not returned!"
+            print("! Thread has not returned!")
 
     def do_runs(self):
         """ This is to be threaded so that a timeout in thread .join() can be used.
@@ -92,7 +92,7 @@ class sdssq:
         if self.runfoot:
             ss = self.run_footprint_check()
             if self.verbose:
-                print "Position in footprint: %s" % repr(ss)
+                print("Position in footprint: %s" % repr(ss))
 
         if self.run_on_instance:
             if not self.threaded:
@@ -100,7 +100,7 @@ class sdssq:
             else:
                 self.run_all_threaded()
             if self.verbose:
-                print self.__str__()
+                print(self.__str__())
 
         if self.run_feature_maker:
             self.feature_maker()
@@ -123,8 +123,8 @@ class sdssq:
         line = fff.readline()
         if line.startswith("ERROR") or line.find("HTTP Error 404") != -1:
             if self.verbose:
-                print line
-                print fff.readlines()
+                print(line)
+                print(fff.readlines())
             return False
         ## get the keys
         #kkk = line.split(",")
@@ -232,8 +232,8 @@ class sdssq:
         line = fff.readline()
         if line.startswith("ERROR") or line.startswith("No objects"):
             if self.verbose:
-                print line
-                print fff.readlines()
+                print(line)
+                print(fff.readlines())
             return self.feature
         ## get the keys
         kkk = line.split(",")
@@ -247,13 +247,13 @@ class sdssq:
             while line:
                 tmp = {}
                 vvv = line.strip().split(",")
-                for k,v in dict(zip(kkk,vvv)).iteritems():
+                for k,v in dict(list(zip(kkk,vvv))).items():
                     #print "***" + k + "****" + str(v) + "****"
                     if v == "0" or v == "null":
                         v = None
                     if k.strip() in ['objid',"photo2_flag"]:
                         if v != None:
-                            v1 = long(v)
+                            v1 = int(v)
                         else:
                             v1 = None
                     elif k.strip() in ['type','spec_zStatus','spec_zWarning',"spectral_flag","spectral_hammer_type",\
@@ -269,7 +269,7 @@ class sdssq:
                                 try:
                                     v1 = float(v)
                                 except:
-                                    print traceback.print_exc()
+                                    print(traceback.print_exc())
                                     if v.startswith("ERR"):
                                         time.sleep(60.0)
                                     v1 = None
@@ -281,16 +281,16 @@ class sdssq:
                     tmp.update({k.strip(): v1})
                 tmp.update({"url": "http://cas.sdss.org/astrodr7/en/tools/explore/obj.asp?id=%i" % tmp['objid']})
                 tmp.update({"urlalt": "http://cas.sdss.org/astrodr7/en/tools/chart/chart.asp?ra=%f&dec=%f" % (tmp['ra'],tmp['dec'])})
-                if tmp.has_key('best_dl'):
+                if 'best_dl' in tmp:
                     if tmp['best_dl'] > 1e6:
                         ## kludge here
                         tmp.update({"best_dl": None})
                     if tmp['best_dl'] != None:
                         tmp.update({"best_dm": 5.0*log10(tmp['best_dl']*1e5)})
-                        if tmp.has_key('bestz') and tmp.has_key('dist_in_arcmin'):
+                        if 'bestz' in tmp and 'dist_in_arcmin' in tmp:
                             angdist =tmp['best_dl']/(1.0 + tmp['bestz'])**2
                             tmp.update({"best_offset_in_kpc": 1e3*angdist*radians(tmp['dist_in_arcmin']/60.0)})
-                if tmp.has_key("rosat_flux_in_microJy") and tmp.has_key("best_dl") and tmp.has_key("best_z"):
+                if "rosat_flux_in_microJy" in tmp and "best_dl" in tmp and "best_z" in tmp:
                     if tmp["rosat_flux_in_microJy"] > 0.0 and tmp["best_dl"] and tmp["best_z"]:
                         l = ((3.085e24)**2)*4.0*pi*tmp["best_dl"]*tmp["best_dl"]*(1.0 + tmp["best_z"])*1e-29
                         tmp.update({"rosat_log_xray_luminosity": log10(l)})
@@ -299,8 +299,8 @@ class sdssq:
                 rez.append(copy.copy(tmp))
                 line = fff.readline()
         except:
-            print traceback.format_exc()
-            print line
+            print(traceback.format_exc())
+            print(line)
         # 20090211: dstarr adds try/except:
         try:
             if len(rez) == 0:
@@ -324,7 +324,7 @@ class sdssq:
                 else:
                     self.feature.update(copy.copy(rez[0]))
         except:
-            print "EXCEPT: sdss.py...self.feature.update(rez[0])"
+            print("EXCEPT: sdss.py...self.feature.update(rez[0])")
             return self.feature
         return
 
@@ -355,14 +355,14 @@ class sdssq:
         if self.z_completed:
             a += "*** redshift search results within %6.1f arcmin of pos = %s *** \n" % (self.maxd, self.pos)
             if self.z_results:
-                kkk = self.z_results[0].keys()
+                kkk = list(self.z_results[0].keys())
                 a += "   ".join(kkk) + "\n"
                 if printone:
                     nn = 1
                 else:
                     nn = len(self.z_results[0])
                 for i in range(nn):
-                    a += "   ".join([str(x) for x in self.z_results[i].values()]) + "\n"
+                    a += "   ".join([str(x) for x in list(self.z_results[i].values())]) + "\n"
             else:
                 a += " nothing found \n"
         else:
@@ -371,14 +371,14 @@ class sdssq:
         if self.completed:
             a += "*** galaxy search results within %6.1f arcmin of pos = %s *** \n" % (self.maxd, self.pos)
             if self.results:
-                kkk = self.results[0].keys()
+                kkk = list(self.results[0].keys())
                 a += "   ".join(kkk) + "\n"
                 if printone:
                     nn = 1
                 else:
                     nn=  len(self.results[0])
                 for i in range(nn):
-                    a += "   ".join([str(x) for x in self.results[i].values()]) + "\n"
+                    a += "   ".join([str(x) for x in list(self.results[i].values())]) + "\n"
             else:
                 a += " nothing found \n"
         else:
@@ -387,14 +387,14 @@ class sdssq:
         if self.completed_master:
             a += "*** galaxy/star search results within %6.1f arcmin of pos = %s *** \n" % (self.maxd, self.pos)
             if self.results_master:
-                kkk = self.results_master[0].keys()
+                kkk = list(self.results_master[0].keys())
                 a += "   ".join(kkk) + "\n"
                 if printone:
                     nn = 1
                 else:
                     nn = len(self.results_master[0])
                 for i in range(nn):
-                    a += "   ".join([str(x) for x in self.results_master[i].values()]) + "\n"
+                    a += "   ".join([str(x) for x in list(self.results_master[i].values())]) + "\n"
             else:
                 a += " nothing found \n"
         else:
@@ -423,8 +423,8 @@ class sdssq:
         if line.startswith("ERROR") or line.startswith("No objects"):
             self.z_completed = True
             if self.verbose:
-                print line
-                print fff.readlines()
+                print(line)
+                print(fff.readlines())
             return
         ## get the keys
         kkk = line.split(",")
@@ -434,9 +434,9 @@ class sdssq:
         while line:
             tmp = {}
             vvv = line.strip().split(",")
-            for k,v in dict(zip(kkk,vvv)).iteritems():
+            for k,v in dict(list(zip(kkk,vvv))).items():
                 if k == 'objid':
-                    v1 = long(v)
+                    v1 = int(v)
                 elif k == 'zStatus':
                     v1 = v
                 else:
@@ -494,8 +494,8 @@ class sdssq:
                   (len(line) == 0):
             exec(complete_flag + " = True")
             if self.verbose:
-                print line
-                print fff.readlines()
+                print(line)
+                print(fff.readlines())
             return
         ## get the keys
         kkk = line.split(",")
@@ -505,9 +505,9 @@ class sdssq:
         while line:
             tmp = {}
             vvv = line.strip().split(",")
-            for k,v in dict(zip(kkk,vvv)).iteritems():
+            for k,v in dict(list(zip(kkk,vvv))).items():
                 if k == 'objid':
-                    v1 = long(v)
+                    v1 = int(v)
                 elif k == 'zStatus':
                     v1 = v
                 else:
@@ -531,15 +531,15 @@ class sdssq:
         #print dr7_mirrors
         url = self._get_dr_url(old=False)
         if verbose:
-            print url
+            print(url)
         #print dr7_mirrors
         if url is None:
-            return StringIO.StringIO() # This is an empty filehandler
+            return io.StringIO() # This is an empty filehandler
 
         fsql = self._filtercomment(sql)
-        params = urllib.urlencode({'cmd': fsql, 'format': fmt})
+        params = urllib.parse.urlencode({'cmd': fsql, 'format': fmt})
         try:
-            ttt = urllib.urlopen(url+'?%s' % params)
+            ttt = urllib.request.urlopen(url+'?%s' % params)
             for d in dr7_mirrors:
                 if d['url'] == url:
                     d['running'] = False
@@ -547,14 +547,14 @@ class sdssq:
             #print dr7_mirrors
             return ttt
         except:
-            print "TRIED: " + url+'?%s' % params
-            print "EXCEPT: sdss.py._query()"
+            print("TRIED: " + url+'?%s' % params)
+            print("EXCEPT: sdss.py._query()")
             for d in dr7_mirrors:
                 if d['url'] == url:
                     d['running'] = False
                     d['active'] = False
                     break
-            return StringIO.StringIO() # This is an empty filehandler
+            return io.StringIO() # This is an empty filehandler
 
 
     def _query(self,sql,url=dr_url,fmt=def_fmt,wait_period=62):
@@ -569,18 +569,18 @@ class sdssq:
                 tmp = [time.time() - x[0] for x in recent_query_list if time.time() - x[0] < wait_period]
                 wait = wait_period - max(tmp) + 1
                 if self.verbose:
-                    print "Date: %s Query length is %i in the last %f sec" % (str(datetime.datetime.now()),len(recent_query_list) - 1 , wait_period)
-                    print "waiting %f sec, so as not to block the SDSS query %s" % (wait,sql)
+                    print("Date: %s Query length is %i in the last %f sec" % (str(datetime.datetime.now()),len(recent_query_list) - 1 , wait_period))
+                    print("waiting %f sec, so as not to block the SDSS query %s" % (wait,sql))
                 time.sleep(wait)
 
         fsql = self._filtercomment(sql)
-        params = urllib.urlencode({'cmd': fsql, 'format': fmt})
+        params = urllib.parse.urlencode({'cmd': fsql, 'format': fmt})
         try:
-            return urllib.urlopen(url+'?%s' % params)
+            return urllib.request.urlopen(url+'?%s' % params)
         except:
-            print "TRIED: " + url+'?%s' % params
-            print "EXCEPT: sdss.py._query()"
-            return StringIO.StringIO() # This is an empty filehandler
+            print("TRIED: " + url+'?%s' % params)
+            print("EXCEPT: sdss.py._query()")
+            return io.StringIO() # This is an empty filehandler
 
 def test(verbose=True):
 

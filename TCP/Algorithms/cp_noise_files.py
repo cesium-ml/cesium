@@ -101,7 +101,7 @@ def retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict):
             retrieve_host_dict['hostname'],
             dirname,
             dirname)
-        print exec_str
+        print(exec_str)
         os.system(exec_str)
 
 

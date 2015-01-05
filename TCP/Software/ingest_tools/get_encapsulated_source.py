@@ -14,11 +14,11 @@ def check_dependencies():
     """
     needed_envs_list = ["TCP_DIR"]
     for env_name in needed_envs_list:
-        if not os.environ.has_key(env_name):
-            print "ERROR: Environ Var: %s not defined!" % (env_name)
+        if env_name not in os.environ:
+            print("ERROR: Environ Var: %s not defined!" % (env_name))
             sys.exit()
         elif len(os.environ[env_name]) == 0:
-            print "ERROR: Environ Var: %s len()==0" % (env_name)
+            print("ERROR: Environ Var: %s len()==0" % (env_name))
             sys.exit()
 
 
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     #     extracted features.
 
     # I shold be able to get source dict using something like:
-    import xmlrpclib
-    server = xmlrpclib.ServerProxy("http://192.168.1.45:8000")
-    print server.system.listMethods()
-    print server.system.methodHelp("get_sources_for_radec")
+    import xmlrpc.client
+    server = xmlrpc.client.ServerProxy("http://192.168.1.45:8000")
+    print(server.system.listMethods())
+    print(server.system.methodHelp("get_sources_for_radec"))
     #src_list = server.get_sources_for_radec(ra, dec, box_range)

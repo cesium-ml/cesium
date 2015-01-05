@@ -166,7 +166,7 @@ def parse_options():
                       help="The srcid whose time array will be used for noisification cadence, rather than using a generated cadence")
 
     (options, args) = parser.parse_args()
-    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
+    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
     return options
 
 
@@ -280,7 +280,7 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
             #    print "yo"
             if 0:
                 import pdb; pdb.set_trace()
-                print
+                print()
                 num_orig_str = str(int(num) - 100000000)
                 if num_orig_str in skipped_deb_srcids:
                     #print num_orig_str
@@ -290,13 +290,13 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
 
                     a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
                     out_dict = a.generate_arff_line_for_vosourcexml(num=str(num), xml_fpath=xml_fpath)
-                    print '!!!', results[0]
+                    print('!!!', results[0])
                 else:
                     try:
                         a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
                         out_dict = a.generate_arff_line_for_vosourcexml(num=str(num), xml_fpath=xml_fpath)
                     except:
-                        print "barf on some xml:", xml_fpath
+                        print("barf on some xml:", xml_fpath)
 
 
             #print xml_fpath
@@ -312,7 +312,7 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
                                             pull='out_dict', retries=3))
                     self.task_id_list.append(taskid)
                 except:
-                    print "EXCEPT!: taskid=", taskid, exec_str
+                    print("EXCEPT!: taskid=", taskid, exec_str)
 
             #task_str = """cat = os.getpid()"""
             #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
@@ -352,8 +352,8 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
                         master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
             for task_id in tasks_to_pop:
                 self.task_id_list.remove(task_id)
-            print self.tc.queue_status()
-            print 'Sleep... 3  in generate_weka_classifiers.py'
+            print(self.tc.queue_status())
+            print('Sleep... 3  in generate_weka_classifiers.py')
             time.sleep(3)
 
         #for i in self.task_id_list:
@@ -382,8 +382,8 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
                     for feat_tup in out_dict['features']:
                         master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
-        master_features = master_features_dict.keys()
-        master_classes = master_classes_dict.keys()
+        master_features = list(master_features_dict.keys())
+        master_classes = list(master_classes_dict.keys())
         # master_classes
         # master_list
         return (master_features, all_class_list, master_classes, master_list)
@@ -508,7 +508,7 @@ if __name__ == '__main__':
                                       (options.unfeat_xml_dir, options.train_xml_dir))
         os.system(exec_str)
         #print "PLEASE RUN THIS IN PDB TO ENSURE TASKING ONTO BEOWULF NODES:"
-        print exec_str
+        print(exec_str)
         #pass
 
     if options.train_mode:

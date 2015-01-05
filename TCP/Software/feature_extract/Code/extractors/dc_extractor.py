@@ -1,8 +1,8 @@
 from ..FeatureExtractor import FeatureExtractor
 
 from scipy import optimize
-from common_functions import ChiSquare
-from common_functions.plot_methods import plot_horizontal_line
+from .common_functions import ChiSquare
+from .common_functions.plot_methods import plot_horizontal_line
 
 
 class dc_extractor(plot_horizontal_line,FeatureExtractor,ChiSquare):

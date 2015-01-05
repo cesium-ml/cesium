@@ -7,7 +7,7 @@ import sys, os
 try:
     import psycopg2
 except:
-    print "UNABLE to import psycopg2"
+    print("UNABLE to import psycopg2")
     pass
 import MySQLdb
 import pprint
@@ -25,7 +25,7 @@ class CaltechDB:
         self.conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
         self.pg_cursor = self.conn.cursor()
 
-        for overall_class_type, class_dict in overall_dict.iteritems():
+        for overall_class_type, class_dict in overall_dict.items():
             for shortname in class_dict['shortname_list']:
                 # TODO: query caltech pgsql database for info using this shortname.
                 select_str = """SELECT telescope, camera, filter, mag, issub
@@ -42,9 +42,9 @@ class CaltechDB:
                             #if mag > -99:
                             followup_count += 1
                         else:
-                            print "!!! %s  telescope=%s camera=%s filt=%s mag=%lf issub=%s" % (shortname, telescope, camera, filt, mag, issub)
+                            print("!!! %s  telescope=%s camera=%s filt=%s mag=%lf issub=%s" % (shortname, telescope, camera, filt, mag, issub))
                     # TODO: then count the number of spectroscopic & imaging
-                if not overall_dict[overall_class_type]['followup_count_dict'].has_key(followup_count):
+                if followup_count not in overall_dict[overall_class_type]['followup_count_dict']:
                     overall_dict[overall_class_type]['followup_count_dict'][followup_count] = []
                 overall_dict[overall_class_type]['followup_count_dict'][followup_count].append(shortname)
                 #print shortname, "followup_count:", followup_count
@@ -57,7 +57,7 @@ class CaltechDB:
         self.conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
         self.pg_cursor = self.conn.cursor()
 
-        for overall_class_type, class_dict in overall_dict.iteritems():
+        for overall_class_type, class_dict in overall_dict.items():
             for shortname in class_dict['shortname_list']:
                 # TODO: query caltech pgsql database for info using this shortname.
                 select_str = """SELECT type, comment from sources join annotations on (sources.id=annotations.sourceid) where annotations.type='classification' AND name='%s'""" % (shortname)
@@ -67,7 +67,7 @@ class CaltechDB:
                 if len(rows) > 0:
                     for row in rows:
                         (type, comment) = row
-                        if not overall_dict[overall_class_type]['specclass_types_dict'].has_key(comment):
+                        if comment not in overall_dict[overall_class_type]['specclass_types_dict']:
                             overall_dict[overall_class_type]['specclass_types_dict'][comment] = []
                         if not shortname in overall_dict[overall_class_type]['specclass_types_dict'][comment]:
                             overall_dict[overall_class_type]['specclass_types_dict'][comment].append(shortname)
@@ -117,7 +117,7 @@ class MysqlLocalDB:
                                   'overall_class_type':overall_class_type,
                                   'overall_science_class':overall_science_class,
                                   'overall_class_prob':overall_class_prob}
-            if not overall_dict.has_key(overall_class_type):
+            if overall_class_type not in overall_dict:
                 overall_dict[overall_class_type] = {'followup_count_dict':{},
                                                     'specclass_types_dict':{},
                                                     'specclass_ids':[],
@@ -131,7 +131,7 @@ def get_followup_summary_for_classtype(class_dict):
     """
     total_all_count = 0
     total_follow_count = 0
-    count_list = class_dict['followup_count_dict'].keys()
+    count_list = list(class_dict['followup_count_dict'].keys())
     count_list.sort()
     for count_num in count_list:
         #print overall_class_type, count_num, len(class_dict['followup_count_dict'][count_num])
@@ -150,16 +150,16 @@ def get_followup_summary_for_classtype(class_dict):
 def summarize_overall_dict(overall_dict):
     """ Display a summary of general classes in overall_dict.
     """
-    overall_class_sort_list = overall_dict.keys()
+    overall_class_sort_list = list(overall_dict.keys())
     overall_class_sort_list.sort()
     for overall_class_type in overall_class_sort_list:
         class_dict = overall_dict[overall_class_type]
         (total_all_count, total_follow_count, most_followed_ptfids) = \
                              get_followup_summary_for_classtype(class_dict)
-        print overall_class_type, "  TOTAL sources:", total_all_count, \
-              ", % with Followup:", total_follow_count / float(total_all_count), most_followed_ptfids
+        print(overall_class_type, "  TOTAL sources:", total_all_count, \
+              ", % with Followup:", total_follow_count / float(total_all_count), most_followed_ptfids)
 
-        print "#####", overall_class_type
+        print("#####", overall_class_type)
         pprint.pprint(class_dict['specclass_types_dict'])
         #print "#", overall_class_type, "class_dict['specclass_ids']"
         #pprint.pprint(class_dict['specclass_ids'])
@@ -180,7 +180,7 @@ class HTMLizeResults:
         a += '<TABLE BORDER="1" CELLPADDING=4 CELLSPACING=1>'
         a += '<tr><td  colspan="20"><b>%s</b></td></tr>' % (overall_type)
         source_count = 0
-        for spec_class_name,ptfid_list in class_dict['specclass_types_dict'].iteritems():
+        for spec_class_name,ptfid_list in class_dict['specclass_types_dict'].items():
             if spec_class_name in ['AGN', 'AGN?', 'SN', 'SN Ia', 'SN Ib/c', 'SN II', 'SN?', 'galaxy']:
                 a += "<tr>"
                 a += '<td style="border: none">&nbsp;&nbsp;&nbsp;</td><td style="border: none"><b>%s</b></td><td style="border: none">&nbsp;&nbsp;</td>' % (spec_class_name)
@@ -238,7 +238,7 @@ class HTMLizeResults:
         fp.write(a)
         fp.close()
         os.system("scp /tmp/summarize_caltechid_classif_effic.html pteluser@lyra.berkeley.edu:www/tcp/")
-        print "yo"
+        print("yo")
 
 
 if __name__ == '__main__':

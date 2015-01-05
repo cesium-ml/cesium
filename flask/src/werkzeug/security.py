@@ -11,7 +11,7 @@
 import os
 import hmac
 import posixpath
-from itertools import izip
+
 from random import SystemRandom
 
 # because the API of hmac changed with the introduction of the
@@ -48,7 +48,7 @@ def safe_str_cmp(a, b):
     if len(a) != len(b):
         return False
     rv = 0
-    for x, y in izip(a, b):
+    for x, y in zip(a, b):
         rv |= ord(x) ^ ord(y)
     return rv == 0
 
@@ -57,7 +57,7 @@ def gen_salt(length):
     """Generate a random string of SALT_CHARS with specified ``length``."""
     if length <= 0:
         raise ValueError('requested salt of length <= 0')
-    return ''.join(_sys_rng.choice(SALT_CHARS) for _ in xrange(length))
+    return ''.join(_sys_rng.choice(SALT_CHARS) for _ in range(length))
 
 
 def _hash_internal(method, salt, password):
@@ -70,14 +70,14 @@ def _hash_internal(method, salt, password):
     if salt:
         if method not in _hash_mods:
             return None
-        if isinstance(salt, unicode):
+        if isinstance(salt, str):
             salt = salt.encode('utf-8')
         h = hmac.new(salt, None, _hash_mods[method])
     else:
         if method not in _hash_funcs:
             return None
         h = _hash_funcs[method]()
-    if isinstance(password, unicode):
+    if isinstance(password, str):
         password = password.encode('utf-8')
     h.update(password)
     return h.hexdigest()

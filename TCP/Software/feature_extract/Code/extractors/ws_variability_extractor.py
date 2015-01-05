@@ -32,7 +32,7 @@ class ws_variability_self_extractor(FeatureExtractor):
         n = float(len(indexb))
         try:
             I = sqrt(1 / (n * (n-1) ) ) * summed
-            print "ws_variability_self for band %s = %f" % (self.band,I)
+            print("ws_variability_self for band %s = %f" % (self.band,I))
         except:
             # if p'time_data'] just contains multiple same times, then n==1 & Excepts.
             I = None

@@ -10,7 +10,7 @@ import build_rf_model
 import time
 
 from subprocess import Popen, PIPE, call
-import cPickle
+import pickle
 
 
 def featurize():
@@ -28,21 +28,21 @@ def featurize():
     process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
     if "stopped" in str(stdout):
-        print "Disco is stopped - attempting to start Disco..."
+        print("Disco is stopped - attempting to start Disco...")
         status_code = call(["/disco/bin/disco","nodaemon"])
-        print "Status code for Disco command:", status_code
+        print("Status code for Disco command:", status_code)
         time.sleep(2)
         process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         if "stopped" in str(stdout):
-            print "Disco is stopped - attempting to start Disco..."
+            print("Disco is stopped - attempting to start Disco...")
             status_code = call(["disco","start"])
-            print "Status code for Disco command:", status_code
+            print("Status code for Disco command:", status_code)
             time.sleep(2)
             process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
             if "stopped" in str(stdout):
-                print "Disco still stopped... Will featurize without Disco."
+                print("Disco still stopped... Will featurize without Disco.")
                 disco_running = False
             else:
                 disco_running = True
@@ -52,7 +52,7 @@ def featurize():
         disco_running = True
     # load pickled ts_data and known features
     with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
-        function_args = cPickle.load(f)
+        function_args = pickle.load(f)
     # ensure required files successfully copied into container:
     if "headerfile_path" in function_args:
         headerfile_path = str(function_args['headerfile_path'])
@@ -95,4 +95,4 @@ def featurize():
 
 if __name__=="__main__":
     results_str = featurize()
-    print results_str
+    print(results_str)

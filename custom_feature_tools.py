@@ -2,13 +2,13 @@
 
 import glob
 from parse import parse
-import lc_tools
+from . import lc_tools
 from subprocess import call, Popen, PIPE
 import sys
 import os
 import inspect
-import cPickle
-import cfg
+import pickle
+from . import cfg
 import uuid
 import shutil
 
@@ -197,7 +197,7 @@ def execute_functions_in_order(
                     str(reqd_param))
         funcs_round_1 = []
         func_queue = []
-        funcnames = fnames_req_prov_dict.keys()
+        funcnames = list(fnames_req_prov_dict.keys())
         i = 0
         func_rounds = {}
         all_extracted_features = {}
@@ -222,7 +222,7 @@ def execute_functions_in_order(
                             arguments[req] = all_extracted_features[req]
                     func_result = getattr(thismodule, funcname)(**arguments)
                     all_extracted_features = dict(
-                        all_extracted_features.items() + func_result.items())
+                        list(all_extracted_features.items()) + list(func_result.items()))
                     funcnames.remove(funcname)
             i += 1
         all_extracted_features_list.append(all_extracted_features)
@@ -323,7 +323,7 @@ def docker_extract_features(
                             tme.append(all_lines[i].strip().split(","))
             if len(tme) > 0:
                 if all(len(this_tme) == 3 for this_tme in tme):
-                    T,M,E = zip(*tme)
+                    T,M,E = list(zip(*tme))
                     T = [float(el) for el in T]
                     M = [float(el) for el in M]
                     E = [float(el) for el in E]
@@ -331,7 +331,7 @@ def docker_extract_features(
                     features_already_known["m"] = M
                     features_already_known["e"] = E
                 elif all(len(this_tme) == 2 for this_tme in tme):
-                    T,M = zip(*tme)
+                    T,M = list(zip(*tme))
                     T = [float(el) for el in T]
                     M = [float(el) for el in M]
                     features_already_known["t"] = T
@@ -351,7 +351,7 @@ def docker_extract_features(
     with open(
             os.path.join(path_to_tmp_dir,
             "features_already_known_list.pkl"), "wb") as f:
-        cPickle.dump(features_already_known_list,f)
+        pickle.dump(features_already_known_list,f)
     try:
         # the command to run our docker container which
         # will automatically generate features:
@@ -364,28 +364,28 @@ def docker_extract_features(
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         # grab outputs
         stdout, stderr = process.communicate()
-        print "\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n"
+        print("\n\ndocker container stdout:\n\n", stdout, \
+              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
         # copy all necessary files produced in docker container to host
         cmd = [
             "docker", "cp",
             "%s:/tmp/results_list_of_dict.pkl" % container_name,
             path_to_tmp_dir]
         status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-        print "/tmp/results_list_of_dict.pkl", \
-              "copied to host machine - status code %s" % str(status_code)
+        print("/tmp/results_list_of_dict.pkl", \
+              "copied to host machine - status code %s" % str(status_code))
         # load results from copied .pkl file
         with open(os.path.join(
                     path_to_tmp_dir, "results_list_of_dict.pkl"),
                 "rb") as f:
-            results_list_of_dict = cPickle.load(f)
+            results_list_of_dict = pickle.load(f)
     except:
         raise
     finally:
         # Delete used container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-        print "Docker container deleted."
+        print("Docker container deleted.")
         # Remove tmp dir
         shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
     return results_list_of_dict
@@ -433,7 +433,7 @@ def test_new_script(
         except:
             all_fnames = False
     if not all_fnames or len(all_fnames) == 0:
-        print "all_fnames:", all_fnames
+        print("all_fnames:", all_fnames)
         raise Exception("No test lc files read in...")
     else:
         for fname in all_fnames:
@@ -446,7 +446,7 @@ def test_new_script(
         {"t":[1],"m":[50],"e":[0.3],"coords":2})
     all_extracted_features_list = []
     if docker_installed():
-        print "Extracting features inside docker container..."
+        print("Extracting features inside docker container...")
         all_extracted_features_list = docker_extract_features(
             script_fpath=script_fpath,
             features_already_known_list=features_already_known_list)
@@ -570,13 +570,13 @@ def generate_custom_features(
         t,m,e = parse_csv_file(path_to_csv)
     elif ts_data not in [None,False]:
         if len(ts_data[0]) == 3:
-            t,m,e = zip(*ts_data)
+            t,m,e = list(zip(*ts_data))
         if len(ts_data[0]) == 2:
-            t,m = zip(*ts_data)
+            t,m = list(zip(*ts_data))
     else:
-        print "predict_class.predict:"
-        print "path_to_csv:", path_to_csv
-        print "ts_data:", ts_data
+        print("predict_class.predict:")
+        print("path_to_csv:", path_to_csv)
+        print("ts_data:", ts_data)
         raise Exception("Neither path_to_csv nor ts_data provided...")
     features_already_known['t'] = t
     features_already_known['m'] = m
@@ -589,12 +589,12 @@ def generate_custom_features(
                 script_fpath=custom_script_path)
     else:
         if docker_installed():
-            print "Generating custom features inside docker container..."
+            print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
                 features_already_known=features_already_known)
         else:
-            print "Generating custom features WITHOUT docker container..."
+            print("Generating custom features WITHOUT docker container...")
             all_new_features = execute_functions_in_order(
                 script_fname=custom_script_path.split("/")[-1],
                 features_already_known=features_already_known,
@@ -607,7 +607,7 @@ def is_running_in_docker_container():
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
-    print output
+    print(output)
     if "/docker/" in output:
         in_docker_container=True
     else:
@@ -621,7 +621,7 @@ if __name__ == "__main__":
     encoding = sys.stdout.encoding or 'utf-8'
     docker_container = is_running_in_docker_container()
     x = test_new_script(docker_container=docker_container)
-    print(str(x).encode(encoding))
+    print((str(x).encode(encoding)))
     sys.stdout.write( str(x).encode(encoding) )
     if docker_container:
         pass

@@ -1,6 +1,6 @@
 import numpy
 
-from gen_or_imp import gen_or_imp
+from .gen_or_imp import gen_or_imp
 
 class montecarlo_gen(gen_or_imp):
     name = "montecarlo bootstrap generator"

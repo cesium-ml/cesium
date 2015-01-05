@@ -8,7 +8,7 @@ sys.path.append("/home/mltsp")
 import custom_feature_tools as cft
 
 #from subprocess import Popen, PIPE, call
-import cPickle
+import pickle
 
 def extract_custom_feats():
     """Load pickled parameters and generate custom features.
@@ -26,7 +26,7 @@ def extract_custom_feats():
     with open(
         "/home/mltsp/copied_data_files/features_already_known_list.pkl",
         "rb") as f:
-        features_already_known_list = cPickle.load(f)
+        features_already_known_list = pickle.load(f)
 
     # script has been copied to the following location:
     script_fpath = "/home/mltsp/copied_data_files/custom_feature_defs.py"
@@ -38,12 +38,12 @@ def extract_custom_feats():
         script_fpath=script_fpath)
     
     with open("/tmp/results_list_of_dict.pkl", "wb") as f:
-        cPickle.dump(all_feats, f)
+        pickle.dump(all_feats, f)
     
-    print "Created /tmp/results_list_of_dict.pkl in docker container."
+    print("Created /tmp/results_list_of_dict.pkl in docker container.")
     return 0
 
 
 if __name__=="__main__":
     all_feats = extract_custom_feats()
-    print all_feats
+    print(all_feats)

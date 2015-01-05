@@ -3,7 +3,7 @@
 # Config file for MLTSP flask app.
 #
 
-from __future__ import print_function
+
 import os, sys
 
 # path to user's home directory

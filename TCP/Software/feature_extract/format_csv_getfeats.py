@@ -95,9 +95,9 @@ if __name__ == '__main__':
     feature_added_VOSource_XML_fpath = pars['final_vsrcxml_fpath']
     gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
     import pprint
-    pprint.pprint((signals_list[0].properties['data']['v']['features'].keys()).sort())
-    print
-    print 'freq1_harmonics_freq_0 =', signals_list[0].properties['data']['v']['features']['freq1_harmonics_freq_0']
-    print
+    pprint.pprint((list(signals_list[0].properties['data']['v']['features'].keys())).sort())
+    print()
+    print('freq1_harmonics_freq_0 =', signals_list[0].properties['data']['v']['features']['freq1_harmonics_freq_0'])
+    print()
 
     #import pdb; pdb.set_trace()

@@ -77,7 +77,7 @@ class Database_Utils:
             'Algol (Beta Persei)':"Algol (Beta Persei)"}
 
         rclass_tutorid_lookup = {}
-        for deb_class, tutor_class in debclass_tutorclass.iteritems():
+        for deb_class, tutor_class in debclass_tutorclass.items():
             select_str = 'SELECT class_id FROM classes WHERE class_name="%s" AND class_is_public="Yes"' % (tutor_class)
             self.tutor_cursor.execute(select_str)
             results = self.tutor_cursor.fetchall()
@@ -96,7 +96,7 @@ class Database_Utils:
         for row in results:
             (class_name, class_id) = row
             tutorclass_tutorid[class_name] = class_id
-            if class_id in rclass_tutorid_lookup.values():
+            if class_id in list(rclass_tutorid_lookup.values()):
                 continue # do not add classes which we've already addeded to rclass_tutorid_lookup dictionary from debclass_tutorclass{}
             ### Sanity checks:
             #if (class_name in rclass_tutorid_lookup.keys()):
@@ -120,7 +120,7 @@ class Database_Utils:
         #print
 
         tutorid_rclass = {}  # invert the dictionary
-        for k,v in rclass_tutorid_lookup.iteritems():
+        for k,v in rclass_tutorid_lookup.items():
             tutorid_rclass[v] = k
 
         # CRAP code:
@@ -286,18 +286,18 @@ def compare_userclassifs_files(pars={}):
 
     ### Now for each iteration, look up which sources match, etc
     for i in range(1, len(pars['user_classifs_joey_algo_chosen'])+1):
-        print "i   src   match %20s %20s" % ("Original", "New algorithm")
-        for orig_srcid, orig_classid in orig_final_classifs[i].iteritems():
-            if algo_final_classifs[i].has_key(orig_srcid):
+        print("i   src   match %20s %20s" % ("Original", "New algorithm"))
+        for orig_srcid, orig_classid in orig_final_classifs[i].items():
+            if orig_srcid in algo_final_classifs[i]:
                 match = (orig_classid == algo_final_classifs[i][orig_srcid])
-                print "%d %d %6s %20s %20s" % (i, orig_srcid, str(match), tutorid_rclass[orig_classid], tutorid_rclass[algo_final_classifs[i][orig_srcid]])
+                print("%d %d %6s %20s %20s" % (i, orig_srcid, str(match), tutorid_rclass[orig_classid], tutorid_rclass[algo_final_classifs[i][orig_srcid]]))
             else:
-                print "%d %d %6s %20s %20s" % (i, orig_srcid, '', tutorid_rclass[orig_classid], '')
+                print("%d %d %6s %20s %20s" % (i, orig_srcid, '', tutorid_rclass[orig_classid], ''))
 
 
 
     import pdb; pdb.set_trace()
-    print
+    print()
 
 
 def get_simbad_matched_sources_which_overlap_userAL_sources(pars):
@@ -306,7 +306,7 @@ def get_simbad_matched_sources_which_overlap_userAL_sources(pars):
         ###  may be be repeats in earlier AL_addToTrain_?.dat files.
     """
     user_al_srcid_dict = {}
-    for iter_i, al_fpath in pars['user_classifs_fpaths'].iteritems():
+    for iter_i, al_fpath in pars['user_classifs_fpaths'].items():
         if iter_i == 10:
             ### This is the simbad_match file
             data = loadtxt(al_fpath,
@@ -324,14 +324,14 @@ def get_simbad_matched_sources_which_overlap_userAL_sources(pars):
             user_al_srcid_dict[iter_i] = data['src_id']
 
     aluser_overlap_sources = []
-    for i, al_srcids in user_al_srcid_dict.iteritems():
+    for i, al_srcids in user_al_srcid_dict.items():
         for al_srcid in list(set(simbad_src_list) & set(al_srcids)):
             if not al_srcid in aluser_overlap_sources:
                 aluser_overlap_sources.append(al_srcid)
-    print aluser_overlap_sources
+    print(aluser_overlap_sources)
     # Want to remove these sources from the SIMBAD dataset
     import pdb; pdb.set_trace()
-    print
+    print()
 
 
 class IPython_Task_Administrator:
@@ -502,7 +502,7 @@ class Active_Learn(Database_Utils):
         # # # # # # #
         ### Insert additional source features into asascat_source_attribs TABLE
 
-        feat_names = asascat_store_feats.keys()
+        feat_names = list(asascat_store_feats.keys())
         update_str_list = []
         for feat_name in feat_names:
             update_str_list.append("%s=VALUES(%s)" % (feat_name, feat_name))
@@ -528,7 +528,7 @@ class Active_Learn(Database_Utils):
             if asascat_is_train_list[i]:
                 class_id = asascat_train_class[i]
                 if class_id == '':
-                    print "asascat_is_train_list[i]=True, class_id='',", src_id
+                    print("asascat_is_train_list[i]=True, class_id='',", src_id)
                 else:
                     insert_list.append("(%d, %d, %d), " % (catalog_id, int(src_id), asascat_train_class[i]))
         insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE class_id=VALUES(class_id)"
@@ -698,7 +698,7 @@ class Active_Learn(Database_Utils):
                                                                        n_test_subsample,
                                                                        len(select_rows)))
         except:
-            print "!!! unable to write .ps file"
+            print("!!! unable to write .ps file")
             pass
         #pylab.show()
         #import pdb; pdb.set_trace()
@@ -785,7 +785,7 @@ class Active_Learn(Database_Utils):
             # For iteration_id=2, this only finds 39 of the 46 sources which Joey choses for iteration=1
             #     So I just use the source,class he has decided upon.
             #required_user_ids = [1, 2] # iteration=2
-            required_user_ids = range(1,50) # skip henrik(0) # [1, 2, 3, 4, 7, 11] # iteration=3
+            required_user_ids = list(range(1,50)) # skip henrik(0) # [1, 2, 3, 4, 7, 11] # iteration=3
             len_required_user_ids = len(required_user_ids)
 
             srcid_classif_counts = {}
@@ -801,7 +801,7 @@ class Active_Learn(Database_Utils):
 
                 if ((user_classif_lists['user_id'][i] in required_user_ids) and
                     (user_classif_lists['tutor_class_id'][i] != None)):
-                    if not srcid_classif_counts.has_key(src_id):
+                    if src_id not in srcid_classif_counts:
                         srcid_classif_counts[src_id] = []
                     #srcid_classif_counts[src_id].append(user_classif_lists['tutor_class_id'][i])
                     srcid_classif_counts[src_id].append((user_classif_lists['user_id'][i],
@@ -813,7 +813,7 @@ class Active_Learn(Database_Utils):
             # [(srcid, datetime, class), ...
             # [srcid][(userid,datetime,class)
             srcid_each_user_makes_some_classification = []
-            for src_id, classif_list in srcid_classif_counts.iteritems():
+            for src_id, classif_list in srcid_classif_counts.items():
                 #if ((len(classif_list) == len_required_user_ids) and
                 #    (self.all_same(classif_list))):
                 classif_list.sort(reverse=True) # latest datetime first in list
@@ -855,7 +855,7 @@ class Active_Learn(Database_Utils):
                         both_user_match_dict['iter_id'].append(iter_id)
                         break
 
-        required_user_ids = range(1,50) # skip henrik(0) # [1, 2, 3, 4, 7, 11] # iteration=3
+        required_user_ids = list(range(1,50)) # skip henrik(0) # [1, 2, 3, 4, 7, 11] # iteration=3
         # First, we will later need a list of all source_ids looked at by users for activelearn iteration:
         all_srcids_for_actlearn_iter = []
         for i, src_id in enumerate(user_classif_lists['src_id']):
@@ -876,8 +876,8 @@ class Active_Learn(Database_Utils):
             }
 
 
-        for session_id in self.user_classifs.keys():
-            for iter_id, iter_dict in self.user_classifs[session_id].iteritems():
+        for session_id in list(self.user_classifs.keys()):
+            for iter_id, iter_dict in self.user_classifs[session_id].items():
                 for i, src_id in enumerate(iter_dict['src_id']):
                     out_dict['src_id'].append(src_id)
                     out_dict['tutor_class_id'].append(iter_dict['tutor_class_id'][i])
@@ -976,7 +976,7 @@ class Active_Learn(Database_Utils):
                     i_src_test = datadicts['testdata_dict']['srcid_list'].index(str(src_id))
                 except:
                     #### These would be sources which users have clasified, but which are not in the ASAS testset
-                    print '@@@', src_id
+                    print('@@@', src_id)
                     raise
                     #continue
                 ### So i_src is user classified and in the test-dataset
@@ -1005,7 +1005,7 @@ class Active_Learn(Database_Utils):
                 datadicts['traindata_dict']['arff_rows'].append(new_arffrow)
                 datadicts['traindata_dict']['srcid_list'].append(str(src_id))
                 datadicts['traindata_dict']['class_list'].append(class_name)
-                for feat_name in datadicts['traindata_dict']['featname_longfeatval_dict'].keys():
+                for feat_name in list(datadicts['traindata_dict']['featname_longfeatval_dict'].keys()):
                     datadicts['traindata_dict']['featname_longfeatval_dict'][feat_name].append(datadicts['testdata_dict']['featname_longfeatval_dict'][feat_name][i_src_test])
 
             #import pdb; pdb.set_trace()
@@ -1016,7 +1016,7 @@ class Active_Learn(Database_Utils):
         new_srcid_list = []
         new_class_list = []
         testdata_featname_longfeatval_dict = {}
-        for feat_name in datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
+        for feat_name in list(datadicts['testdata_dict']['featname_longfeatval_dict'].keys()):
             testdata_featname_longfeatval_dict[feat_name] = []
         for i_src, arff_row in enumerate(datadicts['testdata_dict']['arff_rows']):
             if i_src in i_src_from_test_to_skip:
@@ -1024,7 +1024,7 @@ class Active_Learn(Database_Utils):
             new_testset_rows.append(arff_row)
             new_srcid_list.append(datadicts['testdata_dict']['srcid_list'][i_src])
             new_class_list.append(datadicts['testdata_dict']['class_list'][i_src])
-            for feat_name in datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
+            for feat_name in list(datadicts['testdata_dict']['featname_longfeatval_dict'].keys()):
                 testdata_featname_longfeatval_dict[feat_name].append(datadicts['testdata_dict']['featname_longfeatval_dict'][feat_name][i_src])
 
         datadicts['testdata_dict']['arff_rows'] = new_testset_rows
@@ -1145,7 +1145,7 @@ class Active_Learn(Database_Utils):
                    'is_train_list':[],
                    'train_class':[]}
 
-        feat_names = combo_result_dict['asascat_store_feats'].keys()
+        feat_names = list(combo_result_dict['asascat_store_feats'].keys())
         for feat_name in feat_names:
             asascat['asascat_store_feats'][feat_name] = []
 
@@ -1299,10 +1299,10 @@ class Active_Learn(Database_Utils):
         combo_dict['class_list'].extend(orig_arff_datadicts['testdata_dict']['class_list'])
         combo_dict['class_list'].extend(orig_arff_datadicts['traindata_dict']['class_list'])
 
-        for featname in orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
+        for featname in list(orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys()):
             combo_dict['featname_longfeatval_dict'][featname] = []
 
-        for featname in orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
+        for featname in list(orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys()):
             combo_dict['featname_longfeatval_dict'][featname].extend(orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'][featname])
             combo_dict['featname_longfeatval_dict'][featname].extend(orig_arff_datadicts['traindata_dict']['featname_longfeatval_dict'][featname])
 
@@ -1368,7 +1368,7 @@ class Active_Learn(Database_Utils):
                     rc = rpy2_classifiers.Rpy2Classifier(algorithms_dirpath=algo_code_dirpath)
                     error_rate = rc.get_crossvalid_errors(feature_data_dict=datadict['traindata_dict']['featname_longfeatval_dict'], mtry=mtry, ntree=ntree, srcid_list=datadict['traindata_dict']['srcid_list'], class_list=datadict['traindata_dict']['class_list'])
                     import pdb; pdb.set_trace()
-                    print
+                    print()
 
                 tc_exec_str = """
 import rpy2_classifiers
@@ -1395,7 +1395,7 @@ out_dict = {'error_rate':error_rate,
                 self.ipy_tasks.task_id_list.append(taskid)
 
         import pdb; pdb.set_trace()
-        print
+        print()
         import numpy
         out_tups = []
         tup_dict = {}
@@ -1403,15 +1403,15 @@ out_dict = {'error_rate':error_rate,
             temp = self.ipy_tasks.tc.get_task_result(taskid, block=False)
             results = temp['out_dict']
             tup = (temp['out_dict']['imputed_mtry'], temp['out_dict']['imputed_ntree'])
-            if not tup_dict.has_key(tup):
+            if tup not in tup_dict:
                 tup_dict[tup] = []
             tup_dict[tup].append(temp['out_dict']['error_rate'])
 
-        tup_list_sorted = tup_dict.keys()
+        tup_list_sorted = list(tup_dict.keys())
         tup_list_sorted.sort()
         final_tups = []
         for a_tup in tup_list_sorted:
-            print a_tup[0], a_tup[1], numpy.mean(tup_dict[a_tup]), numpy.std(tup_dict[a_tup])
+            print(a_tup[0], a_tup[1], numpy.mean(tup_dict[a_tup]), numpy.std(tup_dict[a_tup]))
             final_tups.append((a_tup[0], a_tup[1], numpy.mean(tup_dict[a_tup]), numpy.std(tup_dict[a_tup])))
         import matplotlib.pyplot as pyplot
         y = numpy.array(final_tups)
@@ -1420,7 +1420,7 @@ out_dict = {'error_rate':error_rate,
         pyplot.savefig("/home/pteluser/scratch/color_imputed_errorrate_vs_ntree_mtry5.png")
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 
@@ -1466,10 +1466,10 @@ out_dict = {'error_rate':error_rate,
             rc = rpy2_classifiers.Rpy2Classifier(algorithms_dirpath=algo_code_dirpath)
             arff_fpath_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntree=ntree, header_str=header_str, feature_list=feature_list, srcid_list=srcid_list, class_list=class_list, train_srcids=train_srcids)
             import pdb; pdb.set_trace()
-            print
+            print()
 
         #ntree_list = range(10,200,5) # just get some fast arff files created
-        ntree_list = range(10,250,10)
+        ntree_list = list(range(10,250,10))
         #ntree_list = range(2,20,1)
         #ntree_list.extend(range(20,410,10))
 
@@ -1494,13 +1494,13 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
 
         # debug:
         import pdb; pdb.set_trace()
-        print
+        print()
         temp = self.ipy_tasks.tc.get_task_result(taskid, block=False)
         results = temp['out_dict']
         ### TODO: just see if these tasks run without fail so far
         #     - then look at arff_generateion_master.py L2186 for task pulling
         import pdb; pdb.set_trace()
-        print
+        print()
 
     #############################
 
@@ -1536,7 +1536,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
         import rpy2_classifiers
 
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
         features_r_data = robjects.r['data.frame'](**r_data_dict)
 
@@ -1716,7 +1716,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
         continue_loop = True
         i_loop = 0
         while (continue_loop):
-            print "i_loop:", i_loop
+            print("i_loop:", i_loop)
             i_loop += 1
             robjects.r("""
                 if (iter != 0){
@@ -1736,7 +1736,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
                     misi <- NAloc[,varInd] # which i's are missing
                     """ % (s))
                 has_na = robjects.r("has_na")
-                print s, list(has_na)[0]
+                print(s, list(has_na)[0])
                 if list(has_na)[0] == 0:
                     continue # since this is a feature that has no NA values, we do not impute.
                 obsi = list(numpy.array(robjects.r("obsi"), dtype=numpy.bool)) #numpy.array(robjects.r("obsi"), dtype=numpy.int)
@@ -1773,13 +1773,13 @@ out_dict = {'misY':misY,
 
                 # debug:
                 import pdb; pdb.set_trace()
-                print
+                print()
                 temp = self.ipy_tasks.tc.get_task_result(taskid, block=False)
                 results = temp.get('out_dict',None)
                 ### TODO: just see if these tasks run without fail so far
                 #     - then look at arff_generateion_master.py L2186 for task pulling
                 import pdb; pdb.set_trace()
-                print
+                print()
 
                 #import pdb; pdb.set_trace()
                 #print
@@ -1793,8 +1793,8 @@ out_dict = {'misY':misY,
                     OOBerror[varInd] <- OOBerror_val
                 """ % (s))
             import pdb; pdb.set_trace()
-            print
-            print "Done with s-loop, Now we determine the convergence..."
+            print()
+            print("Done with s-loop, Now we determine the convergence...")
             ### Now we determine the convergence
             #import pdb; pdb.set_trace()
             #print
@@ -1846,7 +1846,7 @@ out_dict = {'misY':misY,
             """)
             continue_loop = list(robjects.r("continue_loop"))[0]
             import pdb; pdb.set_trace()
-            print
+            print()
         robjects.r("""
             if (iter == maxiter){
               miss_data.imp <- list(Ximp = Ximp[[iter]], error = OOBerr)
@@ -1861,7 +1861,7 @@ out_dict = {'misY':misY,
         for i, feat_name in enumerate(feature_names):
             out_feat_dict[feat_name] = list(robjects.r("miss_data.imp$Ximp$%s" % (feat_name)))
         import pdb; pdb.set_trace()
-        print
+        print()
         return out_feat_dict
 
 
@@ -1882,7 +1882,7 @@ out_dict = {'misY':misY,
         from rpy2 import robjects
 
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
         features_r_data = robjects.r['data.frame'](**r_data_dict)
 
@@ -2061,7 +2061,7 @@ out_dict = {'misY':misY,
         continue_loop = True
         i_loop = 0
         while (continue_loop):
-            print "i_loop:", i_loop
+            print("i_loop:", i_loop)
             i_loop += 1
             robjects.r("""
                 if (iter != 0){
@@ -2122,8 +2122,8 @@ out_dict = {'misY':misY,
                 """)
                 if s == 64:
                     import pdb; pdb.set_trace()
-                    print
-            print "Done with s-loop, Now we determine the convergence..."
+                    print()
+            print("Done with s-loop, Now we determine the convergence...")
             ### Now we determine the convergence
             #import pdb; pdb.set_trace()
             #print
@@ -2190,7 +2190,7 @@ out_dict = {'misY':misY,
         for i, feat_name in enumerate(feature_names):
             out_feat_dict[feat_name] = list(robjects.r("miss_data.imp$Ximp$%s" % (feat_name)))
         import pdb; pdb.set_trace()
-        print
+        print()
         return out_feat_dict
 
 
@@ -2257,7 +2257,7 @@ out_dict = {'misY':misY,
                     i_src = testdata_dict['srcid_list'].index(srcid_str)
                     freqsignif = testdata_dict['featname_longfeatval_dict']['freq_signif'][i_src]
                 except:
-                    print '! NEED to ADD to reduce_testset_using_costs() OK list', srcid_str
+                    print('! NEED to ADD to reduce_testset_using_costs() OK list', srcid_str)
             actlearn_sources_freqsignifs.append(freqsignif)
             #if srcid in new_arffstrs_dict['final_user_classifs']['both_user_match_dict']['src_id']:
             #STILLCRAP#if srcid in new_arffstrs_dict['final_user_classifs']['srcid_each_user_makes_some_classification']:
@@ -2271,7 +2271,7 @@ out_dict = {'misY':misY,
 
         for k in range(len(temp_srcid_list)):
             #if temp_srcid_list[i] in new_arffstrs_dict['final_user_classifs']['src_id']:
-            print k, temp_srcid_list[k], both_user_match_srcid_bool[k], actlearn_sources_freqsignifs[k]
+            print(k, temp_srcid_list[k], both_user_match_srcid_bool[k], actlearn_sources_freqsignifs[k])
 
         return (both_user_match_srcid_bool, actlearn_sources_freqsignifs)
 
@@ -2279,21 +2279,21 @@ out_dict = {'misY':misY,
     def shuffle_srcid_rows(self, datadict={}):
         """ Shuffle the srcids / rows
         """
-        inds = range(len(datadict['srcid_list']))
+        inds = list(range(len(datadict['srcid_list'])))
         random.shuffle(inds)
 
         new_arff_rows = []
         new_srcid_list = []
         new_class_list = []
         new_featname_longfeatval_dict = {}
-        for feat_name in datadict['featname_longfeatval_dict'].keys():
+        for feat_name in list(datadict['featname_longfeatval_dict'].keys()):
             new_featname_longfeatval_dict[feat_name] = []
 
         for i in inds:
             new_arff_rows.append(datadict['arff_rows'][i])
             new_srcid_list.append(datadict['srcid_list'][i])
             new_class_list.append(datadict['class_list'][i])
-            for feat_name in datadict['featname_longfeatval_dict'].keys():
+            for feat_name in list(datadict['featname_longfeatval_dict'].keys()):
                 new_featname_longfeatval_dict[feat_name].append( \
                                  datadict['featname_longfeatval_dict'][feat_name][i])
 
@@ -2306,9 +2306,9 @@ out_dict = {'misY':misY,
     def debug_compare_testtrain_data(self, rework_traindata_dict={}, rework_testdata_dict={}):
         """ for debug comparison of testdatadict and traindatadict from original un-refactored code
         """
-        import cPickle, gzip
+        import pickle, gzip
         fp = gzip.open('/tmp/actlearn_debug_orig','rb')
-        orig_dict = cPickle.load(fp)
+        orig_dict = pickle.load(fp)
         fp.close()
 
         ### First construct a {srcid:index} dict for comparison, for bith orig and rework dicts
@@ -2331,71 +2331,71 @@ out_dict = {'misY':misY,
 
         ### Compare Training sets feature-values:
         if 1:
-            print "Training comparison:"
+            print("Training comparison:")
             #for srcid, i_rework in rework_train_srcid_index.iteritems():
-            for srcid, i_orig in orig_train_srcid_index.iteritems():
+            for srcid, i_orig in orig_train_srcid_index.items():
                 #if orig_train_srcid_index.has_key(srcid):
-                if rework_train_srcid_index.has_key(srcid):
+                if srcid in rework_train_srcid_index:
                     pass #print srcid
                 else:
-                    print srcid, "NOT in other dataset!"
+                    print(srcid, "NOT in other dataset!")
                     continue
                 #i_orig = orig_train_srcid_index[srcid]
                 i_rework = rework_train_srcid_index[srcid]
-                for featname in rework_traindata_dict['featname_longfeatval_dict'].keys():
+                for featname in list(rework_traindata_dict['featname_longfeatval_dict'].keys()):
                     feat_val_diff = abs(rework_traindata_dict['featname_longfeatval_dict'][featname][i_rework]
                               - orig_dict['traindata_dict']['featname_longfeatval_dict'][featname][i_orig])
                     if feat_val_diff > 0.001:
-                        print srcid, featname, feat_val_diff
+                        print(srcid, featname, feat_val_diff)
                     #print srcid, featname, feat_val_diff
 
         ### Compare Testing sets feature-values:
         if 1:
-            print "Testing comparison:"
+            print("Testing comparison:")
             #for srcid, i_rework in rework_test_srcid_index.iteritems():
-            for srcid, i_orig in orig_test_srcid_index.iteritems():
+            for srcid, i_orig in orig_test_srcid_index.items():
                 #if orig_test_srcid_index.has_key(srcid):
-                if rework_test_srcid_index.has_key(srcid):
+                if srcid in rework_test_srcid_index:
                     pass #print srcid
                 else:
-                    print srcid, "NOT in other dataset!"
+                    print(srcid, "NOT in other dataset!")
                     continue
                 #i_orig = orig_test_srcid_index[srcid]
                 i_rework = rework_test_srcid_index[srcid]
-                for featname in rework_testdata_dict['featname_longfeatval_dict'].keys():
+                for featname in list(rework_testdata_dict['featname_longfeatval_dict'].keys()):
                     feat_val_diff = abs(rework_testdata_dict['featname_longfeatval_dict'][featname][i_rework]
                               - orig_dict['testdata_dict']['featname_longfeatval_dict'][featname][i_orig])
                     if feat_val_diff > 0.001:
-                        print srcid, featname, feat_val_diff
+                        print(srcid, featname, feat_val_diff)
                     #print srcid, featname, feat_val_diff
 
 
         if 1:
-            print "Training class comparison:"
+            print("Training class comparison:")
             #for srcid, i_rework in rework_train_srcid_index.iteritems():
-            for srcid, i_orig in orig_train_srcid_index.iteritems():
+            for srcid, i_orig in orig_train_srcid_index.items():
                 #if orig_train_srcid_index.has_key(srcid):
-                if rework_train_srcid_index.has_key(srcid):
+                if srcid in rework_train_srcid_index:
                     pass #print srcid
                 else:
-                    print srcid, "NOT in other dataset!"
+                    print(srcid, "NOT in other dataset!")
                     continue
                 #i_orig = orig_train_srcid_index[srcid]
                 i_rework = rework_train_srcid_index[srcid]
                 if rework_traindata_dict['class_list'][i_rework] != orig_dict['traindata_dict']['class_list'][i_orig]:
-                    print 'MISMATCH', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework]
-                print 'OK:     ', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework]
+                    print('MISMATCH', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework])
+                print('OK:     ', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework])
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def debug_compare_testtrain_data__old(self, rework_traindata_dict={}, rework_testdata_dict={}):
         """ for debug comparison of testdatadict and traindatadict from original un-refactored code
         """
-        import cPickle, gzip
+        import pickle, gzip
         fp = gzip.open('/tmp/actlearn_debug_orig','rb')
-        orig_dict = cPickle.load(fp)
+        orig_dict = pickle.load(fp)
         fp.close()
 
         ### First construct a {srcid:index} dict for comparison, for bith orig and rework dicts
@@ -2418,54 +2418,54 @@ out_dict = {'misY':misY,
 
         ### Compare Training sets feature-values:
         if 0:
-            print "Training comparison:"
-            for srcid, i_rework in rework_train_srcid_index.iteritems():
-                if orig_train_srcid_index.has_key(srcid):
-                    print srcid
+            print("Training comparison:")
+            for srcid, i_rework in rework_train_srcid_index.items():
+                if srcid in orig_train_srcid_index:
+                    print(srcid)
                 else:
-                    print srcid, "NOT in origional training set!"
+                    print(srcid, "NOT in origional training set!")
                     continue
                 i_orig = orig_train_srcid_index[srcid]
-                for featname in rework_traindata_dict['featname_longfeatval_dict'].keys():
+                for featname in list(rework_traindata_dict['featname_longfeatval_dict'].keys()):
                     feat_val_diff = abs(rework_traindata_dict['featname_longfeatval_dict'][featname][i_rework]
                               - orig_dict['traindata_dict']['featname_longfeatval_dict'][featname][i_orig])
                     if feat_val_diff > 0.001:
-                        print srcid, featname, feat_val_diff
-                    print srcid, featname, feat_val_diff
+                        print(srcid, featname, feat_val_diff)
+                    print(srcid, featname, feat_val_diff)
 
         ### Compare Testing sets feature-values:
         if 0:
-            print "Testing comparison:"
-            for srcid, i_rework in rework_test_srcid_index.iteritems():
-                if orig_test_srcid_index.has_key(srcid):
-                    print srcid
+            print("Testing comparison:")
+            for srcid, i_rework in rework_test_srcid_index.items():
+                if srcid in orig_test_srcid_index:
+                    print(srcid)
                 else:
-                    print srcid, "NOT in origional testing set!"
+                    print(srcid, "NOT in origional testing set!")
                     continue
                 i_orig = orig_test_srcid_index[srcid]
-                for featname in rework_testdata_dict['featname_longfeatval_dict'].keys():
+                for featname in list(rework_testdata_dict['featname_longfeatval_dict'].keys()):
                     feat_val_diff = abs(rework_testdata_dict['featname_longfeatval_dict'][featname][i_rework]
                               - orig_dict['testdata_dict']['featname_longfeatval_dict'][featname][i_orig])
                     if feat_val_diff > 0.001:
-                        print srcid, featname, feat_val_diff
+                        print(srcid, featname, feat_val_diff)
                     #print srcid, featname, feat_val_diff
 
 
         if 0:
-            print "Training class comparison:"
-            for srcid, i_rework in rework_train_srcid_index.iteritems():
-                if orig_train_srcid_index.has_key(srcid):
-                    print srcid
+            print("Training class comparison:")
+            for srcid, i_rework in rework_train_srcid_index.items():
+                if srcid in orig_train_srcid_index:
+                    print(srcid)
                 else:
-                    print srcid, "NOT in origional training set!"
+                    print(srcid, "NOT in origional training set!")
                     continue
                 i_orig = orig_train_srcid_index[srcid]
                 if rework_traindata_dict['class_list'][i_rework] != orig_dict['traindata_dict']['class_list'][i_orig]:
-                    print 'MISMATCH', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework]
-                print 'OK:     ', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework]
+                    print('MISMATCH', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework])
+                print('OK:     ', srcid, 'ORIG:', orig_dict['traindata_dict']['class_list'][i_orig], 'REWORK:', rework_traindata_dict['class_list'][i_rework])
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def active_learn_main(self, session_id=0,
@@ -2682,7 +2682,7 @@ out_dict = {'misY':misY,
         for i in range(n_parts_to_divide_testset):
             i_low =  (i)   * (len(orig_arff_datadicts['testdata_dict']['arff_rows']) / n_parts_to_divide_testset)
             i_high = (i+1) * (len(orig_arff_datadicts['testdata_dict']['arff_rows']) / n_parts_to_divide_testset)
-            print i, '/', n_parts_to_divide_testset, i_low, i_high
+            print(i, '/', n_parts_to_divide_testset, i_low, i_high)
 
             testset_rows_subset = orig_arff_datadicts['testdata_dict']['arff_rows'][i_low:i_high] # TODO: make sure no overlap
 
@@ -2691,9 +2691,9 @@ out_dict = {'misY':misY,
                              'arff_rows':orig_arff_datadicts['testdata_dict']['arff_rows'][i_low:i_high],
                              'featname_longfeatval_dict':{},
                              }
-            for feat_name in orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
+            for feat_name in list(orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys()):
                 testdata_dict['featname_longfeatval_dict'][feat_name] = []
-            for feat_name in orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
+            for feat_name in list(orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys()):
                 for k in range(i_low, i_high):
                     testdata_dict['featname_longfeatval_dict'][feat_name].append( \
                                   orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'][feat_name][k])
@@ -2768,14 +2768,14 @@ out_dict = {'misY':misY,
                                                   rework_testdata_dict=testdata_dict)
 
             if 0:
-                import cPickle, gzip
+                import pickle, gzip
                 fp = gzip.open('/tmp/actlearn_debug_rework','wb')
                 debug_dict = {'traindata_dict':traindata_dict,
                               'testdata_dict':testdata_dict}
-                cPickle.dump(debug_dict,fp,1) # ,1) means a binary pkl is used.
+                pickle.dump(debug_dict,fp,1) # ,1) means a binary pkl is used.
                 fp.close()
                 import pdb; pdb.set_trace()
-                print
+                print()
 
 
             #############################
@@ -2814,7 +2814,7 @@ out_dict = {'misY':misY,
             combo_result_dict['all.pred'].extend(classifier_dict['all.pred'][:-1])
             combo_result_dict['all.predprob'].extend(classifier_dict['all.predprob'][:-1])
             combo_result_dict['all_top_prob'].extend(classifier_dict['all_top_prob'][:-1])
-            for feat_name in combo_result_dict['asascat_store_feats'].keys():
+            for feat_name in list(combo_result_dict['asascat_store_feats'].keys()):
                 combo_result_dict['asascat_store_feats'][feat_name].extend( \
                            testdata_dict['featname_longfeatval_dict'][feat_name][:-1])# is len(['srcid_list'])
 
@@ -2830,7 +2830,7 @@ out_dict = {'misY':misY,
             remainder_result_dict['all.pred'].append(classifier_dict['all.pred'][-1]) # 3
             remainder_result_dict['all.predprob'].append(classifier_dict['all.predprob'][-1]) # 3
             remainder_result_dict['all_top_prob'].append(classifier_dict['all_top_prob'][-1]) # 3
-            for feat_name in remainder_result_dict['asascat_store_feats'].keys():
+            for feat_name in list(remainder_result_dict['asascat_store_feats'].keys()):
                 remainder_result_dict['asascat_store_feats'][feat_name].append( \
                            testdata_dict['featname_longfeatval_dict'][feat_name][-1])# is len(['srcid_list'])
 
@@ -2840,42 +2840,42 @@ out_dict = {'misY':misY,
 
 
             if 0:
-                for a,b in traindata_dict.iteritems():
-                    print 'iter=', i, 'traindata_dict', a, len(b),
+                for a,b in traindata_dict.items():
+                    print('iter=', i, 'traindata_dict', a, len(b), end=' ')
                     if len(b) > 0:
                         try:
-                            print b[0]
+                            print(b[0])
                         except:
-                            print
+                            print()
                     else:
-                        print
+                        print()
 
-                for a,b in testdata_dict.iteritems():
-                    print 'iter=', i, 'testdata_dict', a, len(b),
+                for a,b in testdata_dict.items():
+                    print('iter=', i, 'testdata_dict', a, len(b), end=' ')
                     if len(b) > 0:
                         try:
-                            print b[0]
+                            print(b[0])
                         except:
-                            print
+                            print()
                     else:
-                        print
+                        print()
 
-                for a,b in combo_result_dict.iteritems():
-                    print 'iter=', i, 'combo_result_dict', a, len(b),
+                for a,b in combo_result_dict.items():
+                    print('iter=', i, 'combo_result_dict', a, len(b), end=' ')
                     if len(b) > 0:
                         try:
-                            print b[0]
+                            print(b[0])
                         except:
-                            print
+                            print()
                     else:
-                        print
+                        print()
 
-                for a,b in remainder_result_dict.iteritems():
-                    print 'iter=', i, 'remainder_result_dict', a, len(b),
+                for a,b in remainder_result_dict.items():
+                    print('iter=', i, 'remainder_result_dict', a, len(b), end=' ')
                     if len(b) > 0:
-                        print b[0]
+                        print(b[0])
                     else:
-                        print
+                        print()
 
 
         ### Add additional high confidence sources to the list of active learning sources,
@@ -2959,7 +2959,7 @@ out_dict = {'misY':misY,
                     all_tups_list.append((importance, srcid, prob, class_name))
             all_tups_list.sort()
             for (importance, srcid, prob, class_name) in all_tups_list[:100]:
-                print importance, srcid, prob, class_name
+                print(importance, srcid, prob, class_name)
         ################
 
 
@@ -2971,7 +2971,7 @@ out_dict = {'misY':misY,
 
         #classifier_dict['possible_classes']
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def fill_user_leaderboard_tables(self, session_id=0,
@@ -3016,7 +3016,7 @@ HAVING  count(activelearn_user_class.source_id) > 0
             raise "ERROR"
         user_ids = []
         for user_id, count in results:
-            print user_id, count
+            print(user_id, count)
             user_ids.append(int(user_id))
 
 
@@ -3054,7 +3054,7 @@ WHERE activelearn_srcid_importance.act_id=%d
 
             for src_id__long, user_class, al_class, class_diff in results:
                 src_id = int(src_id__long)
-                print user_id, src_id, user_class, al_class, class_diff
+                print(user_id, src_id, user_class, al_class, class_diff)
                 if class_diff != None:
                     user_totals[user_id]['n_sciclassifs'] += 1
                     #if not user_totals[user_id]['class_total_dict'].has_key(al_class):
@@ -3064,10 +3064,10 @@ WHERE activelearn_srcid_importance.act_id=%d
                     if class_diff == 0:
                         user_totals[user_id]['al_match_count'] += 1
                         #user_totals[user_id]['class_match_dict'][al_class] += 1 # when counting against AL classifs
-                    if self.user_classifs[session_id][iteration_id]['srcid_class_dict'].has_key(src_id):
+                    if src_id in self.user_classifs[session_id][iteration_id]['srcid_class_dict']:
                         ### Then this src_id had an agreed-upon consensus classification:
                         group_class = self.user_classifs[session_id][iteration_id]['srcid_class_dict'][src_id]
-                        if not user_totals[user_id]['class_total_dict'].has_key(group_class):
+                        if group_class not in user_totals[user_id]['class_total_dict']:
                             user_totals[user_id]['class_total_dict'][group_class] = 0
                             user_totals[user_id]['class_match_dict'][group_class] = 0
                         user_totals[user_id]['class_total_dict'][group_class] += 1
@@ -3078,7 +3078,7 @@ WHERE activelearn_srcid_importance.act_id=%d
 
         ### insert Overall user percentages into table:
         insert_list = ["INSERT INTO activelearn_leaderboard (act_session, act_iter, user_id, perc_sciclass, perc_match_al, perc_match_group) VALUES "]
-        for user_id in user_totals.keys():
+        for user_id in list(user_totals.keys()):
             insert_list.append("(%d, %d, %d, %lf, %lf, %lf), " % ( \
                                session_id, iteration_id, user_id,
                                user_totals[user_id]['n_sciclassifs']/float(user_totals[user_id]['n_sources']),
@@ -3096,8 +3096,8 @@ WHERE activelearn_srcid_importance.act_id=%d
 
         ### insert by-class, act_id percentages into table:
         insert_list = ["INSERT INTO activelearn_user_class_stats (act_session, act_iter, user_id, tutor_class_id, n_correct, n_total) VALUES "]
-        for user_id in user_totals.keys():
-            for class_id in user_totals[user_id]['class_total_dict'].keys():
+        for user_id in list(user_totals.keys()):
+            for class_id in list(user_totals[user_id]['class_total_dict'].keys()):
                 insert_list.append("(%d, %d, %d, %d, %lf, %lf), " % ( \
                                session_id, iteration_id, user_id,
                                class_id,
@@ -3130,7 +3130,7 @@ if __name__ == '__main__':
     'tcp_port':     3306, #23306,
     'tcp_database':'source_test_db',
     'asas_duplicate_sources':['225529', '226314', '226371', '226397', '226488', '226501', '227554', '231054', '215322', '216865', '235114', '239641', '240672', '241340', '242867', '243391', '244155', '244331', '218112', '246414', '246642', '247931', '248144', '248216', '248532', '248723', '249009', '249481', '249594', '249759', '249777', '249823', '249869', '250375', '250499', '250686', '251277', '218795', '218815', '252521', '253530', '254491', '254614', '219106', '255145', '256456', '260272', '219713', '219721', '219744', '261096', '261123', '219756', '261202', '219796', '262618', '262703', '220060', '264293', '264720', '220148', '220678', '220811', '220975', '215756', '221975', '222493', '222854', '222995', '215950', '215971', '223547', '223658', '224378', '224438', '224619', '224623', '225144'],
-    'high_conf_srcids':range(12), #20111028: the length of this now just defines number of highconfidence sources which are selected from data# range(22) #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
+    'high_conf_srcids':list(range(12)), #20111028: the length of this now just defines number of highconfidence sources which are selected from data# range(22) #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
     'user_classifs_fpaths':{ \
         1:os.path.expandvars('$TCP_DIR/Data/allstars/AL_addToTrain_1.dat'), #04/15/2011 AL_addtotrain_1.dat >= 2011-04-08 22:34:01
         2:os.path.expandvars('$TCP_DIR/Data/allstars/AL_addToTrain_2.dat'), #05/02/2011 AL_addToTrain_2.dat >= 2011-04-21 12:44:19

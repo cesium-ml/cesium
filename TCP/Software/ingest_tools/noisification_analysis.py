@@ -89,10 +89,10 @@ class Ipython_Controller:
         """
         while ((self.tc.queue_status()['scheduled'] > 0) or
                (self.tc.queue_status()['pending'] > 0)):
-            print self.tc.queue_status()
-            print 'Sleep... 3 in regenerate_vosource_xmls.py'
+            print(self.tc.queue_status())
+            print('Sleep... 3 in regenerate_vosource_xmls.py')
             time.sleep(3)
-        print 'done with while loop'
+        print('done with while loop')
 
 
 class DB_Connector:
@@ -133,22 +133,22 @@ class Noisification_Task_Populator(DB_Connector):
         #       filt_keys.remove('combo_band')
 
         npoint_tup_list = []
-        for filt,filt_dict in gen.signals_list[0].properties['data'].iteritems():
+        for filt,filt_dict in gen.signals_list[0].properties['data'].items():
             npoint_tup_list.append((filt_dict['features'].get('n_points',0),filt))
 
         npoint_tup_list.sort(reverse=True)
 
         if len(npoint_tup_list) == 0:
-            print "No filters found for source:", srcid
+            print("No filters found for source:", srcid)
             return
 
         filter_best = npoint_tup_list[0][1]
 
         filt_dict = gen.signals_list[0].properties['data'][filter_best]
         out_feat_dict = {}
-        for feat_name, feat_obj in filt_dict['features'].iteritems():
+        for feat_name, feat_obj in filt_dict['features'].items():
             try:
-                print feat_obj, '\t', feat_name
+                print(feat_obj, '\t', feat_name)
                 out_feat_dict[feat_name] = str(float(str(feat_obj)))
                 if ((out_feat_dict[feat_name] == 'Fail') or (out_feat_dict[feat_name] == 'nan') or
                     (out_feat_dict[feat_name] == 'inf')  or (out_feat_dict[feat_name] == 'None')):
@@ -158,7 +158,7 @@ class Noisification_Task_Populator(DB_Connector):
 
         insert_list = ["INSERT INTO %s (src_id, feat_id, feat_val) VALUES " % \
                        (tablename_dotastro_feat_values)]
-        for feat_name,feat_val in out_feat_dict.iteritems():
+        for feat_name,feat_val in out_feat_dict.items():
             feat_id = self.featname_featid_lookup[feat_name]
             str_tup = "(%d, %d, %s), " % (srcid, feat_id, feat_val)
             insert_list.append(str_tup)
@@ -192,22 +192,22 @@ class Noisification_Task_Populator(DB_Connector):
         and returns a dictionary containing the features-values which are type==float.
         """
         npoint_tup_list = []
-        for filt,filt_dict in gen.signals_list[0].properties['data'].iteritems():
+        for filt,filt_dict in gen.signals_list[0].properties['data'].items():
             npoint_tup_list.append((filt_dict['features'].get('n_points',0),filt))
 
         npoint_tup_list.sort(reverse=True)
 
         if len(npoint_tup_list) == 0:
-            print "No filters found for source:", srcid
+            print("No filters found for source:", srcid)
             return
 
         filter_best = npoint_tup_list[0][1]
 
         filt_dict = gen.signals_list[0].properties['data'][filter_best]
         out_feat_dict = {}
-        for feat_name, feat_obj in filt_dict['features'].iteritems():
+        for feat_name, feat_obj in filt_dict['features'].items():
             try:
-                print feat_obj, '\t', feat_name
+                print(feat_obj, '\t', feat_name)
                 out_feat_dict[feat_name] = str(float(str(feat_obj)))
             except:
                 out_feat_dict[feat_name] = 'NULL'
@@ -241,7 +241,7 @@ class Noisification_Task_Populator(DB_Connector):
 
             feat_dict = self.generate_featdict_using_gen_with_feats(gen=gen)
 
-            for feat_name,feat_val_str in feat_dict.iteritems():
+            for feat_name,feat_val_str in feat_dict.items():
                 feat_id = self.featname_featid_lookup[feat_name]
                 if feat_val_str == "NULL":
                     continue # skip from entering NULL data.
@@ -291,7 +291,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
             try:
                 self.cursor.execute(drop_str)
             except:
-                print "Table already exists?:", drop_str
+                print("Table already exists?:", drop_str)
 
 
     def create_tables(self):
@@ -347,8 +347,8 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
         """
         class_dotastro_lookup = {}
 
-        for src_id, src_dict in progen_srcdict.iteritems():
-            if not class_dotastro_lookup.has_key(src_dict['class']):
+        for src_id, src_dict in progen_srcdict.items():
+            if src_dict['class'] not in class_dotastro_lookup:
                 class_dotastro_lookup[src_dict['class']] = []
             class_dotastro_lookup[src_dict['class']].append(src_id)
         return class_dotastro_lookup
@@ -451,7 +451,7 @@ time.sleep(3)
         """
         progen_srcdict = self.get_progen_srcdict()
 
-        to_do_srcid_list = self.determine_srcids_not_in_table(progen_srcdict.keys())
+        to_do_srcid_list = self.determine_srcids_not_in_table(list(progen_srcdict.keys()))
 
         # TODO: Generate features for these sources which are not in table (using some flag)
         self.parse_source_features_insert_into_table(srcid_list=to_do_srcid_list, src_dict=progen_srcdict)
@@ -492,7 +492,7 @@ time.sleep(3)
                                             tablename_featlookup=self.pars['tablename_featlookup'],
                                             filterid_featlookup_table=self.pars['filterid_featlookup_table'])
         #####
-        for src_id, src_dict in progen_srcdict.iteritems():
+        for src_id, src_dict in progen_srcdict.items():
             # form the true fpath name:
             xml_glob_mask = "%s/%s/featured_vosource/%d_*.xml" % (self.pars['noisified_rootdir'],
                                                 schema_name,
@@ -622,7 +622,7 @@ time.sleep(3)
 
         #for class_name in [original_class_name]:
         for class_name in all_related_classes:
-            if not class_name in self.class_dotastro_lookup.keys():
+            if not class_name in list(self.class_dotastro_lookup.keys()):
                 continue # skip this class
             for src_id in self.class_dotastro_lookup[class_name]:
                 select_str = 'SELECT feat_val FROM %s WHERE src_id=%d AND feat_id=%d' % ( \
@@ -644,7 +644,7 @@ time.sleep(3)
 
         jsbvar_classnames = []
         for tcp_classname in all_related_classes:
-            if tcp_classname in self.pars['tcp_to_jsbvar_classname'].keys():
+            if tcp_classname in list(self.pars['tcp_to_jsbvar_classname'].keys()):
                 jsbvar_classnames.extend(self.pars['tcp_to_jsbvar_classname'][tcp_classname])
 
         condition_list = []
@@ -702,8 +702,8 @@ time.sleep(3)
 
         ##### KLUDGE: Duplicated elsewhere:
         data_name_list = ['all_noisesrc_featval_array', 'tcpsrc_featval_array', 'all_dotastro_featval_array']
-        all_min = min(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
-        all_max = max(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
+        all_min = min(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
+        all_max = max(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
         for class_dict in classname_list:
             for array_name in data_name_list:
                 try:
@@ -809,8 +809,8 @@ time.sleep(3)
         """
         ##### KLUDGE: Duplicated elsewhere:
         data_name_list = ['all_noisesrc_featval_array', 'all_dotastro_featval_array'] # 'tcpsrc_featval_array'
-        all_min = min(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
-        all_max = max(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
+        all_min = min(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
+        all_max = max(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
         for class_dict in classname_list:
             for array_name in data_name_list:
                 try:
@@ -843,7 +843,7 @@ time.sleep(3)
             unmatched_noisified_featvals_list = []
 
             for src_id, src_dict in self.hist_data_dict[schema_name][feat_name] \
-                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].iteritems():
+                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].items():
 
                 if len(src_dict['dotastro_featvals']) > 0:
                     dotastro_featvals_list.extend(src_dict['dotastro_featvals'] * len(src_dict['noisified_featvals']))
@@ -890,7 +890,7 @@ time.sleep(3)
         all_max = 0
         for class_dict in classname_list:
             for src_id, src_dict in self.hist_data_dict[schema_name][feat_name] \
-                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].iteritems():
+                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].items():
 
                 if len(src_dict['dotastro_featvals']) > 0:
                     val_array = numpy.array(src_dict['noisified_featvals']) - src_dict['dotastro_featvals'][0]
@@ -924,7 +924,7 @@ time.sleep(3)
 
             plot_data_list = []
             for src_id, src_dict in self.hist_data_dict[schema_name][feat_name] \
-                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].iteritems():
+                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].items():
 
                 if len(src_dict['dotastro_featvals']) > 0:
                     plot_data_list.append(numpy.array(src_dict['noisified_featvals']) - src_dict['dotastro_featvals'][0])
@@ -935,7 +935,7 @@ time.sleep(3)
                                             normed=0, alpha=0.75, label='DotAstro source matched',
                                             rwidth=1.0, histtype='barstacked') #THIS DOESNT WORK FOR .hist(): , colors=range(len(plot_data_list)), cmap=pyplot.cm.spectral
             except:
-                print 'EXCEPT: noisification_analysis.py:885, class_dict=', class_dict
+                print('EXCEPT: noisification_analysis.py:885, class_dict=', class_dict)
                 #n2, bins, patches = ax.hist(plot_data_list[0],
                 #                            50, log=0,
                 #                            normed=0, facecolor='r', alpha=0.75, label='DotAstro source matched',
@@ -982,18 +982,18 @@ time.sleep(3)
         # dotastro_src_feat_dict :: [src_id]:<feat_val>
 
         """
-        if not self.hist_data_dict.has_key(schema_name):
+        if schema_name not in self.hist_data_dict:
             self.hist_data_dict[schema_name] = {}
-        if not self.hist_data_dict[schema_name].has_key(feat_name):
+        if feat_name not in self.hist_data_dict[schema_name]:
             self.hist_data_dict[schema_name][feat_name] = {}
-        if not self.hist_data_dict[schema_name][feat_name].has_key(class_name):
+        if class_name not in self.hist_data_dict[schema_name][feat_name]:
             self.hist_data_dict[schema_name][feat_name][class_name] = {}
 
 
-        if not self.hist_data_dict[schema_name][feat_name][class_name].has_key('dotastro_noise_relation_dicts'):
+        if 'dotastro_noise_relation_dicts' not in self.hist_data_dict[schema_name][feat_name][class_name]:
             self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'] = {}
 
-        if not self.hist_data_dict[schema_name][feat_name][class_name].has_key('jsbvar_noise_relation_dicts'):
+        if 'jsbvar_noise_relation_dicts' not in self.hist_data_dict[schema_name][feat_name][class_name]:
             self.hist_data_dict[schema_name][feat_name][class_name]['jsbvar_featval_lists'] = {'all_featvals':[]}
 
         # Debug:
@@ -1002,12 +1002,12 @@ time.sleep(3)
 
         ##### Noisified sources: #####
         all_noisesrc_featval_list = []
-        for ((dotastro_srcid, noise_float_id),feat_dict) in noisesrc_feat_dict.iteritems():
+        for ((dotastro_srcid, noise_float_id),feat_dict) in noisesrc_feat_dict.items():
             #if not dotastrosrcid_featvals.has_key(dotastro_srcid):
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
             all_noisesrc_featval_list.append(feat_dict['feat_val'])
-            if not self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'].has_key(dotastro_srcid):
+            if dotastro_srcid not in self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts']:
                 self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'][dotastro_srcid] = {\
                             'dotastro_featvals':[],
                             'noisified_featvals':[]}
@@ -1018,7 +1018,7 @@ time.sleep(3)
 
         ##### TCP / PTF sources which are classified as this schema:class with probability >= 90% #####
         tcpsrc_featval_list = []
-        for tcp_srcid, tcp_src_dict in tcpsrc_feat_prob_dict.iteritems():
+        for tcp_srcid, tcp_src_dict in tcpsrc_feat_prob_dict.items():
             if ((tcp_src_dict['prob'] >= self.pars['prob_cut_for_plotting_of_tcpsrc']) and
                 (tcp_src_dict['feat_val'] != None)):
                 tcpsrc_featval_list.append(tcp_src_dict['feat_val'])
@@ -1026,14 +1026,14 @@ time.sleep(3)
 
         ##### Original DotAstro sources: #####
         all_dotastro_featval_list = []
-        for (dotastro_srcid,feat_val) in dotastro_src_feat_dict.iteritems():
+        for (dotastro_srcid,feat_val) in dotastro_src_feat_dict.items():
             #if not dotastrosrcid_featvals.has_key(dotastro_srcid):
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
             if feat_val != None:
                 all_dotastro_featval_list.append(feat_val)
                 #ax.plot([feat_val], [3], 'o', color='r')
-                if self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'].has_key(dotastro_srcid):
+                if dotastro_srcid in self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts']:
                     self.hist_data_dict[schema_name][feat_name][class_name] \
                           ['dotastro_noise_relation_dicts'][dotastro_srcid]['dotastro_featvals'].append(feat_val)
 
@@ -1042,7 +1042,7 @@ time.sleep(3)
         #####
         ##### JSB-var astronomer classified sources (simbad...): #####
         jsbvar_featval_list = []
-        for (tcp_srcid,feat_val) in jsbvar_src_feat_dict.iteritems():
+        for (tcp_srcid,feat_val) in jsbvar_src_feat_dict.items():
             #if not dotastrosrcid_featvals.has_key(dotastro_srcid):
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
@@ -1102,28 +1102,28 @@ time.sleep(3)
 
         all_related_classes = []
         all_related_classes.append(class_name)
-        if disambiguate_sci_class_dict.has_key(class_name):
+        if class_name in disambiguate_sci_class_dict:
             canonical_classname = disambiguate_sci_class_dict[class_name]
             if not canonical_classname in all_related_classes:
                 all_related_classes.append(canonical_classname)
-            for ambig_classname, associated_classname in disambiguate_sci_class_dict.iteritems():
+            for ambig_classname, associated_classname in disambiguate_sci_class_dict.items():
                 if associated_classname == canonical_classname:
                     if not ambig_classname in all_related_classes:
                         all_related_classes.append(ambig_classname)
-        elif class_name in disambiguate_sci_class_dict.values():
+        elif class_name in list(disambiguate_sci_class_dict.values()):
             # kludgy:
-            for k,v in disambiguate_sci_class_dict.iteritems():
+            for k,v in disambiguate_sci_class_dict.items():
                 if class_name == v:
                     canonical_classname = k
                     if not canonical_classname in all_related_classes:
                         all_related_classes.append(canonical_classname)
                     #all_related_classes.append(class_name)
 
-        if not self.related_classes_dict.has_key(schema_name):
+        if schema_name not in self.related_classes_dict:
             self.related_classes_dict[schema_name] = {}
-        if not self.related_classes_dict[schema_name].has_key(feat_name):
+        if feat_name not in self.related_classes_dict[schema_name]:
             self.related_classes_dict[schema_name][feat_name] = {}
-        if not self.related_classes_dict[schema_name][feat_name].has_key(class_name):
+        if class_name not in self.related_classes_dict[schema_name][feat_name]:
             self.related_classes_dict[schema_name][feat_name][class_name] = {}
 
         self.related_classes_dict[schema_name][feat_name][class_name] = all_related_classes

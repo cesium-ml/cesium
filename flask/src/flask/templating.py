@@ -77,7 +77,7 @@ class DispatchingJinjaLoader(BaseLoader):
         except (ValueError, KeyError):
             pass
 
-        for blueprint in self.app.blueprints.itervalues():
+        for blueprint in self.app.blueprints.values():
             if blueprint_is_module(blueprint):
                 continue
             loader = blueprint.jinja_loader
@@ -90,7 +90,7 @@ class DispatchingJinjaLoader(BaseLoader):
         if loader is not None:
             result.update(loader.list_templates())
 
-        for name, blueprint in self.app.blueprints.iteritems():
+        for name, blueprint in self.app.blueprints.items():
             loader = blueprint.jinja_loader
             if loader is not None:
                 for template in loader.list_templates():

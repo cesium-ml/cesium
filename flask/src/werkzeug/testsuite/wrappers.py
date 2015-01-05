@@ -10,7 +10,7 @@
 """
 import unittest
 import pickle
-from StringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 from werkzeug.testsuite import WerkzeugTestCase
@@ -52,7 +52,7 @@ def request_demo_app(environ, start_response):
 
 def prepare_environ_pickle(environ):
     result = {}
-    for key, value in environ.iteritems():
+    for key, value in environ.items():
         try:
             pickle.dumps((key, value))
         except Exception:
@@ -125,8 +125,8 @@ class WrappersTestCase(WerkzeugTestCase):
 
     def test_url_request_descriptors(self):
         req = wrappers.Request.from_values('/bar?foo=baz', 'http://example.com/test')
-        assert req.path == u'/bar'
-        assert req.script_root == u'/test'
+        assert req.path == '/bar'
+        assert req.script_root == '/test'
         assert req.url == 'http://example.com/test/bar?foo=baz'
         assert req.base_url == 'http://example.com/test/bar'
         assert req.url_root == 'http://example.com/test/'
@@ -148,7 +148,7 @@ class WrappersTestCase(WerkzeugTestCase):
 
     def test_base_response(self):
         # unicode
-        response = wrappers.BaseResponse(u'öäü')
+        response = wrappers.BaseResponse('öäü')
         assert response.data == 'öäü'
 
         # writing
@@ -176,7 +176,7 @@ class WrappersTestCase(WerkzeugTestCase):
         # close call forwarding
         closed = []
         class Iterable(object):
-            def next(self):
+            def __next__(self):
                 raise StopIteration()
             def __iter__(self):
                 return self
@@ -484,8 +484,8 @@ class WrappersTestCase(WerkzeugTestCase):
 
     def test_urlfication(self):
         resp = wrappers.Response()
-        resp.headers['Location'] = u'http://üser:pässword@☃.net/påth'
-        resp.headers['Content-Location'] = u'http://☃.net/'
+        resp.headers['Location'] = 'http://üser:pässword@☃.net/påth'
+        resp.headers['Content-Location'] = 'http://☃.net/'
         headers = resp.get_wsgi_headers(create_environ())
         assert headers['location'] == \
             'http://%C3%BCser:p%C3%A4ssword@xn--n3h.net/p%C3%A5th'
@@ -493,7 +493,7 @@ class WrappersTestCase(WerkzeugTestCase):
 
     def test_new_response_iterator_behavior(self):
         req = wrappers.Request.from_values()
-        resp = wrappers.Response(u'Hello Wörld!')
+        resp = wrappers.Response('Hello Wörld!')
 
         def get_content_length(resp):
             headers = wrappers.Headers.linked(resp.get_wsgi_headers(req.environ))
@@ -501,20 +501,20 @@ class WrappersTestCase(WerkzeugTestCase):
 
         def generate_items():
             yield "Hello "
-            yield u"Wörld!"
+            yield "Wörld!"
 
         # werkzeug encodes when set to `data` now, which happens
         # if a string is passed to the response object.
-        assert resp.response == [u'Hello Wörld!'.encode('utf-8')]
-        assert resp.data == u'Hello Wörld!'.encode('utf-8')
+        assert resp.response == ['Hello Wörld!'.encode('utf-8')]
+        assert resp.data == 'Hello Wörld!'.encode('utf-8')
         assert get_content_length(resp) == 13
         assert not resp.is_streamed
         assert resp.is_sequence
 
         # try the same for manual assignment
-        resp.data = u'Wörd'
-        assert resp.response == [u'Wörd'.encode('utf-8')]
-        assert resp.data == u'Wörd'.encode('utf-8')
+        resp.data = 'Wörd'
+        assert resp.response == ['Wörd'.encode('utf-8')]
+        assert resp.data == 'Wörd'.encode('utf-8')
         assert get_content_length(resp) == 5
         assert not resp.is_streamed
         assert resp.is_sequence
@@ -523,8 +523,8 @@ class WrappersTestCase(WerkzeugTestCase):
         resp.response = generate_items()
         assert resp.is_streamed
         assert not resp.is_sequence
-        assert resp.data == u'Hello Wörld!'.encode('utf-8')
-        assert resp.response == ['Hello ', u'Wörld!'.encode('utf-8')]
+        assert resp.data == 'Hello Wörld!'.encode('utf-8')
+        assert resp.response == ['Hello ', 'Wörld!'.encode('utf-8')]
         assert not resp.is_streamed
         assert resp.is_sequence
 
@@ -535,8 +535,8 @@ class WrappersTestCase(WerkzeugTestCase):
         assert not resp.is_sequence
         self.assert_raises(RuntimeError, lambda: resp.data)
         resp.make_sequence()
-        assert resp.data == u'Hello Wörld!'.encode('utf-8')
-        assert resp.response == ['Hello ', u'Wörld!'.encode('utf-8')]
+        assert resp.data == 'Hello Wörld!'.encode('utf-8')
+        assert resp.response == ['Hello ', 'Wörld!'.encode('utf-8')]
         assert not resp.is_streamed
         assert resp.is_sequence
 

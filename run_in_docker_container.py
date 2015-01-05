@@ -1,7 +1,7 @@
 from subprocess import Popen, PIPE, call, check_call
-import cfg
+from . import cfg
 import uuid
-import cPickle
+import pickle
 import shutil
 #import dockerpy
 import uuid
@@ -78,7 +78,7 @@ def featurize_in_docker_container(
     
     arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/mltsp/copied_data_files"}
     with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
-        cPickle.dump(arguments,f)
+        pickle.dump(arguments,f)
     
     try:
         # run the docker container 
@@ -92,8 +92,8 @@ def featurize_in_docker_container(
                 "mltsp/featurize"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print "\n\ndocker container stdout:\n\n", stdout, \
-            "\n\ndocker container stderr:\n\n", stderr, "\n\n"
+        print("\n\ndocker container stdout:\n\n", stdout, \
+            "\n\ndocker container stderr:\n\n", stderr, "\n\n")
     
     
         # copy all necessary files produced in docker container to host
@@ -104,10 +104,10 @@ def featurize_in_docker_container(
                     (container_name, featureset_key, file_suffix),
                 cfg.FEATURES_FOLDER]
             status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-            print (
+            print((
                 os.path.join(
                     cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)), 
-                "copied to host machine - status code %s" % str(status_code))
+                "copied to host machine - status code %s" % str(status_code)))
     
         shutil.copy2(
             os.path.join(
@@ -117,7 +117,7 @@ def featurize_in_docker_container(
         os.remove(os.path.join(
             cfg.FEATURES_FOLDER, 
             "%s_features_with_classes.csv"%featureset_key))
-        print "Process complete."
+        print("Process complete.")
     except:
         raise
     finally:
@@ -126,7 +126,7 @@ def featurize_in_docker_container(
         # kill and remove the container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-        print "Docker container deleted."
+        print("Docker container deleted.")
     return "Featurization complete."
 
 
@@ -164,7 +164,7 @@ def build_model_in_docker_container(
     # on host to be mounted into container:
     arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/mltsp/copied_data_files"}
     with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
-        cPickle.dump(arguments,f)
+        pickle.dump(arguments,f)
     try:
         # run the docker container 
         cmd = ["docker", "run", 
@@ -177,8 +177,8 @@ def build_model_in_docker_container(
                 "mltsp/build_model"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print "\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n"
+        print("\n\ndocker container stdout:\n\n", stdout, \
+              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
         
         # copy all necessary files produced in Docker container to host
         cmd = [
@@ -190,10 +190,10 @@ def build_model_in_docker_container(
         #    cfg.MODELS_FOLDER,"%s_%s.pkl"%(featureset_key, model_type)),
         #    "copied to host machine - status code %s" % str(status_code)
         check_call(cmd)
-        print os.path.join(
+        print(os.path.join(
             cfg.MODELS_FOLDER,
-            "%s_%s.pkl"%(featureset_key,model_type)), "copied to host machine."
-        print "Process complete."
+            "%s_%s.pkl"%(featureset_key,model_type)), "copied to host machine.")
+        print("Process complete.")
     except:
         raise
     finally:
@@ -203,7 +203,7 @@ def build_model_in_docker_container(
         # kill and remove the container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-        print "Docker container deleted."
+        print("Docker container deleted.")
     
     return "Model creation complete. Click the Predict tab to start using it."
 
@@ -282,7 +282,7 @@ def predict_in_docker_container(
     
     arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/mltsp/copied_data_files"}
     with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
-        cPickle.dump(arguments,f)
+        pickle.dump(arguments,f)
     try:
         cmd = ["docker", "run", 
                 "-v", "%s:/home/mltsp/mltsp"%cfg.PROJECT_PATH, 
@@ -294,8 +294,8 @@ def predict_in_docker_container(
                 "mltsp/predict"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print "\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n"
+        print("\n\ndocker container stdout:\n\n", stdout, \
+              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
         
         # copy all necessary files produced in docker container to host
         cmd = [
@@ -305,18 +305,18 @@ def predict_in_docker_container(
                 (container_name, prediction_entry_key)),
             "/tmp"]
         status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-        print "/tmp/%s_pred_results.pkl"%prediction_entry_key, \
-              "copied to host machine - status code %s" % str(status_code)
+        print("/tmp/%s_pred_results.pkl"%prediction_entry_key, \
+              "copied to host machine - status code %s" % str(status_code))
         with open("/tmp/%s_pred_results.pkl"%prediction_entry_key, "rb") as f:
-            pred_results_dict = cPickle.load(f)
+            pred_results_dict = pickle.load(f)
         if type(pred_results_dict) != dict:
-            print ("run_in_docker_container.predict_in_docker_container() - " +
-                   "type(pred_results_dict) ="), type(pred_results_dict)
-            print "pred_results_dict:", pred_results_dict
+            print(("run_in_docker_container.predict_in_docker_container() - " +
+                   "type(pred_results_dict) ="), type(pred_results_dict))
+            print("pred_results_dict:", pred_results_dict)
             raise Exception("run_in_docker_container.predict_in_docker_" +
                             "container() error message - " +
                             "type(pred_results_dict) != dict")
-        print "Process complete."
+        print("Process complete.")
     except:
         raise
     finally:
@@ -325,7 +325,7 @@ def predict_in_docker_container(
         os.remove("/tmp/%s_pred_results.pkl"%prediction_entry_key)
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-        print "Docker container deleted."
+        print("Docker container deleted.")
     
     return pred_results_dict
 
@@ -345,8 +345,8 @@ def disco_test():
                 "disco_test"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print "\n\ndocker container stdout:\n\n", stdout, "\n\ndocker container stderr:\n\n", stderr, "\n\n"
-        print "Process complete."
+        print("\n\ndocker container stdout:\n\n", stdout, "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        print("Process complete.")
     except:
         raise
     finally:
@@ -354,7 +354,7 @@ def disco_test():
         # kill and remove the container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-        print "Docker container deleted."
+        print("Docker container deleted.")
         
     
     return "Test complete."

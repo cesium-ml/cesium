@@ -104,7 +104,7 @@ if __name__ == '__main__':
         #TODO: check if srcid.xml composed from ptf_cand_dict{srcid} is in the expected directory.  If so, just pass that xml-fpath as xml_handle.  Otherwise, generate the xml string (and write to file) and pass that.
         xml_fpath = "%s/%d_%s.xml" % (pars['intermediate_xml_dirpath'], ptf_cand_dict['srcid'], short_name)
         if os.path.exists(xml_fpath):
-            print "Found on disk:", xml_fpath
+            print("Found on disk:", xml_fpath)
         else:
             # NOTE: Since the Caltech database is currently down and we know we've ingested these ptf-ids already into our local database...
             #"""
@@ -122,7 +122,7 @@ if __name__ == '__main__':
             fp = open(xml_fpath, 'w')
             fp.write(ingested_src_xmltuple_dict[ptf_cand_dict['srcid']])
             fp.close()
-            print "Wrote on disk:", xml_fpath
+            print("Wrote on disk:", xml_fpath)
             #pprint.pprint(ptf_cand_dict)
 
 
@@ -133,4 +133,4 @@ if __name__ == '__main__':
 
     # This contains the final classification results:
     pprint.pprint(final_sn_classifications)
-    print
+    print()

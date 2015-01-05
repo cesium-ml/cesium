@@ -22,7 +22,7 @@ class SecurityTestCase(WerkzeugTestCase):
     def test_password_hashing(self):
         """Test the password hashing and password hash checking"""
         hash1 = generate_password_hash('default')
-        hash2 = generate_password_hash(u'default', method='sha1')
+        hash2 = generate_password_hash('default', method='sha1')
         assert hash1 != hash2
         assert check_password_hash(hash1, 'default')
         assert check_password_hash(hash2, 'default')
@@ -33,14 +33,14 @@ class SecurityTestCase(WerkzeugTestCase):
         assert fakehash == 'plain$$default'
         assert check_password_hash(fakehash, 'default')
 
-        mhash = generate_password_hash(u'default', method='md5')
+        mhash = generate_password_hash('default', method='md5')
         assert mhash.startswith('md5$')
         assert check_password_hash(mhash, 'default')
 
         legacy = 'md5$$c21f969b5f03d33d43e04f8f136e7682'
         assert check_password_hash(legacy, 'default')
 
-        legacy = u'md5$$c21f969b5f03d33d43e04f8f136e7682'
+        legacy = 'md5$$c21f969b5f03d33d43e04f8f136e7682'
         assert check_password_hash(legacy, 'default')
 
     def test_safe_join(self):

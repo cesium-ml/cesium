@@ -100,7 +100,7 @@ class Source_Feature_Class_Generator:
         #f = open('testsuite.transx_production_configs.par.py')
         f = open('testsuite.par.py')# Import params from testsuite, which
         #                             allows 127.0.0.1 test configs.
-        exec f
+        exec(f)
         f.close()
         self.pars = parameters['ingest_tools_pars']
         self.pars.update(pars)
@@ -235,7 +235,7 @@ class ClassificationHandler:
         # Weka class-schema case:
         #weka_defs = self.class_schema_definition_dicts['WEKA full']
 
-        class_schema_name_list = self.class_schema_definition_dicts.keys()
+        class_schema_name_list = list(self.class_schema_definition_dicts.keys())
         class_schema_name_list.remove('mlens3 MicroLens')
         class_schema_name_list.remove('Dovi SN')
         class_schema_name_list.remove('General')
@@ -247,7 +247,7 @@ class ClassificationHandler:
                                               weka_defs['weka_training_arff_fpath'])
             weka_defs['classes_arff_str'] = classes_arff_str
             weka_defs['classname_colnum_dict'] = classname_colnum_dict
-            weka_defs['class_list'] = weka_defs['classname_colnum_dict'].values()
+            weka_defs['class_list'] = list(weka_defs['classname_colnum_dict'].values())
             weka_defs['n_features'] = len(features_list)
             weka_defs['features_list'] = features_list
             #self.training_arff_features_list = features_list #KLUDGEY
@@ -351,7 +351,7 @@ class ClassificationHandler:
 
             insert_list = ["INSERT INTO %s (schema_id, class_id, class_name, schema_n_feats, schema_n_classes, schema_comment, schema_dtime) VALUES " % (self.pars['classid_lookup_tablename'])]
             class_schema_definition['class_name_id_dict'] = {}
-            for i in xrange(len(class_schema_definition['class_list'])):
+            for i in range(len(class_schema_definition['class_list'])):
                 class_name = class_schema_definition['class_list'][i]
                 class_schema_definition['class_name_id_dict'][class_name] = i
                 insert_list.append("(%d, %d, '%s', %d, %d, '%s', NOW()), " % \
@@ -422,7 +422,7 @@ class ClassificationHandler:
         #        temp_list.append(raw_classname)
 
         classname_colnum_dict = {}
-        for i in xrange(len(temp_list)):
+        for i in range(len(temp_list)):
             classname_colnum_dict[i] = temp_list[i]
 
         return classname_colnum_dict
@@ -460,7 +460,7 @@ class ClassificationHandler:
             classindex_prob_list = line.split()[-1].replace('*','').split(',')
 
             prob_index_tup_list = []
-            for i in xrange(len(classindex_prob_list)):
+            for i in range(len(classindex_prob_list)):
                 prob = float(classindex_prob_list[i])
                 if prob > 0:
                     prob_index_tup_list.append((prob,i))
@@ -519,7 +519,7 @@ class ClassificationHandler:
 
             for fea in self.arffmaker.master_features:
                 val = None
-                if obj['features'].has_key(fea):
+                if fea in obj['features']:
                     str_fea_val = str(obj['features'][fea])
                     if ((str_fea_val == "False") or
                         (str_fea_val == "inf") or
@@ -612,7 +612,7 @@ class ClassificationHandler:
 
         prob_weight = 1.0 # This property may be used in Nat/Dovi to represent
         #              science classes which are known to be non applicable (0.0)
-        for j in xrange(len(class_prob_list_of_lists)):
+        for j in range(len(class_prob_list_of_lists)):
             class_prob_list = class_prob_list_of_lists[j]
             src_id = self.arffmaker.master_list[j]['num']
 
@@ -620,7 +620,7 @@ class ClassificationHandler:
             if n_classes_to_insert > 3:
                 n_classes_to_insert = 3
             class_probs_dict[src_id] = []
-            for i in xrange(n_classes_to_insert):
+            for i in range(n_classes_to_insert):
                 (class_name, class_prob) = class_prob_list[i]
                 # NOTE: in Weka output parsing, we have already ordered the
                 #       class_prob_list to have most probable as first element
@@ -679,7 +679,7 @@ class ClassificationHandler:
 
         """
         if do_logging:
-            print "before: self.PlugClass.do_classification()"
+            print("before: self.PlugClass.do_classification()")
         #does this do both mlens3 and weka & return?
         (class_probs_dict, plugin_classification_dict) = \
                                  self.PlugClass.do_classification(vosource_list, \
@@ -687,7 +687,7 @@ class ClassificationHandler:
                                           self.class_schema_definition_dicts, \
                                           do_logging=do_logging)
         if do_logging:
-            print "before: class TABLE INSERT"
+            print("before: class TABLE INSERT")
 
         # KLUDGE: this externally accessible list is referenced for TESTING
         #      using analyze_iterative_tutor_classification.py via ptf_master.py
@@ -698,7 +698,7 @@ class ClassificationHandler:
         #insert_list = ["INSERT INTO %s (schema_id, class_id, prob, src_id, class_rank) VALUES " % (self.pars['src_class_probs_tablename'])]
         insert_list = ["INSERT INTO %s (schema_id, class_id, prob, src_id, class_rank, prob_weight, gen_dtime) VALUES " % (self.pars['src_class_probs_tablename'])]
         do_insert = True # NOTE: making the assumtion that vosource_list only contains a single source (which has benn the case so far).
-        for src_id,class_probs_list in class_probs_dict.iteritems():
+        for src_id,class_probs_list in class_probs_dict.items():
             for class_dict in class_probs_list:
                 schema_id = class_dict['schema_id']
                 class_id = class_dict['class_id']
@@ -732,7 +732,7 @@ class ClassificationHandler:
                                         prob,
                                         src_id,
                                         class_rank))
-                if not self.classname_classprob_classrank_list.has_key(plugin_name):
+                if plugin_name not in self.classname_classprob_classrank_list:
                     self.classname_classprob_classrank_list[plugin_name] = []
                 self.classname_classprob_classrank_list[plugin_name].append(\
                                              (class_name, prob, class_rank))
@@ -746,10 +746,10 @@ class ClassificationHandler:
             # Insert classifications into VOSource.xml strings which we return:
             for (src_id, orig_vosource_xml) in vosource_list:
                 if do_logging:
-                    print "before: db_importer.vosource_classification_obj()"
+                    print("before: db_importer.vosource_classification_obj()")
                 vosource_class_obj = db_importer.vosource_classification_obj()
                 if do_logging:
-                    print "before: vosource_class_obj.add_classif_prob("
+                    print("before: vosource_class_obj.add_classif_prob(")
                 for class_dict in class_probs_dict[src_id]:
                     schema_id = class_dict['schema_id']
                     #class_id = class_dict['class_id']
@@ -762,12 +762,12 @@ class ClassificationHandler:
                                                 src_name=str(src_id),
                                                 class_schema_name=str(schema_id))
                 if do_logging:
-                    print "before: add_class_xml_to_existing_vosource_xml()"
+                    print("before: add_class_xml_to_existing_vosource_xml()")
                 new_xml_string = vosource_class_obj.\
                         add_class_xml_to_existing_vosource_xml(orig_vosource_xml)
                 new_vosource_list.append((src_id, new_xml_string))
         if do_logging:
-            print "At Return in generate_insert_classification_using_vosource_list() (CLASSIFICATIONS DONE)"
+            print("At Return in generate_insert_classification_using_vosource_list() (CLASSIFICATIONS DONE)")
         return new_vosource_list
 
 

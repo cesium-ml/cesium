@@ -91,7 +91,7 @@ class Data_Parse(DB_Connector):
                 else:
                     data_dict[col_names[i]] = str(val)
             src_id = data_dict['jsb_source_id'] # ['main_id']
-            if not all_data_dict.has_key(src_id):
+            if src_id not in all_data_dict:
                 all_data_dict[src_id] = {'src_id':src_id,
                                          'class_type':data_dict['otype'],
                                          'ra':data_dict['ra'],
@@ -108,8 +108,8 @@ class Data_Parse(DB_Connector):
             all_data_dict[src_id]['ts']['lbl_id'].append(data_dict['lbl_id'])
             all_data_dict[src_id]['ts']['filt'].append(data_dict['filter'])
 
-        for src_id,src_dict in all_data_dict.iteritems():
-            for a_name, a_list in src_dict['ts'].iteritems():
+        for src_id,src_dict in all_data_dict.items():
+            for a_name, a_list in src_dict['ts'].items():
                 src_dict['ts'][a_name] = numpy.array(a_list)
 
         return all_data_dict
@@ -147,11 +147,11 @@ class Data_Parse(DB_Connector):
                         data_dict[col_names[i]] = float(val)
                 else:
                     data_dict[col_names[i]] = str(val)
-            if not srcid_lookup.has_key(data_dict['simbad_name']):
+            if data_dict['simbad_name'] not in srcid_lookup:
                 max_srcid += 1
                 srcid_lookup[data_dict['simbad_name']] = copy.copy(max_srcid) # data_dict['simbad_name'] # ['main_id']
             src_id = srcid_lookup[data_dict['simbad_name']]
-            if not all_data_dict.has_key(src_id):
+            if src_id not in all_data_dict:
                 all_data_dict[src_id] = {'src_id':src_id,
                                          'class_type':data_dict['simbad_type'],
                                          'ra':data_dict['ra'],
@@ -168,8 +168,8 @@ class Data_Parse(DB_Connector):
             all_data_dict[src_id]['ts']['lbl_id'].append(data_dict['lbl_id'])
             all_data_dict[src_id]['ts']['filt'].append(data_dict['filter'])
 
-        for src_id,src_dict in all_data_dict.iteritems():
-            for a_name, a_list in src_dict['ts'].iteritems():
+        for src_id,src_dict in all_data_dict.items():
+            for a_name, a_list in src_dict['ts'].items():
                 src_dict['ts'][a_name] = numpy.array(a_list)
 
         return all_data_dict
@@ -232,7 +232,7 @@ class Data_Parse(DB_Connector):
         """ A Hack for temporoary table fix.
         """
 
-        for src_id, src_dict in data_dict.iteritems():
+        for src_id, src_dict in data_dict.items():
             #tcp_srcid = "Null"
             #if jsb_tcp_srcid_lookup[src_dict['src_id']] != None:
             #    tcp_srcid = str(jsb_tcp_srcid_lookup[src_dict['src_id']]['tcp_srcid'])
@@ -251,7 +251,7 @@ class Data_Parse(DB_Connector):
 
         insert_list = ["INSERT INTO %s (jsb_srcid, lbl_id, ujd, mag_err, mag_total, filt) VALUES " % (self.pars['data_tablename'])]
 
-        for src_id, src_dict in data_dict.iteritems():
+        for src_id, src_dict in data_dict.items():
             if src_dict['ts']['ujd'].size == 1:
                 insert_list.append('(%d, %d, %lf, %lf, %lf, "%s"), ' % ( \
                                    src_dict['src_id'],
@@ -261,7 +261,7 @@ class Data_Parse(DB_Connector):
                                    src_dict['ts']['mtotal'],
                                    src_dict['ts']['filt']))
             else:
-                for i in xrange(src_dict['ts']['ujd'].size):
+                for i in range(src_dict['ts']['ujd'].size):
                     insert_list.append('(%d, %d, %lf, %lf, %lf, "%s"), ' % ( \
                                    src_dict['src_id'],
                                    src_dict['ts']['lbl_id'][i],
@@ -275,7 +275,7 @@ class Data_Parse(DB_Connector):
         ### Lookup table:
         insert_list = ["INSERT INTO %s (jsb_srcid, tcp_srcid, class_type, ra, decl, jsb_period, jsb_amp) VALUES " % (self.pars['lookup_tablename'])]
 
-        for src_id, src_dict in data_dict.iteritems():
+        for src_id, src_dict in data_dict.items():
             tcp_srcid = "Null"
             if jsb_tcp_srcid_lookup[src_dict['src_id']] != None:
                 tcp_srcid = str(jsb_tcp_srcid_lookup[src_dict['src_id']]['tcp_srcid'])
@@ -297,7 +297,7 @@ class Data_Parse(DB_Connector):
         """
         jsb_tcp_srcid_lookup = {}
 
-        for src_dict in data_dict.values():
+        for src_dict in list(data_dict.values()):
             src_id = src_dict['src_id']
 
             if self.pars['do_lbl_check']:
@@ -462,7 +462,7 @@ class Data_Parse(DB_Connector):
         ##### ingest_tools.py : get_vosourcelist_for_ptf_using_srcid()
 
 
-        print
+        print()
 
         # TODO: ? What will arff generation code want?
         #    - want to generate arff with PTF/TCP data but user-classifications.
@@ -496,7 +496,7 @@ class Data_Parse(DB_Connector):
             srcid_list.append(row[0])
 
         list_incr = 5
-        for i_low in xrange(0, len(srcid_list), list_incr):
+        for i_low in range(0, len(srcid_list), list_incr):
             short_srcid_list = srcid_list[i_low:i_low + list_incr]
             if 0:
                 ### For debugging only:
@@ -616,7 +616,7 @@ order by feat_val"""
                              'freq2':{'feat_id':1520},
                              'freq3':{'feat_id':89}}
         all_freq_dict = {}
-        for freq_name, freq_dict in freq_feat_id_dict.iteritems():
+        for freq_name, freq_dict in freq_feat_id_dict.items():
             select_str = """select source_test_db.feat_values.feat_val, count(object_test_db.obj_srcid_lookup.obj_id) AS n_epochs, object_test_db.obj_srcid_lookup.src_id, source_test_db.jsbvars_lookup.jsb_period, source_test_db.one_src_model_class_probs.class_name
 FROM source_test_db.jsbvars_lookup
 JOIN source_test_db.feat_values ON (feat_values.src_id=source_test_db.jsbvars_lookup.tcp_srcid)
@@ -638,7 +638,7 @@ order by src_id"""
                 tcp_freqs.append(row[0])
                 nepochs.append(row[1])
                 jsb_freqs.append(1.0 / row[3])
-                if not all_freq_dict.has_key(srcid):
+                if srcid not in all_freq_dict:
                     all_freq_dict[srcid] = {}
                 all_freq_dict[srcid][freq_name] = row[0]
                 all_freq_dict[srcid]['jsb_freq'] = 1.0 / row[3]
@@ -653,7 +653,7 @@ order by src_id"""
         best_freq_num_list = []
         jsb_freqs = []
         nepochs = []
-        for srcid,src_dict in all_freq_dict.iteritems():
+        for srcid,src_dict in all_freq_dict.items():
             jsb_freqs.append(src_dict.get('jsb_freq',1000))
             nepochs.append(src_dict['nepochs'])
             best_freq = src_dict.get('freq1',100)
@@ -704,7 +704,7 @@ order by src_id"""
                              'freq2':{'feat_id':1520},
                              'freq3':{'feat_id':89}}
         all_freq_dict = {}
-        for freq_name, freq_dict in freq_feat_id_dict.iteritems():
+        for freq_name, freq_dict in freq_feat_id_dict.items():
             select_str = """select source_test_db.feat_values.feat_val, count(object_test_db.obj_srcid_lookup.obj_id) AS n_epochs, object_test_db.obj_srcid_lookup.src_id, source_test_db.jsbvars_lookup.jsb_period from source_test_db.jsbvars_lookup
 JOIN source_test_db.feat_values ON (feat_values.src_id=source_test_db.jsbvars_lookup.tcp_srcid)
 JOIN object_test_db.obj_srcid_lookup ON (object_test_db.obj_srcid_lookup.src_id=feat_values.src_id)
@@ -722,7 +722,7 @@ order by src_id"""
                 tcp_freqs.append(row[0])
                 nepochs.append(row[1])
                 jsb_freqs.append(1.0 / row[3])
-                if not all_freq_dict.has_key(srcid):
+                if srcid not in all_freq_dict:
                     all_freq_dict[srcid] = {}
                 all_freq_dict[srcid][freq_name] = row[0]
                 all_freq_dict[srcid]['jsb_freq'] = 1.0 / row[3]
@@ -737,7 +737,7 @@ order by src_id"""
         best_freq_num_list = []
         jsb_freqs = []
         nepochs = []
-        for srcid,src_dict in all_freq_dict.iteritems():
+        for srcid,src_dict in all_freq_dict.items():
             jsb_freqs.append(src_dict.get('jsb_freq',1000))
             nepochs.append(src_dict['nepochs'])
             best_freq = src_dict.get('freq1',100)

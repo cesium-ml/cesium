@@ -21,5 +21,5 @@ class closest_in_light_angular_offset_in_arcmin(ContextFeatureExtractor):
         else:
             rez = ret
         if self.verbose:
-            print n
+            print(n)
         return rez

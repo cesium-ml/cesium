@@ -44,7 +44,7 @@ class Sdss_Ingest_Monitor:
     def __init__(self, pars):
         self.pars = pars
         self.running_tasks = {}
-        for hostname in self.pars['host_defs'].keys():
+        for hostname in list(self.pars['host_defs'].keys()):
             self.running_tasks.update({hostname:{'running_threads':[]}})
 
     def ingest_thread(self, node_dict):
@@ -72,17 +72,17 @@ class Sdss_Ingest_Monitor:
         """ Check whether any of the threads are done.
         Remove them from the threads[]
         """
-        for hostname,run_dict in self.running_tasks.iteritems():
+        for hostname,run_dict in self.running_tasks.items():
             for t in run_dict['running_threads']:
                 if not t.isAlive():
                     run_dict['running_threads'].remove(t)
-                    print 'removed from:', hostname
+                    print('removed from:', hostname)
 
 
     def start_new_threads(self):
         """ Start new tasks on available nodes.
         """
-        for hostname,run_dict in self.running_tasks.iteritems():
+        for hostname,run_dict in self.running_tasks.items():
             n_tasks_to_spawn = self.pars['host_defs'][hostname]['n_instances'] - len(run_dict['running_threads'])
             while (n_tasks_to_spawn > 0):
                 #self.ingest_thread(self.pars['host_defs'][hostname])

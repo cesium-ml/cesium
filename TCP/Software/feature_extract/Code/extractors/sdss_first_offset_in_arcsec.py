@@ -12,27 +12,27 @@ class sdss_first_offset_in_arcsec(ContextFeatureExtractor):
 
         if n is None:
             if self.verbose:
-                print "Nothing in the sdss extractor"
+                print("Nothing in the sdss extractor")
             return None
 
-        if not n.has_key("in_footprint"):
+        if "in_footprint" not in n:
             if self.verbose:
-                print "No footprint info in the sdss extractor. Should never happen."
+                print("No footprint info in the sdss extractor. Should never happen.")
             return None
 
         if not n['in_footprint']:
             if self.verbose:
-                print "Not in the footprint"
+                print("Not in the footprint")
             return None
 
-        if not n.has_key("first_offset_in_arcsec"):
+        if "first_offset_in_arcsec" not in n:
             if self.verbose:
-                print "Desired parameter was not determined"
+                print("Desired parameter was not determined")
             return None
 
-        if not n.has_key("dist_in_arcmin"):
+        if "dist_in_arcmin" not in n:
             if self.verbose:
-                print "Desired parameter was not determined"
+                print("Desired parameter was not determined")
             return None
 
         if n["dist_in_arcmin"] > self.light_cutoff:
@@ -40,5 +40,5 @@ class sdss_first_offset_in_arcsec(ContextFeatureExtractor):
         else:
             rez = n["first_offset_in_arcsec"]
         if self.verbose:
-            print n
+            print(n)
         return rez

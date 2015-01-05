@@ -76,5 +76,5 @@ def write_nb_to_file(nb, filename):
         filename += ".ipynb"
     with open(filename,'w') as f:
         f.write(str(nb).replace("'",'"').replace('"false"',"false"))
-    print filename, "created."
+    print(filename, "created.")
     return

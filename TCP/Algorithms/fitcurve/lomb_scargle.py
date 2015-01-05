@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from __future__ import division
+
 from numpy import *
 from numpy.random import normal
 from scipy.stats import norm,betai
@@ -43,7 +43,7 @@ def peak2sigma(psdpeak,n0):
 
     # ballpark number of independent frequencies
     #  (Horne and Baliunas, eq. 13)
-    horne = long(-6.362+1.193*n0+0.00098*n0**2.)
+    horne = int(-6.362+1.193*n0+0.00098*n0**2.)
     if (horne <= 0): horne=5
 
     if (lprob0>log(1.e-4) and prob0>0):
@@ -436,7 +436,7 @@ def lomb__numpy20100913efficent(time,signal,wt=[],freqin=[]):
     s2 = zeros(numf,'float64'); c2 = zeros(numf,'float64')
     sh = zeros(numf,'float64'); ch = zeros(numf,'float64')
 
-    for i in xrange(numt):
+    for i in range(numt):
         x = freqin * tt[i]
         sinx, cosx = sin(x), cos(x)
         tmp = wt[i]*sinx;
@@ -605,10 +605,10 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 
     # if omega is not given, compute it
     if (freqin==[]):
-        numf = long( ceil( (fmax-fmin)/df ) )
+        numf = int( ceil( (fmax-fmin)/df ) )
         if (numf>num_freq_max):
-            if (verbosity>1): print ("Warning: shrinking num_freq %d -> %d (num_freq_max)") % (numf,num_freq_max)
-            numf = long(num_freq_max)
+            if (verbosity>1): print(("Warning: shrinking num_freq %d -> %d (num_freq_max)") % (numf,num_freq_max))
+            numf = int(num_freq_max)
             #fmax = fmin + numf*df
             df = (fmax - fmin)/numf
         freqin = fmax - df*arange(numf,dtype=float)
@@ -753,7 +753,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
         psdpeak = zeros(multiple, dtype=float)
         for m in range(multiple):
             if ((m+1)%100 == 0) and (verbosity>0):
-                print "...working on %ith simulation. (%.2f Done)" % (m,m/multiple)
+                print("...working on %ith simulation. (%.2f Done)" % (m,m/multiple))
 
             # Gaussian noise simulation
             cn = normal(loc=0.0,scale=1.,size=n0)/sqrt(wt)
@@ -788,7 +788,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
         # False Alarm Probability according to simulations
         if len(psdpeak) != 0:
             psdpeak.sort()
-            psd0 = psdpeak[ long((1-fap)*(multiple-1)) ]
+            psd0 = psdpeak[ int((1-fap)*(multiple-1)) ]
             simsigni = peak2sigma(psd0,n0)
 
 
@@ -844,7 +844,7 @@ if __name__ == '__main__':
     minlogx = log(0.5/(time[-1]-time[0])) #min frequency is 0.5/T
 
     # sample the PSD with 1% fractional precision
-    M=long(ceil( (maxlogx-minlogx)*100. ))
+    M=int(ceil( (maxlogx-minlogx)*100. ))
     frequencies = exp(maxlogx-arange(M, dtype=float) / (M-1.) * (maxlogx-minlogx))
     fap = 0.01  # we want to see what psd peak this false alarm probability would correspond to
 
@@ -858,21 +858,21 @@ signal_err=dnoisedata,freqin=frequencies,fap=fap,multiple=multiple)
     freq_max = freqs[imax]
 
     mpsd=max(psd)
-    print ("Peak=%.2f @ %.2f Hz, significance estimate: %.1f-sigma (T-test)") % (mpsd,freq_max,signi)
+    print(("Peak=%.2f @ %.2f Hz, significance estimate: %.1f-sigma (T-test)") % (mpsd,freq_max,signi))
 
     if (len(peak_sort)>0):
 
-        psd0 = peak_sort[ long((1-fap)*(multiple-1)) ]
-        print ("Expected peak %.2f for False Alarm of %.2e") % (psd0,fap)
+        psd0 = peak_sort[ int((1-fap)*(multiple-1)) ]
+        print(("Expected peak %.2f for False Alarm of %.2e") % (psd0,fap))
 
         Prob0 = betai( 0.5*N-2.,0.5,(N-1.)/(N-1.+2.*psd0) )
         Nindep = log(1-fap)/log(1-Prob0)
-        horne = long(-6.362+1.193*N+0.00098*N**2.)
+        horne = int(-6.362+1.193*N+0.00098*N**2.)
         if (horne <= 0): horne=5
-        print ("Estimated number of independent trials: %.2f (horne=%d)") % (Nindep,horne)
+        print(("Estimated number of independent trials: %.2f (horne=%d)") % (Nindep,horne))
 
         nover = sum( peak_sort>=mpsd )
-        print ("Fraction of simulations with peak greater than observed value: %d/%d") % (nover,multiple)
+        print(("Fraction of simulations with peak greater than observed value: %d/%d") % (nover,multiple))
 
 """
 import Gnuplot

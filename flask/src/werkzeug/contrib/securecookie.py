@@ -89,7 +89,7 @@ r"""
     :license: BSD, see LICENSE for more details.
 """
 import sys
-import cPickle as pickle
+import pickle as pickle
 from hmac import new as hmac
 from time import time
 from werkzeug.urls import url_quote_plus, url_unquote_plus
@@ -248,7 +248,7 @@ class SecureCookie(ModificationTrackingDict):
         :param secret_key: the secret key used to serialize the cookie.
         :return: a new :class:`SecureCookie`.
         """
-        if isinstance(string, unicode):
+        if isinstance(string, str):
             string = string.encode('utf-8', 'replace')
         try:
             base64_hash, data = string.split('?', 1)
@@ -279,7 +279,7 @@ class SecureCookie(ModificationTrackingDict):
                 items = client_hash = None
             if items is not None and safe_str_cmp(client_hash, mac.digest()):
                 try:
-                    for key, value in items.iteritems():
+                    for key, value in items.items():
                         items[key] = cls.unquote(value)
                 except UnquoteError:
                     items = ()

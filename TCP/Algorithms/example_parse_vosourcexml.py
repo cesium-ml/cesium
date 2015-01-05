@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
 
     ts_dict = {}
-    for filter_name, elem_list in d.data['ts'].iteritems():
+    for filter_name, elem_list in d.data['ts'].items():
         ts_dict[filter_name] = {}
         for xml_elem in elem_list:
             ts_dict[filter_name][xml_elem['name']] = xml_elem['val']
@@ -134,15 +134,15 @@ if __name__ == '__main__':
 
 
         ##### This gives some examples of access to "d"'s XmlDictObject components:
-        print d.data['ts'].keys()
+        print(list(d.data['ts'].keys()))
         #['I:table6235', 'V:table7886']
-        print d.data['ts']['I:table6235'][2]['name']
+        print(d.data['ts']['I:table6235'][2]['name'])
         #m_err
 
-        print d.feat_dict.keys()
+        print(list(d.feat_dict.keys()))
         #['I:table6235', 'multiband', 'V:table7886']
 
-        print d.feat_dict['I:table6235'].keys()
+        print(list(d.feat_dict['I:table6235'].keys()))
         #['ratio32', 'ratio31', 'freq3_harmonics_amplitude_error_0', 'freq1_harmonics_peak2peak_flux', 'beyond1std', 'freq1_harmonics_rel_phase_0', 'max_slope',  .... ]
 
         import pprint

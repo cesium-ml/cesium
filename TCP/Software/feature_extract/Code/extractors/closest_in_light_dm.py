@@ -21,5 +21,5 @@ class closest_in_light_dm(ContextFeatureExtractor):
         else:
             rez = ret
         if self.verbose:
-            print n
+            print(n)
         return rez

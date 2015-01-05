@@ -1,6 +1,6 @@
 from ..FeatureExtractor import ContextFeatureExtractor
 
-import ned
+from . import ned
 
 class distance_in_kpc_to_nearest_galaxy(ContextFeatureExtractor):
     """distance_in_kpc_to_nearest_galaxy"""
@@ -25,5 +25,5 @@ class distance_in_kpc_to_nearest_galaxy(ContextFeatureExtractor):
         else:
             rez = tmp['distance']
         if self.verbose:
-            print tmp
+            print(tmp)
         return rez

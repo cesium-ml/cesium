@@ -8,7 +8,7 @@ class galb_extractor(ContextFeatureExtractor):
     def extract(self):
         posdict = self.fetch_extr('position_intermediate')
 
-        if not posdict.has_key('galb') or posdict['galb'] is None:
+        if 'galb' not in posdict or posdict['galb'] is None:
             self.ex_error("bad gal-b in the intermediate extractor. check install pyephem and input coordinates")
 
         return posdict['galb']

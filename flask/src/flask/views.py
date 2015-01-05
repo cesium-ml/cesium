@@ -108,7 +108,7 @@ class MethodViewType(type):
         rv = type.__new__(cls, name, bases, d)
         if 'methods' not in d:
             methods = set(rv.methods or [])
-            for key, value in d.iteritems():
+            for key, value in d.items():
                 if key in http_method_funcs:
                     methods.add(key.upper())
             # if we have no method at all in there we don't want to
@@ -120,7 +120,7 @@ class MethodViewType(type):
         return rv
 
 
-class MethodView(View):
+class MethodView(View, metaclass=MethodViewType):
     """Like a regular class based view but that dispatches requests to
     particular methods.  For instance if you implement a method called
     :meth:`get` it means you will response to ``'GET'`` requests and
@@ -139,7 +139,6 @@ class MethodView(View):
 
         app.add_url_rule('/counter', view_func=CounterAPI.as_view('counter'))
     """
-    __metaclass__ = MethodViewType
 
     def dispatch_request(self, *args, **kwargs):
         meth = getattr(self, request.method.lower(), None)

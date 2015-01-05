@@ -110,7 +110,7 @@ def dump_options_header(header, options):
     segments = []
     if header is not None:
         segments.append(header)
-    for key, value in options.iteritems():
+    for key, value in options.items():
         if value is None:
             segments.append(key)
         else:
@@ -135,7 +135,7 @@ def dump_header(iterable, allow_token=True):
     """
     if isinstance(iterable, dict):
         items = []
-        for key, value in iterable.iteritems():
+        for key, value in iterable.items():
             if value is None:
                 items.append(key)
             else:
@@ -351,7 +351,7 @@ def parse_authorization_header(value):
     if auth_type == 'basic':
         try:
             username, password = auth_info.decode('base64').split(':', 1)
-        except Exception, e:
+        except Exception as e:
             return
         return Authorization('basic', {'username': username,
                                        'password': password})
@@ -641,7 +641,7 @@ def is_resource_modified(environ, etag=None, data=None, last_modified=None):
         return False
 
     unmodified = False
-    if isinstance(last_modified, basestring):
+    if isinstance(last_modified, str):
         last_modified = parse_date(last_modified)
 
     # ensure that microsecond is zero because the HTTP spec does not transmit
@@ -744,7 +744,7 @@ def parse_cookie(header, charset='utf-8', errors='replace',
     # decode to unicode and skip broken items.  Our extended morsel
     # and extended cookie will catch CookieErrors and convert them to
     # `None` items which we have to skip here.
-    for key, value in cookie.iteritems():
+    for key, value in cookie.items():
         if value.value is not None:
             result[key] = _decode_unicode(unquote_header_value(value.value),
                                           charset, errors)
@@ -783,14 +783,14 @@ def dump_cookie(key, value='', max_age=None, expires=None, path='/',
         key = str(key)
     except UnicodeError:
         raise TypeError('invalid key %r' % key)
-    if isinstance(value, unicode):
+    if isinstance(value, str):
         value = value.encode(charset)
     value = quote_header_value(value)
     morsel = _ExtendedMorsel(key, value)
     if isinstance(max_age, timedelta):
         max_age = (max_age.days * 60 * 60 * 24) + max_age.seconds
     if expires is not None:
-        if not isinstance(expires, basestring):
+        if not isinstance(expires, str):
             expires = cookie_date(expires)
         morsel['expires'] = expires
     elif max_age is not None and sync_expires:

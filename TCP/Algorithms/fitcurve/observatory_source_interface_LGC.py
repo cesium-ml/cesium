@@ -158,11 +158,11 @@ class spline_model(lomb_model):
                         window = logical_and(available > (desired_times.min()-10.), available < (desired_times.max()+10))
 
                         data, rms = spline_fitted_magnitudes(available, m, m_err, desired_times, mindiff = mindiff)
-                except AssertionError, description:
+                except AssertionError as description:
                     latest_description = description
                     continue
                 else:
-                    print "passed"
+                    print("passed")
                     ispassed = True
                     break
             assert ispassed, "Didn't find a time shift that works, latest reason:" + str(latest_description)
@@ -220,7 +220,7 @@ class observatory_source_interface(object):
         maxlogx = log(0.5/dt) # max frequency is ~ the sampling rate
         minlogx = log(0.5/(available[-1]-available[0])) #min frequency is 0.5/T
         # sample the PSD with 1% fractional precision
-        M=long(ceil( (maxlogx-minlogx)*1000. )) # could change 100 to 1000 for higher resolution
+        M=int(ceil( (maxlogx-minlogx)*1000. )) # could change 100 to 1000 for higher resolution
         frequencies = exp(maxlogx-arange(M, dtype=float) / (M-1.) * (maxlogx-minlogx))
         out_dict = self.lomb_code(frequencies, m, m_err, available)
         f = (out_dict["freq1"]["harmonics_freq"][0])
@@ -250,13 +250,13 @@ class observatory_source_interface(object):
                 nharm = harm_dict["nharm"]
                 if nharm == 0:
                     break
-                print "frequency", i+1, "nharm", nharm
+                print("frequency", i+1, "nharm", nharm)
                 ytest, harm_dict = pre_whiten.pre_whiten(available, ytest, freq_max, delta_time=dx, signal_err=m_err, dof=dof, nharm_min=nharm, nharm_max=nharm)
                 out_dict[dstr] = {}
                 freq_dict = out_dict[dstr]
                 freq_dict["signif"] = signi
                 freq_dict["frequency"] = freq_max
-                for elem_k, elem_v in harm_dict.iteritems():
+                for elem_k, elem_v in harm_dict.items():
                     freq_dict["harmonics_" + elem_k] = elem_v
                     dof = dof - harm_dict['nharm']*2.
         return out_dict
@@ -265,8 +265,8 @@ class observatory_source_interface(object):
         """ form a s_dict['ts'] style dict and return it.
         """
         new_ts = copy.deepcopy(old_ts_dict)
-        assert len(new_ts.keys()) == 1 # DEBUG KLUDGE TEST
-        band_dict = new_ts.values()[0]
+        assert len(list(new_ts.keys())) == 1 # DEBUG KLUDGE TEST
+        band_dict = list(new_ts.values())[0]
         band_dict['m'] = mags
         band_dict['m_err'] = merrs
         band_dict['t'] = times
@@ -284,22 +284,22 @@ class observatory_source_interface(object):
         # ts's sub-entries are the different bands available for this source
         # we choose the band we want:
         picked_band_key = picked_band
-        for item in ts.keys():
+        for item in list(ts.keys()):
             if picked_band == item.split(":")[0]:
                 try:
                     picked_band_key = picked_band + ":" + item.split(":")[1]
                 except IndexError:
                     break
-        print picked_band_key
+        print(picked_band_key)
         try:
             if len(sys.argv) > 4:
                 if sys.argv[4] != 'tutor':
                     band_dic = ts[picked_band]
                 else:
                     if picked_band == 'any':
-                        band_dic = ts.values()[0]
+                        band_dic = list(ts.values())[0]
                     else:
-                        bands = ts.keys()
+                        bands = list(ts.keys())
                         band_dic = {}
                         for vsrc_band in bands:
                             if picked_band in vsrc_band:
@@ -310,7 +310,7 @@ class observatory_source_interface(object):
             else:
                 band_dic = ts[picked_band]
         except KeyError:
-            print "print ts.keys()", ts.keys()
+            print("print ts.keys()", list(ts.keys()))
             raise KeyError
         # we then make a copy of this dictionary for us to work with:
         my_dic = band_dic.copy()
@@ -322,17 +322,17 @@ class observatory_source_interface(object):
         self.out_dict = self.get_out_dict(available, m, m_err, xml_file)
         passed = False
         for model in self.list_of_models:
-            print "trying", model
+            print("trying", model)
             try:
                 model_function = model.create_model(available,m,m_err, self.out_dict)
                 model_output = model_function(needed)
-            except AssertionError, description:
-                print "we caught an assertion error %s" % description
+            except AssertionError as description:
+                print("we caught an assertion error %s" % description)
                 continue
             else:
                 passed = True
                 break
-        print passed, "passed?"
+        print(passed, "passed?")
         assert passed, "None of the models supplied worked :-/"
         # reduce my_dic to these picked times
         model_flux = model_output["flux"]
@@ -424,17 +424,17 @@ def main():
         my_obs = observatory_PTF.PTF
         # make up an object:
         vega = my_obs.create_target(ephem.hours('18:36:56.20'), ephem.degrees('38:46:59.0'), "cepheid") # coordinates of vega
-        for i in xrange(10):
+        for i in range(10):
             mindiff_multiplier = i - 5
             if mindiff_multiplier < 1:
                 mindiff_multiplier = 1
             t = generic_observatory.time_series_generator()
             time_series = t.generate_time_series(vega, my_obs)
-            print "mindiff_multiplier should be: ", mindiff_multiplier
+            print("mindiff_multiplier should be: ", mindiff_multiplier)
             try:
                 output = my_obs.observe(target=vega, times = time_series, band = "V")
-            except AssertionError, description:
-                print "Failed %s times so far, because of %s" % ((i+1), description)
+            except AssertionError as description:
+                print("Failed %s times so far, because of %s" % ((i+1), description))
             else:
                 return output
     return request_noisified()

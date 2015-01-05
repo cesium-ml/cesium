@@ -22,35 +22,35 @@ class Some_Class_We_Want_Remotely_Accessible:
         self.important_parameter = important_parameter
 
     def some_method(self, passed_value):
-        print 'important_parameter=', self.important_parameter
-        print 'passed_value=', passed_value
+        print('important_parameter=', self.important_parameter)
+        print('passed_value=', passed_value)
 
 
 if __name__ == '__main__':
 
     if 1:
         # server:
-        import SimpleXMLRPCServer
-        server = SimpleXMLRPCServer.SimpleXMLRPCServer( \
+        import xmlrpc.server
+        server = xmlrpc.server.SimpleXMLRPCServer( \
                                                     (server_hostname, server_port), \
                                                     allow_none=True)
         server.register_instance( \
                        Some_Class_We_Want_Remotely_Accessible(important_parameter=1))
         server.register_multicall_functions()
         server.register_introspection_functions()
-        print 'XMLRPC Server is starting at:', server_hostname, server_port
+        print('XMLRPC Server is starting at:', server_hostname, server_port)
         server.serve_forever()
 
     else:
         # client:
-        import xmlrpclib
-        server = xmlrpclib.ServerProxy("http://%s:%d" % \
+        import xmlrpc.client
+        server = xmlrpc.client.ServerProxy("http://%s:%d" % \
                                                       (server_hostname, server_port))
         try:
-            print server.system.listMethods()
+            print(server.system.listMethods())
         except:
-            print 'EXCEPT at server.system.listMethods() : Probably XMLRPC server is down!'
+            print('EXCEPT at server.system.listMethods() : Probably XMLRPC server is down!')
             sys.exit()
-        print server.system.methodHelp("some_method")
+        print(server.system.methodHelp("some_method"))
         #src_list = server.get_sources_for_radec(ra, dec, box_range)
         src_list = server.some_method('hello')

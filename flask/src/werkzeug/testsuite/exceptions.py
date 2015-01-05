@@ -26,7 +26,7 @@ class ExceptionsTestCase(WerkzeugTestCase):
         orig_resp = Response('Hello World')
         try:
             exceptions.abort(orig_resp)
-        except exceptions.HTTPException, e:
+        except exceptions.HTTPException as e:
             resp = e.get_response({})
         else:
             self.fail('exception not raised')
@@ -63,11 +63,11 @@ class ExceptionsTestCase(WerkzeugTestCase):
 
     def test_exception_repr(self):
         exc = exceptions.NotFound()
-        self.assert_equal(unicode(exc), '404: Not Found')
+        self.assert_equal(str(exc), '404: Not Found')
         self.assert_equal(repr(exc), "<NotFound '404: Not Found'>")
 
         exc = exceptions.NotFound('Not There')
-        self.assert_equal(unicode(exc), '404: Not There')
+        self.assert_equal(str(exc), '404: Not There')
         self.assert_equal(repr(exc), "<NotFound '404: Not There'>")
 
     def test_special_exceptions(self):

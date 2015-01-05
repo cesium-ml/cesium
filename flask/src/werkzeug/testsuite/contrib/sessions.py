@@ -66,7 +66,7 @@ class SessionTestCase(WerkzeugTestCase):
     def test_fs_session_lising(self):
         store = FilesystemSessionStore(self.session_folder, renew_missing=True)
         sessions = set()
-        for x in xrange(10):
+        for x in range(10):
             sess = store.new()
             store.save(sess)
             sessions.add(sess.sid)

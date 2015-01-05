@@ -6,10 +6,10 @@ from sklearn.externals import joblib
 
 import logging
 from operator import itemgetter
-import cfg
+from . import cfg
 
-import cPickle
-import lc_tools
+import pickle
+from . import lc_tools
 import sys
 import os
 import uuid
@@ -20,11 +20,11 @@ import pytz
 import tarfile
 import glob
 from copy import deepcopy
-import custom_exceptions
+from . import custom_exceptions
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import generate_science_features
-import custom_feature_tools as cft
+from . import custom_feature_tools as cft
 
 try:
     from disco.core import Job, result_iterator
@@ -34,7 +34,7 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 if DISCO_INSTALLED:
-    import parallel_processing
+    from . import parallel_processing
 
 n_epochs_list = [20,40,70,100,150,250,500,1000,10000,100000]
 
@@ -101,7 +101,7 @@ def predict(
                 of the most-probable classes and its probability.
     
     """
-    print "predict_class - predict() called."
+    print("predict_class - predict() called.")
     if in_docker_container:
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
@@ -127,7 +127,7 @@ def predict(
                         except ValueError:
                             pass
                     meta_features[fname] = dict(
-                        zip(meta_feat_names,meta_feats))
+                        list(zip(meta_feat_names,meta_feats)))
     else:
         meta_features = {}
     sep=sepr
@@ -155,12 +155,12 @@ def predict(
                     featset_key=featset_key, sep=sep, 
                     custom_features_script=custom_features_script,
                     meta_features=meta_features, tmp_dir_path=tmp_dir_path))
-            for fname in big_features_and_tsdata_dict.keys():
+            for fname in list(big_features_and_tsdata_dict.keys()):
                 if fname in meta_features:
                     big_features_and_tsdata_dict[fname]['features_dict'] = (
-                        dict(big_features_and_tsdata_dict[fname]
-                             ['features_dict'].items() 
-                             + meta_features[fname].items()))
+                        dict(list(big_features_and_tsdata_dict[fname]
+                             ['features_dict'].items()) 
+                             + list(meta_features[fname].items())))
         else:
             
             the_tarfile = tarfile.open(newpred_file_path)
@@ -177,7 +177,7 @@ def predict(
                 elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
                     f = open(os.path.join(tmp_dir_path, fname))
                 else:
-                    print fname + " is not a file..."
+                    print(fname + " is not a file...")
                     continue
                 short_fname = fname.split("/")[-1]
                 lines=f.readlines()
@@ -232,19 +232,19 @@ def predict(
                         custom_script_path=custom_features_script,
                         path_to_csv=None,
                         features_already_known=dict(
-                            timeseries_features.items() +
-                            science_features.items() + 
-                            (meta_features[short_fname].items() if 
+                            list(timeseries_features.items()) +
+                            list(science_features.items()) + 
+                            (list(meta_features[short_fname].items()) if 
                              short_fname in meta_features else 
-                             {}.items())),ts_data=deepcopy(ts_data))
+                             list({}.items()))),ts_data=deepcopy(ts_data))
                 else:
                     custom_features = {}
             
                 features_dict = dict(
-                    timeseries_features.items() + science_features.items() + 
-                    custom_features.items() + 
-                    (meta_features[short_fname].items() if 
-                     short_fname in meta_features else {}.items()))
+                    list(timeseries_features.items()) + list(science_features.items()) + 
+                    list(custom_features.items()) + 
+                    (list(meta_features[short_fname].items()) if 
+                     short_fname in meta_features else list({}.items())))
                 
                 big_features_and_tsdata_dict[fname] = {
                     "features_dict":features_dict, "ts_data":ts_data}
@@ -258,7 +258,7 @@ def predict(
         elif os.path.isfile(os.path.join(uploads_folder, fname)):
             f = open(os.path.join(uploads_folder, fname))
         else:
-            print fname + " is not a file..."
+            print(fname + " is not a file...")
             return
         
         lines=f.readlines()
@@ -313,25 +313,25 @@ def predict(
             custom_features = cft.generate_custom_features(
                 custom_script_path=custom_features_script, path_to_csv=None,
                 features_already_known=dict(
-                    timeseries_features.items() + science_features.items() + 
+                    list(timeseries_features.items()) + list(science_features.items()) + 
                     (
-                        meta_features[short_fname].items() if short_fname in 
-                        meta_features else {}.items())),ts_data=ts_data)
+                        list(meta_features[short_fname].items()) if short_fname in 
+                        meta_features else list({}.items()))),ts_data=ts_data)
         else:
             custom_features = {}
         features_dict = dict(
-            timeseries_features.items() + science_features.items() + 
-            custom_features.items() + 
+            list(timeseries_features.items()) + list(science_features.items()) + 
+            list(custom_features.items()) + 
             (
-                meta_features[short_fname].items() if short_fname 
-                in meta_features else {}.items()))
+                list(meta_features[short_fname].items()) if short_fname 
+                in meta_features else list({}.items())))
         big_features_and_tsdata_dict[fname] = {
             "features_dict":features_dict, "ts_data":ts_data}
-    features_extracted = big_features_and_tsdata_dict[
-        big_features_and_tsdata_dict.keys()[0]]["features_dict"].keys()
+    features_extracted = list(big_features_and_tsdata_dict[
+        list(big_features_and_tsdata_dict.keys())[0]]["features_dict"].keys())
     results_dict = {}
     for fname, features_and_tsdata_dict in \
-            big_features_and_tsdata_dict.iteritems():
+            big_features_and_tsdata_dict.items():
         ts_data = features_and_tsdata_dict['ts_data']
         new_obj = features_and_tsdata_dict['features_dict']
         data_dict = {}
@@ -349,7 +349,7 @@ def predict(
                         newFeatures.append(0.0)
                     features_dict[feat] = newFeatures[-1]
                 except KeyError as theError:
-                    print theError
+                    print(theError)
                     pass
             else:
                 pass
@@ -413,8 +413,8 @@ def predict(
             return results_str
         
         class_probs = classifier_preds[0]
-        print "classifier_preds:", classifier_preds
-        print "sorted_class_list:", sorted_class_list
+        print("classifier_preds:", classifier_preds)
+        print("sorted_class_list:", sorted_class_list)
         class_names = sorted_class_list
         
         results_str = ("<tr class='pred_results'>"
@@ -423,9 +423,9 @@ def predict(
         results_arr = []
         
         if len(class_probs) != len(sorted_class_list):
-            print "len(class_probs) != len(sorted_class_list)... Returning 0."
-            print "len(class_probs) =", len(class_probs), \
-                "len(sorted_class_list) =", len(sorted_class_list)
+            print("len(class_probs) != len(sorted_class_list)... Returning 0.")
+            print("len(class_probs) =", len(class_probs), \
+                "len(sorted_class_list) =", len(sorted_class_list))
             return 0
         else:
             for i in range(len(class_probs)):
@@ -462,4 +462,4 @@ if __name__ == "__main__":
     for i in range(len(lines)):
         lines[i] = lines[i].replace('\n','')
     lines = '\n'.join(lines)
-    print predict(lines,',')
+    print(predict(lines,','))

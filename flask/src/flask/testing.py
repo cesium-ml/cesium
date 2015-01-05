@@ -10,7 +10,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import with_statement
+
 
 from contextlib import contextmanager
 from werkzeug.test import Client, EnvironBuilder

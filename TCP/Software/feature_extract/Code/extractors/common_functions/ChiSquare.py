@@ -17,7 +17,7 @@ class ChiSquare(object): #gives extractors the ability to calculate chi squares
         if rms == None:
             rms = ones(len(y))
         if x == None:
-            x = range(len(y))
+            x = list(range(len(y)))
         chi2_total = 0.0
         fx = f(x)
 #               print 'fx',fx

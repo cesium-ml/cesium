@@ -33,7 +33,7 @@ class Simple_Fortran_Test:
         dy = 1
         for i in range(10):
             u = self.fortranTimeStep(u, dx, dy)
-            print u
+            print(u)
 
 class RF_Fortran_Test:
     """ Wrapping PARF missing-value Fortran re-implementation of RandomForest.

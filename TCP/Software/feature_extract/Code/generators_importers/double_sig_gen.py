@@ -1,7 +1,7 @@
 import numpy
-from storage import storage
+from .storage import storage
 
-from generator import generator
+from .generator import generator
 
 class double_sig_gen(generator):
     source = 'double_sig_gen'

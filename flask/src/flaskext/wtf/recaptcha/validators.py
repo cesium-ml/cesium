@@ -1,4 +1,4 @@
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 from flask import request, current_app
 
@@ -21,7 +21,7 @@ class Recaptcha(object):
             'verification are incorrect',
     }
 
-    def __init__(self, message=u'Invalid word. Please try again.'):
+    def __init__(self, message='Invalid word. Please try again.'):
         self.message = message
 
     def __call__(self, form, field):
@@ -45,7 +45,7 @@ class Recaptcha(object):
         try:
             private_key = current_app.config['RECAPTCHA_PRIVATE_KEY']
         except KeyError:
-            raise RuntimeError, "No RECAPTCHA_PRIVATE_KEY config set"
+            raise RuntimeError("No RECAPTCHA_PRIVATE_KEY config set")
 
         data = url_encode({
             'privatekey': private_key,
@@ -55,7 +55,7 @@ class Recaptcha(object):
         })
 
 
-        response = urllib2.urlopen(RECAPTCHA_VERIFY_SERVER, data)
+        response = urllib.request.urlopen(RECAPTCHA_VERIFY_SERVER, data)
 
         if response.code != 200:
             return False

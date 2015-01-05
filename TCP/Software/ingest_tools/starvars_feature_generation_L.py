@@ -89,7 +89,7 @@ def readLC(infile):
     lines   = open(infile).readlines()
 
     for line in lines:
-        fields = map( float, line.split() )
+        fields = list(map( float, line.split() ))
         date.append( fields[0] )
         mag.append( fields[1] )
         dmag.append( fields[2] )
@@ -162,11 +162,11 @@ class StarVars_LINEAR_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         ### This is just for writing the pickle file:
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'w')
-        cPickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
+        pickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
         fp.close()
 
 
@@ -175,10 +175,10 @@ class StarVars_LINEAR_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'rb')
-        frame_limitmags = cPickle.load(fp)
+        frame_limitmags = pickle.load(fp)
         fp.close()
         return frame_limitmags
 
@@ -229,7 +229,7 @@ class StarVars_LINEAR_Feature_Generation:
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None):
@@ -296,8 +296,8 @@ class StarVars_LINEAR_Feature_Generation:
                 master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-        master_features = master_features_dict.keys()
-        master_classes = master_classes_dict.keys()
+        master_features = list(master_features_dict.keys())
+        master_classes = list(master_classes_dict.keys())
         a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -319,7 +319,7 @@ if __name__ == '__main__':
 
     startTime = time.time()
     flist         = sys.argv[1]
-    print '\n flist =', flist
+    print('\n flist =', flist)
     indir = '/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat'
 #    print '\n indir =', indir
     files = index( indir )
@@ -573,9 +573,9 @@ if __name__ == '__main__':
     j = 0
     for file in runfiles:
         j += 1
-        print 'writing features for file', j, 'of', len(runfiles)
+        print('writing features for file', j, 'of', len(runfiles))
         mag_data_dict = readLC(file)
-        print 'mag_data_dict generated for LC', j, 'of', len(runfiles)
+        print('mag_data_dict generated for LC', j, 'of', len(runfiles))
         arff_output_fp = open( 'out' + str(flist) + '.arff', 'w' )
         sv_asas.generate_arff_using_asasdat(data_fpaths=runfiles,
                                             include_arff_header=False,
@@ -583,9 +583,9 @@ if __name__ == '__main__':
 
         sleep(20)
 
-        print '\nCompleted writing features for LC', j, 'of', len(runfiles)
+        print('\nCompleted writing features for LC', j, 'of', len(runfiles))
         arff_output_fp.close()
-        print '\nClosed output file successfully'
+        print('\nClosed output file successfully')
 #        arff_rows_str = arff_output_fp.getvalue()
 #        print arff_rows_str
 
@@ -678,7 +678,7 @@ if __name__ == '__main__':
     endTime = time.time()
 
     totalTime = endTime - startTime
-    print '\nTotal time:', totalTime, 's'
+    print('\nTotal time:', totalTime, 's')
 
 #     if 1:
 #         ### Example: generate arff feature string, do not write to file:

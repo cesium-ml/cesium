@@ -9,7 +9,7 @@ class vizier_importer(object):
             jd = line[10:21] #julian date, specified from http://vizier.u-strasbg.fr/viz-bin/Cat?II/217
             mag = line[23:28] #[-0.93/16.0]? V (Johnson) magnitude
             if mag != '     ':
-                print jd, mag
+                print(jd, mag)
         return None
 if __name__ == '__main__':
     importer = vizier_importer()

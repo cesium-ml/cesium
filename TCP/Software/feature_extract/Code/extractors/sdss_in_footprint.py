@@ -11,17 +11,17 @@ class sdss_in_footprint(ContextFeatureExtractor):
 
         if n is None:
             if self.verbose:
-                print "Nothing in the sdss extractor"
+                print("Nothing in the sdss extractor")
             return None
 
-        if not n.has_key("in_footprint"):
+        if "in_footprint" not in n:
             if self.verbose:
-                print "No footprint info in the sdss extractor. Should never happen."
+                print("No footprint info in the sdss extractor. Should never happen.")
             return None
 
         if not n['in_footprint']:
             if self.verbose:
-                print "Not in the footprint"
+                print("Not in the footprint")
             return 0
         else:
             return 1

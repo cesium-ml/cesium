@@ -9,11 +9,11 @@
     :license: BSD, see LICENSE for more details.
 """
 
-from __future__ import with_statement
+
 
 import sys
 import unittest
-from cStringIO import StringIO, OutputType
+from io import StringIO, OutputType
 
 from werkzeug.testsuite import WerkzeugTestCase
 
@@ -205,7 +205,7 @@ class TestTestCase(WerkzeugTestCase):
         assert req.files['blafasel'].read() == 'foo'
 
     def test_environ_builder_stream_switch(self):
-        d = MultiDict(dict(foo=u'bar', blub=u'blah', hu=u'hum'))
+        d = MultiDict(dict(foo='bar', blub='blah', hu='hum'))
         for use_tempfile in False, True:
             stream, length, boundary = stream_encode_multipart(
                 d, use_tempfile, threshold=150)
@@ -236,7 +236,7 @@ class TestTestCase(WerkzeugTestCase):
             'SERVER_PROTOCOL':      'HTTP/1.1',
             'QUERY_STRING':         'bar=baz'
         }
-        for key, value in expected.iteritems():
+        for key, value in expected.items():
             assert env[key] == value
         assert env['wsgi.input'].read(0) == ''
 
@@ -334,7 +334,7 @@ class TestTestCase(WerkzeugTestCase):
         assert resp.status_code == 200
 
     def test_iri_support(self):
-        b = EnvironBuilder(u'/föö-bar', base_url=u'http://☃.net/')
+        b = EnvironBuilder('/föö-bar', base_url='http://☃.net/')
         assert b.path == '/f%C3%B6%C3%B6-bar'
         assert b.base_url == 'http://xn--n3h.net/'
 

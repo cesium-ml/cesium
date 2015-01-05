@@ -1,7 +1,7 @@
 from ..FeatureExtractor import ContextInterExtractor
 
 #from power_extractor import power_extractor as power_extractor
-import ng
+from . import ng
 
 class interng_extractor(ContextInterExtractor):
     """intermediate call to the ng 200 Mpc galaxy server
@@ -36,7 +36,7 @@ class interng_extractor(ContextInterExtractor):
     def extract(self):
         posdict = self.fetch_extr('position_intermediate')
 
-        if not posdict.has_key('ra') or posdict['dec'] is None:
+        if 'ra' not in posdict or posdict['dec'] is None:
             self.ex_error("bad RA or DEC in the intermediate ng extractor. check install pyephem and input coordinates")
 
         if not self.n:

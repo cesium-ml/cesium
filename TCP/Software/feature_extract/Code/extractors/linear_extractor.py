@@ -1,7 +1,7 @@
 from ..FeatureExtractor import InterExtractor
 import numpy
 from scipy import optimize
-from common_functions import ChiSquare
+from .common_functions import ChiSquare
 
 class linear_extractor(InterExtractor,ChiSquare): # fits ax+b
     ''' produces a linear fit, returns in the format 'a(slope), b (y-intercept) '''

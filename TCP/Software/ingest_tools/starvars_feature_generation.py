@@ -71,7 +71,7 @@ from starvars_feature_generation import StarVars_ASAS_Feature_Generation
 sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
 """ % (str(self.pars))
 
-        print 'before mec()'
+        print('before mec()')
         engine_ids = mec.get_ids()
         pending_result_dict = {}
         for engine_id in engine_ids:
@@ -80,21 +80,21 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
         i_count = 0
         while n_pending > 0:
             still_pending_dict = {}
-            for engine_id, pending_result in pending_result_dict.iteritems():
+            for engine_id, pending_result in pending_result_dict.items():
                 try:
                     result_val = pending_result.get_result(block=False)
                 except:
-                    print "get_result() Except. Still pending on engine: %d" % (engine_id)
+                    print("get_result() Except. Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
                     result_val = None # 20110105 added
                 if result_val == None:
-                    print "Still pending on engine: %d" % (engine_id)
+                    print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
                 mec.clear_pending_results()
                 pending_result_dict = {}
-                mec.reset(targets=still_pending_dict.keys())
-                for engine_id in still_pending_dict.keys():
+                mec.reset(targets=list(still_pending_dict.keys()))
+                for engine_id in list(still_pending_dict.keys()):
                     pending_result_dict[engine_id] = mec.execute(mec_exec_str, targets=[engine_id], block=False)
                 ###
                 time.sleep(20) # hack
@@ -102,15 +102,15 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
                 ###
                 i_count = 0
             else:
-                print "sleeping..."
+                print("sleeping...")
                 time.sleep(5)
                 pending_result_dict = still_pending_dict
             n_pending = len(pending_result_dict)
             i_count += 1
 
-        print 'after mec()'
+        print('after mec()')
         time.sleep(5) # This may be needed, although mec() seems to wait for all the Ipython clients to finish
-        print 'after sleep()'
+        print('after sleep()')
 
 
         task_id_list = []
@@ -130,7 +130,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
 
             import sys, os
             import copy
-            import cStringIO
+            import io
             import matplotlib
             matplotlib.use('agg')
             sys.path.append(os.path.abspath('/global/home/users/dstarr/src/TCP/Software/ingest_tools'))
@@ -139,7 +139,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
             sv_asas = StarVars_ASAS_Feature_Generation(pars=self.pars) # # # IMPORTANT
             tmp_stdout = sys.stdout
             sys.stdout = open(os.devnull, 'w')
-            arff_output_fp = cStringIO.StringIO()
+            arff_output_fp = io.StringIO()
             sv_asas.generate_arff_using_asasdat(data_fpaths=sublist,
                                                 include_arff_header=True,
                                                 arff_output_fp=arff_output_fp)
@@ -151,7 +151,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
 
         n_src_per_task = 10 # 10 # NOTE: is generating PSD(freq) plots within lightcurve.py, should use n_src_per_task = 1, and all tasks should finish.# for ALL_TUTOR, =1 ipcontroller uses 99% memory, so maybe =3? (NOTE: cant do =10 since some TUTOR sources fail)
 
-        imin_list = range(0, len(acvs_fpaths), n_src_per_task)
+        imin_list = list(range(0, len(acvs_fpaths), n_src_per_task))
 
         for i_min in imin_list:
             sublist = acvs_fpaths[i_min: i_min + n_src_per_task]
@@ -206,10 +206,10 @@ sys.stdout = tmp_stdout
                 else:
                     now = datetime.datetime.now()
                     if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
-                        print "dtime_pending=1 timeout break!"
+                        print("dtime_pending=1 timeout break!")
                         break
-            print tc.queue_status()
-            print 'Sleep... 60 in starvars_feature_generation:IPython_Parallel_Processing.main()', datetime.datetime.utcnow()
+            print(tc.queue_status())
+            print('Sleep... 60 in starvars_feature_generation:IPython_Parallel_Processing.main()', datetime.datetime.utcnow())
             time.sleep(60)
         # IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in task_id_list:
@@ -236,7 +236,7 @@ sys.stdout = tmp_stdout
             else:
                 arff_rows.append(row)
 
-        print tc.queue_status()
+        print(tc.queue_status())
         return header_lines[:-2] + arff_rows
 
 
@@ -259,13 +259,13 @@ sys.stdout = tmp_stdout
 
         rc = Client(self.pars['ipython']['local_client_json_fpath'],
                     sshserver=self.pars['ipython']['remote_hostname'])
-        print 'rc.ids:', rc.ids
+        print('rc.ids:', rc.ids)
 
         ##### Multi-engine:
         dview = rc[:] # Direct View Object:  use all engines
 
-        while len(dview.queue_status().keys()) < (self.pars['ipython']['n_engines'] + 1):
-            print "%s Waiting for (%d) more engines to start." % (str(datetime.datetime.now()), (self.pars['ipython']['n_engines'] + 1) - len(dview.queue_status().keys()))
+        while len(list(dview.queue_status().keys())) < (self.pars['ipython']['n_engines'] + 1):
+            print("%s Waiting for (%d) more engines to start." % (str(datetime.datetime.now()), (self.pars['ipython']['n_engines'] + 1) - len(list(dview.queue_status().keys()))))
             time.sleep(1)
             dview = rc[:]
         dview.block=True  # all subsequent dview/multi-engine method calls will block.
@@ -291,8 +291,8 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             sublist = acvs_fpaths[:1]
             import sys, os
             import copy
-            import cStringIO
-            import cPickle
+            import io
+            import pickle
             import gzip
             import matplotlib
             matplotlib.use('agg')
@@ -304,7 +304,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
 
             #tmp_stdout = sys.stdout
             #sys.stdout = open(os.devnull, 'w')
-            arff_output_fp = cStringIO.StringIO()
+            arff_output_fp = io.StringIO()
             sv_asas.generate_arff_using_asasdat(data_fpaths=sublist,
                                                 include_arff_header=True,
                                                 arff_output_fp=arff_output_fp)
@@ -328,8 +328,8 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
         @lview.parallel()
         def do_stuff(in_tup):
             (sublist, pars) = in_tup
-            import cStringIO
-            arff_output_fp = cStringIO.StringIO()
+            import io
+            arff_output_fp = io.StringIO()
             out_dict = {}
             from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
             from starvars_feature_generation import StarVars_ASAS_Feature_Generation #path already defined
@@ -344,18 +344,18 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
 
         #import pdb; pdb.set_trace()
         #print
-        imin_list = range(0, len(acvs_fpaths), n_src_per_task)#[:pars['ipython']['n_engines']]#[:80]
+        imin_list = list(range(0, len(acvs_fpaths), n_src_per_task))#[:pars['ipython']['n_engines']]#[:80]
 
         ### this is done in parallel:
         out = do_stuff.map([(acvs_fpaths[i_min: i_min + n_src_per_task],
                              self.pars['task']) for i_min in imin_list])
 
         while not out.ready():
-            print "  %s T_elapsed=%0.1f  PercProgress=%0.2f" % (str(datetime.datetime.now()),out.elapsed,100. * out.progress/len(out))
+            print("  %s T_elapsed=%0.1f  PercProgress=%0.2f" % (str(datetime.datetime.now()),out.elapsed,100. * out.progress/len(out)))
             time.sleep(5)
 
-        print 'wall_time:', out.wall_time
-        print 'Factor speedup:', out.serial_time / out.wall_time
+        print('wall_time:', out.wall_time)
+        print('Factor speedup:', out.serial_time / out.wall_time)
         result_arff_list = []
         for result in out:
             result_arff_list.extend([a.strip() for a in result['arff_rows_str'].split('\n')])
@@ -430,11 +430,11 @@ class StarVars_ASAS_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         ### This is just for writing the pickle file:
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'w')
-        cPickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
+        pickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
         fp.close()
 
 
@@ -443,10 +443,10 @@ class StarVars_ASAS_Feature_Generation:
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import cPickle
+        import pickle
         import gzip
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'rb')
-        frame_limitmags = cPickle.load(fp)
+        frame_limitmags = pickle.load(fp)
         fp.close()
         return frame_limitmags
 
@@ -493,7 +493,7 @@ class StarVars_ASAS_Feature_Generation:
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None, skip_class=False):
@@ -540,7 +540,7 @@ class StarVars_ASAS_Feature_Generation:
             try:
                 xml_str = self.form_xml_string(mag_data_dict)
             except:
-                print "FAILED:form_xml_string()", dat_fpath
+                print("FAILED:form_xml_string()", dat_fpath)
                 continue # skip this source
             #from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
             #ParseNomadColorsList = Parse_Nomad_Colors_List(fpath=os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src_list'))
@@ -572,8 +572,8 @@ class StarVars_ASAS_Feature_Generation:
                 master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-        master_features = master_features_dict.keys()
-        master_classes = master_classes_dict.keys()
+        master_features = list(master_features_dict.keys())
+        master_classes = list(master_classes_dict.keys())
         a = arffify.Maker(search=[], skip_class=skip_class, local_xmls=True,
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
@@ -618,8 +618,8 @@ if __name__ == '__main__':
                    '/project/projectdirs/m1583/ASAS_scratch/183007-1351.0.dat']
     if 0:
         ### Example: generate arff feature string, do not write to file:
-        import cStringIO
-        arff_output_fp = cStringIO.StringIO()
+        import io
+        arff_output_fp = io.StringIO()
         sv_asas = StarVars_ASAS_Feature_Generation(pars=pars)
         #sv_asas.example_dat_parse()
         sv_asas.generate_arff_using_asasdat(data_fpaths=data_fpaths,
@@ -627,7 +627,7 @@ if __name__ == '__main__':
                                             arff_output_fp=arff_output_fp)
 
         arff_rows_str = arff_output_fp.getvalue()
-        print arff_rows_str
+        print(arff_rows_str)
 
     if 0:
         ### Example: generate arff feature string, write to some file:
@@ -647,6 +647,6 @@ if __name__ == '__main__':
         for row in combined_arff_rows:
             fp.write(row + '\n')
         fp.close()
-        print "Wrote:", pars['out_arff_fpath']
+        print("Wrote:", pars['out_arff_fpath'])
         import pdb; pdb.set_trace()
-        print
+        print()

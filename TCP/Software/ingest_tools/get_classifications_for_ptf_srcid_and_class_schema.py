@@ -258,7 +258,7 @@ del Get_Classifications_For_Ptf_Srcid""" % (self.schema_str)
 
         # KLUDGE: unfortunately we need to reinitialize taskclient due to memory leaks in a primary class.
         list_incr = 5
-        for i_low in xrange(0, len(total_srcid_list), list_incr):
+        for i_low in range(0, len(total_srcid_list), list_incr):
             short_srcid_list = total_srcid_list[i_low:i_low + list_incr]
             exec_str = """schema_str="%s"
 for src_id in srcid_list:
@@ -280,10 +280,10 @@ for src_id in srcid_list:
         import time
         while ((self.tc.queue_status()['scheduled'] > 0) or
                (self.tc.queue_status()['pending'] > 0)):
-            print self.tc.queue_status()
-            print 'Sleep... 3 in get_classifications_for_ptf_srcid_and_class_schema.py'
+            print(self.tc.queue_status())
+            print('Sleep... 3 in get_classifications_for_ptf_srcid_and_class_schema.py')
             time.sleep(3)
-        print 'done with while loop'
+        print('done with while loop')
 
 
     def main(self):
@@ -328,4 +328,4 @@ if __name__ == '__main__':
                     Get_Classifications_For_Ptf_Srcid.main( \
                                   src_id=src_id)
             except:
-                print 'skipping', src_id
+                print('skipping', src_id)

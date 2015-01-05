@@ -70,12 +70,12 @@ class Test_Asas(Database_Utils):
             self.tutor_cursor.execute(select_str)
             sub_results = self.tutor_cursor.fetchall()
             if len(sub_results) > 0:
-                print (src_id, ra, dec)
-                print sub_results
-                print '--------------------------'
+                print((src_id, ra, dec))
+                print(sub_results)
+                print('--------------------------')
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 

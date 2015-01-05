@@ -1,5 +1,5 @@
 from ..FeatureExtractor import InterExtractor
-from common_functions.plot_methods import plot_vs_frequencies
+from .common_functions.plot_methods import plot_vs_frequencies
 
 class power_extractor(plot_vs_frequencies,InterExtractor):
     """ extracts a periodogram, chooses either a lomb or fft extraction method """

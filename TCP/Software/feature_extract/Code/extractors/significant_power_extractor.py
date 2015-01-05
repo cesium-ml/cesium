@@ -1,5 +1,5 @@
 from ..FeatureExtractor import InterExtractor
-from common_functions.plot_methods import plot_vs_frequencies
+from .common_functions.plot_methods import plot_vs_frequencies
 from numpy import select
 
 class significant_80_power_extractor(plot_vs_frequencies,InterExtractor):

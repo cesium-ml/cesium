@@ -143,9 +143,9 @@ class socket_server:
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         try:
-            n_rows = long(results[0][0])
+            n_rows = int(results[0][0])
         except:
-            print "ERROR: unable to retrieve count(*):", select_str
+            print("ERROR: unable to retrieve count(*):", select_str)
             sys.exit()
         if n_rows == 0:
             return 1 # start at obj_id = 1
@@ -156,9 +156,9 @@ class socket_server:
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         try:
-            max_obj_id = long(results[0][0])
+            max_obj_id = int(results[0][0])
         except:
-            print "ERROR: unable to retrieve max(obj_id):", select_str
+            print("ERROR: unable to retrieve max(obj_id):", select_str)
             sys.exit()
         return max_obj_id
 
@@ -170,11 +170,11 @@ class socket_server:
         try:
             s.bind(('', int(self.pars['socket_server_port'])))
         except:
-            print "!!! EXCEPT obj_id_sockets.py: ", self.server_type, self.pars['socket_server_port'], self.pars['socket_server_host_ip'], self.pars['rdb_server_user'], self.pars['rdb_server_db'], self.pars['obj_id_reference_tablename']
+            print("!!! EXCEPT obj_id_sockets.py: ", self.server_type, self.pars['socket_server_port'], self.pars['socket_server_host_ip'], self.pars['rdb_server_user'], self.pars['rdb_server_db'], self.pars['obj_id_reference_tablename'])
             raise
-        print "Listen Port:", self.pars['socket_server_port']
+        print("Listen Port:", self.pars['socket_server_port'])
         cur_obj_id = max_obj_id
-        print "In listening loop..."
+        print("In listening loop...")
         while 1:
             s.listen(1)
             while 1:
@@ -183,11 +183,11 @@ class socket_server:
                 rec_str = conn.recv(1024).strip("'")
                 if len(rec_str) ==0:
                     continue # skip blank lines, which terminate queries
-                num_rows_wanted = long(rec_str)
+                num_rows_wanted = int(rec_str)
                 out_i_low = cur_obj_id + 1
                 cur_obj_id = cur_obj_id + num_rows_wanted
                 out_i_high = cur_obj_id
-                print datetime.datetime.now(), num_rows_wanted, out_i_low, out_i_high
+                print(datetime.datetime.now(), num_rows_wanted, out_i_low, out_i_high)
                 out_str = "%d %d" % (out_i_low, out_i_high)
                 conn.send(out_str)
                 conn.close()
@@ -198,7 +198,7 @@ class socket_server:
         """ Main server runtime routine.
         """
         max_obj_id = self.get_current_max_obj_id()
-        print "Initial index:", max_obj_id
+        print("Initial index:", max_obj_id)
         self.listen_loop(max_obj_id)
 
 
@@ -217,9 +217,9 @@ class socket_server:
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(('', int(self.pars['socket_server_port'])))
-        print "Listen Port:", self.pars['socket_server_port']
+        print("Listen Port:", self.pars['socket_server_port'])
         #cur_obj_id = max_obj_id
-        print "In listening loop..."
+        print("In listening loop...")
         socket_served_srcid_list = []
         while 1:
             s.listen(1)
@@ -242,7 +242,7 @@ class socket_server:
                     i_range = srcid_chunck_size
                 #srcid_list_for_client = []
                 out_str = ""
-                for i in xrange(i_range):
+                for i in range(i_range):
                     srcid = unfeated_srcid_list.pop()
                     #srcid_list_for_client.append(srcid)
                     out_str += " %s" % (srcid)
@@ -256,7 +256,7 @@ class socket_server:
                 #out_i_low = cur_obj_id + 1
                 #cur_obj_id = cur_obj_id + num_rows_wanted
                 #out_i_high = cur_obj_id
-                print datetime.datetime.now(), i_range, "srcids sent"
+                print(datetime.datetime.now(), i_range, "srcids sent")
                 #out_str = "%d %d" % (out_i_low, out_i_high)
                 conn.send(out_str)
                 conn.close()
@@ -292,11 +292,11 @@ class socket_client:
             data = s.recv(1024)
             s.close()
             rec_data = repr(data).strip("'").split()
-            i_low = long(rec_data[0])
-            i_high = long(rec_data[1])
+            i_low = int(rec_data[0])
+            i_high = int(rec_data[1])
             return (i_low, i_high)
         except:
-            print "FAIL: obj_id_sockets.py:", self.pars['socket_server_host_ip'], self.pars['socket_server_port']
+            print("FAIL: obj_id_sockets.py:", self.pars['socket_server_host_ip'], self.pars['socket_server_port'])
             return (-1, -1)
 
 
@@ -316,7 +316,7 @@ class socket_client:
                 srcid_list.append(int(elem)) # ? Do no anamolous entries occur?
             return srcid_list
         except:
-            print "FAIL: obj_id_sockets.py: get_feat_class_srcid_group()"
+            print("FAIL: obj_id_sockets.py: get_feat_class_srcid_group()")
             return []
 
 

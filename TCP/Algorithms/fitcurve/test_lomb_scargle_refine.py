@@ -116,7 +116,7 @@ if __name__ == '__main__':
     'tcp_username':'pteluser',
     'tcp_port':     3306,
     'tcp_database':'source_test_db',
-    'high_conf_srcids':range(22), #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
+    'high_conf_srcids':list(range(22)), #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
     }
 
 
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     #psd,res = lombr(x,y,dy0,f0,df,numf)
     psd,res = lombr(x,y,dy0,f0,df,numf, detrend_order=1)
     import pdb; pdb.set_trace()
-    print
+    print()
     psd1,res1 = lombr(x,y-res['model'],dy0,f0,df,numf, detrend_order=0)
     plot (freqin,psd)
 

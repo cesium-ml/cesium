@@ -102,14 +102,14 @@ class Form(SessionSecureForm):
         if not fields:
             fields = [f for f in self if isinstance(f, HiddenField)]
 
-        rv = [u'<div style="display:none;">']
+        rv = ['<div style="display:none;">']
         for field in fields:
-            if isinstance(field, basestring):
+            if isinstance(field, str):
                 field = getattr(self, field)
-            rv.append(unicode(field))
-        rv.append(u"</div>")
+            rv.append(str(field))
+        rv.append("</div>")
 
-        return Markup(u"".join(rv))
+        return Markup("".join(rv))
         
     def validate_on_submit(self):
         """

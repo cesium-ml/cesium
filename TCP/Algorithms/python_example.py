@@ -48,7 +48,7 @@ class Postgre_Database_Class_Example:
 </table>
 </body></html>
 """
-        print out_str
+        print(out_str)
 
         # Then, out_str could be file_pointer.write(out_str) to some .html file.
 
@@ -79,7 +79,7 @@ class Postgre_Database_Class_Example:
 
         rows = pg_cursor.fetchall()
         for row in rows:
-            print row
+            print(row)
 
         # Can also display the results in an html string (which could be written to file):
         self.print_rows_in_html_table_form(rows)
@@ -122,7 +122,7 @@ class Postgre_Database_Class_Example:
                                        'dec':row[3],
                                        'isspectra':row[4],
                                        'jd_time':row[5]}
-            print
+            print()
 
         # NOTE: Return a single ptf-events row/epoch/observation which
         #     most closely correlates to the Caltech classification time.
@@ -135,7 +135,7 @@ class Postgre_Database_Class_Example:
                              port=pars['mysql_port'])
         cursor = db.cursor()
 
-        for ct_src_dict in caltech_sources.values():
+        for ct_src_dict in list(caltech_sources.values()):
             #select_str = "SELECT T1.*, (T1.ujd - 2454972.8723) AS t_aftr_classif FROM (SELECT id, ra, decl, ujd, mag, mag_err, realbogus, obj_srcid_lookup.src_id FROM ptf_events_htm JOIN obj_srcid_lookup ON (id=obj_id) WHERE obj_srcid_lookup.survey_id=3 AND DIF_HTMCircle(258.96142767, 64.23848418, 0.05)) AS T1 WHERE (T1.ujd - 2454972.8723) > -0.1 ORDER BY src_id, ujd DESC"
             select_str = """
 SELECT object_test_db.obj_srcid_lookup.src_id, T1.id, T1.ujd, T1.mag, T1.realbogus, (T1.ujd - %lf) AS t_aftr_classif
@@ -175,7 +175,7 @@ ORDER BY src_id, ujd DESC
         rows = pg_cursor.fetchall()
         for row in rows:
             (candidate_id, bogus, suspect, unclear, maybe, realish, realbogus) = row
-            print candidate_id, realbogus
+            print(candidate_id, realbogus)
 
 
 if __name__ == '__main__':
@@ -207,7 +207,7 @@ if __name__ == '__main__':
     cursor.execute(select_str)
     results = cursor.fetchall()
     for row in results:
-        print row
+        print(row)
 
 
     # This example queries the TCP Mysql database (on tranx), for a position,

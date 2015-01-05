@@ -7,7 +7,7 @@ makes some fake data for Maxime's codes
 import datetime
 import os, sys
 import numpy
-import cPickle
+import pickle
 __version__ = "v0.01"
 
 class DataSet:
@@ -55,6 +55,6 @@ class DataSet:
 
     def pickle(self):
         output = open(self.odir + self.outname + ".pkl", 'wb')
-        cPickle.dump(self.dict, output,-1)
+        pickle.dump(self.dict, output,-1)
         output.close()
         return self.odir + self.outname + ".pkl", 'wb'

@@ -68,7 +68,7 @@ class Debug_Feature_Class_Dependence:
             attribs = line.split(',')
             new_attribs = []
             for i, attrib_val in enumerate(attribs):
-                if i in misattrib_name_to_id.values():
+                if i in list(misattrib_name_to_id.values()):
                     # Then do not add this feature
                     #import pdb; pdb.set_trace()
                     #print
@@ -117,12 +117,12 @@ class Debug_Feature_Class_Dependence:
         for k in range(n_iters):
             error_rate_list = []
             results_dict = {}
-            for i_fold, fold_dict in all_fold_data.iteritems():
+            for i_fold, fold_dict in all_fold_data.items():
                 results_dict[i_fold] = {}
 
             ### Do the R randomForest here:
             do_ignore_NA_features = False
-            for i_fold, fold_data in all_fold_data.iteritems():
+            for i_fold, fold_data in all_fold_data.items():
                 classifier_fpath = os.path.expandvars("%s/classifier_RF_%d.rdata" % (classifier_base_dirpath, i_fold))
                 Gen_Fold_Classif.generate_R_randomforest_classifier_rdata(train_data=fold_data['train_data'],
                                                                  classifier_fpath=classifier_fpath,
@@ -139,7 +139,7 @@ class Debug_Feature_Class_Dependence:
                                                 data_dict=fold_data['classif_data'],
                                                 do_ignore_NA_features=do_ignore_NA_features)
 
-                print "classif_results['error_rate']=", classif_results['error_rate']
+                print("classif_results['error_rate']=", classif_results['error_rate'])
 
                 results_dict[i_fold]['randomForest'] = {'class_error':classif_results['error_rate']}
 
@@ -167,7 +167,7 @@ import rpy2_classifiers
 DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_Class_Dependence()
 """
 
-        print 'before mec()'
+        print('before mec()')
         #print mec_exec_str
         #import pdb; pdb.set_trace()
         engine_ids = mec.get_ids()
@@ -178,21 +178,21 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
         i_count = 0
         while n_pending > 0:
             still_pending_dict = {}
-            for engine_id, pending_result in pending_result_dict.iteritems():
+            for engine_id, pending_result in pending_result_dict.items():
                 try:
                     result_val = pending_result.get_result(block=False)
                 except:
-                    print "get_result() Except. Still pending on engine: %d" % (engine_id)
+                    print("get_result() Except. Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
                     result_val = None # 20110105 added
                 if result_val == None:
-                    print "Still pending on engine: %d" % (engine_id)
+                    print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
                 mec.clear_pending_results()
                 pending_result_dict = {}
-                mec.reset(targets=still_pending_dict.keys())
-                for engine_id in still_pending_dict.keys():
+                mec.reset(targets=list(still_pending_dict.keys()))
+                for engine_id in list(still_pending_dict.keys()):
                     pending_result_dict[engine_id] = mec.execute(mec_exec_str, targets=[engine_id], block=False)
                 ###
                 time.sleep(20) # hack
@@ -200,15 +200,15 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
                 ###
                 i_count = 0
             else:
-                print "sleeping..."
+                print("sleeping...")
                 time.sleep(5)
                 pending_result_dict = still_pending_dict
             n_pending = len(pending_result_dict)
             i_count += 1
 
-        print 'after mec()'
+        print('after mec()')
         time.sleep(5) # This may be needed, although mec() seems to wait for all the Ipython clients to finish
-        print 'after sleep()'
+        print('after sleep()')
         #import pdb; pdb.set_trace()
         return tc
 
@@ -236,8 +236,8 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
                     new_orig_feat_tups.append(results)
             for task_id in tasks_to_pop:
                 task_id_list.remove(task_id)
-            print tc.queue_status()
-            print 'Sleep... 20 in wait_for_task_completion()', datetime.datetime.utcnow()
+            print(tc.queue_status())
+            print('Sleep... 20 in wait_for_task_completion()', datetime.datetime.utcnow())
             time.sleep(20)
         # IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in task_id_list:
@@ -334,10 +334,10 @@ except:
                 temp = tc.get_task_result(taskid, block=False)
                 import inspect
                 for a,b in inspect.getmembers(temp):
-                    print a, b
+                    print(a, b)
                 out_dict =  temp.results.get('new_orig_feat_tups',None)
                 import pdb; pdb.set_trace()
-                print
+                print()
             ######
 
 
@@ -347,7 +347,7 @@ except:
         new_orig_feat_tups.sort()
         pprint.pprint(new_orig_feat_tups)
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def main(self, noisify_attribs=[],
@@ -372,7 +372,7 @@ do training and crossvalidation on just Debosscher data for spped.
 
         for feat_name in noisify_attribs:
             result_dict[feat_name] = {}
-            print 'orig:', feat_name
+            print('orig:', feat_name)
             out_dict = self.get_crossvalid_errors_for_single_arff(arff_fpath=self.pars['orig_arff_dirpath'],
                                                                   noisify_attribs=[feat_name],
                                                                   ntrees=ntrees,
@@ -382,12 +382,12 @@ do training and crossvalidation on just Debosscher data for spped.
                                                                   algorithms_dirpath=self.pars['algorithms_dirpath'])
             pprint.pprint(out_dict)
             orig_wa = numpy.average(out_dict['means'], weights=out_dict['stds'])
-            print 'weighted average:', orig_wa
+            print('weighted average:', orig_wa)
             result_dict[feat_name]['orig'] = (orig_wa,
                                               numpy.std(out_dict['means']))
 
             self.load_rpy2_rc()
-            print 'new:', feat_name
+            print('new:', feat_name)
             out_dict = self.get_crossvalid_errors_for_single_arff(arff_fpath=self.pars['new_arff_dirpath'],
                                                                   noisify_attribs=[feat_name],
                                                                   ntrees=ntrees,
@@ -397,7 +397,7 @@ do training and crossvalidation on just Debosscher data for spped.
                                                                   algorithms_dirpath=self.pars['algorithms_dirpath'])
             pprint.pprint(out_dict)
             new_wa = numpy.average(out_dict['means'], weights=out_dict['stds'])
-            print 'weighted average:', new_wa
+            print('weighted average:', new_wa)
             result_dict[feat_name]['new'] = (new_wa,
                                              numpy.std(out_dict['means']))
             result_dict[feat_name]['0_new-orig'] = new_wa - orig_wa
@@ -407,7 +407,7 @@ do training and crossvalidation on just Debosscher data for spped.
         new_orig_feat_tups.sort()
         pprint.pprint(new_orig_feat_tups)
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 if __name__ == '__main__':
@@ -594,7 +594,7 @@ if __name__ == '__main__':
             featname_list2.append(featname_list[i])
             stddev_list2.append(stddev_list[i])
 
-            if data3_dict.has_key(featname_list[i]):
+            if featname_list[i] in data3_dict:
                 errordiff_list3.append(data3_dict[featname_list[i]][0])
                 stddev_list3.append(data3_dict[featname_list[i]][1])
                 x_inds3.append(j)
@@ -606,7 +606,7 @@ if __name__ == '__main__':
         fig = plt.figure() #figsize=(5,3), dpi=100)
         ax = fig.add_subplot(211)
 
-        x_inds = range(len(errordiff_list2))
+        x_inds = list(range(len(errordiff_list2)))
 
         #ax.plot(range(len(errordiff_list2)), errordiff_list2)
         plt_errordiff =  ax.errorbar(x_inds, errordiff_list2, yerr=stddev_list, fmt='bo')
@@ -651,4 +651,4 @@ if __name__ == '__main__':
         os.system("gv %s &" % (fpath))
 
         import pdb; pdb.set_trace()
-        print
+        print()

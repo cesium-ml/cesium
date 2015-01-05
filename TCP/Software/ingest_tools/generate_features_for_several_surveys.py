@@ -148,7 +148,7 @@ class Generate_Features_For_Several_Surveys:
             elif count_sources:
                 elems = line.split(',')
                 feat_val_dict['src_id'].append(int(elems[0]))
-                for i_feat, feat_name in index_featname_lookup.iteritems():
+                for i_feat, feat_name in index_featname_lookup.items():
                     try:
                         feat_val_dict[feat_name].append(str(float(elems[i_feat])))
                     except:
@@ -228,7 +228,7 @@ class Generate_Features_For_Several_Surveys:
         n_srcs = parse_dict['n_srcs']
 
         if n_srcs == 0:
-            print 'ERROR: n_srcs == 0!!!'
+            print('ERROR: n_srcs == 0!!!')
             raise
         feat_str = '\n'.join(arff_features)
 
@@ -292,7 +292,7 @@ class Generate_Features_For_Several_Surveys:
         n_srcs = parse_dict['n_srcs']
 
         if n_srcs == 0:
-            print 'ERROR: n_srcs == 0!!!'
+            print('ERROR: n_srcs == 0!!!')
             raise
         feat_str = '\n'.join(arff_features)
 
@@ -378,7 +378,7 @@ class Generate_Features_For_Several_Surveys:
 
         if do_insert:
             i_incr_size = 100
-            i_high_list = range(i_incr_size, len(feat_val_dict['src_id']), i_incr_size)
+            i_high_list = list(range(i_incr_size, len(feat_val_dict['src_id']), i_incr_size))
             i_high_list.append(len(feat_val_dict['src_id']))
             for j, i_high in enumerate(i_high_list):
                 if (i_high == i_incr_size):
@@ -389,7 +389,7 @@ class Generate_Features_For_Several_Surveys:
                 insert_list = ["INSERT INTO feat_values (src_id, feat_id, feat_val) VALUES "]
                 for i in range(i_low, i_high):
                     srcid = feat_val_dict['src_id'][i]
-                    for feat_name, feat_id in feat_name_dbid_dict.iteritems():
+                    for feat_name, feat_id in feat_name_dbid_dict.items():
                         insert_list.append("(%d, %d, %s), " % \
                                           ( srcid + 100000000, feat_id, feat_val_dict[feat_name][i]))
                 cursor.execute(''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE feat_val=VALUES(feat_val)")
@@ -407,7 +407,7 @@ class Generate_Features_For_Several_Surveys:
             update_table_tups = []
 
             for i, srcid in enumerate(feat_val_dict['src_id']):
-                for feat_name, feat_id in feat_name_dbid_dict.iteritems():
+                for feat_name, feat_id in feat_name_dbid_dict.items():
                     update_table_tups.append((feat_val_dict[feat_name][i], srcid + 100000000, feat_id))
 
             cursor.execute("START TRANSACTION")
