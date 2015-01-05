@@ -6,7 +6,8 @@ from numpy.random import normal
 from scipy.stats import norm,betai
 from scipy.special import betaln
 from pylab import where
-from scipy import weave
+#from scipy import weave
+import cython
 
 def lprob2sigma(lprob):
     """ translates a log_e(probability) to units of Gaussian sigmas
@@ -267,11 +268,11 @@ def lomb(time, signal, error, f1, df, numf, fit_mean=True, fit_slope=False, subt
     """
 
     if (fit_slope==True):
-        weave.inline(lomb_code_A,\
+        cython.inline(lomb_code_A,\
           ['cn','wth','tt','numt','numf','psd','s1','sinx0','cosx0','sinx','cosx'],\
           support_code = lomb_scargle_support+lomb_scargle_codeA,force=0)
     else:
-        weave.inline(lomb_code_B,\
+        cython.inline(lomb_code_B,\
           ['cn','wth','numt','numf','psd','sinx0','cosx0','sinx','cosx','fit_mean'],\
           support_code = lomb_scargle_support+lomb_scargle_codeB,force=0)
 
@@ -404,7 +405,7 @@ def lomb__pre20101120(time, signal, wt, df, numf ):
       }
     """
 
-    weave.inline(lomb_code,\
+    cython.inline(lomb_code,\
       ['cn','wt','tt','numt','numf','psd','s0','df','sinx0','cosx0','sinx','cosx'],\
       support_code = lomb_scargle)
     #import pdb; pdb.set_trace()

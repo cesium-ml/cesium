@@ -1,5 +1,6 @@
 from numpy import empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
-from scipy import weave
+#from scipy import weave
+import cython
 from lomb_scargle import lprob2sigma
 from scipy.stats import f as fdist
 from ls_support import lomb_code,lomb_scargle_support
@@ -98,7 +99,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     lambda0_range = 10**array(lambda0_range,dtype='float64')/s0
 
     vars=['numt','numf','nharm','detrend_order','psd','cn','wth','sinx','cosx','sinx_step','cosx_step','sinx_back','cosx_back','sinx_smallstep','cosx_smallstep','hat_matr','hat_hat','hat0','soln','chi0','freq_zoom','psdmin','tone_control','lambda0','lambda0_range','Tr','ifreq']
-    weave.inline(lomb_code, vars, support_code = eigs_code + lomb_scargle_support,force=0)
+    cython.inline(lomb_code, vars, support_code = eigs_code + lomb_scargle_support,force=0)
 
     hat_hat /= s0
     ii = arange(nharm,dtype='int32')
