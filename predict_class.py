@@ -6,10 +6,9 @@ from sklearn.externals import joblib
 
 import logging
 from operator import itemgetter
-from . import cfg
-
+import cfg
 import pickle
-from . import lc_tools
+import lc_tools
 import sys
 import os
 import uuid
@@ -20,11 +19,12 @@ import pytz
 import tarfile
 import glob
 from copy import deepcopy
-from . import custom_exceptions
+import custom_exceptions
+
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import generate_science_features
-from . import custom_feature_tools as cft
+import custom_feature_tools as cft
 
 try:
     from disco.core import Job, result_iterator
@@ -34,7 +34,7 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 if DISCO_INSTALLED:
-    from . import parallel_processing
+    import parallel_processing
 
 n_epochs_list = [20,40,70,100,150,250,500,1000,10000,100000]
 

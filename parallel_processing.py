@@ -9,10 +9,10 @@ from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 
 import pickle
-from . import lc_tools
+import lc_tools
 import sys
 import os
-from . import cfg
+import cfg
 
 import numpy as np
 import datetime
@@ -20,8 +20,8 @@ import pytz
 import tarfile
 import glob
 import tarfile
-from . import disco_tools
-from . import custom_exceptions
+import disco_tools
+import custom_exceptions
 import uuid
 import shutil
 
@@ -38,8 +38,8 @@ sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import generate_science_features
 from generate_science_features import currently_running_in_docker_container
-from . import build_rf_model
-from . import predict_class as predict
+import build_rf_model
+import predict_class as predict
 
 
 def map(fname_and_class, params):

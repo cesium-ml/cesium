@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE, call, check_call
-from . import cfg
+import cfg
 import uuid
 import pickle
 import shutil

@@ -13,10 +13,10 @@ from sklearn.cross_validation import train_test_split
 from sklearn.metrics import confusion_matrix
 from random import shuffle
 import pickle
-from . import lc_tools
+import lc_tools
 import sys
 import os
-from . import cfg
+import cfg
 import numpy as np
 import datetime
 import pytz
@@ -29,13 +29,13 @@ try:
 except Exception as theError:
     DISCO_INSTALLED = False
 if DISCO_INSTALLED:
-    from . import parallel_processing
-from . import custom_exceptions
+    import parallel_processing
+import custom_exceptions
 sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 # for when run from inside docker container:
 sys.path.append("/home/mltp/TCP/Software/ingest_tools")
 import generate_science_features
-from . import custom_feature_tools as cft
+import custom_feature_tools as cft
 
 
 def read_data_from_csv_file(fname,sep=',',skip_lines=0):

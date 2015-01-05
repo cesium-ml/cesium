@@ -16,7 +16,7 @@ home_str+/Dropbox/work_etc/mltp/TCP/Software/ingest_tools/generate_science_featu
 def currently_running_in_docker_container():
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
-    output = proc.stdout.read()
+    output = str(proc.stdout.read())
     if "/docker/" in output:
         in_docker_container=True
     else:

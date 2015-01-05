@@ -2,13 +2,13 @@
 
 import glob
 from parse import parse
-from . import lc_tools
+import lc_tools
 from subprocess import call, Popen, PIPE
 import sys
 import os
 import inspect
 import pickle
-from . import cfg
+import cfg
 import uuid
 import shutil
 

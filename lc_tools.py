@@ -20,7 +20,7 @@ import heapq
 #import lcs_db
 import os
 import sys
-from . import cfg
+import cfg
 
 
 class lightCurve:
