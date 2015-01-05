@@ -50,7 +50,7 @@ try:
     from matplotlib.pylab import *
 except:
     print("unable to import matplotlib")
-from . import vosource_parse, xmldict
+import vosource_parse, xmldict
 #from pprint import pprint, pformat# dstarr disables pprint function since I'd rather not have this module constantly in memory if just for debugging use.
 
 __version__ = "1.0.2"
