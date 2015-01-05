@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
 
     pprint.pprint(class_features_dict)
-    """ 
+    """
 {'class': 'Variable Stars',
  'features': {('amplitude', 'float'): 0.025850000000000001,
               ('beyond1std', 'float'): 0.0,
@@ -157,8 +157,3 @@ if __name__ == '__main__':
         #            't_gen': {'_text': '2010-07-09T23:54:51.292070',
         #                      'ucd': 'time.epoch'}},
         # 'val': {'_text': '0.02585', 'datatype': 'float', 'is_reliable': 'True'}}
-
-
-
-
-

@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Make an HTML heatmap table of a Weka classify confusion matrix.
 """
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         total_per_class_list.append(sum(val_list))
         val_listoflists.append(val_list)
 
-    
+
     out_str = """
     <HTML><head></head>
     <body>
@@ -109,14 +109,14 @@ if __name__ == '__main__':
     """
     #<table color="#%ffffff">
 
-    out_str += "<tr>"            
+    out_str += "<tr>"
     for col_name in col_name_list:
         out_str += '<td bgcolor="#2a2a2a">%s</td>' % (col_name)
     out_str += '</tr>\n'
 
     for i_class in xrange(len(val_listoflists)):
         val_list = val_listoflists[i_class]
-        out_str += "<tr>"            
+        out_str += "<tr>"
         for val in val_list:
             try:
                 percent = val / float(total_per_class_list[i_class])

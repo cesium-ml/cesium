@@ -14,7 +14,7 @@ class bogus_sdss:
         self.feature = {}
 
 class JDAC:
-    
+
     def __init__(self,pos=(176.70883     ,11.79869),verbose=True,seeing=2.5, do_sdss=True):
         self.verbose=verbose
         self.pos = pos
@@ -38,18 +38,18 @@ class JDAC:
                 self.val_add["nearest_type"] = "stellar"
             else:
                 self.val_add["nearest_type"] = "galaxy"
-                
+
             self.val_add["nearest_type_confidence"]  = 1.0 - self.ttt["nearest_type_confidence"]
             self.set_probability()
             self.val_add.pop("nearest_type_from")
             self.ttt.update({'alt': self.val_add})
             self.val_add = self.ttt
-            
+
         #pprint.pprint(self.val_add)
         self.make_clean_prob()
         self.make_clean_prob(doalt=True)
         #pprint.pprint(self.p)
-        
+
     def make_clean_prob(self,doalt=False):
         if not doalt:
             self.p = {}
@@ -77,23 +77,23 @@ class JDAC:
             self.val_add['prob']['VarStar'].pop("prob")
             for k,v in self.val_add['prob']['VarStar'].iteritems():
                 self.p['galactic'].update({k: {'val': v}})
-                
+
         if doalt:
             self.val_add = self.ttt
-            
-        
+
+
     def _get_sdss_feature(self):
-        self.s = sdss.sdssq(pos=self.pos,verbose=self.verbose,run_on_instance=False)    
+        self.s = sdss.sdssq(pos=self.pos,verbose=self.verbose,run_on_instance=False)
         self.s.feature_maker()
-        
+
     def _get_ned_features(self):
         self.n = ned.NED(pos=self.pos,verbose=self.verbose)
-        
+
     def _get_mansi_gals(self,radius=5):
         self.mansi = ng.GalGetter(verbose=self.verbose)
         self.mansi.getgals(pos=self.pos,radius=float(radius)/60.,sort_by="phys",max_d=500.0)
         self.m = self.mansi.grab_rez()
-     
+
     def set_probability(self):
         if self.val_add["nearest_type_from"] == "unset":
             ## there's no context
@@ -104,9 +104,9 @@ class JDAC:
             ## it's not in there, but in the footprint
             self.val_add.update({"prob": {'roid': 0.6, 'sn': 0.1, 'VarStar': {"prob": 0.2, 'low_mass_flare': 0.8}}})
             return
-                            
+
         if self.val_add['nearest_type_from'] == "mansi" and self.val_add["nearest_type"] == "galaxy":
-            ## could be a rather nearby galaxy. But's let's check to make sure it's not some 
+            ## could be a rather nearby galaxy. But's let's check to make sure it's not some
             ## more distant galaxy in projection
             self.tmp = copy.copy(self.val_add)
             self.set_nearest_type(skip_mansi=True)
@@ -121,7 +121,7 @@ class JDAC:
             else:
                 ## no, the SDSS looks to be tentative, revert back to Mansi
                 self.val_add = self.tmp
-            
+
             del self.tmp
             ## now we can really belive mansi
             if self.m['closest_in_light_physical_offset_in_kpc'] < 0.5:
@@ -142,7 +142,7 @@ class JDAC:
                 else:
                     self.val_add.update({"outskirts_of_mansi_nearby_gal": True})
                     self.val_add.update({"prob": {"SN": 0.9}})
-                    
+
                 if self.val_add.has_key("apparently_nuclear"):
                     if self.val_add.has_key("prob"):
                         self.val_add['prob'].update({"SN": 0.1, "AGN": 0.85, "TDF": 0.05})
@@ -190,31 +190,31 @@ class JDAC:
                 # no idea
                 self.val_add.update({"prob":{'VarStar': {"prob": 1.0}}})
                 return
-                    
+
     def set_nearest_type(self,skip_mansi=False):
-        
+
         ## is it in the SDSS footprint or mani?
         if not self.s.in_footprint and not self.m.has_key("closest_in_light"):
             self.val_add.update({'nearest_type_from': "unset", 'nearest_type': "not_in_footprint", "nearest_type_confidence": 1.0})
             return
-        
-        if not skip_mansi:    
+
+        if not skip_mansi:
             ## let's look at mansi's result for now
             if self.m.has_key("closest_in_light") and self.m.has_key('closest_in_light_physical_offset_in_kpc'):
                 ## decreasing confidence in this being a galaxy
                 if self.m['closest_in_light_physical_offset_in_kpc'] < 3.0 and self.m['closest_in_light'] < 1.0:
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.98})
                 elif self.m['closest_in_light_physical_offset_in_kpc'] < 5.0 and self.m['closest_in_light'] < 2.0:
-                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.9})                
+                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.9})
                 elif self.m['closest_in_light_physical_offset_in_kpc'] < 10.0 and self.m['closest_in_light'] < 3.0:
-                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.8}) 
+                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.8})
                 elif self.m['closest_in_light_physical_offset_in_kpc'] < 15.0 and self.m['closest_in_light'] < 3.5:
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.7})
                 elif self.m['closest_in_light_physical_offset_in_kpc'] < 40.0 and self.m['closest_in_light'] < 5.0:
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.6})
                 else:
-                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.55}) 
-                                                   
+                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.55})
+
                 self.val_add.update({'nearest_type_from': 'mansi'})
                 return
 
@@ -244,7 +244,7 @@ class JDAC:
                                     else:
                                         self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.95})
                                 else:
-                                        self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.90})
+                                    self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.90})
                             else:
                                 self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.85})
                     else:
@@ -253,7 +253,7 @@ class JDAC:
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.80})
             else:
                 self.val_add.update({'nearest_type': "stellar", "nearest_type_confidence": 0.95})
-        
+
         ## if the source is too faint, then it's hard to trust the classification
         if self.ss.has_key('dered_r'):
             if self.ss['dered_r'] > 21.5 and self.ss["spec_z"] == None:
@@ -262,24 +262,24 @@ class JDAC:
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.55})
                 else:
                     self.val_add.update({'nearest_type': "stellar", "nearest_type_confidence": 0.55})
-                    
+
         if self.ss.get('spectral_flag','') in ['xxxx', 'nnbn', 'enbn', 'ecbn']:
             if self.val_add.has_key("nearest_type_confidence"):
                 if self.val_add["nearest_type_confidence"] < 0.9:
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.9})
         if self.ss.get("classtype",'') == "qso":
             self.val_add.update({'nearest_type': "qso", "nearest_type_confidence": 0.70})
-            if self.ss["segue_star_type"] == "broadline":   
+            if self.ss["segue_star_type"] == "broadline":
                 self.val_add.update({'nearest_type': "qso", "nearest_type_confidence": 0.95})
             if self.ss["spectral_stellar_type"] == "cv" or self.ss["spec_zWarning"] == "not_qso":
-                self.val_add.update({'nearest_type': "cv", "nearest_type_confidence": 0.95})                                
+                self.val_add.update({'nearest_type': "cv", "nearest_type_confidence": 0.95})
         if self.ss.get("spectral_stellar_type",'') == 'qso' or (self.ss.get("bestz",'') > 0.6 and self.ss["bestz_err"] < 0.1):
             self.val_add.update({'nearest_type': "qso", "nearest_type_confidence": 0.95})
-                 
+
         self.val_add.update({'nearest_type_from': 'sdss'})
 
         return
-        
+
 if __name__ == "__main__":
     #j = JDAC(seeing=2.5)
     j = JDAC(pos=(57.434622 , -3.264654  ))

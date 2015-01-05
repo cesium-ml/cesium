@@ -6,4 +6,3 @@ p = subprocess.Popen("/home/dstarr/src/TCP/Software/ingest_tools/lcs_classif.py 
 sts = os.waitpid(p.pid, 0)
 script_output = p.stdout.readlines()
 print script_output[0]
-

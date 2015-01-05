@@ -28,7 +28,7 @@ except:
     pass
 class IPython_Parallel_Processing:
     """
-    This runs feature generation on the CITRIS/IBM 33-machine cluster which 
+    This runs feature generation on the CITRIS/IBM 33-machine cluster which
     has IPython-Parallel v0.10 set up for parallelization.
 
     This is not intended to be run on NERSC / carver.nersc.gov.
@@ -123,13 +123,13 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
             acvs_fpaths.append("%s/%s" % (self.pars['acvs_raw_dirpath'],
                                           fpath))
         if 1:
-            ### This is used to generate the arff header strings by generating features 
+            ### This is used to generate the arff header strings by generating features
             ###  for 1 source.  It is also a good single thread test that the task code works.
 
             sublist = acvs_fpaths[:1]
 
             import sys, os
-            import copy 
+            import copy
             import cStringIO
             import matplotlib
             matplotlib.use('agg')
@@ -175,7 +175,7 @@ sys.stdout = tmp_stdout
             """
             taskid = tc.run(client.StringTask(tc_exec_str,
                                           push={'sublist':sublist},
-                                          pull='out_dict', 
+                                          pull='out_dict',
                                           retries=3))
             task_id_list.append(taskid)
 
@@ -199,15 +199,15 @@ sys.stdout = tmp_stdout
             for task_id in tasks_to_pop:
                 task_id_list.remove(task_id)
 
-            if ((tc.queue_status()['scheduled'] == 0) and 
+            if ((tc.queue_status()['scheduled'] == 0) and
                 (tc.queue_status()['pending'] <= 7)):
-               if dtime_pending_1 == None:
-                   dtime_pending_1 = datetime.datetime.now()
-               else:
-                   now = datetime.datetime.now()
-                   if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
-                       print "dtime_pending=1 timeout break!"
-                       break
+                if dtime_pending_1 == None:
+                    dtime_pending_1 = datetime.datetime.now()
+                else:
+                    now = datetime.datetime.now()
+                    if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
+                        print "dtime_pending=1 timeout break!"
+                        break
             print tc.queue_status()
             print 'Sleep... 60 in starvars_feature_generation:IPython_Parallel_Processing.main()', datetime.datetime.utcnow()
             time.sleep(60)
@@ -286,7 +286,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             acvs_fpaths.append("%s/%s" % (self.pars['task']['acvs_raw_dirpath'],
                                           fpath))
         if 1:
-            ### This is used to generate the arff header strings by generating features 
+            ### This is used to generate the arff header strings by generating features
             ###  for 1 source.  It is also a good single thread test that the task code works.
             sublist = acvs_fpaths[:1]
             import sys, os
@@ -301,7 +301,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             from starvars_feature_generation import StarVars_ASAS_Feature_Generation
 
             sv_asas = StarVars_ASAS_Feature_Generation(pars=self.pars['task']) # # # IMPORTANT
-            
+
             #tmp_stdout = sys.stdout
             #sys.stdout = open(os.devnull, 'w')
             arff_output_fp = cStringIO.StringIO()
@@ -380,7 +380,7 @@ class StarVars_ASAS_Feature_Generation:
     def __init__(self, pars={}):
         self.head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+        <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -400,11 +400,11 @@ class StarVars_ASAS_Feature_Generation:
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+                        <TimeType ucd="frame.time.system?">MJD</TimeType>
+                        <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+                        <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
+                        <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+                </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -452,7 +452,7 @@ class StarVars_ASAS_Feature_Generation:
 
 
     def form_xml_string(self, mag_data_dict):
-        """ Take timeseries dict data and place into VOSource XML format, 
+        """ Take timeseries dict data and place into VOSource XML format,
         which TCP feature generation code expects.
 
         Adapted from: TCP/Software/feature_extract/format_csv_getfeats.py
@@ -465,7 +465,7 @@ class StarVars_ASAS_Feature_Generation:
             data_str = '              <TR row="%d"><TD>%lf</TD><TD>%lf</TD><TD>%lf</TD></TR>' % \
                 (i, t, m, m_err)
             data_str_list.append(data_str)
-            
+
         all_data_str = '\n'.join(data_str_list)
         out_xml = self.head_str + all_data_str + self.tail_str
         return out_xml
@@ -478,7 +478,7 @@ class StarVars_ASAS_Feature_Generation:
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         if 0:
             ### requires mysql connection to TUTOR:
-            adt.retrieve_fullcat_frame_limitmags() 
+            adt.retrieve_fullcat_frame_limitmags()
             self.write_limitmags_into_pkl(adt.frame_limitmags)
 
         ### This is done when we don't have a connection to the mysql database.
@@ -503,7 +503,7 @@ class StarVars_ASAS_Feature_Generation:
         - generate features from timeseries (placing in intermediate XML-string format)
         - collect resulting features for all given sources, and place in ARFF style file
               which will later be read by ML training/classification code.
-              
+
         Partially adapted from: TCP/Software/citris33/arff_generation_master_using_generic_ts_data.py:get_dat_arffstrs()
         """
         from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
@@ -555,7 +555,7 @@ class StarVars_ASAS_Feature_Generation:
                 new_xml_str = ParseNomadColorsList.get_colors_for_srcid(xml_str=xml_str, srcid=new_srcid)
 
             gen.generate(xml_handle=new_xml_str)
-            gen.sig.add_features_to_xml_string(signals_list)                
+            gen.sig.add_features_to_xml_string(signals_list)
             gen.sig.x_sdict['src_id'] = new_srcid
             dbi_src = db_importer.Source(make_dict_if_given_xml=False)
             dbi_src.source_dict_to_xml(gen.sig.x_sdict)
@@ -574,7 +574,7 @@ class StarVars_ASAS_Feature_Generation:
 
         master_features = master_features_dict.keys()
         master_classes = master_classes_dict.keys()
-        a = arffify.Maker(search=[], skip_class=skip_class, local_xmls=True, 
+        a = arffify.Maker(search=[], skip_class=skip_class, local_xmls=True,
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
                           dorun=False, add_srcid_to_arff=True)
@@ -601,7 +601,7 @@ if __name__ == '__main__':
     #pars = {'out_arff_fpath':'/global/home/users/dstarr/500GB/acvs_50k_raw/combined_acvs.arff',
     #        'acvs_raw_dirpath':'/global/home/users/dstarr/500GB/acvs_50k_raw/timeseries',
     #        'limitmags_pkl_gz_fpath':'/global/home/users/dstarr/500GB/acvs_50k_raw/asas_limitmags.pkl.gz'}
-    
+
     # Anathem (IPython v0.13.1dev):
     pars = { \
         'out_arff_fpath':'/home/dstarr/Data/starvars/combined_acvs.arff',

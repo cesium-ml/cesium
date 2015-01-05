@@ -6,16 +6,16 @@ import threading
 import warnings
 
 class NED(object):
-    
+
     max_dist_search_arcmin = 100.0 ## 5 degree radius at most
     max_z_for_local_search = 0.003 ## otherwise it aint local and could hang
     max_small_dist_search_arcmin = 1.0
     max_field_dist_search_arcmin = 30.0
-    
+
     local_results = None
     nearest_results = None
     field_results = None
-    
+
     indict = {"in_csys": "Equatorial", "in_equinox": "J2000.0",\
                 "out_csys": "Equatorial", "out_equinox": "J2000.0",\
                 "obj_sort": "Distance to search center",\
@@ -28,10 +28,10 @@ class NED(object):
 
     ned_url = "http://ned.ipac.caltech.edu/cgi-bin/nph-objsearch?"
 
-    ucd_lookup = {'name': "meta.id;meta.main", "ra": "pos.eq.ra;meta.main", 
-        "dec": "pos.eq.dec;meta.main", "z": "src.redshift", "zflag": "meta.code;src.redshift", 
+    ucd_lookup = {'name': "meta.id;meta.main", "ra": "pos.eq.ra;meta.main",
+        "dec": "pos.eq.dec;meta.main", "z": "src.redshift", "zflag": "meta.code;src.redshift",
         "distance_arcmin": "pos.distance"}
-        
+
     def __init__(self,pos=(None,None),verbose=False,object_types="Galaxies",precompute_on_instantiation=True,
         do_threaded=True,do_local=True, do_field = True, do_nearest=True):
         self.good_pos = False
@@ -59,7 +59,7 @@ class NED(object):
                     self._nearest_galaxy_search()
                 if self.do_field:
                     self._field_galaxy_search()
-                
+
     def _run_threaded(self):
         if self.do_local:
             if self.verbose:
@@ -74,7 +74,7 @@ class NED(object):
         if self.do_field:
             if self.verbose:
                 print "Starting field search in a thread"
-                
+
             self.threads.append(threading.Thread(target=self._field_galaxy_search,name="field"))
             self.threads[-1].start()
         ### dstarr adds, to insure all threads join before returning:
@@ -93,7 +93,7 @@ class NED(object):
             z_max = self.max_z_for_local_search
             if self.verbose:
                 print "!NED: setting max z to max_z_for_local_search (%f)" % self.max_z_for_local_search
-                
+
         ## get the xml_main for this, maybe nothing
         local_dict.update({"lon": self.ra, "lat": self.dec, "radius": rad, "of": "xml_main",\
                       "z_constraint": "Less Than","z_value1": z_max})
@@ -101,7 +101,7 @@ class NED(object):
 
     def print_local_gal_search(self, z_max=0.002,rad=150.0,timeout=60.0):
         """ will do very wide search for local galaxies (z < z_max) consistent with a position """
-        
+
         if self.do_threaded:
             for t in self.threads:
                 if t.getName() == 'local':
@@ -111,26 +111,26 @@ class NED(object):
 
         if self.local_results is None:
             self._local_gal_search(z_max = z_max, rad= rad)
-                        
+
         print "*"*30
         print "Local Galaxy Results"
         print "*"*30
         self._rez_print(self.local_results,key='kpc_offset')
-    
+
 
     def _nearest_galaxy_search(self,rad=0.2):
         """ searches really nearby for all types of galaxies whether z is known or not ... default is 12 arcsec """
         local_dict = copy.copy(self.indict)
         if rad > self.max_field_dist_search_arcmin:
             rad = self.max_field_dist_search_arcmin
-        
+
         ## get the xml_main for this, maybe nothing
         local_dict.update({"lon": self.ra, "lat": self.dec, "radius": rad, "of": "xml_main",\
                           "z_constraint": "Unconstrained"})
 
         # we really only care about the nearest few guys
         self.nearest_results = self._do_search(local_dict,max_derived=3)
-        
+
     def print_nearest_galaxy_search(self,rad=0.2,timeout=60):
         if self.do_threaded:
             for t in self.threads:
@@ -138,18 +138,18 @@ class NED(object):
                     if self.verbose:
                         print "Joining the 'nearest' thread and waiting for it to finish"
                     t.join(timeout)
-                    
+
         if self.nearest_results is None:
             self._nearest_galaxy_search(rad= rad)
-            
+
         print "*"*30
         print "Nearest Galaxy Results"
         print "*"*30
         self._rez_print(self.nearest_results,key='distance_arcmin')
-        
+
     def _field_galaxy_search(self,rad=10):
         """ searches field galaxies """
-        
+
         local_dict = copy.copy(self.indict)
         if rad > self.max_field_dist_search_arcmin:
             rad = self.max_field_dist_search_arcmin
@@ -168,10 +168,10 @@ class NED(object):
                     if self.verbose:
                         print "Joining the 'field' thread and waiting for it to finish"
                     t.join(timeout)
-                    
+
         if self.field_results is None:
             self._field_galaxy_search(rad= rad)
-            
+
         print "*"*30
         print "Field Galaxy Results"
         print "*"*30
@@ -190,22 +190,22 @@ class NED(object):
                 self._field_galaxy_search()
             if self.local_results is None:
                 self._local_galaxy_search()
-        
+
         if self.field_results is None or self.local_results is None:
             warnings.warn("no field or local result return")
             ans.update({'feedback': 'no field or local result return'})
             return ans
-        
+
         tmp = copy.copy(self.field_results)
         tmp.extend(copy.copy(self.local_results))
-        
+
         ## sort by kpc offset
         key = 'kpc_offset'
         obj = copy.copy(tmp)
         for o in tmp:
             if not o.has_key(key):
                 obj.remove(o)
-        
+
         if len(obj) == 0:
             ans.update({'feedback': 'no sources found with spatial position values known'})
             return ans
@@ -258,14 +258,14 @@ class NED(object):
         ## sort by kpc offset
         other = []
         obj = copy.copy(objects)
-        
+
         for o in objects:
             if not o.has_key(key):
                 other.append(o)
                 obj.remove(o)
-            
+
         obj.sort(key=lambda x: x[key])
-        
+
         print "%-30s\t%9s\t%9s\t%9s\t%9s" % ("Name","z","dm","dist","offset")
         print "%-30s\t%9s\t%9s\t%9s\t%9s" % ("","","mag","arcmin","kpc")
         for o in obj:
@@ -281,9 +281,9 @@ class NED(object):
                 z = o['z']
             else:
                 z = "---"
-                                    
+
             print "%-30s\t%9s\t%9s\t%9.3f\t%9s" % (o['name'],str(z),str(dm),o["distance_arcmin"],str(ko))
-        
+
         if len(other) > 0:
             print " *** OTHER (those that cannot be sorted by requested sort key)**** "
             print "%-30s\t%9s\t%9s\t%9s\t%9s" % ("Name","z","dm","dist","offset")
@@ -303,7 +303,7 @@ class NED(object):
                     z = "---"
 
                 print "%-30s\t%9s\t%9s\t%9.1f\t%9s" % (o['name'],str(z),str(dm),o["distance_arcmin"],str(ko))
-        
+
     def _do_search(self,local,get_derived_obj_info=True,max_derived=500):
         """ actually performs the search and parses the output """
 
@@ -314,7 +314,7 @@ class NED(object):
         if self.verbose:
             print self.ned_url + params
         f = urllib.urlopen(self.ned_url + params)
-        
+
         tmp =  f.read()
         try:
             doc = amara.parse(tmp)
@@ -332,11 +332,11 @@ class NED(object):
         objs = self._get_objects_from_main_table(main_table)
         if get_derived_obj_info:
             objs = self._get_derived_info(objs,max_derived=max_derived)
-        
+
         return objs
-        
+
     def _get_derived_info(self,objs,max_derived=500):
-        
+
         ret = []
         local = copy.copy(self.name_search_dict)
         for o in objs[:max_derived]:
@@ -345,7 +345,7 @@ class NED(object):
                 ret.append(o)
             else:
                 tmp = copy.copy(o)
-                
+
             local.update({"objname": o['name']})
             params = urllib.urlencode(local)
             if self.verbose:
@@ -360,7 +360,7 @@ class NED(object):
             except:
                 print "no dervived table"
                 continue
-    
+
             dfields = d[0].xml_xpath(u'FIELD')
             dat = d[0].xml_xpath(u'DATA/TABLEDATA/TR/TD')
             for i in range(len(dfields)):
@@ -381,10 +381,10 @@ class NED(object):
                         ug1 = float(tmp1)
                     except:
                         ug1 = str(tmp1).strip()
-                    tmp.update({'dm': ug1}) 
+                    tmp.update({'dm': ug1})
             ret.append(tmp)
         return ret
-        
+
     def _get_objects_from_main_table(self,main_table):
         vals = self.ucd_lookup.values()
         table_lookup = self.ucd_lookup.fromkeys(self.ucd_lookup)
@@ -401,19 +401,19 @@ class NED(object):
         objs = main_table.xml_xpath(u'DATA/TABLEDATA/TR')
         objects = []
         for o in objs:
-        	ug = o.xml_xpath(u'TD')
-        	tmp = {}
-        	for k, i in table_lookup.iteritems():
-        		tmp1 = unicode(ug[i])
-        		try:
-        			ug1 = float(tmp1)
-        		except:
-        			ug1 = str(tmp1).strip()
-        		tmp.update({k: ug1})
-        	objects.append(tmp)
-        
+            ug = o.xml_xpath(u'TD')
+            tmp = {}
+            for k, i in table_lookup.iteritems():
+                tmp1 = unicode(ug[i])
+                try:
+                    ug1 = float(tmp1)
+                except:
+                    ug1 = str(tmp1).strip()
+                tmp.update({k: ug1})
+            objects.append(tmp)
+
         return objects
-        
+
     def parse_pos(self,pos):
         """ parses the position and set local variables """
         ## TODO: more error checking ... assume degrees now
@@ -424,23 +424,23 @@ class NED(object):
             warnings.warn("RA and/or DEC is not a type of float")
             self.good_pos = False
             return
-        
+
         if ra < 0.0 or ra >= 360.0 or dec < -90.0 or dec > 90.0:
             warnings.warn("RA and/or DEC out of range")
             self.good_pos = False
             return
-         
-        self.good_pos = True  
+
+        self.good_pos = True
         self.ra  = "%fd" % ra
         self.dec = "%fd" % dec
 
         return
-    
+
 def test():
-    ra =  199.83412 
+    ra =  199.83412
     dec =  8.92897
-    #ra = 286.61986  
-    #dec = 68.79320 
+    #ra = 286.61986
+    #dec = 68.79320
     #ra  = 185.1282480
     #dec = 28.346232
     b = NED(pos=(ra,dec),verbose=False)
@@ -454,6 +454,4 @@ def test():
     b.print_field_galaxy_search()
 
 if __name__ == "__main__":
-    test()  
-
-
+    test()

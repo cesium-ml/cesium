@@ -66,7 +66,7 @@ class Classification_Tables_Interface:
         else:
             self.db = db
         self.cursor = self.db.cursor()
-        
+
 
         # I think this is OBSOLETE (it's unfinished at least):
     def insert_arff_classes_into_class_db(self, arff_master_list):
@@ -85,7 +85,7 @@ class Classification_Tables_Interface:
 
         for source_elem in arff_master_list:
             insert_list.append("(%d, %s, '%s', '%s', %d, NOW()), " % (source_elem['num'], source_elem['class']))
-        
+
 
         self.cursor.execute(''.join(insert_list)[:-2])
 
@@ -184,7 +184,7 @@ class Source_Feature_Class_Generator:
                                       srcid_xml_tuple_list=srcid_xml_tuple_list)
         #if 1:
         #    self.arffmaker.write_arff()
-            
+
         # TODO:
         # if flagged to generate science classes (SDSS):
         #     self.arffmaker.write_arff()
@@ -274,7 +274,7 @@ class ClassificationHandler:
                       self.class_schema_definition_dicts['mlens3 MicroLens'])
             self.get_create_classid_schemaid_dict(\
                       self.class_schema_definition_dicts['Dovi SN'])
-        
+
 
     def get_classdict_featureslist_from_arff(self, weka_training_arff_fpath):
         """ Parse the classes and features from Weka .arff file header and
@@ -319,7 +319,7 @@ class ClassificationHandler:
         # Need to see whether this class schema exists in RDB. if no: add it.
         #select_str = "SELECT class_name,class_id FROM %s WHERE schema_id=%d AND schema_n_feats=%d AND schema_n_classes=%d" % \
         select_str = "SELECT class_name,class_id FROM %s WHERE schema_comment='%s' AND schema_n_feats=%d AND schema_n_classes=%d" % \
-                               (self.pars['classid_lookup_tablename'], 
+                               (self.pars['classid_lookup_tablename'],
                                 class_schema_definition['schema_comment'],
                                 class_schema_definition['n_features'],
                                 class_schema_definition['n_classes'])
@@ -348,7 +348,7 @@ class ClassificationHandler:
             """
             # TODO: I need to generate class ids for all class names
             class_schema_definition['class_list'].sort()# not neccisary but nice
-            
+
             insert_list = ["INSERT INTO %s (schema_id, class_id, class_name, schema_n_feats, schema_n_classes, schema_comment, schema_dtime) VALUES " % (self.pars['classid_lookup_tablename'])]
             class_schema_definition['class_name_id_dict'] = {}
             for i in xrange(len(class_schema_definition['class_list'])):
@@ -406,7 +406,7 @@ class ClassificationHandler:
                 #for elem in temp_list:
                 #    print '!', elem
                 #print shortening_str
-                
+
 
         # debug:
         #for elem in temp_list:
@@ -424,7 +424,7 @@ class ClassificationHandler:
         classname_colnum_dict = {}
         for i in xrange(len(temp_list)):
             classname_colnum_dict[i] = temp_list[i]
-        
+
         return classname_colnum_dict
 
 
@@ -440,7 +440,7 @@ class ClassificationHandler:
         NOTE: Java CLASSPATH environment variable is needed for Weka:
            e.g.:
         export CLASSPATH='/home/dstarr/src/install/weka-3-5-7/weka.jar'
-        BUT, here we hardcode it into the weka system call.  
+        BUT, here we hardcode it into the weka system call.
         """
 
         if len(class_path) > 0:
@@ -517,19 +517,19 @@ class ClassificationHandler:
             class_probs_dict[src_id] = []
             arff_record = []
 
-	    for fea in self.arffmaker.master_features:
-	    	val = None
-	    	if obj['features'].has_key(fea):
-	    		str_fea_val = str(obj['features'][fea])
-	    		if ((str_fea_val == "False") or 
-	    		    (str_fea_val == "inf") or
-	    		    (str_fea_val == "nan") or
-	    		    (str_fea_val == "None")):
-	    			val = None
-	    		elif fea[1] == 'float':
-	    			val = obj['features'][fea] # str_fea_val
-	    		else:
-	    			val = "%s" % str_fea_val # """'%s'""" % str_fea_val
+            for fea in self.arffmaker.master_features:
+                val = None
+                if obj['features'].has_key(fea):
+                    str_fea_val = str(obj['features'][fea])
+                    if ((str_fea_val == "False") or
+                        (str_fea_val == "inf") or
+                        (str_fea_val == "nan") or
+                        (str_fea_val == "None")):
+                        val = None
+                    elif fea[1] == 'float':
+                        val = obj['features'][fea] # str_fea_val
+                    else:
+                        val = "%s" % str_fea_val # """'%s'""" % str_fea_val
                 arff_record.append(val)
 
             # 20090130 old:
@@ -537,7 +537,7 @@ class ClassificationHandler:
             #    val = None # "?"
             #    if obj['features'].has_key(fea):
             #        if fea[1] == 'float':
-            #            if ((obj['features'][fea] == "False") or 
+            #            if ((obj['features'][fea] == "False") or
             #                (str(obj['features'][fea]) == "inf") or
             #                (str(obj['features'][fea]) == "nan")):
             #                val = None # "?"
@@ -603,11 +603,11 @@ class ClassificationHandler:
             schema_str=schema_str)
 
         os.system("rm " + out_fpath)
-        # NOTE: This makes the assumption that the srcid list order of 
+        # NOTE: This makes the assumption that the srcid list order of
         # class_prob_list corresponds to the order of self.arffmaker.master_list
         # and that their order also corresponds to vosource_list[] srcid order.
         assert(len(self.arffmaker.master_list) == len(class_prob_list_of_lists))
- 
+
         class_probs_dict = {} # {src_id:[{'schema_id':'', 'class_id':'', 'prob':'', 'class_rank':'', 'prob_weight':''}]
 
         prob_weight = 1.0 # This property may be used in Nat/Dovi to represent
@@ -637,7 +637,7 @@ class ClassificationHandler:
 
 
     def determine_whether_interesting_general_class(self, src_id, class_dict):
-        """ 
+        """
         This uses the src_class_probs table, the 'General' schema to store /
         identify whether this source is generally interesting or not.
         the 'General' (shema_id=2) row will have a 0/1 value set in prob_weight column
@@ -652,7 +652,7 @@ class ClassificationHandler:
         ##### NOT IMPLEMENTED YET:
         ##KLUDGE: unfortunately the current algorithm requres prior knowledge of
         ##what the previous General.prob_weight / is interesting state was.  This
-        ##means 
+        ##means
 
         """
         # TODO: query for existance of this src_id in TABLE: interesting_general_classified_srcid
@@ -663,7 +663,7 @@ class ClassificationHandler:
             return 1.0 # is interesting
         else:
             return 0.0 # is not interesting.
-        
+
 
     def generate_insert_classification_using_vosource_list(self, vosource_list,\
                                                      return_updated_xmls=False, do_logging=False, n_objs=None):
@@ -675,7 +675,7 @@ class ClassificationHandler:
 
         ASSUMPTION:
         # NOTE: making the assumtion that vosource_list only contains a single source (which has benn the case so far).
-        #        - thus we ASSUME:  len(vosource_list) == 1 
+        #        - thus we ASSUME:  len(vosource_list) == 1
 
         """
         if do_logging:

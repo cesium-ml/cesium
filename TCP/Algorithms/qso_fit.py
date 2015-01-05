@@ -11,9 +11,9 @@ from scipy import __version__ as scipy_version
 def lprob2sigma(lprob):
     """ translates a log_e(probability) to units of Gaussian sigmas """
     if (lprob>-36.):
-      sigma = norm.ppf(1.-0.5*exp(1.*lprob))
+        sigma = norm.ppf(1.-0.5*exp(1.*lprob))
     else:
-      sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
+        sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
     return float(sigma)
 
 
@@ -26,9 +26,9 @@ def chol_inverse_diag(t):
     B[1,nrows-1] = 1.0/t[1,nrows-1]**2
     B[0,nrows-1] = -t[0,nrows-1]*B[1,nrows-1]/t[1,nrows-2]
     for j in reversed(xrange(nrows-1)):
-      tjj = t[1,j]
-      B[1,j] = (1.0/tjj-t[0,j+1]*B[0,j+1])/tjj
-      B[0,j] = -t[0,j]*B[1,j]/t[1,j-1]
+        tjj = t[1,j]
+        B[1,j] = (1.0/tjj-t[0,j+1]*B[0,j+1])/tjj
+        B[0,j] = -t[0,j]*B[1,j]/t[1,j-1]
     return B
 
 
@@ -89,13 +89,13 @@ def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
         model = 1.*data; dmodel = -1.*error
 
     if (lg<ln):
-      dt = dt[g]
-      gg = zeros(lg+1,dtype='int64'); gg[1:] = g+1
-      dat = data[gg]; wt = 1./(sys_err**2+error[gg]**2)
-      ln = lg+1
+        dt = dt[g]
+        gg = zeros(lg+1,dtype='int64'); gg[1:] = g+1
+        dat = data[gg]; wt = 1./(sys_err**2+error[gg]**2)
+        ln = lg+1
     else:
-      dat = 1.*data
-      wt = 1./(sys_err**2+error**2)
+        dat = 1.*data
+        wt = 1./(sys_err**2+error**2)
 
     out_dict['nu'] = ln-1.
     varx = var(dat)
@@ -187,25 +187,25 @@ def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
     a=ln/2.; x = (out_dict['chi2_qso/nu']+1.e-8)/(out_dict['chi2_qso/nu_NULL']+out_dict['chi2_qso/nu']+1.e-8)
     prob = betainc(a,a,x)
     if (prob<=0):
-      lprob = a*log(x) - log(a) + gammaln(2*a) - 2*gammaln(a)
+        lprob = a*log(x) - log(a) + gammaln(2*a) - 2*gammaln(a)
     else:
-      lprob = log( prob )
+        lprob = log( prob )
     out_dict['signif_qso'] = lprob2sigma(lprob)
 
     a=ln/2.; x = 1./(1.+out_dict['chi2_qso/nu'])
     prob = betainc(a,a,x)
     if (prob<=0):
-      lprob = a*log(x) - log(a) + gammaln(2*a) - 2*gammaln(a)
+        lprob = a*log(x) - log(a) + gammaln(2*a) - 2*gammaln(a)
     else:
-      lprob = log( prob )
+        lprob = log( prob )
     out_dict['signif_not_qso'] = lprob2sigma(lprob)
 
     x = out_dict['chi2/nu']*out_dict['nu']
     prob = gammaincc(0.5*out_dict['nu'],0.5*x)
     if (prob<=0):
-      lprob = (0.5*out_dict['nu']-1)*log(x) - 0.5*x - 0.5*out_dict['nu']*log(2) - gammaln(0.5*out_dict['nu'])
+        lprob = (0.5*out_dict['nu']-1)*log(x) - 0.5*x - 0.5*out_dict['nu']*log(2) - gammaln(0.5*out_dict['nu'])
     else:
-      lprob = log( prob )
+        lprob = log( prob )
     out_dict['signif_vary'] = lprob2sigma(lprob)
 
     if (out_dict['signif_vary']>3):
@@ -216,10 +216,10 @@ def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
 
     # best-fit model for the lightcurve
     if (return_model):
-      model[gg] = dat - (u-u0*x0)/diagC
-      dmodel[gg] = 1./sqrt(diagC)
-      out_dict['model'] = model
-      out_dict['dmodel'] = dmodel
+        model[gg] = dat - (u-u0*x0)/diagC
+        dmodel[gg] = 1./sqrt(diagC)
+        out_dict['model'] = model
+        out_dict['dmodel'] = dmodel
 
     return out_dict
 
@@ -240,7 +240,7 @@ def qso_fit(time,data,error,filter='r',sys_err=0.0,return_model=False):
 
         signif_qso - significance chi^2/nu<chi^2/nu_NULL (rule out false alarm)
         signif_not_qso - significance chi^2/nu>1 (rule out qso)
-        signif_vary - significance that source is variable at all 
+        signif_vary - significance that source is variable at all
         class - source type (ambiguous, not_qso, qso)
 
         model - time series prediction for each datum given all others (iff return_model==True)
@@ -293,6 +293,6 @@ def qso_fit(time,data,error,filter='r',sys_err=0.0,return_model=False):
     ###
 
     if (return_model):
-      out_dict['model']=adict['model']; out_dict['dmodel']=adict['dmodel']
+        out_dict['model']=adict['model']; out_dict['dmodel']=adict['dmodel']
 
     return out_dict

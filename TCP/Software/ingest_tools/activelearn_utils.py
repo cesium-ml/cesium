@@ -143,7 +143,7 @@ class Database_Utils:
         NOTE: Do this one time only.
 
         See "CFTDI Active Learning architecture" google-document for further descriptions.
-        
+
         """
 
         """
@@ -158,7 +158,7 @@ overall_match_group   DOUBLE,
 overall_match_al      DOUBLE,
 INDEX (act_session, act_iter, user_id));
         """
-        
+
         """
 CREATE TABLE activelearn_user_class_stats (
 act_session             SMALLINT,
@@ -167,7 +167,7 @@ user_id         INT UNSIGNED,
 tutor_class_id  SMALLINT,
 n_correct       INTEGER,
 n_total         INTEGER,
-INDEX (act_session, act_iter, user_id, tutor_class_id));    
+INDEX (act_session, act_iter, user_id, tutor_class_id));
         """
 
 
@@ -214,7 +214,7 @@ INDEX (act_id))
         #self.tcp_cursor.execute(create_str)
 
 
-        ### This is intended for primary lookup of src_ids for a given act_id.  
+        ### This is intended for primary lookup of src_ids for a given act_id.
         create_str = """
         CREATE TABLE activelearn_actid_srcid (
 act_id                  INT UNSIGNED,
@@ -265,7 +265,7 @@ def compare_userclassifs_files(pars={}):
 
     orig_final_classifs = {}
     algo_final_classifs = {}
-    
+
     for i in range(1, len(pars['user_classifs_joey_algo_chosen'])+1):
         tup_list = loadtxt(pars['user_classifs_joey_algo_chosen'][i],
                                          dtype={'names': ('src_id', 'class_id'),
@@ -332,7 +332,7 @@ def get_simbad_matched_sources_which_overlap_userAL_sources(pars):
     # Want to remove these sources from the SIMBAD dataset
     import pdb; pdb.set_trace()
     print
-    
+
 
 class IPython_Task_Administrator:
     """ Send of Imputation tasks
@@ -353,7 +353,7 @@ class IPython_Task_Administrator:
         self.mec = client.MultiEngineClient()
         #self.mec.reset(targets=self.mec.get_ids()) # Reset the namespaces of all engines
         self.tc = client.TaskClient()
-	self.task_id_list = []
+        self.task_id_list = []
 
         #### 2011-01-21 added:
         self.mec.reset(targets=self.mec.get_ids())
@@ -365,10 +365,10 @@ class IPython_Task_Administrator:
     def initialize_clients(self):
         """ Instantiate ipython1 clients, import all module dependencies.
         """
-	#task_str = """cat = os.getpid()"""
-	#taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-	#time.sleep(2)
-	#print self.tc.get_task_result(taskid, block=False).results
+        #task_str = """cat = os.getpid()"""
+        #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+        #time.sleep(2)
+        #print self.tc.get_task_result(taskid, block=False).results
 
         # 20090815(before): a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=True, dorun=False)
         import time
@@ -383,13 +383,13 @@ from numpy import array
 import rpy2.robjects.numpy2ri
 """
         self.mec.execute(exec_str)
-	time.sleep(2) # This may be needed.
+        time.sleep(2) # This may be needed.
 
-	### testing:
-	#task_str = """cat = os.getpid()"""
-	#taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-	#time.sleep(1)
-	#print self.tc.get_task_result(taskid, block=False).results
+        ### testing:
+        #task_str = """cat = os.getpid()"""
+        #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+        #time.sleep(1)
+        #print self.tc.get_task_result(taskid, block=False).results
 
 
 class Active_Learn(Database_Utils):
@@ -411,7 +411,7 @@ class Active_Learn(Database_Utils):
         """
         """
         lines = open(self.pars['user_classifs_fpaths'][iter]).readlines()
-        
+
         srcid_classid_tups = []
         for line in lines:
             e = line.split()
@@ -424,7 +424,7 @@ class Active_Learn(Database_Utils):
             self.user_classifs[session_id][iter]['src_id'].append(srcid)
             self.user_classifs[session_id][iter]['tutor_class_id'].append(class_id)
             self.user_classifs[session_id][iter]['srcid_class_dict'][srcid] = class_id
-    
+
 
     def retrieve_user_consensus_classifications(self, iteration_id=None, session_id=0):
         """
@@ -494,7 +494,7 @@ class Active_Learn(Database_Utils):
                 insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE class_id=VALUES(class_id), prob=VALUES(prob)"
                 self.tcp_cursor.execute(insert_str)
                 insert_list = ["INSERT INTO asascat_probs (catalog_id, tutor_srcid, classifier_rank, class_id, prob) VALUES "]
-                
+
         if len(insert_list) > 1:
             insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE class_id=VALUES(class_id), prob=VALUES(prob)"
             self.tcp_cursor.execute(insert_str)
@@ -537,7 +537,7 @@ class Active_Learn(Database_Utils):
         # # # # # # #
 
         ### insert the active learned user sourceid set (~100), with importances:
-        
+
         insert_list = ["INSERT INTO activelearn_srcid_importance (act_id, source_id, importance) VALUES "]
         for tup in actlearn_tups:
             (src_id, importance) = tup
@@ -595,7 +595,7 @@ class Active_Learn(Database_Utils):
                                                 data_dict=testdata_dict,
                                                 do_ignore_NA_features=do_ignore_NA_features,
                                                 return_prediction_probs=True)
-        
+
         out = self.retrieve_tutor_class_ids()
         rclass_tutorid_lookup = out['rclass_tutorid_lookup']
 
@@ -631,7 +631,7 @@ class Active_Learn(Database_Utils):
                 'train_arff_str':train_arff_str,
                 'test_arff_str':test_arff_str,}
 
-                
+
     def analysis_plot_period_amp(self, test_arff_rows=[], train_arff_rows=[],
                                  session_id=0, iteration_id=0,
                                  n_test_subsample=0,
@@ -643,7 +643,7 @@ class Active_Learn(Database_Utils):
         NOTE: It appears that now that we include high-confidence sources to the "test-set"
              (testset acuatlly meaning the sourses which will be presented to the user for actlearn),
              these high-confidence sources will not be plotted since thew are not in the "select_rows" list.
-        
+
         """
         import pylab
         import numpy
@@ -664,7 +664,7 @@ class Active_Learn(Database_Utils):
             elems = row_str.split(',')
             test_amp_list.append(float(elems[i_amp]))
             test_per_list.append(float(elems[i_freq]))
-        
+
         train_amp_list = []
         train_per_list = []
         for row_str in train_arff_rows:
@@ -721,7 +721,7 @@ class Active_Learn(Database_Utils):
 
         # KLUDGE: there are some duplicate sources in the ASAS dataset, want to remove one of the duplicates.  This list was added after iteration2, to train iteration=3 (second many user iteration) and later iterations:
         srcids_to_skip.extend(self.pars['asas_duplicate_sources'])
-        
+
         # NOTE: 20,25 min window seems to show a significant/prominant number of sources at the 1-day period
         period_half_window = 30 * 1./(24.*60.) # in days
         new_srcid_list = []
@@ -742,7 +742,7 @@ class Active_Learn(Database_Utils):
                 # The following allows some period~1day alias sources to be included in output sources/arff_rows
                 # KLUDGE: in session=0, iteration=1 (first), we used one source (217628) which initially did not have a found period ~1 day, so it was selected, but on iter=2 we use a different ARFF file for ASAS sources, so this source now falls within the ~1 day range.  So we want to allow this source through since it is needed for calculating ActiveLearning Costs.  This will continue to be a problem as we update the Nat/LS period finding algorithms. #on iter=0,2 we used 216527, which needs to be included even though on iter3 the period is ~1day
                 if src_id not in ['217628', '216527', '245529', '252070', '217855', '242999']:
-                    
+
                     continue # we skip from adding this source / row to the dataset
             new_srcid_list.append(datadicts['testdata_dict']['srcid_list'][i])
             new_arff_rows.append(arff_row)
@@ -759,7 +759,7 @@ class Active_Learn(Database_Utils):
 
 
     def all_same(self, items):
-            return all(x == items[0] for x in items)
+        return all(x == items[0] for x in items)
 
 
     def condense_user_classified_sources(self, user_classif_lists):
@@ -767,12 +767,12 @@ class Active_Learn(Database_Utils):
         ## NOTE: for now I will assume that we choose sources which have been classified by
               specific hardcoded users (which have classified everything reliably).
            - I also require that the tutor_classification is not None.
-        ## Eventually, we may want to determine how many total users, and then retquire that 
+        ## Eventually, we may want to determine how many total users, and then retquire that
              > 70% of classifications be identical for a source, given that 100% is when all users classify
 
            - TODO may also want datetime condition, or other_class_id condition (no JUNK)
 
-        """        
+        """
 
         if 0:
             both_user_match_dict = {
@@ -787,7 +787,7 @@ class Active_Learn(Database_Utils):
             #required_user_ids = [1, 2] # iteration=2
             required_user_ids = range(1,50) # skip henrik(0) # [1, 2, 3, 4, 7, 11] # iteration=3
             len_required_user_ids = len(required_user_ids)
-            
+
             srcid_classif_counts = {}
 
             # First, we will later need a list of all source_ids looked at by users for activelearn iteration:
@@ -798,7 +798,7 @@ class Active_Learn(Database_Utils):
                         all_srcids_for_actlearn_iter.append(src_id)
 
             for i, src_id in enumerate(user_classif_lists['src_id']):
-                
+
                 if ((user_classif_lists['user_id'][i] in required_user_ids) and
                     (user_classif_lists['tutor_class_id'][i] != None)):
                     if not srcid_classif_counts.has_key(src_id):
@@ -839,13 +839,13 @@ class Active_Learn(Database_Utils):
                 # TODO: do this instead of requiring a complete match (below):
                 # # # # # # # #
                 # # # # # # # #
-                
+
                 for a_class in uniq_classes:
                     n_users = classids.count(a_class)
                     if n_users == len_required_user_ids:
-                        
+
                         # KLUDGEY: find the classif with the most classifications.
-                        
+
                         i = user_classif_lists['src_id'].index(src_id)
                         tutor_class_id = user_classif_lists['tutor_class_id'][i]
                         iter_id = user_classif_lists['iter_id'][i]
@@ -882,7 +882,7 @@ class Active_Learn(Database_Utils):
                     out_dict['src_id'].append(src_id)
                     out_dict['tutor_class_id'].append(iter_dict['tutor_class_id'][i])
                     out_dict['iter_id'].append(iter_id)
-                        
+
         return out_dict
 
 
@@ -905,7 +905,7 @@ class Active_Learn(Database_Utils):
 
         user_classifs = {'user_confident_srcid_list':[],
                          }
-        
+
         if iteration_id > 1:
             ### Query User classifications for all srcids for a session_id, iter_id:
             #   NOTE: ORDER BY user_id, source_id, dtime DESC :
@@ -980,7 +980,7 @@ class Active_Learn(Database_Utils):
                     raise
                     #continue
                 ### So i_src is user classified and in the test-dataset
-                
+
                 # This is so that we only get the last classification made by a user for a srcid
                 #   - this is more obsolete since final_user_classifs is now an already user-condensed srcid list
                 if src_id in srcids_to_addto_trainarffstr:
@@ -1023,7 +1023,7 @@ class Active_Learn(Database_Utils):
                 continue # skip: we dont add to testset these user-consensus sources which we moved to trainset
             new_testset_rows.append(arff_row)
             new_srcid_list.append(datadicts['testdata_dict']['srcid_list'][i_src])
-            new_class_list.append(datadicts['testdata_dict']['class_list'][i_src])            
+            new_class_list.append(datadicts['testdata_dict']['class_list'][i_src])
             for feat_name in datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
                 testdata_featname_longfeatval_dict[feat_name].append(datadicts['testdata_dict']['featname_longfeatval_dict'][feat_name][i_src])
 
@@ -1045,13 +1045,13 @@ class Active_Learn(Database_Utils):
         #                              iteration_id=iteration_id,
         #                              n_test_subsample=n_test_subsample)
 
-        # KLUDGE: 
+        # KLUDGE:
         if 0:
             ## ## ##
             if '@data' in datadicts['test_arff_str'][:50000]:
                 new_test_arff_str = datadicts['test_arff_str'][:datadicts['test_arff_str'].find('@data')+5]
             else:
-                new_test_arff_str = datadicts['test_arff_str'][:datadicts['test_arff_str'].find('@DATA')+5]            
+                new_test_arff_str = datadicts['test_arff_str'][:datadicts['test_arff_str'].find('@DATA')+5]
             new_test_arff_str += '\n'.join(new_testset_rows)
 
         return {#'train_arff_str':'', ## ## ## datadicts['train_arff_str'],
@@ -1089,10 +1089,10 @@ class Active_Learn(Database_Utils):
               - which will then be added to the database along with the active learned sources
 
         # TODO: eventually generate this list of srcids from Joey's R algorithm (20110407)
-        
+
         """
         #high_conf_srcids = self.pars['high_conf_srcids'] # This if only for session=0, iter=1
-        
+
         high_conf_srcids_dict = self.rc.get_confident_sources(combo_result_dict=combo_result_dict,
                                                          n_sources_per_class=1)
 
@@ -1143,7 +1143,7 @@ class Active_Learn(Database_Utils):
                    'asascat_store_feats':{},
                    'srcid_list':[],
                    'is_train_list':[],
-                   'train_class':[]} 
+                   'train_class':[]}
 
         feat_names = combo_result_dict['asascat_store_feats'].keys()
         for feat_name in feat_names:
@@ -1169,7 +1169,7 @@ class Active_Learn(Database_Utils):
         asascat['is_train_list'].extend([True] * len(traindata_dict['srcid_list']))
         for tutor_class_name in traindata_dict['classes']:
             asascat['train_class'].append(tutorclass_tutorid[tutor_class_name])
-        
+
         for feat_name in feat_names:
             asascat['asascat_store_feats'][feat_name].extend(traindata_dict['featname_longfeatval_dict'][feat_name])
 
@@ -1197,13 +1197,13 @@ class Active_Learn(Database_Utils):
             if '@data' in arff_datadicts['train_arff_str'][:50000]:
                 i_header_end = arff_datadicts['train_arff_str'].find('@data')+5
             else:
-                i_header_end = arff_datadicts['train_arff_str'].find('@DATA')+5     
+                i_header_end = arff_datadicts['train_arff_str'].find('@DATA')+5
 
             arff_data_str = arff_datadicts['train_arff_str'][i_header_end+1:]
             arff_data_list = arff_data_str.split('\n')
 
             new_rows = [arff_datadicts['train_arff_str'][:i_header_end]]
-            
+
         new_rows = []
         new_srcid_list = []
         new_class_list = []
@@ -1215,7 +1215,7 @@ class Active_Learn(Database_Utils):
                 continue
             ## ## ##srcid = int(arff_row[:arff_row.find(',')])
             srcid = int(arff_datadicts['traindata_dict']['srcid_list'][i])
-                                
+
             i_class_begin = arff_row.rfind("'", 0, arff_row.rfind("'")) # this ind of first "'"
 
             #import pdb; pdb.set_trace()
@@ -1295,13 +1295,13 @@ class Active_Learn(Database_Utils):
 
         combo_dict['srcid_list'].extend(orig_arff_datadicts['testdata_dict']['srcid_list'])
         combo_dict['srcid_list'].extend(orig_arff_datadicts['traindata_dict']['srcid_list'])
-        
+
         combo_dict['class_list'].extend(orig_arff_datadicts['testdata_dict']['class_list'])
         combo_dict['class_list'].extend(orig_arff_datadicts['traindata_dict']['class_list'])
 
         for featname in orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
             combo_dict['featname_longfeatval_dict'][featname] = []
-        
+
         for featname in orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'].keys():
             combo_dict['featname_longfeatval_dict'][featname].extend(orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'][featname])
             combo_dict['featname_longfeatval_dict'][featname].extend(orig_arff_datadicts['traindata_dict']['featname_longfeatval_dict'][featname])
@@ -1369,7 +1369,7 @@ class Active_Learn(Database_Utils):
                     error_rate = rc.get_crossvalid_errors(feature_data_dict=datadict['traindata_dict']['featname_longfeatval_dict'], mtry=mtry, ntree=ntree, srcid_list=datadict['traindata_dict']['srcid_list'], class_list=datadict['traindata_dict']['class_list'])
                     import pdb; pdb.set_trace()
                     print
-                
+
                 tc_exec_str = """
 import rpy2_classifiers
 algo_code_dirpath = os.path.abspath(os.environ.get("TCP_DIR")+'Algorithms')
@@ -1390,7 +1390,7 @@ out_dict = {'error_rate':error_rate,
                                                  'srcid_list':datadict['traindata_dict']['srcid_list'],
                                                  'class_list':datadict['traindata_dict']['class_list'],
                                                  },
-                                  pull='out_dict', 
+                                  pull='out_dict',
                                   retries=3))
                 self.ipy_tasks.task_id_list.append(taskid)
 
@@ -1445,7 +1445,7 @@ out_dict = {'error_rate':error_rate,
               since the color imputation works just as well combining these together.
           - this means that the rc.generate_imputed_arff_for_ntree() needs to be able
             to split and write seperate arff for test and training data.
-           
+
         """
         # TODO: parse header and ordered_attribs from the arff_str
         (header_str, feature_list) = self.parse_header_and_attribs_from_arff_str(arff_str=arff_str)
@@ -1472,7 +1472,7 @@ out_dict = {'error_rate':error_rate,
         ntree_list = range(10,250,10)
         #ntree_list = range(2,20,1)
         #ntree_list.extend(range(20,410,10))
-        
+
         for ntree in ntree_list:
             tc_exec_str = """
 algo_code_dirpath = os.path.abspath(os.environ.get("TCP_DIR")+'Algorithms')
@@ -1488,7 +1488,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
                                                  'srcid_list':srcid_list,
                                                  'class_list':class_list,
                                                  'train_srcids':train_srcids},
-                                  pull='out_dict', 
+                                  pull='out_dict',
                                   retries=3))
             self.ipy_tasks.task_id_list.append(taskid)
 
@@ -1525,7 +1525,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
         KLUDGE: Since this function accesses self.rc.* ideally it will be
                  contained in rpy2_classifiers.py
            - although, it will contain Ipython parallelization code...
-           
+
         """
         self.ipy_tasks = IPython_Task_Administrator()
         self.ipy_tasks.initialize_clients()
@@ -1534,7 +1534,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
         from rpy2 import robjects
 
         import rpy2_classifiers
-        
+
         r_data_dict = {}
         for feat_name, feat_longlist in feature_data_dict.iteritems():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
@@ -1591,10 +1591,10 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
             if (decreasing)
               sort.j <- rev(sort.j)
             sort.noNAvar <- noNAvar[sort.j]
-             
+
             ## output
             Ximp <- vector('list', maxiter)
-  
+
             ## initialize parameters of interest
             iter <- 0
             k <- length(unique(varType))
@@ -1713,7 +1713,7 @@ out_dict = rc.generate_imputed_arff_for_ntree(feature_data_dict, mtry=mtry, ntre
 
         #import pdb; pdb.set_trace()
         #print
-        continue_loop = True 
+        continue_loop = True
         i_loop = 0
         while (continue_loop):
             print "i_loop:", i_loop
@@ -1767,7 +1767,7 @@ out_dict = {'misY':misY,
                                                          'varType':varType,
                                                          'ntree':ntree,
                                                          'p':p},
-                                          pull='out_dict', 
+                                          pull='out_dict',
                                           retries=3))
                 self.ipy_tasks.task_id_list.append(taskid)
 
@@ -1780,7 +1780,7 @@ out_dict = {'misY':misY,
                 #     - then look at arff_generateion_master.py L2186 for task pulling
                 import pdb; pdb.set_trace()
                 print
-                
+
                 #import pdb; pdb.set_trace()
                 #print
                 robjects.globalenv['misY'] = misY
@@ -1801,7 +1801,7 @@ out_dict = {'misY':misY,
             robjects.r("""
                 iter <- iter+1
                 Ximp[[iter]] <- ximp
-    
+
                 t.co2 <- 1
                 ## check the difference between iteration steps
                 for (t.type in names(convNew)){
@@ -1876,7 +1876,7 @@ out_dict = {'misY':misY,
         KLUDGE: Since this function accesses self.rc.* ideally it will be
                  contained in rpy2_classifiers.py
            - although, it will contain Ipython parallelization code...
-           
+
         """
         from rpy2.robjects.packages import importr
         from rpy2 import robjects
@@ -1936,10 +1936,10 @@ out_dict = {'misY':misY,
             if (decreasing)
               sort.j <- rev(sort.j)
             sort.noNAvar <- noNAvar[sort.j]
-             
+
             ## output
             Ximp <- vector('list', maxiter)
-  
+
             ## initialize parameters of interest
             iter <- 0
             k <- length(unique(varType))
@@ -2058,7 +2058,7 @@ out_dict = {'misY':misY,
 
         #import pdb; pdb.set_trace()
         #print
-        continue_loop = True 
+        continue_loop = True
         i_loop = 0
         while (continue_loop):
             print "i_loop:", i_loop
@@ -2083,7 +2083,7 @@ out_dict = {'misY':misY,
                 robjects.r("""
                     varInd <- sort.j[s]
                     if (noNAvar[[varInd]] != 0){
-                      cat("s:", s, "\n")  
+                      cat("s:", s, "\n")
                       obsi <- !NAloc[,varInd] # which i's are observed
                       misi <- NAloc[,varInd] # which i's are missing
                       obsY <- ximp[obsi, varInd] # training response
@@ -2099,7 +2099,7 @@ out_dict = {'misY':misY,
                         ## predict missing values in column varInd
                         cat("    B4 predict()", "\n")
                         misY <- predict(RF, misX)
-                      } else { # if Y is categorical          
+                      } else { # if Y is categorical
                         obsY <- factor(obsY) ## remove empty classes
                         summarY <- summary(obsY)
                         if (length(summarY) == 1){ ## if there is only one level left
@@ -2130,7 +2130,7 @@ out_dict = {'misY':misY,
             robjects.r("""
                 iter <- iter+1
                 Ximp[[iter]] <- ximp
-    
+
                 t.co2 <- 1
                 ## check the difference between iteration steps
                 for (t.type in names(convNew)){
@@ -2198,7 +2198,7 @@ out_dict = {'misY':misY,
                                                 mtry=5, ntrees=500, nodesize=5):
         """ We need to apply imputation algorithms when working with features which
         may have missing values for some sources.  For example, NOMAD-color difference features.
-        
+
         NOTE: we do these imputations to both training and testing data since sources
               with missing value features are found in both data sets.
 
@@ -2225,7 +2225,7 @@ out_dict = {'misY':misY,
             new_features_r_data = self.rc.imputation_using_missForest(testdata_dict['featname_longfeatval_dict'],
                                                                       mtry=mtry, ntree=ntrees)
             testdata_dict['featname_longfeatval_dict'] = new_features_r_data
-        
+
         ### Training data:
         new_features_r_data = self.rc.imputation_using_missForest(traindata_dict['featname_longfeatval_dict'],
                                                                   mtry=mtry, ntree=ntrees)
@@ -2274,7 +2274,7 @@ out_dict = {'misY':misY,
             print k, temp_srcid_list[k], both_user_match_srcid_bool[k], actlearn_sources_freqsignifs[k]
 
         return (both_user_match_srcid_bool, actlearn_sources_freqsignifs)
-    
+
 
     def shuffle_srcid_rows(self, datadict={}):
         """ Shuffle the srcids / rows
@@ -2288,7 +2288,7 @@ out_dict = {'misY':misY,
         new_featname_longfeatval_dict = {}
         for feat_name in datadict['featname_longfeatval_dict'].keys():
             new_featname_longfeatval_dict[feat_name] = []
-            
+
         for i in inds:
             new_arff_rows.append(datadict['arff_rows'][i])
             new_srcid_list.append(datadict['srcid_list'][i])
@@ -2310,7 +2310,7 @@ out_dict = {'misY':misY,
         fp = gzip.open('/tmp/actlearn_debug_orig','rb')
         orig_dict = cPickle.load(fp)
         fp.close()
-        
+
         ### First construct a {srcid:index} dict for comparison, for bith orig and rework dicts
         orig_train_srcid_index = {}
         for i, srcid in enumerate(orig_dict['traindata_dict']['srcid_list']):
@@ -2323,7 +2323,7 @@ out_dict = {'misY':misY,
         rework_train_srcid_index = {}
         for i, srcid in enumerate(rework_traindata_dict['srcid_list']):
             rework_train_srcid_index[srcid] = i
-        
+
         rework_test_srcid_index = {}
         for i, srcid in enumerate(rework_testdata_dict['srcid_list']):
             rework_test_srcid_index[srcid] = i
@@ -2368,7 +2368,7 @@ out_dict = {'misY':misY,
                     if feat_val_diff > 0.001:
                         print srcid, featname, feat_val_diff
                     #print srcid, featname, feat_val_diff
-                        
+
 
         if 1:
             print "Training class comparison:"
@@ -2388,7 +2388,7 @@ out_dict = {'misY':misY,
 
         import pdb; pdb.set_trace()
         print
-        
+
 
     def debug_compare_testtrain_data__old(self, rework_traindata_dict={}, rework_testdata_dict={}):
         """ for debug comparison of testdatadict and traindatadict from original un-refactored code
@@ -2397,7 +2397,7 @@ out_dict = {'misY':misY,
         fp = gzip.open('/tmp/actlearn_debug_orig','rb')
         orig_dict = cPickle.load(fp)
         fp.close()
-        
+
         ### First construct a {srcid:index} dict for comparison, for bith orig and rework dicts
         orig_train_srcid_index = {}
         for i, srcid in enumerate(orig_dict['traindata_dict']['srcid_list']):
@@ -2410,7 +2410,7 @@ out_dict = {'misY':misY,
         rework_train_srcid_index = {}
         for i, srcid in enumerate(rework_traindata_dict['srcid_list']):
             rework_train_srcid_index[srcid] = i
-        
+
         rework_test_srcid_index = {}
         for i, srcid in enumerate(rework_testdata_dict['srcid_list']):
             rework_test_srcid_index[srcid] = i
@@ -2449,7 +2449,7 @@ out_dict = {'misY':misY,
                     if feat_val_diff > 0.001:
                         print srcid, featname, feat_val_diff
                     #print srcid, featname, feat_val_diff
-                        
+
 
         if 0:
             print "Training class comparison:"
@@ -2493,7 +2493,7 @@ out_dict = {'misY':misY,
            - ??? store this list in .arff or table?
                  - arff is probably more nondestructable
         - call:  (TODO write this)
-        
+
       new_al_dataset_for_users = \
               rpy2_classifiers.py::active_learn_randomforest(trainset, testset)
         """
@@ -2540,7 +2540,7 @@ out_dict = {'misY':misY,
         #                               orig_testset_arff_fpath= \
         #"/media/raid_0/historical_archive_featurexmls_arffs/tutor_126/2011-07-14_20:07:09.452129/source_feats.arff",
         #                               skip_missingval_lines=skip_missingval_lines)
-        
+
         ### Used up to session=0, iter=10:
         #                               orig_trainset_arff_fpath= \
         #"/media/raid_0/historical_archive_featurexmls_arffs/tutor_123/2011-05-13_04:22:08.073940/source_feats.arff",
@@ -2582,7 +2582,7 @@ out_dict = {'misY':misY,
 
         ########
         self.update_training_arffstr_classes(arff_datadicts=orig_arff_datadicts)
-        
+
 
         if 0:
             ## ## ## TODO: need test &  train ['featname_longfeatval_dict'] filled for this:
@@ -2599,7 +2599,7 @@ out_dict = {'misY':misY,
         #   - also has a fector of whether both users classified the source the same
         #  TODO I will want these lists returned so they can later be used to generate cost
         #  - the training data will need all AL sources, but additionally needs the new ones identified.
-        
+
 
         new_arffstrs_dict = self.incorporate_user_classified_sources_to_arffstrs( \
                                  datadicts=orig_arff_datadicts,
@@ -2620,11 +2620,11 @@ out_dict = {'misY':misY,
         ### TODO: randomize the rows in the testset (NOTE: user classified sources are in trainset only)
         #random.shuffle(new_arffstrs_dict['new_testset_rows'])
 
-        
-        
+
+
         self.shuffle_srcid_rows(datadict=orig_arff_datadicts['testdata_dict'])
-        
-        
+
+
 
         (both_user_match_srcid_bool,
          actlearn_sources_freqsignifs) = self.get_cost_freqsignif_info( \
@@ -2699,7 +2699,7 @@ out_dict = {'misY':misY,
                                   orig_arff_datadicts['testdata_dict']['featname_longfeatval_dict'][feat_name][k])
 
             if 0:
-                # KLUDGE: 
+                # KLUDGE:
                 if '@data' in new_arffstrs_dict['test_arff_str'][:50000]:
                     new_test_arff_str = new_arffstrs_dict['test_arff_str'][: \
                                                                new_arffstrs_dict['test_arff_str'].find('@data')+5]
@@ -2707,7 +2707,7 @@ out_dict = {'misY':misY,
                     new_test_arff_str = new_arffstrs_dict['test_arff_str'][: \
                                                                new_arffstrs_dict['test_arff_str'].find('@DATA')+5]
                 testset_rows_subset.append('\n')
-                new_test_arff_str += '\n'                
+                new_test_arff_str += '\n'
                 new_test_arff_str += '\n'.join(testset_rows_subset)
                 ## ## ## TODO: just re-form the train_arff_str here (or used a reformed one outside of the i-loop)
                 sub_arffstrs_dict = {'train_arff_str':new_arffstrs_dict['train_arff_str'],
@@ -2755,7 +2755,7 @@ out_dict = {'misY':misY,
             #            both_user_match_srcid_bool.append(True)
             #        else:
             #            both_user_match_srcid_bool.append(False)
-            #        
+            #
 
 
 
@@ -2780,10 +2780,10 @@ out_dict = {'misY':misY,
 
             #############################
             if 1:
-                
+
                 traindata_dict = eval(pprint.pformat(traindata_dict))
                 testdata_dict = eval(pprint.pformat(testdata_dict))
-            
+
             ##############################
             #import pdb; pdb.set_trace()
             #print
@@ -2816,7 +2816,7 @@ out_dict = {'misY':misY,
             combo_result_dict['all_top_prob'].extend(classifier_dict['all_top_prob'][:-1])
             for feat_name in combo_result_dict['asascat_store_feats'].keys():
                 combo_result_dict['asascat_store_feats'][feat_name].extend( \
-                           testdata_dict['featname_longfeatval_dict'][feat_name][:-1])# is len(['srcid_list']) 
+                           testdata_dict['featname_longfeatval_dict'][feat_name][:-1])# is len(['srcid_list'])
 
 
             ##################################################
@@ -2832,7 +2832,7 @@ out_dict = {'misY':misY,
             remainder_result_dict['all_top_prob'].append(classifier_dict['all_top_prob'][-1]) # 3
             for feat_name in remainder_result_dict['asascat_store_feats'].keys():
                 remainder_result_dict['asascat_store_feats'][feat_name].append( \
-                           testdata_dict['featname_longfeatval_dict'][feat_name][-1])# is len(['srcid_list']) 
+                           testdata_dict['featname_longfeatval_dict'][feat_name][-1])# is len(['srcid_list'])
 
 
 
@@ -2848,8 +2848,8 @@ out_dict = {'misY':misY,
                         except:
                             print
                     else:
-                        print 
-                    
+                        print
+
                 for a,b in testdata_dict.iteritems():
                     print 'iter=', i, 'testdata_dict', a, len(b),
                     if len(b) > 0:
@@ -2858,7 +2858,7 @@ out_dict = {'misY':misY,
                         except:
                             print
                     else:
-                        print 
+                        print
 
                 for a,b in combo_result_dict.iteritems():
                     print 'iter=', i, 'combo_result_dict', a, len(b),
@@ -2868,14 +2868,14 @@ out_dict = {'misY':misY,
                         except:
                             print
                     else:
-                        print 
+                        print
 
                 for a,b in remainder_result_dict.iteritems():
                     print 'iter=', i, 'remainder_result_dict', a, len(b),
                     if len(b) > 0:
                         print b[0]
                     else:
-                        print 
+                        print
 
 
         ### Add additional high confidence sources to the list of active learning sources,
@@ -2913,7 +2913,7 @@ out_dict = {'misY':misY,
 
         out = self.retrieve_tutor_class_ids()
         rclass_tutorid_lookup = out['rclass_tutorid_lookup']
-        
+
         asascat = self.fill_asas_catalog_source_dict(combo_result_dict=combo_result_dict,
                                                      remainder_result_dict=remainder_result_dict,
                                                      traindata_dict=traindata_dict,
@@ -2927,7 +2927,7 @@ out_dict = {'misY':misY,
         # (src_id, rank, prob, deb_class) = tup
         #   int     int  flt    R_class
 
-        ### act_iter_id += 1 ??? 
+        ### act_iter_id += 1 ???
 
         self.insert_tups_into_rdb(rclass_tutorid_lookup=rclass_tutorid_lookup,
                                   actlearn_tups=combo_result_dict['actlearn_tups'],
@@ -3018,7 +3018,7 @@ HAVING  count(activelearn_user_class.source_id) > 0
         for user_id, count in results:
             print user_id, count
             user_ids.append(int(user_id))
-            
+
 
         user_totals = {}
 
@@ -3033,7 +3033,7 @@ SELECT activelearn_srcid_importance.source_id,
 FROM activelearn_srcid_importance
 JOIN activelearn_user_class ON (activelearn_user_class.source_id=activelearn_srcid_importance.source_id
                                 AND activelearn_user_class.user_id=%d)
-JOIN activelearn_algo_class ON (activelearn_algo_class.source_id=activelearn_srcid_importance.source_id 
+JOIN activelearn_algo_class ON (activelearn_algo_class.source_id=activelearn_srcid_importance.source_id
                                 AND activelearn_algo_class.act_id=%d
                                 AND activelearn_algo_class.rank=0)
 WHERE activelearn_srcid_importance.act_id=%d
@@ -3127,7 +3127,7 @@ if __name__ == '__main__':
     'tutor_port':3306, #33306,
     'tcp_hostname':'192.168.1.25',
     'tcp_username':'pteluser',
-    'tcp_port':     3306, #23306, 
+    'tcp_port':     3306, #23306,
     'tcp_database':'source_test_db',
     'asas_duplicate_sources':['225529', '226314', '226371', '226397', '226488', '226501', '227554', '231054', '215322', '216865', '235114', '239641', '240672', '241340', '242867', '243391', '244155', '244331', '218112', '246414', '246642', '247931', '248144', '248216', '248532', '248723', '249009', '249481', '249594', '249759', '249777', '249823', '249869', '250375', '250499', '250686', '251277', '218795', '218815', '252521', '253530', '254491', '254614', '219106', '255145', '256456', '260272', '219713', '219721', '219744', '261096', '261123', '219756', '261202', '219796', '262618', '262703', '220060', '264293', '264720', '220148', '220678', '220811', '220975', '215756', '221975', '222493', '222854', '222995', '215950', '215971', '223547', '223658', '224378', '224438', '224619', '224623', '225144'],
     'high_conf_srcids':range(12), #20111028: the length of this now just defines number of highconfidence sources which are selected from data# range(22) #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
@@ -3172,7 +3172,7 @@ if __name__ == '__main__':
 
 
     #MANUAL#ActiveLearn.fill_user_leaderboard_tables(session_id=0,
-    #                                                iteration_id=1) # Do this for user-completed iterations ( -1 from active_learn_main(iteration_id) 
+    #                                                iteration_id=1) # Do this for user-completed iterations ( -1 from active_learn_main(iteration_id)
 
 
     #train_arff_str = open(os.path.expandvars("/media/raid_0/historical_archive_featurexmls_arffs/tutor_123/2011-02-05_23:43:21.830763/source_feats.arff")).read()
@@ -3213,4 +3213,4 @@ if __name__ == '__main__':
                                   catalog_id=0) # catalog_id=0 # default / test : catalog_id=0
 
     ActiveLearn.fill_user_leaderboard_tables(session_id=0,
-                                             iteration_id=iteration_id - 1) # Do this for user-completed iterations ( -1 from active_learn_main(iteration_id) 
+                                             iteration_id=iteration_id - 1) # Do this for user-completed iterations ( -1 from active_learn_main(iteration_id)

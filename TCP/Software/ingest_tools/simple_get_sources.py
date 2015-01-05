@@ -44,7 +44,7 @@ class Mysql_Server_Query:
         self.cursor = self.db.cursor()
 
     def main(self):
-        select_str = """SELECT src_id, 
+        select_str = """SELECT src_id,
        object_test_db.sdss_events_a.obj_id,
        object_test_db.sdss_events_a.filt,
        object_test_db.sdss_events_a.t,
@@ -54,9 +54,9 @@ class Mysql_Server_Query:
        object_test_db.sdss_events_a.decl,
        object_test_db.sdss_events_a.ra_rms,
        object_test_db.sdss_events_a.dec_rms
-  FROM source_test_db.srcid_lookup_htm 
-  JOIN object_test_db.obj_srcid_lookup USING (src_id) 
-  JOIN object_test_db.sdss_events_a USING (obj_id) 
+  FROM source_test_db.srcid_lookup_htm
+  JOIN object_test_db.obj_srcid_lookup USING (src_id)
+  JOIN object_test_db.sdss_events_a USING (obj_id)
   WHERE DIF_HTMCircle(%lf,%lf,%lf)
   ORDER BY src_id,filt,t;
         """ % (ra, dec, box_size)
@@ -82,7 +82,7 @@ class Mysql_Server_Query:
         results = self.cursor.fetchall()
         random_srcid = results[0][0]
 
-        select_str = """SELECT src_id, 
+        select_str = """SELECT src_id,
        object_test_db.sdss_events_a.obj_id,
        object_test_db.sdss_events_a.filt,
        object_test_db.sdss_events_a.t,
@@ -93,8 +93,8 @@ class Mysql_Server_Query:
        object_test_db.sdss_events_a.ra_rms,
        object_test_db.sdss_events_a.dec_rms
   FROM source_test_db.srcid_lookup
-  JOIN object_test_db.obj_srcid_lookup USING (src_id) 
-  JOIN object_test_db.sdss_events_a USING (obj_id) 
+  JOIN object_test_db.obj_srcid_lookup USING (src_id)
+  JOIN object_test_db.sdss_events_a USING (obj_id)
   WHERE src_id=%d
   ORDER BY src_id,filt,t;
         """ % (random_srcid)

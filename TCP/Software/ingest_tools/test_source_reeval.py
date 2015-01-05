@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Test script for SDSS source re-evaluation
 
@@ -13,7 +13,7 @@ class Diff_Obj_Source_Populator:
      - This is instantiated on a ipython1 node
      - This should be initialized (module imports) by PTF-polling thread
      - NOTE: I cant extract this class into a different module, since
-        ptf_master invokes methods in clients, via ipython1 
+        ptf_master invokes methods in clients, via ipython1
     """
     def __init__(self, pars):
         self.pars = pars
@@ -146,13 +146,13 @@ class Source_Reevaluation:
             source_dict_alldict[result[0]] = source_dict
         return source_dict_alldict
 
-    
+
     def retrieve_objid_srcid_lookupdict(self, srcid_list):
         """ Retrieve a lookup dict for getting srcid = __dict__[objid]
         """
         objid_srcid_lookup = {}
         for src_id in srcid_list:
-            select_str = """SELECT obj_id 
+            select_str = """SELECT obj_id
             FROM %s WHERE src_id=%d AND survey_id=%d
             """ % (self.pars['obj_srcid_tablename'],
                    src_id,
@@ -202,7 +202,7 @@ class Source_Reevaluation:
         The obj-source matching shoul represent how effectiove the algorithm is.
         """
         n_reeval_iterations = 2
-        
+
         self.dosp = Diff_Obj_Source_Populator(self.pars)
 
         obj_dict_alldict = self.retrieve_obj_dict_alldict()
@@ -273,7 +273,7 @@ class Source_Reevaluation:
         # - using an empty local_srcdbt_sources, to start with
         # - and randomizing the object list, which is currently generated
         #      by objs_dict.values()
-        
+
 
         # And, remember, the point is to find
 
@@ -312,7 +312,7 @@ class Source_Reevaluation:
         #  - Then, we create a source-dict/list of the strongest-found sources
         #     and their most/all associated objects
         #  - And we then continue building source for the rest of the objects.
-        #   
+        #
 
         ###########
         # TODO: I need the outer interface to this source creating algorithm to be exactly like existing code:

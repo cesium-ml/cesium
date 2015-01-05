@@ -10,7 +10,7 @@ from numpy import array,matrix,arange,sqrt,exp,mean,sum,zeros,clip,fix,\
 
 class Dovi_SN:
     """ This class wraps Dovi/Nat SN classification algorithms
-    
+
     """
     def __init__(self,datamodel=None,doplot=True,verbose=False, x_sdict=None):
         self.doplot = doplot
@@ -29,7 +29,7 @@ class Dovi_SN:
 
         NOTE: Featue data is located in:
         self.data.feat_dict['multiband'].keys()
-        
+
 
         TODO: This method populates a classification result structure/dict:
               self.final_results
@@ -60,22 +60,22 @@ class Dovi_SN:
 
     def conf_interval(self, x1,x2,prob,conf=0.68):
         """return conf (default 1-sigma) confidence interval in x for prob"""
-        
+
         cprob = cumsum(prob*(x2-x1))
         cprob = hstack((0.,cprob))
         mcprob = max(cprob)
-        
+
         lx=len(x1)
-        
+
         x10=min(x1); x20=max(x2);
         delta0=x20-x10
         for i in xrange(lx-2):
-          for j0 in xrange(lx-i):
-            j = j0 + i
-            delta = x2[j] - x1[i]
-            if (cprob[j+1]-cprob[i]>=conf*mcprob and delta<delta0):
-              x10=x1[i]; x20=x2[j]; delta0=delta
-      
+            for j0 in xrange(lx-i):
+                j = j0 + i
+                delta = x2[j] - x1[i]
+                if (cprob[j+1]-cprob[i]>=conf*mcprob and delta<delta0):
+                    x10=x1[i]; x20=x2[j]; delta0=delta
+
         return (x10,x20)
 
 
@@ -84,23 +84,23 @@ class Dovi_SN:
         """
         Returns a dictionary:
         posterior probabilities for Ia or not-Ia  SNe for PTF
-        
+
         1-sigma confidence intervals on z for Ia."""
-        
+
         #
-	# read in the model, has keys: ['phot','days','z', 'filters', 'Av']
-	#   w/ dimensions: phot (58, 31, 9, 11)
-	#                  days 58
-	#                  z 31
-	#                  filters 9
-	#                  Av 11
-	#
+        # read in the model, has keys: ['phot','days','z', 'filters', 'Av']
+        #   w/ dimensions: phot (58, 31, 9, 11)
+        #                  days 58
+        #                  z 31
+        #                  filters 9
+        #                  Av 11
+        #
         import scipy.io
-	from scipy.io import loadmat
+        from scipy.io import loadmat
         fpath = 'Iamodel_v6.mat'
         if not os.path.exists(fpath):
             fpath = os.path.expandvars('$TCP_DIR/Data/Iamodel_v6.mat')
-	model = loadmat(fpath)
+        model = loadmat(fpath)
 
         # dstarr: looks like we want a list with each filter character as an element.
         #   currently it looks like: print model['filters'][0] = 'RugrizJHK'
@@ -112,119 +112,119 @@ class Dovi_SN:
         # # # # # # #
         # TODO:   use xml file's upper limits, if it has them
         # # # # # # #
-        
 
-	#data={}
+
+        #data={}
         # # # dstarr NOTE: typlical values: data['filters'] = ['z:table15393', 'R:table15103', 'G:table14958', 'U:table14813', 'I:table15248', 'combo_band']
-        
-	i=0
-	for filt in data['filters']:
-	  #data[filt] = {'time':[0.,0.], 'mag':[0.,1.],'err':[0.,3.],'is_limit':[True,False]}
-	  # just set it using the model for now
-	  # data[filt] = {'time':model['days'], 'mag':model['phot'][:,10,i,0],'err':zeros(len(model['days']))+0.1,'is_limit':zeros(len(model['days']),dtype=bool)}
-	  # keep track of minimum, and maximum? time with a detection
-          # # # It seems that t0 is just the min(t[<where is_limits>]) 
-          # # # It seems that t1 is just the max(t[<all>]) 
-	  #accept = where( logical_xor( data[filt]['is_limit'] , True ) )[0]
-	  #t0 = min( atleast_1d(data[filt]['time'][accept]) )
-	  #t1 = max( atleast_1d(data[filt]['time']) )
-          if (len(data[filt]['time']) == 0) or (len(data[filt]['limitmags']['t']) == 0):
-              continue # skip this filter
-          tmax_data = max(data[filt]['time'])
-          tmax_lims = min(data[filt]['limitmags']['t'])
-          t1 = tmax_data
-          if tmax_lims > tmax_data:
-              t1 = tmax_lims
-          t0 = min(data[filt]['limitmags']['t'])
 
-	  if (i==0):
-	      tmin = t0
-	      tmax = t1
-	  else:
-	      if ( t0<tmin ): tmin = t0
-	      if ( t1>tmax ): tmax = t1
-	  i=i+1
+        i=0
+        for filt in data['filters']:
+            #data[filt] = {'time':[0.,0.], 'mag':[0.,1.],'err':[0.,3.],'is_limit':[True,False]}
+            # just set it using the model for now
+            # data[filt] = {'time':model['days'], 'mag':model['phot'][:,10,i,0],'err':zeros(len(model['days']))+0.1,'is_limit':zeros(len(model['days']),dtype=bool)}
+            # keep track of minimum, and maximum? time with a detection
+            # # # It seems that t0 is just the min(t[<where is_limits>])
+            # # # It seems that t1 is just the max(t[<all>])
+            #accept = where( logical_xor( data[filt]['is_limit'] , True ) )[0]
+            #t0 = min( atleast_1d(data[filt]['time'][accept]) )
+            #t1 = max( atleast_1d(data[filt]['time']) )
+            if (len(data[filt]['time']) == 0) or (len(data[filt]['limitmags']['t']) == 0):
+                continue # skip this filter
+            tmax_data = max(data[filt]['time'])
+            tmax_lims = min(data[filt]['limitmags']['t'])
+            t1 = tmax_data
+            if tmax_lims > tmax_data:
+                t1 = tmax_lims
+            t0 = min(data[filt]['limitmags']['t'])
+
+            if (i==0):
+                tmin = t0
+                tmax = t1
+            else:
+                if ( t0<tmin ): tmin = t0
+                if ( t1>tmax ): tmax = t1
+            i=i+1
 
 
-	delta_time = 1.
-	offset = arange(tmin,tmax+delta_time,delta_time,dtype=float32)
+        delta_time = 1.
+        offset = arange(tmin,tmax+delta_time,delta_time,dtype=float32)
 
-	from scipy.interpolate import interp1d
-	import string
+        from scipy.interpolate import interp1d
+        import string
 
-	#prior on z
-	z0=0.2
-	dz0=0.2
-	nzsig = 3.
+        #prior on z
+        z0=0.2
+        dz0=0.2
+        nzsig = 3.
 
-	#prior on Av
-	Av0=0.
-	dAv0=0.1
-	nAsig = 3.
+        #prior on Av
+        Av0=0.
+        dAv0=0.1
+        nAsig = 3.
 
-	chi = zeros((len(offset),len(model['z']),len(model['filters']),len(model['Av'])),dtype=float32) + 999.
+        chi = zeros((len(offset),len(model['z']),len(model['filters']),len(model['Av'])),dtype=float32) + 999.
 
-	i=0
-	for z in model['z']:
-	  i+=1
-	  if ( abs(z-z0) < nzsig*dz0 ):
+        i=0
+        for z in model['z']:
+            i+=1
+            if ( abs(z-z0) < nzsig*dz0 ):
 
-	    for filt in data.keys():
-               # j = string.find( model['filters'] , filt )
-               # dstarr thinks this is what was intended in the above line:
-               if (filt == 'combo_band') or (filt == 'filters'):
-                   # KLUDGE: it appears we probably shouldnt have data['filters'] in the structure
-                   continue # skip this combined filter case
-               for i_filt, name_filt in enumerate(model['filters']):
-                   if name_filt in filt:
-                       j = i_filt
-                       break
-	       k=0
-	       for Av in model['Av']:
-	         if ( abs(Av-Av0) < nAsig*dAv0 ):
+                for filt in data.keys():
+                    # j = string.find( model['filters'] , filt )
+                    # dstarr thinks this is what was intended in the above line:
+                    if (filt == 'combo_band') or (filt == 'filters'):
+                        # KLUDGE: it appears we probably shouldnt have data['filters'] in the structure
+                        continue # skip this combined filter case
+                    for i_filt, name_filt in enumerate(model['filters']):
+                        if name_filt in filt:
+                            j = i_filt
+                            break
+                    k=0
+                    for Av in model['Av']:
+                        if ( abs(Av-Av0) < nAsig*dAv0 ):
 
-	           k+=1
-	           def chi_func(offset=[]):
-                     # dstarr: originally, model['days']=[[ 0],[ 1],[ 2]....
-                     #    we want a single dimension array
-                     if len(model['days'].shape) == 2:
-                         new_arr = []
-                         for elem in model['days']:
-                             new_arr.append(elem[0])
-                         model['days'] = array(new_arr)
+                            k+=1
+                            def chi_func(offset=[]):
+                                # dstarr: originally, model['days']=[[ 0],[ 1],[ 2]....
+                                #    we want a single dimension array
+                                if len(model['days'].shape) == 2:
+                                    new_arr = []
+                                    for elem in model['days']:
+                                        new_arr.append(elem[0])
+                                    model['days'] = array(new_arr)
 
-	             interp_func = interp1d( model['days'], model['phot'][:,i-1,j,k-1], bounds_error=False, fill_value=0. )
-	             resid = ( data[filt]['mag'] - interp_func(data[filt]['time'] - offset) ) / data[filt]['err']
-	             return sum(resid**2) + ((z-z0)/dz0)**2 + ((Av-Av0)/dAv0)**2
+                                interp_func = interp1d( model['days'], model['phot'][:,i-1,j,k-1], bounds_error=False, fill_value=0. )
+                                resid = ( data[filt]['mag'] - interp_func(data[filt]['time'] - offset) ) / data[filt]['err']
+                                return sum(resid**2) + ((z-z0)/dz0)**2 + ((Av-Av0)/dAv0)**2
 
-	           #chi[:,i-1,j,k-1] = map(chi_func,offset)
-                   ### dstarr translates the above non-python syntax into:
-                   intermed_array = []
-                   for elem in offset:
-                       intermed_array.append(chi_func(elem)[0])
-                   chi[:,i-1,j,k-1] = array(intermed_array)
+                            #chi[:,i-1,j,k-1] = map(chi_func,offset)
+                            ### dstarr translates the above non-python syntax into:
+                            intermed_array = []
+                            for elem in offset:
+                                intermed_array.append(chi_func(elem)[0])
+                            chi[:,i-1,j,k-1] = array(intermed_array)
 
 
         # So, on my test run, these filters have calculated ch data (R, z):
         #   chi[:,:,0,:]  chi[:,:,5,:] = [[....]]
-	chi_best = chi.min()
-	prob = exp(-0.5*(chi-chi_best))
+        chi_best = chi.min()
+        prob = exp(-0.5*(chi-chi_best))
 
-	# marginalize over filter
-	prob = prob.sum(axis=2)
-	#posterior on offset
-	prob_offset = prob.sum(axis=1).sum(axis=1)
-	#posterior on redshift
-	prob_redshift = prob.sum(axis=0).sum(axis=1)
-	#posterior on Av
-	prob_Av = prob.sum(axis=0).sum(axis=0)
-		
-		
-		
-        out_dict={	'<SNLC classify Plugin v0.1>': {'class_results':{ 'SN Ia':{'prob':  prob, 'weight':1.0,'TUTOR_name': "tia",'comments': "No Ia subtypes",\
-		                 'class_value_added_statements': {'name': "z_1sigma",'value' : prob_redshift, 'comments': "This is the best fit  redshift, if it is a Ia"},\
-		                 'class_value_added_statements': {'name': "z_1sigma",'value' : prob_offset, 'comments': "This is the best fit  age, if it is a Ia"},\
-						 'class_value_added_statements': {'name': "z_1sigma",'value' : prob_Av, 'comments': "This is the best fit  A_V, if it is a Ia"}}}}}
+        # marginalize over filter
+        prob = prob.sum(axis=2)
+        #posterior on offset
+        prob_offset = prob.sum(axis=1).sum(axis=1)
+        #posterior on redshift
+        prob_redshift = prob.sum(axis=0).sum(axis=1)
+        #posterior on Av
+        prob_Av = prob.sum(axis=0).sum(axis=0)
+
+
+
+        out_dict={      '<SNLC classify Plugin v0.1>': {'class_results':{ 'SN Ia':{'prob':  prob, 'weight':1.0,'TUTOR_name': "tia",'comments': "No Ia subtypes",\
+                                 'class_value_added_statements': {'name': "z_1sigma",'value' : prob_redshift, 'comments': "This is the best fit  redshift, if it is a Ia"},\
+                                 'class_value_added_statements': {'name': "z_1sigma",'value' : prob_offset, 'comments': "This is the best fit  age, if it is a Ia"},\
+                                                 'class_value_added_statements': {'name': "z_1sigma",'value' : prob_Av, 'comments': "This is the best fit  A_V, if it is a Ia"}}}}}
         return out_dict
 
 
@@ -260,12 +260,12 @@ class Dovi_SN:
                 feat_dict.get('sdss_best_zerr',{}).get('val',None)))
         except:
             sdss_best_dz = None
-		
+
         sdss_nearest_obj_type = str(\
             feat_dict.get('sdss_nearest_obj_type',{}).get('val',''))
         """
 
-            # NOTE: "closest_*" features come from ng.py & 200MpcGalaxyCatalog (Mansi?), so it is independent of SDSS retrieved features, and thus may contain None while SDSS contains something (or vice-versa)
+                # NOTE: "closest_*" features come from ng.py & 200MpcGalaxyCatalog (Mansi?), so it is independent of SDSS retrieved features, and thus may contain None while SDSS contains something (or vice-versa)
         try:
             closest_in_light = float(str(\
                 feat_dict.get('closest_in_light',{}).get('val',{}).get('_text',None)))
@@ -291,18 +291,18 @@ class Dovi_SN:
                 feat_dict.get('sdss_best_zerr',{}).get('val',{}).get('_text',None)))
         except:
             sdss_best_dz = None
-		
+
         sdss_nearest_obj_type = str(\
             feat_dict.get('sdss_nearest_obj_type',{}).get('val',{}).get('_text',''))
-       
+
 
         self.debug_feat_tup = (closest_in_light,closest_in_light_dm,sdss_best_offset_in_petro_g,sdss_best_z,sdss_best_dz,sdss_nearest_obj_type)
-		
-		
-		
-		# NEED TO EXTRACT THE LIGHTCURVE INTO "phot"
-		
-		
+
+
+
+                # NEED TO EXTRACT THE LIGHTCURVE INTO "phot"
+
+
         # NOT used since all features are in ['multiband']:
         """
         #print self.data.feat_dict['multiband'].keys()
@@ -317,7 +317,7 @@ class Dovi_SN:
 
 
         #(2) find host
-        # 
+        #
         #defaults:
         z=0
         dz=0.1
@@ -342,11 +342,11 @@ class Dovi_SN:
             if (sdss_best_z is not None) and (near_z==0):
                 z=sdss_best_z
                 dz=sdss_best_dz
-         
+
             else:
                 z=near_z
                 dz=near_dz
-        
+
 
         # Make a dictionary that PTF_LCSN_classifier() wants:
         ###WANT:# data['filters'] = [<filter names, ...>]
@@ -362,17 +362,17 @@ class Dovi_SN:
             data[filter_name]['limitmags'] = self.x_sdict['ts'][filter_name]['limitmags'] # {'lmt_mg':, 't':}
 
 
-            
 
 
 
-        # XXX Dan        
-   		# extract light curve data from vosource
-		# a dictionary, for each band with vectors 'time' 'mag' 'err' and 'is_limit' that is boolean, one for upper limits zero for detections.
-		# data[filt] = {'time':model['days'], 'mag':model['phot'][:,10,i,0],'err':zeros(len(model['days']))+0.1,'is_limit':zeros(len(model['days']),dtype=bool)}
-		# note that the light curves had J. dates 2450,000+ and sometimes 50,000+ IS THE SAME FILE. 
-		# need to merge same-band data. P48 or P60 in the g is g. The classifier shouldn't care about the source, or deal with it.
-		# 
+
+        # XXX Dan
+                # extract light curve data from vosource
+                # a dictionary, for each band with vectors 'time' 'mag' 'err' and 'is_limit' that is boolean, one for upper limits zero for detections.
+                # data[filt] = {'time':model['days'], 'mag':model['phot'][:,10,i,0],'err':zeros(len(model['days']))+0.1,'is_limit':zeros(len(model['days']),dtype=bool)}
+                # note that the light curves had J. dates 2450,000+ and sometimes 50,000+ IS THE SAME FILE.
+                # need to merge same-band data. P48 or P60 in the g is g. The classifier shouldn't care about the source, or deal with it.
+                #
         #(3) run the classifier
         #try:
         if 1:
@@ -380,9 +380,9 @@ class Dovi_SN:
         #except:
         #    result_dict = {}
         self.final_results = result_dict
-            
-            
-       
+
+
+
 if __name__ == '__main__':
 
 
@@ -400,7 +400,7 @@ if __name__ == '__main__':
 
 
     # For TESTING:
-    
+
     sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/Code/extractors')
     import mlens3  # for microlensing classification
     #d = mlens3.EventData(os.path.abspath(os.environ.get("TCP_DIR") + "/Data/vosource_tutor12881.xml"))
@@ -425,7 +425,7 @@ if __name__ == '__main__':
     #new_xml_str = <source>.normalize_vosource_tags(xml_str)
     #self.elemtree = ElementTree.fromstring(new_xml_str)
     #xmld_data = xmldict.ConvertXmlToDict(self.elemtree)
-    
+
     #gen.sig.feat_dict = gen.sig.x_sdict['features']
 
     ## run the fitter (turn off doplot for running without pylab)

@@ -53,7 +53,7 @@ TODO: resample vosource
    -> do analysis_deboss_tcp_source_compare.py --> perc_subset_worker()
         tasks on the per srcid level (do for a bunch of percents
    -> thus only one srcid xml is needed to be loaded.
-   
+
 TODO: for each resampled & refeatured xml_string at perc, srcid, generate arffline :
 
                 exec_str = "out_dict = a.generate_arff_line_for_vosourcexml(num="%s", xml_fpath="%s")
@@ -64,7 +64,7 @@ TODO: for each resampled & refeatured xml_string at perc, srcid, generate arffli
                                             pull='out_dict', retries=3))
 
 
-TODO: pairwise classify at 
+TODO: pairwise classify at
 
 
 
@@ -2006,14 +2006,14 @@ def massage_types(src_id='', percent='', niters=''):
         for elem in niters:
             niters_list.append(int(elem))
         niters = niters_list
-    else: 
+    else:
         raise "niters of an unexpected type"
 
     #if type(niters) == type(''):
     #    niters = int(niters)
     #elif type(niters) == type(1):
     #    pass # keep same
-    #else: 
+    #else:
     #    raise "niters of an unexpected type"
 
     return (srcid_list, percent_list, niters)
@@ -2092,7 +2092,7 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1):
                 signals_list = []
                 gen = generators_importers.from_xml(signals_list)
                 gen.generate(xml_handle=write_xml_str)
-                gen.sig.add_features_to_xml_string(signals_list)                
+                gen.sig.add_features_to_xml_string(signals_list)
                 gen.sig.x_sdict['src_id'] = new_srcid
                 dbi_src.source_dict_to_xml(gen.sig.x_sdict)
 
@@ -2103,15 +2103,15 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1):
 
                 #out_arff_row_dict[(src_id, perc, i)] = out_dict # ??? TODO: just arff rows?
                 # dbi_src.xml_string
-    	        master_list.append(out_dict)
-    	        all_class_list.append(out_dict['class'])
+                master_list.append(out_dict)
+                all_class_list.append(out_dict['class'])
                 master_classes_dict[out_dict['class']] = 0
-    	        for feat_tup in out_dict['features']:
-    	            master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
+                for feat_tup in out_dict['features']:
+                    master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
     master_features = master_features_dict.keys()
     master_classes = master_classes_dict.keys()
-    a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
+    a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
                       dorun=False, add_srcid_to_arff=True)
@@ -2197,7 +2197,7 @@ class Resample_Pairwise_Classify:
         from pairwise_classification import Weka_Pairwise_Classification, Pairwise_Classification
 
         self.pars = pars
-        
+
         self.WekaPairwiseClassification = Weka_Pairwise_Classification(pars=self.pars)
         self.WekaPairwiseClassification.fp_cyto_nodeattrib = None
         self.WekaPairwiseClassification.fp_cyto_network = None
@@ -2212,7 +2212,7 @@ class Resample_Pairwise_Classify:
         self.pairwise_classifier_dict=cPickle.load(fp)
         fp.close()
 
-        self.WekaPairwiseClassification.load_weka_classifiers(classifier_dict=self.pairwise_classifier_dict, 
+        self.WekaPairwiseClassification.load_weka_classifiers(classifier_dict=self.pairwise_classifier_dict,
                                                               pair_path_replace_tup=pair_path_replace_tup)
 
     def reload_pairwise_classifier(self, fpath='', pair_path_replace_tup=None):
@@ -2222,7 +2222,7 @@ class Resample_Pairwise_Classify:
         self.pairwise_classifier_dict=cPickle.load(fp)
         fp.close()
 
-        self.WekaPairwiseClassification.reload_weka_classifiers(classifier_dict=self.pairwise_classifier_dict, 
+        self.WekaPairwiseClassification.reload_weka_classifiers(classifier_dict=self.pairwise_classifier_dict,
                                                               pair_path_replace_tup=pair_path_replace_tup)
 
 
@@ -2279,7 +2279,7 @@ class Resample_Pairwise_Classify:
         return perc_niter_sciclassdict
 
 
-    def ipython_task(self, src_id='', percent='', niters='', store_confids=True, 
+    def ipython_task(self, src_id='', percent='', niters='', store_confids=True,
                      use_r_classifier=True):
         """
         NOTE: this should be runnable on an IPython client
@@ -2328,7 +2328,7 @@ class Resample_Pairwise_Classify:
                          'confusion_matrix_index_list':class_shortname_list,
                          'srcid_classif_summary':srcid_classif_summary}
 
-            
+
         else:
             arff_sciclass_dict = self.PairwiseClassification.parse_arff(has_srcid=True,
                                                                         arff_str=arff_str,
@@ -2366,7 +2366,7 @@ def non_ipython_main(pars, pwiseclass_id_pklfpath={}):
     # TODO: iterate over pwiseclass_id_pklfpath
     import pprint
     pprint.pprint(pwiseclass_id_pklfpath)
-    
+
     percent_tally_summary_dict = {}
     classifier_confidence_analysis_dict = {}
     for pw_classifier_name, pw_classifier_dict in pwiseclass_id_pklfpath.iteritems():
@@ -2375,7 +2375,7 @@ def non_ipython_main(pars, pwiseclass_id_pklfpath={}):
 
         rcp = Resample_Pairwise_Classify(pars=pars)
 
-        if 0: 
+        if 0:
             # 20101213 dstarr disables while trying out R code without ipython:
             rcp.load_pairwise_classifier(fpath=pw_classifier_dict['pairwise_classifier_pkl_fpath'],
                                      pair_path_replace_tup=pw_classifier_dict['pair_path_replace_tup'])
@@ -2472,7 +2472,7 @@ def ipython_main(pars, pwiseclass_id_pklfpath={}, apply_classifier_to_all_srcids
         #from test_pairwise_on_citris33_ipython import Resample_Pairwise_Classify
         # rcp.load_pairwise_classifier(fpath=pars['pairwise_classifier_pkl_fpath'])
 
-        
+
         mec.push({'pars':pars})
 
         first_time_mec_exec_str = """
@@ -2498,9 +2498,9 @@ try:
                              pair_path_replace_tup=%s)
 except:
     print "EXCEPT: rcp.load_pairwise_classifier(%s, %s)"
-            """ % (pw_classifier_dict['pairwise_classifier_pkl_fpath'], 
+            """ % (pw_classifier_dict['pairwise_classifier_pkl_fpath'],
                    str(pw_classifier_dict['pair_path_replace_tup']),
-                   pw_classifier_dict['pairwise_classifier_pkl_fpath'], 
+                   pw_classifier_dict['pairwise_classifier_pkl_fpath'],
                    str(pw_classifier_dict['pair_path_replace_tup']))
         if first_time:
             mec_exec_str = first_time_mec_exec_str
@@ -2515,9 +2515,9 @@ try:
                              pair_path_replace_tup=%s)
 except:
     print "EXCEPT: rcp.load_pairwise_classifier(%s, %s)"
-            """ % (pw_classifier_dict['pairwise_classifier_pkl_fpath'], 
+            """ % (pw_classifier_dict['pairwise_classifier_pkl_fpath'],
                    str(pw_classifier_dict['pair_path_replace_tup']),
-                   pw_classifier_dict['pairwise_classifier_pkl_fpath'], 
+                   pw_classifier_dict['pairwise_classifier_pkl_fpath'],
                    str(pw_classifier_dict['pair_path_replace_tup']))
 
         print 'before mec()'
@@ -2527,7 +2527,7 @@ except:
         pending_result_dict = {}
         for engine_id in engine_ids:
             pending_result_dict[engine_id] = mec.execute(mec_exec_str, targets=[engine_id], block=False)
-            
+
         n_pending = len(pending_result_dict)
         i_count = 0
         while n_pending > 0:
@@ -2600,7 +2600,7 @@ except:
                             if not all_classif_dict[perc].has_key(set_num):
                                 # NOTE: I think this should always be the case
                                 all_classif_dict[perc][set_num] = set_dict
-                            
+
             for task_id in tasks_to_pop:
                 task_id_list.remove(task_id)
             print tc.queue_status()
@@ -2638,7 +2638,7 @@ except:
     for pw_classifier_name, all_classif_dict in pw_all_classif_dict.iteritems():
         for perc, perc_dict in all_classif_dict.iteritems():
             for niter, classif_dict in perc_dict.iteritems():
-                WekaPairwiseClassification.tally_correctly_classified_for_percent(perc, niter, 
+                WekaPairwiseClassification.tally_correctly_classified_for_percent(perc, niter,
                                                                                   pw_classifier_name,
                                                 classif_dict,
                                                 percent_tally_summary_dict,
@@ -2695,20 +2695,20 @@ class R_Task_Controllers:
                                 fpath=rdata_fpath)
 
 
-    def massage_classif_results(self, classif_results, 
+    def massage_classif_results(self, classif_results,
                                 classifier_name='',
                                 percent_tally_summary_dict={},
-                                src_perc_iter_dict=[], 
+                                src_perc_iter_dict=[],
                                 toclassif_data={},
                                 srcid_list=[], percent=0, set_num=0, pars={}):
-        """ Parse the R object into something expected by existing 
+        """ Parse the R object into something expected by existing
         test_pairwise_on_citris33_ipython.py pairwise plotting code.
         """
         # TODO: want to have the original classifications for each source-id
         # TODO: I think I want a list of (set, perc, niter) passed in...
         # TODO: probably need to have a dict which translates R-classes to TUTOR-classnames
         from numpy import array, sum
-        
+
         #print classif_results['robj_confusion_matrix']
         #print toclassif_data['class_list']
         #print classif_results['predicted_classes']
@@ -2746,7 +2746,7 @@ class R_Task_Controllers:
             # ??? set_num ??? the confusion matrix has all of the sets
             #     - which might be ok in thend, but not the way the dict was orig intended
             #     - need to use set in the above ....function
-            
+
             # count_total and count_true just come from confusion matrix in other examples
 
             #import pdb; pdb.set_trace()
@@ -2764,7 +2764,7 @@ class R_Task_Controllers:
     def R_non_ipython_main(self, pars, r_classifiers={}, classifier_name='',
                            srcid_list=[], percent_list=[], iter_list=[],
                            rclass_name='', rdata_fpath=''):
-        """ 
+        """
         Non Ipython-parallel R-based classifier version.
 
         To be used for testing.
@@ -2802,7 +2802,7 @@ class R_Task_Controllers:
                     sub_perc_list = [perc]
                     arff_str = get_perc_subset(srcid_list, sub_perc_list, sub_iter_list) #TO BE parallelized (extracts features)
                     src_perc_iter_dict = parse_src_perc_iter_from_arffstr(arff_str)
-                    data_dict = self.rc.parse_full_arff(arff_str=arff_str, 
+                    data_dict = self.rc.parse_full_arff(arff_str=arff_str,
                                                         skip_missingval_lines=True)
                     ### NOTE: each classifier_name corresponds to a different trained classifier
                     classif_results = self.rc.apply_randomforest(classifier_dict=classifier_dict,
@@ -2815,28 +2815,28 @@ class R_Task_Controllers:
                             class_name = pars['R_class_lookup'][r_class_name]
                             percent_tally_summary_dict[class_name] = {}
                             for a_dict in r_classifiers:
-                                 percent_tally_summary_dict[class_name][classifier_name] = {}
-                                 for a_set_num in iter_list:
-                                     percent_tally_summary_dict[class_name][classifier_name] \
-                                              [a_set_num] = {'percent_false_list':[],
-                                                             'sampling_percent_list':[],
-                                                             'count_total':[],
-                                                             'count_true':[]}
-                                              #               'count_total':{},
-                                              #               'count_true':{}}
+                                percent_tally_summary_dict[class_name][classifier_name] = {}
+                                for a_set_num in iter_list:
+                                    percent_tally_summary_dict[class_name][classifier_name] \
+                                             [a_set_num] = {'percent_false_list':[],
+                                                            'sampling_percent_list':[],
+                                                            'count_total':[],
+                                                            'count_true':[]}
+                                             #               'count_total':{},
+                                             #               'count_true':{}}
                     # # # TODO: push the classif_results into something which can
                     #     be passed out of the IPython engine
                     #percent_tally_summary_dict[classifier_dict['class_name']] = \
-                    self.massage_classif_results(classif_results, 
+                    self.massage_classif_results(classif_results,
                                                  classifier_name=classifier_name,
                                                  percent_tally_summary_dict=percent_tally_summary_dict,
                                                  toclassif_data=data_dict,
                                                  src_perc_iter_dict=src_perc_iter_dict,
-                                                 srcid_list=srcid_list, 
-                                                 percent=perc, 
+                                                 srcid_list=srcid_list,
+                                                 percent=perc,
                                                  set_num=set_num,
                                                  pars=pars)
-                
+
         return percent_tally_summary_dict
 
         #### WANT:
@@ -2861,10 +2861,10 @@ class R_Task_Controllers:
 
 
 def master_ipython_R_classifiers(pars={},
-                                 classifier_info_dicts={}, 
+                                 classifier_info_dicts={},
                                  percent_list=[],
                                  iter_list=[]):
-    """ Master controlling script which initializes Ipython mec(), spawns tasks, 
+    """ Master controlling script which initializes Ipython mec(), spawns tasks,
     collect results, and finally generate plots.
 
     Adapted from ipython_main()
@@ -2962,8 +2962,8 @@ RTaskControllers = test_pairwise_on_citris33_ipython.R_Task_Controllers()"""
             for a_percent in percent_list:
                 ##### FOR DEBUGGING:
                 #test_RTaskControllers = R_Task_Controllers()
-                #ipython_return_dict = test_RTaskControllers.R_non_ipython_main(pars, 
-                #                            r_classifiers=[classifier_dict], 
+                #ipython_return_dict = test_RTaskControllers.R_non_ipython_main(pars,
+                #                            r_classifiers=[classifier_dict],
                 #                            classifier_name=classifier_name,
                 #                            srcid_list=srcid_list,
                 #                            percent_list=[a_percent],
@@ -2973,8 +2973,8 @@ RTaskControllers = test_pairwise_on_citris33_ipython.R_Task_Controllers()"""
                 #import pdb; pdb.set_trace()
                 #print
                 #####
-                tc_exec_str__oldworks = """ipython_return_dict = RTaskControllers.R_non_ipython_main(pars, 
-                                            r_classifiers=r_classifiers, 
+                tc_exec_str__oldworks = """ipython_return_dict = RTaskControllers.R_non_ipython_main(pars,
+                                            r_classifiers=r_classifiers,
                                             classifier_name=classifier_name,
                                             srcid_list=srcid_list,
                                             percent_list=percent_list,
@@ -2983,8 +2983,8 @@ RTaskControllers = test_pairwise_on_citris33_ipython.R_Task_Controllers()"""
                                             rdata_fpath=rdata_fpath)"""
 
                 ### 20110106: This doesn't seem to solve the ipcontroller memory error, but works:
-                tc_exec_str = """ipython_return_dict_temp = RTaskControllers.R_non_ipython_main(pars, 
-                                            r_classifiers=r_classifiers, 
+                tc_exec_str = """ipython_return_dict_temp = RTaskControllers.R_non_ipython_main(pars,
+                                            r_classifiers=r_classifiers,
                                             classifier_name=classifier_name,
                                             srcid_list=srcid_list,
                                             percent_list=percent_list,
@@ -3011,7 +3011,7 @@ del rdata_fpath
                                                         'iter_list':[a_iter],
                                                         'class_name':classifier_dict['class_name'],
                                                         'rdata_fpath':classifier_dict['rdata_fpath']},
-                                                  pull='ipython_return_dict', 
+                                                  pull='ipython_return_dict',
                                                   retries=3))
                 task_id_list.append(taskid)
     #import pdb; pdb.set_trace()
@@ -3065,7 +3065,7 @@ del rdata_fpath
 if __name__ == '__main__':
 
     from numpy import arange, array
-    #perc_arr = array(list(arange(0.02, 0.7, 0.02)) + 
+    #perc_arr = array(list(arange(0.02, 0.7, 0.02)) +
     #                  list(arange(0.7, 1.01, 0.01)))
     perc_arr = array(list(arange(0.2, 0.6, 0.01)))
 
@@ -3192,7 +3192,7 @@ if __name__ == '__main__':
                                                'pair_path_replace_tup':('/media/raid_0/pairwise_scratch',
                                                                     pars['crossvalid_pairwise_classif_dirpath'])}
 
-            
+
     else:
         pwiseclass_id_pklfpath = {'only_one':{'pairwise_classifier_pkl_fpath': \
                                                       pars['pairwise_classifier_pkl_fpath'],
@@ -3213,9 +3213,9 @@ if __name__ == '__main__':
     for i_classifier in range(10):
         classifier_name = 'rf_%d' % (i_classifier)
         classifier_info_dicts[classifier_name] = {'class_name':'rf_clfr',### the classifier name used in the .rdata file
-                                               'rdata_fpath':os.path.expandvars( 
+                                               'rdata_fpath':os.path.expandvars(
                                                   "$HOME/scratch/classifier_deboss_RF_%d.rdata" % (i_classifier)),
-                                               'srclist_fpath':os.path.expandvars(  
+                                               'srclist_fpath':os.path.expandvars(
                                                "$HOME/scratch/classifier_deboss_RF_%d.srcs.pkl" % (i_classifier)),
                                                }
 
@@ -3252,7 +3252,7 @@ if __name__ == '__main__':
         ### 2011-01-11 Used for normal citris33 parallel run
         ### Ipython-parallel R-classifier mode:
         combo_results_dict = master_ipython_R_classifiers(pars=pars,
-                                                          classifier_info_dicts=classifier_info_dicts, 
+                                                          classifier_info_dicts=classifier_info_dicts,
                                                           percent_list=percent_list,
                                                           iter_list=niters)
     else:
@@ -3272,7 +3272,7 @@ if __name__ == '__main__':
                 fp.close()
                 srcid_list = temp_dict['srcid_list']
 
-            ##### 
+            #####
             #import random
             #random.shuffle(srcid_list) # For Testing only:
             srcid_list_new = []
@@ -3282,8 +3282,8 @@ if __name__ == '__main__':
             srcid_list = srcid_list_new
             #####
 
-            ipython_return_dict = RTaskControllers.R_non_ipython_main(pars, 
-                                                r_classifiers=[classifier_dict], 
+            ipython_return_dict = RTaskControllers.R_non_ipython_main(pars,
+                                                r_classifiers=[classifier_dict],
                                                 classifier_name=classifier_name,
                                                 srcid_list=srcid_list,
                                                 percent_list=percent_list,
@@ -3293,7 +3293,7 @@ if __name__ == '__main__':
 
             update_combo_results(combo_results_dict=combo_results_dict,
                                  ipython_return_dict=ipython_return_dict)
-                             
+
 
     import cPickle
     import gzip
@@ -3303,8 +3303,8 @@ if __name__ == '__main__':
     fp = gzip.open(results_pkl_fpath, 'wb')
     cPickle.dump(combo_results_dict, fp, 1)
     fp.close()
-    
-    # # # TODO: I may want to abstrat plot_percent_tally_summary_dict() out of 
+
+    # # # TODO: I may want to abstrat plot_percent_tally_summary_dict() out of
     #         Weka_Pairwise_classification if JPype and other things are loaded...
     from pairwise_classification import Weka_Pairwise_Classification
     WekaPairwiseClassification = Weka_Pairwise_Classification(pars=pars)
@@ -3328,9 +3328,9 @@ if __name__ == '__main__':
 
     non_ipython_main(pars, pwiseclass_id_pklfpath=pwiseclass_id_pklfpath) # For Testing / Debugging
     ## #  # ipython_main(pars, pwiseclass_id_pklfpath=pwiseclass_id_pklfpath, apply_classifier_to_all_srcids=False)
-    
+
     ##### Only for testing arff_string without ipython:
-    
+
     rcp = Resample_Pairwise_Classify(pars=pars)
     #(srcid_list, percent_list, niters) = massage_types(src_id='149384', percent='0.9', niters='2')
     #arff_str = get_perc_subset(srcid_list, percent_list, niters)
@@ -3343,4 +3343,3 @@ if __name__ == '__main__':
     #                                                                arff_str=arff_str,
     #                                                                write_pkl=False)
     #perc_niter_sciclassdict = rcp.organize_sciclassdict_by_percent_niters(arff_sciclass_dict)
-

@@ -32,11 +32,11 @@ class Kepler_Database:
         """ Load data from text file into new MySQL table.
 
         NOTE: Run this function one time only.
-        
+
         ###Header from kic.txt text file:
         kic_ra|kic_dec|kic_pmra|kic_pmdec|kic_umag|kic_gmag|kic_rmag|kic_imag|kic_zmag|kic_gredmag|kic_d51mag|kic_jmag|kic_hmag|kic_kmag|kic_kepmag|kic_kepler_id|kic_tmid|kic_scpid|kic_altid|kic_altsource|kic_galaxy|kic_blend|kic_variable|kic_teff|kic_logg|kic_feh|kic_ebminusv|kic_av|kic_radius|kic_cq|kic_pq|kic_aq|kic_catkey|kic_scpkey|kic_parallax|kic_glon|kic_glat|kic_pmtotal|kic_grcolor|kic_jkcolor|kic_gkcolor|kic_degree_ra|kic_fov_flag|kic_tm_designation
         """
-        
+
         """ CREATE TABLE kepler_kic (
 kic_ra DOUBLE,
 kic_dec DOUBLE,
@@ -195,7 +195,7 @@ class Kepler_Sources:
                         #print substr
                         kepid = int(substr)
                         kepid_dict[kepid] = None # TODO: I want to parse and store fits URLs
-                        
+
 
             fp = gzip.open(self.pars['kepid_pkl_fpath'],'wb')
             cPickle.dump(kepid_dict,fp,1) # ,1) means a binary pkl is used.
@@ -210,7 +210,7 @@ class Kepler_Sources:
         This file is made using:
 
         cut -d "|" -f 1,2,16 kic.txt > kic.tct__radecid
-        
+
         """
         ra_dict = {}
         dec_dict = {}
@@ -234,7 +234,7 @@ class Kepler_Sources:
                 'dec_dict':dec_dict}
             # todo want kepid to be a dict
 
-        
+
 
     def get_radecs_pklwrapper(self, kepid_dict={}):
         """
@@ -255,13 +255,13 @@ class Kepler_Sources:
             fp=gzip.open(self.pars['ra_dict_pkl_fpath'],'rb')
             radec_dict['ra_dict']=cPickle.load(fp)
             fp.close()
-            
+
             fp=gzip.open(self.pars['dec_dict_pkl_fpath'],'rb')
             radec_dict['dec_dict']=cPickle.load(fp)
             fp.close()
 
         return radec_dict
-    
+
 
     def query_votable_name(self, name=''):
         """ Adapted from simbad_id_lookup.py and simbad.py
@@ -272,7 +272,7 @@ class Kepler_Sources:
         #html = "http://simbad.harvard.edu/simbad/sim-coo?"
         #params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
         #                               'Radius': rad, 'Radius.unit': "arcsec"})
-        
+
         html = "http://simbad.harvard.edu/simbad/sim-id?"
         params = urllib.urlencode({'output.format':"VOTABLE","Ident":name,"NbIdent":1,\
                                    'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
@@ -294,7 +294,7 @@ class Kepler_Sources:
         html = "http://simbad.harvard.edu/simbad/sim-coo?"
         params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
                                        'Radius': rad, 'Radius.unit': "arcsec"})
-        
+
         #html = "http://simbad.harvard.edu/simbad/sim-id?"
         #params = urllib.urlencode({'output.format':"VOTABLE","Ident":"HD 27290","NbIdent":1,\
         #                           'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
@@ -372,7 +372,7 @@ class Kepler_Sources:
                     fp_votable.close()
                 except:
                     continue
-                
+
                 out_str = "%d '%s'" % (kepid, class_str)
                 print out_str
                 fp_txt.write(out_str + '\n')
@@ -384,10 +384,10 @@ class Kepler_Sources:
 
             #import pdb; pdb.set_trace()
             #print
-            fp_txt.flush()    
+            fp_txt.flush()
             i_low = i_high
 
-            
+
         fp_txt.close()
         fp = gzip.open(self.pars['kep_simbad_class_pkl_fpath'],'wb')
         cPickle.dump(class_dict,fp,1) # ,1) means a binary pkl is used.
@@ -422,7 +422,7 @@ class Kepler_Sources:
                 class_str = self.parse_class(votable_str)
             except:
                 continue
-            
+
             out_str = "%d '%s'" % (kepid, class_str)
             print out_str
             fp_txt.write(out_str + '\n')
@@ -434,7 +434,7 @@ class Kepler_Sources:
             if (i % 100 == 0):
                 fp_txt.flush()
 
-            
+
         fp_txt.close()
         fp = gzip.open(self.pars['kep_simbad_class_pkl_fpath'],'wb')
         cPickle.dump(class_dict,fp,1) # ,1) means a binary pkl is used.
@@ -453,24 +453,24 @@ class Kepler_Sources:
         results = self.kep_db.cursor.fetchall()
         results[0][0]
         fp = open(self.pars['kep_simbad_class_txt_fpath'])
-        
+
         for row in results:
             print row
 
 
-        
+
 
     def main(self):
         """
         """
-        ### TEST/debug: 
+        ### TEST/debug:
         #import pdb; pdb.set_trace()
         #print
         #votable_str = self.query_votable_radec(ra=64.0066071, dec=-51.4866481, rad=20.0)
         #a_class = self.parse_class(votable_str)
 
         kepid_dict = self.get_kepids()
-        
+
         ###OBSOLETE / BROKEN:
         #radec_dict = self.get_radecs_pklwrapper(kepid_dict=kepid_dict)
 
@@ -493,7 +493,7 @@ if __name__ == '__main__':
 
             'tcp_hostname':'192.168.1.25',
             'tcp_username':'pteluser',
-            'tcp_port':     3306, 
+            'tcp_port':     3306,
             'tcp_database':'source_test_db',
 
             'pubfits_base_url':'http://archive.stsci.edu/pub/kepler/lightcurves/',
@@ -516,5 +516,5 @@ if __name__ == '__main__':
 
     ### do once only to load Kepler source meta data into Tables:
     #kep_db = Kepler_Database(pars)
-    #kep_db.create_load_table() 
+    #kep_db.create_load_table()
     #sys.exit()

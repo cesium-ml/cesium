@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    NOTE: This is OBSOLETE?
 
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     srcdbt.update_featsgen_in_srcid_lookup_table(srcid_dict.keys())
     feat_db.insert_srclist_features_into_rdb_tables(signals_list,\
                                                     srcid_dict.keys())
-    
+
     # TODO: classify PTF source.
 
     # ??? what happens if ptf source existed, but has new points added to it?

@@ -67,7 +67,7 @@ class Sdss_Ingest_Monitor:
         #print 'os.system(ssh) DONE!'
         #sys.exit()
 
-        
+
     def check_finished_threads(self):
         """ Check whether any of the threads are done.
         Remove them from the threads[]

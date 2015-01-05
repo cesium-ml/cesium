@@ -4,7 +4,7 @@ I determine the dotastro.org source ids.
 """
 import os, sys
 import MySQLdb
-sys.path.append(os.path.abspath(os.path.expandvars('$TCP_DIR/' + 
+sys.path.append(os.path.abspath(os.path.expandvars('$TCP_DIR/' +
                                 'Algorithms')))
 import simbad_id_lookup
 
@@ -25,7 +25,7 @@ class Find_DotAstro_Deboss_Sources():
     def main(self):
         """
         """
-        list_fpath = os.path.abspath(os.path.expandvars('$TCP_DIR/' + 
+        list_fpath = os.path.abspath(os.path.expandvars('$TCP_DIR/' +
                                                         'Data/tutor_new_deboss.list'))
         #list_fpath = os.path.expandvars('$HOME/scratch/tutor_new_deboss.list')
 
@@ -41,13 +41,13 @@ class Find_DotAstro_Deboss_Sources():
             joey_id_list.append(joey_id)
             class_name_list.append(class_name)
             joey_source_name_list.append(source_name)
-            
 
 
-            
+
+
             #select_str = 'SELECT source_id, source_name FROM sources WHERE project_id=123 and source_name like "%' + source_name + '%"'
             select_str = 'SELECT source_id, source_name FROM sources WHERE project_id=123 and source_name = "' + source_name + '"'
-            
+
             self.cursor.execute(select_str)
             results = self.cursor.fetchall()
             tutor_source_id = results[0][0]
@@ -68,7 +68,7 @@ class Find_DotAstro_Deboss_Sources():
 
 
         select_str = 'SELECT source_id, source_name FROM sources WHERE project_id=123'
-            
+
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
 

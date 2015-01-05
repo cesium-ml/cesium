@@ -1,8 +1,8 @@
 """
 Select a period.
 
-Runs polyfit (adapted from PHOEBE) and looks for a period 
-with the lowest chi-sq. you input the trial period and it will look 
+Runs polyfit (adapted from PHOEBE) and looks for a period
+with the lowest chi-sq. you input the trial period and it will look
 at aliases of that period. Assumed to be an eclipsing system.
 
 See test() for usage
@@ -21,16 +21,16 @@ import time
 # path to polyfit executable if dynamic = False
 
 # gcc -m32 -L/usr/local/lib polyfit.c -lgsl -lgslcblas -lm -o polyfit
-# gcc -m32 -shared -Wl -o polyfit.so polyfit.o -lc -lgsl -lgslcblas -lm 
+# gcc -m32 -shared -Wl -o polyfit.so polyfit.o -lc -lgsl -lgslcblas -lm
 exec_path = "./polyfit"
 
 class selectp:
-    
+
 
     def __init__(self,t, y, dy, period, mults=[0.5,1,2],\
         order=2, iknots=[-0.4,-0.2,0.2,0.4], exec_fpath='',
         dynamic=True, mag=True, verbose=False, srcid=0):
-        
+
         self.verbose = verbose
         self.rez    = {'models': []}
         self.order  = order
@@ -53,14 +53,14 @@ class selectp:
             try:
                 self.polyfit = ctypes.cdll.LoadLibrary(os.path.abspath(os.environ.get("TCP_DIR") + 'Algorithms/EclFeatures/polyfit.so'))
             except:
-                print "cannot load polyfit.so"            
+                print "cannot load polyfit.so"
 
         self.ok = True
-        
+
     def _runp(self,p):
         if not self.ok:
             return -1
-            
+
         ## try running with that period
         if self.verbose:
             print "   --> running with period ... %f" % p
@@ -102,7 +102,7 @@ class selectp:
             os.remove(name)
             return # maybe this is a good way to catch the segfault issue sources prior to segfaulting?
 
-        
+
         tmp = "%s -o %i -k %s --find-step --chain-length 30 %s" % \
             (self.poly,self.order," ".join(["%.2f" % k for k in self.iknots]),name)
         alttmp = "%s -o %i -k %s --find-knots --find-step --chain-length 30 %s" % \
@@ -110,9 +110,9 @@ class selectp:
 
         #import pdb; pdb.set_trace()
         #print
-        
-        if self.dynamic: 
-            # make the argv vector           
+
+        if self.dynamic:
+            # make the argv vector
             argv = tmp.split()
             argc = len(argv)
             argv_type = ctypes.c_char_p * len(argv)
@@ -139,7 +139,7 @@ class selectp:
 
 
             (child_stdin,child_stdout,child_stderr) = (pp.stdin, pp.stdout, pp.stderr)
-            ttt = child_stdout.readlines() ; ttt1 =  child_stderr.readlines() 
+            ttt = child_stdout.readlines() ; ttt1 =  child_stderr.readlines()
             child_stdin.close() ;  child_stdout.close() ; child_stderr.close()
             if len(ttt) == 0 and len(ttt1) == 0:
                 # probably a seg fault
@@ -149,7 +149,7 @@ class selectp:
                                      stderr=PIPE, close_fds=True)
                 pp.wait()
                 (child_stdin,child_stdout,child_stderr) = (pp.stdin, pp.stdout, pp.stderr)
-                ttt = child_stdout.readlines() ; ttt1 =  child_stderr.readlines() 
+                ttt = child_stdout.readlines() ; ttt1 =  child_stderr.readlines()
                 child_stdin.close() ;  child_stdout.close() ; child_stderr.close()
                 if len(ttt) == 0 and len(ttt1) == 0:
                     self.rez["models"].append({"period": p, "phase": None, 'f': None, 'chi2': 100000})
@@ -164,7 +164,7 @@ class selectp:
                 chi2 = float(l.split("Final chi2:")[-1])
             self.rez["models"].append({"period": p, "phase": s['phase'], 'f': s['flux'], 'chi2': chi2})
         os.remove(name)
-            
+
     def select(self):
         for m in self.mults:
             self._runp(m*self.period)
@@ -173,11 +173,11 @@ class selectp:
         if self.verbose:
             print "   .... best p = ", r[0][1], "best chi2 = ", r[0][0]
         self.rez.update({"best_period": r[0][1], "best_chi2": r[0][0]})
-    
+
     def plot_best(self,extra=""):
         b = [x for x in self.rez['models'] if x['period'] == self.rez['best_period']][0]
         from matplotlib import pylab as plt
-       
+
         tt=(self.t/self.rez['best_period']) % 1; s=tt.argsort()
         x = tt[s]; y = self.y[s] ; z = self.dy[s]
         if self.mag:
@@ -187,7 +187,7 @@ class selectp:
         pmm = x[mm]
         tt = (((self.t/self.rez['best_period']) % 1.0) - pmm + 0.5) % 1.0; s=tt.argsort()
         x = tt[s] - 0.5; y = self.y[s] ; z = self.dy[s]
-        
+
         plt.errorbar (x,y,z,fmt='o',c="r")
         plt.plot(b['phase'],b['f'],c="b")
         plt.ylim(self.y.max()+0.05,self.y.min()-0.05)
@@ -195,12 +195,10 @@ class selectp:
         plt.ylabel("flux/mag")
         plt.title("Best p = %.6f (chi2 = %.3f)" % (self.rez['best_period'],self.rez['best_chi2']))
         plt.text(-0.2,self.y.max() - 0.05, "%s" % extra, ha='center',alpha=0.5)
-        
+
 def test():
     x = csv2rec("lc.dat",delimiter=" ",names=["t","y","dy"])
     s = selectp(x['t'],x['y'],x['dy'],21.93784630,dynamic=False,verbose=True)
     s.select()
     print s.rez
     s.plot_best()
-
-            

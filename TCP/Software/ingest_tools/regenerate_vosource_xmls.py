@@ -33,7 +33,7 @@ from optparse import OptionParser
 #sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract/Code'))
 #from Code import *
 #import db_importer
-# # # # 
+# # # #
 
 class Regenerate_Vosource_Xmls:
     """
@@ -47,14 +47,14 @@ This code saves XMLs into a seperate directory.
 
     def main(self):
         """ main method
-        
+
         This method runs linear tasks and thus is becoming obsolete.
         """
         if not os.path.exists(self.pars['new_xmls_dirpath']):
             os.system("mkdir -p %s" % (self.pars['new_xmls_dirpath']))
 
         old_xml_fpaths = glob.glob("%s/*xml" % (self.pars['old_xmls_dirpath']))
-        
+
         for old_xml_fpath in old_xml_fpaths:
             signals_list = []
             gen = generators_importers.from_xml(signals_list)
@@ -133,7 +133,7 @@ import db_importer
         task_fpath_list = []
         #for old_xml_fpath in old_xml_fpaths:
         for i in range(n_rows_in_taskfile, len(old_xml_fpaths), n_rows_in_taskfile):
-            task_fpath = "%s/regen%lf_%d" % (task_dirpath, time.time(), 
+            task_fpath = "%s/regen%lf_%d" % (task_dirpath, time.time(),
                                              random.randint(0,100000000))
             fp = open(task_fpath, 'w')
             for xml_fpath in old_xml_fpaths[(i - n_rows_in_taskfile):i]:
@@ -142,14 +142,14 @@ import db_importer
             task_fpath_list.append(task_fpath)
         # Catch the last bits:
         if i < len(old_xml_fpaths):
-            task_fpath = "%s/regen%lf_%d" % (task_dirpath, time.time(), 
+            task_fpath = "%s/regen%lf_%d" % (task_dirpath, time.time(),
                                              random.randint(0,100000000))
             fp = open(task_fpath, 'w')
             for xml_fpath in old_xml_fpaths[i:len(old_xml_fpaths) - 1]:
                 fp.write(xml_fpath + '\n')
             fp.close()
             task_fpath_list.append(task_fpath)
-        
+
         #n_tasks_per_cpu = 10 # 80
         ### iterate over node number list
         ###   - iterate over the n_cpus_per_node
@@ -191,27 +191,27 @@ import db_importer
             os.system("mkdir -p %s" % (self.pars['new_xmls_dirpath']))
 
         old_xml_fpaths = glob.glob("%s/*xml" % (self.pars['old_xmls_dirpath']))
-        
+
         for old_xml_fpath in old_xml_fpaths:
             #       gen.sig.write_xml(out_xml_fpath="%s/%s")
-            #       os.system("bpcp %s/%s master:%s/%s")""" % (old_xml_fpath, 
+            #       os.system("bpcp %s/%s master:%s/%s")""" % (old_xml_fpath,
 
             #exec_str = """signals_list = []
             #gen = generators_importers.from_xml(signals_list)
             #gen.generate(xml_handle="%s")
             #gen.sig.add_features_to_xml_string(gen.signals_list)
-            #gen.sig.write_xml(out_xml_fpath="%s/%s")""" % (old_xml_fpath, 
+            #gen.sig.write_xml(out_xml_fpath="%s/%s")""" % (old_xml_fpath,
             #                              self.pars['new_xmls_dirpath'],
             #                              old_xml_fpath[old_xml_fpath.rfind('/')+1:])
 
             ##### This version just saves feature generated sources which found periods:
             """
 if period_found:
-    gen.sig.write_xml(out_xml_fpath="%s/%s")""" #% (old_xml_fpath, 
+    gen.sig.write_xml(out_xml_fpath="%s/%s")""" #% (old_xml_fpath,
             ##### This version just saves feature generated sources which have no found periods:
             """
 if not period_found:
-    gen.sig.write_xml(out_xml_fpath="%s/%s")""" #% (old_xml_fpath, 
+    gen.sig.write_xml(out_xml_fpath="%s/%s")""" #% (old_xml_fpath,
 
 
             exec_str = """signals_list = []
@@ -229,7 +229,7 @@ for filt,filt_dict in gen.signals_list[0].properties['data'].iteritems():
     except:
         pass
 if 1:
-    gen.sig.write_xml(out_xml_fpath="%s/%s")""" % (old_xml_fpath, 
+    gen.sig.write_xml(out_xml_fpath="%s/%s")""" % (old_xml_fpath,
                                           self.pars['new_xmls_dirpath'],
                                           old_xml_fpath[old_xml_fpath.rfind('/')+1:])
             taskid = self.tc.run(client.StringTask(exec_str))
@@ -238,8 +238,8 @@ if 1:
     def wait_for_tasks_to_finish(self):
         """ Wait for task client / ipengine tasks to finish.
         """
-	while ((self.tc.queue_status()['scheduled'] > 0) or
- 	       (self.tc.queue_status()['pending'] > 0)):
+        while ((self.tc.queue_status()['scheduled'] > 0) or
+               (self.tc.queue_status()['pending'] > 0)):
             print self.tc.queue_status()
             print 'Sleep... 3 in regenerate_vosource_xmls.py'
             time.sleep(3)
@@ -274,22 +274,22 @@ if 1:
         # TODO: each spawned task should be a script which loads gen... is passed an(multiple?) XML,
         #       and crunches on a processor.
         # The execution command should be:
-        #    
+        #
 
 
 
 if __name__ == '__main__':
     parser = OptionParser(usage="usage: %prog cmd [options]")
     parser.add_option("-a","--old_xmls_dirpath",
-                      dest="old_xmls_dirpath", 
+                      dest="old_xmls_dirpath",
                       action="store", default=os.path.expandvars('/home/pteluser/scratch/Noisification/10epoch_anyband_nospline_sifted/generated_vosource'),
                       help="")
     parser.add_option("-b","--new_xmls_dirpath",
-                      dest="new_xmls_dirpath", 
+                      dest="new_xmls_dirpath",
                       action="store", default=os.path.expandvars('/home/pteluser/scratch/Noisification/10epoch_anyband_nospline_sifted/featured_vosource'),
                       help="")
     parser.add_option("-m","--multiprocessing",
-                      dest="multiprocessing", 
+                      dest="multiprocessing",
                       action="store", default=None,
                       help="")
 

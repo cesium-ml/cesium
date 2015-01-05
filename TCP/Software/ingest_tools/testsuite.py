@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ testsuite.py
 
    v0.3 Implemented SDSS-II object, source, features tests.
@@ -284,7 +284,7 @@ feat_values_tablename=self.pars['ingest_tools_pars']['feat_values_tablename'])
 echo "
 %s
 " | mysql
-        """ % (elem) 
+        """ % (elem)
             drop_tables_shell_str_list.append(drop_tables_shell_str)
         return drop_tables_shell_str_list
 
@@ -506,7 +506,7 @@ SELECT x0.src_id from feat_lookup
 INNER JOIN feat_values AS x0 ON feat_lookup.feat_id = x0.feat_id
        AND feat_lookup.filter_id = 5 AND feat_lookup.feat_name = 'std'
 INNER JOIN feat_values AS x1 ON x1.src_id = x0.src_id
-                            AND x1.feat_id =(SELECT feat_id from feat_lookup 
+                            AND x1.feat_id =(SELECT feat_id from feat_lookup
                                              WHERE feat_name ='first_frequency'
                                              AND filter_id = 5)
 INNER JOIN ...
@@ -537,15 +537,15 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
                 tt_name = "x%d" % (i)
                 join_list.append(\
                 """inner join feat_values AS %s ON %s.src_id = x0.src_id
-                         AND %s.feat_id = (SELECT feat_id from feat_lookup 
+                         AND %s.feat_id = (SELECT feat_id from feat_lookup
                                               WHERE feat_name = '%s'
                                               AND filter_id = %d)""" % \
                                (tt_name, tt_name, tt_name, feat_name, filt_num))
 
                 condition_list.append("(%s.feat_val > %lf) and (%s.feat_val < %lf)"%(\
-                    tt_name, 
+                    tt_name,
                     feat_val - self.pars['mysql_float_condition_accuracy'], \
-                    tt_name, 
+                    tt_name,
                     feat_val + self.pars['mysql_float_condition_accuracy']))
                 i += 1
             condition_str = ' AND '.join(condition_list)
@@ -601,7 +601,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
                     },
                 },
             }
-        
+
         ##### For debugging & printing all available {feature : values}
         #test = signals_list[0].properties['data']['multiband']['features'].keys()
         #test.sort()
@@ -611,7 +611,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         #test.sort()
         #for a in test:  print "%40.40s   %s" % (a,str(signals_list[0].properties['data']['H:table1384']['features'][a]))
 
-        
+
         for xml_fpath,xml_dict in test_feature_dict.iteritems():
             fname = xml_fpath[xml_fpath.rfind('/')+1:] # for DEBUGGING print
             signals_list = []
@@ -646,7 +646,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         fpath = os.path.expandvars(self.pars['ptel_mosfits_dirpath']) + '/' + self.pars['ptel_mosfits_fname_list'][0]
         self.populate_ptel_object_tables_using_list([fpath])
 
-        
+
     def populate_ptel_object_tables_multi_mosfits(self):
         """ Using a list of Pairitel mos*fits files, extract astrometry,
         photometry and add to MySQL DB.
@@ -727,13 +727,13 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         server_url = "http://%s:%d" % (self.pars['xmlrpc_server_name'], \
                            self.pars['ingest_tools_pars']['xmlrpc_server_port'])
         server = xmlrpclib.ServerProxy(server_url)
-        
+
         src_list = server.get_sources_for_radec(49.556229, -0.883328, 0.05, '')
         print 'len(src_list) :', len(src_list)
         #print server.system.listMethods()
 
         # TODO test the source values which are returned. (RDB values check?)
- 
+
 
 class Check_Methods:
     """ Each method in this class wraps a seperate process/function test.
@@ -746,7 +746,7 @@ class Check_Methods:
         result_bool = tsso.ingest_tools__setup_pars()
         return result_bool
 
-    
+
     def check_04_ingest_tools_table_creation(self):
         """ CREATE MySQL TABLES.
         """
@@ -763,7 +763,7 @@ class Check_Methods:
         all_exist = tsso.check_for_table_existance()
         return all_exist
 
-    
+
     def check_05_spawn_index_servers(self):
         """ Spawn off all needed index servers.
         NOTE: Testing of index server usablility occurs in later tests.
@@ -821,11 +821,11 @@ class Check_Methods:
         """
         return True
 
-        #NOTE: I comment this out, since there appears to be loaded-module 
+        #NOTE: I comment this out, since there appears to be loaded-module
         #    conflicts of some sort with feature extraction code....
         tsso.populate_sdss_object_tables()
         return True # TODO: call an assert/test method!
-        
+
 
 
     def check_15_populate_ptel_related_sources(self):
@@ -942,7 +942,7 @@ if __name__ == '__main__':
         unittest.main()
 
     ### NOTE: I disable this so XMLRPC Servers and Index servers remain active
-    ###   - this means the user should execute these manually at shell if 
+    ###   - this means the user should execute these manually at shell if
     ###     they wish to rerun testsuite.py :
     #if not pars['test_suite__preserve_tables_databases_servers']:
     #    os.system("pkill -9 -f python.*obj_id_sockets.py")

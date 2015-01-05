@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
 Contains a function which calculates the total mag for a ptf source.
 

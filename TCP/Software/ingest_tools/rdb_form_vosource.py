@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Given a source-id & XML fpath (to be created),
         query RDBs and form, write XML.
@@ -122,7 +122,7 @@ class Rdb_Form_VOsource:
         select_str = "SELECT %s.feat_val, %s.feat_name, %s.filter_id, %s.doc_str FROM %s JOIN %s USING (feat_id) WHERE %s.src_id = %d" % (self.pars['feat_values_tablename'], self.pars['feat_lookup_tablename'], self.pars['feat_lookup_tablename'], self.pars['feat_lookup_tablename'], self.pars['feat_values_tablename'], self.pars['feat_lookup_tablename'], self.pars['feat_values_tablename'], src_id)
         self.feat_db.cursor.execute(select_str)
         results = self.feat_db.cursor.fetchall()
-      
+
         sdict['feature_docs'] = {}
         try:
             for result in results:
@@ -248,7 +248,7 @@ class Rdb_Form_VOsource:
         fp = open(fpath, 'w')
         fp.write(write_xml_str)
         fp.close()
-        
+
         scp_command = "scp -q %s %s:%s" % (fpath, self.pars['rdb_gen_vosource_hostname'], vosource_fpath)
         os.system(scp_command)
         os.system("rm " + fpath)

@@ -15,7 +15,7 @@ import db_importer
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+        <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -35,11 +35,11 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+                        <TimeType ucd="frame.time.system?">MJD</TimeType>
+                        <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+                        <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
+                        <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+                </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">

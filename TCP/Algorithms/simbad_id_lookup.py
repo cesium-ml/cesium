@@ -16,7 +16,7 @@ def query_votable(src_name="HD 27290"):
 
     #params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
     #                               'Radius': rad, 'Radius.unit': "arcsec"})
-    
+
     params = urllib.urlencode({'output.format': "VOTABLE", "Ident":src_name, "NbIdent":1, \
                                'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
     f = urllib.urlopen("%s%s" % (html,params))
@@ -27,7 +27,7 @@ def query_votable(src_name="HD 27290"):
 
 def parse_class(votable_str):
     import amara
-    
+
     a = amara.parse(votable_str)
     #b = a.xml_select("/VOTABLE/RESOURCE/TABLE/FIELD")
     #b = a.xml_xpath("/VOTABLE/RESOURCE/TABLE/FIELD[@name='OTYPE']")
@@ -54,7 +54,7 @@ def query_html(src_name = "HD 27290"):
 
     #params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
     #                               'Radius': rad, 'Radius.unit': "arcsec"})
-    
+
     params = urllib.urlencode({'output.format': "html", "Ident":src_name, "NbIdent":1, \
                                'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
     f = urllib.urlopen("%s%s" % (html,params))

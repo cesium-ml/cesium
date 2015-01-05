@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
 This module is intended to:
  - Remotely retrieve a source for a given (ra,dec)

@@ -85,7 +85,7 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
         best_GCV = numpy.min(GCVs)
         optimal_window = windows[ numpy.argmin(GCVs) ]
         return best_GCV, optimal_window
-   
+
     def preSelect_periods(self, numpeaks=5):
         """ use LS to select trial periods for use in find_period
                returns top <numpeaks> most-likely periods """
@@ -122,11 +122,11 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
         return numpy.concatenate( [test_periods, test_periods*2, test_periods*3, test_periods/2., test_periods/3. ] )
     '''
     def find_peaks(self, x):
-       """ find peaks in x """
-       xmid = x[1:-1] # orig array with ends removed
-       xm1 = x[2:] # orig array shifted one up
-       xp1 = x[:-2] # orig array shifted one back
-       return numpy.where(numpy.logical_and(xmid > xm1, xmid > xp1))[0] + 1
+        """ find peaks in x """
+        xmid = x[1:-1] # orig array with ends removed
+        xm1 = x[2:] # orig array shifted one up
+        xp1 = x[:-2] # orig array shifted one back
+        return numpy.where(numpy.logical_and(xmid > xm1, xmid > xp1))[0] + 1
 
 
 class ratio_PDM_LS_freq0_extractor(FeatureExtractor):
@@ -141,4 +141,3 @@ class ratio_PDM_LS_freq0_extractor(FeatureExtractor):
             return pdm_freq/LS_freq
         except:
             return 0.0
-

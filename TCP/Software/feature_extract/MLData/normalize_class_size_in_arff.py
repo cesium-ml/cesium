@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 create duplicate entries for clases with few entries, so that they are as populated as mos populated classes (its 3am).
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     out_arff_fpath = "/home/pteluser/scratch/train_output_allclass_14feat_class_scaled.arff"
     os.system("rm " + out_arff_fpath)
     fp_out = open(out_arff_fpath, 'w')
-    
+
     class_name_to_arff_lines_list = {}
     for class_name in class_num_rows_dict.keys():
         class_name_to_arff_lines_list[class_name] = []

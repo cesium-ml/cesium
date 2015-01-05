@@ -1850,7 +1850,7 @@ def parse_options():
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+        <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -1870,11 +1870,11 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+                        <TimeType ucd="frame.time.system?">MJD</TimeType>
+                        <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+                        <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
+                        <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+                </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -1904,7 +1904,7 @@ def generate_xml_str_using_lsd_ts(dat_fpath):
     data_str_list = []
 
     rows = csv.reader(open(dat_fpath), delimiter=' ')
-    
+
     t_list = []
     m_list = []
     merr_list = []
@@ -1926,7 +1926,7 @@ def generate_xml_str_using_lsd_ts(dat_fpath):
     return out_xml
 
 
-def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', include_header=True, 
+def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', include_header=True,
                     write_multiinfo_srcids=True, source_xml_dict={}, ParseNomadColorsList=None, use_mtmerr_ts_files=False, do_sigmaclip=True):
     """ Adapted from:
       - analysis_deboss_tcp_source_compare.py::perc_subset_worker()
@@ -2020,7 +2020,7 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', in
                 new_srcid_list.append(new_srcid)
 
                 dbi_src = db_importer.Source(make_dict_if_given_xml=False)
-                
+
                 for band, band_dict in gen_orig.sig.x_sdict['ts'].iteritems():
                     if ":NOMAD" in band:
                         i_start = 0
@@ -2037,7 +2037,7 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', in
                 signals_list = []
                 gen = generators_importers.from_xml(signals_list)
                 gen.generate(xml_handle=write_xml_str)
-                gen.sig.add_features_to_xml_string(signals_list)                
+                gen.sig.add_features_to_xml_string(signals_list)
                 gen.sig.x_sdict['src_id'] = new_srcid
                 dbi_src.source_dict_to_xml(gen.sig.x_sdict)
 
@@ -2050,15 +2050,15 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', in
 
                 #out_arff_row_dict[(src_id, perc, i)] = out_dict # ??? TODO: just arff rows?
                 # dbi_src.xml_string
-    	        master_list.append(out_dict)
-    	        all_class_list.append(out_dict['class'])
+                master_list.append(out_dict)
+                all_class_list.append(out_dict['class'])
                 master_classes_dict[out_dict['class']] = 0
-    	        for feat_tup in out_dict['features']:
-    	            master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
+                for feat_tup in out_dict['features']:
+                    master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
     master_features = master_features_dict.keys()
     master_classes = master_classes_dict.keys()
-    a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
+    a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
                       dorun=False, add_srcid_to_arff=True)
@@ -2118,7 +2118,7 @@ class Arff_Generation_Engine_Tasks:
     """
 
     def task_generate_feature_arff_lines(self, pars, srcid_list=[], xml_dirpath='', include_header=True,
-                                         write_multiinfo_srcids=True, source_xml_dict={}, 
+                                         write_multiinfo_srcids=True, source_xml_dict={},
                                          ParseNomadColorsList=None,
                                          use_mtmerr_ts_files=False,
                                          do_sigmaclip=True):
@@ -2160,7 +2160,7 @@ class Arff_Generation_Engine_Tasks:
 
 
 def master_ipython_arff_generation(pars={}, write_multiinfo_srcids=True, source_xml_dict={}, use_mtmerr_ts_files=False, do_sigmaclip=True):
-    """ Main code which controls ipython nodes when generating 
+    """ Main code which controls ipython nodes when generating
 
 This is the task which will be called on ipengines by this function:
 
@@ -2252,7 +2252,7 @@ ArffEngineTasks = arff_generation_master.Arff_Generation_Engine_Tasks()"""
     else:
         srcid_list_new = []
         for srcid in srcid_list:
-            ##20120130disable: #srcid_list_new.append(int(srcid) + 100000000) 
+            ##20120130disable: #srcid_list_new.append(int(srcid) + 100000000)
             srcid_list_new.append(srcid)
             #junktry#srcid_list_new.append(str(srcid)) # late we expect this to be a string, non +100000000
 
@@ -2312,7 +2312,7 @@ sys.stdout = tmp_stdout
                                                 'write_multiinfo_srcids':write_multiinfo_srcids,
                                                 'use_mtmerr_ts_files':use_mtmerr_ts_files,
                                                 'do_sigmaclip':do_sigmaclip},
-                                          pull='out_dict', 
+                                          pull='out_dict',
                                           retries=3)) # 3
             task_id_list.append(taskid)
         #import pdb; pdb.set_trace()
@@ -2346,18 +2346,18 @@ sys.stdout = tmp_stdout
         for task_id in tasks_to_pop:
             task_id_list.remove(task_id)
 
-            
+
         #    (tc.queue_status()['pending'] <= 64)):
         #       if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
-        if ((tc.queue_status()['scheduled'] == 0) and 
+        if ((tc.queue_status()['scheduled'] == 0) and
             (tc.queue_status()['pending'] <= 7)):
-           if dtime_pending_1 == None:
-               dtime_pending_1 = datetime.datetime.now()
-           else:
-               now = datetime.datetime.now()
-               if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
-                   print "dtime_pending=1 timeout break!"
-                   break
+            if dtime_pending_1 == None:
+                dtime_pending_1 = datetime.datetime.now()
+            else:
+                now = datetime.datetime.now()
+                if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
+                    print "dtime_pending=1 timeout break!"
+                    break
         print tc.queue_status()
         print 'Sleep... 60 in test_pairwise_on_citris33_ipython::master_ipython_R_classifiers()', datetime.datetime.utcnow()
         time.sleep(60)
@@ -2383,7 +2383,7 @@ sys.stdout = tmp_stdout
             #                     ipython_return_dict=copy.deepcopy(ipython_return_dict))
     ####
     print tc.queue_status()
-    return {'result_arff_list':result_arff_list, 
+    return {'result_arff_list':result_arff_list,
             'class_list':class_list}
 
 
@@ -2410,7 +2410,7 @@ def do_branimir_ptf_timeseries(pars={}):
 
     pars['src_id'] = source_fpath_dict.keys()
     pars['xml_dirpath'] = None # not needed in our case
-    out_dict = master_ipython_arff_generation(pars=pars, 
+    out_dict = master_ipython_arff_generation(pars=pars,
                                               source_xml_dict=source_fpath_dict,
                                               write_multiinfo_srcids=False,
                                               use_mtmerr_ts_files=True,
@@ -2443,7 +2443,7 @@ def do_branimir_ptf_timeseries(pars={}):
     import pdb; pdb.set_trace()
     print
 
-       
+
 
 
 
@@ -2574,7 +2574,7 @@ if __name__ == '__main__':
                 glob_str = '%s/*' % (dirpath)
 
                 xml_fpaths = glob.glob(glob_str)
-                
+
                 for xml_fpath in xml_fpaths:
                     print xml_fpath
                     num_str = xml_fpath[xml_fpath.rfind('/') + 1:xml_fpath.rfind('.')]
@@ -2605,7 +2605,7 @@ if __name__ == '__main__':
         ### stipe82 SDSS:
         #pars['xml_dirpath'] = '/global/home/groups/dstarr/tutor_121_xmls'
         #xmls_dict_pkl_fpath = '/global/home/groups/dstarr/tutor_121_xmls/xmls_dict.pkl'
-        
+
         glob_str = '%s/*' % (pars['xml_dirpath'])
 
 
@@ -2613,7 +2613,7 @@ if __name__ == '__main__':
             source_xml_dict = cPickle.load(open(xmls_dict_pkl_fpath))
         else:
             xml_fpaths = glob.glob(glob_str)
-            
+
             source_xml_dict = {}
             for xml_fpath in xml_fpaths:
                 #print xml_fpath
@@ -2631,7 +2631,7 @@ if __name__ == '__main__':
 
     #import pdb; pdb.set_trace()
     #print
-    out_dict = master_ipython_arff_generation(pars=pars, 
+    out_dict = master_ipython_arff_generation(pars=pars,
                                               source_xml_dict=source_xml_dict,
                                               write_multiinfo_srcids=False) #False:only srcid in output arff; True when doing several percent/subset arff rows
     #print result_arff_list

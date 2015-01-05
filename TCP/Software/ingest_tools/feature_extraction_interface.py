@@ -49,10 +49,10 @@ class GetFeatIdLookupDicts:
             if not filt_lookup_dict.has_key(filter_id):
                 filt_lookup_dict[filter_id] = {}
             filt_lookup_dict[filter_id][feat_name] = feat_id
-        
+
         return (feature_lookup_dict, filt_lookup_dict)
 
-        
+
     def write_dicts_to_disk(self, feature_lookup_dict, filt_lookup_dict):
         """ Write dicts to dictfile which is generally under $TCP_DATA_DIR.
         """
@@ -81,7 +81,7 @@ class GetFeatIdLookupDicts:
         (feature_lookup_dict, filt_lookup_dict) = \
                                 self.form_dicts_from_rdb_query()
             #self.write_dicts_to_disk(feature_lookup_dict, filt_lookup_dict)
-            
+
         self.feature_lookup_dict = feature_lookup_dict
         self.filt_lookup_dict = filt_lookup_dict
 
@@ -89,15 +89,15 @@ class GetFeatIdLookupDicts:
 class Internal_Feature_Extractors:
     """ Class which contains "internal feature" definition lists & dictionaries
     """
-    
+
     ## modules (instead of classes) will break the test suite. Put these here as appropriate.
-    ignores = ["min_extractor","max_extractor","third_extractor"] 
-    
+    ignores = ["min_extractor","max_extractor","third_extractor"]
+
     def __init__(self):
         # This needs to retain list ordering, but I figure it'd be useful
         #    to have potential dictionary attributes associated with
         #    each internal-feature extractor.
-        
+
         ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
         init = ext1 + "__init__.py"
         f = open(init)
@@ -109,7 +109,7 @@ class Internal_Feature_Extractors:
                 tmp = l.split("import")[-1].strip().split(",")
                 #print (tmp,len(tmp))
                 features.extend(tmp)
-        
+
         #tmp = glob.glob(ext1 + "*extract*.py")
         #features = []
         #for i in range(len(tmp)):
@@ -145,7 +145,7 @@ class Internal_Feature_Extractors:
                     break
 
         #TODO: I need to store this info to feat_values table.
-        
+
         ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
 
         #print self.features_tup_list
@@ -175,7 +175,7 @@ class Final_Features:
         #  - assume FLOAT & INDEX
         import copy
 
-        self.string_replace_dict = {'-':'_', 
+        self.string_replace_dict = {'-':'_',
                                     ' ':'',
                                     '.':'_',
                                     '_extractor':'',
@@ -277,7 +277,7 @@ class Feature_database:
     # USE:
     import feature_extraction_interface
     feat_db = feature_extraction_interface.Feature_database()
-    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \ 
+    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \
                                         rdb_user='', rdb_name='')
     feat_db.create_feature_tables()
     feat_db.insert_srclist_features_into_rdb_tables(self, signals_list)
@@ -343,15 +343,15 @@ class Feature_database:
 class Internal_Feature_Extractors:
     """ Class which contains "internal feature" definition lists & dictionaries
     """
-    
+
     ## modules (instead of classes) will break the test suite. Put these here as appropriate.
-    ignores = ["min_extractor","max_extractor","third_extractor"] 
-    
+    ignores = ["min_extractor","max_extractor","third_extractor"]
+
     def __init__(self):
         # This needs to retain list ordering, but I figure it'd be useful
         #    to have potential dictionary attributes associated with
         #    each internal-feature extractor.
-        
+
         ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
         init = ext1 + "__init__.py"
         f = open(init)
@@ -363,7 +363,7 @@ class Internal_Feature_Extractors:
                 tmp = l.split("import")[-1].strip().split(",")
                 #print (tmp,len(tmp))
                 features.extend(tmp)
-        
+
         #tmp = glob.glob(ext1 + "*extract*.py")
         #features = []
         #for i in range(len(tmp)):
@@ -399,7 +399,7 @@ class Internal_Feature_Extractors:
                     break
 
         #TODO: I need to store this info to feat_values table.
-        
+
         ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
 
         #print self.features_tup_list
@@ -429,7 +429,7 @@ class Final_Features:
         #  - assume FLOAT & INDEX
         import copy
 
-        self.string_replace_dict = {'-':'_', 
+        self.string_replace_dict = {'-':'_',
                                     ' ':'',
                                     '.':'_',
                                     '_extractor':'',
@@ -531,7 +531,7 @@ class Feature_database:
     # USE:
     import feature_extraction_interface
     feat_db = feature_extraction_interface.Feature_database()
-    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \ 
+    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \
                                         rdb_user='', rdb_name='')
     feat_db.create_feature_tables()
     feat_db.insert_srclist_features_into_rdb_tables(self, signals_list)
@@ -645,8 +645,8 @@ class Feature_database:
 
         """
         # KLUDGE: This is repeated in create_feature_lookup_dict() which
-        #   was probably called earlier.  feat_id_partition_groups should 
-        #   probably be self. and everything done in mentioned function. 
+        #   was probably called earlier.  feat_id_partition_groups should
+        #   probably be self. and everything done in mentioned function.
         #   Then this section can be removed.
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
@@ -666,7 +666,7 @@ class Feature_database:
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 feat_id_list.append(str(i))
                 i += 1
-                
+
             in_partition_count += 1
             inter_partition_list.extend(feat_id_list)
             # The following clusters 4 features (and their filters) to a partitn
@@ -730,7 +730,7 @@ class Feature_database:
             i += 1
 
         import pdb; pdb.set_trace()
-        
+
 
         self.cursor.execute(''.join(create_str_list)[:-2] + ")")
 
@@ -749,8 +749,8 @@ class Feature_database:
         ... <for all feature-filter combination>
         """
         # KLUDGE: This is repeated in create_feature_lookup_dict() which
-        #   was probably called earlier.  feat_id_partition_groups should 
-        #   probably be self. and everything done in mentioned function. 
+        #   was probably called earlier.  feat_id_partition_groups should
+        #   probably be self. and everything done in mentioned function.
         #   Then this section can be removed.
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
@@ -845,14 +845,14 @@ class Feature_database:
                 if not filt_name in ['multiband', 'combo_band', filter_most_sampled]:
                     continue # skip this band (probably a specific filter)
 
-                
+
                 if filt_name in self.final_features.filter_list:
                     filt_num = self.final_features.filter_list.index(filt_name)
                 else:
                     filt_num = len(self.final_features.filter_list) - 1 # Given dummy filter
                 for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
                     feat_name = feat_dict['table_name']
-                    # NOTE: if a certain feature was not generated, we don't INSERT 
+                    # NOTE: if a certain feature was not generated, we don't INSERT
                     #       it into the RDB.  This alleviates lots of NULL feat values.
                     #if not signal_obj.properties['data'][filt_name]\
                     #                            ['features'].has_key(feat_name):
@@ -883,7 +883,7 @@ class Feature_database:
         #     a unique MySQL Table Partition file):
         # # # # # # # # # #
         # TODO: ? which is MySQL faster (using partitions): mini INSERT of MEGA
-        
+
         if do_rdb_insert:
             #insert_list = ["INSERT INTO %s (src_id, feat_id, feat_val, feat_weight) VALUES " % (self.feat_values_tablename)]
             insert_list = ["INSERT INTO %s (src_id, feat_id, feat_val) VALUES " % (self.feat_values_tablename)]
@@ -895,7 +895,7 @@ class Feature_database:
                 #if 'flux_percentile_ratio' in feat_name:
                 #if len(val_list) == 0:
                 #    print 'len()==0', feat_name, filt_num, val_list
-                    
+
                 #if (filt_num == 8) and (feat_name == 'flux_percentile_ratio_mid50'):
                 #    import pdb; pdb.set_trace()
                 #    print 'yo', feat_name, filt_num, val_list
@@ -905,7 +905,7 @@ class Feature_database:
                     #insert_list.append("(%d,%d,%s,1.0), " % (src_id, \
                     insert_list.append("(%d,%d,%s), " % (src_id, \
                                self.feature_lookup_dict[(filt_num, feat_name)],\
-                               feat_val)) 
+                               feat_val))
         if do_rdb_insert and len(insert_list) > 1:
 
             if do_delete_existing_featvals:
@@ -959,7 +959,7 @@ class Feature_database:
             for row in results:
                 temp_list.append(row[i])
             out_dict[table_name] = temp_list
-            
+
         return out_dict # e.g.: 'z_std':[4,5,6,7,...]
 
 
@@ -1002,7 +1002,7 @@ class Plot_Signals:
             'subplot_x_buffer':0.01,
             'subplot_y_buffer':0.02,
             'filters_list':['u', 'g', 'r', 'i', 'z', 'j', 'h', 'k'],
-            }   
+            }
 
 
     def get_features_to_plot_list(self, signal_obj):
@@ -1084,7 +1084,7 @@ class Plot_Signals:
         #    if filt in available_filters:
         #        filters_to_plot.append(filt)
         filters_to_plot = signal_obj.properties['data'].keys()
-                            
+
         feature_plot_positions_dict= self.get_feature_plot_pos_dict(signal_obj,\
                                            features_to_plot=features_to_plot, \
                                            filters_to_plot=filters_to_plot)
@@ -1302,7 +1302,7 @@ if __name__ == '__main__':
         print signals_list[0].properties['data']['i']['features']
     except:
         print 'except'
-    
+
     #import pylab
     #pylab.plot(signals_list[0].properties['data']['i']['input']['time_data'], signals_list[0].properties['data']['i']['input']['flux_data'], 'ro')
     #pylab.title('M vs. t')
@@ -1313,4 +1313,3 @@ if __name__ == '__main__':
 
     ps = Plot_Signals(signals_list, gen)
     ps.write_multi_filter_ps_files()
-

@@ -135,8 +135,8 @@ class Geostring (object):
         elif len(bits) == 1:
             # degenerate case
             maxx = min(minx + .5, 1.0)
-        minx, maxx = [self.origin[0]+x*self.size[0] for x in (minx,maxx)] 
-        miny, maxy = [self.origin[1]+y*self.size[1] for y in (miny,maxy)] 
+        minx, maxx = [self.origin[0]+x*self.size[0] for x in (minx,maxx)]
+        miny, maxy = [self.origin[1]+y*self.size[1] for y in (miny,maxy)]
         return tuple([round(x,6) for x in minx, miny, maxx, maxy])
 
     def bbox (self, prefix=None):

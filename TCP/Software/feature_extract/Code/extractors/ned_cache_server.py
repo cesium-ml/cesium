@@ -1,8 +1,8 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.2 ned_cache_server.py : Code is now more generic and allows caching of
         SDSS server characteristics as well as NED characs.  I'm coding
-        such that new SDSS extractadd new 
+        such that new SDSS extractadd new
    v0.1 ned_cache_server.py : Code which caches and delegates NED
         'nearest object feature' information for various (ra,dec).
         This information is returned to feature-extractors.
@@ -15,7 +15,7 @@ NOTE: This system works as follows:
           - if >= 1 row such as this exists, the 'server' retrieves these items
             from SDSS/NED and populates the MySQL tables, setting (retrieved=1)
       - a client call, generally from tmpned_extractor.py feature extractor
-          will, by using a ned_cache_server.py Class for accessing, 
+          will, by using a ned_cache_server.py Class for accessing,
           will query for an (ra,dec) to see if previously retrieved feature
           data exists.
           - if no data exists, it places a (retrieved=0) row in MySQL table
@@ -55,7 +55,7 @@ pars = {
     'ned_cache_username':'pteluser', #'dstarr',
     'ned_cache_database':'ned_feat_cache',
     'ned_cache_db_port':3306, #3306,
-    'tablename__ch_id_defs':'ch_id_defs', 
+    'tablename__ch_id_defs':'ch_id_defs',
     'tablename__ch_spatial':'ch_spatial',
     'tablename__ch_vals':'ch_vals',
     'tablename__ptf_footprint':'ptf_footprint',
@@ -190,7 +190,7 @@ class Ned_Cache_Server:
         self.threads = []
 
         # Make general connection to MySQL server:
-        self.db = MySQLdb.connect(host=self.pars['ned_cache_hostname'], 
+        self.db = MySQLdb.connect(host=self.pars['ned_cache_hostname'],
                                   user=self.pars['ned_cache_username'],
                                   db=self.pars['ned_cache_database'],
                                   port=self.pars['ned_cache_db_port'])
@@ -338,13 +338,13 @@ class Ned_Cache_Server:
                         continue # skip this ch_name since its not a charac.
                     if ch_val == None:
                         ch_val_dbl = 'NULL'
-                        ch_val_str = 'NULL'                        
+                        ch_val_str = 'NULL'
                     elif self.chname_type_lookup[(1,ch_name)] == 1:
                         ch_val_dbl = 'NULL'
                         ch_val_str = "'%s'" % (ch_val[-20:])
                     elif self.chname_type_lookup[(1,ch_name)] == 2:
                         ch_val_dbl = 'NULL'
-                        ch_val_str = 'NULL'                        
+                        ch_val_str = 'NULL'
                     else:
                         ch_val_dbl = "%f" % (ch_val)
                         ch_val_str = 'NULL'
@@ -392,7 +392,7 @@ class Ned_Cache_Server:
                 dec + offset_deg)
             pgsql_cursor.execute(select_str)
             rdb_rows = pgsql_cursor.fetchall()
-            
+
             for (ujd, lmt_mg) in rdb_rows:
                 if ujd == None:
                     continue # this happens occasionally
@@ -419,7 +419,7 @@ class Ned_Cache_Server:
 
         # ??? Why did I choose to have this DB cursor locally instantiated?
 
-        db = MySQLdb.connect(host=self.pars['ned_cache_hostname'], 
+        db = MySQLdb.connect(host=self.pars['ned_cache_hostname'],
                                   user=self.pars['ned_cache_username'],
                                   db=self.pars['ned_cache_database'])
         cursor = db.cursor()
@@ -463,7 +463,7 @@ class Ned_Cache_Server:
 
         # I chose to have this DB cursor locally instantiated so that multiple threads can poll DB.
 
-        mysql_db = MySQLdb.connect(host=self.pars['ned_cache_hostname'], 
+        mysql_db = MySQLdb.connect(host=self.pars['ned_cache_hostname'],
                                   user=self.pars['ned_cache_username'],
                                   db=self.pars['ned_cache_database'])
         mysql_cursor = mysql_db.cursor()
@@ -1045,7 +1045,7 @@ class Ned_Cache_Client:
     def __init__(self, pars):
         self.pars = pars
         # Make general connection to MySQL server:
-        self.db = MySQLdb.connect(host=self.pars['ned_cache_hostname'], 
+        self.db = MySQLdb.connect(host=self.pars['ned_cache_hostname'],
                                   user=self.pars['ned_cache_username'],
                                   db=self.pars['ned_cache_database'],
                                   port=self.pars['ned_cache_db_port'])

@@ -11,7 +11,7 @@ NOTE:
 
 import os, sys
 import warnings
-warnings.simplefilter("ignore",DeprecationWarning) 
+warnings.simplefilter("ignore",DeprecationWarning)
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                       'Software/feature_extract'))
@@ -89,20 +89,19 @@ print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
 #print "ecp l value:", signals_list[0].properties['data']['multiband']['features']['ecpl'], signals_list[0].properties['data']['multiband']['features']['ecpl'].why
 
 for signal in signals_list:
-	#obsolete#print "firstr", signal.properties['data']['r']['features']['first_freq']
-	#obsolete#print "firstu", signal.properties['data']['u']['features']['first_freq']
-	#print "ws_variability_ru value"
-	#print signal.properties['data']['multiband']['features']['ws_variability_ru']
-	#print signal.properties['data']['multiband']['features']['ws_variability_ru'].why
-	pass
-	# NED extracted features:
-	#print 'dist_arcmin', signal.properties['data']['multiband']['features']['distance_in_arcmin_to_nearest_galaxy']
-	#print 'dist_kpc', signal.properties['data']['multiband']['features']['distance_in_kpc_to_nearest_galaxy']
+    #obsolete#print "firstr", signal.properties['data']['r']['features']['first_freq']
+    #obsolete#print "firstu", signal.properties['data']['u']['features']['first_freq']
+    #print "ws_variability_ru value"
+    #print signal.properties['data']['multiband']['features']['ws_variability_ru']
+    #print signal.properties['data']['multiband']['features']['ws_variability_ru'].why
+    pass
+    # NED extracted features:
+    #print 'dist_arcmin', signal.properties['data']['multiband']['features']['distance_in_arcmin_to_nearest_galaxy']
+    #print 'dist_kpc', signal.properties['data']['multiband']['features']['distance_in_kpc_to_nearest_galaxy']
 
 
-	# TODO: eventually use unittest module for tests:
-	#chi2_val = signal.properties['data']['r']['features']['chi2']
+    # TODO: eventually use unittest module for tests:
+    #chi2_val = signal.properties['data']['r']['features']['chi2']
 #print chi2_val
 #if str(chi2_val) == '1131154.65019':
 #    print "\n\nSimple TEST = OK\n"
-

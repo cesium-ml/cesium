@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 """
 TODO: parse the tables found in ~/scratch/simbad_classes_ptf_sources/*.tab
@@ -21,7 +21,7 @@ import MySQLdb
 import copy
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-              'Software/feature_extract/Code')) 
+              'Software/feature_extract/Code'))
 import db_importer
 
 
@@ -29,15 +29,15 @@ from xml.etree import ElementTree
 
 
 
-def invoke_pdb(type, value, tb):                                                   
-    """ Cool feature: on crash, the debugger is invoked in the last 
+def invoke_pdb(type, value, tb):
+    """ Cool feature: on crash, the debugger is invoked in the last
     state of the program.  To Use, call in __main__: sys.excepthook =
-    invoke_pdb                                                                     
-    """                                                                            
+    invoke_pdb
+    """
     import traceback, pdb
     traceback.print_exception(type, value, tb)
     print
-    pdb.pm() 
+    pdb.pm()
 
 
 class Simbad_Data:
@@ -92,7 +92,7 @@ class Simbad_Data:
                 ra                   = line_list[2]
                 dec                  = line_list[3]
                 tab_filename = filename
-                
+
                 otype                = line_list[4]
                 main_id              = line_list[5]
 
@@ -160,8 +160,8 @@ class Simbad_Data:
         update_str = 'UPDATE simbad_ptf SET src_id=%d, ingest_dtime=NOW() WHERE ptf_shortname="%s" ' % (\
                              tcp_srcid, short_name)
         self.cursor.execute(update_str)
-        
-        
+
+
 
 class Associate_Simbad_PTF_Sources:
     """  Go through un-ingested entries in table and retrieve from LBL,
@@ -222,7 +222,7 @@ class Associate_Simbad_PTF_Sources:
             #TODO: check if srcid.xml composed from ptf_cand_dict{srcid} is in the expected directory.  If so, just pass that xml-fpath as xml_handle.  Otherwise, generate the xml string (and write to file) and pass that.
             xml_fpath = "%s/%s.xml" % (self.pars['out_xmls_dirpath'], short_name)
             if os.path.exists(xml_fpath):
-                print "Found on disk:", xml_fpath 
+                print "Found on disk:", xml_fpath
             else:
                 # NOTE: Since the Caltech database is currently down and we know we've ingested these ptf-ids already into our local database...
                 #"""
@@ -241,7 +241,7 @@ class Associate_Simbad_PTF_Sources:
                 fp = open(xml_fpath, 'w')
                 fp.write(ingested_src_xmltuple_dict[matching_source_dict['src_id']])
                 fp.close()
-                print "Wrote on disk:", xml_fpath 
+                print "Wrote on disk:", xml_fpath
                 #pprint.pprint(ptf_cand_dict)
                 self.SimbadData.update_table(short_name=short_name, tcp_srcid=matching_source_dict['src_id'])
 
@@ -259,7 +259,7 @@ class Associate_Simbad_PTF_Sources:
 
         self.initialize_classes()
 
-        
+
         self.associate_ptf_sources(ptfid_tup_list)
 
 
@@ -277,7 +277,7 @@ class Generate_Summary_Webpage:
         - tcp src_id
         - simbad id (some hyperlink taken from tcp_...php)?
         - ra, decl
-        - first LBL candidate id        
+        - first LBL candidate id
         - has hyperlinks to both old & simpletimeseries files.
     """
     def __init__(self, pars, SimbadData=None):
@@ -307,7 +307,7 @@ class Generate_Summary_Webpage:
                                                      'simbad_otype':simbad_otype,
                                                      'simbad_main_id':simbad_main_id}
         return out_dict
-            
+
 
 
     def generate_simptimeseries_xmls(self, simbad_ptf_dict={}):
@@ -363,11 +363,11 @@ class Generate_Summary_Webpage:
 
                 ElementTree.SubElement(tr, "TD").text = str(ptf_dict['ra'])
                 ElementTree.SubElement(tr, "TD").text = str(ptf_dict['decl'])
-                
+
         db_importer.add_pretty_indents_to_elemtree(html, 0)
-	tree = ElementTree.ElementTree(html)
+        tree = ElementTree.ElementTree(html)
         fp = open(self.pars['out_summary_html_fpath'], 'w')
-	tree.write(fp, encoding="UTF-8")
+        tree.write(fp, encoding="UTF-8")
         fp.close()
 
 
@@ -387,21 +387,21 @@ class Generate_Summary_Webpage:
             - tcp src_id
             - simbad id (some hyperlink taken from tcp_...php)?
             - ra, decl
-            - first LBL candidate id        
+            - first LBL candidate id
             - has hyperlinks to both old & simpletimeseries files.
         """
         simbad_ptf_dict = self.get_simbad_ptf_table_data()
         #self.generate_simptimeseries_xmls(simbad_ptf_dict=simbad_ptf_dict)     # Run Once.
         self.construct_html_with_old_new_xml_links(simbad_ptf_dict=simbad_ptf_dict)
 
-                 
+
 
 
 if __name__ == '__main__':
 
-    pars = {'mysql_user':"pteluser", 
-            'mysql_hostname':"192.168.1.25", 
-            'mysql_database':'source_test_db', 
+    pars = {'mysql_user':"pteluser",
+            'mysql_hostname':"192.168.1.25",
+            'mysql_database':'source_test_db',
             'mysql_port':3306,
             'tab_dirpath':'/home/pteluser/scratch/simbad_classes_ptf_sources',
             'tab_filenames':['ptf_agn09.tab',
@@ -417,7 +417,7 @@ if __name__ == '__main__':
             'out_summary_html_fpath':'/home/pteluser/scratch/simbad_classes_ptf_sources/simbad_ptf_summary.html',
             }
 
-    sys.excepthook = invoke_pdb # for debugging/error catching.        
+    sys.excepthook = invoke_pdb # for debugging/error catching.
 
     SimbadData = Simbad_Data(pars)
     #SimbadData.create_tables()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 snclassifier_testing_wrapper.py
 
@@ -80,7 +80,7 @@ def get_ptfids_from_berkeley_local_db():
 
 if __name__ == '__main__':
 
-       
+
     pars = {'intermediate_xml_dirpath':os.path.expandvars('$HOME/scratch/ptf_snclassifer_intermediate_xmls')}
 
     DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator(use_postgre_ptf=True)
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         #TODO: check if srcid.xml composed from ptf_cand_dict{srcid} is in the expected directory.  If so, just pass that xml-fpath as xml_handle.  Otherwise, generate the xml string (and write to file) and pass that.
         xml_fpath = "%s/%d_%s.xml" % (pars['intermediate_xml_dirpath'], ptf_cand_dict['srcid'], short_name)
         if os.path.exists(xml_fpath):
-            print "Found on disk:", xml_fpath 
+            print "Found on disk:", xml_fpath
         else:
             # NOTE: Since the Caltech database is currently down and we know we've ingested these ptf-ids already into our local database...
             #"""
@@ -118,11 +118,11 @@ if __name__ == '__main__':
                                                      ptf_cand_dict, ingested_srcids)
             #pprint.pprint(matching_source_dict)
             #"""
-            
+
             fp = open(xml_fpath, 'w')
             fp.write(ingested_src_xmltuple_dict[ptf_cand_dict['srcid']])
             fp.close()
-            print "Wrote on disk:", xml_fpath 
+            print "Wrote on disk:", xml_fpath
             #pprint.pprint(ptf_cand_dict)
 
 

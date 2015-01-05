@@ -94,7 +94,7 @@ def retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict):
     for dirname in dirnames:
         exec_str = "mkdir -p ~/scratch/Noisification/%s" % (dirname)
         os.system(exec_str)
-        
+
         exec_str = "scp -CP %d %s@%s:scratch/Noisification/%s/{*arff,*model} ~/scratch/Noisification/%s/" % ( \
             retrieve_host_dict['ssh_port'],
             retrieve_host_dict['username'],
@@ -103,7 +103,7 @@ def retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict):
             dirname)
         print exec_str
         os.system(exec_str)
-    
+
 
 
 if __name__ == '__main__':
@@ -137,5 +137,5 @@ if __name__ == '__main__':
                 '20nois_09epch_040need_0.050mtrc_j48_17.9',
                 '20nois_10epch_040need_0.050mtrc_j48_17.9',
                 '20nois_33epch_040need_0.050mtrc_j48_17.9']
-    
+
     retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict)

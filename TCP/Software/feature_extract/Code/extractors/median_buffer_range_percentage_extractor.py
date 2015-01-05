@@ -1,7 +1,7 @@
 from ..FeatureExtractor import FeatureExtractor
 
 class median_buffer_range_percentage_extractor(FeatureExtractor):
-    """ extracts the percentage of points that fall within the buffer reang of 
+    """ extracts the percentage of points that fall within the buffer reang of
     the median """
     active = True
     extname = 'median_buffer_range_percentage' #extractor's name

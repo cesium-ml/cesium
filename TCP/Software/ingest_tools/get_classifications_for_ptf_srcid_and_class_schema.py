@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Given a srcid and class schema, get the classification probabilities.
 
@@ -12,15 +12,15 @@
 ##### NOTE:
 
 CREATE TABLE one_src_model_class_probs (schema_id SMALLINT UNSIGNED,
-                                        schema_comment VARCHAR(80) DEFAULT '', 
-			                class_id SMALLINT UNSIGNED, 
-                                        class_name VARCHAR(100) DEFAULT '', 
-			                prob FLOAT DEFAULT 1.0,
-		                        src_id INT UNSIGNED,
-			                class_rank TINYINT DEFAULT 0,
+                                        schema_comment VARCHAR(80) DEFAULT '',
+                                        class_id SMALLINT UNSIGNED,
+                                        class_name VARCHAR(100) DEFAULT '',
+                                        prob FLOAT DEFAULT 1.0,
+                                        src_id INT UNSIGNED,
+                                        class_rank TINYINT DEFAULT 0,
                                         prob_weight FLOAT DEFAULT 1.0,
-			                gen_dtime DATETIME,
-			                PRIMARY KEY(schema_comment, src_id, class_rank),
+                                        gen_dtime DATETIME,
+                                        PRIMARY KEY(schema_comment, src_id, class_rank),
                                         INDEX(gen_dtime),
                                         INDEX(prob));
 """
@@ -95,7 +95,7 @@ class GetClassificationsForPtfSrcid:
         #                     db=self.DiffObjSourcePopulator.xrsio.pars['rdb_name_2'],
         #                     port=self.DiffObjSourcePopulator.xrsio.pars['rdb_port_2'])
         #cursor = db.cursor()
-        
+
         insert_list = ['INSERT INTO source_test_db.one_src_model_class_probs (schema_id, schema_comment, class_id, class_name, prob, src_id, class_rank, gen_dtime) VALUES ']
 
         skip_schema_ids = [0,1,2] # microlens, dovi, general
@@ -201,7 +201,7 @@ class Ipython_Task_Controller:
         #import MySQLdb
         #import get_classifications_for_ptf_srcid_and_class_schema
         #Get_Classifications_For_Ptf_Srcid = get_classifications_for_ptf_srcid_and_class_schema.GetClassificationsForPtfSrcid(schema_str=self.schema_str)
-            
+
         exec_str = """import os,sys
 import classification_interface
 import plugin_classifier
@@ -271,15 +271,15 @@ for src_id in srcid_list:
         pass # skipping this srcid""" % (self.schema_str)
             taskid = self.tc.run(client.StringTask(exec_str, \
                                                    push={'srcid_list':short_srcid_list}))
-            
+
 
 
     def wait_for_tasks_to_finish(self):
         """ Wait for task client / ipengine tasks to finish.
         """
         import time
-	while ((self.tc.queue_status()['scheduled'] > 0) or
- 	       (self.tc.queue_status()['pending'] > 0)):
+        while ((self.tc.queue_status()['scheduled'] > 0) or
+               (self.tc.queue_status()['pending'] > 0)):
             print self.tc.queue_status()
             print 'Sleep... 3 in get_classifications_for_ptf_srcid_and_class_schema.py'
             time.sleep(3)
@@ -329,5 +329,3 @@ if __name__ == '__main__':
                                   src_id=src_id)
             except:
                 print 'skipping', src_id
-
-

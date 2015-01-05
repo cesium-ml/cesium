@@ -52,7 +52,7 @@ def add_command_args(pars, verbose):
 def print_params(pars):
     print "----- Parameters Used:"
     for k, v in pars.iteritems():
-	print str(k), ':', v
+        print str(k), ':', v
     print "---------------------"
 
 def get_pars(par_file_path, verbose=1):

@@ -51,7 +51,7 @@ class DBXML_Container_Instance:
 
     def create(self, db_fpath):
         """ Create new dbxml container
-        """ 
+        """
         self.db_fpath = db_fpath
         self.dirname = os.path.dirname(self.db_fpath)
         self.fname = os.path.basename(self.db_fpath)
@@ -73,7 +73,7 @@ class DBXML_Container_Instance:
 
     def open(self, db_fpath):
         """ Open existing dbxml container
-        """ 
+        """
         self.db_fpath = db_fpath
         self.dirname = os.path.dirname(self.db_fpath)
         self.fname = os.path.basename(self.db_fpath)
@@ -183,7 +183,7 @@ if __name__ == '__main__':
 
     sys.exit()
 
-          
+
 
 
     ##########

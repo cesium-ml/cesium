@@ -1,12 +1,12 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
-Tool for debugging the dependence of a rpy2 RandomForest classifier on various features 
+Tool for debugging the dependence of a rpy2 RandomForest classifier on various features
 in order to determine/debug mismatched of noisy featutes.
 
 TODO:
 
  - should use two different Debosscher arff, with features generated from differeing algorithms.
-   - Should be able to disable certain features in arff datasets to see whether 
+   - Should be able to disable certain features in arff datasets to see whether
      crossvalidation errors change by the same ammount.
 
 """
@@ -35,7 +35,7 @@ class Debug_Feature_Class_Dependence:
             algorithms_dirpath=self.pars.get('algorithms_dirpath','')
         self.rc = rpy2_classifiers.Rpy2Classifier(algorithms_dirpath=algorithms_dirpath)
 
- 
+
     def exclude_features_in_arff(self, arff_str='', noisify_attribs=[]):
         """ Insert some missing-value features to arff rows.
         Exepect the input to be a single string representation of arff with \n's.
@@ -217,7 +217,7 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
         """ partially adapted from citris33/arff_generateion_master.py
         """
         new_orig_feat_tups = []
-        
+
         while ((tc.queue_status()['scheduled'] > 0) or
                (tc.queue_status()['pending'] > 0)):
             tasks_to_pop = []
@@ -325,7 +325,7 @@ except:
                                                     'mtry':mtry,
                                                     'nodesize':nodesize,
                                                     'n_iters':n_iters},
-                                              pull='new_orig_feat_tups', #'new_orig_feat_tups', 
+                                              pull='new_orig_feat_tups', #'new_orig_feat_tups',
                                               retries=3))
             task_id_list.append(taskid)
             if 0:
@@ -411,7 +411,7 @@ do training and crossvalidation on just Debosscher data for spped.
 
 
 if __name__ == '__main__':
-    
+
     #pars = {'algorithms_dirpath':algorithms_dirpath,
     #        'orig_arff_dirpath':'/media/raid_0/historical_archive_featurexmls_arffs/tutor_123/2011-04-30_00:32:56.250499/source_feats.arff',
     #        'new_arff_dirpath':'/media/raid_0/historical_archive_featurexmls_arffs/tutor_123/2011-05-13_04:22:08.073940/source_feats.arff',
@@ -652,4 +652,3 @@ if __name__ == '__main__':
 
         import pdb; pdb.set_trace()
         print
-        

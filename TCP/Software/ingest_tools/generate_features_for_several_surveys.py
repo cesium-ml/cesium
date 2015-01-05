@@ -58,9 +58,9 @@ class Generate_Features_For_Several_Surveys:
         """ Parse a given ARFF string
 
         Return a srcid list.
-        
+
         Code adapted from rpy2_classifiers.py:parse_arff_header()
-        
+
         """
         fp = open(arff_fpath)
         arff_str = fp.read()
@@ -78,9 +78,9 @@ class Generate_Features_For_Several_Surveys:
                 count_sources = True
             elif count_sources:
                 srcid_list.append(int(line[:line.find(',')]))
-                
+
         return srcid_list
-    
+
 
     def parse_features_from_arff_header(self, arff_fpath='', do_sort=True):
         """ Parse a given ARFF string, replace @attribute with @ignored for attributes in
@@ -89,7 +89,7 @@ class Generate_Features_For_Several_Surveys:
         Return arff header string.
 
         Code adapted from rpy2_classifiers.py:parse_arff_header()
-        
+
         """
         fp = open(arff_fpath)
         arff_str = fp.read()
@@ -109,7 +109,7 @@ class Generate_Features_For_Several_Surveys:
                 count_sources = True
             elif count_sources:
                 i_srcs += 1
-                
+
         if do_sort:
             feat_list.sort()
         return {'feat_list':feat_list,
@@ -121,7 +121,7 @@ class Generate_Features_For_Several_Surveys:
         """ Parse a given ARFF string,
 
         Return a dictionary of lists-of-feature-values for given features
-        
+
         """
         feat_val_dict = {'src_id':[]}
         index_featname_lookup = {}
@@ -154,7 +154,7 @@ class Generate_Features_For_Several_Surveys:
                     except:
                         feat_val_dict[feat_name].append('NULL')
         return feat_val_dict
-                
+
 
     def make_paths(self, project_id=0):
         """
@@ -201,7 +201,7 @@ class Generate_Features_For_Several_Surveys:
 
         n_sources_needed_for_class_inclusion = 1 # this is only used for arff generation (not XML)
 
-        
+
         ##### Populate the xmls:
         srcid_list = self.pfds.get_srcid_list(project_id=project_id,
                                          exclude_existing_xml_sources=False)
@@ -215,8 +215,8 @@ class Generate_Features_For_Several_Surveys:
                                                    n_sources_needed_for_class_inclusion= \
                                                                 n_sources_needed_for_class_inclusion)
         #import pdb; pdb.set_trace()
-        
-                
+
+
 
 
     def insert_arff_into_rdb(self, project_id=0, arff_fpath='', path_dict={}):
@@ -233,7 +233,7 @@ class Generate_Features_For_Several_Surveys:
         feat_str = '\n'.join(arff_features)
 
         ##### scp files over:
-        
+
         if project_id == 0:
             project_name = "many TUTOR projects"
         else:
@@ -297,7 +297,7 @@ class Generate_Features_For_Several_Surveys:
         feat_str = '\n'.join(arff_features)
 
         ##### scp files over:
-        
+
         select_str = 'SELECT project_title FROM projects WHERE project_id=%d' % (project_id)
         self.pfds.tutor_cursor.execute(select_str)
         results = self.pfds.tutor_cursor.fetchall()
@@ -434,14 +434,14 @@ class Generate_Features_For_Several_Surveys:
             self.insert_arff_into_rdb(project_id=project_id,
                                       arff_fpath=path_dict['tranx_arff_filepath'],
                                       path_dict=path_dict)
-        
+
             self.parse_arff_and_update_feature_tables( \
                                             arff_fpath=path_dict['tranx_arff_filepath'],  #'/media/raid_0/historical_archive_featurexmls_arffs/tutor_126/2011-02-06_00:03:02.699641/source_feats.arff',
                                             features_to_update=all_feature_name_list,
                                             project_id=project_id)
 
             import pdb; pdb.set_trace()
-            
+
 
 if __name__ == '__main__':
 
@@ -459,7 +459,7 @@ if __name__ == '__main__':
     'tcptutor_port':3306,
     'classdb_hostname':'192.168.1.25', # This is my LOCAL replicated DB
     'classdb_username':'pteluser', #'pteluser',
-    'classdb_port':     3306, 
+    'classdb_port':     3306,
     'classdb_database':'source_test_db', #'source_db',
     'classid_lookup_tablename':'classid_lookup',
 
@@ -472,7 +472,7 @@ if __name__ == '__main__':
     #'local_vosource_xml_write_dir':os.path.expandvars('$HOME/scratch/vosource_xml_writedir'),#os.path.expandvars("$TCP_DATA_DIR"),
 
 
-        
+
     GenerateFeaturesForSeveralSurveys = Generate_Features_For_Several_Surveys(pars=pars)
 
     if 0:
@@ -510,7 +510,7 @@ if __name__ == '__main__':
         GenerateFeaturesForSeveralSurveys.parse_arff_and_update_feature_tables( \
                                             arff_fpath=path_dict['tranx_arff_filepath'],  #'/media/raid_0/historical_archive_featurexmls_arffs/tutor_126/2011-02-06_00:03:02.699641/source_feats.arff',
                                             features_to_update=small_feature_name_list, #all_feature_name_list,
-                                            do_insert=True, 
+                                            do_insert=True,
                                             project_id=project_id) # project_id=126 # ASAS-ACVS
 
         #                                    features_to_update=['freq1_harmonics_freq_0',
@@ -533,7 +533,7 @@ if __name__ == '__main__':
 
         missing_srcid_list = list(set(full_srcid_list) - set(partial_srcid_list))#[:10]
         #missing_srcid_list = missing_srcid_list[missing_srcid_list.index(262306)+1:]
-        
+
         n_sources_needed_for_class_inclusion = 1 # this is only used for arff generation (not XML)
 
         project_id = 126

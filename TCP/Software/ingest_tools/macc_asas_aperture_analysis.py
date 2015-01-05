@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """ MACC catalog paper aperture analysis script
- - Analyze feature changes for all 50k ASAS ACVS sources, 
+ - Analyze feature changes for all 50k ASAS ACVS sources,
    when slightly larger and smaller apertures are used instead.
 
-This parses arff files which have been generated from ASAS .dat files 
+This parses arff files which have been generated from ASAS .dat files
      using starvars_feature_generation.py:IPython_Parallel_processing.main()
 
 """
@@ -69,7 +69,7 @@ class Macc_Asas_Aperture_Analysis:
 
     def subselect_1000_sources(self):
         """ Just for taking aperture perturbed sources and subselecting 1000 random sources.
-        
+
         """
 
         smalleraper_fpath = "/home/dstarr/scratch/macc_aperture_analysis/combined_acvs_smalleraper.arff"
@@ -101,7 +101,7 @@ class Macc_Asas_Aperture_Analysis:
         fp = open(smalleraper_subset_fpath,'w')
         fp.write(out_str)
         fp.close()
-        
+
         ###
         source_dict = {}
         lines = open(largeraper_fpath).readlines()
@@ -114,7 +114,7 @@ class Macc_Asas_Aperture_Analysis:
                 continue
             source_name = l.split(',')[0]
             source_dict[source_name] = i
-        
+
         new_lines = lines[0:i_data]
         for src_name in src_subset:
             new_lines.append(lines[source_dict[src_name]])
@@ -124,7 +124,7 @@ class Macc_Asas_Aperture_Analysis:
         fp.close()
         import pdb; pdb.set_trace()
         print
-        
+
 
     def main(self):
 
@@ -134,7 +134,7 @@ class Macc_Asas_Aperture_Analysis:
 
         self.rc = rpy2_classifiers.Rpy2Classifier(algorithms_dirpath=algo_code_dirpath)
 
-        
+
         arff_str = open(self.pars['orig_aper_arff']).read()
         orig_aper_dict = self.rc.parse_full_arff(arff_str=arff_str,
                                                  skip_missingval_lines=False)

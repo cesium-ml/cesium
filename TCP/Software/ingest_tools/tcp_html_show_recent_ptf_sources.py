@@ -109,7 +109,7 @@ http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=ref&mode=cand&grow
 http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=sub&mode=cand&grow=2&width=100&rundate=2009417&visit=8&field=100056&chip=11&cross=yes&x=1736.230000&y=1544.000000
 
         """
-        
+
 
     def get_it(self):
         """ Testing method
@@ -134,9 +134,9 @@ http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=sub&mode=cand&grow
         out_str += '</TR>'
         for row in pg_cursor.fetchall():
             out_str += '<TR>'
-            out_str += "<TD><input type=\"button\" onClick=\"javascript:query_using_ptf_ra_dec(%lf, %lf);\"  value=\"%s\"/></TD>" % (row[1], row[2], str(row[0])) 
+            out_str += "<TD><input type=\"button\" onClick=\"javascript:query_using_ptf_ra_dec(%lf, %lf);\"  value=\"%s\"/></TD>" % (row[1], row[2], str(row[0]))
             for elem in row[1:]:
-               out_str += "<TD><FONT SIZE=\"2\">%s</FONT></TD>" % (str(elem)) 
+                out_str += "<TD><FONT SIZE=\"2\">%s</FONT></TD>" % (str(elem))
             out_str += '</TR>'
         out_str += '</TABLE>'
 
@@ -145,7 +145,7 @@ http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=sub&mode=cand&grow
 
 
 if __name__ == '__main__':
-    
+
     pars = { \
         'xmlrpc_server_ip':'192.168.1.25',
         'xmlrpc_server_port':45361, #justin on tranx uses: 45333, dstarr old uses: 45361
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             except:
                 json_out_string = """[{"label":"No Fit Found", "color":"#36477b", "data":[[0,0]]}]"""
             print json_out_string
-        
+
 
     elif sys.argv[1] == 'gen_id_imgsrc':
         # obsolete / not implemented:
@@ -227,5 +227,5 @@ if __name__ == '__main__':
             html_table_str = show.get_html_data(src_id)
         except:
             html_table_str = "Check lightcurve.py"
-            
+
         print html_table_str

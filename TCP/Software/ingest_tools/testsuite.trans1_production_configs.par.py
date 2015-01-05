@@ -139,7 +139,7 @@ CREATE TABLE pairitel_events_a (obj_id INT UNSIGNED, footprint_id INT UNSIGNED, 
 " | mysql
 
 $HOME/bin/dif --index-htm %s pairitel_events_a 25 ra decl < /dev/null
- 
+
 # MYSQL:
 echo "
 USE %s;
@@ -149,14 +149,14 @@ DROP trigger %s.difu_pairitel_events_a;
 DROP trigger %s.difi_pairitel_events_a;
 DROP view %s.pairitel_events_a_htm;
 " | mysql
- 
+
 $HOME/bin/dif --index-htm %s pairitel_events_a 14 ra decl < /dev/null
- 
+
 echo "
 USE %s;
 drop trigger %s.difu_pairitel_events_a;
 drop trigger %s.difi_pairitel_events_a;
- 
+
 delimiter //
 CREATE TRIGGER %s.difi_pairitel_events_a BEFORE INSERT ON %s.pairitel_events_a
 FOR EACH ROW BEGIN
@@ -165,7 +165,7 @@ FOR EACH ROW BEGIN
 END;
 //
 delimiter ;
- 
+
 delimiter //
 CREATE TRIGGER %s.difu_pairitel_events_a BEFORE UPDATE ON %s.pairitel_events_a
 FOR EACH ROW BEGIN
@@ -174,7 +174,7 @@ FOR EACH ROW BEGIN
 END;
 //
 delimiter ;
- 
+
 CREATE VIEW %s.pairitel_events_a_htm25xx AS SELECT obj_id, filt, t, jsb_mag, jsb_mag_err, ra, decl, ra_rms, dec_rms, htmID25 AS htmID FROM %s.pairitel_events_a INNER JOIN DIF.dif ON (%s.pairitel_events_a.htmID25=DIF.dif.id) WHERE DIF_setHTMDepth(25) AND DIF_FineSearch(ra, decl, DIF.dif.full);
 ################################# :::
 # SDSS Object tables:
@@ -249,7 +249,7 @@ CREATE TABLE sdss_obj_fcr_lookup (obj_id INT UNSIGNED, field SMALLINT UNSIGNED, 
 " | mysql
 
 ###$HOME/bin/dif --index-htm %s sdss_events_a 14 ra decl < /dev/null
- 
+
 # MYSQL:
 echo "
 USE %s;
@@ -260,9 +260,9 @@ UPDATE %s.sdss_events_a SET htmID14 = DIF_HTMLookup(14, ra, decl) WHERE ISNULL(h
 #DROP trigger %s.difi_sdss_events_a;
 #DROP view %s.sdss_events_a_htm;
 " | mysql
- 
+
 $HOME/bin/dif --index-htm %s sdss_events_a 25 ra decl < /dev/null
- 
+
 echo "
 USE %s;
 drop trigger %s.difu_sdss_events_a;
@@ -270,7 +270,7 @@ drop trigger %s.difi_sdss_events_a;
 DROP view %s.sdss_events_a_htm;
 
 ALTER TABLE %s.sdss_events_a CHANGE htmID htmID25 BIGINT;
-#ALTER TABLE %s.sdss_events_a CHANGE htmID14 htmID INT(20) UNSIGNED; 
+#ALTER TABLE %s.sdss_events_a CHANGE htmID14 htmID INT(20) UNSIGNED;
 delimiter //
 CREATE TRIGGER %s.difi_sdss_events_a BEFORE INSERT ON %s.sdss_events_a
 FOR EACH ROW BEGIN
@@ -279,7 +279,7 @@ FOR EACH ROW BEGIN
 END;
 //
 delimiter ;
- 
+
 delimiter //
 CREATE TRIGGER %s.difu_sdss_events_a BEFORE UPDATE ON %s.sdss_events_a
 FOR EACH ROW BEGIN
@@ -288,7 +288,7 @@ FOR EACH ROW BEGIN
 END;
 //
 delimiter ;
- 
+
 CREATE VIEW %s.sdss_events_a_htm25xx AS SELECT obj_id, footprint_id, filt, objc_type, flags, flags2, t, jsb_mag, jsb_mag_err, ra, decl, ra_rms, dec_rms, htmID25 AS htmID FROM %s.sdss_events_a INNER JOIN DIF.dif ON (%s.sdss_events_a.htmID25=DIF.dif.id) WHERE DIF_setHTMDepth(25) AND DIF_FineSearch(ra, decl, DIF.dif.full);
 CREATE VIEW %s.sdss_events_a_htm AS SELECT obj_id, footprint_id, filt, objc_type, flags, flags2, t, jsb_mag, jsb_mag_err, ra, decl, ra_rms, dec_rms, htmID14 AS htmID FROM %s.sdss_events_a INNER JOIN DIF.dif ON (%s.sdss_events_a.htmID14=DIF.dif.id) WHERE DIF_setHTMDepth(14) AND DIF_FineSearch(ra, decl, DIF.dif.full);
 
@@ -296,7 +296,7 @@ CREATE VIEW %s.sdss_events_a_htm AS SELECT obj_id, footprint_id, filt, objc_type
 ################################# ^^^^
 # Footprint Server tables:
 CREATE TABLE footprint_regions (footprint_id INT NOT NULL, survey_id TINYINT, t DOUBLE, ing_date DATETIME, radec_region GEOMETRY NOT NULL, KEY(footprint_id), SPATIAL INDEX(radec_region), INDEX(t));
- 
+
 #CREATE TABLE footprint_values (footprint_id INT NOT NULL, filter_id TINYINT UNSIGNED, mag_type TINYINT UNSIGNED, mag_val FLOAT, INDEX(footprint_id), INDEX(filter_id, mag_type));
 
 CREATE TABLE footprint_values (footprint_id INT NOT NULL, filter_id TINYINT UNSIGNED, mag_type TINYINT, mag_val FLOAT, INDEX(footprint_id), INDEX(filter_id, mag_type));
@@ -312,7 +312,7 @@ CREATE TABLE srcid_lookup (src_id INT UNSIGNED, ra DOUBLE, decl DOUBLE, ra_rms F
 CREATE TABLE source_region_locks (region_id INT, radec_region GEOMETRY NOT NULL, lock_dtime DATETIME, SPATIAL INDEX(radec_region));
 
 " | mysql
- 
+
 $HOME/bin/dif --index-htm %s srcid_lookup 25 ra decl < /dev/null
 
 echo "
@@ -320,13 +320,13 @@ echo "
 # MYSQL:
 USE %s;
 ALTER TABLE %s.srcid_lookup CHANGE htmID htmID25 BIGINT;
- 
+
 drop trigger %s.difu_srcid_lookup;
 drop trigger %s.difi_srcid_lookup;
 drop view %s.srcid_lookup_htm;
- 
+
 " | mysql
- 
+
 $HOME/bin/dif --index-htm %s srcid_lookup 14 ra decl < /dev/null
 
 echo "
@@ -334,7 +334,7 @@ echo "
 USE %s;
 drop trigger %s.difu_srcid_lookup;
 drop trigger %s.difi_srcid_lookup;
- 
+
 delimiter //
 CREATE TRIGGER %s.difi_srcid_lookup BEFORE INSERT ON %s.srcid_lookup
 FOR EACH ROW BEGIN
@@ -343,7 +343,7 @@ FOR EACH ROW BEGIN
 END;
 //
 delimiter ;
- 
+
 delimiter //
 CREATE TRIGGER %s.difu_srcid_lookup BEFORE UPDATE ON %s.srcid_lookup
 FOR EACH ROW BEGIN
@@ -352,9 +352,9 @@ FOR EACH ROW BEGIN
 END;
 //
 delimiter ;
- 
+
 CREATE VIEW %s.srcid_lookup_htm25xx AS SELECT src_id, ra, decl, ra_rms, dec_rms, nobjs, feat_gen_date, htmID25 AS htmID FROM %s.srcid_lookup INNER JOIN DIF.dif ON (%s.srcid_lookup.htmID25=DIF.dif.id) WHERE DIF_setHTMDepth(25) AND DIF_FineSearch(ra, decl, DIF.dif.full) ;
- 
+
 " | mysql
     """,
 }

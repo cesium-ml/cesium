@@ -31,14 +31,14 @@ from spline_fit import spline_fitted_magnitudes, window_creator , window_tttimes
 
 from numpy.random import permutation
 
-        
+
 class lomb_model(object):
     def create_model(self, available, m, m_err, out_dict):
         def model(times):
             data = zeros(times.size)
             for freq in out_dict:
                 freq_dict = out_dict[freq]
-                # the if/else is a bit of a hack, 
+                # the if/else is a bit of a hack,
                 # but I don't want to catch "freq_searched_min" or "freq_searched_max"
                 if len(freq) > 8:
                     continue
@@ -53,29 +53,29 @@ class lomb_model(object):
                         data += new
             return data
         return model
-        
+
 class period_folding_model(lomb_model):
     """ contains methods that use period-folding to model data """
     def period_folding(self, needed, available, m , m_err, out_dict, doplot=True):
         """ period folds both the needed and available times. Times are not ordered anymore! """
-        
+
         # find the first frequency in the lomb scargle dictionary:
         f = (out_dict["freq1"]["harmonics_freq"][0])
         if out_dict["freq2"]["signif"] > out_dict["freq1"]["signif"]:
             f = out_dict["freq2"]["frequency"]
-        
+
         # find the phase:
         p = out_dict["freq1"]["harmonics_rel_phase"][0]
-        
+
         #period-fold the available times
         t_fold = mod( available + p/(2*pi*f) , (1./f) )
-        
+
         #period-fold the needed times
         t_fold_model = mod( needed + p/(2*pi*f) , (1./f) )
         ###### DEBUG ######
         early_bool = available < (2.4526e6 + 40)
         ###### DEBUG #####
-        
+
         period_folded_progenitor_file = file("period_folded_progenitor.txt", "w")
         progenitor_file = file("progenitor.txt", "w")
         for n in range(len(t_fold)):
@@ -83,7 +83,7 @@ class period_folding_model(lomb_model):
             progenitor_file.write("%f\t%f\t%f\n" % (available[n], m[n], m_err[n]))
         progenitor_file.close()
         return t_fold, t_fold_model
-        
+
     def create_model(self,available, m , m_err, out_dict):
         f = out_dict["freq1"]["frequency"]
         def model(times):
@@ -112,7 +112,7 @@ class period_folding_model(lomb_model):
                 m_window = m[window]
                 mean_window = mean(m_window)
                 std_window = std(m_window)
-                
+
                 # now we're ready to sample that distribution and create our point
                 new = (random.normal(loc=mean_window, scale = std_window, size = 1))[0]
                 data = append(data,new)
@@ -126,7 +126,7 @@ class period_folding_model(lomb_model):
             period_folded_model_file.close()
             return {'flux':data, 'rms': rms}
         return model
-        
+
 class spline_model(lomb_model):
     """ Uses a spline fit as model """
     def create_model(self,available, m , m_err, out_dict):
@@ -149,7 +149,7 @@ class spline_model(lomb_model):
                         other_side = nearest - 1 * sign(difftimes[nearest])
                         distance_to_nearest = absdiff[nearest]
                         distance_to_other_side = absdiff[other_side]
-                        
+
                         # check that the distance to the nearest points is smaller than the minimum separation between desired times
                         assert distance_to_nearest < mindiff, "distance to the nearest points must be smaller than the minimum separation between desired times"
                         assert distance_to_other_side < mindiff, "distance to the other side must also be smaller than the minimum separation between desired times"
@@ -173,7 +173,7 @@ class spline_model(lomb_model):
             model_file.close()
             return {'flux':data, 'rms':rms, 'new_times':desired_times}
         return model
-        
+
 class brutespline(lomb_model):
     def create_model(self,available, m , m_err, out_dict):
         def model(times):
@@ -195,8 +195,8 @@ class brutespline(lomb_model):
             model_file.close()
             return {'flux':data, 'rms':rms, 'new_times':desired_times}
         return model
-        
-            
+
+
 
 class observatory_source_interface(object):
     # # # # # #: dstarr changes this to initially exclude spline models.  Only want period_folded.
@@ -250,7 +250,7 @@ class observatory_source_interface(object):
                 nharm = harm_dict["nharm"]
                 if nharm == 0:
                     break
-                print "frequency", i+1, "nharm", nharm 
+                print "frequency", i+1, "nharm", nharm
                 ytest, harm_dict = pre_whiten.pre_whiten(available, ytest, freq_max, delta_time=dx, signal_err=m_err, dof=dof, nharm_min=nharm, nharm_max=nharm)
                 out_dict[dstr] = {}
                 freq_dict = out_dict[dstr]
@@ -384,7 +384,7 @@ class observatory_source_interface(object):
                 xml_fpath = xml_filename # I expect this to be a full, expanded filepath to .xml
             return xml_fpath, band
     def read_mags_and_convert(self,my_dic,band):
-        """ reads the magnitudes from the source dictionary and converts them to janskies 
+        """ reads the magnitudes from the source dictionary and converts them to janskies
         this function assumes the vo_source structure
         """
         # each band has an entry for the actual data, the magnitudes, which we convert to a numpy array:
@@ -396,8 +396,8 @@ class observatory_source_interface(object):
         my_dic["janskies"] = janskies_dic["janskies"]
         my_dic["j_err"] = janskies_dic["errors"]
         return my_dic
-    
-        
+
+
 class use_pickle(observatory_source_interface):
     """ This class stores the lomb scargle model in a pickle file to speed up simulation of the same source multiple times """
     def get_out_dict(self, available, m, m_err, xml_file):
@@ -426,7 +426,7 @@ def main():
         vega = my_obs.create_target(ephem.hours('18:36:56.20'), ephem.degrees('38:46:59.0'), "cepheid") # coordinates of vega
         for i in xrange(10):
             mindiff_multiplier = i - 5
-            if mindiff_multiplier < 1: 
+            if mindiff_multiplier < 1:
                 mindiff_multiplier = 1
             t = generic_observatory.time_series_generator()
             time_series = t.generate_time_series(vega, my_obs)

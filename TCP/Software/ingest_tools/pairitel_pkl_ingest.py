@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ pairitel_pkl_ingest.py
 
 Used to ingest all pairitel pkl files.
@@ -80,7 +80,7 @@ class Pairitel_Pickle_ingest:
                 t.start()
                 running_threads.append(t)
                 scratch_dir_count += 1
-                
+
 
 # TODO: write ingested pickle fpaths to log file.
 

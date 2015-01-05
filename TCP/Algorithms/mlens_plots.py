@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Plot mlens3.py vs weka classifications of microlens vosource
          as epochs are iterativly added.
@@ -41,4 +41,3 @@ if __name__ == '__main__':
     pylab.plot(numpy.array(x), numpy.array(y), 'go')
     pylab.show()
     #pylab.savefig("/tmp/out.png")
-

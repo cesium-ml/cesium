@@ -37,7 +37,7 @@ def load_csv_into_data_dict(fpath='', delimiter=',', comments='#'):
             #if i == 6:
             #    import pdb; pdb.set_trace()
             #    print
-                
+
             elems = row.split()
             #for j, val in enumerate(elems):
             for j, val in enumerate(column_names):
@@ -78,7 +78,7 @@ def get_file_from_url(dirpath, url_modifier, asas_id):
     if os.path.exists(fpath):
         f_size = os.stat(fpath).st_size
     while f_size < 10:
-        
+
         url = "http://www.astro.uni.wroc.pl/ldb/asas/{url_modifier}/{asas_id}".format(
             asas_id=asas_id,
             dir=dirpath,
@@ -89,7 +89,7 @@ def get_file_from_url(dirpath, url_modifier, asas_id):
         fp.close()
         f_size = os.stat(fpath).st_size
         print "Got:", asas_id
-    
+
 
 def retrieve_ts_data(out_dict, asas_v_dirpath='', asas_i_dirpath=''):
     """ Retrieve the timeseries data from the kepler asas website.
@@ -143,7 +143,7 @@ def retrieve_nomad_color_files(data_dict={}, pars={}):
                           return_outdict=True,
         pars=pars)
     return sources_dict
-    
+
     # todo: need to fill the srcid list for kepler asas sources., then make a new function for kepler asas in starvars_feature_generation.py and revert the older function: generate_arff_using_asasdat()
 
 
@@ -193,8 +193,8 @@ def remove_sources_with_many_missing_attribs(data_dict, exclude_feats=['freq_sig
     data_dict['srcid_list'] = new_list
     print "Removed %d sources with few useful features" % (len(exclude_src_i_set))
 
-        
-    
+
+
 
 
 
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     ### Specify the nomad color file, referenced in
     ###     starvars_feature_generation.py, in function:
     ###   Parse_Nomad_Colors_List(fpath='/home/dstarr/src/TCP/Data/best_nomad_src_for_asas_kepler')
-        
+
 
     if 1:
         ### Do imputation of missing-value colors:
@@ -296,7 +296,7 @@ if __name__ == '__main__':
         algo_code_dirpath = os.path.abspath(os.environ.get("TCP_DIR")+'Algorithms')
         sys.path.append(algo_code_dirpath)
         import rpy2_classifiers
-        
+
         tmp_stdout = sys.stdout
         sys.stdout = open(os.devnull, 'w')
 
@@ -323,7 +323,7 @@ if __name__ == '__main__':
         new_features_r_data = rc.imputation_using_missForest(testdata_dict['featname_longfeatval_dict'],
                                                              mtry=mtry, ntree=ntree)
         testdata_dict['featname_longfeatval_dict'] = new_features_r_data
-                             
+
         classifier_dict = rc.read_randomForest_classifier_into_dict(r_name='rf.tr',
                                                          r_classifier_fpath="/home/dstarr/scratch/macc_wrapper_rfclfr.rdat")
         #                                                 r_classifier_fpath="/Data/dstarr/src/ASASCatalog/data/asas_randomForest.Rdat")
@@ -341,5 +341,3 @@ if __name__ == '__main__':
                 print tup[0], tup[1], tup[3], '\t', tup[2]
         import pdb; pdb.set_trace()
         print
-
-

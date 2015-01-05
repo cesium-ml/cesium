@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """  Scripts for retrieving vizier.cfa.harvard.edu data and then
 importing into TUTOR database via web-interface.
 
@@ -16,10 +16,10 @@ Select:
 
 NOTE: will need to place timeseries data files in lyr3 directory using:
 
-    
+
 
 """
-import sys, os 
+import sys, os
 
 def parse_tsv(tsv_fpath):
     """ Parse a tsv ';' seperated file which was downloaded from vizier
@@ -55,7 +55,7 @@ def parse_tsv(tsv_fpath):
     return out_dict
 
 
-def get_timeseries_files_using_tsv(tsv_fpath='', 
+def get_timeseries_files_using_tsv(tsv_fpath='',
                                    data_url_prefix='',
                                    data_url_suffix='',
                                    data_download_dirpath=''):
@@ -64,7 +64,7 @@ http://vizier.cfa.harvard.edu/viz-bin/nph-Plot/Vgraph/txt?J/A%2bA/461/183/./phot
     """
     if not os.path.exists(data_download_dirpath):
         os.system('mkdir -p %s' % (data_download_dirpath))
-    
+
     data_dict = parse_tsv(tsv_fpath)
     print data_dict['data_lists'].keys()
     print 'FileName', data_dict['data_lists']['FileName'][10]
@@ -72,7 +72,7 @@ http://vizier.cfa.harvard.edu/viz-bin/nph-Plot/Vgraph/txt?J/A%2bA/461/183/./phot
 
     for fname in data_dict['data_lists']['FileName']:
         #get_str = "curl -O %s%s%s" % (data_url_prefix, fname, data_url_suffix)
-        get_str = 'curl "%s%s%s" > "%s/%s"' % (data_url_prefix, fname, data_url_suffix, 
+        get_str = 'curl "%s%s%s" > "%s/%s"' % (data_url_prefix, fname, data_url_suffix,
                                                data_download_dirpath, fname)
         os.system(get_str)
 
@@ -84,7 +84,7 @@ http://vizier.cfa.harvard.edu/viz-bin/nph-Plot/Vgraph/txt?J/A%2bA/461/183/./phot
 
 
 if __name__ == '__main__':
-    get_timeseries_files_using_tsv(tsv_fpath='/Users/dstarr/Downloads/asu (2).tsv', 
+    get_timeseries_files_using_tsv(tsv_fpath='/Users/dstarr/Downloads/asu (2).tsv',
                                    data_url_prefix='http://vizier.cfa.harvard.edu/viz-bin/nph-Plot/Vgraph/txt?J/A%2bA/461/183/./phot/',
                                    data_url_suffix='&P=0&-y&-&-&-',
                                    data_download_dirpath='/Users/dstarr/analysis/tutor124ttauri')

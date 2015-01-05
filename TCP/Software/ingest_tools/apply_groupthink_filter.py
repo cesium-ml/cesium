@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 First version, using Josh's Grey groupthink .model
 
@@ -100,7 +100,7 @@ class Classify_LBL_PTF_Using_GroupThink:
             self.ptf_sub_table_columns_list.append(a_tup[0])
 
         self.ptf_postgre_select_columns = ("candidate.%s, subtraction.%s" % (\
-                  ', candidate.'.join(self.ptf_candidate_table_columns_list[:-2]), 
+                  ', candidate.'.join(self.ptf_candidate_table_columns_list[:-2]),
                   ', subtraction.'.join(self.ptf_sub_table_columns_list))).replace('decl','dec')
 
         ### Import some modules:
@@ -113,10 +113,10 @@ class Classify_LBL_PTF_Using_GroupThink:
         os.environ["CLASSPATH"] += os.path.expandvars(':$TCP_DIR/Software/ingest_tools')
         if not jpype.isJVMStarted():
             #TODO / DEBUG: disable the next line for speed-ups once stable?
-        	_jvmArgs = ["-ea"] # enable assertions
-        	_jvmArgs.append("-Djava.class.path=" + \
-                                os.environ["CLASSPATH"])
-        	jpype.startJVM(jpype.getDefaultJVMPath(), *_jvmArgs)
+            _jvmArgs = ["-ea"] # enable assertions
+            _jvmArgs.append("-Djava.class.path=" + \
+                            os.environ["CLASSPATH"])
+            jpype.startJVM(jpype.getDefaultJVMPath(), *_jvmArgs)
 
         model_fpath = '/home/pteluser/scratch/groupthink_training/PTFgray-short-weka357.model'
         training_arff_fpath = '/home/pteluser/scratch/groupthink_training/PTFgray-short-train-noid.arff'
@@ -172,7 +172,7 @@ class Classify_LBL_PTF_Using_GroupThink:
         #rdb_rows = self.pg_cursor.fetchall()
 
         out_list = [("%s|%s" % (\
-                  '|'.join(self.ptf_candidate_table_columns_list[:-2]), 
+                  '|'.join(self.ptf_candidate_table_columns_list[:-2]),
                   '|'.join(self.ptf_sub_table_columns_list))).replace('decl','dec')]
 
         rownum_lblid_lookup = {}
@@ -206,7 +206,7 @@ class Classify_LBL_PTF_Using_GroupThink:
         ################
             # TODO: now do the above functionality in a method which can be called by ptf_master # # # # when 1000 rows are available.
             # TODO: use 0.50 as the cut.
-            # TODO: restart the ptf_master system. 
+            # TODO: restart the ptf_master system.
 
 
     def get_ptf_rows_with_good_classification(self, ptf_rows,

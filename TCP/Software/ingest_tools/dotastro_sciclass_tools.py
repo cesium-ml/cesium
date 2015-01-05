@@ -1,10 +1,10 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ Tools for accessing science-classes in Dotastro.org mysql database.
 
    v0.1 20100503 developed for use by pairwise_classification.py, for
         generation of .pkl.gz classifier.
 
-  
+
 
 """
 import os, sys
@@ -108,16 +108,16 @@ class Dotastro_Sciclass_Tools:
                                 }
 
         #self.pars = {'tcptutor_hostname':'lyra.berkeley.edu',
-	#	'tcptutor_username':'pteluser',
-	#	'tcptutor_password':'Edwin_Hubble71',
-	#	'tcptutor_port':     3306, # 13306,
-	#	'tcptutor_database':'tutor',
+        #       'tcptutor_username':'pteluser',
+        #       'tcptutor_password':'Edwin_Hubble71',
+        #       'tcptutor_port':     3306, # 13306,
+        #       'tcptutor_database':'tutor',
         #        'canonical_shortnames':canonical_shortnames}
         self.pars = {'tcptutor_hostname':'192.168.1.103',
-		'tcptutor_username':'tutor',
-		'tcptutor_password':'ilove2mass',
-		'tcptutor_port':     3306, # 13306,
-		'tcptutor_database':'tutor',
+                'tcptutor_username':'tutor',
+                'tcptutor_password':'ilove2mass',
+                'tcptutor_port':     3306, # 13306,
+                'tcptutor_database':'tutor',
                 'canonical_shortnames':canonical_shortnames}
         self.pars.update(pars)
 
@@ -139,7 +139,7 @@ class Dotastro_Sciclass_Tools:
 
     def generate_dotastro_arff_using_subset_from_db_query(self, old_arff='', new_arff='', select_str=''):
         """ Query the Tutor/dotastro database for all sources with
-        high confidence classifications. 
+        high confidence classifications.
         copy all arff rows in reference .arff which dont match low-confidence condition.
 
         # #Copy existing vosource
@@ -153,7 +153,7 @@ class Dotastro_Sciclass_Tools:
 
         """
         self.make_tutor_db_connection()
-        
+
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         srcid_list = []
@@ -181,7 +181,7 @@ class Dotastro_Sciclass_Tools:
         fp.writelines(new_arff_lines)
         fp.close()
 
-        
+
     def generate_dotastro_sql_filterd_arff(self, old_arff='', new_arff='', filter_type=''):
         """ Generate a .arff file by determining a subset of sources drawn from
         a given larger arff file.
@@ -207,7 +207,7 @@ class Dotastro_Sciclass_Tools:
             excluded_source_select_str = """SELECT  Sources.Source_ID FROM    Sources
                 LEFT JOIN Classes ON Sources.Class_ID = Classes.Class_ID
                 WHERE   (Sources.Source_Class_Confidence < 0.9 AND
-                         Sources.project_id = 115) 
+                         Sources.project_id = 115)
                       OR Sources.project_id = 114
                       OR Sources.project_id = 12 """
         elif filter_type == "exclude_catalina_lowconf":
@@ -225,7 +225,7 @@ class Dotastro_Sciclass_Tools:
             excluded_source_select_str = """SELECT  Sources.Source_ID FROM    Sources
                 LEFT JOIN Classes ON Sources.Class_ID = Classes.Class_ID
                 WHERE   (Sources.project_id != 115) OR ((Sources.project_id = 115) AND (Sources.Source_Class_Confidence < 0.9))"""
-    
+
         self.generate_dotastro_arff_using_subset_from_db_query(old_arff=old_arff,
                                                                new_arff=new_arff,
                                                                select_str=excluded_source_select_str)
@@ -249,7 +249,7 @@ class Dotastro_Sciclass_Tools:
 
         TODO: number of *period-foldable* sources in dotastro for a <shortname>
 
-        """        
+        """
         out_dict = {'classid_shortname':{},
                     'shortname_longname':{},
                     'longname_shortname':{},
@@ -260,7 +260,7 @@ class Dotastro_Sciclass_Tools:
                     'shortname_nsrcs':{}}
 
         self.make_tutor_db_connection()
-        
+
         select_str = "SELECT class_id, class_id_parent, class_short_name, class_name, class_is_active, class_is_public FROM classes"
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
@@ -335,7 +335,7 @@ class Dotastro_Sciclass_Tools:
         """ Generate data files which cytoscape can read, in order to
         visualize the science class heirarchy.
 
-        """ 
+        """
         fp_cyto_class_parent = open(self.pars['cyto_class_parent_fpath'], 'w')
         #fp_cyto_class_attrib = open(self.pars['cyto_class_attrib_fpath'], 'w')
 
@@ -353,7 +353,7 @@ class Dotastro_Sciclass_Tools:
         fp_cyto_class_parent.close()
         #fp_cyto_class_attrib.close()
 
-    
+
     #OBSOLETE / UNUSED:
     def create_new_dotastro_arff_using_xmldir_and_filters(self):
         """ Using generate_weka_classifiers.py --train_mode and an vosource xml dir
@@ -390,8 +390,8 @@ class Dotastro_Sciclass_Tools:
             ##
             i_last_slash = fpath.rfind('/')
             i_2ndlast_slash = fpath[:i_last_slash].rfind('/')
-            short_fpath_lookup[src_name_str] = fpath[i_2ndlast_slash+1:] 
-            #print '!!!', src_name_str, fpath[i_2ndlast_slash+1:] 
+            short_fpath_lookup[src_name_str] = fpath[i_2ndlast_slash+1:]
+            #print '!!!', src_name_str, fpath[i_2ndlast_slash+1:]
             ##
 
         lc_fname_list = glob.glob("%s/*.dat" % (self.pars['debosscher_data_dirpaths']['ogle']))
@@ -410,8 +410,8 @@ class Dotastro_Sciclass_Tools:
             ##
             i_last_slash = fpath.rfind('/')
             i_2ndlast_slash = fpath[:i_last_slash].rfind('/')
-            short_fpath_lookup[src_name_str] = fpath[i_2ndlast_slash+1:] 
-            #print '!!!', src_name_str, fpath[i_2ndlast_slash+1:] 
+            short_fpath_lookup[src_name_str] = fpath[i_2ndlast_slash+1:]
+            #print '!!!', src_name_str, fpath[i_2ndlast_slash+1:]
             ##
 
         return {'tar_src_list':source_list,
@@ -426,7 +426,7 @@ class Dotastro_Sciclass_Tools:
         tar_dict = self.get_debosscher_sources_in_dirs()
 
         self.make_tutor_db_connection()
-        
+
         #select_str = """SELECT  Sources.Source_ID FROM    Sources
         #        LEFT JOIN Classes ON Sources.Class_ID = Classes.Class_ID
         #        WHERE   Sources.project_id = 12"""
@@ -467,7 +467,7 @@ class Dotastro_Sciclass_Tools:
                 #print 'Not in arff:', srcid, class_name_lookup[srcid]
             else:
                 print '          IN arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid])
-                
+
         nonarff_srcid_list.sort()
 
         for srcid in nonarff_srcid_list:
@@ -486,10 +486,10 @@ class Dotastro_Sciclass_Tools:
         #import pprint
         #pprint.pprint(nonarff_srcid_list)
         print tar_dict['tar_src_list']
-        print 
+        print
         print len(nonarff_srcid_list), 'out of:', len(all_srcid_list), '(', len(all_srcid_list) - len(nonarff_srcid_list), ')'
         print
-                
+
 
 
 
@@ -498,7 +498,7 @@ if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog cmd [options]")
     parser.add_option("-o","--old_arff_fpath",
-                      dest="old_arff_fpath", 
+                      dest="old_arff_fpath",
                       action="store",
                       default=os.path.expandvars('$HOME/scratch/train_output_20100517_dotastro_xml_with_features.arff'),
                       help="")
@@ -536,4 +536,4 @@ if __name__ == '__main__':
 
     #DotastroSciclassTools.generate_cytoscape_viewable_files(sciclass_lookup)
 
-    print 
+    print

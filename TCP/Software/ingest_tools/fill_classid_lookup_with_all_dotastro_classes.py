@@ -60,7 +60,7 @@ if __name__ == '__main__':
         'tcptutor_port':3306,
         'classdb_hostname':'192.168.1.25', # This is my LOCAL replicated DB
         'classdb_username':'pteluser', #'pteluser',
-        'classdb_port':     3306, 
+        'classdb_port':     3306,
         'classdb_database':'source_test_db', #'source_db',
         'classid_lookup_tablename':'classid_lookup'}
 

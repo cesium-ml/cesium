@@ -20,7 +20,7 @@ if __name__ == '__main__':
         'tutor_port':3306, #33306,
         'tcp_hostname':'192.168.1.25',
         'tcp_username':'pteluser',
-        'tcp_port':     3306, #23306, 
+        'tcp_port':     3306, #23306,
         'tcp_database':'source_test_db',
         'al_dirpath':'/home/pteluser/src/TCP/Data/allstars',
         'al_glob_str':'AL_*_*.dat',
@@ -66,4 +66,3 @@ if __name__ == '__main__':
     """
     import pdb; pdb.set_trace()
     print
-    

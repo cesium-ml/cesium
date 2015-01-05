@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ This code mirror's the LBL PTF proc_image footprint table
 which has time, limitng magnitude for candidate images.
 
@@ -28,7 +28,7 @@ class Poll_LBL_PTF_Footprint_Server:
     def __init__(self, pars):
         self.pars = pars
 
-        self.mysql_db = MySQLdb.connect(host=self.pars['rdb_host_ip_2'], 
+        self.mysql_db = MySQLdb.connect(host=self.pars['rdb_host_ip_2'],
                                   user=self.pars['rdb_user'],
                                   db=self.pars['rdb_name_2'],
                                   port=self.pars['rdb_port_2'])

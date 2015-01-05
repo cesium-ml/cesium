@@ -29,16 +29,16 @@ class Database_Utils:
 
     def connect_to_tcp_db(self):
         import MySQLdb
-        self.tcp_db = MySQLdb.connect(host=pars['tcp_hostname'], 
-                                      user=pars['tcp_username'], 
+        self.tcp_db = MySQLdb.connect(host=pars['tcp_hostname'],
+                                      user=pars['tcp_username'],
                                       db=pars['tcp_database'],
                                       port=pars['tcp_port'])
         self.tcp_cursor = self.tcp_db.cursor()
 
     def connect_to_tutor_db(self):
         import MySQLdb
-        self.tutor_db = MySQLdb.connect(host=pars['tutor_hostname'], 
-                                        user=pars['tutor_username'], 
+        self.tutor_db = MySQLdb.connect(host=pars['tutor_hostname'],
+                                        user=pars['tutor_username'],
                                         db=pars['tutor_database'],
                                         port=pars['tutor_port'],
                                         passwd=pars['tutor_password'])
@@ -123,7 +123,7 @@ TODO:
                     survey_name = 'OGLE'
                 else:
                     raise
-                
+
             select_str = "select class_short_name, rank, prob from activelearn_algo_class left outer join activelearn_tutorclasses_copy ON (activelearn_algo_class.tutor_class_id=activelearn_tutorclasses_copy.class_id) where act_id=%d and source_id=%d order by rank" % (self.pars['actlearn_actid'], src_id)
             self.tcp_cursor.execute(select_str)
             results = self.tcp_cursor.fetchall()
@@ -207,7 +207,7 @@ TODO:
         ### tar -czf damian_ts_dats.tar.gz damian_ts_dats/
         srcid_classname = self.parse_actlearn_classifs()
         self.make_summary_file(srcid_list=srcid_list, srcid_classname=srcid_classname)
-        
+
         import pdb; pdb.set_trace()
         print
 
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     'tutor_port':3306,
     'tcp_hostname':'192.168.1.25',
     'tcp_username':'pteluser',
-    'tcp_port':     3306, 
+    'tcp_port':     3306,
     'tcp_database':'source_test_db',
     'xml_dirs':{123:'/media/raid_0/debosscher_xmls/xmls',
                 126:'/media/raid_0/historical_archive_featurexmls_arffs/tutor_126/2011-02-06_00:03:02.699641/xmls'},

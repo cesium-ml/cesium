@@ -19,7 +19,7 @@ class delta_phase_2minima_extractor(FeatureExtractor):
     returns a best guess of the phase difference between the two
     lowest minima of a lightcurve.
 
-    only relevant for eclipsing sources, and best used 
+    only relevant for eclipsing sources, and best used
     to identify orbital eccentricity
 
     author: I.Shivvers, June 2012
@@ -33,7 +33,7 @@ class delta_phase_2minima_extractor(FeatureExtractor):
             m = self.flux_data
             pdm_period = 1./self.fetch_extr('phase_dispersion_freq0')
             p = self.fold(t, pdm_period)
-            
+
             # find the proper window for the model
             best_GCV, optimal_window = self.minimize_GCV(p, m)
             mins = self.findMins(p,m, optimal_window)

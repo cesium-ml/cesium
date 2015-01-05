@@ -66,7 +66,7 @@ class lcmodel_extractor(InterExtractor):
         if pos_delta_mag != None:
             pl.plot(x, [pos_delta_mag]*len(x), 'y', label=u'median delta thresh')
             pl.plot(x, [neg_delta_mag]*len(x), 'y', label=u'median delta thresh')
-            
+
 
         pl.xlabel('$t$')
         pl.ylabel('$m(t)$')
@@ -77,10 +77,10 @@ class lcmodel_extractor(InterExtractor):
         pl.savefig(img_fpath)
         #import os
         #os.system("eog %s" % (img_fpath))
-        #pl.show()   
+        #pl.show()
         #import pdb; pdb.set_trace()
         #print
-        
+
 
     def get_dmag_at_median_threshold(self, sign, normalized_model_mags):
         """
@@ -123,13 +123,13 @@ class lcmodel_extractor(InterExtractor):
         pl.title("Source ID=%d" % (srcid))
         img_fpath = '/home/dstarr/scratch/lcmodel_feature_asas_examples/%d_%s_thresh.png' % (srcid, sign)
         pl.savefig(img_fpath)
-        #pl.show()   
+        #pl.show()
         pl.clf()
         """
 
         return {'delta_mag_median':delta_mag_median,
                 'n_thresh_median':n}
-                
+
 
     def get_n_passing_median(self, normalized_model_mags):
         """ Get number of positive slope intersections of delta_mag=0.0 median
@@ -177,8 +177,8 @@ class lcmodel_extractor(InterExtractor):
                 j_prev = j
         if len(t_segment) >= 2:
             total_area += scipy.integrate.trapz(m_segment, t_segment)
-        return total_area    
-            
+        return total_area
+
 
     def extract(self):
         """ Base, initial internal extractor for the unfolded lightcurve model features.
@@ -207,7 +207,7 @@ class lcmodel_extractor(InterExtractor):
             #                                       pos_delta_mag=pos_dict['delta_mag_median'] + m_median,
             #                                       neg_delta_mag=neg_dict['delta_mag_median'] + m_median)
 
-            
+
             delta_t = numpy.max(t) - numpy.min(t)
 
             self.lc_feats = {'pos_mag_ratio': pos_dict['delta_mag_median']/(pos_dict['delta_mag_median'] + abs(neg_dict['delta_mag_median'])),

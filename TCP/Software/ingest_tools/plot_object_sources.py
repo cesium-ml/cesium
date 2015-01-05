@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ plot_object_sources.py
 
    v0.1 Generate image of SDSS-II image and overplot source & object positions
@@ -13,7 +13,7 @@
 import sys, os
 import MySQLdb
 import urllib
-import numpy 
+import numpy
 
 pars = {\
     'local_rdb': {\
@@ -192,7 +192,7 @@ class Plot_Object_Sources:
         radius_arcmins = radius_degrees * 60.0
         if plot_objects:
             select_str = """SELECT %s.obj_srcid_lookup.obj_id,
-                               srcid_lookup_htm.src_id, 
+                               srcid_lookup_htm.src_id,
                                srcid_lookup_htm.ra,
                                srcid_lookup_htm.decl,
                                srcid_lookup_htm.nobjs,
@@ -210,7 +210,7 @@ class Plot_Object_Sources:
                             ra, dec, radius_arcmins)
         else:
             select_str = """SELECT %s.obj_srcid_lookup.obj_id,
-                               srcid_lookup_htm.src_id, 
+                               srcid_lookup_htm.src_id,
                                srcid_lookup_htm.ra,
                                srcid_lookup_htm.decl,
                                srcid_lookup_htm.nobjs

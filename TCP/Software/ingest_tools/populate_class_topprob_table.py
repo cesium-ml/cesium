@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 """ Populate a table in RDB which contains classification (schema_id, class) and for
     each 5 source src_id which have the top probabilities.
@@ -117,7 +117,7 @@ class Populate_Analysis_Tables:
             self.cursor.execute(exec_str)
         except:
             pass # it is ok to get here since the table may not have existed.
-            
+
         exec_str = """CREATE TABLE schem_class_top5_srcid
                  (schema_id SMALLINT UNSIGNED,
                   class_id SMALLINT UNSIGNED,
@@ -125,7 +125,7 @@ class Populate_Analysis_Tables:
                   src_id INT UNSIGNED,
                   INDEX(schema_id, class_id))"""
         self.cursor.execute(exec_str)
-        
+
 
     def query_insert_into__class_srcids_with_classrank0(self, schema_id_low=0, schema_id_high=100000, only_ptf_sources=False):
         """ SELECT and INSERT into table: temp_class_srcids_with_classrank0
@@ -136,7 +136,7 @@ class Populate_Analysis_Tables:
         results = self.cursor.fetchall()
 
         insert_list = ["INSERT INTO schem_class_top5_srcid (schema_id, class_id, prob, src_id) VALUES "]
-        
+
         for (schema_id, class_id) in results:
             if schema_id==2:
                 print 'yo'
@@ -161,7 +161,7 @@ class Populate_Analysis_Tables:
         """
 
         exec_str = """
-        CREATE TABLE class_num_srcids_at_probcut 
+        CREATE TABLE class_num_srcids_at_probcut
                  (schema_id SMALLINT UNSIGNED,
                   class_id SMALLINT UNSIGNED,
                   n_src_0perc INT UNSIGNED,
@@ -182,7 +182,7 @@ SELECT T5.schema_id, T5.class_id,
        T9.src_count AS n_src_90perc
 FROM (select schema_id, class_id, count(src_id) AS src_count
       from temp_class_srcids_with_classrank0
-                       GROUP BY schema_id, class_id) AS T0 
+                       GROUP BY schema_id, class_id) AS T0
 LEFT OUTER JOIN (select schema_id, class_id, count(src_id) AS src_count
       from temp_class_srcids_with_classrank0
       WHERE prob > 0.2 GROUP BY schema_id, class_id) AS T2 USING (schema_id, class_id)

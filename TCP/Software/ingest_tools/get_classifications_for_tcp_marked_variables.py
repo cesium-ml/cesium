@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ This queries all sources in the source_test_db.exp_user_classifs TABLE
 and re-generates total_mags using LBL pgsql, updates mysql ptf_events,
 (culls bad subtraction epochs), and regenerates features and classifications.
@@ -70,7 +70,7 @@ def populate_TCP_sources_for_nonptf_radec(ra=None, dec=None, PTFPostgreServer=No
                 #    DiffObjSourcePopulator.class_interface.classify_and_insert_using_vosource_list(srcid_xml_tuple_list, n_objs=n_objs)
                 for srcid,xmllines in srcid_xml_tuple_list:
                     ingested_srcids.append(srcid)
-                is_done = True    
+                is_done = True
                 break
         if is_done:
             break
@@ -127,7 +127,7 @@ def table_insert_tcp_marked_variables(DiffObjSourcePopulator, PTFPostgreServer, 
         print "no associate / generated / matching source found for:"
         print "src_dict=", src_dict
         print "ingested_srcids=",  ingested_srcids
-        return 
+        return
 
     # # # # # # # # # # # # # # # # # #
     # # TODO: still get the following functions to work for non-ptf case:
@@ -161,7 +161,7 @@ def table_insert_tcp_marked_variables(DiffObjSourcePopulator, PTFPostgreServer, 
 
 
     (ordered_colname_list, cond_class_dict) = Get_Classifications_For_Ptfid.make_condensed_classif_dict(matching_source_dict, tcp_classif, rock_classif, nearby_classif, jdac_class, src_dict, overall_classification)
-    
+
     Get_Classifications_For_Ptfid.insert_into_table(ordered_colname_list, cond_class_dict, tablename="source_test_db.tcpvariable_classif_summary")
     Get_Classifications_For_Ptfid.ordered_colname_list = []
     Get_Classifications_For_Ptfid.cond_class_dict = {}
@@ -189,4 +189,3 @@ if __name__ == '__main__':
     for src_id,src_dict in srcid_position_dict.iteritems():
         print '>>>', src_id
         table_insert_tcp_marked_variables(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifications_For_Ptfid, Caltech_DB=None, src_dict=src_dict)
-

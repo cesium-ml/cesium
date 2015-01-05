@@ -68,7 +68,7 @@ class Retrieve_XMLs:
                     b.close()
 
                     #print "  Retrieved: %d" % (src_id)
-    
+
 
 
 if __name__ == '__main__':
@@ -93,5 +93,3 @@ if __name__ == '__main__':
     print
     RetrieveXMLs.retrieve_xmls_for_proj_list(base_dirpath="/media/raid_0/all_tutor_xmls",
                                              proj_id_list=proj_id_list)
-
-

@@ -15,8 +15,8 @@ def lprob2sigma(lprob):
     if (lprob>-36.):
         sigma = norm.ppf(1.-0.5*exp(1.*lprob))
     else:
-	# this is good to 5.e-2; just to be crazy, get to 5.e-5
-        sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )     
+        # this is good to 5.e-2; just to be crazy, get to 5.e-5
+        sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
         f = 0.5*log(2./pi) - 0.5*sigma**2 - log(sigma) - lprob
         df = - sigma - 1./sigma
         sigma = sigma - f/df
@@ -33,9 +33,9 @@ def peak2sigma(psdpeak,n0):
     # Student's-T
     prob0 = betai( 0.5*n0-2.,0.5,(n0-1.)/(n0-1.+2.*psdpeak) )
     if (0.5*n0-2.<=0.000001):
-      lprob0=0.
+        lprob0=0.
     elif ( (n0-1.)/(n0-1.+2.*psdpeak) <=0.000001 ):
-      lprob0=-999.
+        lprob0=-999.
     elif (prob0==0):
         lprob0=(0.5*n0-2.)*log( (n0-1.)/(n0-1.+2.*psdpeak)
 ) - log(0.5*n0-2.) - betaln(0.5*n0-2.,0.5)
@@ -47,7 +47,7 @@ def peak2sigma(psdpeak,n0):
     if (horne <= 0): horne=5
 
     if (lprob0>log(1.e-4) and prob0>0):
-	# trials correction, monitoring numerical precision
+        # trials correction, monitoring numerical precision
         lprob = log( 1. - exp( horne*log(1-prob0) ) )
     elif (lprob0+log(horne)>log(1.e-4) and prob0>0):
         lprob = log( 1. - exp( -horne*prob0 ) )
@@ -437,16 +437,16 @@ def lomb__numpy20100913efficent(time,signal,wt=[],freqin=[]):
     sh = zeros(numf,'float64'); ch = zeros(numf,'float64')
 
     for i in xrange(numt):
-      x = freqin * tt[i]
-      sinx, cosx = sin(x), cos(x)
-      tmp = wt[i]*sinx;
-      ts1 += tmp;
-      s2 += tmp*cosx;
-      tmp = wt[i]*cosx
-      tc1 += tmp
-      c2 += tmp*cosx;
-      tmp = cn[i]*wt[i]
-      sh += tmp*sinx; ch += tmp*cosx
+        x = freqin * tt[i]
+        sinx, cosx = sin(x), cos(x)
+        tmp = wt[i]*sinx;
+        ts1 += tmp;
+        s2 += tmp*cosx;
+        tmp = wt[i]*cosx
+        tc1 += tmp
+        c2 += tmp*cosx;
+        tmp = cn[i]*wt[i]
+        sh += tmp*sinx; ch += tmp*cosx
 
     s2 *= 2.
     c2 = 2.*c2 - s0
@@ -485,7 +485,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 #
 # PURPOSE:
 #         Compute the lomb-scargle periodogram of an unevenly sampled
-#         lightcurve 
+#         lightcurve
 #
 # CATEGORY:
 #         time series analysis
@@ -498,12 +498,12 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 #         signal: the corresponding count rates
 #
 # OPTIONAL INPUTS:
-#         delta_time: exposure times (bin widths) centered around time 
+#         delta_time: exposure times (bin widths) centered around time
 #         signal_err: 1-sigma uncertainty on signal vector
 #         freqin: frequencies for which the PSD values are desired
 #         fap : false alarm probability desired
 #               (see Scargle et al., p. 840, and signi
-#               keyword). Default equal to 0.01 (99% significance)       
+#               keyword). Default equal to 0.01 (99% significance)
 #         noise: PSD normalization, default assumes (chi^2/nu)^0.5 for a linear fit
 #         multiple: number of Gaussian noise simulations for the FAP
 #            power level. Default equal to 0 (i.e., no simulations).
@@ -514,10 +514,10 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 #
 # OPTIONAL OUTPUTS:
 #            signi : peak of the PSD
-#            simsigni : PSD peak corresponding to the given 
+#            simsigni : PSD peak corresponding to the given
 #                    false alarm probabilities fap according to Gaussian
 #                    noise simulations
-#            psdpeak: array with the maximum peak for each simulation    
+#            psdpeak: array with the maximum peak for each simulation
 #
 #
 # KEYWORD PARAMETERS:
@@ -528,16 +528,16 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 #          Version 1.1, 1998.09.23, JW: Do not normalize if variance is 0
 #             (for computation of LSP of window function...)
 #          Version 1.2, 1999.01.07, JW: force numf to be int
-#          Version 1.3, 1999.08.05, JW: added omega keyword   
+#          Version 1.3, 1999.08.05, JW: added omega keyword
 #          Version 1.4, 1999.08
-#              KP: significance levels   
+#              KP: significance levels
 #              JW: pmin,pmax keywords
 #          Version 1.5, 1999.08.27, JW: compute the significance levels
 #               from the horne number of independent frequencies, and not from
 #               numf
 #          Version 1.6, 2000.07.27, SS and SB: added fast algorithm and FAP
-#               according to white noise lc simulations.    
-#          Version 1.7, 2000.07.28 JW: added debug keyword, sped up 
+#               according to white noise lc simulations.
+#          Version 1.7, 2000.07.28 JW: added debug keyword, sped up
 #               simulations by factor of four (use /slow to get old
 #               behavior of the simulations)
 #           Version 2.0 2004.09.01, Thomas Kornack rewritten in Python
@@ -558,18 +558,18 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 
     # if data error not given, assume all are unity
     if (signal_err==[]):
-      wt = ones(n0,dtype=float)
+        wt = ones(n0,dtype=float)
     else:
-      wt = 1./atleast_1d(signal_err).astype(double)**2;
-      wt[signal_err<=0] = 1.
+        wt = 1./atleast_1d(signal_err).astype(double)**2;
+        wt[signal_err<=0] = 1.
 
     # if delta_time not given, assume 0
     do_sync=True
-    if (delta_time==[]): 
-      do_sync=False
-      delta_time = zeros(n0, dtype=float)
+    if (delta_time==[]):
+        do_sync=False
+        delta_time = zeros(n0, dtype=float)
     else:
-      delta_time = atleast_1d(delta_time).astype(double)
+        delta_time = atleast_1d(delta_time).astype(double)
 
     # make times manageable (Scargle periodogram is time-shift invariant)
     tt = time-min(time)
@@ -582,9 +582,9 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 
     # defaults
     renorm=1
-    if noise == 0: 
-      renorm=0
-      noise = sqrt( sum( cn**2*wt )/(n0-1) )
+    if noise == 0:
+        renorm=0
+        noise = sqrt( sum( cn**2*wt )/(n0-1) )
 
     # make times manageable (Scargle periodogram is time-shift invariant)
     tt = time-min(time)
@@ -600,8 +600,8 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
     dt = tt[1:] - tt[:-1]
     g=where(dt>0)
     if (len(g[0])>0):
-      dt_min = dt[g].min()
-      fmax = 0.5/dt_min
+        dt_min = dt[g].min()
+        fmax = 0.5/dt_min
 
     # if omega is not given, compute it
     if (freqin==[]):
@@ -624,7 +624,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
 
     if verbosity>1: print('Setting up periodogram...')
 
-    # Periodogram   
+    # Periodogram
     # Ref.: W.H. Press and G.B. Rybicki, 1989, ApJ 338, 277
 
     # finite bins leads to sinc function; sinc factors drop out if delta_time = const.
@@ -647,26 +647,26 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
     bayes_term = zeros(numf, dtype=float)
 
     sync_func = lambda x: 1.
-    if (do_sync): 
-      sync_func = lambda x: (1.e-99 + sin(pi*x))/(1.e-99 + pi*x)
+    if (do_sync):
+        sync_func = lambda x: (1.e-99 + sin(pi*x))/(1.e-99 + pi*x)
 
 
     for i in range(numf):
 
-       x = ( om[i]*tt ) % (2*pi)
-       synct = sync_func(freqin[i]*delta_time)
-       sinom = sin(x)*synct
-       cosom = cos(x)*synct
+        x = ( om[i]*tt ) % (2*pi)
+        synct = sync_func(freqin[i]*delta_time)
+        sinom = sin(x)*synct
+        cosom = cos(x)*synct
 
-       ts1[i] = sum( sinom*wt )
-       tc1[i] = sum (cosom*wt )
-       s1[i] = sum( synct**2*wt )
-       s2[i] = 2.*sum( sinom*cosom*wt )
-       c2[i] = sum( (cosom**2-sinom**2)*wt )
-       sh[i] = sum( cn*sinom*wt )
-       ch[i] = sum( cn*cosom*wt )
+        ts1[i] = sum( sinom*wt )
+        tc1[i] = sum (cosom*wt )
+        s1[i] = sum( synct**2*wt )
+        s2[i] = 2.*sum( sinom*cosom*wt )
+        c2[i] = sum( (cosom**2-sinom**2)*wt )
+        sh[i] = sum( cn*sinom*wt )
+        ch[i] = sum( cn*cosom*wt )
 
-       if (multiple > 0):
+        if (multiple > 0):
             sisi[:,i]=sinom*wt
             coco[:,i]=cosom*wt
 
@@ -720,12 +720,12 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
     s2 = 0.
     c2 = 0.
     if multiple <=0 :
-      ts1 = 0.
-      tc1 = 0.
-      tc2 = 0.
-      ts2 = 0.
+        ts1 = 0.
+        tc1 = 0.
+        tc2 = 0.
+        ts2 = 0.
 
-    # correct normalization 
+    # correct normalization
     psd = atleast_1d( 0.5*px/(noise**2) )
 
     if (use_bayes):
@@ -747,7 +747,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
     psdpeak=[]
     if multiple > 0:
         if verbosity>1: print('Running Simulations...')
-        if (multiple*fap < 10): 
+        if (multiple*fap < 10):
             print('WARNING: Number of iterations (multiple keyword) not large enough for false alarm probability requested (need multiple*FAP > 10 )')
 
         psdpeak = zeros(multiple, dtype=float)
@@ -862,17 +862,17 @@ signal_err=dnoisedata,freqin=frequencies,fap=fap,multiple=multiple)
 
     if (len(peak_sort)>0):
 
-      psd0 = peak_sort[ long((1-fap)*(multiple-1)) ]
-      print ("Expected peak %.2f for False Alarm of %.2e") % (psd0,fap)
+        psd0 = peak_sort[ long((1-fap)*(multiple-1)) ]
+        print ("Expected peak %.2f for False Alarm of %.2e") % (psd0,fap)
 
-      Prob0 = betai( 0.5*N-2.,0.5,(N-1.)/(N-1.+2.*psd0) )
-      Nindep = log(1-fap)/log(1-Prob0)
-      horne = long(-6.362+1.193*N+0.00098*N**2.)
-      if (horne <= 0): horne=5
-      print ("Estimated number of independent trials: %.2f (horne=%d)") % (Nindep,horne)
+        Prob0 = betai( 0.5*N-2.,0.5,(N-1.)/(N-1.+2.*psd0) )
+        Nindep = log(1-fap)/log(1-Prob0)
+        horne = long(-6.362+1.193*N+0.00098*N**2.)
+        if (horne <= 0): horne=5
+        print ("Estimated number of independent trials: %.2f (horne=%d)") % (Nindep,horne)
 
-      nover = sum( peak_sort>=mpsd )
-      print ("Fraction of simulations with peak greater than observed value: %d/%d") % (nover,multiple)
+        nover = sum( peak_sort>=mpsd )
+        print ("Fraction of simulations with peak greater than observed value: %d/%d") % (nover,multiple)
 
 """
 import Gnuplot

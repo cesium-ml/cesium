@@ -73,7 +73,7 @@ class Test_Asas(Database_Utils):
                 print (src_id, ra, dec)
                 print sub_results
                 print '--------------------------'
-            
+
         import pdb; pdb.set_trace()
         print
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     'tutor_port':3306,
     'tcp_hostname':'192.168.1.25',
     'tcp_username':'pteluser',
-    'tcp_port':     3306, 
+    'tcp_port':     3306,
     'tcp_database':'source_test_db',
     }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This is a very KLUDGY beowulf beorun'able task which unfortunately loads a lot of modules, 
+This is a very KLUDGY beowulf beorun'able task which unfortunately loads a lot of modules,
 thus being inefficient when compared with the preferred parallel-IPython method.
 
 Called using:
@@ -31,7 +31,7 @@ class QueueTasks:
         """
         Input: list of xml_files for processing.
         """
-        # TODO: for each set of (10) xmls, write to random-filepath 
+        # TODO: for each set of (10) xmls, write to random-filepath
         #    and store in a list for beorun
 
 
@@ -86,7 +86,7 @@ class ProcessTasks:
         n_tasks_to_thread = 1
         running_threads = []
 
-        while ((len(lines) > 0) or 
+        while ((len(lines) > 0) or
                ((len(lines) == 0) and (len(running_threads) > 0))):
             while (len(lines) > 0) and ((len(running_threads) < n_tasks_to_thread)):
                 # add some running threads

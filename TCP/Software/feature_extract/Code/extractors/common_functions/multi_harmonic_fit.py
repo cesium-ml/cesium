@@ -10,11 +10,11 @@ def CholeskyInverse(t,B):
     nrows = len(t)
     # Backward step for inverse.
     for j in reversed(range(nrows)):
-      tjj = t[j,j]
-      S = sum([t[j,k]*B[j,k] for k in range(j+1, nrows)])
-      B[j,j] = 1.0/ tjj**2 - S/ tjj
-      for i in reversed(range(j)):
-        B[j,i] = B[i,j] = -sum([t[i,k]*B[k,j] for k in range(i+1,nrows)])/t[i,i]
+        tjj = t[j,j]
+        S = sum([t[j,k]*B[j,k] for k in range(j+1, nrows)])
+        B[j,j] = 1.0/ tjj**2 - S/ tjj
+        for i in reversed(range(j)):
+            B[j,i] = B[i,j] = -sum([t[i,k]*B[k,j] for k in range(i+1,nrows)])/t[i,i]
 
 def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=0.01,fit_mean=True,fit_slope=False):
     """
@@ -34,7 +34,7 @@ def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=
         fit_mean=False, then C0=0
 
     Output:
-        A dictionary containing the model evaluated on the time grid (if return_model==True) and 
+        A dictionary containing the model evaluated on the time grid (if return_model==True) and
         the model amplitudes Aij, phases phij, and their uncertainties.
     """
     t = time.astype('float64')
@@ -85,7 +85,7 @@ def multi_harmonic_fit(time,data,error,freq,nharm=4,return_model=False,freq_sep=
         cx[i+1,:] = -sx0*sx[i,:] + cx0*cx[i,:]
 
     if (nfit>0):
-        vec[0] = 0.; matr[0,0] = 1.; 
+        vec[0] = 0.; matr[0,0] = 1.;
     if (nfit>1):
         vec[1] = matr[0,1] = matr[1,0] = 0.; matr[1,1] = s1
 

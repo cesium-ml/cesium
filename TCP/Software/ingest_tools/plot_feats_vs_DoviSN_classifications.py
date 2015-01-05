@@ -61,7 +61,7 @@ This code saves XMLs into a seperate directory.
                 gen.sig.add_features_to_xml_string(gen.signals_list)
                 os.system("rm %s" % (old_xml_fpath))
                 gen.sig.write_xml(out_xml_fpath=old_xml_fpath)
-            # This objects gets a xmldict.XmlDictObject structure which will be used 
+            # This objects gets a xmldict.XmlDictObject structure which will be used
             #     by the SN classfication code:
             d = mlens3.EventData(os.path.abspath(old_xml_fpath))
 
@@ -89,7 +89,7 @@ This code saves XMLs into a seperate directory.
             #pprint.pprint(sn.final_results.get('probabilities',{}))
             (closest_in_light,closest_in_light_ttype,closest_in_light_dm,sdss_best_offset_in_petro_g,sdss_best_z,sdss_best_dz,sdss_nearest_obj_type,sdss_photo_rest_ug,sdss_photo_rest_gr,sdss_photo_rest_ri,sdss_photo_rest_iz) = sn.debug_feat_tup
             #print 'closest_in_light:',closest_in_light,'\nclosest_in_light_ttype:',closest_in_light_ttype,'\nclosest_in_light_dm:',closest_in_light_dm,'\nsdss_best_offset_in_petro_g:',sdss_best_offset_in_petro_g,'\nsdss_best_z:',sdss_best_z,'\nsdss_best_dz:',sdss_best_dz,'\nsdss_nearest_obj_type:',sdss_nearest_obj_type,'\nsdss_photo_rest_ug:',sdss_photo_rest_ug,'\nsdss_photo_rest_gr:',sdss_photo_rest_gr,'\nsdss_photo_rest_ri:',sdss_photo_rest_ri,'\nsdss_photo_rest_iz:',sdss_photo_rest_iz,
-                
+
             id_num = str(d.data['VOSOURCE']['ID'])
             if '#' in id_num:
                 id_num = id_num[id_num.rfind('#')+1:]
@@ -145,7 +145,7 @@ This code saves XMLs into a seperate directory.
             for class_name in ['SN CC','SN IIP','SN IIn','SN Ia','SN Ibc']:
                 prob_str = str(sn.final_results.get('probabilities',{}).get(class_name,{}).get('prob',misval_chr))
                 weka_line_list.append(prob_str)
-            
+
             weka_line_list.append("'" + str(orig_sci_class) + "'")
 
             weka_line = ','.join(weka_line_list)
@@ -153,7 +153,7 @@ This code saves XMLs into a seperate directory.
             body_lines_list.append(weka_line)
 
         header_str = """% date = 2009-03-06 05:00:37.323219
-%% 
+%%
 @RELATION ts
 
 @ATTRIBUTE id NUMERIC
@@ -174,7 +174,7 @@ This code saves XMLs into a seperate directory.
 @ATTRIBUTE prob_SN_Ia NUMERIC
 @ATTRIBUTE prob_SN_Ibc NUMERIC
 """
-    
+
         end_of_header_str = """@ATTRIBUTE class {'%s'}
 
 @data

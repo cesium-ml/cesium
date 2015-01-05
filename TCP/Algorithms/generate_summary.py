@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
 
     os.chdir('/home/pteluser/scratch/Noisification')
-    
+
     glob_paths = glob.glob("/home/pteluser/scratch/Noisification/*/metacost.results")
     for fpath in glob_paths:
         lines = open(fpath).readlines()

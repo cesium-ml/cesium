@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """ summarize how well general classifications of ptf09xxx were made,
 when compared with caltech followup statictics
 """
@@ -93,7 +93,7 @@ class MysqlLocalDB:
                              db=pars['mysql_database'],
                              port=pars['mysql_port'])
         self.cursor = db.cursor()
-        
+
 
     def get_caltechid_overall_classifications(self):
         """ query caltech_classif_summary table and fill dict.
@@ -188,7 +188,7 @@ class HTMLizeResults:
                     source_count += 1
                     a += """<td><a href="http://navtara.caltech.edu/cgi-bin/ptf/quicklc.cgi?name=%s">%s</a></td>""" % (ptf_id, ptf_id)
                 a += "</tr>"
-                
+
         a += '<tr><td style="border: none">%d</td><td style="border: none" colspan="20">&nbsp;&nbsp;&nbsp; spectroscopically confirmed SN/AGN</td></tr>' % (source_count)
         a += '<tr><td style="border: none">%d</td><td style="border: none" colspan="20">&nbsp;&nbsp;&nbsp; of 3177 ptf09xxx sources</td></tr>' % (total_all_count)
         a += "</table>"
@@ -197,7 +197,7 @@ class HTMLizeResults:
 
 
     def main(self, overall_dict):
-        """ Main 
+        """ Main
         a += ""
         a += "<td></td>"
         a += "<tr><td></td></tr>"
@@ -206,7 +206,7 @@ class HTMLizeResults:
                 <body>"""
 
         a += '<TABLE BORDER="0" CELLPADDING=4 CELLSPACING=1>'
-        
+
         a += "<tr>"
         ######################
         a += " <td>Interesting SN/AGN<br> with spatial context</td>"
@@ -270,4 +270,3 @@ if __name__ == '__main__':
     #                                         1:[<ids>]
     #                                         2:[<ids>]
     #                                         3:[<ids>] ....
-

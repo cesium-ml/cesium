@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 given an ra,dec this will looking at all epochs in ptf_events table within
        that region and re-evaluate or add new sources using these.

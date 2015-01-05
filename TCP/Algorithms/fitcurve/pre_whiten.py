@@ -26,10 +26,10 @@ def chi2sigma(chi0,chi1,nu0,nharm):
     return sigma
 
 
-def pre_whiten(time, signal, freq, delta_time=[], signal_err=[], dof=-999, 
+def pre_whiten(time, signal, freq, delta_time=[], signal_err=[], dof=-999,
 nharm_min=4, nharm_max=20):
-    """Generates a harmonic fit to data (time,signal) with at most 
-       nharm_max harmonics relative to the fundamental frequency freq.  
+    """Generates a harmonic fit to data (time,signal) with at most
+       nharm_max harmonics relative to the fundamental frequency freq.
        Report statistics for nharm_min of them.
     """
     n0 = len(time)
@@ -43,20 +43,20 @@ nharm_min=4, nharm_max=20):
 
     # if data error not given, assume all are unity
     if (signal_err==[]):
-      wt = ones(n0,dtype=float)
+        wt = ones(n0,dtype=float)
     else:
-      wt = 1./signal_err**2;
-      wt[signal_err<=0]=1.
+        wt = 1./signal_err**2;
+        wt[signal_err<=0]=1.
 
     # if delta_time not given, assume 0
     do_sync=True
-    if (delta_time==[]): 
-      do_sync=False
-      delta_time = zeros(n0, dtype=float)
+    if (delta_time==[]):
+        do_sync=False
+        delta_time = zeros(n0, dtype=float)
 
     sync_func = lambda x: 1.
-    if (do_sync): 
-      sync_func = lambda x: (1.e-99 + sin(pi*x))/(1.e-99 + pi*x)
+    if (do_sync):
+        sync_func = lambda x: (1.e-99 + sin(pi*x))/(1.e-99 + pi*x)
 
     x = 2*pi*freq*time
     cn = 1.*signal
@@ -83,7 +83,7 @@ nharm_min=4, nharm_max=20):
     #
     # do the dirty work, fit for the sinusoid amplitudes and phases
     # modulus   cn = A*sin(x+pha) , of A0*sin(x)+B0*cos(x)
-    # 
+    #
     chi1_last = chi0
     stop = 0
     for i in range(nharm_max):
@@ -114,7 +114,7 @@ nharm_min=4, nharm_max=20):
         sh = sum( cn*sinx*wt )
         ts1 = sum( sinx*wt )
 
-        ch = sum( cn*cosx*wt ) 
+        ch = sum( cn*cosx*wt )
         tc1 = sum( cosx*wt )
 
         A0[i] = sh / ts2; dA0[i] = 1./sqrt(ts2);
@@ -128,12 +128,12 @@ nharm_min=4, nharm_max=20):
         cn_test = cn - cn0 - ( A0[i]*sinx + B0[i]*cosx ) * synct
 
         chi1 = sum( cn_test**2*wt ) # chi^2 for harmonic component removed
-        if (chi1 > chi1_last*(nu0-2*j)/(nu0-2*(j-1)) or j==nharm_max): 
+        if (chi1 > chi1_last*(nu0-2*j)/(nu0-2*(j-1)) or j==nharm_max):
             stop=1
             nharm = i
             sigma = chi2sigma(chi0,chi1,nu0,nharm)
 
-        if (stop==1 and j>nharm_min):	# calculate >= nharm_min harmonics
+        if (stop==1 and j>nharm_min):   # calculate >= nharm_min harmonics
 
             A0 = A0[:i]
             dA0 = dA0[:i]
@@ -214,7 +214,7 @@ nharm_min=4, nharm_max=20):
     for k in range(niter):
         if (k==0): window = 1.
 
-        nmom = 4	# number of moments requested (don't change)
+        nmom = 4        # number of moments requested (don't change)
         mu = zeros(1+nmom,dtype=float)
         vmu = zeros(1+nmom,dtype=float)
         x0=0.
@@ -255,14 +255,14 @@ nharm_min=4, nharm_max=20):
     # put it all in a dictionary
     #
     freqs = freq*(1+arange(nharm_min))
-    #out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux, 
-    #             'peak2peak_flux_error': peak2peak_flux_error, 'amplitude': A[:nharm_min], 
+    #out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux,
+    #             'peak2peak_flux_error': peak2peak_flux_error, 'amplitude': A[:nharm_min],
     #             'freq': freqs, 'amplitude_error': dA[:nharm_min], 'rel_phase': pha[:nharm_min],
-    #             'rel_phase_error': dpha[:nharm_min], 'moments': moments, 
+    #             'rel_phase_error': dpha[:nharm_min], 'moments': moments,
     #             'moments_err': dmoments, 'nharm': nharm}
 
     # 20080508: dstarr wants verbosely labeled dict:
-    out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux, 
+    out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux,
                  'peak2peak_flux_error': peak2peak_flux_error, 'nharm': nharm}
 
     for i in xrange(len(moments)):
@@ -280,10 +280,10 @@ nharm_min=4, nharm_max=20):
     for i in xrange(len(freqs)):
         out_dict['freq_' + str(i)] = freqs[i]
 
-    out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux, 
-'peak2peak_flux_error': peak2peak_flux_error, 'amplitude': A[:nharm_min], 
+    out_dict = { 'signif': sigma, 'peak2peak_flux': peak2peak_flux,
+'peak2peak_flux_error': peak2peak_flux_error, 'amplitude': A[:nharm_min],
 'freq': freqs, 'amplitude_error': dA[:nharm_min], 'rel_phase': pha[:nharm_min],
-'rel_phase_error': dpha[:nharm_min], 'moments': moments, 
+'rel_phase_error': dpha[:nharm_min], 'moments': moments,
 'moments_err': dmoments, 'nharm': nharm, 'time_offset': time_offset,'y_offset':cn_offset}
 
     return cn, out_dict

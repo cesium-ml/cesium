@@ -1849,7 +1849,7 @@ def parse_options():
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+        <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -1869,11 +1869,11 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-			<TimeType ucd="frame.time.system?">MJD</TimeType> 
-			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
-			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-		</TIMESYS>
+                        <TimeType ucd="frame.time.system?">MJD</TimeType>
+                        <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+                        <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
+                        <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+                </TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -1903,7 +1903,7 @@ def generate_xml_str_using_ben_dat(dat_fpath):
     data_str_list = []
 
     rows = csv.reader(open(dat_fpath), delimiter=' ')
-    
+
     t_list = []
     m_list = []
     merr_list = []
@@ -1926,7 +1926,7 @@ def generate_xml_str_using_ben_dat(dat_fpath):
 
 
 
-def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=True, 
+def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=True,
                     write_multiinfo_srcids=True, ParseNomadColorsList=None):
     """ Adapted from:
       - analysis_deboss_tcp_source_compare.py::perc_subset_worker()
@@ -2004,7 +2004,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
                 new_srcid_list.append(new_srcid)
 
                 dbi_src = db_importer.Source(make_dict_if_given_xml=False)
-                
+
                 for band, band_dict in gen_orig.sig.x_sdict['ts'].iteritems():
                     if ":NOMAD" in band:
                         i_start = 0
@@ -2021,7 +2021,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
                 signals_list = []
                 gen = generators_importers.from_xml(signals_list)
                 gen.generate(xml_handle=write_xml_str)
-                gen.sig.add_features_to_xml_string(signals_list)                
+                gen.sig.add_features_to_xml_string(signals_list)
                 gen.sig.x_sdict['src_id'] = new_srcid
                 dbi_src.source_dict_to_xml(gen.sig.x_sdict)
 
@@ -2032,15 +2032,15 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
 
                 #out_arff_row_dict[(src_id, perc, i)] = out_dict # ??? TODO: just arff rows?
                 # dbi_src.xml_string
-    	        master_list.append(out_dict)
-    	        all_class_list.append(out_dict['class'])
+                master_list.append(out_dict)
+                all_class_list.append(out_dict['class'])
                 master_classes_dict[out_dict['class']] = 0
-    	        for feat_tup in out_dict['features']:
-    	            master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
+                for feat_tup in out_dict['features']:
+                    master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
     master_features = master_features_dict.keys()
     master_classes = master_classes_dict.keys()
-    a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
+    a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
                       dorun=False, add_srcid_to_arff=True)
@@ -2100,7 +2100,7 @@ class Arff_Generation_Engine_Tasks:
     """
 
     def task_generate_feature_arff_lines(self, pars, dat_fpaths=[], include_header=True,
-                                         write_multiinfo_srcids=True, 
+                                         write_multiinfo_srcids=True,
                                          ParseNomadColorsList=None):
         """ Given a sourceid list, generate features and the resulting ARFF lines.
 
@@ -2132,7 +2132,7 @@ class Arff_Generation_Engine_Tasks:
 
 
 def master_ipython_arff_generation(pars={}, write_multiinfo_srcids=True, dat_fpaths=[]):
-    """ Main code which controls ipython nodes when generating 
+    """ Main code which controls ipython nodes when generating
 
 This is the task which will be called on ipengines by this function:
 
@@ -2256,7 +2256,7 @@ sys.stdout = tmp_stdout
                                                 'dat_fpaths':dat_sublist,
                                                 'include_header':False,
                                                 'write_multiinfo_srcids':write_multiinfo_srcids},
-                                          pull='out_dict', 
+                                          pull='out_dict',
                                           retries=3))
             task_id_list.append(taskid)
         ###for debugging:
@@ -2292,15 +2292,15 @@ sys.stdout = tmp_stdout
         for task_id in tasks_to_pop:
             task_id_list.remove(task_id)
 
-        if ((tc.queue_status()['scheduled'] == 0) and 
+        if ((tc.queue_status()['scheduled'] == 0) and
             (tc.queue_status()['pending'] <= 64)):
-           if dtime_pending_1 == None:
-               dtime_pending_1 = datetime.datetime.now()
-           else:
-               now = datetime.datetime.now()
-               if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
-                   print "dtime_pending=1 timeout break!"
-                   break
+            if dtime_pending_1 == None:
+                dtime_pending_1 = datetime.datetime.now()
+            else:
+                now = datetime.datetime.now()
+                if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
+                    print "dtime_pending=1 timeout break!"
+                    break
         print tc.queue_status()
         print 'Sleep... 20 in test_pairwise_on_citris33_ipython::master_ipython_R_classifiers()', datetime.datetime.utcnow()
         time.sleep(20)
@@ -2325,7 +2325,7 @@ sys.stdout = tmp_stdout
             #update_combo_results(combo_results_dict=combo_results_dict,
             #                     ipython_return_dict=copy.deepcopy(ipython_return_dict))
     ####
-    return {'result_arff_list':result_arff_list, 
+    return {'result_arff_list':result_arff_list,
             'class_list':class_list}
 
 
@@ -2449,7 +2449,7 @@ if __name__ == '__main__':
                 glob_str = '%s/*' % (dirpath)
 
                 xml_fpaths = glob.glob(glob_str)
-                
+
                 for xml_fpath in xml_fpaths:
                     print xml_fpath
                     num_str = xml_fpath[xml_fpath.rfind('/') + 1:xml_fpath.rfind('.')]
@@ -2473,7 +2473,7 @@ if __name__ == '__main__':
 
         dat_fpaths = glob.glob(glob_str)
 
-        out_dict = master_ipython_arff_generation(pars=pars, 
+        out_dict = master_ipython_arff_generation(pars=pars,
                                               dat_fpaths=dat_fpaths,
                                               write_multiinfo_srcids=False) #False:only srcid in output arff; True when doing several percent/subset arff rows
     #print result_arff_list

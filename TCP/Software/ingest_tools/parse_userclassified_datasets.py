@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
 TODO: parse out rrlyrae and other variables
 
@@ -36,7 +36,7 @@ class DB_Connector:
     def establish_db_connection(self, cursor=None, host='', user='', db='', port=0):
         """ connect to the rdb database, or use given cursor.
         """
-    
+
         if cursor == None:
             db = MySQLdb.connect(host=host, \
                                  user=user, \
@@ -101,7 +101,7 @@ class Data_Parse(DB_Connector):
                                                'merr':[],
                                                'lbl_id':[],
                                                'filt':[]}}
-            
+
             all_data_dict[src_id]['ts']['ujd'].append(data_dict['ujd'])
             all_data_dict[src_id]['ts']['mtotal'].append(data_dict['mtotal'])
             all_data_dict[src_id]['ts']['merr'].append(data_dict['merr'])
@@ -111,7 +111,7 @@ class Data_Parse(DB_Connector):
         for src_id,src_dict in all_data_dict.iteritems():
             for a_name, a_list in src_dict['ts'].iteritems():
                 src_dict['ts'][a_name] = numpy.array(a_list)
-        
+
         return all_data_dict
 
 
@@ -161,7 +161,7 @@ class Data_Parse(DB_Connector):
                                                'merr':[],
                                                'lbl_id':[],
                                                'filt':[]}}
-            
+
             all_data_dict[src_id]['ts']['ujd'].append(data_dict['ujd'])
             all_data_dict[src_id]['ts']['mtotal'].append(data_dict['mtotal'])
             all_data_dict[src_id]['ts']['merr'].append(data_dict['merr'])
@@ -171,7 +171,7 @@ class Data_Parse(DB_Connector):
         for src_id,src_dict in all_data_dict.iteritems():
             for a_name, a_list in src_dict['ts'].iteritems():
                 src_dict['ts'][a_name] = numpy.array(a_list)
-        
+
         return all_data_dict
 
 
@@ -199,7 +199,7 @@ class Data_Parse(DB_Connector):
                                   'mag_r':mag_r,
                                   'ptfname':ptfname,
                                   'ts':{}}
-            
+
             # need to do an os.listdir() and iterate over all of these and store into a dict.
 
             fpath = "%s/rrl%d.dat" % (self.pars['rrlyra_data_dirpath'], sesar_id)
@@ -289,7 +289,7 @@ class Data_Parse(DB_Connector):
                                    src_dict['amp']))
         if len(insert_list) > 1:
             self.cursor.execute(''.join(insert_list)[:-2])
-        
+
 
     def match_jsb_sources_with_tcp_sources(self, data_dict={}):
         """  This queries the srcid_lookup table an finds the best matching source
@@ -311,7 +311,7 @@ class Data_Parse(DB_Connector):
             ra_high = src_dict['ra'] + (self.pars['spatial_query_box_length'] / 2.)
             dec_low = src_dict['dec'] - (self.pars['spatial_query_box_length'] / 2.)
             dec_high = src_dict['dec'] + (self.pars['spatial_query_box_length'] / 2.)
-            
+
             select_str = "SELECT count(%s.obj_id), src_id FROM %s JOIN %s USING (src_id) WHERE DIF_HTMRectV(%lf, %lf, %lf, %lf) GROUP BY src_id" % ( \
                                self.pars['obj_srcid_lookup_tablename'],
                                self.pars['srcid_lookup_htm_tablename'],
@@ -376,7 +376,7 @@ class Data_Parse(DB_Connector):
 
         Ideally this is run in parallel.
         """
-        # Now I want to take the tcp_srcids & insert into 
+        # Now I want to take the tcp_srcids & insert into
         #  - so, given a tcp src_id, I want to generate the features
         #  - and with features in an XML file/string, I want to add to a .arff file
         ReevaluateFeatClass = reevaluate_feat_class.Reevaluate_Feat_Class(cursor=self.cursor)
@@ -391,12 +391,12 @@ class Data_Parse(DB_Connector):
         for row in rows:
             srcid_list.append(row[0])
             class_list.append(row[1])
-            
+
         for i, tcp_srcid in enumerate(srcid_list):
             xml_out_fpath = "%s/%d.xml" % (self.pars['intermed_xmls_dirpath'], tcp_srcid)
             if os.path.exists(xml_out_fpath):
                 continue # skip this since the xml file already exists and thus its features were generated
-            
+
             (srcid_xml_tuple_list, n_objs) = ReevaluateFeatClass.reeval_get_xml_tuplelist(src_id=tcp_srcid)
 
             xml_str = srcid_xml_tuple_list[0][1]
@@ -428,10 +428,10 @@ class Data_Parse(DB_Connector):
             #   - need to disable the use fo existing class-name schema in arffify.py
             #a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
             #out_dict = a.generate_arff_line_for_vosourcexml(num=str(tcp_srcid), xml_fpath=new_xml_str)
-            #print 
+            #print
             #print out_dict['class']
             #rrlyrae_ab
-        
+
         ############# TODO: I need to mark / fill in the <classification>
         # Maybe just pass the classifcations into function - vosource_class_obj.add_classif_prob()
         #   - so that db_importer.py:1012   "class" is inserted into sdict.
@@ -474,7 +474,7 @@ class Data_Parse(DB_Connector):
         # - store tcp_srcid, other_srcid lookup in another table
         #    jsb_srcid (sesar_id or candidate_id), ptf_candidate_id, tcp_srcid
         #        ra, dec, class_name, period
-        
+
 
     def generate_classifications(self, schema_str=""):
         """
@@ -789,10 +789,10 @@ if __name__ == '__main__':
         'obj_srcid_lookup_tablename':'object_test_db.obj_srcid_lookup',
         'data_tablename':'source_test_db.jsbvars_data',
         'lookup_tablename':'source_test_db.jsbvars_lookup',
-        'mysql_user':"pteluser", 
-        'mysql_hostname':"192.168.1.25", 
-        'mysql_database':'object_test_db', 
-        'mysql_port':3306, 
+        'mysql_user':"pteluser",
+        'mysql_hostname':"192.168.1.25",
+        'mysql_database':'object_test_db',
+        'mysql_port':3306,
         'do_lbl_check':True,
         'tcp_to_jsbvar_classname':{'Classical Cepheid':['Cepheid'],
                                    'RR Lyrae, Fundamental Mode':['rrlyrae_ab','rrlyrae_c'],
@@ -840,4 +840,3 @@ if __name__ == '__main__':
         # NOTE: uses a lot of memory for ipython1 asks, so
         #       set n_nodes <= 4
         DataParse.generate_classifications(schema_str="50nois_00epch_010need_0.100mtrc_per900ep10day_linearlombfreq_expnoisefreq")
-        

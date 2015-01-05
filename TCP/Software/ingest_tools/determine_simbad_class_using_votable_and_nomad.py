@@ -51,9 +51,9 @@ class Determine_Simbad_Class(TCPDb):
 
         srcid_class_match_dict = {}
         for src_id, src_dict in nomad_sources.iteritems():
-            
+
             votable_fpath = "%s/%d.votable" % (self.pars['simbad_votable_dirpath'], src_id)
-            
+
             votable_str = open(votable_fpath).read()
             if len(votable_str) < 310:
                 #print "NO SIMBAD match:", src_id
@@ -92,7 +92,7 @@ class Determine_Simbad_Class(TCPDb):
                 if sp_type == "None":
                     sptype_list.append('')
                 else:
-                    sptype_list.append(sp_type)                    
+                    sptype_list.append(sp_type)
                 mainid = str(xmld_data['VOTABLE']['RESOURCE']['TABLE']['DATA']['TABLEDATA']['TR']['TD'][i_col_mainid])
                 if mainid == "None":
                     mainid_list.append('')
@@ -129,7 +129,7 @@ class Determine_Simbad_Class(TCPDb):
                         break
                 if not match_found:
                     print "NO dist match: %d nomad=%lf simbad=%s simbad=%s" % (src_id, nomad_sources[src_id]['dist'], str(dist_list), str(class_list))
-                    
+
         return srcid_class_match_dict
 
 
@@ -197,12 +197,12 @@ class Determine_Simbad_Class(TCPDb):
                     fp = open(fpath)
                     webpage_str = fp.read()
                     fp.close()
-                    
-                
+
+
                 soup = BeautifulSoup(webpage_str)
                 comments = soup.findAll(text=lambda text:isinstance(text, Comment))
                 [comment.extract() for comment in comments]
-                
+
                 #print soup.html.body('p', limit=2)[1]('table', limit=2)[1].prettify()
                 #import pdb; pdb.set_trace()
                 #print
@@ -257,7 +257,7 @@ class Determine_Simbad_Class(TCPDb):
             f_url = urllib.urlopen(url_str)
             webpage_str = f_url.read()
             f_url.close()
-            
+
             soup = BeautifulSoup(webpage_str)
             comments = soup.findAll(text=lambda text:isinstance(text, Comment))
             [comment.extract() for comment in comments]
@@ -339,7 +339,7 @@ class Determine_Simbad_Class(TCPDb):
             f_url = urllib.urlopen(url_str)
             webpage_str = f_url.read()
             f_url.close()
-            
+
             soup = BeautifulSoup(webpage_str)
             comments = soup.findAll(text=lambda text:isinstance(text, Comment))
             [comment.extract() for comment in comments]
@@ -399,7 +399,7 @@ class Determine_Simbad_Class(TCPDb):
          Also changed to this:
         Cepheid             Cepheid variable Star
           deltaCep          Classical Cepheid (delta Cep type)
-          MultiMode_Ceph    Multi Mode Cepheid          
+          MultiMode_Ceph    Multi Mode Cepheid
       SG*                   Evolved supergiant star
         RedSG*                Red supergiant star
         YellowSG*             Yellow supergiant star
@@ -412,7 +412,7 @@ class Determine_Simbad_Class(TCPDb):
         C*                  Carbon Star
         S*                  S Star
         RCB                 R Cor Bor
-         
+
         """
         import re
         ### left whitespace matcher:
@@ -645,15 +645,15 @@ class Determine_Simbad_Class(TCPDb):
                 continue # there are 82 of 38000 abstracts entries which were not correctly downloaded (in HTML: Please try your query again")
             lines.append(' '*4 + str(bibcode))# + ' '*4 + str(abstracts_dict[bibcode]['title']))
             #lines.append(' '*12 + str(abstracts_dict[bibcode]['title']))
-            
+
 
         out_str = '\n'.join(lines) + '\n'
-        
+
         #print out_str
         #import pdb; pdb.set_trace()
         #print
         return out_str
-    
+
     def write_summary_files(self, srcid_class_match_dict):
         """ Write summary files of literature / abstracts for ASAS sources.
         """
@@ -730,7 +730,7 @@ class Determine_Simbad_Class(TCPDb):
         #        'child_dict':child_dict,
         #        'class_descriptions':class_descriptions}
 
-        
+
         if 0:
             ### This is just to ensure that all of the abstract files in a dir are relevant
             for i, src_id in enumerate(cat_probs['dotAstro_ID']):
@@ -745,7 +745,7 @@ class Determine_Simbad_Class(TCPDb):
                         #import pdb; pdb.set_trace()
                         #print
                         os.system(cp_str)
-                
+
         fp = open('/home/dstarr/scratch/determine_simbad.source_data', 'w')
         for i, src_id in enumerate(cat_probs['dotAstro_ID']):
             if not srcid_class_match_dict.has_key(src_id):
@@ -759,7 +759,7 @@ class Determine_Simbad_Class(TCPDb):
                                            srcid_class_match_dict=srcid_class_match_dict,
                                            jclass_simbadclass=jclass_simbadclass)
             fp.write(out_str)
-                                           
+
         fp.close()
         #abstracts_dict[bibcode] = {'title':title,
         #                           'authors':authors,
@@ -780,11 +780,11 @@ class Determine_Simbad_Class(TCPDb):
             lines.append("    %s" % (bib_dict['authors']))
             lines.append("    %s" % (bib_dict['pub_date']))
             lines.append("    %s" % (bib_dict['publication']))
-            
+
             out_str = '\n'.join(lines) + '\n'
-        
+
             fp.write(out_str)
-                                           
+
         fp.close()
         import pdb; pdb.set_trace()
         print
@@ -810,10 +810,10 @@ class Determine_Simbad_Class(TCPDb):
             fp = open(self.pars['srcid_simbad_nomad_match_pkl_fpath'],'rb')
             srcid_class_match_dict = cPickle.load(fp)
             fp.close()
-            
+
         if do_insert:
             self.insert_src_class_match_in_table(srcid_class_match_dict)
-        
+
         ### currently run on anathem:
         #self.get_simbad_literature_refs(srcid_class_match_dict)
         ### Im running this on a seperate IP (pted):
@@ -825,13 +825,13 @@ class Determine_Simbad_Class(TCPDb):
         import pdb; pdb.set_trace()
         print
 
-    
+
 if __name__ == '__main__':
 
     pars = { \
-        'mysql_username':"pteluser", 
-        'mysql_hostname':"192.168.1.25", 
-        'mysql_database':'source_test_db', 
+        'mysql_username':"pteluser",
+        'mysql_hostname':"192.168.1.25",
+        'mysql_database':'source_test_db',
         'mysql_port':3306,
         'source_nomad_pkl_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src.pkl126'), #'/Data/best_nomad_src.pkl'), # generated by get_colors_for_tutor_sources.py
         'simbad_votable_dirpath':os.path.abspath(os.environ.get("HOME") + '/scratch/simbad_votables'),

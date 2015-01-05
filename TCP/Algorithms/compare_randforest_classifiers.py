@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
 * Get fortran code running for comparisons with R's party:cforest
 ** install cforest
@@ -53,7 +53,7 @@ def example_initial_r_randomforest():
     print
 
 
-    
+
 def count_classes(class_list=[]):
     """
     """
@@ -230,7 +230,7 @@ if __name__ == '__main__':
                 if not 'Testset classification error' in line:
                     continue
                 vals = line.split()
-                    
+
             class_error = float(vals[4].strip('%'))
             kappa = float(vals[8])
             results_dict[i_fold]['parf'] = {'class_error':class_error,
@@ -281,7 +281,7 @@ if __name__ == '__main__':
             classifier_dict = {'class_name':r_name}
             rc.load_classifier(r_name=r_name,
                            fpath=classifier_fpath)
-            
+
             print 'applying cforest...'
             classif_results_cforest = rc.apply_cforest(classifier_dict=classifier_dict,
                                             data_dict=fold_data['classif_data'],
@@ -291,7 +291,7 @@ if __name__ == '__main__':
 
             results_dict[i_fold]['cforest'] = {'class_error':classif_results_cforest['error_rate']}
 
-            
+
 
 
         ##### Analyze the results (compare the classifiers):
@@ -309,7 +309,7 @@ if __name__ == '__main__':
         meta_parf_avgs.extend(parf_errors)
         meta_R_randomForest_avgs.extend(randomForest_errors)
         meta_R_cforest_avgs.extend(cforest_errors)
-            
+
         print "PARF         mean=%lf,  std=%lf" % (numpy.mean(parf_errors), numpy.std(parf_errors))
         print "randomForest mean=%lf,  std=%lf" % (numpy.mean(randomForest_errors), numpy.std(randomForest_errors))
         print "cforest mean=%lf,  std=%lf" % (numpy.mean(cforest_errors), numpy.std(cforest_errors))
@@ -319,11 +319,10 @@ if __name__ == '__main__':
         print 'META PARF        :', numpy.mean(meta_parf_avgs), numpy.std(meta_parf_avgs), k*10 + i_fold
         print 'META randomForest:', numpy.mean(meta_R_randomForest_avgs), numpy.std(meta_R_randomForest_avgs), k*10 + i_fold
         print 'META cforest     :', numpy.mean(meta_R_cforest_avgs), numpy.std(meta_R_cforest_avgs), k*10 + i_fold
-        
+
     print 'Final META PARF        :', numpy.mean(meta_parf_avgs), numpy.std(meta_parf_avgs)
     print 'Final META randomForest:', numpy.mean(meta_R_randomForest_avgs), numpy.std(meta_R_randomForest_avgs)
     print 'Final META cforest     :', numpy.mean(meta_R_cforest_avgs), numpy.std(meta_R_cforest_avgs)
 
     import pdb; pdb.set_trace()
     print
-

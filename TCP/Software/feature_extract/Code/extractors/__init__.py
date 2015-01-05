@@ -1,40 +1,40 @@
 import os, glob, sys, types
 ext1 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/'
 
-#20101207#from chi2_per_deg_extractor  import chi2_per_deg_extractor 
-#20101207#from chi2extractor  import chi2extractor 
-#20101207#from dc_extractor  import dc_extractor 
-from dist_from_u_extractor  import dist_from_u_extractor 
-from fourierextractor  import fourierextractor 
-from linear_extractor  import linear_extractor 
-from max_slope_extractor  import max_slope_extractor 
-from medianextractor  import medianextractor 
-from beyond1std_extractor  import beyond1std_extractor 
-from stdvs_from_u_extractor  import stdvs_from_u_extractor 
-#from old_dcextractor  import old_dcextractor 
-# # # 20100912 disabled due to lomb() call# from power_spectrum_extractor  import power_spectrum_extractor 
+#20101207#from chi2_per_deg_extractor  import chi2_per_deg_extractor
+#20101207#from chi2extractor  import chi2extractor
+#20101207#from dc_extractor  import dc_extractor
+from dist_from_u_extractor  import dist_from_u_extractor
+from fourierextractor  import fourierextractor
+from linear_extractor  import linear_extractor
+from max_slope_extractor  import max_slope_extractor
+from medianextractor  import medianextractor
+from beyond1std_extractor  import beyond1std_extractor
+from stdvs_from_u_extractor  import stdvs_from_u_extractor
+#from old_dcextractor  import old_dcextractor
+# # # 20100912 disabled due to lomb() call# from power_spectrum_extractor  import power_spectrum_extractor
 # # # 20100912 disabled due to lomb() call# from power_extractor import power_extractor
 #20080614#from montecarlo_extractor import montecarlo_extractor
 #20080614#from pct_montecarlo_extractor import pct_80_montecarlo_extractor, pct_90_montecarlo_extractor, pct_95_montecarlo_extractor, pct_99_montecarlo_extractor
 #20080614#from significant_power_extractor import significant_80_power_extractor, significant_90_power_extractor, significant_95_power_extractor, significant_99_power_extractor
-#20080614#from first_freq_extractor  import first_freq_extractor 
-from sine_fit_extractor  import sine_fit_extractor 
-from sine_leastsq_extractor  import sine_leastsq_extractor 
-from skew_extractor  import skew_extractor 
+#20080614#from first_freq_extractor  import first_freq_extractor
+from sine_fit_extractor  import sine_fit_extractor
+from sine_leastsq_extractor  import sine_leastsq_extractor
+from skew_extractor  import skew_extractor
 #from kurtosis_extractor  import kurtosis_extractor #20101121 joey recommends disabling since it is very similar to small_kurtosis_extractor
 from s_extractor import s_extractor
-#from small_kurtosis_extractor  import small_kurtosis_extractor 
-from stdextractor  import stdextractor 
+#from small_kurtosis_extractor  import small_kurtosis_extractor
+from stdextractor  import stdextractor
 from median_absolute_deviation_extractor import median_absolute_deviation_extractor
-from wei_av_uncertainty_extractor  import wei_av_uncertainty_extractor 
-from weighted_average_extractor  import weighted_average_extractor 
-# # # 20100912 disabled due to lomb() call# from lomb_extractor  import lomb_extractor 
-# # # 20100912 disabled due to lomb() call# from first_lomb_extractor  import first_lomb_extractor 
-# # # 20100912 disabled due to lomb() call# from sine_lomb_extractor  import sine_lomb_extractor 
+from wei_av_uncertainty_extractor  import wei_av_uncertainty_extractor
+from weighted_average_extractor  import weighted_average_extractor
+# # # 20100912 disabled due to lomb() call# from lomb_extractor  import lomb_extractor
+# # # 20100912 disabled due to lomb() call# from first_lomb_extractor  import first_lomb_extractor
+# # # 20100912 disabled due to lomb() call# from sine_lomb_extractor  import sine_lomb_extractor
 #20080614#from second_extractor  import second_extractor, third_extractor
 # # # 20100912 disabled due to lomb() call# from second_lomb_extractor import second_lomb_extractor
 # # # 20100912 disabled due to lomb() call# from frequency_ratio_extractor import ratio21, ratio31, ratio32
-#from example_extractor  import example_extractor 
+#from example_extractor  import example_extractor
 #from n_points_extractor import n_points_extractor
 
 #from position_intermediate_extractor import position_intermediate_extractor
@@ -116,14 +116,14 @@ from interng_extractor import interng_extractor
 
 #20101207#from sdss_photo_rest_abs_g import sdss_photo_rest_abs_g
 #20101207#from sdss_photo_rest_abs_i import sdss_photo_rest_abs_i
-#20101207#from sdss_photo_rest_abs_r import sdss_photo_rest_abs_r 
+#20101207#from sdss_photo_rest_abs_r import sdss_photo_rest_abs_r
 #20101207#from sdss_photo_rest_abs_u import  sdss_photo_rest_abs_u
 #20101207#from sdss_photo_rest_abs_z import sdss_photo_rest_abs_z
 #20101207#from sdss_photo_rest_gr import sdss_photo_rest_gr
 #20101207#from sdss_photo_rest_iz import sdss_photo_rest_iz
 #20101207#from sdss_photo_rest_ri import sdss_photo_rest_ri
 #20101207#from sdss_photo_rest_ug import sdss_photo_rest_ug
-#20101207#from sdss_best_offset_in_petro_g import sdss_best_offset_in_petro_g 
+#20101207#from sdss_best_offset_in_petro_g import sdss_best_offset_in_petro_g
 #20101207#from  sdss_petro_radius_g import sdss_petro_radius_g
 #20101207#from  sdss_petro_radius_g_err import sdss_petro_radius_g_err
 
@@ -141,11 +141,11 @@ from interng_extractor import interng_extractor
 #         tmp.remove(i)
 
 #for n in tmp:
-#	try:
-#		print "import %s" %n
-#		exec "import %s" % n
-#		## get all the classes from this module
-#		tmp = \
+#       try:
+#               print "import %s" %n
+#               exec "import %s" % n
+#               ## get all the classes from this module
+#               tmp = \
 #"""zclass = []
 #f = %s.__file__.replace(".pyc",".py")
 #tmp = open(f,"r")
@@ -157,11 +157,10 @@ from interng_extractor import interng_extractor
 #if len(zclass) > 0:
 #    tmp = "from %s import " + ", ".join([x for x in zclass])
 #    exec tmp""" % (n,n)
-#		exec tmp
-#	except:
-#		print "could not import %s" % n
+#               exec tmp
+#       except:
+#               print "could not import %s" % n
 
 
 
 #__all__=["chi2extractor","dc_extractor","dist_from_u_extractor","fourierextractor","linear_extractor","max_slope_extractor","medianextractor","beyond1std_extractor","stdvs_from_u_extractor","old_dcextractor","power_spectrum_extractor","power_extractor","pct_80_montecarlo_extractor","pct_90_montecarlo_extractor","pct_95_montecarlo_extractor","pct_99_montecarlo_extractor","significant_80_power_extractor","significant_90_power_extractor","significant_95_power_extractor","significant_99_power_extractor","first_freq_extractor","sine_fit_extractor","sine_leastsq_extractor","skew_extractor","stdextractor","wei_av_uncertainty_extractor","weighted_average_extractor","lomb_extractor","first_lomb_extractor","sine_lomb_extractor","second_extractor","third_extractor","second_lomb_extractor"]
-

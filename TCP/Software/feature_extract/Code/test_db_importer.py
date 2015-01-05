@@ -65,7 +65,7 @@ def nonIntersectDicts( d1, d2 ) :
     mismatch = dict(filter(lambda (k,v) : k in d2 and d2[k] != v, d1.items()))
     if len(mismatch) > 0:
         return mismatch
-    
+
     mismatch = {}
     for k in d1.keys():
         if k not in d2.keys():
@@ -97,7 +97,7 @@ class Test_Methods:
             else:
                 print "(PASS):   ", fpath
 
-                
+
     def test_rw_oldxml_files_compare_xsdict(self):
         """
         ##### Read an old-xml, write it as old-xml, compare results:
@@ -109,7 +109,7 @@ class Test_Methods:
         if os.path.exists(temp_fpath):
             os.system("rm " + temp_fpath)
         s.write_xml(out_xml_fpath=temp_fpath)
-                
+
         s_orig = db_importer.Source(xml_handle=orig_fpath)
         s_temp = db_importer.Source(xml_handle=temp_fpath)
         non_intersect_dict = nonIntersectDicts(s_orig.x_sdict, s_temp.x_sdict)
@@ -155,8 +155,8 @@ class Test_Methods:
         fp.close()
 
         # TODO: do some test related to reading this simpletimeseries xml file.
-        
-        
+
+
 
     def main(self):
         """ Call all testing methods here.
@@ -165,11 +165,11 @@ class Test_Methods:
         self.test_rw_oldxml_files_compare_xsdict()
         self.test_write_simpletimeseries_xml()
 
-        
+
 if __name__ == "__main__":
 
     # TODO: generate a simpletimeseries xml when given an old vosource.xml
-    #  - 
+    #  -
 
     #fpath = os.path.expandvars("$TCP_DIR/Data/vosource_9026.xml")
     #s = db_importer.Source(xml_handle=fpath)
@@ -177,4 +177,3 @@ if __name__ == "__main__":
 
     TestMethods = Test_Methods(pars)
     TestMethods.main()
-

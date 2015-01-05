@@ -57,7 +57,7 @@ def calc_last_day_of_month(year, month):
 
 #   '2006-07-09 05:39:35.498801'
 # datetime(year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]])
-# 
+#
 def convert_str_to_datetime(raw_str_date):
     """ converts a string datetime into a datetime
     """
@@ -69,7 +69,7 @@ def convert_str_to_datetime(raw_str_date):
     minute = int(str_date[14:16])
     sec = int(str_date[17:19])
     usec = int(str_date[20:])
-    
+
     return datetime.datetime(year,month,day,hour,minute,sec,usec)
 
 

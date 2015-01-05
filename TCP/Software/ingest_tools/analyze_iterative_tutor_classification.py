@@ -27,7 +27,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                                'Software/feature_extract/Code'))
 import db_importer
 
-pars = { 
+pars = {
     'rdb_host_ip':"127.0.0.1",
     'rdb_user':"pteluser",
     'rdb_dbname':'source_test_db',
@@ -94,11 +94,11 @@ class Analyze_Iterative_Tutor_Classification:
     def connect_to_db(self):
         """ Make connection to MySQL database.
         """
-        self.db = MySQLdb.connect(host=self.pars['rdb_host_ip'], 
+        self.db = MySQLdb.connect(host=self.pars['rdb_host_ip'],
                                   user=self.pars['rdb_user'],
                                     db=self.pars['rdb_dbname'])
         self.cursor = self.db.cursor()
-        
+
 
     def create_mysql_table(self):
         """ Create the mysql table.
@@ -157,7 +157,7 @@ class Analyze_Iterative_Tutor_Classification:
                                    self.pars['table_name'],
                                    src_id,
                                    len(dbi_src.x_sdict['ts'].values()[0]['t']),
-                                   sci_class, 
+                                   sci_class,
                                    fpath)
         self.cursor.execute(insert_str)
 
@@ -192,8 +192,8 @@ aitc.connect_to_db()
     def parallel_populate_mysql_with_initial_tutor_sources(self, fpath_list, \
                                                            test_aitc=None):
         """ This takes fpaths to TUTOR Vosource.xmls and adds each source's
-        srcid, science_class to class table in parallel using Ipython1. 
-        
+        srcid, science_class to class table in parallel using Ipython1.
+
         """
         if test_aitc != None:
             # for linear TESTING without Ipython1 / parallelization:
@@ -229,7 +229,7 @@ aitc.connect_to_db()
             vosource_fpath_list = []
             for result in results:
                 vosource_fpath_list.append(result[0])
-            
+
 
 
         if do_nonparallel:
@@ -243,8 +243,8 @@ aitc.connect_to_db()
             #special_vosource_fpath_list.extend(vosource_fpath_list)
             #for i,fpath in enumerate(special_vosource_fpath_list):
             for i,fpath in enumerate(vosource_fpath_list):
-                ptf_master.test_nonthread_nonipython1(use_postgre_ptf=False, 
-                              case_simulate_ptf_stream_using_vosource=True, 
+                ptf_master.test_nonthread_nonipython1(use_postgre_ptf=False,
+                              case_simulate_ptf_stream_using_vosource=True,
                               vosource_xml_fpath=fpath,
                               case_poll_for_recent_postgre_table_entries=False,
                               insert_row_into_iterative_class_probs=True)
@@ -256,8 +256,8 @@ aitc.connect_to_db()
             #p.run("""
 #import ptf_master
 #for i,fpath in enumerate(%s):
-#    ptf_master.test_nonthread_nonipython1(use_postgre_ptf=False, 
-#    case_simulate_ptf_stream_using_vosource=True, 
+#    ptf_master.test_nonthread_nonipython1(use_postgre_ptf=False,
+#    case_simulate_ptf_stream_using_vosource=True,
 #    vosource_xml_fpath=fpath,
 #    case_poll_for_recent_postgre_table_entries=False,
 #    insert_row_into_iterative_class_probs=True)""" % (str(vosource_fpath_list[:14])))
@@ -274,8 +274,8 @@ aitc.connect_to_db()
 
         for fpath in vosource_fpath_list:
             exec_str = \
-               """ptf_master.test_nonthread_nonipython1(use_postgre_ptf=False, 
-                               case_simulate_ptf_stream_using_vosource=True, 
+               """ptf_master.test_nonthread_nonipython1(use_postgre_ptf=False,
+                               case_simulate_ptf_stream_using_vosource=True,
                                vosource_xml_fpath='%s',
                                case_poll_for_recent_postgre_table_entries=False,
                                insert_row_into_iterative_class_probs=True)
@@ -313,11 +313,11 @@ class Retrieve_Tutor_Vosources_From_Web:
         for result in results:
             srcid_list.append(result[0])
         return srcid_list
-    
+
 
     def get_vosource_fpath_list(self, vosource_xml_dirpath=''):
         """ (re)create vosource_xml_dirpath, retrieve available tutor
-        vosource xmls, return a list of their fpaths.        
+        vosource xmls, return a list of their fpaths.
         """
         if os.path.exists(vosource_xml_dirpath):
             assert('scratch' in vosource_xml_dirpath) # sanity check before RM
@@ -354,7 +354,7 @@ class Sciclass_Prob_Arrays:
 
     def add(self, epoch_id, class_name, prob):
 
-        # NOTE: (prob < 0.1) is useful but still cluttered 
+        # NOTE: (prob < 0.1) is useful but still cluttered
         if prob < self.sciclass_probability_cut:
             return # don't plot any points with probabilites less than this %%
         if not self.class_dict.has_key(class_name):
@@ -387,7 +387,7 @@ class Sciclass_Prob_Arrays:
         modeled_epoch_ids.append(epoch_ids[-1])
         modeled_probs.append(probs[-1])
         return (modeled_epoch_ids, modeled_probs)
-    
+
 
     def generate_linearfit_endpoints_segments(self):
         """ Filter ['epoch_ids'] and ['probs'] to contain data which is
@@ -426,7 +426,7 @@ class Sciclass_Prob_Arrays:
                                                  'epoch_ids':modeled_epoch_ids,
                                                  'probs':modeled_probs})
                 i += 1
-        
+
 
     def arrayiffy(self):
         """ We make numarray of all probability and epoch_id lists, for plotting
@@ -434,7 +434,7 @@ class Sciclass_Prob_Arrays:
         for class_name, class_dict in self.class_dict.iteritems():
             class_dict['epoch_ids'] = numpy.array(class_dict['epoch_ids'])
             class_dict['probs'] = numpy.array(class_dict['probs'])
-        
+
 
 class Make_Summary_Plots:
     """ Make PS plots which summarize the iterative classification of TUTOR
@@ -489,7 +489,7 @@ class Make_Summary_Plots:
             self.aitc.cursor.execute(select_str)
             results = self.aitc.cursor.fetchall()
             final_classname = results[0][0]
-            # # # # # # # # DEBUG:   
+            # # # # # # # # DEBUG:
             #final_classname = ''#'Type Ia Supernovae'
             #srcid_finalclassname_dict[src_id] = final_classname
 
@@ -533,7 +533,7 @@ class Make_Summary_Plots:
         # scalar cut plane plotting module stuff:
         import enthought.mayavi
         from enthought.mayavi.modules.scalar_cut_plane import ScalarCutPlane
-        
+
         epoch_ids = [0] # x
         class_groups = [0] # y
         probs = [0] # z
@@ -598,7 +598,7 @@ class Make_Summary_Plots:
         #                    0,i_srcid,
         #                    15, 110])
 
-                    
+
         mlab.axes(xlabel='N of epochs',
                   ylabel='science class',
                   zlabel='% Prob.')#,
@@ -669,7 +669,7 @@ class Make_Summary_Plots:
                 c = stdscr.getch()
                 break
             curses.endwin()
-        
+
         ##### Save figure:
         img_fpath ="/tmp/%s%s.png" %(title_str.replace('=','').replace(' ','_'),
                                      self.pars['save_plot_image_suffix'])
@@ -690,12 +690,12 @@ class Make_Summary_Plots:
         from enthought.mayavi.scripts import mayavi2
         mayavi2.standalone(globals())
         from enthought.mayavi import mlab
-        
+
         epoch_ids = [0] # x
         class_groups = [0] # y
         probs = [0] # z
         styles = [0] # numbers used for coloring & glyph sizes
-        
+
         for src_id,sci_classes in srcid_sciclasses_list:
             #print 'src_id:', src_id
             i = 0
@@ -737,7 +737,7 @@ class Make_Summary_Plots:
         #   ) Then for each class_name, build lists: [epoch_ids] coorsp [probs]
         #   ) Then use the same symbol for a sourceid
         #   ) but use  a different color for each scienc-class.
-        
+
         import pylab
 
         for src_id,sci_classes in srcid_sciclasses_list:
@@ -782,7 +782,7 @@ class Make_Summary_Plots:
             ltext = pylab.gca().get_legend().get_texts()
             for i in xrange(len(color_list)):
                 pylab.setp(ltext[i], fontsize = 7, color = color_list[i]) # doesnt do anything:#, fontweight='heavy')
-            
+
             title_str = "%s %s" % (srcid_finalclassname_dict[src_id], src_id)
             pylab.title(title_str)
             fpath = "/tmp/%s.png" % (title_str.replace(' ','_'))
@@ -790,7 +790,7 @@ class Make_Summary_Plots:
 
 
 if __name__ == '__main__':
-    
+
     aitc = Analyze_Iterative_Tutor_Classification(pars)
     aitc.connect_to_db()
 
@@ -819,7 +819,7 @@ if __name__ == '__main__':
         # (B) # Matplotlib style 2D plots is written to /tmp/*png
         msp.generate_png_plots(srcid_sciclasses_list,srcid_finalclassname_dict)
 
-        sys.exit()        
+        sys.exit()
 
 
     #NOTE: This retrieves the TUTOR Vosource.xml from Web and saves locally:
@@ -838,7 +838,7 @@ if __name__ == '__main__':
 
         #NOTE: This assumes the TUTOR Vosource.xmls have already been saved locally:
         fpath_list = aitc.get_tutor_vosource_xml_fpath_list()
-    
+
         print 'About to: populate_mysql_with_initial_tutor_sources)...'
         aitc.drop_table()
         aitc.create_mysql_table()

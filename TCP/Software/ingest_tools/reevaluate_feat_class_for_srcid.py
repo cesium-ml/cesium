@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Go through various "interesting" source resources and re-evaluate epochs, features. classes
 

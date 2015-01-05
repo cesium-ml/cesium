@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 An example / demo file on how to connect to TCP MySQL server
 """
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     ##### This gets the PTF limiting magnitude for an (ra,dec):
     #select_str = "SELECT filter, ujd, lmt_mg from object_test_db.ptf_candidate_footprint WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (ra, dec)
     select_str = """
-SELECT source_test_db.srcid_lookup_htm.src_id, 
+SELECT source_test_db.srcid_lookup_htm.src_id,
        object_test_db.sdss_events_a.t,
        object_test_db.sdss_events_a.jsb_mag,
        object_test_db.sdss_events_a.jsb_mag_err,

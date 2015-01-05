@@ -39,7 +39,7 @@ if __name__ == '__main__':
         vosource_list.append((str(num), fpath))   # NOTE: a tuple of this form is needed.
 
 
-    a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
+    a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
                           dorun=False, add_srcid_to_arff=True)

@@ -11,24 +11,24 @@ populate_feat_db_using_TCPTUTOR_sources.py
 
 
 ### NOTE: Table defs in testsuite.par.py:
-CREATE TABLE classid_lookup (schema_id SMALLINT UNSIGNED, 
-                             class_id SMALLINT UNSIGNED, 
-                             class_short_name VARCHAR(12) DEFAULT '', 
-                             class_name VARCHAR(100) DEFAULT '', 
-                             schema_n_feats SMALLINT UNSIGNED DEFAULT 0, 
-                             schema_n_classes SMALLINT UNSIGNED DEFAULT 0, 
-                             schema_comment VARCHAR(160) DEFAULT '', 
+CREATE TABLE classid_lookup (schema_id SMALLINT UNSIGNED,
+                             class_id SMALLINT UNSIGNED,
+                             class_short_name VARCHAR(12) DEFAULT '',
+                             class_name VARCHAR(100) DEFAULT '',
+                             schema_n_feats SMALLINT UNSIGNED DEFAULT 0,
+                             schema_n_classes SMALLINT UNSIGNED DEFAULT 0,
+                             schema_comment VARCHAR(160) DEFAULT '',
                              schema_dtime DATETIME,
                              PRIMARY KEY(schema_id, class_id));
 
 CREATE TABLE src_class_probs (schema_id SMALLINT UNSIGNED,
-			      class_id SMALLINT UNSIGNED, 
-			      prob FLOAT,
-		              src_id INT UNSIGNED,
-			      is_primary_class BOOLEAN,
-			      gen_dtime DATETIME,
-			      PRIMARY KEY(schema_id, class_id, prob),
-			      INDEX(schema_id, src_id));
+                              class_id SMALLINT UNSIGNED,
+                              prob FLOAT,
+                              src_id INT UNSIGNED,
+                              is_primary_class BOOLEAN,
+                              gen_dtime DATETIME,
+                              PRIMARY KEY(schema_id, class_id, prob),
+                              INDEX(schema_id, src_id));
 
 """
 import sys, os
@@ -40,13 +40,13 @@ import glob
 #        'tcptutor_hostname':'lyra.berkeley.edu',
 #        'tcptutor_username':'pteluser',
 #        'tcptutor_password':'Edwin_Hubble71',
-#        'tcptutor_port':     3306, 
+#        'tcptutor_port':     3306,
 #        'tcptutor_database':'tutor',
 #        'classdb_hostname':'127.0.0.1',
 #        'classdb_username':'dstarr', #'pteluser',
-#        'classdb_port':     3306, 
+#        'classdb_port':     3306,
 #        'classdb_database':'source_test_db', #'sourcet_db',
- 
+
 local_pars = {'t_sleep':0.2,
         'number_threads':10, # on transx : 10
         'tcp_tutor_srcid_offset':100000000,
@@ -67,7 +67,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
                                   port=self.pars['tcptutor_port'])
         self.tutor_cursor = self.tutor_db.cursor()
 
- 
+
         self.classdb_db = MySQLdb.connect(host=self.pars['classdb_hostname'], \
                                   user=self.pars['classdb_username'],\
                                   db=self.pars['classdb_database'],\
@@ -121,7 +121,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
         else:
             #select_str ='SELECT DISTINCT sources.source_id, classes.class_short_name FROM    sources JOIN classes USING (class_id) WHERE   EXISTS(SELECT Observations.Observation_ID FROM Observations WHERE Observations.Source_ID = sources.Source_ID) AND project_id=%d' % (project_id)
             select_str ='SELECT DISTINCT sources.source_id FROM sources WHERE EXISTS(SELECT Observations.Observation_ID FROM Observations WHERE Observations.Source_ID = sources.Source_ID) AND project_id=%d' % (project_id)
-            
+
         self.tutor_cursor.execute(select_str)
         results = self.tutor_cursor.fetchall()
         srcid_list = []
@@ -135,7 +135,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
                 existing_srcid_lists.append(exisiting_srcid)
             for result in results:
                 if int(result[0]) in existing_srcid_lists:
-                        continue # skip it
+                    continue # skip it
                 srcid_list.append(result[0])
         else:
             for result in results:
@@ -220,7 +220,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
         else:
             print results
             i_schema = int(results[0][0]) + 1
-        
+
         select_str ="SELECT class_id, class_short_name, class_name FROM classes"
         self.tutor_cursor.execute(select_str)
         results = self.tutor_cursor.fetchall()
@@ -229,7 +229,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
         for result in results:
             class_id_list.append(result[0])
         max_class_id = max(class_id_list)
-            
+
         result_list = list(results)
         # We add extra Plugin Classifiers:
         for class_schema_name,schema_dict in self.pars['class_schema_definition_dicts'].iteritems():

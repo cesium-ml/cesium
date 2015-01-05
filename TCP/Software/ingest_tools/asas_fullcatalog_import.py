@@ -23,7 +23,7 @@ except:
 def url_query(catalog_url_str, pars):
     db = Database_Utils(pars)
     db.connect_to_db()
-    
+
     try:
         insert_list = ["INSERT INTO asas_fullcatalog (name, nobs) VALUES "]
         f_url = urllib.urlopen(catalog_url_str)
@@ -44,13 +44,13 @@ def url_query(catalog_url_str, pars):
             #srcname_nobs_tups.append((src_name, nobs))
             if nobs >= 5:
                 insert_list.append('("%s", %d), ' % (src_name, nobs))
-            
+
         insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE nobs=VALUES(nobs)"
         db.tcp_cursor.execute(insert_str)
     except:
         db.tcp_cursor.close()
         db.tutor_cursor.close()
-    
+
 
 
 class Database_Utils:
@@ -173,7 +173,7 @@ class Asas_Full_Catalog_Import(Database_Utils):
                 acvs_grid_name_dist_dict[source_name] = float(dist)
                 print ra, dec
                 # todo now query urllib using the source_name to get all sources
-        
+
         fp = gzip.open(pars['acvs_src_name_dist_dict_fpath'],'wb')
         cPickle.dump(acvs_grid_name_dist_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
@@ -214,11 +214,11 @@ class Asas_Full_Catalog_Import(Database_Utils):
                 continue
             #srcname_nobs_dict = {}
             catalog_url_str = "http://www.astrouw.edu.pl/cgi-asas/asas_map_query/%s,4,0.00,13.00,0.00,9.90,10,0,0,asas3?151,151" % (acvs_source_name)
-            
+
             #url_query(catalog_url_str, pars)
             #import pdb; pdb.set_trace()
-            #print 
-            
+            #print
+
             t = threading.Thread(target=url_query, args=[catalog_url_str, self.pars])
             t.start()
 
@@ -240,14 +240,14 @@ class Asas_Full_Catalog_Import(Database_Utils):
 
 
 
-            #### isNOTE: the reason I use a dict is to ensure that no duplicate 
+            #### isNOTE: the reason I use a dict is to ensure that no duplicate
             #insert_list = []
             #for k,v in srcname_nobs_dict.iteritems():
             #    insert_list
 
             print i, acvs_source_name, catalog_url_str
             #import pdb; pdb.set_trace()
-            #print 
+            #print
 
     def get_tutor_asas_acvs_sourcenames(self):
         """ Retrieve a list of source-names from the TUTOR ASAS AVCS (proj=126) sources.
@@ -262,7 +262,7 @@ class Asas_Full_Catalog_Import(Database_Utils):
             acvs_sourcnames.append(row[0])
         return acvs_sourcnames
 
-            
+
     def get_unretrieved_asas_catalog_sourcename_list(self, sourcename_list_fpath='', nobs_min=0, nobs_max=0):
         """ If given a sourcename_list_fpath, then parse and return the list of source_names.
         Otherwise, query RDB and get a list of source_names using constraints:
@@ -278,7 +278,7 @@ class Asas_Full_Catalog_Import(Database_Utils):
         if len(results) == 0:
             print "NO un-retrieved sources in TABLE asas_fullcatalog in range:", nobs_max, nobs_min
             import pdb; pdb.set_trace()
-            print 
+            print
 
         print "Range: %d - %d; Num results=%d" % (nobs_min, nobs_max, len(results))
 
@@ -292,7 +292,7 @@ class Asas_Full_Catalog_Import(Database_Utils):
 
             sourcename_list.append(source_name)
             outfile_lines.append("%s\n" % (source_name))
-            
+
         sourcename_fpath = "%s_%d_%d.list" % (self.pars['sourcename_fpath_root'],
                                               nobs_min, nobs_max)
         fp = open(sourcename_fpath, 'w')
@@ -322,12 +322,12 @@ class Asas_Full_Catalog_Import(Database_Utils):
 
         for i, source_name in enumerate(sourcename_list):
             fname = "%s/%s.dat" % (self.pars['lightcurve_download_dirpath'], source_name)
-            
+
             if 1:
                 ### slows things down a little bit, might not be nessiccary:
                 if os.path.exists(fname):
                     continue # skip since already downloaded
-            
+
             i_try = 0
             while i_try < 3:
                 try:
@@ -347,7 +347,7 @@ class Asas_Full_Catalog_Import(Database_Utils):
 
 
     def update_table_retrieved(self, sourcename_list=[]):
-        """ Update the RDB table that sources have been retrieved. 
+        """ Update the RDB table that sources have been retrieved.
         """
         insert_list = ["INSERT INTO asas_fullcatalog (name, retrieved) VALUES "]
 
@@ -412,7 +412,7 @@ DROP TABLE temp_asas_ts;
 
             sql_str = """
 
-CREATE TABLE temp_asas_ts_raw 
+CREATE TABLE temp_asas_ts_raw
    (hjd DOUBLE,
     mag_0 FLOAT,
     mag_1 FLOAT,
@@ -431,7 +431,7 @@ CREATE TABLE temp_asas_ts_raw
 
             sql_str = """
 
-LOAD DATA INFILE '/tmp/asas_source.dat' INTO TABLE temp_asas_ts_raw 
+LOAD DATA INFILE '/tmp/asas_source.dat' INTO TABLE temp_asas_ts_raw
 LINES STARTING BY '   '
       TERMINATED BY '\n'
 
@@ -485,7 +485,7 @@ SELECT temp_asas_ts.hjd,
             for row in results[:2]:
                 print row
             import pdb; pdb.set_trace()
-            print 
+            print
             sql_str = """
 DROP TABLE temp_asas_ts_raw;
             """
@@ -552,7 +552,7 @@ DROP TABLE temp_asas_ts_raw;
         #n_frames = 350000 # a slight overestimate of the number of ASAS frames
         import monetdb.sql
         connection = monetdb.sql.connect(username="monetdb", password="monetdb", \
-        	   hostname="localhost", database="my-first-db")
+                   hostname="localhost", database="my-first-db")
         cursor = connection.cursor()
         ### increase the rows fetched to increase performance (optional)
         #cursor.arraysize = n_frames
@@ -605,7 +605,7 @@ DROP TABLE temp_asas_ts_raw;
         #n_frames = 350000 # a slight overestimate of the number of ASAS frames
         import monetdb.sql
         connection = monetdb.sql.connect(username="monetdb", password="monetdb", \
-        	   hostname="localhost", database="my-first-db")
+                   hostname="localhost", database="my-first-db")
         cursor = connection.cursor()
         ### increase the rows fetched to increase performance (optional)
         #cursor.arraysize = n_frames
@@ -629,7 +629,7 @@ DROP TABLE temp_asas_ts_raw;
         dt_2 = datetime.datetime.now()
         print dt_2 - dt_1, 1000, 1
         import pdb; pdb.set_trace()
-        print 
+        print
         # TODO want to store these results in an altered mysql table
 
 
@@ -651,7 +651,7 @@ if __name__ == '__main__':
         'tutor_port':3306, #33306,
         'tcp_hostname':'192.168.1.25',
         'tcp_username':'pteluser',
-        'tcp_port':     3306, #23306, 
+        'tcp_port':     3306, #23306,
         'tcp_database':'source_test_db',
         'asas_map_query_min_incr':1.358, # degrees
         'ra_min':0.0,
@@ -688,8 +688,8 @@ if __name__ == '__main__':
         ### This retrieves the lightcurve data for asas-full-catalog sources mention in RDB table.
 
         # TODO: want to use nobs ranges that fit within a range
-        
-        
+
+
         nobs_min = pars['nobs_min']
         nobs_max = pars['nobs_max']
 
@@ -739,7 +739,7 @@ scp /home/pteluser/scratch/asas_fullcat_lcs/183259-3502.7.dat 192.168.1.25:/tmp/
 DROP TABLE temp_asas_ts_raw;
 DROP TABLE temp_asas_ts;
 
-CREATE TEMPORARY TABLE temp_asas_ts_raw 
+CREATE TEMPORARY TABLE temp_asas_ts_raw
    (hjd DOUBLE,
     mag_0 FLOAT,
     mag_1 FLOAT,
@@ -754,7 +754,7 @@ CREATE TEMPORARY TABLE temp_asas_ts_raw
     grade VARCHAR(1),
     frame INT);
 
-LOAD DATA INFILE '/tmp/183259-3502.7.dat' INTO TABLE temp_asas_ts_raw 
+LOAD DATA INFILE '/tmp/183259-3502.7.dat' INTO TABLE temp_asas_ts_raw
 LINES STARTING BY '   '
       TERMINATED BY '\n'
 
@@ -805,9 +805,9 @@ SELECT temp_asas_ts.hjd,
  -----+-------+--------+-------+---------+----------+--------+--------+--------+--------+--------+
 | hjd        | grade | frame  | n     | m_avg   | m_var    | m0     | m1     | m2     | m3     | m4     |
 +------------+-------+--------+-------+---------+----------+--------+--------+--------+--------+--------+
-| 3818.81001 | D     | 183313 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
-| 2124.61804 | D     |  27642 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
-|  1948.8921 | D     |   9129 |     4 | 12.5258 | 0.554665 | 13.021 | 13.014 | 12.825 | 11.243 |      0 | 
-| 1950.89155 | D     |   9476 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
-| 1978.85767 | D     |  12130 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
+| 3818.81001 | D     | 183313 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
+| 2124.61804 | D     |  27642 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
+|  1948.8921 | D     |   9129 |     4 | 12.5258 | 0.554665 | 13.021 | 13.014 | 12.825 | 11.243 |      0 |
+| 1950.89155 | D     |   9476 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
+| 1978.85767 | D     |  12130 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
     """

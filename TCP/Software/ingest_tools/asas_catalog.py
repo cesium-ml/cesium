@@ -31,10 +31,10 @@ Queries:
               WHERE catalog_id=1 AND class_id=234
 ### To show all 1st probs for a class:
   SELECT prob FROM asascat_probs
-              WHERE catalog_id=1 AND class_id=234 AND classifier_rank=1     
+              WHERE catalog_id=1 AND class_id=234 AND classifier_rank=1
 ### To show 1st class prob for a source:
   SELECT prob FROM asascat_probs
-              WHERE catalog_id=1 AND tutor_srcid=123456 AND classifier_rank=1  
+              WHERE catalog_id=1 AND tutor_srcid=123456 AND classifier_rank=1
 ### Show rank=1 prob, is_acvs, is_trainset info for all sources:
   SELECT tutor_srcid, asascat_probs.class_id, prob, asascat_train_sources.class_id
               FROM asascat_probs
@@ -43,7 +43,7 @@ Queries:
               LEFT JOIN asascat_acvs_sources ON asascat_acvs_sources.catalog_id=asascat_probs.catalog_id
                                              ON asascat_acvs_sources.tutor_srcid=asascat_probs.tutor_srcid
               WHERE catalog_id=1 AND asascat_probs.classifier_rank=1
-              
+
 
 # TABLE: asascat_names
 Columns:
@@ -118,8 +118,8 @@ Columns:
 tutor_simbad_classes
 | src_id | simbad_class | simbad_dist | simbad_sptype |
 +--------+--------------+-------------+---------------+
-| 229376 | PulsV*       |        0.04 | M0            | 
-| 262145 | Star         |       21.94 | M             | 
+| 229376 | PulsV*       |        0.04 | M0            |
+| 262145 | Star         |       21.94 | M             |
 
 
 NOTE:
@@ -303,7 +303,7 @@ PRIMARY KEY (catalog_id, tutor_srcid))
         Should have these already:
         print src_dict.keys()
             ['decl', 'm_avg', 'delta_t', 'srcid', 'n_points', 'm_std', 'ra']
-        
+
         """
 
         src_dict.update({'freq1_harmonics_freq_0':[],
@@ -380,7 +380,7 @@ PRIMARY KEY (catalog_id, tutor_srcid))
         """ Adam Miller requires the avg mags for some wtts sources for vanderbilt U followup
         """
         import numpy
-        
+
         srcids = numpy.loadtxt('/home/pteluser/scratch/wtts_dotid', unpack=True)
 
         for srcidflt in srcids:
@@ -403,7 +403,7 @@ if __name__ == '__main__':
         'tutor_port':3306, #33306,
         'tcp_hostname':'192.168.1.25',
         'tcp_username':'pteluser',
-        'tcp_port':     3306, #23306, 
+        'tcp_port':     3306, #23306,
         'tcp_database':'source_test_db',
         'catalog_id':0,
         }
@@ -411,7 +411,7 @@ if __name__ == '__main__':
     AsasCatalog = Asas_Catalog(pars=pars)
     #AsasCatalog.create_tables()
     #sys.exit()
-    
+
     import cPickle, gzip
     srcdict_pkl_fpath = '/home/pteluser/scratch/asas_catalog_srcdict.pkl.gz'
     if os.path.exists(srcdict_pkl_fpath):
@@ -425,7 +425,7 @@ if __name__ == '__main__':
         fp.close()
 
     #ONETIMEUSE# AsasCatalog.temp_find_avgmags_for_miller_wtts(src_dict=src_dict)
-    
+
     #AsasCatalog.fill_asascat_source_attribs_using_tutor_results(catalog_id=pars['catalog_id'],
     #                                                            src_dict=src_dict)
 

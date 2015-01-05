@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
    v0.1 Tool used for initating an Ipython (v0.9.1+) cluster using
         multiple nodes This actually uses ipcontroller and ipengine
@@ -29,7 +29,7 @@ TO SETUP a remote, ssh tunneled ipengine node:
   - SETUP an ssh tunnel on the ipcontroller computer for controller/engine (transx)
 
        ssh -R 23611:localhost:23612 pteluser@lyra.berkeley.edu
-  
+
   - EDIT the ipcontroller-engine.furl on the ipengine client computer
     so that the 2nd IP is 127.0.0.1 and the portforwared port.  Eg:
 
@@ -49,7 +49,7 @@ os.environ['TCP_DATA_DIR']=os.path.expandvars('$HOME/scratch/TCP_scratch/')
     kill and start the ipcontroller, start ipengines,
     and run a TaskClient test.
 
-    
+
 
 TODO: Eventually have this script run by testsuite.py?
 
@@ -79,7 +79,7 @@ class Setup_System:
         exec_str = "pkill -f .*ipcontroller.*"
         #KILLS SCREEN NOOOO! #exec_str = "pkill -f .*ipengine.*"
         os.system(exec_str)
-        
+
 
     def initialize_controller(self):
         """ initialize controller on local machine.
@@ -133,7 +133,7 @@ class Setup_System:
             t.join(10.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
                 print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
-                
+
 
     def kill_engines_on_taskclients(self):
         """ pkill any existing ipengines on local and remote
@@ -273,7 +273,7 @@ os.environ['CLASSPATH']=os.path.expandvars('$HOME/src/install/weka-3-5-7/weka.ja
             #    tc.clear()
         print '!!! NUMBER OF TASKS STILL SCHEDULED: ', tc.queue_status()['scheduled']
         for i,taskid in enumerate(task_list):
-            ### NOTE: The following retrieval doesnt work if 
+            ### NOTE: The following retrieval doesnt work if
             ###       tc.clear()      was called earlier:
             task_result = tc.get_task_result(taskid, block=True)
             print task_result['cat']
@@ -316,7 +316,7 @@ if __name__ == '__main__':
     TestSystem = Test_System()
     TestSystem.main()
     time.sleep(0.01) # This seems to fix a traceback where Ipython/Twisted trips on itself while shutting down
-    
+
     """
                 {'name':'__local__',
                  'hostname':'127.0.0.1',

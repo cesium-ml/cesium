@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 """
 
 Contains Classes which wrap R classifiers using rpy2.
@@ -30,7 +30,7 @@ def missforest_parallel_task(varInd, ximp, obsi, misi, varType, ntree, p):
     robjects.globalenv['misi'] = robjects.BoolVector(misi)
     robjects.globalenv['varType'] = varType
     robjects.globalenv['ntree'] = ntree
-    robjects.globalenv['p'] = p    
+    robjects.globalenv['p'] = p
     robjects.r("""
 obsY <- ximp[obsi, varInd] # training response
 obsX <- ximp[obsi, seq(1, p)[-varInd]] # training variables
@@ -71,7 +71,7 @@ class Rpy2Classifier:
     source("%s/missForest.R")
     ''' % (algorithms_dirpath, algorithms_dirpath)#, algorithms_dirpath)
         #source("%s/class_cv.R")
-        
+
         #source("/home/pteluser/src/TCP/Algorithms/utils_classify.R")
         #NOTNEEDED#source("/home/pteluser/src/TCP/Algorithms/class_cv.R")
         robjects.r(r_str)
@@ -95,7 +95,7 @@ class Rpy2Classifier:
 
     def read_features_dat(self, fpath="/home/pteluser/scratch/features.dat"):
         """ Read Joey features.dat
-        
+
         Taken from tutorial_rpy.py
 
         """
@@ -125,7 +125,7 @@ class Rpy2Classifier:
 
         for feat_name, feat_list in feat_val_dict.iteritems():
             feat_val_dict[feat_name] = robjects.FloatVector(feat_list)
-            
+
         return {'feat_list':out_list,
                 'n_cols':n_cols,
                 'feat_names':feat_names,
@@ -166,7 +166,7 @@ class Rpy2Classifier:
         return None # shouldn't get here.
 
 
-    def parse_full_arff(self, arff_str='', parse_srcid=True, parse_class=True, 
+    def parse_full_arff(self, arff_str='', parse_srcid=True, parse_class=True,
                         skip_missingval_lines=False, fill_arff_rows=False):
         """ Parse class & features from a full arff file.
         """
@@ -187,7 +187,7 @@ class Rpy2Classifier:
             elif line[:10] == '@ATTRIBUTE':
                 if (('class' in line) or
                     ('source_id' in line)):
-                    #if line[11:16] == 
+                    #if line[11:16] ==
                     continue # I could store the potential classes somewhere
                 else:
                     feat_name = line.split()[1]
@@ -209,7 +209,7 @@ class Rpy2Classifier:
                     else:
                         i_r = line.rfind("'")
                         i_l = line.rfind("'", 0, i_r)
-                        
+
                     a_class = line[i_l+1:i_r]
                     class_list.append(a_class) #a_class.strip("'"))
                     shortline = line[:i_l -1] #feat_list[:-1]
@@ -309,7 +309,7 @@ class Rpy2Classifier:
             out_lines.append(new_line)
         new_train_arff_str = '\n'.join(out_lines)
         return new_train_arff_str
-    
+
 
     def train_randomforest(self, data_dict, do_ignore_NA_features=False,
                            ntrees=1000, mtry=25, nfolds=10, nodesize=5):
@@ -325,7 +325,7 @@ class Rpy2Classifier:
 
         robjects.globalenv['x'] = data_dict['features']
         robjects.globalenv['y'] = data_dict['classes']
-        
+
         if do_ignore_NA_features:
             feat_trim_str = 'x = as.data.frame(x[,-which(substr(names(x),1,4)=="sdss"   | substr(names(x),1,3)=="ws_")])'
         else:
@@ -379,7 +379,7 @@ class Rpy2Classifier:
 
         robjects.globalenv['xtr'] = traindata_dict['features']
         robjects.globalenv['ytr'] = traindata_dict['classes']
-        
+
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
         for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
             test_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
@@ -493,12 +493,12 @@ class Rpy2Classifier:
 
         This function is used to explore the errors which arrise due to imputation of ASAS data
              for various "ntree" parameter values used in randomForest()
-                 
+
         1 - (40588 / 46057.) = 0.11874416483922101
            -> where 46057 is the number of sources with both NA and non-NA attribs
            -> where 40588 is the number of sources with non-NA attribs
         So we will simulate this NA-source ratio un the 40588 source dataset
-            by adding 
+            by adding
 
         """
         import datetime
@@ -644,7 +644,7 @@ class Rpy2Classifier:
 
         robjects.globalenv['xtr'] = traindata_dict['features']
         robjects.globalenv['ytr'] = traindata_dict['classes']
-        
+
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
         for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
             test_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
@@ -665,7 +665,7 @@ class Rpy2Classifier:
         #for class_name in testdata_dict['class_list']:
         #    if (('algol' in class_name.lower()) or ('persei' in class_name.lower())):
         #        print '!', class_name
- 
+
         r_str  = '''
 
     m=%d
@@ -885,7 +885,7 @@ class Rpy2Classifier:
 
         robjects.globalenv['x'] = data_dict['features']
         robjects.globalenv['y'] = data_dict['classes']
-        
+
         if do_ignore_NA_features:
             feat_trim_str = 'x = as.data.frame(x[,-which(substr(names(x),1,4)=="sdss"   | substr(names(x),1,3)=="ws_")])'
         else:
@@ -956,7 +956,7 @@ class Rpy2Classifier:
     y = class.debos(y)
     n = length(y)
     p = length(table(y))
-    
+
     predictions = matrix(0,nrow=n,ncol=p)
     predictions = predict(%s,newdata=x,type='prob')
     pred = levels(y)[apply(predictions,1,which.max)]
@@ -972,7 +972,7 @@ class Rpy2Classifier:
     y = class.debos(y)
     n = length(y)
     p = length(table(y))
-    
+
     predictions = matrix(0,nrow=n,ncol=p)
     predictions = predict(%s,newdata=x,type='prob')
     #pred_symmetric = factor(rf_clfr$classes[apply(predictions,1,which.max)],levels=rf_clfr$classes) # printing pred_symmetric will show the final classification for each source
@@ -985,7 +985,7 @@ class Rpy2Classifier:
         ###### show the features used in testset & classifier:
         #print numpy.sort(numpy.array(robjects.r('names(x)')))
         #print numpy.sort(numpy.array(robjects.r('rownames(rf.tr$importance)')))
-        
+
         # # # # # NOTE: I since the confmat (ie (pred,y) does not always have m==n, this err.rate is not always correctly calculated
         robjects.r(r_str)
         classifier_error_rate = robjects.globalenv['err.rate']  # 20110308: NOTE: I think err.rate and confmat are only useful when the training and testing datasets have classes from the same set-of-classes.
@@ -1008,8 +1008,8 @@ class Rpy2Classifier:
                         predictions['tups'].append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
                     except:
                         predictions['tups'].append((srcid, j, tups_list[j][0], tups_list[j][1]))
-                        
-        
+
+
         ##### DEBUG
         #print 'Orig clases:', robjects.globalenv['y']
         #print '"pred" final predictions:', robjects.globalenv['pred']
@@ -1018,10 +1018,10 @@ class Rpy2Classifier:
         #print 'dstarr R predictions:', robjects.r("rf_clfr$classes[apply(predictions,1,which.max)]")
 
         #print robjects.r("apply(predictions,1,which.max)")
-        #1  2  3  4  5 
-        #10 11  8 25 25 
+        #1  2  3  4  5
+        #10 11  8 25 25
         #print robjects.r("levels(y)")
-        #[1] "g. RR Lyrae, FM" "i. RR Lyrae, DM" "j. Delta Scuti"  "x. Beta Lyrae"  
+        #[1] "g. RR Lyrae, FM" "i. RR Lyrae, DM" "j. Delta Scuti"  "x. Beta Lyrae"
         # print robjects.r("rf_clfr$classes")
 
 
@@ -1032,7 +1032,7 @@ class Rpy2Classifier:
         #confusion_matrix_axes_classes = []
         #for line in cmat_lines[2:]:
         #    if len(line) < 4:
-        #        break 
+        #        break
         #    if line[3] == '.':
         #        confusion_matrix_axes_classes.append(line[:i_end].strip())
         #    else:
@@ -1047,7 +1047,7 @@ class Rpy2Classifier:
         # # # # # # #
         # # # # # # #
         #####
-     
+
         out_dict = {'error_rate':classifier_error_rate[0],
                     'robj_confusion_matrix':robj_confusion_matrix,
                     'predicted_classes':predicted_classes,
@@ -1102,7 +1102,7 @@ class Rpy2Classifier:
     y = class.debos(y)
     n = length(y)
     p = length(table(y))
-    
+
     predictions = matrix(0,nrow=n,ncol=p)
     predictions = predict(%s,newdata=x,type='prob')
         ''' % (classifier_dict['class_name'])
@@ -1124,7 +1124,7 @@ class Rpy2Classifier:
                         predictions['tups'].append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
                     except:
                         predictions['tups'].append((srcid, j, tups_list[j][0], tups_list[j][1]))
-                        
+
         out_dict = {'predictions':predictions,
                     'possible_classes':possible_classes,
                     }
@@ -1148,7 +1148,7 @@ class Rpy2Classifier:
 
         robjects.globalenv['x'] = data_dict['features']
         robjects.globalenv['y'] = data_dict['classes']
-        
+
         if do_ignore_NA_features:
             feat_trim_str = 'x = as.data.frame(x[,-which(substr(names(x),1,4)=="sdss"   | substr(names(x),1,3)=="ws_")])'
         else:
@@ -1160,7 +1160,7 @@ class Rpy2Classifier:
     n = length(y)
     p = length(table(y))
     test = cbind(y,x)
-    
+
     predictions = matrix(0,nrow=n,ncol=p)
     predictions = matrix(unlist(treeresponse(%s,newdata=test)),n,p,byrow=T)
     pred = levels(y)[apply(predictions,1,which.max)]
@@ -1181,7 +1181,7 @@ class Rpy2Classifier:
         predicted_classes = robjects.globalenv['pred']
         #20110118 does not work for cforest classifier object#
         #         possible_classes = robjects.r("rf_clfr$classes")
-        
+
         ##### DEBUG
         #print 'Orig clases:', robjects.globalenv['y']
         #print '"pred" final predictions:', robjects.globalenv['pred']
@@ -1190,10 +1190,10 @@ class Rpy2Classifier:
         #print 'dstarr R predictions:', robjects.r("rf_clfr$classes[apply(predictions,1,which.max)]")
 
         #print robjects.r("apply(predictions,1,which.max)")
-        #1  2  3  4  5 
-        #10 11  8 25 25 
+        #1  2  3  4  5
+        #10 11  8 25 25
         #print robjects.r("levels(y)")
-        #[1] "g. RR Lyrae, FM" "i. RR Lyrae, DM" "j. Delta Scuti"  "x. Beta Lyrae"  
+        #[1] "g. RR Lyrae, FM" "i. RR Lyrae, DM" "j. Delta Scuti"  "x. Beta Lyrae"
         # print robjects.r("rf_clfr$classes")
 
 
@@ -1204,7 +1204,7 @@ class Rpy2Classifier:
         #confusion_matrix_axes_classes = []
         #for line in cmat_lines[2:]:
         #    if len(line) < 4:
-        #        break 
+        #        break
         #    if line[3] == '.':
         #        confusion_matrix_axes_classes.append(line[:i_end].strip())
         #    else:
@@ -1219,7 +1219,7 @@ class Rpy2Classifier:
         # # # # # # #
         # # # # # # #
         #####
-     
+
         out_dict = {'error_rate':classifier_error_rate[0],
                     'robj_confusion_matrix':robj_confusion_matrix,
                     'predicted_classes':predicted_classes,
@@ -1277,7 +1277,7 @@ class Rpy2Classifier:
 
     def get_crossvalid_errors(self, feature_data_dict={}, ntree=None, mtry=None, random_seed=None, srcid_list=[], class_list=[]):
         """ Do cross-validation, return the errors, results.
-        
+
         # Reference class_cv.R::rf.cv and
         # TCP/Docs/tutorial_rpy.py::classifier_test_randomforest()
 
@@ -1332,7 +1332,7 @@ err.rate = 1-sum(diag(confmat))/n
         #err.rate = rf.out$err.rate
         error_rate = robjects.r(r_str)[0]
         return error_rate
-                              
+
 
 class GenerateFoldedClassifiers:
     """ Generate stratified or non-stratified trainingset/to-train datasets.
@@ -1343,7 +1343,7 @@ class GenerateFoldedClassifiers:
         pass
 
 
-    def generate_fold_subset_data(self, full_data_dict={}, 
+    def generate_fold_subset_data(self, full_data_dict={},
                                   n_folds=10,
                                   do_stratified=False,
                                   classify_percent=None):
@@ -1397,7 +1397,7 @@ class GenerateFoldedClassifiers:
         if do_stratified:
             ### Stratified case will have to keep track of which srcids were used in each train/classif fold.
             print 'do_stratified!!!  Case not coded yet!'
-            
+
             raise
         else:
             for class_name, ind_list in class_indlist.iteritems():
@@ -1439,8 +1439,8 @@ class GenerateFoldedClassifiers:
 
         return all_fold_dict
 
-        
-    def generate_R_randomforest_classifier_rdata(self, train_data={}, 
+
+    def generate_R_randomforest_classifier_rdata(self, train_data={},
                                                  classifier_fpath='',
                                                  do_ignore_NA_features=True,
                                                  algorithms_dirpath='',
@@ -1474,7 +1474,7 @@ class GenerateFoldedClassifiers:
 
 if __name__ == '__main__':
 
-    
+
     ##### Usage example:
     rc = Rpy2Classifier()
 
@@ -1492,7 +1492,7 @@ if __name__ == '__main__':
     if 1:
         # generate multiple (folded) classifiers:
         import cPickle
-        
+
         Gen_Fold_Classif = GenerateFoldedClassifiers()
         all_fold_data = Gen_Fold_Classif.generate_fold_subset_data(full_data_dict=traindata_dict,
                                                                    n_folds=10,
@@ -1530,7 +1530,7 @@ if __name__ == '__main__':
             classifier_dict = {'r_name':r_name}
             rc.load_classifier(r_name=r_name,
                                fpath=classifier_fpath)
-        
+
 
 
     classif_results = rc.apply_randomforest(classifier_dict=classifier_dict,
@@ -1539,4 +1539,3 @@ if __name__ == '__main__':
     import pdb; pdb.set_trace()
 
     #TODO:   crossvalid_results = rc.get_crossvalid_errors()
-
