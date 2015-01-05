@@ -151,7 +151,12 @@ def initialize(list_of_extractors):
     #for extractor in list_of_extractors:
     list_of_extractor_objects = []
     for extractor_name in list_of_extractors:
-        exec("extractor = %s" % (extractor_name)) #KLUDGY
+        d = {}
+        exec("extractor = %s" % str(extractor_name), globals(), d) #KLUDGY
+        try:
+            extractor = d["extractor"]
+        except KeyError:
+            extractor = None
         list_of_extractor_objects.append(extractor)
         if isinstance(extractor,type):
             instance = extractor()

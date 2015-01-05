@@ -385,14 +385,23 @@ class Internal_Feature_Extractors:
 
         # Get doc strings (KLUDGY! but works.):
         for (feat_name,feat_dict) in self.features_tup_list:
-            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % (feat_name))
+            d = {}
+            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % str(feat_name), globals(), d)
             #print x
+            try:
+                x = d["x"]
+            except KeyError:
+                x = None
             if x == None:
                 x = ''
             feat_dict['doc'] = x
-            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name))
+            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name), globals(), d)
+            try:
+                x = d["x"]
+            except KeyError:
+                x = None
             feat_dict['internal'] = 'false'
-            for member_name,member_val in x:
+            for member_name, member_val in x:
                 if member_name == 'internal_use_only':
                     if member_val == True:
                         feat_dict['internal'] = 'true'

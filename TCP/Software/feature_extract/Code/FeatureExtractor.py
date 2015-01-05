@@ -14,7 +14,7 @@ except:
 from . import internal_generated_extractors_holder # 20080508 KLUDGE
 
 try:
-    from . import feature_interfaces
+    import feature_interfaces
 except:
     pass
 #20090321#import amara
@@ -154,10 +154,12 @@ class GeneralExtractor(object):
 
     def register_extractor(self): # broken
         """ register this extractor as an active extractor"""
-        feature_interfaces.feature_interface.register_extractor(type(self))
+        #feature_interfaces.feature_interface.register_extractor(type(self))
+        pass
     def remove_extractor(self): # broken
         """ inactivate this extractor """
-        feature_interfaces.feature_interface.remove_extractor(type(self))
+        #feature_interfaces.feature_interface.remove_extractor(type(self))
+        pass
     def plots(self,properties=None):
         if not properties: properties = self.dic
         self.set_names(properties['input'])
