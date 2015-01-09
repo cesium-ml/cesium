@@ -1937,8 +1937,9 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
     """
     with open(headerfile_path) as f:
         all_header_fnames = []
-        column_header_line = f.readline()
+        column_header_line = str(f.readline())
         for line in f:
+            line = str(line)
             if line.strip() != '':
                 if len(line.strip().split(",")) < 2:
                     raise custom_exceptions.DataFormatError((
@@ -1969,6 +1970,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                 line.strip() for line in f.readlines() if line.strip() != '']
             line_no = 1
             for line in all_lines:
+                line = str(line)
                 if line_no == 1:
                     num_labels = len(line.split(','))
                     if num_labels < 2:
@@ -2050,6 +2052,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                     f.readlines() if line.strip() != '']
                 line_no = 1
                 for line in all_lines:
+                    line = str(line)
                     if line_no == 1:
                         num_labels = len(line.split(','))
                         if num_labels < 2:
@@ -2071,8 +2074,8 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                     line_no += 1
     else:
         with open(newpred_file_path) as f:
-            all_lines = [
-                line.strip() for line in f.readlines() if line.strip() != '']
+            all_lines = [str(line).strip() for line in 
+                         f.readlines() if str(line).strip() != '']
         file_name_variants = [
             f.name, f.name.split("/")[-1], 
             (f.name.split("/")[-1].replace("."+f.name.split("/")[-1].
@@ -2108,6 +2111,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
         with open(metadata_file_path) as f:
             line_count = 0
             for line in f:
+                line = str(line)
                 if line.strip() != '':
                     if len(line.strip().split(",")) < 2:
                         raise custom_exceptions.DataFormatError((
@@ -2359,14 +2363,14 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        results_str = run_in_docker_container.featurize_in_docker_container(
-            headerfile_path, zipfile_path, features_to_use, featureset_key, 
-            is_test, already_featurized, custom_script_path)
-        #results_str = build_rf_model.featurize(
-        #    headerfile_path, zipfile_path, features_to_use=features_to_use, 
-        #    featureset_id=featureset_key, is_test=is_test, 
-        #    already_featurized=already_featurized, 
-        #    custom_script_path=custom_script_path)
+        #results_str = run_in_docker_container.featurize_in_docker_container(
+        #    headerfile_path, zipfile_path, features_to_use, featureset_key, 
+        #    is_test, already_featurized, custom_script_path)
+        results_str = build_rf_model.featurize(
+            headerfile_path, zipfile_path, features_to_use=features_to_use, 
+            featureset_id=featureset_key, is_test=is_test, 
+            already_featurized=already_featurized, 
+            custom_script_path=custom_script_path, USE_DISCO=False)
         if email_user not in (False, None, "False", "None"):
             emailUser(email_user)
     except Exception as theErr:
