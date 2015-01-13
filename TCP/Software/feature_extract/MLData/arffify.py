@@ -35,7 +35,7 @@ import glob
 #sys.path.append(os.path.expandvars('$HOME/src/TCP/Software/feature_extract/Code/extractors'))
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract/Code/extractors'))
-import mlens3
+from ..Code.extractors import mlens3
 
 # pre 20091117:
 #skip_features = ['beyond1std', 'chi2', 'chi2_per_deg', 'dc', 'example', 'first_freq', 'freq1_harmonics_freq_1', 'freq1_harmonics_freq_2', 'freq1_harmonics_freq_3', 'freq2_harmonics_amplitude_error_1', 'freq2_harmonics_amplitude_error_2', 'freq2_harmonics_amplitude_error_3', 'freq2_harmonics_freq_1', 'freq2_harmonics_freq_2', 'freq2_harmonics_freq_3', 'freq3_harmonics_amplitude_error_1', 'freq3_harmonics_amplitude_error_2', 'freq3_harmonics_amplitude_error_3', 'freq3_harmonics_freq_1', 'freq3_harmonics_freq_2', 'freq3_harmonics_freq_3', 'freq_searched_max', 'max', 'median', 'min', 'old_dc', 'ratio21', 'ratio31', 'ratio32', 'ratioRUfirst', 'second', 'std', 'third', 'wei_av_uncertainty', 'weighted_average', 'distance_in_arcmin_to_nearest_galaxy', 'distance_in_kpc_to_nearest_galaxy', 'freq1_harmonics_nharm', 'freq2_harmonics_nharm', 'freq2_harmonics_signif', 'freq3_harmonics_nharm', 'freq3_harmonics_signif', 'percent_amplitude', 'max_slope'] #, 'n_points'

@@ -35,11 +35,11 @@ class XmlDictObject(dict):
     def __setattr__(self, item, value):
         self.__setitem__(item, value)
 
-    def __str__(self):
-        if '_text' in self:
-            return self.__getitem__('_text')
-        else:
-            return ''
+    #def __str__(self):
+    #    if '_text' in self:
+    #        return self.__getitem__('_text')
+    #    else:
+    #        return ''
 
     @staticmethod
     def Wrap(x):

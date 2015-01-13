@@ -55,11 +55,7 @@ import vosource_parse, xmldict
 
 __version__ = "1.0.2"
 
-try:
-    import db_importer
-except:
-    sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + "/Software/Noisification/"))
-    import db_importer
+from .. import db_importer
 
 class Mlens:
 
@@ -548,6 +544,7 @@ class EventData:
 
     def __init__(self,data):
         ## should be
+        #print("DATA:\n\n", data, "\n\n", type(data))
         if isinstance(data,xmldict.XmlDictObject) or isinstance(data,dict):
             self.data = data
         if isinstance(data,str):
@@ -562,6 +559,7 @@ class EventData:
                 v = vosource_parse.vosource_parser(data, is_xmlstring=True)
                 self.fname = data
                 #self.elemtree = v.elemtree # 20090225 dstarr added
+                #print("*"*80, "\n\n", v.d)
                 self.data = v.d
                 # self.fiter_data/dict = .... ?etree?
 
@@ -592,8 +590,9 @@ class EventData:
         """
         self.feat_dict = {'multiband':{}}
         # TODO: there are different filters. Use these.
-
+        print("self.data['VOSOURCE'] (line 597): \n\n", self.data['VOSOURCE'])
         for feat_obj in self.data.get('VOSOURCE',{}).get('Features',{}).get('Feature',[]):
+            print("feat_obj:", feat_obj)
             a_feat_dict = dict(feat_obj)
             feat_name = a_feat_dict.get('name',{}).get('_text','NOT_A_FEATURE')
             filt_name = a_feat_dict.get('filter',{}).get('_text','NOT_A_FILTER')

@@ -2,21 +2,12 @@ import numpy
 from numpy import random
 from scipy import fftpack, stats, optimize
 
-try:
-    from pylab import *
-except:
-    pass
-try:
-    from .extractors import *
-except:
-    pass
+#from pylab import *
+#from .extractors import *
+
 
 from . import internal_generated_extractors_holder # 20080508 KLUDGE
 
-try:
-    import feature_interfaces
-except:
-    pass
 #20090321#import amara
 
 class ExtractException(Exception):
@@ -154,12 +145,16 @@ class GeneralExtractor(object):
 
     def register_extractor(self): # broken
         """ register this extractor as an active extractor"""
+        #from . import feature_interfaces
         #feature_interfaces.feature_interface.register_extractor(type(self))
         pass
+        
     def remove_extractor(self): # broken
         """ inactivate this extractor """
-        #feature_interfaces.feature_interface.remove_extractor(type(self))
         pass
+        #from . import feature_interfaces
+        #feature_interfaces.feature_interface.remove_extractor(type(self))
+    
     def plots(self,properties=None):
         if not properties: properties = self.dic
         self.set_names(properties['input'])
@@ -173,7 +168,6 @@ class GeneralExtractor(object):
     def plot_feature(self,properties):
         print("I don't know how to plot myself", self.extname) # implement in subclasses
 
-
     def fetch_extr(self,extractor_name,properties=None,error=True, band=None, returnall = False, return_object = False):
         """ Fetch the result from other extractors
         error (boolean): True to proagate the error of fetched extractors """
@@ -184,6 +178,7 @@ class GeneralExtractor(object):
             return self.fetch_extr_old(extractor_name,properties,error, band, returnall, return_object)
         #print extractor_name, self.properties, self.band
         # # # # # # # # dstarr KLUDGE (next single condition:):
+        from . import feature_interfaces
         fetched_extractor = feature_interfaces.feature_interface.request_extractor(extractor_name) # the feature interface is in charge of storing and finding extractors, receives an extractor or False
         if not fetched_extractor: #if the feature_interface was unable to find the extractor
             self.ex_error("Extractor %s not able to fetch extractor %s" % (self.extname, extractor_name))

@@ -31,11 +31,11 @@ except Exception as theError:
 if DISCO_INSTALLED:
     import parallel_processing
 import custom_exceptions
-sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
-# for when run from inside docker container:
-sys.path.append("/home/mltp/TCP/Software/ingest_tools")
-import generate_science_features
 import custom_feature_tools as cft
+#sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+# for when run from inside docker container:
+#sys.path.append("/home/mltp/TCP/Software/ingest_tools")
+from TCP.Software.ingest_tools import generate_science_features
 
 
 def read_data_from_csv_file(fname,sep=',',skip_lines=0):
@@ -414,6 +414,7 @@ def featurize(
                             set(cfg.features_list_science)) > 0:
                         science_features = generate_science_features.generate(
                             path_to_csv=path_to_csv)
+                        print(science_features)
                     else:
                         science_features = {}
                     if custom_script_path not in (None, "None", 

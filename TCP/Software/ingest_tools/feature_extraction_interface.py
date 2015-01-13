@@ -17,7 +17,9 @@ import numpy
 
 import glob
 
-ext1 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/'
+base_dir = os.path.dirname(__file__)
+tcp_dir = os.path.join(base_dir, '../..')
+ext1 = os.path.join(tcp_dir, 'Software/feature_extract/Code/extractors/')
 #ext2 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/common_function/'
 
 class GetFeatIdLookupDicts:
@@ -97,6 +99,8 @@ class Internal_Feature_Extractors:
         # This needs to retain list ordering, but I figure it'd be useful
         #    to have potential dictionary attributes associated with
         #    each internal-feature extractor.
+
+        ## TODO: Implement safer way of detecting plugins
 
         ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
         init = ext1 + "__init__.py"
@@ -362,7 +366,7 @@ class Internal_Feature_Extractors:
             if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
                 tmp = l.split("import")[-1].strip().split(",")
                 #print (tmp,len(tmp))
-                features.extend(tmp)
+                features.extend([el.strip() for el in tmp])
 
         #tmp = glob.glob(ext1 + "*extract*.py")
         #features = []
@@ -386,22 +390,22 @@ class Internal_Feature_Extractors:
         # Get doc strings (KLUDGY! but works.):
         for (feat_name,feat_dict) in self.features_tup_list:
             d = {}
-            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % str(feat_name), globals(), d)
+            from ..feature_extract.Code import extractors
+            feature = getattr(extractors, feat_name)
+            doc = getattr(feature, '__doc__', '')
+            #exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % str(feat_name), globals(), d)
             #print x
-            try:
-                x = d["x"]
-            except KeyError:
-                x = None
-            if x == None:
-                x = ''
-            feat_dict['doc'] = x
-            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name), globals(), d)
-            try:
-                x = d["x"]
-            except KeyError:
-                x = None
+            feat_dict['doc'] = doc
+            
+            import inspect
+            #exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = #inspect.getmembers(Code.extractors.%s)" % (feat_name), globals(), d)
+           # try:
+           #     x = d["x"]
+           # except KeyError:
+            #    x = None
+            
             feat_dict['internal'] = 'false'
-            for member_name, member_val in x:
+            for member_name, member_val in inspect.getmembers(feature):
                 if member_name == 'internal_use_only':
                     if member_val == True:
                         feat_dict['internal'] = 'true'

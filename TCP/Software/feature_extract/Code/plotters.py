@@ -4,7 +4,6 @@ except:
     pass
 from numpy import *
 import numpy
-from . import feature_interfaces
 
 
 class plotter(object):
@@ -19,6 +18,7 @@ class plotter(object):
             plot(properties['time_data'],dc_line,label='real dc from generator')
         else:
 #                       try:
+            from . import feature_interfaces
             extractor = feature_interfaces.extractor_fetch(what)
             if what in properties:
                 pass

@@ -74,8 +74,8 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR","") + \
               '/Software/feature_extract/Code')) # 20090309 dstarr adds this for nosetests use only
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR","") + \
               '/Software/feature_extract/Code/extractors')) # 20090309 dstarr adds this for xmldict load only
-import xmldict
-import vo_timeseries
+from .extractors import xmldict
+from . import vo_timeseries
 import numpy
 try:
     import numarray
@@ -1310,6 +1310,8 @@ class Source:
         """ Given a signals_list (aka parent <generator>.signals_list),
         Add features to self.x_sdict and self.xml_string (for XML file write).
         """
+        
+        #print("\n\n\n", "signals_list:", signals_list[0].properties['data'], "\n\n\n")
         # KLUDGE: Assume 1 source in signals_list
         self.x_sdict['features'] = {}
         self.x_sdict['feature_docs'] = {}
@@ -1327,6 +1329,7 @@ class Source:
                 self.x_sdict['features'][filter_name][feat_name] = str(value_object)
                 self.x_sdict['feature_docs'][filter_name][feat_name] = \
                                      str(value_object.__doc__).replace('&','__AMPERSAND__').replace("'",'__SINGLEQUOTE__').replace('"','__DOUBLEQUOTE__')[:500]
+        #print("\n\n\nself.x_sdict:\n\n", self.x_sdict, "\n\n")
         self.source_dict_to_xml(self.x_sdict)
 
 

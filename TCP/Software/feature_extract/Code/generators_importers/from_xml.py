@@ -1,5 +1,5 @@
 import numpy, sys
-import db_importer
+from .. import db_importer
 from .storage import storage
 from numpy import log, exp, arange, median, ceil, pi
 

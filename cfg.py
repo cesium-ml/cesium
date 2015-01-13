@@ -11,7 +11,7 @@ HOME_DIRECTORY = os.path.expanduser("~")
 
 # Specify path to project directory:
 PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp")
-DATA_PATH = os.path.join(HOME_DIRECTORY, "Data")
+DATA_PATH = os.path.join(PROJECT_PATH, "Data")
 
 
 # Specify path to uploads, models, and feature folders:
@@ -189,7 +189,7 @@ def currently_running_in_docker_container():
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
-    if "/docker/" in output:
+    if "/docker/" in str(output):
         in_docker_container=True
     else:
         in_docker_container=False

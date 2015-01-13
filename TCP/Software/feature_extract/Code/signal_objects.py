@@ -1,16 +1,15 @@
-from . import feature_interfaces
 from . import plotters
 from . import FeatureExtractor
 
 #global_list_of_extractors = [] # Global KLUDGE: # 20071215 dstarr.  Apparently this is done since feature_interfaces.initialize() is called outside of everything
-global_list_of_extractors = feature_interfaces.initialize([])
 #20090321#import amara
 
 class signal(object):
     def __init__(self,data,register=True):
         self.properties = data
         self.choose_plotter()
-        if register: self.register_signal()
+        if register:
+            self.register_signal()
     def choose_plotter(self):
         self.plotter = plotters.plotter()
     def update(self,extract_method):
@@ -31,10 +30,13 @@ class signal(object):
         """ says to the interface: i'm interested in hearing about new features
         initialize determines whether active features should immediately be applied
         """
+        from . import feature_interfaces
+        from .feature_interfaces import global_list_of_extractors
         feature_interfaces.feature_interface.register_signal(self, \
                                              global_list_of_extractors, initialize=initialize)
     def remove_signal(self):
         """ says to the interface: I don't care about new features anymore """
+        from . import feature_interfaces
         feature_interfaces.feature_interface.remove_signal(self)
     #def plots(self,what = 'data'):
     #       self.plotter.plots(what)

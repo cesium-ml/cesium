@@ -1,13 +1,13 @@
 import os, sys
 import numpy
 from numpy import *
-from . import extractors
-from .extractors import *
-from . import FeatureExtractor
+#from . import extractors
+#from .extractors import *
 #from fetchers import *
 from . import internal_generated_extractors_holder
 
 avtype = [('extname','S100') , ('extractor',object_), ('active',bool_)] # format of available_extractors
+
 
 class FeatureInterface(object):
     """This serves as an interface between signals and extractors.
@@ -115,7 +115,7 @@ class FeatureInterface(object):
 
     def find_extname(self,extractor_name, index = False): # linked if want to modify the array directly
         extractor_index = where(self.available_extractors['extname'] ==\
-                                extractor_name)[0]
+                                extractor_name.encode('utf-8'))[0]
         if size(extractor_index) is 0:
             print("find_extname couldn't find extractor %s" % \
                                                     (extractor_name))
@@ -138,32 +138,46 @@ feature_interface = FeatureInterface()
 
 
 def initialize(list_of_extractors):
-    sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-                                                   'Software/ingest_tools'))
-    import feature_extraction_interface
+    #sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
+    #                                               'Software/ingest_tools'))
+    from ...ingest_tools import feature_extraction_interface
     fs = feature_extraction_interface.Internal_Feature_Extractors()
     for key_name in fs.feature_ordered_keys:
         list_of_extractors.append(key_name)
+    #print(list_of_extractors)
     # The following list is no-longer explicitly defined here.
     #    Rather, I build the list in feature_extraction_interface.py
     #list_of_extractors.extend([ weighted_average_extractor , chi2extractor , dc_extractor , dist_from_u_extractor , fourierextractor , linear_extractor , max_slope_extractor , medianextractor , beyond1std_extractor , stdvs_from_u_extractor , old_dcextractor , power_spectrum_extractor , power_extractor , montecarlo_extractor ,  pct_80_montecarlo_extractor , pct_90_montecarlo_extractor , pct_95_montecarlo_extractor , pct_99_montecarlo_extractor , significant_80_power_extractor , significant_90_power_extractor , significant_95_power_extractor , significant_99_power_extractor , first_freq_extractor , sine_fit_extractor , sine_leastsq_extractor , skew_extractor , stdextractor , wei_av_uncertainty_extractor  , lomb_extractor , first_lomb_extractor , sine_lomb_extractor , second_extractor , third_extractor , second_lomb_extractor , ratio21, ratio31, ratio32]) # order matters!
     #for extractor in extractors.__dict__.values():
     #for extractor in list_of_extractors:
     list_of_extractor_objects = []
+    
+    from . import extractors
+    
     for extractor_name in list_of_extractors:
         d = {}
-        exec("extractor = %s" % str(extractor_name), globals(), d) #KLUDGY
-        try:
-            extractor = d["extractor"]
-        except KeyError:
-            extractor = None
+        extractor = getattr(extractors, extractor_name)
+        #exec("extractor = %s" % str(extractor_name), globals(), d) #KLUDGY
+        #try:
+        #    extractor = d["extractor"]
+        #except KeyError:
+        #    extractor = None
         list_of_extractor_objects.append(extractor)
         if isinstance(extractor,type):
             instance = extractor()
-            if isinstance(instance,FeatureExtractor.GeneralExtractor):
+            #if isinstance(instance,FeatureExtractor.GeneralExtractor):
+            #    instance.register_extractor()
+            #else:
+            #    pass
+            try:
+                # TODO: Figure out why we have to register the extractor
+                # both on the extractor and the feature_interface instance
                 instance.register_extractor()
-            else:
-                pass
+                feature_interface.register_extractor(type(instance))
+            except Exception as e:
+                raise(e)
+                print("Could not register extractor", extractor_name)
+                print(e.msg)
         else:
             pass
     return list_of_extractor_objects
@@ -174,3 +188,6 @@ def fetch_extract(extractor_name,properties,band=None):
     extractor = feature_interface.request_extractor(extractor_name)
     result = extractor.extr(properties,band=band)
     return result
+
+
+global_list_of_extractors = initialize([])

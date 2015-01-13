@@ -1,0 +1,491 @@
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1636, in testNewScript
+    script_fpath=scriptfile_path)
+TypeError: test_new_script() got an unexpected keyword argument 'script_fname'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/9f2747e9-9/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/0c44a1a5-e/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/a415ba36-a/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/e0294d91-1/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/fc0bee16-6/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/4f76382d-e/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/d8d0116a-8/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 434, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 368, in docker_extract_features
+    "rb") as f:
+IOError: [Errno 2] No such file or directory: '/tmp/cf0a6e1d-0/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 430, in test_new_script
+    if (is_running_in_docker_container() and
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 612, in is_running_in_docker_container
+    if "/docker/" in output:
+TypeError: Type str doesn't support the buffer API
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 430, in test_new_script
+    if (is_running_in_docker_container() and
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 612, in is_running_in_docker_container
+    if "/docker/" in output:
+TypeError: Type str doesn't support the buffer API
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 453, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 381, in docker_extract_features
+    "rb") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/d95e7e07-9/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 453, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 381, in docker_extract_features
+    "rb") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/44519185-2/results_list_of_dict.pkl'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 454, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 383, in docker_extract_features
+    results_list_of_dict = pickle.load(f)
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xa7 in position 1: ordinal not in range(128)
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 454, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 383, in docker_extract_features
+    results_list_of_dict = pickle.load(f)
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xa7 in position 1: ordinal not in range(128)
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/3c87c9f6-e18c-4ec1-ad57-c1b522fcb5d2_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/9155231c-d3df-443e-a09e-5e1099b7db00_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/a0ebf9ff-f570-4d7e-b4f4-468cc37bb9a9_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/e080f8f0-366f-4354-93a6-6f3d61774c48_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/a17e6103-4a49-49a4-b656-c0d5d236b649_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/adbf4cf9-b007-4e25-ad46-c980943fbb98_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/b556cd9a-63df-4ab4-b6a7-1aa02c57f024_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/1c47b85c-4ee7-4d32-8e79-8b2698c2fa26_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/5c9eaf58-ab75-4942-8d78-b4a5057d69e7_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/05034eef-f4bc-49b7-b9e5-d28b285c62af_features_with_classes.csv'
+ERROR:root:testNewScript error.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1634, in testNewScript
+    test_results = cft.test_new_script(script_fpath=scriptfile_path)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 454, in test_new_script
+    features_already_known_list=features_already_known_list)
+  File "/home/arien/Dropbox/work_etc/mltp/custom_feature_tools.py", line 382, in docker_extract_features
+    "rb") as f:
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/6d767c8e-6/results_list_of_dict.pkl'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/82ad51dc-edcf-4590-964d-c8723b857b72_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/f69919fc-751a-4279-ab6f-47bef8c3deaf_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2366, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/b587583a-2d95-42bf-afc9-96db480540a6_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.build_model() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 3191, in build_model_proc
+    model_type=model_type))
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 195, in build_model_in_docker_container
+    check_call(cmd)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 542, in check_call
+    retcode = call(*popenargs, **kwargs)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 523, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 819, in __init__
+    restore_signals, start_new_session)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 1370, in _execute_child
+    executable = os.fsencode(executable)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/os.py", line 811, in fsencode
+    raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+TypeError: expect bytes or str, not tuple
+ERROR:root:Error occurred during build_rf_model.build_model() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 3191, in build_model_proc
+    model_type=model_type))
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 195, in build_model_in_docker_container
+    check_call(cmd)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 542, in check_call
+    retcode = call(*popenargs, **kwargs)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 523, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 819, in __init__
+    restore_signals, start_new_session)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 1370, in _execute_child
+    executable = os.fsencode(executable)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/os.py", line 811, in fsencode
+    raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+TypeError: expect bytes or str, not tuple
+ERROR:root:Error occurred during build_rf_model.build_model() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 3191, in build_model_proc
+    model_type=model_type))
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 195, in build_model_in_docker_container
+    check_call(cmd)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 542, in check_call
+    retcode = call(*popenargs, **kwargs)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 523, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 819, in __init__
+    restore_signals, start_new_session)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/subprocess.py", line 1370, in _execute_child
+    executable = os.fsencode(executable)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/os.py", line 811, in fsencode
+    raise TypeError("expect bytes or str, not %s" % type(filename).__name__)
+TypeError: expect bytes or str, not tuple
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2371, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/459ca72e-c0a4-4fe2-8950-fa936f4e8d87_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2371, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/c6eb52d5-2c14-4d60-a4e3-05c5f1165e99_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2371, in featurize_proc
+    is_test, already_featurized, custom_script_path)
+  File "/home/arien/Dropbox/work_etc/mltp/run_in_docker_container.py", line 118, in featurize_in_docker_container
+    os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 243, in copy2
+    copyfile(src, dst, follow_symlinks=follow_symlinks)
+  File "/home/arien/anaconda/envs/py3/lib/python3.3/shutil.py", line 109, in copyfile
+    with open(src, 'rb') as fsrc:
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/a2ad7ce8-20f9-4bc5-81f6-d066e53b2a00_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/0724f19a-7f2f-4d49-b7a9-b18ebdbc2df3_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/d9675e99-9304-438a-bdd3-311d8e2df1cb_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/9a4da7b6-108d-413a-986d-8a17e34d6cd5_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/7864e09a-5730-4dc5-b1bf-91b8bfa038be_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/82dbc4ff-6c18-4af6-9112-ee138c672f71_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/9fc64935-cd48-4f03-9144-eb37c5af55b7_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/cfd42e1a-ee32-4e52-874e-24cf2c51d703_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/c1f432bd-6980-48bf-a9ce-707dd94f5401_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/495c9194-3eeb-4910-8bc8-840cef76eef0_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/6468f2d1-70b0-4efa-baee-e101f5779f53_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/5e665c99-6be5-4137-9def-e3b2f658d120_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/77596235-57e2-4f27-96ad-3b33b7e4cf3a_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/49d8ba01-7f75-4521-ae22-cd76ba83409f_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/ba2d7350-138d-4c93-b284-e45b1310b7fc_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/2ca8c6f7-6f50-4df8-8d79-d0e5784f7c0b_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/3b085c20-9109-482e-859d-786fd100dc8b_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/a2a3cde7-2ab1-457b-9ceb-539ccea5999e_features_with_classes.csv'
+ERROR:root:Tried to delete a file that does not exist.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 1466, in update_project_info
+    "%s_features_with_classes.csv"%features_key))
+FileNotFoundError: [Errno 2] No such file or directory: '/home/arien/Data/flask_mltsp/extracted_features/eddc3d99-957f-4561-8998-ab59a4f20f57_features_with_classes.csv'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2373, in featurize_proc
+    custom_script_path=custom_script_path, USE_DISCO=False)
+  File "/home/arien/Dropbox/work_etc/mltp/build_rf_model.py", line 416, in featurize
+    path_to_csv=path_to_csv)
+  File "/home/arien/mltsp/TCP/Software/ingest_tools/generate_science_features.py", line 285, in generate
+    test_arff_str = generate_arff_using_raw_xml(out_xml)
+  File "/home/arien/mltsp/TCP/Software/ingest_tools/generate_science_features.py", line 149, in generate_arff_using_raw_xml
+    out_dict = a.generate_arff_line_for_vosourcexml(num=new_srcid, xml_fpath=xml_fpath)
+  File "/home/arien/mltsp/TCP/Software/ingest_tools/../../Software/feature_extract/MLData/arffify.py", line 843, in generate_arff_line_for_vosourcexml
+    d = mlens3.EventData(xml_fpath)
+  File "/home/arien/mltsp/TCP/Software/feature_extract/Code/extractors/mlens3.py", line 571, in __init__
+    self.get_features_from_data()
+  File "/home/arien/mltsp/TCP/Software/feature_extract/Code/extractors/mlens3.py", line 596, in get_features_from_data
+    for feat_obj in self.data.get('VOSOURCE',{}).get('Features',{}).get('Feature',[]):
+AttributeError: 'str' object has no attribute 'get'
+ERROR:root:Error occurred during build_rf_model.featurize() call.
+Traceback (most recent call last):
+  File "flask/flask_app.py", line 2373, in featurize_proc
+    custom_script_path=custom_script_path, USE_DISCO=False)
+  File "/home/arien/Dropbox/work_etc/mltp/build_rf_model.py", line 416, in featurize
+    path_to_csv=path_to_csv)
+  File "/home/arien/mltsp/TCP/Software/ingest_tools/generate_science_features.py", line 285, in generate
+    test_arff_str = generate_arff_using_raw_xml(out_xml)
+  File "/home/arien/mltsp/TCP/Software/ingest_tools/generate_science_features.py", line 149, in generate_arff_using_raw_xml
+    out_dict = a.generate_arff_line_for_vosourcexml(num=new_srcid, xml_fpath=xml_fpath)
+  File "/home/arien/mltsp/TCP/Software/ingest_tools/../../Software/feature_extract/MLData/arffify.py", line 843, in generate_arff_line_for_vosourcexml
+    d = mlens3.EventData(xml_fpath)
+  File "/home/arien/mltsp/TCP/Software/feature_extract/Code/extractors/mlens3.py", line 571, in __init__
+    self.get_features_from_data()
+  File "/home/arien/mltsp/TCP/Software/feature_extract/Code/extractors/mlens3.py", line 596, in get_features_from_data
+    for feat_obj in self.data.get('VOSOURCE',{}).get('Features',{}).get('Feature',[]):
+AttributeError: 'str' object has no attribute 'get'

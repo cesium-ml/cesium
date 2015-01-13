@@ -17,27 +17,27 @@ it's up to the user to decide how to use those columns...there's almost no refor
 
 """
 from scipy import *
-import xmldict, os, sys
+import xmldict
+import os, sys
 from xml.etree import cElementTree as ElementTree # this is a nicer implementation
 from pprint import pprint
 
 class vosource_parser:
 
 
-    def __init__(self,fname, is_xmlstring=False):
+    def __init__(self, fname, is_xmlstring=False):
         self.fname = fname
+        self.d = {}
+
         if is_xmlstring:
             self._parse_xmlstring()
-            if self.d:
-                self._make_timeseries()
-            return # get out of here
-        if not os.path.exists(self.fname):
-            self.d = {}
-        else:
+        elif os.path.exists(self.fname):
             self._parse()
-            if self.d:
-                self._make_timeseries()
-
+        
+        if self.d:
+            self._make_timeseries()
+    
+        
     def _parse(self):
         try:
             # 20090225 dstarr adds:
@@ -50,6 +50,9 @@ class vosource_parser:
     def _parse_xmlstring(self):
         try:
             # 20090225 dstarr adds:
+            #print(self.fname, 'x'*80, '\n\n', type(self.fname))
+            with open("/home/arien/xml_str.txt", "w") as f:
+                f.write(self.fname)
             self.elemtree = ElementTree.fromstring(self.fname)
             self.d = xmldict.ConvertXmlToDict(self.elemtree)
         except:

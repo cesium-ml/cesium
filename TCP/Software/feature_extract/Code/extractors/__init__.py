@@ -1,5 +1,5 @@
 import os, glob, sys, types
-ext1 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/'
+#ext1 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/'
 
 #20101207#from chi2_per_deg_extractor  import chi2_per_deg_extractor
 #20101207#from chi2extractor  import chi2extractor
