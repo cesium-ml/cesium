@@ -3,7 +3,7 @@
 # Config file for MLTSP flask app.
 #
 
-
+from __future__ import print_function
 import os, sys
 
 # path to user's home directory
@@ -13,24 +13,21 @@ HOME_DIRECTORY = os.path.expanduser("~")
 PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp")
 DATA_PATH = os.path.join(PROJECT_PATH, "Data")
 
-
 # Specify path to uploads, models, and feature folders:
-UPLOAD_FOLDER = os.path.join(DATA_PATH, "flask_mltsp/flask_uploads")
-MODELS_FOLDER = os.path.join(DATA_PATH, "flask_mltsp/classifier_models")
-FEATURES_FOLDER = os.path.join(DATA_PATH, "flask_mltsp/extracted_features")
-
+UPLOAD_FOLDER = os.path.join(DATA_PATH, "flask_uploads")
+MODELS_FOLDER = os.path.join(DATA_PATH, "classifier_models")
+FEATURES_FOLDER = os.path.join(DATA_PATH, "extracted_features")
+CUSTOM_FEATURE_SCRIPT_FOLDER = os.path.join(
+    UPLOAD_FOLDER,
+    "custom_feature_scripts")
+ERR_LOG_PATH = os.path.join(
+    DATA_PATH, "logs/errors_and_warnings.txt")
 
 # Specify path to generate_science_features script in TCP:
 TCP_INGEST_TOOLS_PATH = os.path.join(PROJECT_PATH, "TCP/Software/ingest_tools")
 
-
-ERR_LOG_PATH = os.path.join(
-    DATA_PATH, "flask_mltsp/logs/errors_and_warnings.txt")
-
-
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
-
 features_list = [
     "n_epochs","avg_err","med_err","std_err", 
     "total_time","avgt","cads_std","avg_mag",
@@ -183,18 +180,15 @@ features_to_plot = [
     "freq1_harmonics_rel_phase_1"]
 
 
-
-
 def currently_running_in_docker_container():
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
-    if "/docker/" in str(output):
+    if "/docker/" in output:
         in_docker_container=True
     else:
         in_docker_container=False
     return in_docker_container
-
 
 
 if not os.path.exists(PROJECT_PATH):
@@ -202,9 +196,11 @@ if not os.path.exists(PROJECT_PATH):
     if currently_running_in_docker_container() == False:
         sys.exit(-1)
 
+
 for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
-             ERR_LOG_PATH):
-    path = os.path.dirname(path)
+             ERR_LOG_PATH, CUSTOM_FEATURE_SCRIPT_FOLDER):
+    if path == ERR_LOG_PATH:
+        path = os.path.dirname(path)
     if not os.path.exists(path):
         print("Creating %s" % path)
         os.makedirs(path)

@@ -234,6 +234,9 @@ def pred_featurize_reduce(iter, params):
                     list(timeseries_features.items()) + list(science_features.items()) + 
                     list(meta_features.items())),
                 ts_data=deepcopy(ts_data))
+            if (type(custom_features) == list and 
+                len(custom_features) == 1):
+                    custom_features = custom_features[0]
         else:
             custom_features = {}
         
@@ -347,6 +350,9 @@ def featurize_reduce(iter, params):
                         list(science_features.items()) +
                         (list(params['meta_features'][fname].items()) if
                          fname in params['meta_features'] else list({}.items()))))
+                if (type(custom_features) == list and 
+                    len(custom_features) == 1):
+                        custom_features = custom_features[0]
             else:
                 custom_features = {}
             

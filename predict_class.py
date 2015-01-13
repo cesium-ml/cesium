@@ -237,6 +237,9 @@ def predict(
                             (list(meta_features[short_fname].items()) if 
                              short_fname in meta_features else 
                              list({}.items()))),ts_data=deepcopy(ts_data))
+                    if (type(custom_features) == list and 
+                        len(custom_features) == 1):
+                            custom_features = custom_features[0]
                 else:
                     custom_features = {}
             
@@ -317,6 +320,9 @@ def predict(
                     (
                         list(meta_features[short_fname].items()) if short_fname in 
                         meta_features else list({}.items()))),ts_data=ts_data)
+            if (type(custom_features) == list and 
+                len(custom_features) == 1):
+                    custom_features = custom_features[0]
         else:
             custom_features = {}
         features_dict = dict(
