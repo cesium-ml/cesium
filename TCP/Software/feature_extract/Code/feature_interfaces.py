@@ -156,7 +156,7 @@ def initialize(list_of_extractors):
     
     for extractor_name in list_of_extractors:
         d = {}
-        extractor = getattr(extractors, extractor_name)
+        extractor = getattr(extractors, extractor_name + '_extractor')
         #exec("extractor = %s" % str(extractor_name), globals(), d) #KLUDGY
         #try:
         #    extractor = d["extractor"]

@@ -8,6 +8,8 @@ except:
     pass
 from .common_functions import ChiSquare
 
+from . import old_dc_extractor
+
 class sine_fit_extractor(InterExtractor,ChiSquare):
     active = True
     extname = 'sine_fit' #extractor's name

@@ -9,7 +9,7 @@ except:
 from .common_functions import *
 from .common_functions.plot_methods import plot_vs_frequencies
 
-class fourierextractor(plot_vs_frequencies,InterExtractor):
+class fourier_extractor(plot_vs_frequencies,InterExtractor):
     active = 1
     active = False
     extname = 'fourier' #extractor's name

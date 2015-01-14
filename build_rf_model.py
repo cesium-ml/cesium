@@ -414,7 +414,23 @@ def featurize(
                             set(cfg.features_list_science)) > 0:
                         science_features = generate_science_features.generate(
                             path_to_csv=path_to_csv)
+                        
+                        
+                        ### Added 1/13/15: Just for testing purposes:
                         print(science_features)
+                        features_successful = []
+                        features_failed = []
+
+                        for k,v in science_features.items():
+                            if v == "?":
+                                features_failed.append(k)
+                            else:
+                                features_successful.append(k)
+
+                        print("\n\n", "#"*80, "\n\n", len(features_successful), "features successfully generated: \n", features_successful, "\n")
+                        print(len(features_failed), "features failed: \n", features_failed, "\n\n", "#"*80)
+                        ### end testing block
+                        
                     else:
                         science_features = {}
                     if custom_script_path not in (None, "None", 

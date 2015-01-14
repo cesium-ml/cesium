@@ -5,10 +5,10 @@ import os, glob, sys, types
 #20101207#from chi2extractor  import chi2extractor
 #20101207#from dc_extractor  import dc_extractor
 from .dist_from_u_extractor  import dist_from_u_extractor
-from .fourierextractor  import fourierextractor
+from .fourier_extractor  import fourier_extractor
 from .linear_extractor  import linear_extractor
 from .max_slope_extractor  import max_slope_extractor
-from .medianextractor  import medianextractor
+from .median_extractor  import median_extractor
 from .beyond1std_extractor  import beyond1std_extractor
 from .stdvs_from_u_extractor  import stdvs_from_u_extractor
 #from old_dcextractor  import old_dcextractor
@@ -24,7 +24,7 @@ from .skew_extractor  import skew_extractor
 #from kurtosis_extractor  import kurtosis_extractor #20101121 joey recommends disabling since it is very similar to small_kurtosis_extractor
 from .s_extractor import s_extractor
 #from small_kurtosis_extractor  import small_kurtosis_extractor
-from .stdextractor  import stdextractor
+from .std_extractor  import std_extractor
 from .median_absolute_deviation_extractor import median_absolute_deviation_extractor
 from .wei_av_uncertainty_extractor  import wei_av_uncertainty_extractor
 from .weighted_average_extractor  import weighted_average_extractor
@@ -79,7 +79,7 @@ from .qso_extractor import qso_log_chi2_qsonu_extractor, qso_log_chi2nuNULL_chi2
 from .stetson_extractor import stetson_j_extractor, stetson_k_extractor
 #stetson_mean_extractor, # this is essentially the mean lightcurve magnitude
 
-from .color_diff_extractor import static_colors_extractor, color_diff_jh_extractor, color_diff_hk_extractor, color_diff_bj_extractor, color_diff_vj_extractor, color_diff_rj_extractor, color_bv_extinction_extractor
+#from .color_diff_extractor import static_colors_extractor, color_diff_jh_extractor, color_diff_hk_extractor, color_diff_bj_extractor, color_diff_vj_extractor, color_diff_rj_extractor, color_bv_extinction_extractor
 
 from .lcmodel_extractor import lcmodel_extractor, lcmodel_pos_mag_ratio_extractor, lcmodel_pos_n_ratio_extractor, lcmodel_median_n_per_day_extractor, lcmodel_pos_n_per_day_extractor, lcmodel_neg_n_per_day_extractor, lcmodel_pos_area_ratio_extractor
 
@@ -87,6 +87,9 @@ from .ar_is_extractor import ar_is_theta_extractor, ar_is_sigma_extractor
 
 ## JSB additions
 from .interng_extractor import interng_extractor
+
+
+from .old_dc_extractor import old_dc_extractor
 #20101207#from closest_in_light import closest_in_light
 #20101207#from closest_in_light_absolute_bmag import closest_in_light_absolute_bmag
 #20101207#from closest_in_light_angle_from_major_axis import closest_in_light_angle_from_major_axis

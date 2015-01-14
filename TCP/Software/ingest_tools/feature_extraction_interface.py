@@ -22,7 +22,7 @@ tcp_dir = os.path.join(base_dir, '../..')
 ext1 = os.path.join(tcp_dir, 'Software/feature_extract/Code/extractors/')
 #ext2 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/common_function/'
 
-class GetFeatIdLookupDicts:
+class GetFeatIdLookupDicts(object):
     """ This class retrieves a couple lookup dicts from disk, and
     if they dont exist, they are generated from an RDB query and written to disk.
 
@@ -86,81 +86,6 @@ class GetFeatIdLookupDicts:
 
         self.feature_lookup_dict = feature_lookup_dict
         self.filt_lookup_dict = filt_lookup_dict
-
-
-class Internal_Feature_Extractors:
-    """ Class which contains "internal feature" definition lists & dictionaries
-    """
-
-    ## modules (instead of classes) will break the test suite. Put these here as appropriate.
-    ignores = ["min_extractor","max_extractor","third_extractor"]
-
-    def __init__(self):
-        # This needs to retain list ordering, but I figure it'd be useful
-        #    to have potential dictionary attributes associated with
-        #    each internal-feature extractor.
-
-        ## TODO: Implement safer way of detecting plugins
-
-        ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
-        init = ext1 + "__init__.py"
-        f = open(init)
-        ff = f.readlines()
-        f.close()
-        features = []
-        for l in ff:
-            if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
-                tmp = l.split("import")[-1].strip().split(",")
-                #print (tmp,len(tmp))
-                features.extend(tmp)
-
-        #tmp = glob.glob(ext1 + "*extract*.py")
-        #features = []
-        #for i in range(len(tmp)):
-        #    ug = open(tmp[i],"r")
-        #    ff = ug.readlines()
-        #    ug.close()
-        #    for l in ff:
-        #        if l[:15].find("class ") != -1 and l.find("#class") == -1:
-        #            addit = True
-        #            for i in self.ignores:
-        #                if l.find(i) != -1:
-        #                    addit = False
-        #                    print (l,i)
-        #            if addit:
-        #                features.append(l.split("class ")[1].split("(")[0])
-        tmp = "self.features_tup_list = [" + ", ".join(["('" + x + "',{})" for x in features]) + "]"
-        #print tmp
-        exec(tmp)
-
-        # Get doc strings (KLUDGY! but works.):
-        for (feat_name,feat_dict) in self.features_tup_list:
-            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % (feat_name))
-            #print x
-            if x == None:
-                x = ''
-            feat_dict['doc'] = x
-            exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name))
-            feat_dict['internal'] = 'false'
-            for member_name,member_val in x:
-                if member_name == 'internal_use_only':
-                    if member_val == True:
-                        feat_dict['internal'] = 'true'
-                    break
-
-        #TODO: I need to store this info to feat_values table.
-
-        ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
-
-        #print self.features_tup_list
-
-        # TODO: I'm sure there is an efficient way to form a dictionary
-        #       from the above tuple list, using map(), filter(), etc...
-        self.feature_dict = {}
-        self.feature_ordered_keys = []
-        for (feat_name,feat_dict) in self.features_tup_list:
-            self.feature_ordered_keys.append(feat_name)
-            self.feature_dict[feat_name] = feat_dict
 
 
 class Final_Features:
@@ -356,42 +281,23 @@ class Internal_Feature_Extractors:
         #    to have potential dictionary attributes associated with
         #    each internal-feature extractor.
 
-        ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
-        init = ext1 + "__init__.py"
-        f = open(init)
-        ff = f.readlines()
-        f.close()
-        features = []
-        for l in ff:
-            if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
-                tmp = l.split("import")[-1].strip().split(",")
-                #print (tmp,len(tmp))
-                features.extend([el.strip() for el in tmp])
+        import inspect
+        
+        from ..feature_extract.Code.FeatureExtractor import FeatureExtractor, InterExtractor
+        from ..feature_extract.Code import extractors
+        
+        extractor_candidates = [extractor for (name, extractor) in inspect.getmembers(extractors)
+                                if inspect.isclass(extractor)]
+        extractors = [extractor.extname for extractor in extractor_candidates
+                      if issubclass(extractor, (FeatureExtractor, InterExtractor))]
+        features = [e.replace('_extractor', '') for e in extractors]
+        
+        self.features_tup_list = [(feature, {}) for feature in features]
 
-        #tmp = glob.glob(ext1 + "*extract*.py")
-        #features = []
-        #for i in range(len(tmp)):
-        #    ug = open(tmp[i],"r")
-        #    ff = ug.readlines()
-        #    ug.close()
-        #    for l in ff:
-        #        if l[:15].find("class ") != -1 and l.find("#class") == -1:
-        #            addit = True
-        #            for i in self.ignores:
-        #                if l.find(i) != -1:
-        #                    addit = False
-        #                    print (l,i)
-        #            if addit:
-        #                features.append(l.split("class ")[1].split("(")[0])
-        tmp = "self.features_tup_list = [" + ", ".join(["('" + x + "',{})" for x in features]) + "]"
-        #print tmp
-        exec(tmp)
-
-        # Get doc strings (KLUDGY! but works.):
         for (feat_name,feat_dict) in self.features_tup_list:
             d = {}
             from ..feature_extract.Code import extractors
-            feature = getattr(extractors, feat_name)
+            feature = getattr(extractors, feat_name + '_extractor')
             doc = getattr(feature, '__doc__', '')
             #exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % str(feat_name), globals(), d)
             #print x

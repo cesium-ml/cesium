@@ -47,8 +47,10 @@ class GeneralExtractor(object):
                 self.longenough() # check that there is enough data to run this
                 result = self.extract()
                 self.why_fail = False # I didn't fail so far
-            except ExtractException:
+            except ExtractException as e:
                 result = False
+                print("!"*80, "\n", "Extraction failed for", self.extname, "\n", e, "!"*80, "\n")
+                #raise(e)
                 #self.why_fail = "I don't know why it failed"
             self.prepare_obj(result)
         ### check that resources are not wasted
