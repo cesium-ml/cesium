@@ -24,7 +24,6 @@ from pprint import pprint
 
 class vosource_parser:
 
-
     def __init__(self, fname, is_xmlstring=False):
         self.fname = fname
         self.d = {}
@@ -33,29 +32,27 @@ class vosource_parser:
             self._parse_xmlstring()
         elif os.path.exists(self.fname):
             self._parse()
-        
+
         if self.d:
             self._make_timeseries()
-    
-        
+
+
     def _parse(self):
         try:
             # 20090225 dstarr adds:
             self.elemtree = ElementTree.parse(self.fname).getroot()
             self.d = xmldict.ConvertXmlToDict(self.elemtree)
-        except:
+        except Exception as e:
+            print(e)
             self.d = {}
             return
 
     def _parse_xmlstring(self):
         try:
-            # 20090225 dstarr adds:
-            #print(self.fname, 'x'*80, '\n\n', type(self.fname))
-            with open("/home/arien/xml_str.txt", "w") as f:
-                f.write(self.fname)
             self.elemtree = ElementTree.fromstring(self.fname)
             self.d = xmldict.ConvertXmlToDict(self.elemtree)
-        except:
+        except Exception as e:
+            print("EXCEPTION:", e)
             self.d = {}
             return
 

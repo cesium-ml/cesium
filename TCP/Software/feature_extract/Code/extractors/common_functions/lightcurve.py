@@ -1,20 +1,34 @@
 #!/usr/bin/env python
 
-## Filename: lightcurve.py
-## Version:  0.1  (realistically this is nearly the hundredth version)
-## Notes:
-##     -This code uses the pre_whiten from the NOISIFICATION directory. (the dictionary this prewhiten outputs has a 'y_offset' key and uses a shorter nharm_min-max range).
-##     -Main change for v0.1:  lomb_scargle and pre_whiten take input signal errors. Before they were assigning uniform errors to each datapoint.
-##                             pre_whiten has an lower and upper limit in scanning harmonics (4-20).  This is significant for phase offset issues
-##     -TO STORE IN DATABASE:
-##         In GetPeriodFoldForWeb.generate_lomb_period_fold there is a dictionary called db_dictionary.  The values stored in here will be what you want to put online.  Need
-##         to have a method that returns this dictionary though.  Also, it may be best to store more harmonics, if we find that the cut I am using is too strict.  Currently it
-##         is that the amplitude/amp_error >=1  (reasonable, although probably too liberal)
-##     -FOR TCP_EXPLORER PLOT:
-##         The values stored in db_dictionary are essentially used to create the plot on tcp_explorer.  db_dictionary does have extra values not needed in the plot, but useful
-##         perhaps in feature generation.
+"""
+- This code uses the pre_whiten from the NOISIFICATION
+  directory. (the dictionary this prewhiten outputs has a
+  'y_offset' key and uses a shorter nharm_min-max range).
 
-######
+- Main change for v0.1: lomb_scargle and pre_whiten take input
+                        signal errors. Before they were
+                        assigning uniform errors to each
+                        datapoint.  pre_whiten has an lower and
+                        upper limit in scanning harmonics
+                        (4-20).  This is significant for phase
+                        offset issues
+
+-TO STORE IN DATABASE:
+    In GetPeriodFoldForWeb.generate_lomb_period_fold there is a
+    dictionary called db_dictionary.  The values stored in here
+    will be what you want to put online.  Need to have a method
+    that returns this dictionary though.  Also, it may be best
+    to store more harmonics, if we find that the cut I am using
+    is too strict.  Currently it is that the amplitude/amp_error
+    >=1 (reasonable, although probably too liberal)
+
+-FOR TCP_EXPLORER PLOT:
+    The values stored in db_dictionary are essentially used to
+    create the plot on tcp_explorer.  db_dictionary does have
+    extra values not needed in the plot, but useful perhaps
+    feature generation.
+"""
+
 import sys
 import os
 
@@ -23,33 +37,13 @@ try:
 except:
     pass
 import pprint
-#try:
-import matplotlib
-import matplotlib.pyplot as pyplot
-import matplotlib.mlab as mlab
-#except:
-#    pass # dstarr doesn't want any extra printed output
-#    #print "matplotlib dependencies could not load"
-import scipy
+
 import numpy
-#try:
-import pylab
-from pylab import *
-#except:
-#    pass
-from numpy import * # from numpy import loadtxt,long,linspace,pi,arctan2,sin,cos,hstack,array,log10,abs,logical_or,logical_and,var
-from scipy.optimize import fmin, brute
+from numpy import *
+
 from scipy import random
-from numpy.random import rand
-from . import lomb_scargle # obsolete?
-from .lomb_scargle import peak2sigma,lprob2sigma, lomb, get_peak_width # obsolete?
-from . import pre_whiten # obsolete?
 from .lomb_scargle_refine import lomb as lombr
 
-import pickle
-import copy
-from .multi_harmonic_fit import multi_harmonic_fit as mh
-from scipy.special import gammaincc,gammaln
 from scipy.stats import scoreatpercentile
 
 
@@ -495,7 +489,7 @@ class observatory_source_interface(object):
         #   we want the resulting model to be smooth when in phase-space.  Detrending would result
         #   in non-smooth model when period folded
         psd,res = lombr(x,ytest_2p,dy0,freq_2p,df,1, tone_control=tone_control,
-                            lambda0_range=lambda0_range, nharm=nharm, detrend_order=0)#1)
+                        lambda0_range=lambda0_range, nharm=nharm, detrend_order=0)#1)
         model_vals += res['model']
         #all_model_vals += res['model']
 
@@ -978,91 +972,3 @@ class GetPeriodFoldForWeb:
 
     def for_testing(self, source_id):
         pass
-
-
-# 20090806: dstarr does this since sys.argv doesnt work for module imports:
-sys_argv_1 = None
-sys_argv_2 = None
-if len(sys.argv) >= 3:
-    sys_argv_1 = sys.argv[1]
-    sys_argv_2 = sys.argv[2]
-
-if sys_argv_1 == 'get_period_fold2':
-    source_id = int(sys_argv_2)
-    GetPeriodFoldForWeb = GetPeriodFoldForWeb()
-    json_out_string = GetPeriodFoldForWeb.main(source_id)
-    print(json_out_string)
-
-if sys_argv_1 == 'get_period_fold4':
-    from .lomb_scargle import *
-    from .pre_whiten import *
-    from numpy import random
-    time = arange(0,7.5,0.3)
-    mags = sin(time)
-    mags += 15. + 0.1*random.normal(size=len(time))
-    psd,freq,signi,simsigni,psdpeak = lomb(time,mags)
-    i0=psd.argmax(); freq0=freq[i0]
-    cn, out_dict =  pre_whiten(time,mags, freq0)
-    plot (time,mags,'o')
-    plot (time,mags-cn)
-    A = out_dict['amplitude']
-    dA = out_dict['amplitude_error']
-    ph = out_dict['rel_phase']
-    t0 = out_dict['time_offset']
-    y0 = out_dict['y_offset']
-    f = out_dict['freq']
-    tt = min(time) + (max(time)-min(time))*arange(1000)/999.
-    modl = y0 + A[0]*sin(2*pi*f[0]*(tt-t0)+ph[0])
-    for i in range(len(f)-1):
-        j=i+1
-        modl += A[j]*sin(2*pi*f[j]*(tt-t0)+ph[j])
-    fig = pyplot.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(tt,modl, 'ro')
-    ax.plot(time, mags, 'bo')
-    pyplot.show()
-
-if sys_argv_1 == 'get_period_fold3':
-    x = arange(0,7.5, 0.3)
-    y = numpy.sin(x)
-    y_err = []
-    y += 15. + 0.1*random.normal(size=len(x))
-    #now add magnitude offest
-    src_dict = {'t': x,
-                'm': y,
-                'm_err':y_err}
-    get = GetPeriodFoldForWeb()
-    lomb_folded_dict = get.generate_lomb_period_fold(src_dict)
-    fig = pyplot.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.plot(lomb_folded_dict['Actual Mags folded']['t'],lomb_folded_dict['Actual Mags folded']['m'], 'bo')
-    ax1.plot(lomb_folded_dict['Chris Period Folded:  JUSTIN MODIFIED']['t'],lomb_folded_dict['Chris Period Folded:  JUSTIN MODIFIED']['m'], 'ro')
-    ax1.plot(lomb_folded_dict['Chris model generated (w/ new_offset)']['t'],lomb_folded_dict['Chris model generated (w/ new_offset)']['m'], 'yo')
-    ax1.invert_yaxis()
-    pyplot.show()
-
-if sys_argv_1 == 'get_period_fold5':
-    source_id = int(sys_argv_2)
-    GetPeriodFoldForWeb = GetPeriodFoldForWeb()
-    db_dict = GetPeriodFoldForWeb.online_dictionary(source_id)
-    print(db_dict)
-
-if __name__ == '__main__':
-    ### 20101012: Added __main__ for testing use only, to see tracebacks from LombScargle code.
-
-
-    source_id = 100149386
-    gpffw =GetPeriodFoldForWeb()
-    #db_dict = gpffw.main(source_id=source_id)
-    ### The following is done in gpffw.main(), but is hardcoded
-    #   here to keep from doing DB connections
-    src_dict = {'m': array([ \
-        18.172,  18.556]),
- 'm_err': array([ 0.045,  0.046]),
- 'src_id': 100149386,
- 't': array([ 2451214.70375,  2451215.60842])}
-
-
-    lomb_folded_dict = gpffw.generate_lomb_period_fold(src_dict, return_option='top4lombfreqs_withharmonics')
-    import pprint
-    pprint.pprint(lomb_folded_dict)
