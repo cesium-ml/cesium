@@ -2,9 +2,7 @@ import numpy
 from numpy import random
 from scipy import fftpack, stats, optimize
 
-#from pylab import *
-#from .extractors import *
-
+import time
 
 from . import internal_generated_extractors_holder # 20080508 KLUDGE
 
@@ -38,6 +36,7 @@ class GeneralExtractor(object):
     extname = 'FeatureExtractorctor' #extractor's name
     counter = 0 # number of extractions performed
     def extr(self,properties,band=None): #general code run before extraction
+        tic = time.time()
         self.properties = properties
         self.finddatadic(properties,band=band) # find the dictionary of the signal properties that contains the actual data
         if not self.checkalready(): # if it doesn't exist already
@@ -49,7 +48,7 @@ class GeneralExtractor(object):
                 self.why_fail = False # I didn't fail so far
             except ExtractException as e:
                 result = False
-                print("!"*80, "\n", "Extraction failed for", self.extname, "\n", e, "!"*80, "\n")
+                print("!"*80, "\n", "Extraction failed for", self.extname, "\n", e, "\n!"*80, "\n")
                 #raise(e)
                 #self.why_fail = "I don't know why it failed"
             self.prepare_obj(result)
@@ -58,7 +57,9 @@ class GeneralExtractor(object):
         #if self.counter > 1:
             #dstarr com out# print "I just did this thing twice, that's ridiculous", self.extname, self.counter, "times"
         ###
+        print("[%s] Extracted in %.2f" % (self.extname, time.time() - tic))
         return self.output
+
     def finddatadic(self,properties,band=None):
         """ find the dictionary of the signal properties that contains the actual data """
         if band: # if the signal has bands, look for data in respective subdictionary
