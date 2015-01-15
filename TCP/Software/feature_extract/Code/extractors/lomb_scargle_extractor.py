@@ -35,9 +35,6 @@ class lomb_scargle_extractor(InterExtractor):
             self.ex_error(text="lomb_scargle_extractor::obs.lomb_code() except")
             db_dictionary = {} # I think we dont get here since the above line excepts
 
-        #import pdb; pdb.set_trace()
-        #print
-
         out_dict = {}
         dstr_list = ['freq1','freq2','freq3']#,'freq4']
         for dstr in dstr_list:

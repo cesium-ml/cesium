@@ -72,12 +72,9 @@ class signal(object):
             xml_where[1]
         return xml
 
-
-
-
-
 class signal_generator(signal): #signal from random sine wave generator
     pass
+
 class signal_with_bands(signal):
     def update(self,extract_method):
         for key in list(self.properties['data'].keys()):

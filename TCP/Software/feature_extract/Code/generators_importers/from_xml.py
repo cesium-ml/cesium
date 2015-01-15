@@ -11,14 +11,16 @@ class from_xml(gen_or_imp):
     def __init__(self,signals_list=[]):
         self.storer = storage()
         self.signals_list = signals_list
+
     def generate(self, xml_handle="/home/maxime/feature_extract/Code/source_5.xml", make_xml_if_given_dict=True, register = True):
         self.signalgen = {}
         self.sig = db_importer.Source(xml_handle=xml_handle,doplot=False, make_xml_if_given_dict=make_xml_if_given_dict)
         self.sdict = self.sig.x_sdict
         self.set_outputs() # this adds/fills self.signalgen[<filters>,multiband]{'input':{filled},'features':{empty},'inter':{empty}}
         # see (1) at EOF for output from above function
-        self.storer.store(self.signalgen,self.signals_list, register=register)
 
+        # The features get generated here
+        self.storer.store(self.signalgen,self.signals_list, register=register)
 
         # see (2) at EOF for output from above function
 
@@ -83,7 +85,7 @@ class from_xml(gen_or_imp):
                 ## UNCERTAINTY IN FLUX/MAX: OPTIONAL
                 try:
                     flux_or_mag_err_axis = self.reckon_err_axis(dic,flux_or_mag_axis)
-                    if flux_or_mag_err_axis:
+                    if flux_or_mag_err_axis is not None:
                         input_dic.update({'rms_data_unit': dic['units'][flux_or_mag_err_axis],
                                           'rms_data_ucd': dic['ucds'][flux_or_mag_err_axis],
                                           'rms_data': numpy.array(dic[dic['ordered_column_names'][flux_or_mag_err_axis]])})

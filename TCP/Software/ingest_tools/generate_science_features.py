@@ -122,8 +122,6 @@ def generate_feature_xml_using_raw_xml(raw_xml_str):
 def generate_arff_using_raw_xml(xml_str):
     """ This generates an arff, which contains features
     """
-    print("x"*80, "xml_str:\n\n", xml_str)
-    
     master_list = []
     master_features_dict = {}
     all_class_list = []
@@ -137,11 +135,14 @@ def generate_arff_using_raw_xml(xml_str):
     #sys.stdout = open(os.devnull, 'w')
     signals_list = []
     gen = generators_importers.from_xml(signals_list)
+
     # Creates gen.sig attr which is a db_importer.Source() object:
+    # Actual feature computation takes place here
     gen.generate(xml_handle=xml_str)
+
     gen.sig.add_features_to_xml_string(signals_list)
+
     # see what x_sdict contains at this point:
-    print("\n\nsig.x_sdict:\n\n", gen.sig.x_sdict, "\n\n")
     gen.sig.x_sdict['src_id'] = new_srcid
     dbi_src = db_importer.Source(make_dict_if_given_xml=False)
     dbi_src.source_dict_to_xml(gen.sig.x_sdict)

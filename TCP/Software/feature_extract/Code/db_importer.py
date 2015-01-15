@@ -1005,9 +1005,6 @@ class Source:
         self.coerced_to_dict = True
 
 
-
-
-
     def source_dict_to_xml__simptimeseries(self, sdict):
         """ As of 20100211: dstarr writes this to generate John Brewer's
         simpletimeseries xml format.
@@ -1329,7 +1326,6 @@ class Source:
                 self.x_sdict['features'][filter_name][feat_name] = str(value_object)
                 self.x_sdict['feature_docs'][filter_name][feat_name] = \
                                      str(value_object.__doc__).replace('&','__AMPERSAND__').replace("'",'__SINGLEQUOTE__').replace('"','__DOUBLEQUOTE__')[:500]
-        #print("\n\n\nself.x_sdict:\n\n", self.x_sdict, "\n\n")
         self.source_dict_to_xml(self.x_sdict)
 
 
