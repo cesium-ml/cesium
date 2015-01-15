@@ -127,12 +127,14 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     ##     except:
     ##         print(v, "--")
 
+    import time
+    tic = time.time()
     lomb_scargle(numt, numf, nharm, detrend_order, psd, cn, wth, sinx,
                  cosx, sinx_step, cosx_step, sinx_back, cosx_back,
                  sinx_smallstep, cosx_smallstep, hat_matr, hat_hat, hat0,
                  soln, chi0, freq_zoom, psdmin, tone_control, lambda0,
                  lambda0_range, Tr, ifreq)
-
+    print("[%s] Extracted in %.2f" % ("LOMB_SCARGLE (Cython)", time.time() - tic))
     hat_hat /= s0
     ii = arange(nharm,dtype='int32')
     soln[0:nharm] /= (1.+ii)**2; soln[nharm:] /= (1.+ii)**2

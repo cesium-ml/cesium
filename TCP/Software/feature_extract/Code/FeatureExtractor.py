@@ -44,6 +44,8 @@ class GeneralExtractor(object):
             try:
                 self.set_names(self.dic['input'])
                 self.longenough() # check that there is enough data to run this
+                #if self.extname == "lomb_scargle":
+                #    import ipdb; ipdb.set_trace()
                 result = self.extract()
                 self.why_fail = False # I didn't fail so far
             except ExtractException as e:
