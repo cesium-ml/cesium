@@ -2,6 +2,14 @@
 """
    v0.1 Initial version: thread off ingest_tools.py instances to muli nodes.
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 #TODO: Test before threading, that the ssh method exists until finished
 #       (wait for bug to occur)
@@ -38,7 +46,7 @@ pars = {\
         },
     }
 
-class Sdss_Ingest_Monitor:
+class Sdss_Ingest_Monitor(object):
     """ Threads off multiple ingest_tools.py instances to various nodes.
     """
     def __init__(self, pars):

@@ -30,6 +30,14 @@ Object boxes are less crammed with useless information (such as IDs).
 
 Spawns xdot if it is available.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import filter
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation

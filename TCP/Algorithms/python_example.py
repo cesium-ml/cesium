@@ -2,6 +2,15 @@
 """
    v0.1 An example / demo file on how to connect to TCP MySQL server
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 
 import sys, os
@@ -9,7 +18,7 @@ import MySQLdb
 import pprint
 
 
-class Postgre_Database_Class_Example:
+class Postgre_Database_Class_Example(object):
     """
     This class is used to demo a postgre database connection.
 

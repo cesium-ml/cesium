@@ -1,5 +1,13 @@
 """ Nat wrote 20100930, dstarr to adapt as a TCP feature.
 """
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 
 from numpy import sqrt,abs,zeros,log,exp,dot,log10,median,atleast_1d,var,shape,pi,where
 from scipy.stats import norm

@@ -89,6 +89,19 @@ Some degenerate cases:
 >>> (east+west).bbox()
 (-180.0, -90.0, 180.0, 90.0)
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import str
+from builtins import round
+from builtins import map
+from builtins import range
+from builtins import zip
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from functools import reduce
 
 defbound = (0,-90,360,90) # (-180,-90,180,90) ## make this more astronomy friendly Josh Bloom

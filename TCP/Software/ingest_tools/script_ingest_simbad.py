@@ -16,6 +16,16 @@ Do as in: (but in parallel):
 snclassifier_testing_wrapper.py
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import MySQLdb
 import copy
@@ -40,7 +50,7 @@ def invoke_pdb(type, value, tb):
     pdb.pm()
 
 
-class Simbad_Data:
+class Simbad_Data(object):
     """ Given some of Josh's simbad / ptf *.tab \t deliminated files,
     we INSERT and access this data within this object.
     """
@@ -163,7 +173,7 @@ class Simbad_Data:
 
 
 
-class Associate_Simbad_PTF_Sources:
+class Associate_Simbad_PTF_Sources(object):
     """  Go through un-ingested entries in table and retrieve from LBL,
     find associated TCP source, and update simbad_ptf TABLE.
 
@@ -264,7 +274,7 @@ class Associate_Simbad_PTF_Sources:
 
 
 
-class Generate_Summary_Webpage:
+class Generate_Summary_Webpage(object):
     """ This Class will:
      - query simbad_ptf table
      - find all old vosource.xml which were generated using older db_importer.py methods

@@ -15,6 +15,18 @@ This code is partially adapted from kepler_find_simbd_public_sources.py
 And may use some elements of activelearn_utils.py
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import int
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import socket
 socket.setdefaulttimeout(20) # for urllib2 timeout of urlopen()
@@ -32,7 +44,7 @@ import matplotlib.pyplot as pyplot
 from numpy import loadtxt
 
 
-class Database_Utils:
+class Database_Utils(object):
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):
@@ -58,7 +70,7 @@ class Database_Utils:
             self.tutor_cursor = self.tutor_db.cursor()
 
 
-class VOTable_Parse:
+class VOTable_Parse(object):
     """
     A Class for parsing VOTable xmls
 
@@ -3045,7 +3057,7 @@ GROUP BY filter_name""" % (srcid)
         print()
 
 
-class Parse_Nomad_Colors_List:
+class Parse_Nomad_Colors_List(object):
     """ Using a list of (tutor_srcid, jhkbvr_colors)
     which was retrieved from nomad for each source using
     get_colors_for_tutor_sources.py: Get_Colors_Using_Nomad.main()

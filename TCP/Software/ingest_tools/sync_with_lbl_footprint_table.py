@@ -9,6 +9,14 @@ the LBL PGSQL gootprint server.
 This code is intended to be ruin continously on tranx, under a seperate "screen".
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import ingest_tools
 import MySQLdb
@@ -16,7 +24,7 @@ import psycopg2
 import time
 import datetime
 
-class Poll_LBL_PTF_Footprint_Server:
+class Poll_LBL_PTF_Footprint_Server(object):
     """ Main singleton which does the polling
 
     NOTE: local mysql footprint table of form (in object_test_db database):

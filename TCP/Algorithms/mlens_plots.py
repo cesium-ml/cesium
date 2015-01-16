@@ -6,6 +6,13 @@
 select epoch_id  as e, class_0, class_1, class_2, prob_0, prob_1, prob_2 from iterative_class_probs WHERE (class_0 like '%single_lens%') or (class_1 like '%single_lens%') or (class_2 like '%single_lens%') order by e limit 10;
 
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import matplotlib
 

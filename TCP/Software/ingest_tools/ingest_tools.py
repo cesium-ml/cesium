@@ -35,6 +35,18 @@ NOTE: RDB database & table creation instructions are printed to stdio during
 ./ingest_tools.py do_get_source_features_radec=1 ra=49.599497 dec=-1.0050998 degree_range=0.0333333
 ./ingest_tools.py do_pairitel_pkl_ingest=1 ptel_pkl_fpath=/media/disk/src/voevent/phot.mosGRB.10752.1-2007May21_GRB.10752.1.s9.pkl
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 #20081020 NOT USED? # import traceback
 import glob
@@ -1171,7 +1183,7 @@ def form_constraint_str_for_rtree_rectangle(ra_low, ra_high, dec_low, dec_high, 
 
 
 # This class could be contained in a seperate file:
-class Source_Region_Lock:
+class Source_Region_Lock(object):
     """ This class is used to handle accounting of which regions are currently
     being 'worked' on.  We are assuming that the activity is rather small,
     infrequent, and not thorough-put critical, so this ID insert is acceptable.
@@ -1242,7 +1254,7 @@ class Source_Region_Lock:
         self.cursor.execute(delete_str)
 
 
-class HTM_Tools:
+class HTM_Tools(object):
     """ Singleton object which manages all HTM related methods.
 
     TODO NOTE(s):
@@ -1432,14 +1444,14 @@ class HTM_Tools:
         return htmids_list
 
 
-class Empty_Class:
+class Empty_Class(object):
     """ Just an empty, placeholder Class for simple objects.
     """
     def __init__(self):
         pass
 
 
-class RDB_Column_Defs:
+class RDB_Column_Defs(object):
     """ Object which generates and stores all RDB column info, which is
     refered to by algorithms.
     """
@@ -1600,7 +1612,7 @@ class RDB_Column_Defs:
         self.create_event_table_str_dict[survey_name] = create_table_str + ';'
 
 
-class Source_Database_Tools:
+class Source_Database_Tools(object):
     """ Singleton object which contains methods for accessing the source-id
     database.
 
@@ -2305,7 +2317,7 @@ class Source_Database_Tools:
             self.cursor.execute(update_str)
 
 
-class Rdb_Tools:
+class Rdb_Tools(object):
     """ Singleton object which contains methods for accessing the single-epoch
     event database.
     """
@@ -3717,7 +3729,7 @@ class Rdb_Tools:
                     filt_dict['limitmags'][filt_name]['lmt_mg'].append(float(lmt_mg))
 
 
-class Make_Plots:
+class Make_Plots(object):
     """ Singleton object which contains .ps plot generating methods.
     """
     def __init__(self, pars):
@@ -4070,7 +4082,7 @@ class Make_Plots:
             out_fpath='/tmp/out.ps', do_show='yes', query_ra=ra, query_dec=dec)
 
 
-class SDSS_Local_Fits_Repository:
+class SDSS_Local_Fits_Repository(object):
     """ This contains methods which are used for generating dirpaths which
     are valid for the astrometry code (using a given f,c,r).
     This also contains methods for scp astrometry dirctories to/from the local
@@ -4096,7 +4108,7 @@ class SDSS_Local_Fits_Repository:
         os.system(mkdir_cmd)
 
         local_astrom_path = "%s%d/%d" % (self.pars['sdss_astrom_local_dirpath'], run, field)
-        cwd = os.getcwd()
+        cwd = os.getcwdu()
         os.chdir(local_astrom_path)
         tar_command = "tar -czf %s/%d_%d_%d.tgz *%d-r%d-*%d.* *%d-%d-*%d.*" % (local_astrom_path, run, camcol, field, run, camcol, field, run, camcol, field)
         os.system(tar_command)
@@ -4152,7 +4164,7 @@ class SDSS_Local_Fits_Repository:
         os.system(scp_command)
 
         local_astrom_path = "%s/%d/%d" % (self.pars['sdss_astrom_local_dirpath'], run, field)
-        cwd = os.getcwd()
+        cwd = os.getcwdu()
         os.chdir(local_astrom_path)
         tar_command = "tar -xzf %s/%d_%d_%d.tgz" % (local_astrom_path, run, camcol, field)
         os.system(tar_command)
@@ -4165,7 +4177,7 @@ class SDSS_Local_Fits_Repository:
         return 1 # success
 
 
-class TCP_Runtime_Methods:
+class TCP_Runtime_Methods(object):
     """ A suite of TCP populating and querying methods which coordinate
     various other object tasks together.
 
@@ -4596,7 +4608,7 @@ class TCP_Runtime_Methods:
             """
 
 
-class SDSS_FCR_Ingest_Status_Object:
+class SDSS_FCR_Ingest_Status_Object(object):
     """ Object which wraps all methods pertaining to the MySQL Table
     which contains accounting of which (field,camcol,run) has successfully
     been ingested into the SDSS object/epoch ('sdss_events') table.
@@ -4784,7 +4796,7 @@ class SDSS_FCR_Ingest_Status_Object:
         return {'run':rfc_tup[0], 'field':rfc_tup[1], 'camcol':rfc_tup[2]}
 
 
-class XRPC_RDB_Server_Interface_Object:
+class XRPC_RDB_Server_Interface_Object(object):
     """An object intended for use via a xmlrpclib/SimpleXMLRPCServer interface.
     Once the server connection is made, this object's methods are available
     for remote execution via the XMLRPC protocol.

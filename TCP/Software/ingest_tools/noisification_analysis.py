@@ -47,13 +47,24 @@ NOTE: to look at values in the dotastro_feat_valies TABLE:
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import os, sys
 import MySQLdb
 import glob
 import time
 
-class Ipython_Controller:
+class Ipython_Controller(object):
     """ This class controlls initialiation and task queuing of ipython-parallel
     TaskClient tasks.
 
@@ -95,7 +106,7 @@ class Ipython_Controller:
         print('done with while loop')
 
 
-class DB_Connector:
+class DB_Connector(object):
     """ Estableshes connection to mysql RDB.
     To be inherited by another class.
     """

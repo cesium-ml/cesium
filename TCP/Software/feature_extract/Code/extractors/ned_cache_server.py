@@ -40,6 +40,15 @@ rec_data = repr(data).replace("@"," ")
 print rec_data
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import time
 import MySQLdb
@@ -85,7 +94,7 @@ pars['tablename__ch_spatial_htm'] = pars['tablename__ch_spatial'] + '_htm'
 
 
 # For return to Feature extractors:
-class Sdss_Obj:
+class Sdss_Obj(object):
     def __init__(self):
         self.feature = {}
 
@@ -93,7 +102,7 @@ class Sdss_Obj:
 
 
 # For return to Feature extractors:
-class Ned_Dictlike_Obj:
+class Ned_Dictlike_Obj(object):
     def __init__(self):
         self.__dict__ = {}
 
@@ -180,7 +189,7 @@ def select_ned_data_from_table(ra, dec, cursor):
     return (ned_out_dict, sdss_out_dict)
 
 
-class Ned_Cache_Server:
+class Ned_Cache_Server(object):
     """ Caches and delegates NED (ra,dec) queries for 'nearest object' features.
     """
     #import socket
@@ -1037,7 +1046,7 @@ class Ned_Cache_Server:
             conn.close()
 
 
-class Ned_Cache_Client:
+class Ned_Cache_Client(object):
     """ Client class called within NED feature extractor, which retrieves
     ned_dict{} from cache table, if available; or queues todo-task by
     adding a "retrieve==0" row (for ra,dec) to cache table.

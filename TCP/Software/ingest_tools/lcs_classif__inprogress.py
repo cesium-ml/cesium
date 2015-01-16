@@ -12,6 +12,14 @@ script_output = p.stdout.readlines()
 /home/dstarr/src/TCP/Software/ingest_tools/lcs_classif.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import urllib.request, urllib.parse, urllib.error
 import io

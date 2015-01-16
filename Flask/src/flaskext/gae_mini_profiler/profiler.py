@@ -6,6 +6,14 @@
     :url: https://github.com/kamens/gae_mini_profiler
     :license: MIT, see LICENSE for more details
 """
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import int
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 
 
 import datetime

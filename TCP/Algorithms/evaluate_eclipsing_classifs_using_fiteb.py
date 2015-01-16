@@ -6,6 +6,18 @@ Using JSB's fiteb.py, found at:
 This code fits eclipsing models in order to determine which type of eclipsing class a TUTOR source is.
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import dict
+from builtins import open
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import sys, os
 import MySQLdb
@@ -26,7 +38,7 @@ import pickle
 import datetime
 import time
 
-class IPython_Task_Administrator:
+class IPython_Task_Administrator(object):
     """ Send of Imputation tasks
 
     Adapted from activelearn_utils.py which was
@@ -77,7 +89,7 @@ class IPython_Task_Administrator:
 
 
 
-class Run_FitEB_Parallel:
+class Run_FitEB_Parallel(object):
     """ Do the equivalent of run_fiteb_generate_html_pkl() in parallel.
     """
 
@@ -482,7 +494,7 @@ def run_fiteb_generate_html_pkl(pars={}):
         })
 
     #period_select(args.did[0],args.per[0],plot=args.plot,use_xml=True,try_alt=args.alt,dosave=args.savefig,show=args.showfig)
-    orig_cwd = os.getcwd()
+    orig_cwd = os.getcwdu()
     os.chdir(os.path.abspath(os.environ.get("HOME") + '/src/install/jsb_eb_fit'))
 
     DatabaseUtils = Database_Utils(pars=pars)
@@ -1035,7 +1047,7 @@ average merit      average rank  attribute
         #import pdb; pdb.set_trace()
         #print
 
-class Classify_And_Summarize:
+class Classify_And_Summarize(object):
     """ Classify and generate summary html, as well as classification distribution summary file.
     """
     def __init__(self, pars={}):

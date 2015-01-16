@@ -21,6 +21,18 @@ TODO: In order to have regeneration of xmls / arff done on a larger scale ipytho
      Need to follow test_pairwise_on_citris33_ipython.py Ipython code.
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import MySQLdb
 import datetime
@@ -29,7 +41,7 @@ import datetime
 import populate_feat_db_using_TCPTUTOR_sources
 import generate_weka_classifiers
 
-class Generate_Features_For_Several_Surveys:
+class Generate_Features_For_Several_Surveys(object):
     """ Main controlling singleton for generate_features_for_several_surveys.py
     """
 

@@ -24,6 +24,16 @@ CREATE TABLE one_src_model_class_probs (schema_id SMALLINT UNSIGNED,
                                         INDEX(gen_dtime),
                                         INDEX(prob));
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import os, sys
 import classification_interface
@@ -32,7 +42,7 @@ import ptf_master
 import MySQLdb
 
 
-class GetClassificationsForPtfSrcid:
+class GetClassificationsForPtfSrcid(object):
     """ Main class for get_classifications_for_ptf_srcid_and_class_schema.py
     """
     def __init__(self, schema_str=""):
@@ -172,7 +182,7 @@ class GetClassificationsForPtfSrcid:
                                            src_id=src_id, schema_str=self.schema_str)
 
 
-class Ipython_Task_Controller:
+class Ipython_Task_Controller(object):
     """ This class deals with initializing, spawning, controlling the ipython tasks
     """
     def __init__(self, schema_str=""):

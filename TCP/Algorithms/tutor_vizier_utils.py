@@ -19,6 +19,14 @@ NOTE: will need to place timeseries data files in lyr3 directory using:
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 
 def parse_tsv(tsv_fpath):

@@ -31,6 +31,15 @@ CREATE TABLE src_class_probs (schema_id SMALLINT UNSIGNED,
                               INDEX(schema_id, src_id));
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import MySQLdb
 import threading
@@ -57,7 +66,7 @@ import ingest_tools # This is done to get tcptutor and classdb server configs
 pars = ingest_tools.pars
 pars.update(local_pars)
 
-class Populate_Feat_DB_Using_Tcptutor_sources:
+class Populate_Feat_DB_Using_Tcptutor_sources(object):
     def __init__(self, pars):
         self.pars = pars
         self.tutor_db = MySQLdb.connect(host=self.pars['tcptutor_hostname'], \

@@ -1,9 +1,19 @@
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import super
+from builtins import str
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
+from builtins import object
 from jinja2 import Markup
 from flask import request, session, current_app
 from wtforms.fields import HiddenField
 from wtforms.ext.csrf.session import SessionSecureForm
 
-class _Auto():
+class _Auto(object):
     '''Placeholder for unspecified variables that should be set to defaults.
 
     Used when None is a valid option and should not be replaced by a default.

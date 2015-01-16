@@ -10,6 +10,16 @@
          are generated for a (ra,dec) region.
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import MySQLdb
 import urllib.request, urllib.parse, urllib.error
@@ -90,7 +100,7 @@ def get_field_cam_run_using_radec(pars, ra, dec, survey='DRSN1'):
     return out_fcr_tup_list
 
 
-class Plot_Object_Sources:
+class Plot_Object_Sources(object):
     def __init__(self, pars, use_remote_servers=False):
         self.pars = pars
         self.use_remote_servers = use_remote_servers

@@ -7,6 +7,16 @@
 TODO: test this code (form VOSource.xml) for pairitel, tcptutor, sdss
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 """
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
@@ -32,7 +42,7 @@ import ingest_tools # This seems overkill, but module contains all RDB params.
 import feature_extraction_interface
 import db_importer
 
-class Rdb_Form_VOsource:
+class Rdb_Form_VOsource(object):
     def __init__(self, pars, rdbt, srcdbt, feat_db, dbi_src):
         self.pars = pars
         self.rdbt = rdbt

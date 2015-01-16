@@ -8,6 +8,17 @@ r"""
     :copyright: (c) 2011 by the Werkzeug Team, see AUTHORS for more details.
     :license: BSD License.
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import dict
+from builtins import open
+from builtins import str
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys
 import re
 import builtins as builtins

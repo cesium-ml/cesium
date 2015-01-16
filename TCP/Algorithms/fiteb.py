@@ -56,6 +56,19 @@ From the command line, the meat of the code can be run in three different ways:
 
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import int
+from builtins import zip
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import urllib.request, urllib.error, urllib.parse, urllib.request, urllib.parse, urllib.error
 import os, sys
@@ -82,7 +95,7 @@ rez_dict = {"Reduced chi-squared from errorbars:": "chisq", "Number of degrees o
                         "Ephemeris timebase": "t0", "Orbital period (P)": "period", "Surf. bright. ratio": "l1/l2"}
 
 
-class EB:
+class EB(object):
 
     dotastro_url = "http://dotastro.org/lightcurves/vosource.php?Source_ID="
     xml_dir  = "XML/"

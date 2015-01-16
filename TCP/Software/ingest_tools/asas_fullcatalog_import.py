@@ -11,6 +11,16 @@ alter table asas_fullcatalog add column retrieved BOOLEAN DEFAULT FALSE;
 #alter table asas_fullcatalog add index (nobs, retrieved)  # this would require CPU on update of retrieved
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import numpy
 import urllib.request, urllib.parse, urllib.error
@@ -53,7 +63,7 @@ def url_query(catalog_url_str, pars):
 
 
 
-class Database_Utils:
+class Database_Utils(object):
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):

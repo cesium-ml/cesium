@@ -12,6 +12,15 @@ NOTE: Should ensure that testsuite.py database tables and socket servers
       in the <source_db>.<feat_lookup> table.
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import datetime
 import MySQLdb
@@ -84,7 +93,7 @@ pars = {
         '':'k'},
     }
 
-class Analyze_Iterative_Tutor_Classification:
+class Analyze_Iterative_Tutor_Classification(object):
     """ This is the main class of: analyze_iterative_tutor_classification.py.
     """
     def __init__(self, pars):
@@ -162,7 +171,7 @@ class Analyze_Iterative_Tutor_Classification:
         self.cursor.execute(insert_str)
 
 
-class Parallel_Task_Controller:
+class Parallel_Task_Controller(object):
     """ This controls the Ipython1 task initialization and control.
     Some of this emulates ptf_master.py..PTF_Pol_And_Spawn
     """
@@ -287,7 +296,7 @@ aitc.connect_to_db()
         return (tc, vosource_fpath_list) # for polling which task threads are still queued, which are finished.
 
 
-class Retrieve_Tutor_Vosources_From_Web:
+class Retrieve_Tutor_Vosources_From_Web(object):
     """ Retrieve vosource.xml from web, form fpaths list, and save xml locally.
     """
 
@@ -341,7 +350,7 @@ class Retrieve_Tutor_Vosources_From_Web:
         return return_vosource_fpath_list
 
 
-class Sciclass_Prob_Arrays:
+class Sciclass_Prob_Arrays(object):
     """ A fairly simple object.
     """
     def __init__(self, factor_threshold=-1, bin_size=-1, poly_order=1,
@@ -436,7 +445,7 @@ class Sciclass_Prob_Arrays:
             class_dict['probs'] = numpy.array(class_dict['probs'])
 
 
-class Make_Summary_Plots:
+class Make_Summary_Plots(object):
     """ Make PS plots which summarize the iterative classification of TUTOR
     sources, whose data is stored in TABLE: iterative_class_probs.
     """

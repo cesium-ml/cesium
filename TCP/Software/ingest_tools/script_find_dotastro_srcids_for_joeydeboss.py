@@ -2,6 +2,15 @@
 """ 20110116: Looking at alsit of Joey debosscher source ids,
 I determine the dotastro.org source ids.
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import MySQLdb
 sys.path.append(os.path.abspath(os.path.expandvars('$TCP_DIR/' +
@@ -9,7 +18,7 @@ sys.path.append(os.path.abspath(os.path.expandvars('$TCP_DIR/' +
 import simbad_id_lookup
 
 
-class Find_DotAstro_Deboss_Sources():
+class Find_DotAstro_Deboss_Sources(object):
     def __init__(self, pars={}):
         self.pars = pars
         self.db = MySQLdb.connect(host=self.pars['tcptutor_hostname'],

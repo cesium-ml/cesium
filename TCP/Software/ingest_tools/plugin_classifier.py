@@ -8,6 +8,17 @@ plugin_classifier.py
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import dict
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import copy
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/Code/extractors')
@@ -41,7 +52,7 @@ import weka_classifier
 os.environ["JAVA_HOME"] = '/usr/lib/jvm/java-6-sun-1.6.0.03'
 os.environ["CLASSPATH"] += os.path.expandvars(':$TCP_DIR/Software/ingest_tools')
 
-class PluginClassifier:
+class PluginClassifier(object):
     """ Given a list of VOSource XML strings, or filepaths,
         this generates classifications by calling WEKA and other classifier
         code.  Returns information in classification dictionaries.

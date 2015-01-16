@@ -39,6 +39,17 @@ I suspect we might get more mileage out of leaving nharm=8, but only
 using stats on the first 4 as features.
 
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import int
+from builtins import open
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 
 import sys, os
@@ -46,7 +57,7 @@ import random
 from numpy import *
 
 
-class Database_Utils:
+class Database_Utils(object):
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):

@@ -6,6 +6,14 @@ tests.py
 TODO: These tests need to be updated to support the Python 2.7 runtime
 
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import dict
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 import os
 import unittest
 

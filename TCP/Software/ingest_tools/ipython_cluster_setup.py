@@ -59,12 +59,22 @@ TODO: Is ipcontroller doing some logging?
 TODO: EC2 connection?
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import time
 import threading # used for scp/ssh tasks.
 from IPython.kernel import client
 
-class Setup_System:
+class Setup_System(object):
     """ Setup Ipython controller and engines.
 
     """
@@ -234,7 +244,7 @@ class Setup_System:
                 time.sleep(20) # wait a couple seconds, probably an incomplete file scp or .mec() initialization failure.
 
 
-class Test_System:
+class Test_System(object):
     """ Run a test case of Ipython parallelization.
 
     """

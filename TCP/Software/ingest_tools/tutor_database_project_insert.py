@@ -50,6 +50,18 @@ UPDATE sources SET class_id=282 where pclass_id=402 and project_id=126;
 UPDATE project_classes SET class_id=282 where pclass_id=402 and project_id=126;
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import MySQLdb
 import pickle
@@ -86,7 +98,7 @@ def calc_variance(x, n, mean, variance):
             variance)
 
 
-class TutorDb():
+class TutorDb(object):
     def __init__(self, pars={}):
         self.pars = pars
         self.db = MySQLdb.connect(host=self.pars['tcptutor_hostname'],
@@ -1321,7 +1333,7 @@ class TimeseriesInsert(TutorDb):
                                            delete_entries_first=True, # Do this only if we are updating timeseries values for existing sources
                                            insert_limits=False)  # False: do not insert upper_limits into obs_data
 
-class ASAS_Data_Tools:
+class ASAS_Data_Tools(object):
     """ Tools needed for retrieving ASAS data.
 
     """

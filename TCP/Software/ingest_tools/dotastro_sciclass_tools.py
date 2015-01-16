@@ -7,6 +7,16 @@
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 try:
     import MySQLdb
@@ -21,7 +31,7 @@ import glob
 #    """
 
 
-class Dotastro_Sciclass_Tools:
+class Dotastro_Sciclass_Tools(object):
     """ These tools should be fairly reuseable and lightweight, since other
     modules will import and use them.
     """

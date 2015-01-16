@@ -14,6 +14,15 @@ TODO: just format into the expected database output file format.
     - the output .arff file ???doesnt need to be disk-written??? for classification?
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 try:
     import psycopg2
@@ -27,7 +36,7 @@ import time
 sys.path.append(os.path.expandvars('$TCP_DIR/Software/RealBogus/Code/'))
 import out2arff
 
-class Classify_LBL_PTF_Using_GroupThink:
+class Classify_LBL_PTF_Using_GroupThink(object):
     """ This handles applying groputhink real-bogus classifiers to
     LBL PTF candidates.
     """

@@ -56,6 +56,18 @@ py> pprint.pprint(s.x_sdict)
 
 if the source was made from Dan's codes then use s.d for the dictionary.
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import range
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 __author__ = "JSB"
 __version__ = "9-Aug-2007"
@@ -137,7 +149,7 @@ def add_pretty_indents_to_elemtree(elem, level=0):
 
 
 
-class vosource_classification_obj:
+class vosource_classification_obj(object):
     """ This deals with forming the <CLASSIFICATION> </..> part
     of the vosource XML.
     """
@@ -232,7 +244,7 @@ class vosource_classification_obj:
         return new_vosource_str
 
 
-class Source:
+class Source(object):
 
     def __init__(self,verbose=True, sdict=None, xml_handle=None,\
               make_xml_if_given_dict=True, interactive=False,\
@@ -1329,7 +1341,7 @@ class Source:
         self.source_dict_to_xml(self.x_sdict)
 
 
-class PositionExtractor:
+class PositionExtractor(object):
     def __init__(self, pos=(None,None), radius=0.001, verbose=True, \
                  prefer_only_source_search=True, host="localhost", \
                  port=8000, doplot=True, use_source_id_in_xml_name=True, \
@@ -1492,7 +1504,7 @@ fk5
         except:
             pass
 
-class TestClass:
+class TestClass(object):
     """ Testing class for python-nose tests.
     Useful for refactoring and adding new XML schema
 

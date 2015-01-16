@@ -8,6 +8,16 @@
     :copyright: (c) 2011 by Armin Ronacher.
     :license: BSD, see LICENSE for more details.
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import open
+from builtins import dict
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 
 
 
@@ -486,7 +496,7 @@ def get_root_path(import_name):
     except AttributeError:
         # this is necessary in case we are running from the interactive
         # python shell.  It will never be used for production code however
-        return os.getcwd()
+        return os.getcwdu()
 
 
 def find_package(import_name):
@@ -502,7 +512,7 @@ def find_package(import_name):
     package_path = getattr(root_mod, '__file__', None)
     if package_path is None:
         # support for the interactive python shell
-        package_path = os.getcwd()
+        package_path = os.getcwdu()
     else:
         package_path = os.path.abspath(os.path.dirname(package_path))
     if hasattr(root_mod, '__path__'):

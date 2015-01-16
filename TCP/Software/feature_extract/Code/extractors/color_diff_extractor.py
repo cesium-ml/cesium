@@ -1,3 +1,10 @@
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from ..FeatureExtractor import FeatureExtractor, InterExtractor
 
 #class static_colors_extractor(FeatureExtractor): # Using this will add a 'X' feature in vosource xml whose value is a string representation of the returned od dict.  (using internal_use_only=False, active=False)

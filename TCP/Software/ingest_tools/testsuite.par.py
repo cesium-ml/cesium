@@ -1,3 +1,10 @@
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 parameters = {
     'test_suite__enable_traceback':True, # False: (default), True: for PDB use
     'test_suite__preserve_tables_databases_servers':False, # False: (default)

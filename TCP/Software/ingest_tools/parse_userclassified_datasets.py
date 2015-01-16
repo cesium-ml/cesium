@@ -13,6 +13,18 @@ ipython --pylab
 import pl        # this has way of making use of these files
 
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import copy
 import numpy
@@ -26,7 +38,7 @@ import ingest_tools
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/MLData')
 import arffify
 
-class DB_Connector:
+class DB_Connector(object):
     """ Estableshes connection to mysql RDB.
     To be inherited by another class.
     """

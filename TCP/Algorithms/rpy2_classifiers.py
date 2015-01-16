@@ -8,6 +8,19 @@ Tested using:
   rpy2  2.1.9
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import zip
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -53,7 +66,7 @@ blah <- 3
     return {'ntree':robjects.r("blah")}
 
 
-class Rpy2Classifier:
+class Rpy2Classifier(object):
     """
     """
     def __init__(self, pars={},
@@ -1334,7 +1347,7 @@ err.rate = 1-sum(diag(confmat))/n
         return error_rate
 
 
-class GenerateFoldedClassifiers:
+class GenerateFoldedClassifiers(object):
     """ Generate stratified or non-stratified trainingset/to-train datasets.
     Also generate the R classifiers (RandomForest initially)
 

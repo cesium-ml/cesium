@@ -15,6 +15,19 @@
 ##         perhaps in feature generation.
 
 ######
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import int
+from builtins import open
+from builtins import zip
+from builtins import range
+from builtins import str
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
+from builtins import object
 import sys
 import os
 
@@ -538,7 +551,7 @@ class observatory_source_interface(object):
         return out_dict, ytest
 
 
-class GetPeriodFoldForWeb:
+class GetPeriodFoldForWeb(object):
     """
     To be called by tcp_html_show_recent_ptf_sources.py,
     which is called by a PHP script on lyra.

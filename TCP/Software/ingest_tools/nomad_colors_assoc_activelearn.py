@@ -23,6 +23,20 @@ pdb.py on citris cluster:
      /global/home/users/dstarr/src/install/epd-6.2-2-rh5-x86_64/lib/python2.6/pdb.py nomad_colors_assoc_activelearn.py
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import dict
+from builtins import range
+from builtins import str
+from builtins import open
+from builtins import int
+from builtins import zip
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -47,7 +61,7 @@ def plot_2d(arr, label=''):
 
 
 
-class IPython_Task_Administrator:
+class IPython_Task_Administrator(object):
     """ Send of Imputation tasks
 
     Adapted from activelearn_utils.py
@@ -150,7 +164,7 @@ ncaa.load_data_on_task_engine(classifier_filepath="%s", train_fpath="%s", test_f
 
 
 
-class Nomad_Colors_Assoc_AL:
+class Nomad_Colors_Assoc_AL(object):
     """ Class for doing the active learning for classifier which associates
     nomad sources to ASAS sources using color & distance based features.
 
@@ -1587,7 +1601,7 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
         print()
 
 
-class Analyze_Nomad_Features:
+class Analyze_Nomad_Features(object):
     """ This is used for analyzing the errors/distributions of NOMAD based features.
     """
     def __init__(self, pars={}):

@@ -21,12 +21,23 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
    (on CITRIS-33node cluster): module load intel/11.1.072 gcc
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 try:
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 except:
     pass
-class IPython_Parallel_Processing:
+class IPython_Parallel_Processing(object):
     """
     This runs feature generation on the CITRIS/IBM 33-machine cluster which
     has IPython-Parallel v0.10 set up for parallelization.
@@ -374,7 +385,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
 
 
 
-class StarVars_ASAS_Feature_Generation:
+class StarVars_ASAS_Feature_Generation(object):
     """
     """
     def __init__(self, pars={}):

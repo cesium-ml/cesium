@@ -12,6 +12,19 @@ The package resource API is designed to work with normal filesystem packages,
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import next
+from builtins import str
+from builtins import open
+from builtins import map
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import sys, os, zipimport, time, re, imp, types
 
@@ -307,7 +320,7 @@ def get_entry_info(dist, group, name):
     return get_distribution(dist).get_entry_info(group, name)
 
 
-class IMetadataProvider:
+class IMetadataProvider(object):
 
     def has_metadata(name):
         """Does the package's distribution contain the named metadata?"""
@@ -840,7 +853,7 @@ class ExtractionError(RuntimeError):
 
 
 
-class ResourceManager:
+class ResourceManager(object):
     """Manage resource extraction and packages"""
     extraction_path = None
 
@@ -1127,7 +1140,7 @@ def to_filename(name):
 
 
 
-class NullProvider:
+class NullProvider(object):
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
 
     egg_name = None
@@ -1550,7 +1563,7 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
-class ImpWrapper:
+class ImpWrapper(object):
     """PEP 302 Importer that wraps Python's "normal" import algorithm"""
 
     def __init__(self, path=None):
@@ -1571,7 +1584,7 @@ class ImpWrapper:
         return ImpLoader(file, filename, etc)
 
 
-class ImpLoader:
+class ImpLoader(object):
     """PEP 302 Loader that wraps Python's "normal" import algorithm"""
 
     def __init__(self, file, filename, etc):
@@ -2479,7 +2492,7 @@ def _sort_dists(dists):
 
 
 
-class Requirement:
+class Requirement(object):
     def __init__(self, project_name, specs, extras):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)

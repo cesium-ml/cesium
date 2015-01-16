@@ -68,6 +68,17 @@ Options:
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 from optparse import OptionParser
 import time
@@ -193,7 +204,7 @@ def parse_confuse_matrix_generate_costmatrix(weka_ZeroR_confuse_matrix_outfpath,
     os.system(exec_str)
 
 
-class Parallel_Arff_Maker:
+class Parallel_Arff_Maker(object):
     """ Class which spawns off ipengine tasks similar to arffify.Maker.run(),
     whose results are then combined to create a single .arrf file which
     represents the features in the given vosource.xml files.

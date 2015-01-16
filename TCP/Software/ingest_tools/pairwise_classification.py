@@ -21,6 +21,18 @@
      - apply every pairwise classifier and combine to find the final classification.
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import pickle
 import gzip
@@ -116,7 +128,7 @@ def parse_options():
     return options
 
 
-class Feature_Distribution_Plots:
+class Feature_Distribution_Plots(object):
     """ Generate feature-value distribution plots (.png) for some
         specific science classes.  This is useful for determining which features are
         effective or ambiguous for distinguishing between several science classes.
@@ -386,7 +398,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
 
 
 
-class Weka_Pairwise_Classification:
+class Weka_Pairwise_Classification(object):
     """ Do Pairwise Classification using weka (rather than AdaBoost)
 
     JPype classification code taken from plugin_classifier.py: L71, L83, L165
@@ -2340,7 +2352,7 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
 
 
 
-class Test_Example:
+class Test_Example(object):
     """ Test case / example class
     """
     def __init__(self, pars={}):
@@ -2674,7 +2686,7 @@ class Test_Example:
         self.get_classifications_for_pruned_trainset_rows()
 
 
-class Pairwise_Classification:
+class Pairwise_Classification(object):
     """
     """
     def __init__(self, pars):
@@ -3311,7 +3323,7 @@ pprint.pprint(pairwise_dict['c;sne'])
         fp.close()
 
 
-class Pairwise_Cross_Validation_Parallel_Worker:
+class Pairwise_Cross_Validation_Parallel_Worker(object):
     """ A class which is to be used on IPython clients, do perform
     the training and classification components of 10-fold cross validation.
 

@@ -2,6 +2,15 @@
 # this is Nat's code copied over from the feature_extract project on August 3rd 2008, but I copied over nat's original svn upload, not Dan's modification (the modifications did not apply to this project)
 
 
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
+from builtins import str
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from numpy import *
 
 from .lomb_scargle import lprob2sigma

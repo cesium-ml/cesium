@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 """ retrieve xmls for a particular tutor/dotastro class_id
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import pprint
 import MySQLdb
 import datetime
 
-class tutor_db:
+class tutor_db(object):
     """
     """
     def __init__(self):
@@ -26,7 +35,7 @@ class tutor_db:
 
 
 
-class Retrieve_XMLs:
+class Retrieve_XMLs(object):
     """
     """
     def __init__(self, pars={}):

@@ -2,6 +2,15 @@
 """ summarize how well general classifications of ptf09xxx were made,
 when compared with caltech followup statictics
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import sys, os
 try:
@@ -13,7 +22,7 @@ import MySQLdb
 import pprint
 
 
-class CaltechDB:
+class CaltechDB(object):
     """ Everything related to connections with caltech pgsql db
     """
     def __init__(self):
@@ -77,7 +86,7 @@ class CaltechDB:
         self.conn.close()
 
 
-class MysqlLocalDB:
+class MysqlLocalDB(object):
     """ Everything related to local tranx mysqldb querying.
     """
     def __init__(self):
@@ -166,7 +175,7 @@ def summarize_overall_dict(overall_dict):
 
 
 
-class HTMLizeResults:
+class HTMLizeResults(object):
     """ Display results in overall_dict... in some .html file
     for further analysis.
     """

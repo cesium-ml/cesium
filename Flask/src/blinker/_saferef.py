@@ -33,6 +33,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 """Refactored 'safe reference from dispatcher.py"""
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import super
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 
 import operator
 import sys

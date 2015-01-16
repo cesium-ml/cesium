@@ -6,6 +6,18 @@ Adapted from test_pairwise_on_citris33_ipython.py
 scp -P 10322 ~/scratch/out.arff pteluser@lyra.berkeley.edu:/tmp/citris33_asas.arff
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import pickle
 import time
@@ -2113,7 +2125,7 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', in
     return arff_rows_str
 
 
-class Arff_Generation_Engine_Tasks:
+class Arff_Generation_Engine_Tasks(object):
     """ Class contains methods that will be used for arff lines generation
     """
 

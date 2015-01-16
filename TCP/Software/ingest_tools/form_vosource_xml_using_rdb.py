@@ -14,6 +14,16 @@ NOTE: debug using:
 /Library/Frameworks/Python.framework/Versions/Current/lib/python2.5/pdb.py form_vosource_xml_using_rdb.py 402126
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 #os.system("whoami")
 #os.environ["PYTHON_EGG_CACHE"] = "/Library/Frameworks/Python.framework/Versions/4.1.30101/lib/python2.5/site-packages/"
@@ -37,7 +47,7 @@ ingest_tools_pars = ingest_tools.pars
 
 
 
-class MakeVosourceUsingRdb:
+class MakeVosourceUsingRdb(object):
     """ This clss primarily does:
     Given a local RDB valid source-id, this code forms a VOSouce.xml
         which will then be written to file (for export).

@@ -11,6 +11,17 @@ script_output = p.stdout.readlines()
 home_str+/Dropbox/work_etc/mltp/TCP/Software/ingest_tools/generate_science_features.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import zip
+from builtins import open
+from builtins import str
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 
 
 def currently_running_in_docker_container():

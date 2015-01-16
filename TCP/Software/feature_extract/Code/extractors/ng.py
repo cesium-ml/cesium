@@ -5,6 +5,20 @@ ng -- gets the nearest galaxies
 USAGE:
    ./ng.py [ra]
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import hex
+from builtins import next
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import csv
 import os
 import sqlite3
@@ -23,7 +37,7 @@ else:
 
 def_min_depth = 11
 
-class GalGetter:
+class GalGetter(object):
 
     dbname = "gal.db"
     rez = []

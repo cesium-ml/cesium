@@ -91,6 +91,13 @@ class:
    ContactForm = model_form(Contact, base_class=BaseContactForm)
 
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from wtforms import Form, validators, widgets, fields as f
 from wtforms.ext.appengine.fields import GeoPtPropertyField, ReferencePropertyField, StringListPropertyField
 

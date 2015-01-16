@@ -32,6 +32,18 @@ TODO: Feature & classification client:
      - Also: do classification of srcid & INSERT/UPDATE in all-srcid batches
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import dict
+from builtins import open
+from builtins import range
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import ingest_tools
 import plugin_classifier
@@ -52,7 +64,7 @@ local_pars = {}
 pars = ingest_tools.pars
 pars.update(local_pars)
 
-class Classification_Tables_Interface:
+class Classification_Tables_Interface(object):
     """ Class which provides an interface to the source science-class
     MySQL tables.  Handles connection to RDB, INSERT/UPDATE, basic SELECTs.
     """
@@ -90,7 +102,7 @@ class Classification_Tables_Interface:
         self.cursor.execute(''.join(insert_list)[:-2])
 
 # Is this obsolete? :
-class Source_Feature_Class_Generator:
+class Source_Feature_Class_Generator(object):
     """ Class which deals with generating features and classes for sources.
     """
     def __init__(self, pars):
@@ -199,7 +211,7 @@ class Source_Feature_Class_Generator:
 
 # 20080926 : This class created to handle various classification schemes:
 
-class ClassificationHandler:
+class ClassificationHandler(object):
     """ This class handles executing classification algorithms and inserting
     into classification tables.  Initially parses VOSource XML which contain
     features.

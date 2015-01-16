@@ -54,6 +54,16 @@ DEBUG NOTES:
       - In testsuite.par.py, SET: 'test_suite__enable_traceback':True
       - In emacs:     /usr/lib/python2.5/pdb.py testsuite.py
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import unittest
 import MySQLdb
@@ -83,7 +93,7 @@ exec(f)
 f.close()
 pars = parameters
 
-class Test_Suite_Shared_Objects:
+class Test_Suite_Shared_Objects(object):
     """ This class can be passed in additional structures, objects.
     Here we should sort/extract parameters needed for various test cases.
     """
@@ -735,7 +745,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         # TODO test the source values which are returned. (RDB values check?)
 
 
-class Check_Methods:
+class Check_Methods(object):
     """ Each method in this class wraps a seperate process/function test.
     These methods have access to <global> objects. I would like to restrict use
           to only the "tsso" (Test_Suite_Shared_Objects) global object.

@@ -3,13 +3,22 @@
    v0.1 Summarize all feature extractors.
 
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import copy
 
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/MLData')
 import arffify
 
-class Summarize_Available_Features:
+class Summarize_Available_Features(object):
     """ Finds all feature extractors, tries to summarize some info about them,
     whether they are currently used, and if they have doc-strings
     """

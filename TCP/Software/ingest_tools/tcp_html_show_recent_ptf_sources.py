@@ -4,12 +4,23 @@
 """
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 # 566  export PGPASSWORD="classify"
 #  567  psql -d ptfcands -h navtara.caltech.edu -U tcp
 #  568  echo "\dt" | psql -d ptfcands -h navtara.caltech.edu -U tcp
 
-class ShowRecentPtfSources:
+class ShowRecentPtfSources(object):
     """ Class which is called by XMLRpcServer and which queries LBL
     PostgreSQl server.
     """

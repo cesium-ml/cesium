@@ -2,18 +2,26 @@
 """
 Josh's Dumb-Ass Classifier
 """
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import pprint
 import sys,os, copy
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/Code/extractors')
 
 import sdss, ned, ng
 
-class bogus_sdss:
+class bogus_sdss(object):
     def __init__(self):
         self.in_footprint = False
         self.feature = {}
 
-class JDAC:
+class JDAC(object):
 
     def __init__(self,pos=(176.70883     ,11.79869),verbose=True,seeing=2.5, do_sdss=True):
         self.verbose=verbose

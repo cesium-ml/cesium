@@ -18,6 +18,17 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 #sys.path.append("/global/u1/d/dchesny/BUILD/MySQL-python-1.2.3/build/lib.linux-x86_64-2.7")
 sys.path.insert(0,os.path.expandvars("/global/u1/d/dchesny/BUILD/MySQL-python-1.2.3/build/lib.linux-x86_64-2.7"))
@@ -39,7 +50,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     #-
 """
 
-class StarVars_LINEAR_Feature_Generation:
+class StarVars_LINEAR_Feature_Generation(object):
     """
     """
     def __init__(self, pars={}):

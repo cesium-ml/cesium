@@ -33,12 +33,23 @@ OUTPUT FORMAT:
   Source2 Block
     ...
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import xmlrpc.client
 import random
 
 import MySQLdb
-class Mysql_Server_Query:
+class Mysql_Server_Query(object):
     def __init__(self, ra, dec, box_size):
         self.db = MySQLdb.connect(host="192.168.1.25", user="pteluser", db="object_test_db")
         self.cursor = self.db.cursor()

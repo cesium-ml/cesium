@@ -15,6 +15,19 @@ py> import arffify
 py> a = arffify.Maker(search=["Cepheids","RR Lyrae - Asymmetric","Mira","W Ursae Majoris",])  ## search is a list of string names to look up
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import dict
+from builtins import range
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os,sys
 #try:
 #       import amara
@@ -147,7 +160,7 @@ def get_class_abrv_lookup_from_header(train_arff_fpath):
             break # get out of loop
     return class_lookup_dict
 
-class Maker:
+class Maker(object):
 
     #print "ssh lyra.berkeley.edu -c blowfish -X -L 13306:127.0.0.1:3306"
     #       'skip_sci_class_list':['vs', 'GCVS', 'NEW', ''], # Science classes to skip from adding to .arff
@@ -985,7 +998,7 @@ Observations WHERE Observations.Source_ID = sources.Source_ID)"""
             except:
                 pass
 
-class XMLgrabber:
+class XMLgrabber(object):
 
 
     server     = None

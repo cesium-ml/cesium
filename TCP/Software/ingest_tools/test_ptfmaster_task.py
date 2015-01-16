@@ -16,6 +16,14 @@
         delete from obj_srcid_lookup where obj_id=1 and survey_id=3;
         Query OK, 1 row affected (0.00 sec)
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 import sys
 import os
 import MySQLdb

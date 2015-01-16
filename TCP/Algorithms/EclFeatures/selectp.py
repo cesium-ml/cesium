@@ -10,6 +10,15 @@ See test() for usage
 J.S.Bloom, Aug 2011
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import zip
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import ctypes, sys, tempfile, os
 from ctypes import c_char_p
 from matplotlib.mlab import csv2rec
@@ -24,7 +33,7 @@ import time
 # gcc -m32 -shared -Wl -o polyfit.so polyfit.o -lc -lgsl -lgslcblas -lm
 exec_path = "./polyfit"
 
-class selectp:
+class selectp(object):
 
 
     def __init__(self,t, y, dy, period, mults=[0.5,1,2],\

@@ -1,10 +1,18 @@
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 #!/usr/bin/env python
 
 import sys, os
 import MySQLdb
 
 
-class Fill_Classid_Lookup_With_All_Dotastro_Classes:
+class Fill_Classid_Lookup_With_All_Dotastro_Classes(object):
     """ This selects all class_names, class_ids from Dotastro.org database and inserts into
     tranx RDB:source_test_db.classid_lookup TABLE using schema_id=10000
     """

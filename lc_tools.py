@@ -1,3 +1,16 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import str
+from builtins import int
+from builtins import round
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 #!/usr/bin/python
 # filename: lc_tools.py
 
@@ -23,7 +36,7 @@ import sys
 import cfg
 
 
-class lightCurve:
+class lightCurve(object):
     """Time-series data and features object.
     
     Attributes
@@ -562,7 +575,7 @@ def generate_lc_snippets(lc):
     return lc_snippets
 
 
-class Source:
+class Source(object):
     """Time-series data source object.
     
     Attributes

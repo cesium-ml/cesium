@@ -3,6 +3,16 @@
 """
 makes some fake data for Maxime's codes
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import datetime
 import os, sys
@@ -10,7 +20,7 @@ import numpy
 import pickle
 __version__ = "v0.01"
 
-class DataSet:
+class DataSet(object):
 
     def __init__(self,outname="tmp",clobber=True,odir="./"):
         self.dict     = None  # the dictionary representation

@@ -6,6 +6,17 @@
 - Using distance cut when querying simbad votable.
      - distance cuts come from nomad / color distance code:  get_colors_for_tutor_sources.py
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import pickle
 import MySQLdb
@@ -23,7 +34,7 @@ try:
 except:
     pass
 
-class TCPDb():
+class TCPDb(object):
     def connect_to_db(self):
         self.db = MySQLdb.connect(host=self.pars['mysql_hostname'],
                                   user=self.pars['mysql_username'],

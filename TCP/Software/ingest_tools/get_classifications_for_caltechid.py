@@ -43,6 +43,16 @@ if is_junk
 return (is_undetermined)
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import copy
 import math
@@ -79,7 +89,7 @@ def parse_options():
     return options
 
 
-class LBLDB:
+class LBLDB(object):
     """  Everythoing related to LBL database.
     """
 
@@ -89,7 +99,7 @@ class LBLDB:
         pass
 
 
-class CaltechDB:
+class CaltechDB(object):
     """ Everything related to connections with caltech pgsql db
     """
 
@@ -180,7 +190,7 @@ class CaltechDB:
         return shortname_list
 
 
-class GetClassificationsForPtfid:
+class GetClassificationsForPtfid(object):
     """ Main Class
     """
     def __init__(self, rdbt=None, PTFPostgreServer=None, DiffObjSourcePopulator=None):

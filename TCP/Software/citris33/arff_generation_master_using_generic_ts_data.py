@@ -4,6 +4,18 @@
 Adapted from arff_generation_master.py
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import pickle
 import time
@@ -2095,7 +2107,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
     return arff_rows_str
 
 
-class Arff_Generation_Engine_Tasks:
+class Arff_Generation_Engine_Tasks(object):
     """ Class contains methods that will be used for arff lines generation
     """
 

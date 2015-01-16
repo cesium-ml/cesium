@@ -7,10 +7,19 @@ This parses arff files which have been generated from ASAS .dat files
      using starvars_feature_generation.py:IPython_Parallel_processing.main()
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import numpy
 
-class Macc_Asas_Aperture_Analysis:
+class Macc_Asas_Aperture_Analysis(object):
     """
     """
     def __init__(self, pars={}):

@@ -19,6 +19,17 @@ TO run, generally just do:
         ./ptf_master.py
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import datetime
 import math
@@ -78,7 +89,7 @@ def sig_INT_handler(signum, frame):
     signal_occurred = 'SIGINT'
 
 
-class Diff_Obj_Source_Populator:
+class Diff_Obj_Source_Populator(object):
     """ Matches/generates source for diff-obj, features...
      - This is instantiated on a ipython1 node
      - This should be initialized (module imports) by PTF-polling thread
@@ -484,7 +495,7 @@ class Diff_Obj_Source_Populator:
         return obj_epoch_list
 
 
-class PTF_Poll_And_Spawn:
+class PTF_Poll_And_Spawn(object):
     """ Spawns PTF-polling thread
      - eventually, this queries remote DB for new object entries, retrieves.
      - quick-kludge: Just use hardcoded diff-objects
@@ -642,7 +653,7 @@ DiffObjSourcePopulator.class_interface.classify_and_insert_using_vosource_list(s
 
 
 
-class PTF_Postgre_Server:
+class PTF_Postgre_Server(object):
     """ Contains methods for making a connection to the LBL PostgreSQL
     database, as well as retrieve 'recent' diff_objects from the PGSQL server.
 
@@ -1216,7 +1227,7 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
                 #    print 'EXCEPT: srcid=%d : Already exists in Table: src_class_probs?' % (srcid_xml_tuple_list[0][0])
 
 
-class Task_Master:
+class Task_Master(object):
     """ This singleton controls the periodic restart of ipcontroller
     which is needed due to its inevitable per-task memory leak.
 

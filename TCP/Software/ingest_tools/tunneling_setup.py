@@ -11,11 +11,19 @@
 NOTE: This script is to be run in a *NIX 'screen' to persist.
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import obj_id_sockets
 
 
-class Tunnel_Class:
+class Tunnel_Class(object):
     """ 1+ methods be inherited.
     """
     def execute_str(self, a_str):

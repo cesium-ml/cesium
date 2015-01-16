@@ -16,13 +16,21 @@ v['ts'] is the parsed timeseries as a list, usually with 4 entries (time, val, v
 it's up to the user to decide how to use those columns...there's almost no reformating
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 from scipy import *
 import xmldict
 import os, sys
 from xml.etree import cElementTree as ElementTree # this is a nicer implementation
 from pprint import pprint
 
-class vosource_parser:
+class vosource_parser(object):
 
     def __init__(self, fname, is_xmlstring=False):
         self.fname = fname

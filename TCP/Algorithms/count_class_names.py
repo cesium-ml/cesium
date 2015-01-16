@@ -1,11 +1,21 @@
 #!/usr/bin/env python
 """ Tally the occurances of various science classes found in class_names datafile
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import pprint
 import MySQLdb
 
-class tutor_db:
+class tutor_db(object):
     """
     """
     def __init__(self):

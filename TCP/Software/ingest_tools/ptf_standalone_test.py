@@ -7,6 +7,15 @@
    v0.1 Initial version: Simulate recieving a PTF transient diff-mag object.
         - NOW see ptf_master.py for this functionality.
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import str
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 
 ptf_diff_source = {\

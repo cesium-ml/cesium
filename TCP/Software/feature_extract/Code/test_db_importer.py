@@ -21,6 +21,16 @@
   - ? Can I parse some of Johns Dotastro.org examples?
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import dict
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import os, sys
 import pprint
@@ -74,7 +84,7 @@ def nonIntersectDicts( d1, d2 ) :
     return mismatch
 
 
-class Test_Methods:
+class Test_Methods(object):
     """ Various testing cases
     """
 

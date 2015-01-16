@@ -2,6 +2,17 @@
 """ Do a couple tasks needed for Debosscher paper tables (20101118)
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import pprint
 import MySQLdb
@@ -1221,7 +1232,7 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 'dotastro_srcid_to_attribfiles':dotastro_srcid_to_attribfiles}
 
 
-class tutor_db:
+class tutor_db(object):
     """
     """
     def __init__(self):

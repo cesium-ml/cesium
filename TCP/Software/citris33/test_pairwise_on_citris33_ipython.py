@@ -28,6 +28,18 @@ tc.task_controller.clear()
 
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import sys, os
 import pickle
@@ -2190,7 +2202,7 @@ def parse_src_perc_iter_from_arffstr(arff_str):
 
 
 
-class Resample_Pairwise_Classify:
+class Resample_Pairwise_Classify(object):
     """
     """
     def __init__(self, pars):
@@ -2677,7 +2689,7 @@ except:
     import pdb; pdb.set_trace()
 
 
-class R_Task_Controllers:
+class R_Task_Controllers(object):
     """ Main corolling methods for Non-ipython and Ipython_parallel cases.
     """
     sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Algorithms/'))

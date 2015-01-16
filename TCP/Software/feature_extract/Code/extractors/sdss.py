@@ -3,6 +3,19 @@ sdss -- query tools
 182.520649
 +18.534407
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import dict
+from builtins import zip
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import os, sys, string,urllib.request,urllib.parse,urllib.error,copy
 from math import log10, radians, pi
@@ -22,7 +35,7 @@ dr7_mirrors = [{'url': "http://cas.sdss.org/astrodr7/en/tools/search/x_sql.asp",
                            {'url': "http://www.sdss.org.uk/dr7/en/tools/search/x_sql.asp", "second_per_query": 1.02, "active": True, "last": None,
                                     "running": False}]
 
-class sdssq:
+class sdssq(object):
     #dr_url='http://skyserver.sdss.org/dr6/en/tools/search/x_sql.asp'
     dr_url="http://cas.sdss.org/astrodr7/en/tools/search/x_sql.asp"
     formats = ['csv','xml','html']

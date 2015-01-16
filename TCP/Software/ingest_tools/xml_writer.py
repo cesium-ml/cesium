@@ -21,6 +21,18 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
 
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import open
+from builtins import map
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import pickle
 
@@ -110,7 +122,7 @@ def readLC(infile):
 
 
 
-class StarVars_LINEAR_Feature_Generation:
+class StarVars_LINEAR_Feature_Generation(object):
     """
     """
     def __init__(self, pars={}):

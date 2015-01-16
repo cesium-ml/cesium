@@ -8,6 +8,18 @@ NOTE: To parse ASAS (or other project) .arff and
        - which is called at the bottom of that python file.
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import str
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import sys, os
 import random
@@ -15,7 +27,7 @@ from numpy import loadtxt
 import numpy
 import pprint
 
-class Database_Utils:
+class Database_Utils(object):
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):
@@ -334,7 +346,7 @@ def get_simbad_matched_sources_which_overlap_userAL_sources(pars):
     print()
 
 
-class IPython_Task_Administrator:
+class IPython_Task_Administrator(object):
     """ Send of Imputation tasks
 
     Adapted from generate_weka_classifiers.py:Parallel_Arff_Maker()

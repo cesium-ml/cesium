@@ -5,11 +5,20 @@ Compile the python module using fortran code using:
 f2py -c flaplace.f -m flaplace
 
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import numpy
 
 
-class Simple_Fortran_Test:
+class Simple_Fortran_Test(object):
     """
     Compile the python module using fortran code using:
 
@@ -35,7 +44,7 @@ class Simple_Fortran_Test:
             u = self.fortranTimeStep(u, dx, dy)
             print(u)
 
-class RF_Fortran_Test:
+class RF_Fortran_Test(object):
     """ Wrapping PARF missing-value Fortran re-implementation of RandomForest.
 
     """

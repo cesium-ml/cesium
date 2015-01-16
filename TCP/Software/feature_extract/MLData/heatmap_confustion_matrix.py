@@ -2,6 +2,16 @@
 """
    v0.1 Make an HTML heatmap table of a Weka classify confusion matrix.
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import int
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 
 __old__input_table_str = """

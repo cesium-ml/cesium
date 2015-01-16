@@ -7,6 +7,13 @@ This module is intended to:
  - (update?) XML encapsulation of source to include feature extaction info.
  - (?) Hook into an HTML/PHP interface for source query & Source XML return
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 
 def check_dependencies():

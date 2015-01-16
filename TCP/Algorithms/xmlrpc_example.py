@@ -10,12 +10,20 @@ To use in it's current simple form:
 2) start client by having "if 0:" under __main__
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 
 server_hostname = "192.168.1.25"
 server_port = 23459
 
-class Some_Class_We_Want_Remotely_Accessible:
+class Some_Class_We_Want_Remotely_Accessible(object):
     """ Awesome Class which does awesome stuff.
     """
     def __init__(self, important_parameter=123):

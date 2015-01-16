@@ -4,6 +4,14 @@ This script starts up a bunch of ipengines on nodes of the LCOGT cch1
 beowulf cluster.
 
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 
 if __name__ == '__main__':

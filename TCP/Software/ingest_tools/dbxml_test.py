@@ -4,6 +4,16 @@
 
 PDB: /scisoft/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/pdb.py dbxml_test.py
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import datetime
 import traceback
@@ -35,7 +45,7 @@ def make_wwwable(messy_str, replace_dict):
     return messy_str
 
 
-class DBXML_Container_Instance:
+class DBXML_Container_Instance(object):
     """ This object class wraps methods for single dbxml container use.
 
     REQUIRES:
@@ -57,7 +67,7 @@ class DBXML_Container_Instance:
         self.fname = os.path.basename(self.db_fpath)
         if os.path.exists(self.db_fpath):
             os.system('rm ' + self.db_fpath)
-        self.oldcwd = os.getcwd()
+        self.oldcwd = os.getcwdu()
         os.chdir(self.dirname)
         self.container = self.mgr.createContainer(self.fname)
 
@@ -77,7 +87,7 @@ class DBXML_Container_Instance:
         self.db_fpath = db_fpath
         self.dirname = os.path.dirname(self.db_fpath)
         self.fname = os.path.basename(self.db_fpath)
-        self.oldcwd = os.getcwd()
+        self.oldcwd = os.getcwdu()
         os.chdir(self.dirname)
         self.container = self.mgr.openContainer(self.fname)
 

@@ -3,12 +3,23 @@
    v0.1 Dovi/Nat SN classifier, adapted from PTF_SN_classifier.py
 
 """
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
+from builtins import str
+from builtins import round
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 from scipy.special import erf
 from numpy import array,matrix,arange,sqrt,exp,mean,sum,zeros,clip,fix,\
     cumsum,hstack,floor,ceil,log
 
-class Dovi_SN:
+class Dovi_SN(object):
     """ This class wraps Dovi/Nat SN classification algorithms
 
     """

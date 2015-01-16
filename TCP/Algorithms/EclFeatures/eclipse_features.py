@@ -14,6 +14,18 @@ suspect_reason         semicolon separated list why orb_period is suspect
 best_orb_chi2          best chi2 fitting orb_period from polyfit
 orb_signif             LS significance
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import zip
+from builtins import int
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 __author__ = "J. S. Bloom, D. Starr"
 __version__ = "0.32"
@@ -61,7 +73,7 @@ def _load_dotastro_data(fname="013113-7829.1.xml"):
     name = fname.split(".xml")[0]
     return x0,y,dy, name
 
-class ebfeature:
+class ebfeature(object):
 
     def __init__(self,t=None, m=None, merr=None, name="", allow_plotting=True, sys_err=0.03, \
                  verbose=False, fix_initial_period=False, initial_period=1.0, srcid=0):

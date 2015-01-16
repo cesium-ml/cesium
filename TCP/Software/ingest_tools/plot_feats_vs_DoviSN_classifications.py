@@ -14,6 +14,16 @@ Currently, this writes a .arff file which can be used to visualize the dependenc
 
 NOTE: only context features are used by the SN classification code.
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
@@ -30,7 +40,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
 #import vosource_parse
 import mlens3
 
-class Plot_Feats_Vs_DoviSN_Classifications:
+class Plot_Feats_Vs_DoviSN_Classifications(object):
     """
 Given a list of older vosource.xmls, this re-generates
 the vosource.xmls, adding new features.

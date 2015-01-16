@@ -3,6 +3,15 @@
 
 Used to ingest all pairitel pkl files.
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import threading
 import time
@@ -21,7 +30,7 @@ pars = {\
         '/home/pteluser/scratch/TCP_tests/pkl_path_list.sem2005a'],
         }
 
-class Pairitel_Pickle_ingest:
+class Pairitel_Pickle_ingest(object):
     def __init__(self, pars):
         self.pars = pars
 

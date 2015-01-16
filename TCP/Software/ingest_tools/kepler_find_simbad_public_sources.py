@@ -5,6 +5,17 @@ TODO: for each source (which is public and has a lightcurve), parse the ra,dec
 TODO: then with the ra,dec query simbad/NED to see if any classifications / knowledge.
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import open
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import socket
 socket.setdefaulttimeout(20) # for urllib2 timeout of urlopen()
@@ -14,7 +25,7 @@ import pickle
 import gzip
 import amara
 
-class Kepler_Database:
+class Kepler_Database(object):
     """ Object which accesses mysql database / table containing kic.txt (13M row) data.
     """
 
@@ -150,7 +161,7 @@ LOAD DATA INFILE '%s' INTO TABLE kepler_kic
         import pdb; pdb.set_trace()
         print()
 
-class Kepler_Sources:
+class Kepler_Sources(object):
     """
     """
     def __init__(self, pars):

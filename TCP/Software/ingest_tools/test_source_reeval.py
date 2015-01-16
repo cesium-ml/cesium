@@ -4,11 +4,21 @@
 
 NOTE: derived from ptf_master.py
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import range
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 import random
 
 
-class Diff_Obj_Source_Populator:
+class Diff_Obj_Source_Populator(object):
     """ Matches/generates source for diff-obj, features...
      - This is instantiated on a ipython1 node
      - This should be initialized (module imports) by PTF-polling thread
@@ -83,7 +93,7 @@ class Diff_Obj_Source_Populator:
                            ingest_tools.get_features_using_srcid_xml_tuple_list
 
 
-class Source_Reevaluation:
+class Source_Reevaluation(object):
     """ Used for testing, to re-evaluate whether objects are still associated
     with existing sources.
     """

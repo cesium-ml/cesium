@@ -8,6 +8,17 @@ feature_extraction_interface.py
 PDB Command:
    /usr/lib/python2.5/pdb.py test.py
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 try:
     import pylab
@@ -88,7 +99,7 @@ class GetFeatIdLookupDicts(object):
         self.filt_lookup_dict = filt_lookup_dict
 
 
-class Final_Features:
+class Final_Features(object):
     """ Class which contains final, extracted (scalar) feature definition
     lists and dictionaries.
 
@@ -199,7 +210,7 @@ class Final_Features:
         #self.features_ordered_list = self.features_dict.keys()
         #self.features_ordered_list.sort()
 
-class Feature_database:
+class Feature_database(object):
     """ Class which contains generation and access methods for
     all possible feature extractors.
 
@@ -269,7 +280,7 @@ class Feature_database:
 
 
 
-class Internal_Feature_Extractors:
+class Internal_Feature_Extractors(object):
     """ Class which contains "internal feature" definition lists & dictionaries
     """
 
@@ -332,7 +343,7 @@ class Internal_Feature_Extractors:
             self.feature_dict[feat_name] = feat_dict
 
 
-class Final_Features:
+class Final_Features(object):
     """ Class which contains final, extracted (scalar) feature definition
     lists and dictionaries.
 
@@ -443,7 +454,7 @@ class Final_Features:
         #self.features_ordered_list = self.features_dict.keys()
         #self.features_ordered_list.sort()
 
-class Feature_database:
+class Feature_database(object):
     """ Class which contains generation and access methods for
     all possible feature extractors.
 
@@ -899,7 +910,7 @@ class Feature_database:
         remote_url = "%s%s" %(feature_summary_webserver_url_prefix, fname_root)
         return remote_url
 
-class Plot_Signals:
+class Plot_Signals(object):
     """
     # TODO: I would like a plot which:
     #   - input: signals_list[0]
@@ -1127,7 +1138,7 @@ class Plot_Signals:
             self.generate_multi_filter_plot(signal_obj, ps_fpath=ps_fpath)
 
 
-class AddNewFeatures:
+class AddNewFeatures(object):
     """ Add some new features to the feat_lookup TABLE without
     re-generating, re-indexing this table (rerunning testsuite.py).
     """

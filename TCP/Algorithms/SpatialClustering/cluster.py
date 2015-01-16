@@ -3,6 +3,16 @@
 """
 cluster: Monte Carlo simulation of clustering
 """
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 
 import os,sys
 import datetime
@@ -114,7 +124,7 @@ def is_object_associated_with_source_algorithm_jbloom_orig(n_sources, \
 
 
 
-class obs:
+class obs(object):
 
     def __init__(self,initial_pos,true_err=[[0.09,0.0],[0.0,0.09]],assumed_err=[0.3,0.3],t=None):
         self.initial_pos = initial_pos  # (true ra and dec)
@@ -230,7 +240,7 @@ class obs:
         a += "\ttrue_obsevational_err     = %s\n" % self.true_err
         return a
 
-class source:
+class source(object):
 
     def __init__(self,start_pos=[None,None],start_err=[None,None],current_pos=[None,None],current_err=[None,None],\
         associated_obs=[],stype="real"):
@@ -296,7 +306,7 @@ class source:
 
 
 
-class testreal:
+class testreal(object):
 
     def __init__(self,fname="./obj_dict_309.pickle"):
         self.obj_dict = None
@@ -402,7 +412,7 @@ class testreal:
         self.constructed_pos  = (numarray.fromlist([x.current_pos for x in self.constructed_source_list]))
 
 
-class simulate:
+class simulate(object):
 
     def __init__(self):
 

@@ -2,6 +2,14 @@
 """ This kills ipython-parallel's ipengine which I cannot
 seem to directly ssh-exeucte a pkill on.
 """
+from __future__ import unicode_literals
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+from builtins import int
+from builtins import *
+from future import standard_library
+standard_library.install_aliases()
 import sys, os
 
 if __name__ == '__main__':

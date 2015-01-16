@@ -24,6 +24,17 @@
     - make statements about multiple lens
 
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from builtins import dict
+from builtins import range
+from builtins import str
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 from numpy import *
 from math import degrees, pi
 from scipy.optimize import leastsq, fmin, fmin_powell
@@ -57,7 +68,7 @@ __version__ = "1.0.2"
 
 from .. import db_importer
 
-class Mlens:
+class Mlens(object):
 
     ## basic lens equations
     theta_e          = lambda s,ml, dl: sqrt(2.0*g*ml*1.99e33/(dl*3.085e18))/c
@@ -540,7 +551,7 @@ class Mlens:
     def plot_rez(self):
         cla()
 
-class EventData:
+class EventData(object):
 
     def __init__(self,data):
         ## should be

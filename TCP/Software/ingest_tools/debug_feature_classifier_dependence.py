@@ -10,6 +10,16 @@ TODO:
      crossvalidation errors change by the same ammount.
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import open
+from builtins import range
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import numpy
 import pprint
@@ -20,7 +30,7 @@ algorithms_dirpath = os.path.abspath(os.environ.get("TCP_DIR") + 'Algorithms/')
 sys.path.append(algorithms_dirpath)
 import rpy2_classifiers
 
-class Debug_Feature_Class_Dependence:
+class Debug_Feature_Class_Dependence(object):
     """
     """
     def __init__(self, pars={}):

@@ -29,6 +29,17 @@ NOTE: Server started using shell command:
         ./obj_id_sockets.py server_type=src_id
 
 """
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import int
+from builtins import *
+from builtins import object
+from future import standard_library
+standard_library.install_aliases()
 import os, sys
 import MySQLdb
 import socket
@@ -115,7 +126,7 @@ pars = {'server_type':'', # This must be specified as an argv parameter
         }
 
 
-class socket_server:
+class socket_server(object):
     """ The socket server class.  One instance needed for each index type.
 
     NOTE: (passed in) pars{} is expected to be either:
@@ -265,7 +276,7 @@ class socket_server:
 
 
 
-class socket_client:
+class socket_client(object):
     """ The socket client object.
     The client sends how many rows it wants indicies for,
     expecting the server to return the start and end indexes allocated to it.
