@@ -1,12 +1,11 @@
-# docker_featurize.py
+# docker_build_model.py
 
 # to be run from INSIDE a docker container
 
 import subprocess
 import sys
 import os
-sys.path.append("/home/mltsp/mltsp")
-import custom_feature_tools as cft
+sys.path.append("/home/mltsp")
 import build_rf_model
 
 from subprocess import Popen, PIPE, call
@@ -26,7 +25,7 @@ def build_model():
     
     """
     # load pickled ts_data and known features
-    with open("/home/mltsp/mltsp/copied_data_files/function_args.pkl","rb") as f:
+    with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
         function_args = pickle.load(f)
     
     results_str = build_rf_model.build_model(

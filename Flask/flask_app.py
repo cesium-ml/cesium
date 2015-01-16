@@ -12,9 +12,9 @@ sys_admin_emails = ['a.crellinquick@gmail.com']
 
 # set the path to the project directory (default is in 
 # /home/user/Dropbox/..., but to be changed for each machine)
-import cfg
-sys.path.append(cfg.PROJECT_PATH)
-sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+from .. import cfg
+#sys.path.append(cfg.PROJECT_PATH)
+#sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import shutil
 import glob
@@ -72,15 +72,15 @@ try:
 except:
     pass
 
-import predict_class as predict
-import build_rf_model
-import lc_tools
-import custom_feature_tools as cft
-import custom_exceptions
-import run_in_docker_container
+from .. import predict_class as predict
+from .. import build_rf_model
+from .. import lc_tools
+from .. import custom_feature_tools as cft
+from .. import custom_exceptions
+from .. import run_in_docker_container
 
 if DISCO_INSTALLED:
-    import parallel_processing
+    from .. import parallel_processing
 
 all_available_features_list = cfg.features_list + cfg.features_list_science
 
@@ -3369,20 +3369,21 @@ def emailUser(user_email=None):
         return str(theError)
 
 
-if __name__ == '__main__':
-    import argparse
+def run_main(args=None):
+    if args is None:
+        import argparse
 
-    parser = argparse.ArgumentParser(description='MLTP web server')
-    parser.add_argument('--port', type=int, default=8000,
+        parser = argparse.ArgumentParser(description='MLTP web server')
+        parser.add_argument('--port', type=int, default=8000,
                         help='Port number (default 8000)')
-    parser.add_argument('--host', type=str, default='127.0.0.1',
+        parser.add_argument('--host', type=str, default='127.0.0.1',
                         help='Address to listen on (default 127.0.0.1)')
-    parser.add_argument('--debug', action='store_true',
+        parser.add_argument('--debug', action='store_true',
                         help='Enable debugging (default: False)')
-    parser.add_argument('--db-init', action='store_true',
+        parser.add_argument('--db-init', action='store_true',
                         help='Initialize the database')
-    parser.add_argument('--force', action='store_true')
-    args = parser.parse_args()
+        parser.add_argument('--force', action='store_true')
+        args = parser.parse_args()
 
     if args.db_init:
         db_init(force=args.force)
@@ -3391,3 +3392,7 @@ if __name__ == '__main__':
     print("Launching server on %s:%s" % (args.host, args.port))
     print("Logging to:", cfg.ERR_LOG_PATH)
     app.run(port=args.port, debug=args.debug, host=args.host, threaded=True)
+
+
+if __name__ == '__main__':
+    run_main()

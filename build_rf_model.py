@@ -13,7 +13,6 @@ from sklearn.cross_validation import train_test_split
 from sklearn.metrics import confusion_matrix
 from random import shuffle
 import pickle
-import lc_tools
 import sys
 import os
 import cfg
@@ -29,9 +28,10 @@ try:
 except Exception as theError:
     DISCO_INSTALLED = False
 if DISCO_INSTALLED:
-    import parallel_processing
-import custom_exceptions
-import custom_feature_tools as cft
+    from . import parallel_processing
+from . import lc_tools
+from . import custom_exceptions
+from . import custom_feature_tools as cft
 #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 # for when run from inside docker container:
 #sys.path.append("/home/mltp/TCP/Software/ingest_tools")
@@ -568,7 +568,7 @@ def featurize(
     f2.close()
     if not in_docker_container:
         shutil.copy2(
-            f2.name,os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+            f2.name,os.path.join(cfg.PROJECT_PATH,"Flask/static/data"))
     print("Done.")
     del objects
     if not in_docker_container:
