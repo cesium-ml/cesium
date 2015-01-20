@@ -558,7 +558,7 @@ class EventData(object):
         #print("DATA:\n\n", data, "\n\n", type(data))
         if isinstance(data,xmldict.XmlDictObject) or isinstance(data,dict):
             self.data = data
-        if isinstance(data,str):
+        if isinstance(data,(str,unicode)):
             ## maybe it's a file?
             if data.endswith(".xml"):
                 v = vosource_parse.vosource_parser(data)

@@ -187,8 +187,13 @@ class GeneralExtractor(object):
         error (boolean): True to proagate the error of fetched extractors """
         if not band: band = self.band
         if not properties: properties = self.properties
+        if isinstance(extractor_name, type(u'abc')): # For 2/3 compatibility
+            extractor_name = str(extractor_name)
         if not isinstance(extractor_name, str):
-            print("Method %s is still using old fetch procedure, calling %s" % (self.extname, extractor_name.extname))
+            try:
+                print("Method %s is still using old fetch procedure, calling %s" % (self.extname, extractor_name.extname))
+            except Exception as e:
+                print("Exception occurred in FeatureExtractor.fetch_extr():", e)
             return self.fetch_extr_old(extractor_name,properties,error, band, returnall, return_object)
         #print extractor_name, self.properties, self.band
         # # # # # # # # dstarr KLUDGE (next single condition:):

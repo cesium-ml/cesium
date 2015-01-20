@@ -13,7 +13,13 @@ from numpy import *
 #from fetchers import *
 from . import internal_generated_extractors_holder
 
-avtype = [('extname','S100') , ('extractor',object_), ('active',bool_)] # format of available_extractors
+if sys.version.startswith("2"):
+    avtype = [(u'extname'.encode("utf-8"),u'S100'.encode("utf-8")),
+              (u'extractor'.encode("utf-8"),object_),
+              ('active'.encode("utf-8"),bool_)] # format of available_extractors
+elif sys.version.startswith("3"):
+    avtype = [('extname','S100'), ('extractor',object_), ('active',bool_)]
+#avtype = [(str('extname'),str('S100')), (str('extractor'),object_), (str('active'),bool_)] # format of available_extractors
 
 
 class FeatureInterface(object):
