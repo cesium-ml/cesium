@@ -28,17 +28,11 @@ def currently_running_in_docker_container():
     import subprocess
     proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = str(proc.stdout.read())
-    if "/docker/" in output:
+    if "/docker/" in str(output):
         in_docker_container=True
     else:
         in_docker_container=False
     return in_docker_container
-
-
-
-
-
-
 
 
 import sys, os
@@ -48,7 +42,7 @@ import io
 if currently_running_in_docker_container()==True:
     os.environ["TCP_DIR"] = "/home/mltp/TCP/"
 else:
-    import cfg
+    from .... import cfg
     os.environ["TCP_DIR"] = os.path.join(cfg.TCP_INGEST_TOOLS_PATH, '../../')
 
 #from rpy2.robjects.packages import importr

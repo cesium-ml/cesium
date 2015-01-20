@@ -25,7 +25,7 @@ from builtins import object
 from future import standard_library
 standard_library.install_aliases()
 from scipy import *
-import xmldict
+from . import xmldict
 import os, sys
 from xml.etree import cElementTree as ElementTree # this is a nicer implementation
 from pprint import pprint

@@ -47,7 +47,7 @@ from . import custom_feature_tools as cft
 #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 # for when run from inside docker container:
 #sys.path.append("/home/mltp/TCP/Software/ingest_tools")
-from TCP.Software.ingest_tools import generate_science_features
+from .TCP.Software.ingest_tools import generate_science_features
 
 
 def read_data_from_csv_file(fname,sep=',',skip_lines=0):

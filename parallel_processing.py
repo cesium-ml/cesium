@@ -20,7 +20,6 @@ from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 
 import pickle
-import lc_tools
 import sys
 import os
 import cfg
@@ -31,10 +30,12 @@ import pytz
 import tarfile
 import glob
 import tarfile
-import disco_tools
-import custom_exceptions
 import uuid
 import shutil
+
+from . import lc_tools
+from . import disco_tools
+from . import custom_exceptions
 
 try:
     from disco.core import Job, result_iterator
@@ -44,24 +45,21 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 # For when run from inside Docker container:
-sys.path.append("/home/mltp/TCP/Software/ingest_tools")
-sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+#sys.path.append("/home/mltsp/TCP/Software/ingest_tools")
+#sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
-import generate_science_features
-from generate_science_features import currently_running_in_docker_container
-import build_rf_model
-import predict_class as predict
+from .TCP.Software.ingest_tools import generate_science_features
 
 
 def map(fname_and_class, params):
     """Map procedure for use in Disco's map-reduce implementation.
-    
+
     Generator used for feature generation process. Yields a 
     (file name, class name) tuple.
-    
+
     This function is never directly called, but rather passed as a 
     parameter to the Disco `Job()` object's `run()` method.
-    
+
     Parameters
     ----------
     fname_and_class : str
@@ -69,13 +67,13 @@ def map(fname_and_class, params):
         separated by a comma.
     params : dict
         Dictionary of parameters for use in map-reduce process.
-    
+
     Yields
     ------
     tuple of str
         Two-element tuple containing file name (str) and class name 
         (str).
-    
+
     """
     fname, class_name = fname_and_class.strip("\n").strip().split(",")
     yield fname, class_name
@@ -83,13 +81,13 @@ def map(fname_and_class, params):
 
 def pred_map(fname, params):
     """Map procedure for use in Disco's map-reduce implementation.
-    
+
     Generator used for featurizing prediction data. Yields a 
     (file name, empty string) tuple.
-    
+
     This function is never directly called, but rather passed as a 
     parameter to the Disco `Job()` object's `run()` method.
-    
+
     Parameters
     ----------
     fname : str
@@ -97,13 +95,13 @@ def pred_map(fname, params):
         separated by a comma.
     params : dict
         Dictionary of parameters for use in map-reduce process.
-    
+
     Yields
     ------
     tuple of str
         Two-element tuple containing file name (str) and class name 
         (str).
-    
+
     """
     fname, junk = fname.strip("\n").strip().split(",")
     yield fname, junk
@@ -111,13 +109,13 @@ def pred_map(fname, params):
 
 def pred_featurize_reduce(iter, params):
     """Generate features as reduce step in Disco's map-reduce.
-    
+
     Generator. Implementation of reduce stage in map-reduce process, 
     for model prediction feature generation of time series data. 
-    
+
     This function is never directly called, but rather passed as a 
     parameter to the Disco `Job()` object's `run()` method.
-    
+
     Parameters
     ----------
     iter : iterable
@@ -126,7 +124,7 @@ def pred_featurize_reduce(iter, params):
         placeholder string. 
     params : dict
         Dictionary of parameters for use in map-reduce process.
-    
+
     Yields
     ------
     tuple
@@ -134,7 +132,7 @@ def pred_featurize_reduce(iter, params):
         time series data set as its first element, and a two-element 
         list containing the extracted features (dict) and the original 
         time series data (list of lists) as its the second element. 
-    
+
     """
     from copy import deepcopy
     featset_key = params['featset_key']
@@ -148,19 +146,16 @@ def pred_featurize_reduce(iter, params):
     import os
     import sys
     from . import cfg
-    sys.path.append(cfg.PROJECT_PATH)
+    #sys.path.append(cfg.PROJECT_PATH)
     # for when run from inside docker container
-    sys.path.append("/home/mltp/TCP/Software/ingest_tools")
-    sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+    #sys.path.append("/home/mltp/TCP/Software/ingest_tools")
+    #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
     from . import custom_exceptions
-    import generate_science_features
-    from generate_science_features import currently_running_in_docker_container
-    from . import predict_class as predict
-    from . import build_rf_model
+    from .TCP.Software.ingest_tools import generate_science_features
     from . import lc_tools
     from . import custom_feature_tools as cft
     
-    if currently_running_in_docker_container():
+    if generate_science_features.currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
@@ -307,12 +302,14 @@ def featurize_reduce(iter, params):
         import os
         import sys
         from . import cfg
-        sys.path.append(cfg.PROJECT_PATH)
-        sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
+        #sys.path.append(cfg.PROJECT_PATH)
+        #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
         # For when run in Docker container:
-        sys.path.append("/home/mltp/TCP/Software/ingest_tools")
-        
-        if currently_running_in_docker_container():
+        #sys.path.append("/home/mltp/TCP/Software/ingest_tools")
+
+        from .TCP.Software.ingest_tools import generate_science_features
+
+        if generate_science_features.currently_running_in_docker_container():
             features_folder = "/Data/features/"
             models_folder = "/Data/models/"
             uploads_folder = "/Data/flask_uploads/"
@@ -322,13 +319,10 @@ def featurize_reduce(iter, params):
             models_folder = cfg.MODELS_FOLDER
             uploads_folder = cfg.UPLOAD_FOLDER
             tcp_ingest_tools_path = cfg.TCP_INGEST_TOOLS_PATH
-        
-        
-        import generate_science_features
-        from . import build_rf_model
+
         from . import lc_tools
         from . import custom_feature_tools as cft
-        
+
         short_fname = fname.split("/")[-1].replace(
             ("."+fname.split(".")[-1] if "." in fname.split("/")[-1] else ""),
             "")
@@ -338,7 +332,7 @@ def featurize_reduce(iter, params):
         print("path_to_csv: " + path_to_csv)
         if os.path.isfile(path_to_csv):
             print("Extracting features for " + fname)
-        
+
             ## generate features:
             if (len(list(set(params['features_to_use']) & 
                     set(cfg.features_list))) > 0):
@@ -569,7 +563,7 @@ def featurize_in_parallel(
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     
-    if currently_running_in_docker_container():
+    if generate_science_features.currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
@@ -687,7 +681,7 @@ def featurize_in_parallel_newtest(
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     
-    if currently_running_in_docker_container():
+    if generate_science_features.currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
