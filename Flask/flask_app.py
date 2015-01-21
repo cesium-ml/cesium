@@ -21,11 +21,7 @@ import os
 # list of (Google) admin accounts to have access to all projects
 sys_admin_emails = ['a.crellinquick@gmail.com']
 
-# set the path to the project directory (default is in 
-# /home/user/Dropbox/..., but to be changed for each machine)
 from .. import cfg
-#sys.path.append(cfg.PROJECT_PATH)
-#sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
 
 import shutil
 import glob
@@ -1185,7 +1181,7 @@ def delete_project(project_name):
                 try:
                     os.remove(
                         os.path.join(
-                            cfg.PROJECT_PATH, 
+                            cfg.MLTSP_PACKAGE_PATH, 
                             ("flask/static/data/%s_features_with_classes.csv"
                                 %features_key)))
                 except Exception as err:
@@ -1490,7 +1486,7 @@ def update_project_info(
             try:
                 os.remove(
                     os.path.join(
-                        cfg.PROJECT_PATH, 
+                        cfg.MLTSP_PACKAGE_PATH, 
                         ("flask/static/data/%s_features_with_classes.csv"
                         %features_key)))
             except Exception as theErr:

@@ -12,11 +12,8 @@ standard_library.install_aliases()
 
 # to be run from INSIDE a docker container
 
-#import subprocess
-#sys.path.append("/home/mltsp")
 from .. import custom_feature_tools as cft
 
-#from subprocess import Popen, PIPE, call
 import pickle
 
 def extract_custom_feats():

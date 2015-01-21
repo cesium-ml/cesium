@@ -580,7 +580,7 @@ def featurize(
     f2.close()
     if not in_docker_container:
         shutil.copy2(
-            f2.name,os.path.join(cfg.PROJECT_PATH,"Flask/static/data"))
+            f2.name,os.path.join(cfg.MLTSP_PACKAGE_PATH,"Flask/static/data"))
     print("Done.")
     del objects
     if not in_docker_container:

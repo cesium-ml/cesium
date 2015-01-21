@@ -14,7 +14,6 @@ from builtins import *
 import subprocess
 import sys
 import os
-#sys.path.append("/home/mltsp")
 from .. import custom_feature_tools as cft
 from .. import build_rf_model
 from .. import predict_class

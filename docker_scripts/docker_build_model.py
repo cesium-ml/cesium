@@ -13,7 +13,6 @@ from builtins import *
 import subprocess
 import sys
 import os
-#sys.path.append("/home/mltsp")
 from .. import build_rf_model
 
 from subprocess import Popen, PIPE, call

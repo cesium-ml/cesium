@@ -123,7 +123,7 @@ def featurize_in_docker_container(
             os.path.join(
                 cfg.FEATURES_FOLDER,
                 "%s_features_with_classes.csv"%featureset_key), 
-            os.path.join(cfg.PROJECT_PATH,"flask/static/data"))
+            os.path.join(cfg.MLTSP_PACKAGE_PATH,"flask/static/data"))
         os.remove(os.path.join(
             cfg.FEATURES_FOLDER, 
             "%s_features_with_classes.csv"%featureset_key))

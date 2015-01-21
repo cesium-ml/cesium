@@ -434,7 +434,7 @@ def test_new_script(
     all_fnames = False
     try:
         all_fnames = glob.glob(
-            os.path.join(cfg.PROJECT_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
+            os.path.join(cfg.MLTSP_PACKAGE_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
     except:
         pass
     if (is_running_in_docker_container() and

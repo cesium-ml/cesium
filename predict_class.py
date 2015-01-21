@@ -118,12 +118,10 @@ def predict(
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
-        path_to_project_directory = "/home/mltsp/"
     else:
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
         uploads_folder = cfg.UPLOAD_FOLDER
-        path_to_project_directory = cfg.PROJECT_PATH
     if metadata_file_path is not None:
         meta_features = {}
         with open(metadata_file_path) as f:
