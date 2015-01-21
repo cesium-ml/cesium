@@ -7,17 +7,17 @@ from builtins import str
 from future import standard_library
 standard_library.install_aliases()
 from builtins import *
-# docker_featurize.py
+# docker_predict.py
 
 # to be run from INSIDE a docker container
 
 import subprocess
 import sys
 import os
-sys.path.append("/home/mltsp")
-import custom_feature_tools as cft
-import build_rf_model
-import predict_class
+#sys.path.append("/home/mltsp")
+from .. import custom_feature_tools as cft
+from .. import build_rf_model
+from .. import predict_class
 import time
 from subprocess import Popen, PIPE, call
 import pickle

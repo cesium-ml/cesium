@@ -11,8 +11,6 @@ from builtins import *
 from builtins import object
 from future import standard_library
 standard_library.install_aliases()
-#!/usr/bin/python
-# filename: lc_tools.py
 
 import re
 import urllib.request, urllib.error, urllib.parse
@@ -38,7 +36,7 @@ import cfg
 
 class lightCurve(object):
     """Time-series data and features object.
-    
+
     Attributes
     ----------
     epochs : list of float
@@ -74,22 +72,22 @@ class lightCurve(object):
     cads_med : float
         Median value of `cads`.
     cad_probs : dict
-        Dictionary with time value (int, in minutes) as keys, whose 
-        corresponding values are the probabilities that the next 
-        observation is within the specified time of an arbitrary epoch. 
-        E.g. for a key of 1, the associated value is the probability 
-        that the next observation is within one minute of an arbitrary 
+        Dictionary with time value (int, in minutes) as keys, whose
+        corresponding values are the probabilities that the next
+        observation is within the specified time of an arbitrary epoch.
+        E.g. for a key of 1, the associated value is the probability
+        that the next observation is within one minute of an arbitrary
         epoch.
     cad_probs_1 : float
-        Probability that the next observation is within one minute of 
+        Probability that the next observation is within one minute of
         an arbitrary epoch.
     ...
     cad_probs_10000000 : float
-        Probability that the next observation is within 10000000 
+        Probability that the next observation is within 10000000
         minutes of an arbitrary epoch.
     double_to_single_step : list of float
-        List of ratios of time to observation after next to time to 
-        next observation, for all epochs with index in the interval 
+        List of ratios of time to observation after next to time to
+        next observation, for all epochs with index in the interval
         [0, N-3], where N is the total number of epochs.
     med_double_to_single_step : float
         Median of `double_to_single_step`.
@@ -98,7 +96,7 @@ class lightCurve(object):
     std_double_to_single_step : float
         Standard deviation of `double_to_single_step`.
     all_times : list of float
-        List of time intervals to all later observations from each 
+        List of time intervals to all later observations from each
         epoch.
     all_times_hist : list
         Histogram of `all_times`.
@@ -115,14 +113,14 @@ class lightCurve(object):
     all_times_nhist_numpeaks : int
         Number of peaks in `all_times_hist_normed`.
     all_times_nhist_peaks : list
-        List of up to four biggest peaks of `all_times_hist_normed`, 
+        List of up to four biggest peaks of `all_times_hist_normed`,
         each being a two-item list: ``[peak_val, bin_index]``.
     all_times_nhist_peak_1_to_2 : float
-        Ratio of `all_times_hist` first peak height to second peak 
+        Ratio of `all_times_hist` first peak height to second peak
         height.
     ...
     all_times_nhist_peak_3_to_4 : float
-        Ratio of `all_times_hist` third peak height to fourth peak 
+        Ratio of `all_times_hist` third peak height to fourth peak
         height.
     all_times_nhist_peak1_bin : int
         Bin number of first peak of `all_times_hist`.
@@ -142,7 +140,7 @@ class lightCurve(object):
         Declination (decimal degrees).
     band : str
         Observation band/filter.
-    
+
     Methods
     -------
     showInfo()
@@ -153,19 +151,19 @@ class lightCurve(object):
         Print all object attribute names.
     generateFeaturesDict()
         Return dictionary of all feature attributes.
-    
+
     """
-    
+
     def __init__(
-        self, epochs, mags, errs=[], ra='none', dec='none', 
+        self, epochs, mags, errs=[], ra='none', dec='none',
         source_id='none', time_unit='day', classname='unknown',
         band='unknown', features_to_use=[]):
         """Instantiate object and generate features.
-        
-        Generates all features described in Attributes section of class 
-        docstring above that are not provided as parameters to 
+
+        Generates all features described in Attributes section of class
+        docstring above that are not provided as parameters to
         constructor.
-        
+
         Parameters
         ----------
         epochs : list of float
@@ -183,14 +181,14 @@ class lightCurve(object):
         time_unit : str, optional
             String specifying time unit, defaults to "day".
         classname : str, optional
-            Name of class if part of training set, defaults to 
+            Name of class if part of training set, defaults to
             "unknown".
         band : str, optional
             Observation band/filter, defaults to "unknown".
         features_to_use : list, optional
-            List of features to generate. Defaults to an empty list, in 
+            List of features to generate. Defaults to an empty list, in
             which case all available features are generated.
-        
+
         """
         self.time_unit = time_unit
         self.id = str(source_id)
@@ -208,10 +206,10 @@ class lightCurve(object):
         self.band = band
         self.avgt = round((self.total_time)/(float(len(epochs))),3)
         self.cads = []
-        
+
         self.double_to_single_step = []
         self.all_times = []
-        
+
         if len(errs) > 0:
             self.avg_err = np.average(errs)
             self.med_err = np.median(errs)
@@ -220,15 +218,15 @@ class lightCurve(object):
             self.avg_err = None
             self.med_err = None
             self.std_err = None
-        
+
         for i in range(len(epochs)):
-            
+
             # all the deltaTs (time to next obs)
             try:
                 self.cads.append(epochs[i+1]-epochs[i])
             except IndexError:
                 pass
-            
+
             # ratio of time to obs after next to time to next obs
             try:
                 self.double_to_single_step.append(
@@ -237,18 +235,18 @@ class lightCurve(object):
                 pass
             except ZeroDivisionError:
                 pass
-            
+
             # all possible deltaTs ()
             for j in range(1,len(epochs)):
                 try:
                     self.all_times.append(epochs[i+j]-epochs[i])
                 except IndexError:
                     pass
-        
+
         self.all_times_std = np.std(self.all_times)
         self.all_times_med = np.median(self.all_times)
         self.all_times_avg = np.average(self.all_times)
-        
+
         hist, bins = np.histogram(self.all_times,bins=50)
         nhist, bins = np.histogram(self.all_times,bins=50,normed=True)
         self.all_times_hist = hist
@@ -259,7 +257,7 @@ class lightCurve(object):
         self.all_times_hist_normed = nhist
         self.all_times_bins_normed = bins/np.max(self.all_times)
         self.all_times_nhist_peak_val = np.max(nhist)
-        
+
         peaks = [] # elements are lists: [peak, index]
         for peak in heapq.nlargest(10,nhist):
             index = np.where(nhist == peak)[0][0]
@@ -275,16 +273,16 @@ class lightCurve(object):
             except IndexError:
                 # peak is first or last entry
                 peaks.append([peak,index])
-        
+
         peaks = sorted(peaks,key=lambda x:x[1])
-        
+
         self.all_times_nhist_peaks = peaks[:4]
         self.all_times_nhist_numpeaks = len(peaks)
         if len(peaks) > 0:
             self.all_times_nhist_peak1_bin = peaks[0][1]
         else:
             self.all_times_nhist_peak1_bin = None
-        (self.all_times_nhist_peak_1_to_2, self.all_times_nhist_peak_1_to_3, 
+        (self.all_times_nhist_peak_1_to_2, self.all_times_nhist_peak_1_to_3,
             self.all_times_nhist_peak_2_to_3, self.all_times_nhist_peak_1_to_4,
             self.all_times_nhist_peak_2_to_4, 
             self.all_times_nhist_peak_3_to_4) = [None,None,None,None,None,None]

@@ -17,7 +17,7 @@ import os, sys
 HOME_DIRECTORY = os.path.expanduser("~")
 
 # Specify path to project directory:
-PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp_compat2and3")
+PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp_compat2and3/mltp")
 DATA_PATH = os.path.join(PROJECT_PATH, "Data")
 
 # Specify path to uploads, models, and feature folders:
@@ -36,7 +36,7 @@ TCP_INGEST_TOOLS_PATH = os.path.join(PROJECT_PATH, "TCP/Software/ingest_tools")
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
 features_list = [
-    "n_epochs","avg_err","med_err","std_err", 
+    "n_epochs","avg_err","med_err","std_err",
     "total_time","avgt","cads_std","avg_mag",
     "cads_avg","cads_med","cad_probs_1",
     "cad_probs_10","cad_probs_20","cad_probs_30",

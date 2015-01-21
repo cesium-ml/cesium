@@ -8,7 +8,6 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import *
 from subprocess import Popen, PIPE, call, check_call
-import cfg
 import uuid
 import pickle
 import shutil
@@ -17,6 +16,8 @@ import uuid
 import sys
 import os
 import rethinkdb as r
+
+from . import cfg
 
 
 def featurize_in_docker_container(
