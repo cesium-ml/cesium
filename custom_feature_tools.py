@@ -164,7 +164,7 @@ def execute_functions_in_order(
             all_lines = f.readlines()
     except IOError:
         if is_running_in_docker_container():
-            with open("/home/mltsp/"+script_fname) as f:
+            with open("/home/mltsp/mltsp/copied_data_files/"+script_fname) as f:
                 all_lines = f.readlines()
         else:
             raise
@@ -368,7 +368,7 @@ def docker_extract_features(
         # will automatically generate features:
         cmd = ["docker", "run",
                 "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-                "-v", "%s:/home/mltsp/copied_data_files" % path_to_tmp_dir,
+                "-v", "%s:/home/mltsp/mltsp/copied_data_files" % path_to_tmp_dir,
                 "--name=%s" % container_name,
                 "mltsp/extract_custom_feats"]
         # execute command
@@ -440,7 +440,7 @@ def test_new_script(
     if (is_running_in_docker_container() and
             (not all_fnames or len(all_fnames) == 0) and False):
         try:
-            all_fnames = glob.glob("/home/mltsp/.sample_lcs/dotastro_*.dat")[:1]
+            all_fnames = glob.glob("/home/mltsp/mltsp/.sample_lcs/dotastro_*.dat")[:1]
         except:
             all_fnames = False
     if not all_fnames or len(all_fnames) == 0:

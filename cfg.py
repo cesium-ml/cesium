@@ -17,7 +17,8 @@ import os, sys
 HOME_DIRECTORY = os.path.expanduser("~")
 
 # Specify path to project directory:
-PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp_compat2and3/mltsp")
+PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp_compat2and3")
+MLTSP_PACKAGE_PATH = os.path.join(PROJECT_PATH, "mltsp")
 DATA_PATH = os.path.join(PROJECT_PATH, "Data")
 
 # Specify path to uploads, models, and feature folders:

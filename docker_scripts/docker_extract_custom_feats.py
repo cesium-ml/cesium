@@ -33,12 +33,12 @@ def extract_custom_feats():
     """
     # load pickled ts_data and known features
     with open(
-        "/home/mltsp/copied_data_files/features_already_known_list.pkl",
+        "/home/mltsp/mltsp/copied_data_files/features_already_known_list.pkl",
         "rb") as f:
         features_already_known_list = pickle.load(f)
 
     # script has been copied to the following location:
-    script_fpath = "/home/mltsp/copied_data_files/custom_feature_defs.py"
+    script_fpath = "/home/mltsp/mltsp/copied_data_files/custom_feature_defs.py"
     script_fname = "custom_feature_defs.py"
 
     # extract features
@@ -53,7 +53,7 @@ def extract_custom_feats():
     return 0
 
 
-if __name__ == "__main__" and __package__ is None:
-    __package__ = "mltsp.docker_scripts.docker_extract_custom_feats"
+if __name__ == "__main__":# and __package__ is None:
+    #__package__ = "mltsp.docker_scripts.docker_extract_custom_feats"
     all_feats = extract_custom_feats()
     print(all_feats)

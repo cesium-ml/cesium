@@ -43,7 +43,7 @@ def predict():
     time.sleep(2)
     
     # load pickled ts_data and known features
-    with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
+    with open("/home/mltsp/mltsp/copied_data_files/function_args.pkl","rb") as f:
         function_args = pickle.load(f)
     
     # ensure required files successfully copied into container:
