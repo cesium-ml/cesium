@@ -18,7 +18,6 @@ from sklearn.externals import joblib
 
 import logging
 from operator import itemgetter
-import cfg
 import pickle
 import sys
 import os
@@ -31,6 +30,7 @@ import tarfile
 import glob
 from copy import deepcopy
 
+from . import cfg
 from . import custom_exceptions
 from . import lc_tools
 #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)

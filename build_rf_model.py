@@ -27,7 +27,6 @@ from random import shuffle
 import pickle
 import sys
 import os
-import cfg
 import numpy as np
 import datetime
 import pytz
@@ -41,6 +40,8 @@ except Exception as theError:
     DISCO_INSTALLED = False
 if DISCO_INSTALLED:
     from . import parallel_processing
+
+from . import cfg
 from . import lc_tools
 from . import custom_exceptions
 from . import custom_feature_tools as cft

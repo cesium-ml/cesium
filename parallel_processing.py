@@ -22,7 +22,6 @@ from sklearn.externals import joblib
 import pickle
 import sys
 import os
-import cfg
 
 import numpy as np
 import datetime
@@ -33,6 +32,7 @@ import tarfile
 import uuid
 import shutil
 
+from . import cfg
 from . import lc_tools
 from . import disco_tools
 from . import custom_exceptions
