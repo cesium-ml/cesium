@@ -118,7 +118,7 @@ def predict(
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
-        path_to_project_directory = "/home/mltp/"
+        path_to_project_directory = "/home/mltsp/"
     else:
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER

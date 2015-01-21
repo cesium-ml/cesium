@@ -114,7 +114,7 @@ logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 # RethinkDB config:
 RDB_HOST =  os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
-MLWS_DB = "mltp_app"
+MLWS_DB = "mltsp_app"
 
 ALLOWED_EXTENSIONS = set([
     'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml', 
@@ -1001,7 +1001,7 @@ def add_featureset(
         "headerfile_path":headerfile_path,
         "zipfile_path":zipfile_path
     }).run(g.rdb_conn)['generated_keys'][0]
-    print("Feature set %s entry added to mltp_app db." % name)
+    print("Feature set %s entry added to mltsp_app db." % name)
     return new_featset_key
 
 
@@ -1046,7 +1046,7 @@ def add_model(
         "pid": pid,
         "meta_feats":meta_feats
     }).run(g.rdb_conn)['generated_keys'][0]
-    print("New model entry %s added to mltp_app db." % featureset_name)
+    print("New model entry %s added to mltsp_app db." % featureset_name)
     return new_model_key
 
 
@@ -1088,7 +1088,7 @@ def add_prediction(
         "pid": pid,
         "metadata_file": metadata_file
     }).run(g.rdb_conn)['generated_keys'][0]
-    print("New prediction entry added to mltp_app db.")
+    print("New prediction entry added to mltsp_app db.")
     return new_prediction_key
 
 
@@ -3378,7 +3378,7 @@ def run_main(args=None):
     if args is None:
         import argparse
 
-        parser = argparse.ArgumentParser(description='MLTP web server')
+        parser = argparse.ArgumentParser(description='MLTSP web server')
         parser.add_argument('--port', type=int, default=8000,
                         help='Port number (default 8000)')
         parser.add_argument('--host', type=str, default='127.0.0.1',

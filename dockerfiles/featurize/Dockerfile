@@ -1,3 +1,4 @@
 FROM mltsp/base_disco
 
-ENTRYPOINT ["python3", "/home/mltsp/docker_scripts/docker_featurize.py"]
+RUN pip install future
+ENTRYPOINT ["python", "/home/mltsp/run_script_in_container.py", "--featurize"]

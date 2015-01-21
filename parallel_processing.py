@@ -148,7 +148,7 @@ def pred_featurize_reduce(iter, params):
     from . import cfg
     #sys.path.append(cfg.PROJECT_PATH)
     # for when run from inside docker container
-    #sys.path.append("/home/mltp/TCP/Software/ingest_tools")
+    #sys.path.append("/home/mltsp/TCP/Software/ingest_tools")
     #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
     from . import custom_exceptions
     from .TCP.Software.ingest_tools import generate_science_features
@@ -159,7 +159,7 @@ def pred_featurize_reduce(iter, params):
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
-        tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+        tcp_ingest_tools_path = "/home/mltsp/TCP/Software/ingest_tools/"
     else:
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
@@ -305,7 +305,7 @@ def featurize_reduce(iter, params):
         #sys.path.append(cfg.PROJECT_PATH)
         #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
         # For when run in Docker container:
-        #sys.path.append("/home/mltp/TCP/Software/ingest_tools")
+        #sys.path.append("/home/mltsp/TCP/Software/ingest_tools")
 
         from .TCP.Software.ingest_tools import generate_science_features
 
@@ -313,7 +313,7 @@ def featurize_reduce(iter, params):
             features_folder = "/Data/features/"
             models_folder = "/Data/models/"
             uploads_folder = "/Data/flask_uploads/"
-            tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+            tcp_ingest_tools_path = "/home/mltsp/TCP/Software/ingest_tools/"
         else:
             features_folder = cfg.FEATURES_FOLDER
             models_folder = cfg.MODELS_FOLDER
@@ -567,7 +567,7 @@ def featurize_in_parallel(
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
-        tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+        tcp_ingest_tools_path = "/home/mltsp/TCP/Software/ingest_tools/"
     else:
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
@@ -685,7 +685,7 @@ def featurize_in_parallel_newtest(
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
-        tcp_ingest_tools_path = "/home/mltp/TCP/Software/ingest_tools/"
+        tcp_ingest_tools_path = "/home/mltsp/TCP/Software/ingest_tools/"
     else:
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
