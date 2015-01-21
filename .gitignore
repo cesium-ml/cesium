@@ -1,5 +1,11 @@
 flask/rethinkdb_data/
 flask/static/data/*classes.csv
+TCP/Software/__pycache__/
+TCP/Software/feature_extract/Code/__pycache__/
+TCP/Software/feature_extract/Code/extractors/common_functions/build/temp.linux-x86_64-2.7/
+TCP/Software/feature_extract/MLData/__pycache__/
+TCP/Software/feature_extract/__pycache__/
+TCP/Software/ingest_tools/__pycache__/
 *~
 *.pyc
 *.bak
