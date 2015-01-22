@@ -72,60 +72,58 @@ def featurize_in_docker_container(
             ["cp", headerfile_path, "%s/%s" % 
                 (path_to_tmp_dir, headerfile_path.split("/")[-1])])
         arguments["headerfile_path"] = os.path.join(
-            "/home/mltsp/mltsp/copied_data_files", headerfile_path.split("/")[-1])
+            "/home/mltsp/copied_data_files", headerfile_path.split("/")[-1])
     if os.path.isfile(str(zipfile_path)):
         status_code = call(
             ["cp", zipfile_path, "%s/%s" % 
                 (path_to_tmp_dir, zipfile_path.split("/")[-1])])
         arguments["zipfile_path"] = os.path.join(
-            "/home/mltsp/mltsp/copied_data_files", zipfile_path.split("/")[-1])
+            "/home/mltsp/copied_data_files", zipfile_path.split("/")[-1])
     if os.path.isfile(str(custom_script_path)):
         status_code = call(
-            ["cp", custom_script_path, "%s/%s" % 
+            ["cp", custom_script_path, "%s/%s" %
                 (path_to_tmp_dir, custom_script_path.split("/")[-1])])
         arguments["custom_script_path"] = os.path.join(
-            "/home/mltsp/mltsp/copied_data_files", custom_script_path.split("/")[-1])
-    
-    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/mltsp/copied_data_files"}
+            "/home/mltsp/copied_data_files", custom_script_path.split("/")[-1])
+
+    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/copied_data_files"}
     with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
         pickle.dump(arguments,f)
-    
+
     try:
-        # run the docker container 
-        cmd = ["docker", "run", 
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH, 
-                "-v", "%s:/home/mltsp/mltsp/copied_data_files" % path_to_tmp_dir, 
-                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"), 
-                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"), 
-                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"), 
-                "--name=%s" % container_name, 
+        # run the docker container
+        cmd = ["docker", "run",
+                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
+                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"),
+                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"),
+                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),
+                "--name=%s" % container_name,
                 "mltsp/featurize"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print("\n\ndocker container stdout:\n\n", stdout, \
             "\n\ndocker container stderr:\n\n", stderr, "\n\n")
-    
-    
+
         # copy all necessary files produced in docker container to host
         for file_suffix in [
             "features.csv", "features_with_classes.csv", "classes.pkl"]:
             cmd = [
-                "docker", "cp", "%s:/tmp/%s_%s" % 
+                "docker", "cp", "%s:/tmp/%s_%s" %
                     (container_name, featureset_key, file_suffix),
                 cfg.FEATURES_FOLDER]
             status_code = call(cmd, stdout=PIPE, stderr=PIPE)
             print((
                 os.path.join(
-                    cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)), 
+                    cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)),
                 "copied to host machine - status code %s" % str(status_code)))
-    
+
         shutil.copy2(
             os.path.join(
                 cfg.FEATURES_FOLDER,
-                "%s_features_with_classes.csv"%featureset_key), 
-            os.path.join(cfg.MLTSP_PACKAGE_PATH,"flask/static/data"))
+                "%s_features_with_classes.csv"%featureset_key),
+            os.path.join(cfg.MLTSP_PACKAGE_PATH,"Flask/static/data"))
         os.remove(os.path.join(
-            cfg.FEATURES_FOLDER, 
+            cfg.FEATURES_FOLDER,
             "%s_features_with_classes.csv"%featureset_key))
         print("Process complete.")
     except:
@@ -143,57 +141,56 @@ def featurize_in_docker_container(
 def build_model_in_docker_container(
     featureset_name, featureset_key, model_type):
     """Build classification model inside a Docker container.
-    
-    Spins up a Docker container in which the 
-    build_rf_model.build_model() routine is called, and the resulting 
+
+    Spins up a Docker container in which the
+    build_rf_model.build_model() routine is called, and the resulting
     model is then copied to the host machine.
-    
+
     Parameters
     ----------
     featureset_name : str
         Name of the feature set from which to create the new model.
     featureset_key : str
-        Feature set key/ID, also the RethinkDB 'features' table entry 
+        Feature set key/ID, also the RethinkDB 'features' table entry
         key associated with the feature set to be used.
     model_type : str
         Abbreviation of type of model to create (e.g. "RF").
-    
+
     Returns
     -------
     str
         Human-readable success message.
-    
+
     """
     arguments = locals()
     #unique name for docker container for later cp and rm commands
     container_name = str(uuid.uuid4())[:10]
     path_to_tmp_dir = os.path.join("/tmp", container_name)
     os.mkdir(path_to_tmp_dir)
-    
+
     # copy relevant data files into docker temp directory
     # on host to be mounted into container:
-    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/mltsp/copied_data_files"}
+    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/copied_data_files"}
     with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
         pickle.dump(arguments,f)
     try:
-        # run the docker container 
-        cmd = ["docker", "run", 
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH, 
-                "-v", "%s:/home/mltsp/mltsp/copied_data_files" % path_to_tmp_dir, 
-                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"), 
-                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"), 
-                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),  
-                "--name=%s" % container_name, 
+        # run the docker container
+        cmd = ["docker", "run",
+                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
+                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"),
+                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"),
+                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),
+                "--name=%s" % container_name,
                 "mltsp/build_model"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print("\n\ndocker container stdout:\n\n", stdout, \
               "\n\ndocker container stderr:\n\n", stderr, "\n\n")
-        
+
         # copy all necessary files produced in Docker container to host
         cmd = [
-            ("docker", "cp", "%s:/tmp/%s_%s.pkl" 
-                % (container_name, featureset_key, model_type)), 
+            ("docker", "cp", "%s:/tmp/%s_%s.pkl"
+                % (container_name, featureset_key, model_type)),
             cfg.MODELS_FOLDER]
         #status_code = call(cmd, stdout=PIPE, stderr=PIPE)
         #print os.path.join(
@@ -272,7 +269,7 @@ def predict_in_docker_container(
             ["cp", newpred_file_path, 
                 "%s/%s" % (path_to_tmp_dir, newpred_file_path.split("/")[-1])])
         arguments["newpred_file_path"] = os.path.join(
-            "/home/mltsp/mltsp/copied_data_files", newpred_file_path.split("/")[-1])
+            "/home/mltsp/copied_data_files", newpred_file_path.split("/")[-1])
     if os.path.isfile(str(custom_features_script)):
         status_code = call(
             [
@@ -280,7 +277,7 @@ def predict_in_docker_container(
                 "%s/%s" % (path_to_tmp_dir, 
                 custom_features_script.split("/")[-1])])
         arguments["custom_features_script"] = os.path.join(
-            "/home/mltsp/mltsp/copied_data_files", 
+            "/home/mltsp/copied_data_files", 
             custom_features_script.split("/")[-1])
     if os.path.isfile(str(metadata_file)):
         status_code = call(
@@ -288,15 +285,14 @@ def predict_in_docker_container(
                 "cp", metadata_file, 
                 "%s/%s" % (path_to_tmp_dir, metadata_file.split("/")[-1])])
         arguments["metadata_file"] = os.path.join(
-            "/home/mltsp/mltsp/copied_data_files", metadata_file.split("/")[-1])
+            "/home/mltsp/copied_data_files", metadata_file.split("/")[-1])
     
-    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/mltsp/copied_data_files"}
+    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/copied_data_files"}
     with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
         pickle.dump(arguments,f)
     try:
         cmd = ["docker", "run", 
                 "-v", "%s:/home/mltsp"%cfg.PROJECT_PATH, 
-                "-v", "%s:/home/mltsp/mltsp/copied_data_files"%path_to_tmp_dir, 
                 "-v", "%s:%s"%(cfg.FEATURES_FOLDER,"/Data/features"), 
                 "-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"), 
                 "-v", "%s:%s"%(cfg.MODELS_FOLDER,"/Data/models"), 

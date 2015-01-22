@@ -9,3 +9,5 @@ RUN apt-get -y upgrade
 RUN apt-get install -y python-pip python-numpy python-scipy \
                        python-matplotlib python-sklearn python-beautifulsoup \
                        python-parse
+
+RUN pip install future cython

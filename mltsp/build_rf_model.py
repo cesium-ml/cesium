@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # build_rf_model.py
 
-
 from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
@@ -45,15 +44,12 @@ from . import cfg
 from . import lc_tools
 from . import custom_exceptions
 from . import custom_feature_tools as cft
-#sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
-# for when run from inside docker container:
-#sys.path.append("/home/mltsp/mltsp/TCP/Software/ingest_tools")
 from .TCP.Software.ingest_tools import generate_science_features
 
 
 def read_data_from_csv_file(fname,sep=',',skip_lines=0):
     """Parse CSV file and return data in list form.
-    
+
     Parameters
     ----------
     fname : str
@@ -62,14 +58,14 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
         Delimiting character in CSV file. Defaults to ",".
     skip_lines : int, optional
         Number of leading lines to skip in file. Defaults to 0.
-    
+
     Returns
     -------
     list of list
-        Two-element list whose first element is a list of the column 
-        names in the file, and whose second element is a list of lists, 
+        Two-element list whose first element is a list of the column
+        names in the file, and whose second element is a list of lists,
         each list containing the values in each row in the file.
-    
+
     """
     f = open(fname)
     linecount = 0
@@ -85,9 +81,9 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
                 all_rows.append(line.strip('\n').split(sep))
                 if "?" in line:
                     # Replace missing values with 0.0
-                    data_rows[-1] = [el if el != "?" else "0.0" 
+                    data_rows[-1] = [el if el != "?" else "0.0"
                                      for el in data_rows[-1]]
-                    all_rows[-1] = [el if el != "?" else "0.0" 
+                    all_rows[-1] = [el if el != "?" else "0.0"
                                     for el in all_rows[-1]]
         linecount+=1
     for i in range(len(colnames)):
@@ -99,14 +95,14 @@ def read_data_from_csv_file(fname,sep=',',skip_lines=0):
 
 
 def build_model(
-    featureset_name, featureset_key, model_type="RF", 
+    featureset_name, featureset_key, model_type="RF",
     in_docker_container=False):
     """Build a `scikit-learn` classifier.
-    
-    Builds the specified model and pickles it in the file 
-    whose name is given by 
+
+    Builds the specified model and pickles it in the file
+    whose name is given by
     ``"%s_%s.pkl" % (featureset_key, model_type)``
-    in the directory `cfg.MODELS_FOLDER` (or is later copied there 
+    in the directory `cfg.MODELS_FOLDER` (or is later copied there
     from within the Docker container if `in_docker_container` is True.
     
     Parameters
@@ -453,7 +449,7 @@ def featurize(
                             path_to_csv=path_to_csv,
                             features_already_known=dict(
                                 list(timeseries_features.items()) + 
-                                list(science_features.items())))
+                                list(science_features.items())))[0]
                     else:
                         custom_features = {}
                     all_features = dict(
@@ -553,7 +549,7 @@ def featurize(
                     try:
                         if type(obj[feat]) == str and obj[feat] != "None":
                             line.append(obj[feat])
-                        elif (type(obj[feat]) == type(None) 
+                        elif (type(obj[feat]) == type(None)
                               or obj[feat] == "None"):
                             line.append(str(0.0))
                         else:
@@ -561,7 +557,7 @@ def featurize(
                         if feat in features_to_plot and numobjs < 300:
                             if type(obj[feat]) == str and obj[feat] != "None":
                                 line2.append(obj[feat])
-                            elif (type(obj[feat]) == type(None) 
+                            elif (type(obj[feat]) == type(None)
                                   or obj[feat] == "None"):
                                 line2.append(str(0.0))
                             else:
@@ -581,7 +577,7 @@ def featurize(
     f2.close()
     if not in_docker_container:
         shutil.copy2(
-            f2.name,os.path.join(cfg.MLTSP_PACKAGE_PATH,"Flask/static/data"))
+            f2.name,os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
     print("Done.")
     del objects
     if not in_docker_container:
@@ -596,8 +592,8 @@ def featurize(
     os.remove(headerfile_path)
     if zipfile_path is not None:
         os.remove(zipfile_path)
-    print((str(foutname.replace(".pkl","_features.csv").split('/')[-1] + 
-        " and " + foutname.replace(".pkl","_classes.pkl").split('/')[-1] + 
+    print((str(foutname.replace(".pkl","_features.csv").split('/')[-1] +
+        " and " + foutname.replace(".pkl","_classes.pkl").split('/')[-1] +
         " created.")))
     return "Featurization of timeseries data complete."
 
@@ -608,5 +604,3 @@ if __name__ == "__main__":
     else:
         features_to_use = []
     build_model(features_to_use=features_to_use)
-    
-

@@ -30,13 +30,12 @@ def extract_custom_feats():
     """
     # load pickled ts_data and known features
     with open(
-        "/home/mltsp/mltsp/copied_data_files/features_already_known_list.pkl",
+        "/home/mltsp/copied_data_files/features_already_known_list.pkl",
         "rb") as f:
         features_already_known_list = pickle.load(f)
 
     # script has been copied to the following location:
-    script_fpath = "/home/mltsp/mltsp/copied_data_files/custom_feature_defs.py"
-    script_fname = "custom_feature_defs.py"
+    script_fpath = "/home/mltsp/copied_data_files/custom_feature_defs.py"
 
     # extract features
     all_feats = cft.execute_functions_in_order(

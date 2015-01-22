@@ -44,10 +44,6 @@ try:
 except Exception as theError:
     DISCO_INSTALLED = False
 
-# For when run from inside Docker container:
-#sys.path.append("/home/mltsp/mltsp/TCP/Software/ingest_tools")
-#sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
-
 from .TCP.Software.ingest_tools import generate_science_features
 
 
@@ -146,10 +142,6 @@ def pred_featurize_reduce(iter, params):
     import os
     import sys
     from . import cfg
-    #sys.path.append(cfg.PROJECT_PATH)
-    # for when run from inside docker container
-    #sys.path.append("/home/mltsp/mltsp/TCP/Software/ingest_tools")
-    #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
     from . import custom_exceptions
     from .TCP.Software.ingest_tools import generate_science_features
     from . import lc_tools
@@ -302,11 +294,6 @@ def featurize_reduce(iter, params):
         import os
         import sys
         from . import cfg
-        #sys.path.append(cfg.PROJECT_PATH)
-        #sys.path.append(cfg.TCP_INGEST_TOOLS_PATH)
-        # For when run in Docker container:
-        #sys.path.append("/home/mltsp/mltsp/TCP/Software/ingest_tools")
-
         from .TCP.Software.ingest_tools import generate_science_features
 
         if generate_science_features.currently_running_in_docker_container():

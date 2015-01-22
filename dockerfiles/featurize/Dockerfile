@@ -1,4 +1,3 @@
-FROM mltsp/base_disco
+FROM mltsp/base
 
-RUN pip install future
 ENTRYPOINT ["python", "/home/mltsp/run_script_in_container.py", "--featurize"]

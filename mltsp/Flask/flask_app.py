@@ -95,7 +95,7 @@ all_available_features_list = cfg.features_list + cfg.features_list_science
 app = Flask(__name__, static_folder=None)
 app.static_folder = 'static'
 app.add_url_rule(
-    '/static/<path:filename>', endpoint='static', 
+    '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
 app.secret_key = '\xde/P\x86K\xfdIhI"\x1e\x87\x1d&-\x1cY\xc0hX\x96\xc1\xaf\x8d'
 
@@ -113,8 +113,8 @@ RDB_PORT = os.environ.get('RDB_PORT') or 28015
 MLWS_DB = "mltsp_app"
 
 ALLOWED_EXTENSIONS = set([
-    'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml', 
-    'json', 'TXT', 'DAT', 'CSV', 'FITS', 'JPEG', 'GIF', 'BMP', 'DOC', 'ODT', 
+    'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml',
+    'json', 'TXT', 'DAT', 'CSV', 'FITS', 'JPEG', 'GIF', 'BMP', 'DOC', 'ODT',
     'XML', 'JSON'])
 
 
@@ -1182,7 +1182,7 @@ def delete_project(project_name):
                     os.remove(
                         os.path.join(
                             cfg.MLTSP_PACKAGE_PATH, 
-                            ("flask/static/data/%s_features_with_classes.csv"
+                            ("Flask/static/data/%s_features_with_classes.csv"
                                 %features_key)))
                 except Exception as err:
                     print("delete_project() - " + str(err))
@@ -1487,7 +1487,7 @@ def update_project_info(
                 os.remove(
                     os.path.join(
                         cfg.MLTSP_PACKAGE_PATH, 
-                        ("flask/static/data/%s_features_with_classes.csv"
+                        ("Flask/static/data/%s_features_with_classes.csv"
                         %features_key)))
             except Exception as theErr:
                 print(theErr)
@@ -2364,14 +2364,14 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        #results_str = run_in_docker_container.featurize_in_docker_container(
-        #    headerfile_path, zipfile_path, features_to_use, featureset_key, 
-        #    is_test, already_featurized, custom_script_path)
-        results_str = build_rf_model.featurize(
-            headerfile_path, zipfile_path, features_to_use=features_to_use, 
-            featureset_id=featureset_key, is_test=is_test, 
-            already_featurized=already_featurized, 
-            custom_script_path=custom_script_path, USE_DISCO=False)
+        results_str = run_in_docker_container.featurize_in_docker_container(
+            headerfile_path, zipfile_path, features_to_use, featureset_key, 
+            is_test, already_featurized, custom_script_path)
+        #results_str = build_rf_model.featurize(
+        #    headerfile_path, zipfile_path, features_to_use=features_to_use, 
+        #    featureset_id=featureset_key, is_test=is_test, 
+        #    already_featurized=already_featurized, 
+        #    custom_script_path=custom_script_path, USE_DISCO=False)
         if email_user not in (False, None, "False", "None"):
             emailUser(email_user)
     except Exception as theErr:

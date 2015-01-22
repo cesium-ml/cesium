@@ -13,12 +13,9 @@ from future import standard_library
 standard_library.install_aliases()
 import os, sys
 
-# path to user's home directory
-HOME_DIRECTORY = os.path.expanduser("~")
-
 # Specify path to project directory:
-PROJECT_PATH = os.path.join(HOME_DIRECTORY, "mltsp_compat2and3")
-MLTSP_PACKAGE_PATH = os.path.join(PROJECT_PATH, "mltsp")
+PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_PATH, "Data")
 
 # Specify path to uploads, models, and feature folders:
@@ -32,7 +29,8 @@ ERR_LOG_PATH = os.path.join(
     DATA_PATH, "logs/errors_and_warnings.txt")
 
 # Specify path to generate_science_features script in TCP:
-TCP_INGEST_TOOLS_PATH = os.path.join(PROJECT_PATH, "TCP/Software/ingest_tools")
+TCP_INGEST_TOOLS_PATH = os.path.join(MLTSP_PACKAGE_PATH,
+                                     "TCP/Software/ingest_tools")
 
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):

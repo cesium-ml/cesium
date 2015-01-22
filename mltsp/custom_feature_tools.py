@@ -4,14 +4,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import dict
-from builtins import str
-from builtins import zip
+from __builtin__ import open
+from __builtin__ import range
+from __builtin__ import dict
+from __builtin__ import str
+from __builtin__ import zip
 from future import standard_library
 standard_library.install_aliases()
-from builtins import *
+from __builtin__ import *
 import glob
 from parse import parse
 from subprocess import call, Popen, PIPE
@@ -51,7 +51,7 @@ class myFeature(object):
     Applies function wrapper that ensures required parameters and
     return values are present before executing, raising an exception if
     not.
-    
+
     Attributes
     ----------
     requires : list
@@ -150,24 +150,19 @@ def execute_functions_in_order(
     # For when run inside Docker container:
     import sys
     import os
-    sys.path.append("/home/mltsp")
     script_fname = script_fpath.split("/")[-1]
     if script_fpath == "testfeature1.py":
         script_fpath = os.path.join(os.path.dirname(os.path.abspath(
             inspect.getfile(inspect.currentframe()))), "testfeature1.py")
-    script_dir = script_fpath.replace("/"+script_fname,"")
-    if script_dir != cfg.PROJECT_PATH:
-        sys.path.append(script_dir)
-    thismodule = __import__(script_fname.replace(".py",""))
     try:
         with open(script_fpath) as f:
             all_lines = f.readlines()
-    except IOError:
-        if is_running_in_docker_container():
-            with open("/home/mltsp/mltsp/copied_data_files/"+script_fname) as f:
-                all_lines = f.readlines()
-        else:
-            raise
+    except IOError as e:
+        raise(e)
+
+    # import the custom feature defs
+    from ..copied_data_files import custom_feature_defs
+
     fnames_req_prov_dict = {}
     all_required_params = []
     all_provided_params = []
@@ -231,7 +226,7 @@ def execute_functions_in_order(
                             arguments[req] = features_already_known[req]
                         elif req in all_extracted_features:
                             arguments[req] = all_extracted_features[req]
-                    func_result = getattr(thismodule, funcname)(**arguments)
+                    func_result = getattr(custom_feature_defs, funcname)(**arguments)
                     all_extracted_features = dict(
                         list(all_extracted_features.items()) + list(func_result.items()))
                     funcnames.remove(funcname)
@@ -295,6 +290,8 @@ def docker_extract_features(
         List of dictionaries of all generated features.
 
     """
+    if isinstance(features_already_known_list, dict):
+        features_already_known_list = [features_already_known_list]
     for features_already_known in features_already_known_list:
         if "t" not in features_already_known or "m" not in features_already_known:
             ## get ts data and put into features_already_known
@@ -358,17 +355,23 @@ def docker_extract_features(
     # tsdata file into docker temp directory
     status_code = call([
         "cp", script_fpath,
-        os.path.join(path_to_tmp_dir, "custom_feature_defs.py")])
+        os.path.join(
+            os.path.join(
+                cfg.PROJECT_PATH, "copied_data_files"),
+            "custom_feature_defs.py")])
     with open(
-            os.path.join(path_to_tmp_dir,
-            "features_already_known_list.pkl"), "wb") as f:
+            os.path.join(
+                os.path.join(
+                    cfg.PROJECT_PATH, "copied_data_files"),
+                "features_already_known_list.pkl"),
+            "wb"
+        ) as f:
         pickle.dump(features_already_known_list,f)
     try:
         # the command to run our docker container which
         # will automatically generate features:
         cmd = ["docker", "run",
                 "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-                "-v", "%s:/home/mltsp/mltsp/copied_data_files" % path_to_tmp_dir,
                 "--name=%s" % container_name,
                 "mltsp/extract_custom_feats"]
         # execute command
@@ -399,6 +402,43 @@ def docker_extract_features(
         print("Docker container deleted.")
         # Remove tmp dir
         shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
+        try:
+            os.remove(
+                os.path.join(
+                    os.path.join(
+                        cfg.PROJECT_PATH, "copied_data_files"),
+                    "custom_feature_defs.py"))
+            os.remove(
+                os.path.join(
+                    os.path.join(
+                        cfg.PROJECT_PATH, "copied_data_files"),
+                    "custom_feature_defs.pyc"))
+            os.remove(
+                os.path.join(
+                    os.path.join(
+                        cfg.PROJECT_PATH, "copied_data_files"),
+                    "__init__.pyc"))
+            print("Deleted", 
+                  os.path.join(
+                    os.path.join(
+                        cfg.PROJECT_PATH, "copied_data_files"),
+                    "custom_feature_defs.py(c)"))
+        except Exception as e:
+            print(e)
+        try:
+            os.remove(
+                os.path.join(
+                    os.path.join(
+                        cfg.PROJECT_PATH, "copied_data_files"),
+                    "features_already_known_list.pkl"))
+            print("Deleted",
+                  os.path.join(
+                    os.path.join(
+                        cfg.PROJECT_PATH, "copied_data_files"),
+                    "features_already_known_list.pkl"))
+        except Exception as e:
+            print(e)
+
     return results_list_of_dict
 
 
@@ -434,13 +474,13 @@ def test_new_script(
     all_fnames = False
     try:
         all_fnames = glob.glob(
-            os.path.join(cfg.MLTSP_PACKAGE_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
+            os.path.join(cfg.PROJECT_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
     except:
         pass
     if (is_running_in_docker_container() and
             (not all_fnames or len(all_fnames) == 0) and False):
         try:
-            all_fnames = glob.glob("/home/mltsp/mltsp/.sample_lcs/dotastro_*.dat")[:1]
+            all_fnames = glob.glob("/home/mltsp/.sample_lcs/dotastro_*.dat")[:1]
         except:
             all_fnames = False
     if not all_fnames or len(all_fnames) == 0:
@@ -550,7 +590,7 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
 
 
 def generate_custom_features(
-        custom_script_path, path_to_csv=None, features_already_known={},
+        custom_script_path, path_to_csv=None, features_already_known=[],
         ts_data=None):
     """Generate custom features for provided TS data and script.
 
@@ -562,9 +602,9 @@ def generate_custom_features(
         Path to CSV file containing time-series data. Defaults to None.
         If None, ts_data (see below) must not be None, otherwise
         raises an Exception.
-    features_already_known : dict, optional
-        Dictionary containing any meta-features associated with
-        provided time-series data. Defaults to {}.
+    features_already_known : list of dict, optional
+        List of dicts containing any meta-features associated with
+        provided time-series data. Defaults to [].
     ts_data : list OR tuple, optional
         List (or tuple) of lists (or tuples) containing time,
         measurement (and optionally associated error values) data.
@@ -602,7 +642,7 @@ def generate_custom_features(
             print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
-                features_already_known=features_already_known)
+                features_already_known_list=features_already_known)
         else:
             print("Generating custom features WITHOUT docker container...")
             all_new_features = execute_functions_in_order(
