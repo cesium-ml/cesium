@@ -4,14 +4,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import dict
-from builtins import str
-from builtins import zip
+from __builtin__ import open
+from __builtin__ import range
+from __builtin__ import dict
+from __builtin__ import str
+from __builtin__ import zip
 from future import standard_library
 standard_library.install_aliases()
-from builtins import *
+from __builtin__ import *
 import glob
 from parse import parse
 from subprocess import call, Popen, PIPE
@@ -116,11 +116,11 @@ class DummyFile(object):
 
 
 def execute_functions_in_order(
-        script_fpath="testfeature1.py",
+        script_fpath,
         features_already_known={
             "t":[1,2,3], "m":[1,23,2], "e":[0.2,0.3,0.2], "coords":[22,33]},
         multiple_sources=False):
-    """Generate custom features defined in script_fname.
+    """Generate custom features defined in script_fpath.
 
     Parses the script (which must have function definitions with
     decorators specifying the required parameters and those which are
@@ -150,10 +150,6 @@ def execute_functions_in_order(
     # For when run inside Docker container:
     import sys
     import os
-    script_fname = script_fpath.split("/")[-1]
-    if script_fpath == "testfeature1.py":
-        script_fpath = os.path.join(os.path.dirname(os.path.abspath(
-            inspect.getfile(inspect.currentframe()))), "testfeature1.py")
     try:
         with open(script_fpath) as f:
             all_lines = f.readlines()
@@ -161,7 +157,7 @@ def execute_functions_in_order(
         raise(e)
 
     # import the custom feature defs
-    from ..copied_data_files import custom_feature_defs
+    from .custom_feature_scripts import custom_feature_defs
 
     fnames_req_prov_dict = {}
     all_required_params = []
@@ -357,7 +353,7 @@ def docker_extract_features(
         "cp", script_fpath,
         os.path.join(
             os.path.join(
-                cfg.PROJECT_PATH, "copied_data_files"),
+                cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
             "custom_feature_defs.py")])
     with open(
             os.path.join(
@@ -406,33 +402,23 @@ def docker_extract_features(
             os.remove(
                 os.path.join(
                     os.path.join(
-                        cfg.PROJECT_PATH, "copied_data_files"),
+                        cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
                     "custom_feature_defs.py"))
             os.remove(
                 os.path.join(
                     os.path.join(
-                        cfg.PROJECT_PATH, "copied_data_files"),
+                        cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
                     "custom_feature_defs.pyc"))
             os.remove(
                 os.path.join(
                     os.path.join(
-                        cfg.PROJECT_PATH, "copied_data_files"),
+                        cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
                     "__init__.pyc"))
-            print("Deleted", 
-                  os.path.join(
-                    os.path.join(
-                        cfg.PROJECT_PATH, "copied_data_files"),
-                    "custom_feature_defs.py(c)"))
         except Exception as e:
             print(e)
         try:
             os.remove(
                 os.path.join(
-                    os.path.join(
-                        cfg.PROJECT_PATH, "copied_data_files"),
-                    "features_already_known_list.pkl"))
-            print("Deleted",
-                  os.path.join(
                     os.path.join(
                         cfg.PROJECT_PATH, "copied_data_files"),
                     "features_already_known_list.pkl"))
@@ -443,7 +429,7 @@ def docker_extract_features(
 
 
 def test_new_script(
-        script_fpath="testfeature1.py",
+        script_fpath,
         docker_container=False):
     """Test custom features script and return generated features.
 
@@ -466,10 +452,6 @@ def test_new_script(
         time-series data sets.
 
     """
-    script_fname = script_fpath.split("/")[-1]
-    if script_fpath == "testfeature1.py":
-        script_fpath = os.path.join(os.path.dirname(os.path.abspath(
-            inspect.getfile(inspect.currentframe()))), "testfeature1.py")
     features_already_known_list = []
     all_fnames = False
     try:

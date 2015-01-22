@@ -35,7 +35,8 @@ def extract_custom_feats():
         features_already_known_list = pickle.load(f)
 
     # script has been copied to the following location:
-    script_fpath = "/home/mltsp/copied_data_files/custom_feature_defs.py"
+    script_fpath = ("/home/mltsp/mltsp/custom_feature_scripts/"
+                    "custom_feature_defs.py")
 
     # extract features
     all_feats = cft.execute_functions_in_order(
@@ -49,7 +50,6 @@ def extract_custom_feats():
     return 0
 
 
-if __name__ == "__main__":# and __package__ is None:
-    #__package__ = "mltsp.docker_scripts.docker_extract_custom_feats"
+if __name__ == "__main__":
     all_feats = extract_custom_feats()
     print(all_feats)
