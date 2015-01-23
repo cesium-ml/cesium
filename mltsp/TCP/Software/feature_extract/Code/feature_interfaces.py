@@ -126,16 +126,20 @@ class FeatureInterface(object):
             return False
 
 
-    def find_extname(self,extractor_name, index = False): # linked if want to modify the array directly
-        extractor_index = where(self.available_extractors['extname'] ==\
-                                extractor_name.encode('utf-8'))[0]
-        if size(extractor_index) is 0:
+    def find_extname(self, extractor_name, index = False): # linked if want to modify the array directly
+        extractors = self.available_extractors['extname'].tolist()
+
+        try:
+            ix = extractors.index(extractor_name.encode('utf-8'))
+        except ValueError:
             print("find_extname couldn't find extractor %s" % \
                                                     (extractor_name))
             return False # if we didn't find the object
+
         if index:
-            return extractor_index[0]
-        extractor_row = self.available_extractors[extractor_index][0] # return the corresponding extractor row (extname, extractor and active)
+            return ix
+
+        extractor_row = self.available_extractors[ix] # return the corresponding extractor row (extname, extractor and active)
         return extractor_row
 
 
@@ -164,9 +168,9 @@ def initialize(list_of_extractors):
     #for extractor in extractors.__dict__.values():
     #for extractor in list_of_extractors:
     list_of_extractor_objects = []
-    
+
     from . import extractors
-    
+
     for extractor_name in list_of_extractors:
         d = {}
         extractor = getattr(extractors, extractor_name + '_extractor')
