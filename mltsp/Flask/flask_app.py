@@ -44,7 +44,7 @@ from flask import (
     escape, session, Response, jsonify, g)
 from flask.ext.login import LoginManager, current_user
 from flask.ext import restful
-from flask_googleauth import GoogleAuth, GoogleFederated
+from ..ext.flask_googleauth import GoogleAuth, GoogleFederated
 from werkzeug import secure_filename
 from functools import wraps
 import uuid
