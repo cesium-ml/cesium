@@ -36,7 +36,7 @@ def configuration(parent_package='', top_path=None):
             delegate_options_to_subpackages=True,
             quiet=True)
 
-    config.add_subpackage('TCP')
+    config.add_subpackage('mltsp')
 
     return config
 
