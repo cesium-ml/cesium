@@ -6,6 +6,7 @@ mltsp/TCP/Software/feature_extract/Code/extractors/common_functions/build/temp.l
 mltsp/TCP/Software/feature_extract/MLData/__pycache__/
 mltsp/TCP/Software/feature_extract/__pycache__/
 mltsp/TCP/Software/ingest_tools/__pycache__/
+mltsp/TCP/build
 Data/extracted_features/
 Data/flask_uploads/
 Data/classifier_models/

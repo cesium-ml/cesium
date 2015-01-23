@@ -182,6 +182,10 @@ def execute_functions_in_order(
         features_already_known_list = [features_already_known]
     elif isinstance(features_already_known, list):
         features_already_known_list = features_already_known
+    else:
+        raise ValueError("custom_feature_tools.py - features_already_known"
+                         " is of an invalid type (%s)." %\
+                         str(type(features_already_known)))
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout

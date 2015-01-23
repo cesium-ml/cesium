@@ -1,6 +1,7 @@
 FROM mltsp/base
 
 ## install requirements
+RUN apt-get update
 RUN apt-get install -y wget curl erlang git make
 
 ## add user for disco
@@ -32,4 +33,3 @@ ADD disco.sh /etc/service/disco/run
 
 # clean system
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
