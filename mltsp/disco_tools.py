@@ -13,8 +13,6 @@ from builtins import *
 from disco.ddfs import DDFS
 
 
-
-
 def push_by_tag(file_paths,tag=None):
     '''
     '''
@@ -27,14 +25,12 @@ def push_by_tag(file_paths,tag=None):
         ddfs.push(tag,file_paths)
 
 
-
-
 def push_all_objects(file_paths,tags=None):
     '''
     '''
     if tags != None:
         if len(file_paths) == len(tags):
-            
+
             tags_to_fname_list_dict = {}
             for i in range(len(file_paths)):
                 if tags[i] not in tags_to_fname_list_dict:
@@ -43,7 +39,7 @@ def push_all_objects(file_paths,tags=None):
                     tags_to_fname_list_dict[tags[i]].append(file_paths[i])
             for tag_name in list(tags_to_fname_list_dict.keys()):
                 push_by_tag(
-                    file_paths=tags_to_fname_list_dict[tag_name], 
+                    file_paths=tags_to_fname_list_dict[tag_name],
                     tag=tag_name)
         else:
             raise ValueError(
@@ -53,11 +49,8 @@ def push_all_objects(file_paths,tags=None):
     print("All files pushed to DDFS")
 
 
-
-
-
 def headerfile_to_fname_dict(headerfile_path):
-    '''Parses headerfile and returns dict with key=fname, 
+    '''Parses headerfile and returns dict with key=fname,
     value=dict of attributes (class/meta feats)
     '''
     with open(headerfile_path) as f:
@@ -74,26 +67,18 @@ def headerfile_to_fname_dict(headerfile_path):
                 this_dict[column_titles[i]] = els[i]
             dict_of_dicts[els[0]] = this_dict
         else:
-            print(("Column titles (" + str(column_titles) + 
-                   ") and line elements (" + str(els) + 
+            print(("Column titles (" + str(column_titles) +
+                   ") and line elements (" + str(els) +
                    ") not of the same length.. "))
-        
-    
+
     return dict_of_dicts
-
-
-
-
 
 
 def delete_all():
     '''
-    Deletes all tags in DDFS, thus orphaning all blobs and making them 
+    Deletes all tags in DDFS, thus orphaning all blobs and making them
     subject to eventual removal by the garbage collector.
     '''
     ddfs = DDFS()
     for tag in ddfs.list():
         ddfs.delete(tag)
-
-
-

@@ -284,9 +284,9 @@ class lightCurve(object):
             self.all_times_nhist_peak1_bin = None
         (self.all_times_nhist_peak_1_to_2, self.all_times_nhist_peak_1_to_3,
             self.all_times_nhist_peak_2_to_3, self.all_times_nhist_peak_1_to_4,
-            self.all_times_nhist_peak_2_to_4, 
+            self.all_times_nhist_peak_2_to_4,
             self.all_times_nhist_peak_3_to_4) = [None,None,None,None,None,None]
-        (self.all_times_nhist_peak4_bin, self.all_times_nhist_peak3_bin, 
+        (self.all_times_nhist_peak4_bin, self.all_times_nhist_peak3_bin,
             self.all_times_nhist_peak2_bin) = [None,None,None]
         if len(peaks) >= 2:
             self.all_times_nhist_peak_1_to_2 = peaks[0][0]/peaks[1][0]
@@ -300,15 +300,15 @@ class lightCurve(object):
                     self.all_times_nhist_peak_2_to_4 = peaks[1][0]/peaks[3][0]
                     self.all_times_nhist_peak_3_to_4 = peaks[2][0]/peaks[3][0]
                     self.all_times_nhist_peak4_bin = peaks[3][1]
-        
+
         self.avg_double_to_single_step = np.average(self.double_to_single_step)
         self.med_double_to_single_step = np.median(self.double_to_single_step)
         self.std_double_to_single_step = np.std(self.double_to_single_step)
-        
+
         self.cads_std = np.std(self.cads)
         self.cads_avg = np.average(self.cads)
         self.cads_med = np.median(self.cads)
-        
+
         self.cad_probs = {}
         for time in [1,10,20,30,40,50,100,500,1000,5000,10000,50000,
                      100000,500000,1000000,5000000,10000000]:
@@ -318,7 +318,7 @@ class lightCurve(object):
             elif self.time_unit == 'hour':
                 self.cad_probs[time] = stats.percentileofscore(
                     self.cads,float(time))/100.0
-        
+
         self.cad_probs_1 = self.cad_probs[1]
         self.cad_probs_10 = self.cad_probs[10]
         self.cad_probs_20 = self.cad_probs[20]
@@ -336,21 +336,21 @@ class lightCurve(object):
         self.cad_probs_1000000 = self.cad_probs[1000000]
         self.cad_probs_5000000 = self.cad_probs[5000000]
         self.cad_probs_10000000 = self.cad_probs[10000000]
-    
+
     def showInfo(self):
         print([self.start,self.end,len(self.epochs),self.avgt])
-    
+
     def showAllInfo(self):
         for attr, val in list(vars(self).items()):
             print(attr, ":", val)
-    
+
     def allAttrs(self):
         count = 0
         for attr, val in list(vars(self).items()):
             print(attr)
             count += 1
         print(count, "attributes total.")
-    
+
     def generate_features_dict(self):
         features_dict = {}
         for attr, val in list(vars(self).items()):
@@ -361,19 +361,19 @@ class lightCurve(object):
 
 def makePdf(sources):
     """Generate PDF of feature scatter plots for given sources.
-    
+
     Resulting PDF is saved in working directory.
-    
+
     Parameters
     ----------
     sources : list of Source
         List of Source objects to include in plots.
-    
+
     Returns
     -------
     int
         Returns 0 upon successful completion.
-    
+
     """
     pdf = PdfPages("sample_features.pdf")
     classnames = []
@@ -382,22 +382,22 @@ def makePdf(sources):
     y = 3 # number of subplot rows
     for source in sources:
         lc = source.lcs[0]
-        
+
         if lc.classname not in classnames:
             classnames.append(lc.classname)
             classname_dict[lc.classname] = [lc]
         else:
             classname_dict[lc.classname].append(lc)
-            
+
         if len(classname_dict[lc.classname]) < 3:
-        
+
             label = lc.classname + "; ID: " + lc.id
             # all_times histogram:
             fig = plt.figure()
             ax = fig.add_subplot(111)
             ax.set_title(label)
             ax.axis('off')
-            
+
             ax1 = fig.add_subplot(321)
             ax2 = fig.add_subplot(322)
             ax2.axis('off')
@@ -407,41 +407,41 @@ def makePdf(sources):
             ax5 = fig.add_subplot(325)
             ax6 = fig.add_subplot(326)
             ax6.axis('off')
-            
+
             hist, bins, other = ax1.hist(lc.all_times,50,normed=True)
             ax1.text(np.max(bins)*0.1,np.max(hist)*0.8,
                      r'Histogram (normed) of all $\Delta$Ts')
-            
-            ax2.text(0.0,0.9,(r'$\bullet$med time to next obs: ' + 
+
+            ax2.text(0.0,0.9,(r'$\bullet$med time to next obs: ' +
                               str(np.round(lc.cads_med,4))))
-            ax2.text(0.0,0.75,(r'$\bullet$avg time to next obs: ' + 
+            ax2.text(0.0,0.75,(r'$\bullet$avg time to next obs: ' +
                                str(np.round(lc.avgt,4))))
-            ax2.text(0.0,0.6,(r'$\bullet$std dev of time to next obs: ' + 
+            ax2.text(0.0,0.6,(r'$\bullet$std dev of time to next obs: ' +
                               str(np.round(lc.cads_std,4))))
-            ax2.text(0.0,0.45,(r'$\bullet$med of all $\Delta$Ts: ' + 
+            ax2.text(0.0,0.45,(r'$\bullet$med of all $\Delta$Ts: ' +
                                str(np.round(lc.all_times_med,4))))
-            ax2.text(0.0,0.3,(r'$\bullet$avg of all $\Delta$Ts: ' + 
+            ax2.text(0.0,0.3,(r'$\bullet$avg of all $\Delta$Ts: ' +
                               str(np.round(lc.all_times_avg,4))))
-            ax2.text(0.0,0.15,(r'$\bullet$std dev of all $\Delta$Ts: ' + 
+            ax2.text(0.0,0.15,(r'$\bullet$std dev of all $\Delta$Ts: ' +
                                str(np.round(lc.all_times_std,4))))
-            
+
             hist, bins, other = ax3.hist(lc.cads,50)
             ax3.text(np.max(bins)*0.1,np.max(hist)*0.8,
                      r'Hist of time to next obs')
-            
+
             ax6.text(0.0,0.9,r'$\bullet$Number of epochs: ' + str(lc.n_epochs))
             ax6.text(0.0,0.75,(r'$\bullet$Time b/w first & last obs (days): ' +
                                str(np.round(lc.total_time,2))))
-            ax6.text(0.0,0.6,(r'$\bullet$Average error in mag: ' + 
+            ax6.text(0.0,0.6,(r'$\bullet$Average error in mag: ' +
                               str(np.round(lc.avg_err,4))))
             ax6.text(0.0,0.45,(r'$\bullet$Median error in mag: ' +
                                str(np.round(lc.med_err,4))))
             ax6.text(0.0,0.3,(r'$\bullet$Std dev of error: ' +
                               str(np.round(lc.std_err,4))))
             ax6.text(0.0,0.15,'')
-            
+
             ax5.scatter(lc.epochs,lc.mags)
-            
+
             ax4.text(0.0, 0.9, (r'$\bullet$Avg double to single step ratio: ' +
                                 str(np.round(lc.avg_double_to_single_step,3))))
             ax4.text(0.0,0.75,(r'$\bullet$Med double to single step: ' +
@@ -450,7 +450,7 @@ def makePdf(sources):
                               str(np.round(lc.std_double_to_single_step,3))))
             ax4.text(
                 0.0, 0.45,
-                (r'$\bullet$1st peak to 2nd peak (in all $\Delta$Ts): ' + 
+                (r'$\bullet$1st peak to 2nd peak (in all $\Delta$Ts): ' +
                  str(np.round(lc.all_times_nhist_peak_1_to_2,3))))
             ax4.text(
                 0.0, 0.3,
@@ -460,24 +460,24 @@ def makePdf(sources):
                 0.0,0.15,
                 (r'$\bullet$1st peak to 3rd peak (in all $\Delta$Ts): ' +
                  str(np.round(lc.all_times_nhist_peak_1_to_3,3))))
-            
+
             pdf.savefig(fig)
-    
+
     pdf.close()
-    
+
     pdf = PdfPages('feature_plots.pdf')
-    
+
     fig = plt.figure()
-    
+
     ax1 = fig.add_subplot(221)
     ax2 = fig.add_subplot(222)
     ax3 = fig.add_subplot(223)
     ax4 = fig.add_subplot(224)
-    
+
     plt.subplots_adjust(wspace=0.4,hspace=0.4)
-    
+
     classnamenum = 0
-    
+
     colors = ['red','yellow','green','blue','gray','orange','cyan','magenta']
     for classname, lcs in list(classname_dict.items()):
         classnamenum += 1
@@ -499,51 +499,51 @@ def makePdf(sources):
             attr6.append(lc.cad_probs[5000])
             attr7.append(lc.all_times_nhist_peak_1_to_3)
             attr8.append(lc.all_times_nhist_peak_val)
-        
+
         ax2.scatter(attr1,attr2,color=colors[classnamenum],label=classname)
         ax1.scatter(attr3,attr4,color=colors[classnamenum],label=classname)
         ax2.set_xlabel('N Epochs')
         ax2.set_ylabel('Avg time to next obs')
         ax1.set_xlabel('Standard dev. of time to next obs')
         ax1.set_ylabel('Time b/w first and last obs')
-        
+
         ax3.scatter(attr5,attr6,color=colors[classnamenum],label=classname)
         ax4.scatter(attr7,attr8,color=colors[classnamenum],label=classname)
         ax3.set_xlabel(r'All $\Delta$T hist peak val')
         ax3.set_ylabel('Prob time to next obs <= 5000 min')
         ax4.set_xlabel(r'$\Delta$Ts normed hist peak 1 to peak 3')
         ax4.set_ylabel(r'Peak val of all $\Delta$Ts normed hist')
-        
+
     #ax1.legend(bbox_to_anchor=(1.1, 1.1),prop={'size':6})
     ax2.legend(bbox_to_anchor=(1.1, 1.1),prop={'size':6})
     #ax3.legend(loc='upper right',prop={'size':6})
     #ax4.legend(loc='upper right',prop={'size':6})
-    
+
     pdf.savefig(fig)
-        
+
     pdf.close()
     return 0
 
 
 def generate_lc_snippets(lc):
     """Generate series of snippets of provided time-series data.
-    
-    Generates a series of snippets of provided time-series data of 
+
+    Generates a series of snippets of provided time-series data of
     varying lengths.
-    
+
     Parameters
     ----------
     lc : lightCurve() object
-        lightCurve() object must have valid `epochs`, `mags` and `errs` 
+        lightCurve() object must have valid `epochs`, `mags` and `errs`
         attributes.
-    
+
     Returns
     -------
     list of lightCurve() objects
-        Returns a list of lightCurve() objects whose `epochs`, `mags` 
-        and `errs` attributes are snippets of the original, with new 
+        Returns a list of lightCurve() objects whose `epochs`, `mags`
+        and `errs` attributes are snippets of the original, with new
         features generated from the resulting TS data snippets.
-    
+
     """
     epochs,mags,errs = [lc.epochs,lc.mags,lc.errs]
     lc_snippets = []
@@ -558,8 +558,8 @@ def generate_lc_snippets(lc):
             np.random.shuffle(bin_indices)
             for i in bin_indices:
                 nbins += 1
-                if (int(round(bin_edges[i+1])) - 
-                        int(round(bin_edges[i])) >= 10 and 
+                if (int(round(bin_edges[i+1])) -
+                        int(round(bin_edges[i])) >= 10 and
                         nbins < 4):
                     lc_snippets.append(lightCurve(
                         epochs[int(round(bin_edges[i])):
@@ -569,33 +569,33 @@ def generate_lc_snippets(lc):
                         errs[int(round(bin_edges[i])):
                             int(round(bin_edges[i+1]))],
                         classname=lc.classname))
-    
+
     return lc_snippets
 
 
 class Source(object):
     """Time-series data source object.
-    
+
     Attributes
     ----------
     lcs : list of lightCurve() objects
         List of lightCurve() objects associated with source.
     lc_snippets : list of lightCurve() objects
-        List of lightCurve() objects created from snippets of elements 
+        List of lightCurve() objects created from snippets of elements
         in `lcs`.
     id : str
         Source ID.
     classname : str
         Source class, if known.
-    
+
     """
     def __init__(self,id,lcs,classname='unknown',generate_snippets=True):
         """Object constructor.
-        
-        Instantiates object and creates attributes. Generates snippets 
-        of provided light curves if `generate_snippets` parameter is 
+
+        Instantiates object and creates attributes. Generates snippets
+        of provided light curves if `generate_snippets` parameter is
         True.
-        
+
         Parameters
         ----------
         id : str
@@ -605,9 +605,9 @@ class Source(object):
         classname : str, optional
             Source class, if known. Defaults to "unknown".
         generate_snippets : bool, optional
-            Boolean indicating whether to generate snippets of each of 
+            Boolean indicating whether to generate snippets of each of
             the provided light curves. Defaults to True.
-        
+
         """
         self.lcs = []
         self.lc_snippets = []
@@ -617,16 +617,16 @@ class Source(object):
             self.lcs.append(lc)
             if generate_snippets:
                 self.lc_snippets.extend(generate_lc_snippets(lc))
-    
+
     def showInfo(self):
         """Print a human-readable summary of object attributes.
-        
+
         """
         print("dotAstro ID: " + str(self.id) + "Num LCs: " + str(len(self.lcs)))
-    
+
     def plotCadHists(self):
         """Plot cadence histograms for all `lcs` attribute elements.
-        
+
         """
         n_lcs = len(self.lcs)
         if n_lcs > 0:
@@ -641,7 +641,7 @@ class Source(object):
                 plotnum += 1
             plt.show()
         return
-    
+
     def put(self, cursor, lc_cursor):
         cursor.execute(
             "INSERT INTO sources VALUES(?, ?)",(self.id, self.classname))
@@ -651,23 +651,23 @@ class Source(object):
 
 def getMultiple(source_ids,classname='unknown'):
     """Create multiple Source() objects from list of dotAstro IDs.
-    
-    Pulls time-series data over HTTP to create Source() objects with 
+
+    Pulls time-series data over HTTP to create Source() objects with
     lightCurve() objects as attributes.
-    
+
     Parameters
     ----------
     source_ids : list of str
         List of dotAstro IDs from which to construct Source() objects.
     classname : str, optional
         Class name of sources, defaults to "unknown".
-    
+
     Returns
     -------
     list of Source()
-        Returns a list of the Source() objects created from the 
+        Returns a list of the Source() objects created from the
         provided dotAstro IDs.
-    
+
     """
     if type(source_ids) == str:
         f = open(source_ids,'r')
@@ -675,35 +675,35 @@ def getMultiple(source_ids,classname='unknown'):
         f.close()
     elif type(source_ids) == list:
         ids = source_ids
-    
+
     # assuming dotAstro IDs:
     sources = []
     for id in ids:
         lc = getLcInfo(id,classname)
         if lc: # getLcInfo returns False if no data found
             sources.append(lc)
-    
+
     return sources
 
 
 def getLcInfo(id,classname='unknown'):
     """Create Source() object from dotAstro ID.
-    
-    Pulls time-series data over HTTP to create Source() object with 
+
+    Pulls time-series data over HTTP to create Source() object with
     lightCurve() objects as attributes.
-    
+
     Parameters
     ----------
     id : str
         DotAstro ID from which to construct Source() object.
     classname : str, optional
         Class name of source, defaults to "unknown".
-    
+
     Returns
     -------
     Source() object
         Returns a Source() object created from the provided dotAstro ID.
-    
+
     """
     id = str(id)
     isError = False
@@ -715,7 +715,7 @@ def getLcInfo(id,classname='unknown'):
         lc = urllib.request.urlopen(url).read()
         if lc.find("<TD>") == -1:
             raise urllib.error.URLError('No data for specified source ID.')
-            
+
     except (IOError, urllib.error.URLError) as error:
         print("Could not read specified file.", id, error)
         isError = True
@@ -724,19 +724,19 @@ def getLcInfo(id,classname='unknown'):
         print("Error encountered.", id, error)
         isError = True
         return False
-    
+
     if not isError:
         lcs = dotAstroLc(lc,id,classname)
         newSource = Source(id,lcs,classname)
         #print len(lcs), "light curves processed for source", id
         return newSource
-    
+
     return
 
 
 def dotAstroLc(lc,id,classname):
     """Return list of lightCurve() objects made from provided data.
-    
+
     Parameters
     ----------
     lc : str
@@ -745,13 +745,13 @@ def dotAstroLc(lc,id,classname):
         ID of source.
     classname : str
         Class name of source.
-        
+
     Returns
     -------
     list of lightCurve() objects
-        Returns a list of lightCurve() objects created from each of the 
+        Returns a list of lightCurve() objects created from each of the
         light curves in provided XML data.
-    
+
     """
     lcs = []
     numlcs = 0
@@ -768,43 +768,43 @@ def dotAstroLc(lc,id,classname):
     time_unit = []
     for timeunitfield in soup(ucd="time.epoch"):
         time_unit.append(timeunitfield['unit'])
-    
+
     for data_table in soup('tabledata'):
-    
+
         epochs = []
         mags = []
         errs = []
-        
+
         for row in data_table('tr'):
             tds = row("td")
             epochs.append(float(tds[0].renderContents()))
             mags.append(float(tds[1].renderContents()))
             errs.append(float(tds[2].renderContents()))
-            
+
         if len(epochs) > 0:
             lcs.append(lightCurve(
-                epochs, mags, errs, ra, dec, 
+                epochs, mags, errs, ra, dec,
                 id, time_unit[numlcs], classname))
             numlcs += 1
-    
+
     return lcs
 
 
 def getMultipleLocal(filenames,classname='unknown'):
     """Create and return a list of Source() objects from provided data.
-    
+
     Parameters
     ----------
     filenames : list of str
         List of paths to TS data files.
     classname : str, optional
         Class name of provided TS data sources, defaults to "unknown".
-    
+
     Returns
     -------
     list of Source() objects
         Returns a list of Source() objects.
-    
+
     """
     sources = []
     for filename in filenames:
@@ -814,7 +814,7 @@ def getMultipleLocal(filenames,classname='unknown'):
 
 def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
     """Create and return a lightCurve() object from provided TS data.
-    
+
     """
     lcdata = lcdata.split('\n')
     epochs = []
@@ -850,38 +850,38 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
         return []
 
 
-def getLocalLc(filename, classname='unknown', sep=',', 
-               single_obj_only=False, ts_data_passed_directly=False, 
+def getLocalLc(filename, classname='unknown', sep=',',
+               single_obj_only=False, ts_data_passed_directly=False,
                add_errors=False):
     """Generate lightCurve() or Source() object(s) from given TS data.
-    
+
     Parameters
     ----------
     filename : str
         Path to local file containing time-series data.
     classname : str, optional
-        Class name associated with provided time series data, defaults 
+        Class name associated with provided time series data, defaults
         to "unknown".
     sep : str, optional
-        Delimiting character in time-series data, defaults to comma 
+        Delimiting character in time-series data, defaults to comma
         (",").
     single_obj_only : bool, optional
-        Boolean indicating whether provided time-series data are 
+        Boolean indicating whether provided time-series data are
         associated with a single light curve (True) or multiple (False).
-        If True, returns a list of feature dictionaries. Defaults to 
+        If True, returns a list of feature dictionaries. Defaults to
         False.
     ts_data_passed_directly : bool, optional
-        Boolean indicating whether `filename` is a string containing 
+        Boolean indicating whether `filename` is a string containing
         raw time series data (True) or not. Defaults to False.
     add_errors : bool, optional
-        Boolean indicating whether to add an error value of 1.0 to 
+        Boolean indicating whether to add an error value of 1.0 to
         each epoch without pre-existing error values. Defaults to False.
-    
+
     Returns
     -------
     Source() object
         Returns a new Source() object.
-        
+
     """
     if ts_data_passed_directly:
         lcdata = filename
@@ -919,42 +919,42 @@ def getLocalLc(filename, classname='unknown', sep=',',
 
 
 def generate_timeseries_features(
-    filename, classname='unknown', sep=',', single_obj_only=True, 
+    filename, classname='unknown', sep=',', single_obj_only=True,
     ts_data_passed_directly=False, add_errors=True):
     """Generate features dict from given time-series data.
-    
+
     Parameters
     ----------
     filename : str
         Path to local file containing time-series data.
     classname : str, optional
-        Class name associated with provided time series data, defaults 
+        Class name associated with provided time series data, defaults
         to "unknown".
     sep : str, optional
-        Delimiting character in time-series data, defaults to comma 
+        Delimiting character in time-series data, defaults to comma
         (",").
     single_obj_only : bool, optional
-        Boolean indicating whether provided time-series data are 
+        Boolean indicating whether provided time-series data are
         associated with a single light curve (True) or multiple (False).
-        If True, returns a list of feature dictionaries. Defaults to 
+        If True, returns a list of feature dictionaries. Defaults to
         True.
     ts_data_passed_directly : bool, optional
-        Boolean indicating whether `filename` is a string containing 
+        Boolean indicating whether `filename` is a string containing
         raw time series data (True) or not. Defaults to False.
     add_errors : bool, optional
-        Boolean indicating whether to add an error value of 1.0 to 
+        Boolean indicating whether to add an error value of 1.0 to
         each epoch without pre-existing error values. Defaults to True.
-    
+
     Returns
     -------
     dict
         Dictionary containing generated time series features.
-        
+
     """
     lc_obj = getLocalLc(
-        filename, classname=classname, sep=sep, 
-        single_obj_only=single_obj_only, 
-        ts_data_passed_directly=ts_data_passed_directly, 
+        filename, classname=classname, sep=sep,
+        single_obj_only=single_obj_only,
+        ts_data_passed_directly=ts_data_passed_directly,
         add_errors=add_errors)
     features_dict = lc_obj.generate_features_dict()
     return features_dict
@@ -962,18 +962,18 @@ def generate_timeseries_features(
 
 def dotAstro_to_csv(id):
     """Return CSV time-series data for source with provided DotAstro ID.
-    
+
     Parameters
     ----------
     id : str
         DotAstro source ID.
-    
+
     Returns
     -------
     list of str
-        Returns a list of strings of CSV-format time-series data (t,m,e), 
+        Returns a list of strings of CSV-format time-series data (t,m,e),
         each line separated by a newline character.
-    
+
     """
     id = str(id)
     isError = False
@@ -987,7 +987,7 @@ def dotAstro_to_csv(id):
         lc = urllib.request.urlopen(url).read()
         if lc.find("<TD>") == -1:
             raise urllib.error.URLError('No data for specified source ID.')
-            
+
     except (IOError, urllib.error.URLError) as error:
         print("Could not read specified file.", id, error)
         isError = True
@@ -996,7 +996,7 @@ def dotAstro_to_csv(id):
         print("Error encountered.", id, error)
         isError = True
         return False
-    
+
     lcs = []
     numlcs = 0
     lcdata = lc
@@ -1012,7 +1012,7 @@ def dotAstro_to_csv(id):
     time_unit = []
     for timeunitfield in soup(ucd="time.epoch"):
         time_unit.append(timeunitfield['unit'])
-    
+
     for data_table in soup('tabledata'):
         csv_str = ""
         for row in data_table('tr'):
@@ -1022,9 +1022,9 @@ def dotAstro_to_csv(id):
                     str(tds[0].renderContents()),
                     str(tds[1].renderContents()),
                     str(tds[2].renderContents())]) + '\n'
-            
+
         if len(csv_str) > 0:
             lcs.append(csv_str)
             numlcs += 1
-    
+
     return lcs

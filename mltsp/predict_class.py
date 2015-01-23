@@ -250,7 +250,7 @@ def predict(
                     custom_features = {}
 
                 features_dict = dict(
-                    list(timeseries_features.items()) + list(science_features.items()) + 
+                    list(timeseries_features.items()) + list(science_features.items()) +
                     list(custom_features.items()) +
                     (list(meta_features[short_fname].items()) if
                      short_fname in meta_features else list({}.items())))
@@ -322,9 +322,9 @@ def predict(
             custom_features = cft.generate_custom_features(
                 custom_script_path=custom_features_script, path_to_csv=None,
                 features_already_known=dict(
-                    list(timeseries_features.items()) + list(science_features.items()) + 
+                    list(timeseries_features.items()) + list(science_features.items()) +
                     (
-                        list(meta_features[short_fname].items()) if short_fname in 
+                        list(meta_features[short_fname].items()) if short_fname in
                         meta_features else list({}.items()))),ts_data=ts_data)
             if (type(custom_features) == list and
                 len(custom_features) == 1):

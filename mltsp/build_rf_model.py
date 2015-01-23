@@ -104,27 +104,27 @@ def build_model(
     ``"%s_%s.pkl" % (featureset_key, model_type)``
     in the directory `cfg.MODELS_FOLDER` (or is later copied there
     from within the Docker container if `in_docker_container` is True.
-    
+
     Parameters
     ----------
     featureset_name : str
-        Name of the feature set to build the model upon (will also 
+        Name of the feature set to build the model upon (will also
         become the model name).
     featureset_key: str
-        RethinkDB ID of the associated feature set from which to build 
+        RethinkDB ID of the associated feature set from which to build
         the model, which will also become the ID/key for the model.
     model_type : str
-        Abbreviation of the type of classifier to be created. Defaults 
+        Abbreviation of the type of classifier to be created. Defaults
         to "RF".
     in_docker_container : bool, optional
-        Boolean indicating whether function is being called from within 
+        Boolean indicating whether function is being called from within
         a Docker container.
-    
+
     Returns
     -------
     str
         Human-readable message indicating successful completion.
-    
+
     """
     if in_docker_container:
         features_folder = "/Data/features/"
@@ -134,12 +134,12 @@ def build_model(
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
         uploads_folder = cfg.UPLOAD_FOLDER
-    
+
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     features_to_use = all_features_list
     features_filename = os.path.join(
         features_folder, "%s_features.csv" % featureset_key)
-    
+
     features_extracted, all_data = read_data_from_csv_file(features_filename)
     classes = joblib.load(
         features_filename.replace("_features.csv","_classes.pkl"))
@@ -147,7 +147,7 @@ def build_model(
     data_dict['features'] = all_data
     data_dict['classes'] = classes
     del all_data
-    
+
     class_count = {}
     numobjs = 0
     class_list = []
@@ -165,7 +165,7 @@ def build_model(
 
     sorted_class_list = sorted(class_list)
     del classes
-    
+
     ## remove any empty lines from data:
     print("\n\n")
     line_lens = []
@@ -256,55 +256,55 @@ def build_model(
 
 
 def featurize(
-    headerfile_path, zipfile_path, features_to_use=[], 
-    featureset_id="unknown", is_test=False, USE_DISCO=True, 
-    already_featurized=False, custom_script_path=None, 
+    headerfile_path, zipfile_path, features_to_use=[],
+    featureset_id="unknown", is_test=False, USE_DISCO=True,
+    already_featurized=False, custom_script_path=None,
     in_docker_container=False):
     """Generates features for labeled time series data.
-    
-    Features are saved to the file given by 
+
+    Features are saved to the file given by
     ``"%s_features.csv" % featureset_id``
-    and a list of corresponding classes is saved to the file given by 
+    and a list of corresponding classes is saved to the file given by
     ``"%s_classes.pkl" % featureset_id``
-    in the directory `cfg.FEATURES_FOLDER` (or is later copied there if 
+    in the directory `cfg.FEATURES_FOLDER` (or is later copied there if
     generated inside a Docker container).
-    
+
     Parameters
     ----------
     headerfile_path : str
-        Path to header file containing file names, class names, and 
+        Path to header file containing file names, class names, and
         metadata.
     zipfile_path : str
-        Path to the tarball of individual time series files to be used 
+        Path to the tarball of individual time series files to be used
         for feature generation.
     features_to_use : list, optional
-        List of feature names to be generated. Defaults to an empty 
+        List of feature names to be generated. Defaults to an empty
         list, which results in all available features being used.
     featureset_id : str, optional
-        RethinkDB ID of the new feature set entry. Defaults to 
+        RethinkDB ID of the new feature set entry. Defaults to
         "unknown".
     is_test : bool, optional
-        Boolean indicating whether to do a test run of only the first 
+        Boolean indicating whether to do a test run of only the first
         five time-series files. Defaults to False.
     USE_DISCO : bool, optional
         Boolean indicating whether to featurize in parallel using Disco.
         Defaults to True.
     already_featurized : bool, optional
-        Boolean indicating whether `headerfile_path` points to a file 
-        containing pre-generated features, in which case `zipfile_path` 
+        Boolean indicating whether `headerfile_path` points to a file
+        containing pre-generated features, in which case `zipfile_path`
         must be None. Defaults to False.
     custom_script_path : str, optional
-        Path to Python script containing function definitions for the 
+        Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
     in_docker_container : bool, optional
-        Boolean indicating whether function is being called from inside 
+        Boolean indicating whether function is being called from inside
         a Docker container. Defaults to False.
-    
+
     Returns
     -------
     str
         Human-readable message indicating successful completion.
-    
+
     """
     if in_docker_container:
         features_folder = "/Data/features/"
@@ -314,7 +314,7 @@ def featurize(
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
         uploads_folder = cfg.UPLOAD_FOLDER
-    
+
     if "/" not in headerfile_path:
         headerfile_path = os.path.join(uploads_folder,headerfile_path)
     if zipfile_path is not None and "/" not in zipfile_path:
@@ -370,19 +370,19 @@ def featurize(
                             fname_class_dict[fname] = class_name
                             fname_class_science_features_dict[fname] = {
                                 'class':class_name}
-                            
+
                             fname_metadata_dict[fname] = dict(
                                 list(zip(other_metadata_labels, other_metadata)))
                 line_no += 1
-        # disco may be installed in docker container, but 
+        # disco may be installed in docker container, but
         # it is not working yet, thus the " and not in_docker_container"
         if DISCO_INSTALLED and USE_DISCO:# and not in_docker_container:
             print("FEATURIZE - USING DISCO")
             fname_features_data_dict = (
                 parallel_processing.featurize_in_parallel(
                     headerfile_path=headerfile_path, zipfile_path=zipfile_path,
-                    features_to_use=features_to_use, is_test=is_test, 
-                    custom_script_path=custom_script_path, 
+                    features_to_use=features_to_use, is_test=is_test,
+                    custom_script_path=custom_script_path,
                     meta_features=fname_metadata_dict))
             for k,v in fname_features_data_dict.items():
                 if k in fname_metadata_dict:
@@ -401,7 +401,7 @@ def featurize(
                 short_fname = (
                     fname.split("/")[-1]
                     .replace((
-                        "."+fname.split(".")[-1] if "." in 
+                        "."+fname.split(".")[-1] if "." in
                         fname.split("/")[-1] else ""),""))
                 path_to_csv = os.path.join(
                     uploads_folder, os.path.join("unzipped",fname))
@@ -413,18 +413,18 @@ def featurize(
                     if len(set(features_to_use) & set(cfg.features_list)) > 0:
                         timeseries_features = (
                             lc_tools.generate_timeseries_features(
-                                path_to_csv, 
+                                path_to_csv,
                                 classname=fname_class_dict[short_fname],
                                 sep=','))
                     else:
                         timeseries_features = {}
                     if len(
-                            set(features_to_use) & 
+                            set(features_to_use) &
                             set(cfg.features_list_science)) > 0:
                         science_features = generate_science_features.generate(
                             path_to_csv=path_to_csv)
-                        
-                        
+
+
                         ### Added 1/13/15: Just for testing purposes:
                         print(science_features)
                         features_successful = []
@@ -439,30 +439,30 @@ def featurize(
                         print("\n\n", "#"*80, "\n\n", len(features_successful), "features successfully generated: \n", features_successful, "\n")
                         print(len(features_failed), "features failed: \n", features_failed, "\n\n", "#"*80)
                         ### end testing block
-                        
+
                     else:
                         science_features = {}
-                    if custom_script_path not in (None, "None", 
+                    if custom_script_path not in (None, "None",
                                                   False, "False"):
                         custom_features = cft.generate_custom_features(
                             custom_script_path=custom_script_path,
                             path_to_csv=path_to_csv,
                             features_already_known=dict(
-                                list(timeseries_features.items()) + 
+                                list(timeseries_features.items()) +
                                 list(science_features.items())))[0]
                     else:
                         custom_features = {}
                     all_features = dict(
-                        list(timeseries_features.items()) + 
-                        list(science_features.items()) + 
+                        list(timeseries_features.items()) +
+                        list(science_features.items()) +
                         list(custom_features.items()))
                     if short_fname in fname_metadata_dict:
                         all_features = dict(
-                            list(all_features.items()) + 
+                            list(all_features.items()) +
                             list(fname_metadata_dict[short_fname].items()))
                     fname_class_science_features_dict[
                         short_fname]['features'] = all_features
-                    
+
                     objects.append(
                         fname_class_science_features_dict[
                             short_fname]['features'])
@@ -511,7 +511,7 @@ def featurize(
     f.write(','.join(line) + '\n')
     #line2.extend(line)
     f2.write(','.join(line2)+'\n')
-    
+
     classes = []
     class_count = {}
     numobjs = 0
@@ -521,7 +521,7 @@ def featurize(
     cv_objs = []
     # count up total num of objects per class
     print("Starting class count...")
-    shuffle(objects) 
+    shuffle(objects)
     for obj in objects:
         if str(obj['class']) not in class_list:
             class_list.append(str(obj['class']))
@@ -536,10 +536,10 @@ def featurize(
     print("Writing object features to file...")
     for obj in objects:
         # total number of lcs for given class encountered < 70% total num lcs
-        #if (num_used[str(obj['class'])] + num_held_back[str(obj['class'])] 
+        #if (num_used[str(obj['class'])] + num_held_back[str(obj['class'])]
         #   < 0.7*class_count[str(obj['class'])]):
-        
-        # overriding above line that held back 30% of objects from model 
+
+        # overriding above line that held back 30% of objects from model
         # creation for CV purposes :
         if 1:
             line = []
