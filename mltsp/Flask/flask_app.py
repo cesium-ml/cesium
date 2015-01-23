@@ -1869,8 +1869,11 @@ def get_list_of_featuresets_by_project(project_name=None):
             except:
                 return jsonify({"featset_list":[]})
         project_name = project_name.split(" (created")[0]
-        featset_list = list_featuresets(
-            auth_only=False, by_project=project_name, name_only=True)
+        if project_name not in ["", "None", "null"]:
+            featset_list = list_featuresets(
+                auth_only=False, by_project=project_name, name_only=True)
+        else:
+            return jsonify({"featset_list":[]})
         return jsonify({"featset_list":featset_list})
 
 
@@ -1901,9 +1904,12 @@ def get_list_of_models_by_project(project_name=None):
                 return jsonify({"model_list":[]})
 
         project_name = project_name.split(" (created")[0]
-        model_list = list_models(
-            auth_only=False, by_project=project_name,
-            name_only=False, with_type=True)
+        if project_name not in ["", "None", "null"]:
+            model_list = list_models(
+                auth_only=False, by_project=project_name,
+                name_only=False, with_type=True)
+        else:
+            return jsonify({"model_list": []})
         return jsonify({"model_list":model_list})
 
 
