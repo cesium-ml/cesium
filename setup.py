@@ -41,7 +41,7 @@ def configuration(parent_package='', top_path=None):
     return config
 
 
-def write_version_py(filename='version.py'):
+def write_version_py(filename='mltsp/version.py'):
     template = """# THIS FILE IS GENERATED FROM THE MLTSP SETUP.PY
 version='%s'
 """
