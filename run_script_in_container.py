@@ -9,8 +9,9 @@ standard_library.install_aliases()
 
 if __name__ == "__main__":
     # Run Cython setup script:
-    from subprocess import call
-    call(["make"])
+    # from subprocess import call
+    # from mltsp import cfg
+    # call(["%s/make" % cfg.PROJECT_PATH])
 
     import argparse
     parser = argparse.ArgumentParser(description='MLTSP Docker scripts')

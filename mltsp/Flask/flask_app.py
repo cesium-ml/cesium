@@ -40,7 +40,7 @@ import pytz
 import simplejson
 import pickle
 from flask import (
-    Flask, request, abort, redirect, url_for, render_template, 
+    Flask, request, abort, redirect, url_for, render_template,
     escape, session, Response, jsonify, g)
 from flask.ext.login import LoginManager, current_user
 from flask.ext import restful
