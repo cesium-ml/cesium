@@ -1,18 +1,14 @@
-#from __future__ import unicode_literals
-#from __future__ import print_function
-#from __future__ import division
-#from __future__ import absolute_import
-#from future import standard_library
-#standard_library.install_aliases()
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Distutils import build_ext
-import numpy
+import numpy as np
 
-setup(
-    cmdclass = {'build_ext': build_ext},
-    ext_modules = [
-        Extension("_lomb_scargle", ["_lomb_scargle.pyx"],
-                  include_dirs=[numpy.get_include()],
-        ),
-])
+def configuration(parent_package='', top_path=None):
+    from numpy.distutils.misc_util import Configuration
+    config = Configuration('common_functions', parent_package, top_path)
+
+    config.add_extension('_lomb_scargle', '_lomb_scargle.pyx',
+                         include_dirs=[np.get_include()])
+
+    return config
+
+if __name__ == '__main__':
+    from numpy.distutils.core import setup
+    setup(**configuration(top_path='').todict())
