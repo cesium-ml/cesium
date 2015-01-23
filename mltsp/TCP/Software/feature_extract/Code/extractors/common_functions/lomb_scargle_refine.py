@@ -31,7 +31,7 @@ def lprob2sigma(lprob):
     return float(sigma)
 
 
-def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
+def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
     """
     C version of lomb_scargle:
     Simultaneous fit of a sum of sinusoids by weighted, linear least squares.
@@ -39,7 +39,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
            [t0 defined such that ph11=0]
 
     Inputs:
-        time: time vector
+        t: time vector
         signal: data vector
         error: data uncertainty vector
         df: frequency step
@@ -58,7 +58,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
         out_dict: dictionary describing various parameters of the multiharmonic fit at
             the best-fit frequency
     """
-    numt = len(time)
+    numt = len(t)
 
     freq_zoom = round(freq_zoom/2.)*2.
 
@@ -83,7 +83,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     vcn = 1.
 
     # sin's and cosin's for later
-    tt = 2*pi*time.astype('float64')
+    tt = 2*pi*t.astype('float64')
     sinx,cosx = sin(tt*f1)*wth0,cos(tt*f1)*wth0
     sinx_step,cosx_step = sin(tt*df),cos(tt*df)
     sinx_back,cosx_back = -sin(tt*df/2.),cos(tt*df/2)
@@ -170,7 +170,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
 
     j = psd.argmax()
     freq = f1+df*j + (ifreq/freq_zoom - 1/2.)*df
-    tt = (time*freq) % 1. ; s =tt.argsort()
+    tt = (t*freq) % 1. ; s =tt.argsort()
     out_dict['freq'] = freq
     out_dict['s0'] = s0
     out_dict['chi2'] = (chi0 - psd[j])*s0
