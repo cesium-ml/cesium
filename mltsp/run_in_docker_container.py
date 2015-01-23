@@ -21,75 +21,85 @@ from . import cfg
 
 
 def featurize_in_docker_container(
-        headerfile_path, zipfile_path, features_to_use, featureset_key, 
+        headerfile_path, zipfile_path, features_to_use, featureset_key,
         is_test, already_featurized, custom_script_path):
     """Generate TS data features inside a Docker container.
-    
-    Spins up a Docker container in which the 
-    build_rf_model.featurize() method is called, and the resulting 
+
+    Spins up a Docker container in which the
+    build_rf_model.featurize() method is called, and the resulting
     files are then copied to the host machine.
-    
+
     Parameters
     ----------
     headerfile_path : str
-        Path to the header file associated with TS data to be 
+        Path to the header file associated with TS data to be
         used for feature generation.
     zipfile_path : str
-        Path to the tarball containing the individual time-series data 
+        Path to the tarball containing the individual time-series data
         files to be used for feature generation.
     features_to_use : list of str
         List of names of features to generate.
     featureset_key : str
         Feature set ID/RethinkDB entry key.
     is_test : bool
-        Boolean indicating whether to run as a test, in which case only 
-        a small subset of the time-series data files will be used for 
+        Boolean indicating whether to run as a test, in which case only
+        a small subset of the time-series data files will be used for
         feature generation.
     already_featurized : bool
-        Boolean indicating whether `headerfile_path` already contains 
-        all of the features to be included in new feature set, in 
-        which case no feature generation is performed and no TS data 
+        Boolean indicating whether `headerfile_path` already contains
+        all of the features to be included in new feature set, in
+        which case no feature generation is performed and no TS data
         files are required.
     custom_script_path : str
         Path to custom feature definitions script, or None.
-    
+
     Returns
     -------
     str
         Human-readable success message.
-    
+
     """
     arguments = locals()
-    #unique name for docker container for later cp and rm commands
+    # unique name for docker container for later cp and rm commands:
     container_name = str(uuid.uuid4())[:10]
     path_to_tmp_dir = os.path.join("/tmp", container_name)
     os.mkdir(path_to_tmp_dir)
-    
-    # copy relevant data files into temp directory on host to be mounted 
+    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
+    tmp_files = []
+
+    # copy relevant data files into temp directory on host to be mounted
     # into container:
     if os.path.isfile(str(headerfile_path)):
-        status_code = call(
-            ["cp", headerfile_path, "%s/%s" % 
-                (path_to_tmp_dir, headerfile_path.split("/")[-1])])
+        copied_headerfile_path = os.path.join(
+            copied_data_dir, headerfile_path.split("/")[-1])
+        tmp_files.append(copied_headerfile_path)
+        status_code = call(["cp", headerfile_path, copied_headerfile_path])
         arguments["headerfile_path"] = os.path.join(
             "/home/mltsp/copied_data_files", headerfile_path.split("/")[-1])
     if os.path.isfile(str(zipfile_path)):
-        status_code = call(
-            ["cp", zipfile_path, "%s/%s" % 
-                (path_to_tmp_dir, zipfile_path.split("/")[-1])])
+        copied_zipfile_path = os.path.join(copied_data_dir,
+                                           zipfile_path.split("/")[-1])
+        tmp_files.append(copied_zipfile_path)
+        status_code = call(["cp", zipfile_path, copied_zipfile_path])
         arguments["zipfile_path"] = os.path.join(
             "/home/mltsp/copied_data_files", zipfile_path.split("/")[-1])
     if os.path.isfile(str(custom_script_path)):
-        status_code = call(
-            ["cp", custom_script_path, "%s/%s" %
-                (path_to_tmp_dir, custom_script_path.split("/")[-1])])
-        arguments["custom_script_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", custom_script_path.split("/")[-1])
+        copied_custom_script_path = os.path.join(
+            os.path.join(
+                cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
+            "custom_feature_defs.py")
+        tmp_files.append(copied_custom_script_path)
+        status_code = call(["cp", custom_script_path,
+                            copied_custom_script_path])
+        arguments["custom_script_path"] = ("/home/mltsp/mltsp/"
+                                           "custom_feature_scripts/"
+                                           "custom_feature_defs.py")
 
-    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/copied_data_files"}
-    with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
+    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
+    tmp_files.append(function_args_path)
+    with open(function_args_path, "wb") as f:
         pickle.dump(arguments,f)
-
     try:
         # run the docker container
         cmd = ["docker", "run",
@@ -131,6 +141,11 @@ def featurize_in_docker_container(
     finally:
         # delete temp directory and its contents
         shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
+        for tmp_file_path in tmp_files:
+            try:
+                os.remove(tmp_file_path)
+            except Exception as e:
+                print(e)
         # kill and remove the container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
@@ -167,11 +182,15 @@ def build_model_in_docker_container(
     container_name = str(uuid.uuid4())[:10]
     path_to_tmp_dir = os.path.join("/tmp", container_name)
     os.mkdir(path_to_tmp_dir)
+    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
 
     # copy relevant data files into docker temp directory
     # on host to be mounted into container:
-    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/copied_data_files"}
-    with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
+    tmp_files = []
+    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
+    tmp_files.append(function_args_path)
+    with open(function_args_path, "wb") as f:
         pickle.dump(arguments,f)
     try:
         # run the docker container
@@ -189,8 +208,8 @@ def build_model_in_docker_container(
 
         # copy all necessary files produced in Docker container to host
         cmd = [
-            ("docker", "cp", "%s:/tmp/%s_%s.pkl"
-                % (container_name, featureset_key, model_type)),
+            "docker", "cp",
+            "%s:/tmp/%s_%s.pkl" % (container_name, featureset_key, model_type),
             cfg.MODELS_FOLDER]
         #status_code = call(cmd, stdout=PIPE, stderr=PIPE)
         #print os.path.join(
@@ -206,30 +225,34 @@ def build_model_in_docker_container(
     finally:
         # delete temp directory and its contents on host machine
         shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-        
+        for tmp_file in tmp_files:
+            try:
+                os.remove(tmp_file)
+            except Exception as e:
+                print(e)
         # kill and remove the container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
         print("Docker container deleted.")
-    
+
     return "Model creation complete. Click the Predict tab to start using it."
 
 
 def predict_in_docker_container(
-    newpred_file_path, project_name, model_name, model_type, 
-    prediction_entry_key, featset_key, sep=",", n_cols_html_table=5, 
-    features_already_extracted=None, metadata_file=None, 
+    newpred_file_path, project_name, model_name, model_type,
+    prediction_entry_key, featset_key, sep=",", n_cols_html_table=5,
+    features_already_extracted=None, metadata_file=None,
     custom_features_script=None):
     """Generate features and perform classification in Docker container.
-    
-    Spins up a Docker container in which the 
-    predict_class.predict() method is called, and the resulting 
+
+    Spins up a Docker container in which the
+    predict_class.predict() method is called, and the resulting
     files are then copied to the host machine.
-    
+
     Parameters
     ----------
     newpred_file_path : str
-        Path to file containing time series data for featurization and 
+        Path to file containing time series data for featurization and
         prediction.
     project_name : str
         Name of the project associated with the model to be used.
@@ -242,72 +265,79 @@ def predict_in_docker_container(
     featset_key : str
         ID of feature set/model to use in prediction.
     sep : str, optional
-        Delimiting character in time series data files. Defaults to 
+        Delimiting character in time series data files. Defaults to
         comma ",".
     n_cols_html_table : int, optional
-        Number of most probable predicted classes to include in HTML 
+        Number of most probable predicted classes to include in HTML
         table output. Defaults to 5.
     features_already_extracted : dict, optional
         Dictionary of previously-generated features. Defaults to None.
     metadata_file : str, optional
         Path to associated metadata file, if any. Defaults to None.
-    
+
     Returns
     -------
     dict
         Dictionary containing prediction results.
-    
+
     """
     arguments = locals()
     container_name = str(uuid.uuid4())[:10]
     path_to_tmp_dir = os.path.join("/tmp", container_name)
     os.mkdir(path_to_tmp_dir)
-    
+    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
+    tmp_files = []
     # copy relevant data files into docker temp directory
     if os.path.isfile(str(newpred_file_path)):
+        copied_newpred_file_path = os.path.join(
+            copied_data_dir, newpred_file_path.split("/")[-1])
+        tmp_files.append(copied_newpred_file_path)
         status_code = call(
-            ["cp", newpred_file_path, 
-                "%s/%s" % (path_to_tmp_dir, newpred_file_path.split("/")[-1])])
+            ["cp", newpred_file_path, copied_newpred_file_path])
         arguments["newpred_file_path"] = os.path.join(
             "/home/mltsp/copied_data_files", newpred_file_path.split("/")[-1])
     if os.path.isfile(str(custom_features_script)):
+        copied_custom_script_path = os.path.join(
+            os.path.join(cfg.MLTSP_PACKAGE_PATH,"custom_feature_scripts"),
+            "custom_feature_defs.py")
+        tmp_files.append(copied_custom_script_path)
         status_code = call(
-            [
-                "cp", custom_features_script, 
-                "%s/%s" % (path_to_tmp_dir, 
-                custom_features_script.split("/")[-1])])
-        arguments["custom_features_script"] = os.path.join(
-            "/home/mltsp/copied_data_files", 
-            custom_features_script.split("/")[-1])
+            ["cp", custom_features_script, copied_custom_script_path])
+        arguments["custom_features_script"] = ("/home/mltsp/mltsp/"
+                                               "custom_feature_scripts/"
+                                               "custom_feature_defs.py")
     if os.path.isfile(str(metadata_file)):
+        copied_metadata_file_path = os.path.join(
+            copied_data_dir, metadata_file.split("/")[-1])
+        tmp_files.append(copied_metadata_file_path)
         status_code = call(
-            [
-                "cp", metadata_file, 
-                "%s/%s" % (path_to_tmp_dir, metadata_file.split("/")[-1])])
+            ["cp", metadata_file, copied_metadata_file_path])
         arguments["metadata_file"] = os.path.join(
             "/home/mltsp/copied_data_files", metadata_file.split("/")[-1])
-    
-    arguments["path_map"] = {path_to_tmp_dir,"/home/mltsp/copied_data_files"}
-    with open("%s/function_args.pkl"%path_to_tmp_dir, "wb") as f:
+
+    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
+    tmp_files.append(function_args_path)
+    with open(function_args_path, "wb") as f:
         pickle.dump(arguments,f)
     try:
-        cmd = ["docker", "run", 
-                "-v", "%s:/home/mltsp"%cfg.PROJECT_PATH, 
-                "-v", "%s:%s"%(cfg.FEATURES_FOLDER,"/Data/features"), 
-                "-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"), 
-                "-v", "%s:%s"%(cfg.MODELS_FOLDER,"/Data/models"), 
-                "--name=%s"%container_name, 
+        cmd = ["docker", "run",
+                "-v", "%s:/home/mltsp"%cfg.PROJECT_PATH,
+                "-v", "%s:%s"%(cfg.FEATURES_FOLDER,"/Data/features"),
+                "-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"),
+                "-v", "%s:%s"%(cfg.MODELS_FOLDER,"/Data/models"),
+                "--name=%s"%container_name,
                 "mltsp/predict"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
         print("\n\ndocker container stdout:\n\n", stdout, \
               "\n\ndocker container stderr:\n\n", stderr, "\n\n")
-        
+
         # copy all necessary files produced in docker container to host
         cmd = [
-            "docker", "cp", 
+            "docker", "cp",
             (
-                "%s:/tmp/%s_pred_results.pkl" % 
+                "%s:/tmp/%s_pred_results.pkl" %
                 (container_name, prediction_entry_key)),
             "/tmp"]
         status_code = call(cmd, stdout=PIPE, stderr=PIPE)
@@ -328,26 +358,30 @@ def predict_in_docker_container(
     finally:
         # delete temp directory and its contents
         shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-        os.remove("/tmp/%s_pred_results.pkl"%prediction_entry_key)
+        for tmp_file in tmp_files:
+            try:
+                os.remove(tmp_file)
+            except Exception as e:
+                print(e)
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
         print("Docker container deleted.")
-    
+
     return pred_results_dict
 
 
 def disco_test():
     """Test Disco functionality inside Docker container.
-    
+
     """
     #unique name for docker container for later cp and rm commands
     container_name = str(uuid.uuid4())[:10]
-    
+
     try:
-        # run the docker container 
-        cmd = ["docker", "run", 
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH, 
-                "--name=%s" % container_name, 
+        # run the docker container
+        cmd = ["docker", "run",
+                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
+                "--name=%s" % container_name,
                 "disco_test"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
@@ -356,11 +390,10 @@ def disco_test():
     except:
         raise
     finally:
-        
+
         # kill and remove the container
         cmd = ["docker", "rm", "-f", container_name]
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
         print("Docker container deleted.")
-        
-    
+
     return "Test complete."

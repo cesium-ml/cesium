@@ -8,6 +8,7 @@ mltsp/TCP/Software/feature_extract/__pycache__/
 mltsp/TCP/Software/ingest_tools/__pycache__/
 Data/extracted_features/
 Data/flask_uploads/
+Data/classifier_models/
 Data/logs/
 *~
 *.pyc

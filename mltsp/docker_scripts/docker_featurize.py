@@ -23,15 +23,15 @@ import pickle
 
 def featurize():
     """Load pickled parameters and call `build_rf_model.featurize`.
-    
+
     To be run from inside a Docker container.
-    
+
     Returns
     -------
     str
-        Human readable message indicating completion of feature 
+        Human readable message indicating completion of feature
         generation.
-    
+
     """
     '''process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = process.communicate()
@@ -83,11 +83,11 @@ def featurize():
             raise Exception(("ERROR - (IN DOCKER CONTAINER) featurize - "
                              "zipfile_path = %s is not a file currently on "
                              "disk.")%zipfile_path)
-    elif ("already_featurized" in function_args and 
+    elif ("already_featurized" in function_args and
           function_args["already_featurized"] == False):
         raise Exception("ERROR - IN DOCKER CONTAINER featurize - zipfile_path "
                         "not in function args.")
-    elif ("already_featurized" in function_args and 
+    elif ("already_featurized" in function_args and
           function_args["already_featurized"] == True):
         pass
     results_str = build_rf_model.featurize(
