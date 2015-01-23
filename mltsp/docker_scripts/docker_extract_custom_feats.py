@@ -44,7 +44,7 @@ def extract_custom_feats():
         script_fpath=script_fpath)
 
     with open("/tmp/results_list_of_dict.pkl", "wb") as f:
-        pickle.dump(all_feats, f, protocol=2)
+        pickle.dump(all_feats, f)
 
     print("Created /tmp/results_list_of_dict.pkl in docker container.")
     return 0

@@ -268,7 +268,7 @@ def predict(
             f = open(os.path.join(uploads_folder, fname))
         else:
             print(fname + " is not a file...")
-            return
+            return {}
 
         lines=f.readlines()
         f.close()
@@ -376,14 +376,16 @@ def predict(
                 rfc_model = joblib.load(os.path.join(
                     models_folder,"%s_%s.pkl" % (featset_key,model_type)))
             except Exception as theError:
-                return [
-                    str(theError) + (
-                        "<br>It looks like a model has yet to be built for "
-                        "this project - after uploading your data and "
-                        "generating features, build the classifier model "
-                        "using the form under the 'Build Model' tab."),
-                    "Using model %s_%s.pkl" % (featset_key,model_type),
-                    features_dict]
+                # Do some better handling here:
+                raise(theError)
+                # return [
+                #     str(theError) + (
+                #         "<br>It looks like a model has yet to be built for "
+                #         "this project - after uploading your data and "
+                #         "generating features, build the classifier model "
+                #         "using the form under the 'Build Model' tab."),
+                #     "Using model %s_%s.pkl" % (featset_key,model_type),
+                #     features_dict]
             # load classes list:
             all_objs_class_list = joblib.load(os.path.join(
                 features_folder,"%s_classes.pkl" % featset_key))
@@ -393,14 +395,16 @@ def predict(
                 rfc_model = joblib.load(os.path.join(
                     models_folder,"%s_%s.pkl" % (featset_key,model_type)))
             except Exception as theError:
-                return [
-                    str(theError) + (
-                        "<br>It looks like a model has yet to be built for "
-                        "this project - after uploading your data and "
-                        "generating features, build the classifier model "
-                        "using the form under the 'Build Model' tab."),
-                    "Using model %s_%s.pkl" % (featset_key,model_type),
-                    features_dict]
+                # Do some better handling here:
+                raise(theError)
+                # return [
+                #     str(theError) + (
+                #         "<br>It looks like a model has yet to be built for "
+                #         "this project - after uploading your data and "
+                #         "generating features, build the classifier model "
+                #         "using the form under the 'Build Model' tab."),
+                #     "Using model %s_%s.pkl" % (featset_key,model_type),
+                #     features_dict]
             # load classes list:
             all_objs_class_list = joblib.load(os.path.join(
             features_folder,"%s_classes.pkl" % featset_key))

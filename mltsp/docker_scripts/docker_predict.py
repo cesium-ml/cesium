@@ -90,7 +90,7 @@ def predict():
 
     with open("/tmp/%s_pred_results.pkl" %
               function_args["prediction_entry_key"], "wb") as f:
-        pickle.dump(results_dict, f, protocol=2)
+        pickle.dump(results_dict, f)
 
     print("Done.")
     return "Featurization and prediction complete."

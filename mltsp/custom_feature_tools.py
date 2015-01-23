@@ -366,7 +366,7 @@ def docker_extract_features(
                 "features_already_known_list.pkl"),
             "wb"
         ) as f:
-        pickle.dump(features_already_known_list, f, protocol=2)
+        pickle.dump(features_already_known_list, f)
     try:
         # the command to run our docker container which
         # will automatically generate features:
