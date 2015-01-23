@@ -9,3 +9,4 @@ test_tcp_featgen.py
 **/build
 *.gch
 *.so
+mltsp/version.py
