@@ -15,3 +15,6 @@ Data/logs/
 *.pyc
 *.bak
 test_tcp_featgen.py
+**/build
+*.gch
+*.so
