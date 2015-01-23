@@ -178,9 +178,9 @@ def execute_functions_in_order(
             all_provided_params = list(set(
                 all_provided_params +
                 list(set(eval(reqs_provs_1.named["provides"])))))
-    if type(features_already_known) == dict:
+    if isinstance(features_already_known, dict):
         features_already_known_list = [features_already_known]
-    elif type(features_already_known) == list:
+    elif isinstance(features_already_known, list):
         features_already_known_list = features_already_known
 
     # temporarily redirect stdout:
@@ -362,7 +362,7 @@ def docker_extract_features(
                 "features_already_known_list.pkl"),
             "wb"
         ) as f:
-        pickle.dump(features_already_known_list,f)
+        pickle.dump(features_already_known_list, f, protocol=2)
     try:
         # the command to run our docker container which
         # will automatically generate features:

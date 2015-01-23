@@ -187,29 +187,29 @@ def build_model(
         del data_dict['classes'][indices_for_deletion[0]]
     print(len(data_dict['features']))
     print("\n\n")
-    
+
     ntrees = 1000
     njobs = -1
-    
+
     #### build the model:
     # initialize:
     rf_fit = RFC(n_estimators=ntrees,max_features='auto',n_jobs=njobs)
     print("Model initialized.")
-    
+
     # fit the model:
     print("Fitting the model...")
     rf_fit.fit(data_dict['features'],data_dict['classes'])
     print("Done.")
     del data_dict
-    
+
     # store the model:
     print("Pickling model...")
     foutname = os.path.join(
-        ("/tmp" if in_docker_container else models_folder), 
+        ("/tmp" if in_docker_container else models_folder),
         "%s_%s.pkl" % (featureset_key,model_type))
     joblib.dump(rf_fit,foutname,compress=3)
     print(foutname, "created.")
-    
+
     if 0: # cross validation
         ############# CROSS-VALIDATION ##################
         cv_results_dict = {}
@@ -221,14 +221,14 @@ def build_model(
                 for feat in cfg.features_list:
                     if feat in features_to_use and feat in features_extracted:
                         newFeatures.append(obj[feat])
-                
+
                 classifier_preds = rf_fit.predict_proba(newFeatures)
                 class_probs = classifier_preds[0]
             except ValueError as the_error:
                 print(the_error)
                 continue
             results_arr = []
-            
+
             for i in range(len(class_probs)):
                 results_arr.append(
                     [sorted_class_list[i],float(class_probs[i])])

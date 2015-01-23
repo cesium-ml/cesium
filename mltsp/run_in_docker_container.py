@@ -99,7 +99,7 @@ def featurize_in_docker_container(
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
-        pickle.dump(arguments,f)
+        pickle.dump(arguments, f, protocol=2)
     try:
         # run the docker container
         cmd = ["docker", "run",
@@ -191,7 +191,7 @@ def build_model_in_docker_container(
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
-        pickle.dump(arguments,f)
+        pickle.dump(arguments, f, protocol=2)
     try:
         # run the docker container
         cmd = ["docker", "run",
@@ -319,7 +319,7 @@ def predict_in_docker_container(
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
-        pickle.dump(arguments,f)
+        pickle.dump(arguments, f, protocol=2)
     try:
         cmd = ["docker", "run",
                 "-v", "%s:/home/mltsp"%cfg.PROJECT_PATH,
