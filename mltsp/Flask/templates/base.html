@@ -1,5 +1,5 @@
 <!doctype html>
-<head><title>{% block title %}ML Timeseries Platform {% block subtitle %} {% endblock %} {% endblock %}</title>
+<head><title>{% block title %}ML Time-Series Platform {% block subtitle %} {% endblock %} {% endblock %}</title>
 
 
 {% block script_links %}
@@ -44,43 +44,43 @@
 
 
 <script type="text/javascript">
-	
-	$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-	
-	$(function() {
-		$( "#tabs" ).tabs({
-			collapsible: true
-		});
-	});
-	
-	{% block script %}
-	
-	{% endblock %}
+        
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        
+        $(function() {
+                $( "#tabs" ).tabs({
+                        collapsible: true
+                });
+        });
+        
+        {% block script %}
+        
+        {% endblock %}
 </script>
 </head>
 
 <body>
 
-	{% block content %}
+        {% block content %}
 
-		{% block tabs %}
+                {% block tabs %}
 
-		{% endblock %}
+                {% endblock %}
 
 
-		{% block results %}
+                {% block results %}
 
-		{% endblock %}
+                {% endblock %}
 
-		{% block footer %}
-		
-		{% endblock %}
+                {% block footer %}
+                
+                {% endblock %}
 
-	{% endblock %}
+        {% endblock %}
 
-	{% block bodyscript %}
+        {% block bodyscript %}
 
-	{% endblock %}
+        {% endblock %}
 
 
 </body>

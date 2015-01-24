@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}UC Berkeley Machine Learning Web Service {% block subtitle%} {% endblock %} {% endblock %}
+{% block title %}Machine Learning Time-Series Platform{% block subtitle%} {% endblock %} {% endblock %}
 
 {% block script %}
 {% endblock %}
@@ -8,535 +8,535 @@
 {% block content %}
 
 
-	{% block tabs %}
-		<div id='content'>
+        {% block tabs %}
+                <div id='content'>
 
-			<div id='wrapper' style='text-align:center;'>
-				<div id='main_title' style='display:inline-block'><h2>ML Timeseries Platform</h2>
-				</div>
-				<BR>
-				<div id='tabs' style='width:900px; display:inline-block;' class='centered'>
-					<ul>
-						<li><a href="#projectsTab">Projects</a></li>
-						<li><a href="#featurizeTab">Featurize</a></li>
-						<li><a href="#buildModelTab">Build Model</a></li>
-						<li><a href="#predictTab">Predict</a></li>
-					</ul>
-					
-					<div id='projectsTab' align='center'>
-						
-						<form id='newProjectForm' action='/newProject' enctype='multipart/form-data' method='post'>
-							
-							<table>
-								
-								
-								<tr>
-									<td align='left'>
-										<i><h3>Create a new project:</h3></i>
-									</td>
-								</tr>
-								<tr>
-									<td align='left'>
-										<label>Project Title<span class='small'>Enter a title for your new project</span></label>
-									</td>
-									
-									<td align='left'>
-										
-										<div style='border:1px solid #BBB;'><input type='text' name='new_project_name' id='new_project_name' class="stylized_input" size='50'></div><div id='new_proj_name_okay_div' name='new_proj_name_okay_div'></div>
-									</td>
-									
-								</tr>
-								<tr>
-									<td align='left'>
-										<label>Description/notes<span class='small'></span></label>
-									</td>
-									<td>
-										<textarea id='project_description' name='project_description' rows='3' cols='50'></textarea>
-									</td>
-								</tr>
-								
-								
-								<tr>
-									<td align='left'>
-										<label>Additional Authorized Users<span class='small'>Enter Google account usernames <br>(separated by a comma) of <br>those you wish to have access to this project</span></label>
-									</td>
-									<td>
-										<textarea id='addl_authed_users' name ='addl_authed_users' rows='3' cols='50'></textarea>
-									</td>
-									<td>
-									</td>
-								</tr>
-								
-								
-								<tr>
-									<td>
-									</td>
-									<td>
-										<input type='button' id='new_project_button' class='submit_button' value='Create project' onclick='newProjectFormSubmit();'>
-									</td>
-								</tr>
-									
-								<tr>
-									<td>
-										<br>
-									</td>
-								</tr>
-							</table>
-						</form>
-						
-						<form id='editOrDeleteProjectForm' action='/editOrDeleteProject' enctype='multipart/form-data' method='post'>
-							<table>
-								<tr>
-									<td align='left'>
-										<i><h3>Manage an existing project:</h3></i>
-									</td>
-										
-								</tr>
-								<tr>
-									<td align='left' colspan=2>
-										<div><label>Select project:</label>
-											<select id="PROJECT_NAME_TO_EDIT" name="PROJECT_NAME_TO_EDIT">
+                        <div id='wrapper' style='text-align:center;'>
+                                <div id='main_title' style='display:inline-block'><h2>ML Time-Series Platform</h2>
+                                </div>
+                                <BR>
+                                <div id='tabs' style='width:900px; display:inline-block;' class='centered'>
+                                        <ul>
+                                                <li><a href="#projectsTab">Projects</a></li>
+                                                <li><a href="#featurizeTab">Featurize</a></li>
+                                                <li><a href="#buildModelTab">Build Model</a></li>
+                                                <li><a href="#predictTab">Predict</a></li>
+                                        </ul>
+                                        
+                                        <div id='projectsTab' align='center'>
+                                                
+                                                <form id='newProjectForm' action='/newProject' enctype='multipart/form-data' method='post'>
+                                                        
+                                                        <table>
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <i><h3>Create a new project:</h3></i>
+                                                                        </td>
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Project Title<span class='small'>Enter a title for your new project</span></label>
+                                                                        </td>
+                                                                        
+                                                                        <td align='left'>
+                                                                                
+                                                                                <div style='border:1px solid #BBB;'><input type='text' name='new_project_name' id='new_project_name' class="stylized_input" size='50'></div><div id='new_proj_name_okay_div' name='new_proj_name_okay_div'></div>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Description/notes<span class='small'></span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <textarea id='project_description' name='project_description' rows='3' cols='50'></textarea>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Additional Authorized Users<span class='small'>Enter Google account usernames <br>(separated by a comma) of <br>those you wish to have access to this project</span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <textarea id='addl_authed_users' name ='addl_authed_users' rows='3' cols='50'></textarea>
+                                                                        </td>
+                                                                        <td>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td>
+                                                                        </td>
+                                                                        <td>
+                                                                                <input type='button' id='new_project_button' class='submit_button' value='Create project' onclick='newProjectFormSubmit();'>
+                                                                        </td>
+                                                                </tr>
+                                                                        
+                                                                <tr>
+                                                                        <td>
+                                                                                <br>
+                                                                        </td>
+                                                                </tr>
+                                                        </table>
+                                                </form>
+                                                
+                                                <form id='editOrDeleteProjectForm' action='/editOrDeleteProject' enctype='multipart/form-data' method='post'>
+                                                        <table>
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <i><h3>Manage an existing project:</h3></i>
+                                                                        </td>
+                                                                                
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left' colspan=2>
+                                                                                <div><label>Select project:</label>
+                                                                                        <select id="PROJECT_NAME_TO_EDIT" name="PROJECT_NAME_TO_EDIT">
 
-												{% for PROJ_NAME in CURRENT_PROJECTS %}
-													<option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
-												{% endfor %}
-												
-											</select>
-										</div>
-									</td>
-									<td align='right'>
-										<div>
-											<label>Action:</label>
-											<select id='action' name='action'>
-												<option value='Edit'>Edit</option>
-												<option value='Delete'>Delete</option>
-											</select>
-										</div>
-									</td>
-								</tr>
-								<tr>
-									<td colspan=3 align='right'>
-										<input type="button" value="Submit" onclick="editOrDeleteProjectFormSubmit()">
-									</td>
-								</tr>
-							
-							</table>
-							
-						</form>
-					
-					</div>
-					
-					
-					
-					<div id='featurizeTab' align='center'>
-						<form id='featurizeForm' action="/uploadDataFeaturize" enctype="multipart/form-data" method="post">
-							<table id='upload_features_data_table'>
-								<tr><td align='left'><i><h3>Upload new time series data for featurization:</h3></i></td>
-								</tr>
-								<tr>
-									<td align='left' colspan=2>
-										<div><label>Select project:</label>
-											<select id="featureset_project_name_select" name="featureset_project_name_select">
+                                                                                                {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                                                                        <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
+                                                                                                {% endfor %}
+                                                                                                
+                                                                                        </select>
+                                                                                </div>
+                                                                        </td>
+                                                                        <td align='right'>
+                                                                                <div>
+                                                                                        <label>Action:</label>
+                                                                                        <select id='action' name='action'>
+                                                                                                <option value='Edit'>Edit</option>
+                                                                                                <option value='Delete'>Delete</option>
+                                                                                        </select>
+                                                                                </div>
+                                                                        </td>
+                                                                </tr>
+                                                                <tr>
+                                                                        <td colspan=3 align='right'>
+                                                                                <input type="button" value="Submit" onclick="editOrDeleteProjectFormSubmit()">
+                                                                        </td>
+                                                                </tr>
+                                                        
+                                                        </table>
+                                                        
+                                                </form>
+                                        
+                                        </div>
+                                        
+                                        
+                                        
+                                        <div id='featurizeTab' align='center'>
+                                                <form id='featurizeForm' action="/uploadDataFeaturize" enctype="multipart/form-data" method="post">
+                                                        <table id='upload_features_data_table'>
+                                                                <tr><td align='left'><i><h3>Upload new time series data for featurization:</h3></i></td>
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left' colspan=2>
+                                                                                <div><label>Select project:</label>
+                                                                                        <select id="featureset_project_name_select" name="featureset_project_name_select">
 
-												{% for PROJ_NAME in CURRENT_PROJECTS %}
-													<option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
-												{% endfor %}
-												
-											</select>
-										</div>
-									</td>
-								</tr>
-								
-								<tr>
-									<td align='left'>
-										<label>Feature Set Title<span class='small'>Enter a title for your data set:</span></label>
-									</td>
-									<td>
-										<div id="featset_name_div" style='border:1px solid #BBB;'><input type='text' name='featureset_name' id='featureset_name' class="stylized_input"></div><div id='featset_name_okay_div' name='featset_name_okay_div'></div>
-									</td>
-									<td>
-										<div title="If this is checked, only the first 10 files will be featurized."><input type="checkbox" checked name="is_test" id="is_test" value="True"><label>Test run</label></div>
-									</td>
-									
-								</tr>
-								<tr>
-									<td align='left'>
-										<label id='ts_data_headerfile_format_dialog_link'>Header File (click for required format)<span class='small'>Select file to upload:</span></label>
-									</td>
-									<td>
-										<div id="headerfile_div" style='border:1px solid #BBB;'><input type='file' name='headerfile' id='headerfile' class="stylized_input"></div>
-									</td>
-									
-								</tr>
-								<tr>
-									<td align='left'>
-										<label id='ts_data_tarball_format_dialog_link'>Tarball containing data (click for required format)<span class='small'>Select file to upload:</span></label>
-									</td>
-									<td>
-										<div id="zipfile_div" style='border:1px solid #BBB;'><input type='file' name='zipfile' id='zipfile' class="stylized_input"></div>
-									</td>
-									
-									<td>
-										<div id="sep_select_div" title="Delimiter character in time series files."><label>Delimiter: </label>
-										<select id="sep" name="sep">
-											<option value=",">Comma</option>
-											<option value="\t">Tab</option>
-											<option value=" ">Space</option>
-										</select></div>
-									</td>
-								</tr>
-								
-								
-								<tr>
-									<td align='left'>
-										<label>Feature selection<span class='small'>Select which features to extract from your data (default = all available features)</span></label>
-									</td>
-									<td align='left'>
-										
-										<div id='feature_selection_link_div'>
-											<a href="#" id="feature_selection_link">Click here to open feature selection dialog</a>
-										</div>
-										
-									</td>
-								</tr>
-								
-								
-								<tr>
-									<td align='left'>
-										<input type='checkbox' name='email_user' id='email_user' value="True"><label>Notification email<span class='small'>Check to receive an email notification upon featurization completion. </span></label>
-									</td>
-									<td>
-										
-									</td>
-									
-								</tr>
-								
-								<tr>
-									<td colspan=3 align='center'>
-										<div align='center'><input type='button' id='featurize_button' name='featurize_button' value='Generate features' class='submit_button' onclick="featurizeFormSubmit();" ></div>
-									</td>
-								</tr>
-								<tr>
-									<td align='left'>
-										<div onclick="uploadFeaturesFormDialog();" class='hover_bgcolor_div'>
-											<i><h3>Upload Features:</h3></i><span class='small'>Click here to upload your pre-featurized data set</span>
-										</div>
-									</td>
-								</tr>
-							</table>
-						</form>
-						<BR><BR>
-						<form id='plotFeaturesForm' action="/plotFeatures" enctype="multipart/form-data" method="post">
-							<table id='plot_features_form_table'>
-								<tr>
-									<td align='left'><BR><i><h3>Plot Features from Existing Feature Set:</h3></i>
-									</td>
-								</tr>
-								
-								<tr>
-									<td align='left' colspan=2>
-										<div><label>Select project:</label>
-											<select id="plot_feats_project_name_select" name="plot_feats_project_name_select">
+                                                                                                {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                                                                        <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
+                                                                                                {% endfor %}
+                                                                                                
+                                                                                        </select>
+                                                                                </div>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Feature Set Title<span class='small'>Enter a title for your data set:</span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <div id="featset_name_div" style='border:1px solid #BBB;'><input type='text' name='featureset_name' id='featureset_name' class="stylized_input"></div><div id='featset_name_okay_div' name='featset_name_okay_div'></div>
+                                                                        </td>
+                                                                        <td>
+                                                                                <div title="If this is checked, only the first 10 files will be featurized."><input type="checkbox" checked name="is_test" id="is_test" value="True"><label>Test run</label></div>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label id='ts_data_headerfile_format_dialog_link'>Header File (click for required format)<span class='small'>Select file to upload:</span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <div id="headerfile_div" style='border:1px solid #BBB;'><input type='file' name='headerfile' id='headerfile' class="stylized_input"></div>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label id='ts_data_tarball_format_dialog_link'>Tarball containing data (click for required format)<span class='small'>Select file to upload:</span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <div id="zipfile_div" style='border:1px solid #BBB;'><input type='file' name='zipfile' id='zipfile' class="stylized_input"></div>
+                                                                        </td>
+                                                                        
+                                                                        <td>
+                                                                                <div id="sep_select_div" title="Delimiter character in time series files."><label>Delimiter: </label>
+                                                                                <select id="sep" name="sep">
+                                                                                        <option value=",">Comma</option>
+                                                                                        <option value="\t">Tab</option>
+                                                                                        <option value=" ">Space</option>
+                                                                                </select></div>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Feature selection<span class='small'>Select which features to extract from your data (default = all available features)</span></label>
+                                                                        </td>
+                                                                        <td align='left'>
+                                                                                
+                                                                                <div id='feature_selection_link_div'>
+                                                                                        <a href="#" id="feature_selection_link">Click here to open feature selection dialog</a>
+                                                                                </div>
+                                                                                
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <input type='checkbox' name='email_user' id='email_user' value="True"><label>Notification email<span class='small'>Check to receive an email notification upon featurization completion. </span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                
+                                                                <tr>
+                                                                        <td colspan=3 align='center'>
+                                                                                <div align='center'><input type='button' id='featurize_button' name='featurize_button' value='Generate features' class='submit_button' onclick="featurizeFormSubmit();" ></div>
+                                                                        </td>
+                                                                </tr>
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <div onclick="uploadFeaturesFormDialog();" class='hover_bgcolor_div'>
+                                                                                        <i><h3>Upload Features:</h3></i><span class='small'>Click here to upload your pre-featurized data set</span>
+                                                                                </div>
+                                                                        </td>
+                                                                </tr>
+                                                        </table>
+                                                </form>
+                                                <BR><BR>
+                                                <form id='plotFeaturesForm' action="/plotFeatures" enctype="multipart/form-data" method="post">
+                                                        <table id='plot_features_form_table'>
+                                                                <tr>
+                                                                        <td align='left'><BR><i><h3>Plot Features from Existing Feature Set:</h3></i>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                <tr>
+                                                                        <td align='left' colspan=2>
+                                                                                <div><label>Select project:</label>
+                                                                                        <select id="plot_feats_project_name_select" name="plot_feats_project_name_select">
 
-												{% for PROJ_NAME in CURRENT_PROJECTS %}
-													<option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
-												{% endfor %}
-												
-											</select>
-										</div>
-									</td>
-								</tr>
-								
-								<tr>
-									<td>
-										<div><label>Select data set name: </label>
-										<select id="plot_features_featset_name_select" name="plot_features_featset_name_select">
-											
-										</select></div>
-											
-									</td>
-									<td>
-										<div align='center'><input type='button' id='plot_features_button' name='plot_features_button' value='Plot features' class='submit_button' onclick="plotFeaturesFormSubmit();"></div>
-									</td>
-								</tr>
-								
-							</table>
-						</form>
-						
-						
-					</div>
-					
-					
-					<div id='buildModelTab' align='center'>
-						
-						<form id='buildModelForm' action="/buildModel" enctype="multipart/form-data" method="post">
-							<table>
-								
-								<tr>
-									<td align='left'>
-										<label>Select project: </label>
-									</td>
-									<td align='left' colspan=2>
+                                                                                                {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                                                                        <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
+                                                                                                {% endfor %}
+                                                                                                
+                                                                                        </select>
+                                                                                </div>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                                <tr>
+                                                                        <td>
+                                                                                <div><label>Select data set name: </label>
+                                                                                <select id="plot_features_featset_name_select" name="plot_features_featset_name_select">
+                                                                                        
+                                                                                </select></div>
+                                                                                        
+                                                                        </td>
+                                                                        <td>
+                                                                                <div align='center'><input type='button' id='plot_features_button' name='plot_features_button' value='Plot features' class='submit_button' onclick="plotFeaturesFormSubmit();"></div>
+                                                                        </td>
+                                                                </tr>
+                                                                
+                                                        </table>
+                                                </form>
+                                                
+                                                
+                                        </div>
+                                        
+                                        
+                                        <div id='buildModelTab' align='center'>
+                                                
+                                                <form id='buildModelForm' action="/buildModel" enctype="multipart/form-data" method="post">
+                                                        <table>
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Select project: </label>
+                                                                        </td>
+                                                                        <td align='left' colspan=2>
 
-										<select id="buildmodel_project_name_select" name="buildmodel_project_name_select">
-												
-											{% for PROJ_NAME in CURRENT_PROJECTS %}
-												<option value="{{ PROJ_NAME }}">{{ PROJ_NAME }}</option>
-											{% endfor %}
-											
-										</select>
-									</td>
-									
-								</tr>
-								<tr align='left'>
-									<td align='left'>
-										<label>Feature set name<span class='small'>Select a data set to build your new model with:</span></label>
-									</td>
-									<td align='left'>
-										<div>
-											<select id="modelbuild_featset_name_select" name="modelbuild_featset_name_select">
-												
-											</select>
-										</div>
-									</td>
-									
-								</tr>
-								
-								<tr align='left'>
-									<td align='left'>
-										<label>Select model type</label>
-									</td>
-									<td>
-										<div>
-											<select id="model_type_select" name="model_type_select">
-												<option value="RF">Random Forest Classifier</option>
-											</select>
-										</div>
-									</td>
-									
-								</tr>
-								
-								<!--
-								<tr>
-									<td align='left'>
-										<label>Model Name<span class='small'>Enter a name for your new model:</span></label>
-									</td>
-									<td>
-										<div style='border:1px solid #BBB;'><input type='text' name='new_model_name' id='new_model_name' class="stylized_input"></div><div id='model_name_okay_div' name='model_name_okay_div'></div>
-									</td>
-									
-								</tr>
-								-->
-								
-								<TR><BR></TR>
-								<tr>
-									<td colspan=3 align='center'>
-										<div align='center'>
-											<input type='button' value='Build model' id='model_build_submit_button' class='submit_button' onclick="buildModelFormSubmit();">
-										</div>
-										<div id="model_build_okay_msg_div"></div>
-									</td>
-								</tr>
-							</table>
-						</form>
-						
-					</div>
-					
-					
-					<div id='predictTab' align='center'>
-						
-						<form id='predictForm' action="/uploadPredictionData" enctype="multipart/form-data" method="post">
-							<table>
-								
-								<tr>
-									<td align='left'>
-										<label>Select project: </label>
-									</td>
-									<td align='left'>
-										
-											<select id="prediction_project_name" name="prediction_project_name">
+                                                                                <select id="buildmodel_project_name_select" name="buildmodel_project_name_select">
+                                                                                                
+                                                                                        {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                                                                <option value="{{ PROJ_NAME }}">{{ PROJ_NAME }}</option>
+                                                                                        {% endfor %}
+                                                                                        
+                                                                                </select>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                <tr align='left'>
+                                                                        <td align='left'>
+                                                                                <label>Feature set name<span class='small'>Select a data set to build your new model with:</span></label>
+                                                                        </td>
+                                                                        <td align='left'>
+                                                                                <div>
+                                                                                        <select id="modelbuild_featset_name_select" name="modelbuild_featset_name_select">
+                                                                                                
+                                                                                        </select>
+                                                                                </div>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                
+                                                                <tr align='left'>
+                                                                        <td align='left'>
+                                                                                <label>Select model type</label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <div>
+                                                                                        <select id="model_type_select" name="model_type_select">
+                                                                                                <option value="RF">Random Forest Classifier</option>
+                                                                                        </select>
+                                                                                </div>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                
+                                                                <!--
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Model Name<span class='small'>Enter a name for your new model:</span></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <div style='border:1px solid #BBB;'><input type='text' name='new_model_name' id='new_model_name' class="stylized_input"></div><div id='model_name_okay_div' name='model_name_okay_div'></div>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                -->
+                                                                
+                                                                <TR><BR></TR>
+                                                                <tr>
+                                                                        <td colspan=3 align='center'>
+                                                                                <div align='center'>
+                                                                                        <input type='button' value='Build model' id='model_build_submit_button' class='submit_button' onclick="buildModelFormSubmit();">
+                                                                                </div>
+                                                                                <div id="model_build_okay_msg_div"></div>
+                                                                        </td>
+                                                                </tr>
+                                                        </table>
+                                                </form>
+                                                
+                                        </div>
+                                        
+                                        
+                                        <div id='predictTab' align='center'>
+                                                
+                                                <form id='predictForm' action="/uploadPredictionData" enctype="multipart/form-data" method="post">
+                                                        <table>
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Select project: </label>
+                                                                        </td>
+                                                                        <td align='left'>
+                                                                                
+                                                                                        <select id="prediction_project_name" name="prediction_project_name">
 
-												{% for PROJ_NAME in CURRENT_PROJECTS %}
-													<option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
-												{% endfor %}
-												
-											</select>
-										
-									</td>
-									
-								</tr>
-								
-								
-								<tr>
-									<td align='left'>
-										<label>Select the model: </label>
-									</td>
-									<td align='left'>
-											<select id="prediction_model_name_and_type" name="prediction_model_name_and_type">
-												
-											</select>
-									</td>
-									
-								</tr>
-								
-								
-								
-								<tr>
-									<td align='left'>
-										<label>Choose individual time-series file or tarball of files:</label>
-									</td>
-									<td align='left'>
-										<div>
-											<input type='file' name='newpred_file' id='newpred_file' class="stylized_input">
-										</div>
-									</td>
-									
-									<td align='left'>
-										<div><label>Separator: </label>
-										<select id="newpred_file_sep" name="newpred_file_sep">
-											<option value=",">Comma</option>
-											<option value="\t">Tab</option>
-											<option value=" ">Space</option>
-										</select></div>
-									</td>
-								</tr>
-								<tr style="display:none;" id='metadata_required_msg_tr'>
-									<td id='metadata_required_msg_td' colspan=3>
-										Upload metadata:
-									</td>
-								</tr>
-								<tr id='predict_metadata_tr' style="display:none;">
-									<td>
-										<label>Select metadata file: <div id="predict_metadata_format_dialog_link">(click here for example of required format)</div></label>
-									</td>
-									<td>
-										<input type='file' id='prediction_files_metadata' name='prediction_files_metadata'>
-									</td>
-									
-								</tr>
-								
-								<tr>
-									<td colspan=3 align='center'>
-										<div align='center'>
-											<input type='button' value='Predict' class='submit_button' onclick="predictFormSubmit();" id='predict_form_submit_button'>
-										</div>
-									</td>
-								</tr>
-							</table>
-						</form>
-						
-					</div>
-					
-					
-					
-					
-					
-				</div>
-			</div>
-			<BR>
+                                                                                                {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                                                                        <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
+                                                                                                {% endfor %}
+                                                                                                
+                                                                                        </select>
+                                                                                
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Select the model: </label>
+                                                                        </td>
+                                                                        <td align='left'>
+                                                                                        <select id="prediction_model_name_and_type" name="prediction_model_name_and_type">
+                                                                                                
+                                                                                        </select>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                
+                                                                
+                                                                
+                                                                <tr>
+                                                                        <td align='left'>
+                                                                                <label>Choose individual time-series file or tarball of files:</label>
+                                                                        </td>
+                                                                        <td align='left'>
+                                                                                <div>
+                                                                                        <input type='file' name='newpred_file' id='newpred_file' class="stylized_input">
+                                                                                </div>
+                                                                        </td>
+                                                                        
+                                                                        <td align='left'>
+                                                                                <div><label>Separator: </label>
+                                                                                <select id="newpred_file_sep" name="newpred_file_sep">
+                                                                                        <option value=",">Comma</option>
+                                                                                        <option value="\t">Tab</option>
+                                                                                        <option value=" ">Space</option>
+                                                                                </select></div>
+                                                                        </td>
+                                                                </tr>
+                                                                <tr style="display:none;" id='metadata_required_msg_tr'>
+                                                                        <td id='metadata_required_msg_td' colspan=3>
+                                                                                Upload metadata:
+                                                                        </td>
+                                                                </tr>
+                                                                <tr id='predict_metadata_tr' style="display:none;">
+                                                                        <td>
+                                                                                <label>Select metadata file: <div id="predict_metadata_format_dialog_link">(click here for example of required format)</div></label>
+                                                                        </td>
+                                                                        <td>
+                                                                                <input type='file' id='prediction_files_metadata' name='prediction_files_metadata'>
+                                                                        </td>
+                                                                        
+                                                                </tr>
+                                                                
+                                                                <tr>
+                                                                        <td colspan=3 align='center'>
+                                                                                <div align='center'>
+                                                                                        <input type='button' value='Predict' class='submit_button' onclick="predictFormSubmit();" id='predict_form_submit_button'>
+                                                                                </div>
+                                                                        </td>
+                                                                </tr>
+                                                        </table>
+                                                </form>
+                                                
+                                        </div>
+                                        
+                                        
+                                        
+                                        
+                                        
+                                </div>
+                        </div>
+                        <BR>
 
-	{% endblock %}
+        {% endblock %}
 
-	{% block results %}
-
-
-		<div style='text-align:center'>
-			
-			
-			<div id='results_header' style='display:inline-block;'>
-				<b></b>
-			</div>
-			<BR>
-			{% if RESULTS %}
-			<br>
-			<div id='features_link_div' style="display:none;">
-				<a href="#" id="features_link">Show Computed Features</a>
-			</div>
-			{% endif %}
-			<div name='lc_plot_wrapper' style='display:none;float:center;'>
-				<div id="lc_plot" name="lc_plot" style="width:400px;height:200px;display:none;float:left;"> 
-				</div>
-				<div id="miniature" name='miniature' style="float:left;margin-left:20px;display:inline-block;">
-					<div id="overview" name='overview' style="width:166px;height:100px">
-					</div>
-					<p id="overviewLegend" name='overviewLegend' style="margin-left:10px"></p>
-				</div>
-				{% if RESULTS %}
-				<input type='checkbox' id='show_errors_checkbox' checked name='show_errors_checkbox' onclick='plot_light_curve();'>Show error bars
-				{% endif %}
-			</div>
-			
-			<div id="status_div" name="status_div" style="float:center;display:inline-block;">
-			
-			</div>
-			
-			<BR><BR>
-			<div id="model_build_results" name="model_build_results" style="float:center;display:inline-block;">
-			</div>
-			
-			<BR><BR>
-			<div id="class_pred_results" name="class_pred_results" style="float:center;display:inline-block;">
-			</div>
-			
-			<BR><BR>
-			<div align="center">
-				<div id="visualizationDiv" name="visualizationDiv" style="float:left;display:inline-block;width:960px;"> 
-				</div>
-				<div id="visualizationLegendDiv" name="visualizationLegendDiv" style="float:left;display:inline-block;width:250px;" align="left">
-				</div>
-			</div>
-			
-		</div>
+        {% block results %}
 
 
-	</div>
+                <div style='text-align:center'>
+                        
+                        
+                        <div id='results_header' style='display:inline-block;'>
+                                <b></b>
+                        </div>
+                        <BR>
+                        {% if RESULTS %}
+                        <br>
+                        <div id='features_link_div' style="display:none;">
+                                <a href="#" id="features_link">Show Computed Features</a>
+                        </div>
+                        {% endif %}
+                        <div name='lc_plot_wrapper' style='display:none;float:center;'>
+                                <div id="lc_plot" name="lc_plot" style="width:400px;height:200px;display:none;float:left;"> 
+                                </div>
+                                <div id="miniature" name='miniature' style="float:left;margin-left:20px;display:inline-block;">
+                                        <div id="overview" name='overview' style="width:166px;height:100px">
+                                        </div>
+                                        <p id="overviewLegend" name='overviewLegend' style="margin-left:10px"></p>
+                                </div>
+                                {% if RESULTS %}
+                                <input type='checkbox' id='show_errors_checkbox' checked name='show_errors_checkbox' onclick='plot_light_curve();'>Show error bars
+                                {% endif %}
+                        </div>
+                        
+                        <div id="status_div" name="status_div" style="float:center;display:inline-block;">
+                        
+                        </div>
+                        
+                        <BR><BR>
+                        <div id="model_build_results" name="model_build_results" style="float:center;display:inline-block;">
+                        </div>
+                        
+                        <BR><BR>
+                        <div id="class_pred_results" name="class_pred_results" style="float:center;display:inline-block;">
+                        </div>
+                        
+                        <BR><BR>
+                        <div align="center">
+                                <div id="visualizationDiv" name="visualizationDiv" style="float:left;display:inline-block;width:960px;"> 
+                                </div>
+                                <div id="visualizationLegendDiv" name="visualizationLegendDiv" style="float:left;display:inline-block;width:250px;" align="left">
+                                </div>
+                        </div>
+                        
+                </div>
 
-	{% endblock %}
-	<BR><BR>
 
-	{% block footer %}
+        </div>
 
-		<footer class="footer" style="background-color:#c2c2c2;">
-			<div style='text-align:center;'>
-				<div style='display:inline-block;text-align:left;'>
-					<table>
-						<tr style='width:100%;'>
-							<td style='width:10%;'>
-							</td>
-							<td style='width:25%;'>
-								<h4 style='padding-left:40px;'>About</h4>
-								<ul>
-									<li><a href="#" id='about'>Info</a></li>
-									<li><a href="http://astro.berkeley.edu/">UC Berkeley Astronomy</a></li>
-									<li><a href="http://www.stat.berkeley.edu/">UC Berkeley Statistics</a></li>
-									<li><a href='#' id='contact'>Contact</a></li>
-								</ul>
-							</td>
-							<td style='width:25%;'>
-								<h4 style='padding-left:40px;'>Related</h4>
-								<ul>
-									<li><a href="http://dotastro.org/">DotAstro</a></li>
-									<li><a href="http://cftd.info/">Center For Time-Domain Informatics</a></li>
-									<li><a href="http://www.bigmacc.info/">Machine-learned ASAS Classification Catalog</a></li>
-								</ul>
-							</td>
-							<td style='width:25%;'>
-								<h4 style='padding-left:40px;'>Links</h4>
-								<ul>
-									<li><a href='http://timemachine.iic.harvard.edu/'>Harvard TSC</a></li>
-									<li><a href="http://simbad.u-strasbg.fr/simbad/">SIMBAD</a></li>
-									<li><a href="http://www.sai.msu.su/gcvs/gcvs/index.htm">GCVS</a></li>
-								</ul>
-							</td>
-						</tr>
-					</table>
-				</div>
-			</div>
-		</footer>
+        {% endblock %}
+        <BR><BR>
+
+        {% block footer %}
+
+                <footer class="footer" style="background-color:#c2c2c2;">
+                        <div style='text-align:center;'>
+                                <div style='display:inline-block;text-align:left;'>
+                                        <table>
+                                                <tr style='width:100%;'>
+                                                        <td style='width:10%;'>
+                                                        </td>
+                                                        <td style='width:25%;'>
+                                                                <h4 style='padding-left:40px;'>About</h4>
+                                                                <ul>
+                                                                        <li><a href="#" id='about'>Info</a></li>
+                                                                        <li><a href="http://astro.berkeley.edu/">UC Berkeley Astronomy</a></li>
+                                                                        <li><a href="http://www.stat.berkeley.edu/">UC Berkeley Statistics</a></li>
+                                                                        <li><a href='#' id='contact'>Contact</a></li>
+                                                                </ul>
+                                                        </td>
+                                                        <td style='width:25%;'>
+                                                                <h4 style='padding-left:40px;'>Related</h4>
+                                                                <ul>
+                                                                        <li><a href="http://dotastro.org/">DotAstro</a></li>
+                                                                        <li><a href="http://cftd.info/">Center For Time-Domain Informatics</a></li>
+                                                                        <li><a href="http://www.bigmacc.info/">Machine-learned ASAS Classification Catalog</a></li>
+                                                                </ul>
+                                                        </td>
+                                                        <td style='width:25%;'>
+                                                                <h4 style='padding-left:40px;'>Links</h4>
+                                                                <ul>
+                                                                        <li><a href='http://timemachine.iic.harvard.edu/'>Harvard TSC</a></li>
+                                                                        <li><a href="http://simbad.u-strasbg.fr/simbad/">SIMBAD</a></li>
+                                                                        <li><a href="http://www.sai.msu.su/gcvs/gcvs/index.htm">GCVS</a></li>
+                                                                </ul>
+                                                        </td>
+                                                </tr>
+                                        </table>
+                                </div>
+                        </div>
+                </footer>
 
 
 
-	{% endblock %}
+        {% endblock %}
 
 
 
@@ -545,260 +545,260 @@
 {% block bodyscript %}
 
 
-	<script type="text/javascript">
-		
-		$(document).ready(function() {
-			
-			$(function() {
-				$( document ).tooltip();
-			}); 
-			
-			$("#plot_features_form_table").width($("#upload_features_data_table").width());
-			
-			init_dialogs();
-			
-			form_validations();
-			
-			enforce_unique_name('new_project_button','new_project_name','new_proj_name_okay_div',{{ CURRENT_PROJECTS_JSON|safe }});
-			
-			
-			populate_select_options_multiple();
-			
-			
-			
-			var feature_selection_html_str = "<div id='feature_selection_dialog_tabs'> \
-				<ul> \
-					<li><a href='#featureset1tab'>Feature set 1</a></li> \
-					<li><a href='#featureset2tab'>Feature set 2</a></li> \
-					<li><a href='#uploadcustomtab'>Upload custom feature definitions</a></li> \
-				</ul> \
-				<div id='featureset1tab'> \
-				</div> \
-				<div id='featureset2tab'> \
-				</div> \
-				<div id='uploadcustomtab'> \
-				</div> \
-			</div> ";
-			
-			$('#feature_selection_dialog').html(feature_selection_html_str);
-			
-			var featureset1_html_str = "<a href='#' onclick='select_deselect_all_feats1();'>Click here to select/deselect all</a><br><br>";
-			{% for FEAT in FEATURES_AVAILABLE[0] %}
-				featureset1_html_str += "<input type='checkbox' class='feat1_checkbox' id='features_selected' name='features_selected' value='{{ FEAT }}' checked>{{ FEAT }}<br>"
-			{% endfor %}
-			$('#featureset1tab').html(featureset1_html_str);
-			
-			var featureset2_html_str = "<a href='#' onclick='select_deselect_all_feats2();'>Click here to select/deselect all</a><br><br>";
-			{% for FEAT in FEATURES_AVAILABLE[1] %}
-				featureset2_html_str += "<input type='checkbox' class='feat2_checkbox' id='features_selected' name='features_selected' value='{{ FEAT }}' checked>{{ FEAT }}<br>"
-			{% endfor %}
-			$('#featureset2tab').html(featureset2_html_str);
-			
-			var customfeats_html_str = "Select .py file containing your custom feature definitions \
-				(note: file will not be used until tested. Click the test button to test your script): \
-				<br><br><div id='script_file_input_div'><input id='custom_feat_script_file' name='custom_feat_script_file' type='file'></div><br>\
-				<input type='hidden' value='no' id='custom_script_tested' name='custom_script_tested'>\
-				<div><input type='button' onclick='test_custom_feature_script();' value='Click to test'></div>\
-				<div id='file_upload_message_div'></div>"
-			$('#uploadcustomtab').html(customfeats_html_str);
-			
-			
-			$('#feature_selection_dialog').parent().appendTo($("#featurizeForm"));
-			
-			$("#feature_selection_dialog_tabs").tabs();
-			
-		});
+        <script type="text/javascript">
+                
+                $(document).ready(function() {
+                        
+                        $(function() {
+                                $( document ).tooltip();
+                        }); 
+                        
+                        $("#plot_features_form_table").width($("#upload_features_data_table").width());
+                        
+                        init_dialogs();
+                        
+                        form_validations();
+                        
+                        enforce_unique_name('new_project_button','new_project_name','new_proj_name_okay_div',{{ CURRENT_PROJECTS_JSON|safe }});
+                        
+                        
+                        populate_select_options_multiple();
+                        
+                        
+                        
+                        var feature_selection_html_str = "<div id='feature_selection_dialog_tabs'> \
+                                <ul> \
+                                        <li><a href='#featureset1tab'>Feature set 1</a></li> \
+                                        <li><a href='#featureset2tab'>Feature set 2</a></li> \
+                                        <li><a href='#uploadcustomtab'>Upload custom feature definitions</a></li> \
+                                </ul> \
+                                <div id='featureset1tab'> \
+                                </div> \
+                                <div id='featureset2tab'> \
+                                </div> \
+                                <div id='uploadcustomtab'> \
+                                </div> \
+                        </div> ";
+                        
+                        $('#feature_selection_dialog').html(feature_selection_html_str);
+                        
+                        var featureset1_html_str = "<a href='#' onclick='select_deselect_all_feats1();'>Click here to select/deselect all</a><br><br>";
+                        {% for FEAT in FEATURES_AVAILABLE[0] %}
+                                featureset1_html_str += "<input type='checkbox' class='feat1_checkbox' id='features_selected' name='features_selected' value='{{ FEAT }}' checked>{{ FEAT }}<br>"
+                        {% endfor %}
+                        $('#featureset1tab').html(featureset1_html_str);
+                        
+                        var featureset2_html_str = "<a href='#' onclick='select_deselect_all_feats2();'>Click here to select/deselect all</a><br><br>";
+                        {% for FEAT in FEATURES_AVAILABLE[1] %}
+                                featureset2_html_str += "<input type='checkbox' class='feat2_checkbox' id='features_selected' name='features_selected' value='{{ FEAT }}' checked>{{ FEAT }}<br>"
+                        {% endfor %}
+                        $('#featureset2tab').html(featureset2_html_str);
+                        
+                        var customfeats_html_str = "Select .py file containing your custom feature definitions \
+                                (note: file will not be used until tested. Click the test button to test your script): \
+                                <br><br><div id='script_file_input_div'><input id='custom_feat_script_file' name='custom_feat_script_file' type='file'></div><br>\
+                                <input type='hidden' value='no' id='custom_script_tested' name='custom_script_tested'>\
+                                <div><input type='button' onclick='test_custom_feature_script();' value='Click to test'></div>\
+                                <div id='file_upload_message_div'></div>"
+                        $('#uploadcustomtab').html(customfeats_html_str);
+                        
+                        
+                        $('#feature_selection_dialog').parent().appendTo($("#featurizeForm"));
+                        
+                        $("#feature_selection_dialog_tabs").tabs();
+                        
+                });
 
 
 
-		{% if RESULTS %}
-			
-			{% if ACTION == "buildingModel" %}
-				
-				$(document).ready(function(){
-				
-					
-					var index = $('#tabs a[href="#buildModelTab"]').parent().index();
-					$('#tabs').tabs( "option", "active", false);
-						
-					$("#results_header").html("<b>Model Creation for {{ model_name }}:</b>");
-					
-					
-					var checkStatus = setInterval(
-						function(){ 
-							var job_status_str = check_job_status({{ PID }});
-							$("#status_div").html(job_status_str); 
-							if( job_status_str.indexOf("finished") != -1) {
-								
-								$("#model_build_results").html("Loading results...");
-								
-								$.get("/load_model_build_results/{{ new_model_key }}", function(data){
-									
-									$("#model_build_results").html(data["results_msg"]);
-									
-								});
-								
-								
-								clearInterval(checkStatus);
-							}
-						}
-					, 2000);
-					
-					
-				});
-				
-				
-			
-			
-			
-			{% elif ACTION == "PLOT_FEATURES" %}
-				
-				$(document).ready(function(){
-				
-					var index = $('#tabs a[href="#featurizeTab"]').parent().index();
-					$('#tabs').tabs( "option", "active", false);
-						
-					$("#results_header").html("<b>{{ PROJECT_NAME }}:</b>");
-					
-					$("#model_build_results").hide();
-					$("#class_pred_results").hide();
-					
-					drawScatterplotMatrix("/static/data/{{ PROJECT_NAME }}_features_with_classes.csv");
-					
-				});
-			
-			
-			
-			
-			
-			
-			
-			{% elif ACTION == "featurizing" %}
-				
-				$(document).ready(function(){
-				
-					$('#results_header').html("<b>Generating features for new feature set {{ featureset_name }}:</b>");
-				
-					$('#tabs').tabs( "option", "active", false);
-					
-					var checkStatus = setInterval(
-						function(){ 
-							var job_status_str = check_job_status({{ PID }});
-							$("#status_div").html(job_status_str); 
-							if( job_status_str.indexOf("finished") != -1) {
-								$("#model_build_results").html("Loading results...");
-								
-								$.get("/load_featurization_results/{{ new_featset_key }}", function(data){
-									
-									$("#model_build_results").html(data["results_msg"]);
-									
-								});
-								$('#tabs').tabs( "option", "active", false);
-								drawScatterplotMatrix("/static/data/{{ new_featset_key }}_features_with_classes.csv");
-								clearInterval(checkStatus);
-							}
-						}
-					, 2000);
-					
-				});
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			{% elif ACTION == "predicting" %}
-				
-				$(document).ready(function(){
-				
-					$('#tabs').tabs( "option", "active", false);
-					
-					$("#results_header").html("<b>Prediction Results for model {{ prediction_model_name }} - {{ model_type }}</b>");
-					
-					$("#model_build_results").html("<img src='/static/media/spinner_black.gif'> Featurizing your new time series data and performing model predictions.");
-					$("#status_div").html("<img src='/static/media/spinner_black.gif'> Featurizing your new time series data...");
-					
-					var checkStatus = setInterval(
-						function(){ 
-							var job_status_str = check_job_status({{ PID }});
-							$("#status_div").html(job_status_str); 
-							if( job_status_str.indexOf("finished") != -1) {
-								$("#model_build_results").html("Featurization and prediction complete.").show();
-								
-								$.get("/load_prediction_results/{{ prediction_entry_key }}", function(data){
-									
-									$("#class_pred_results").html(data["results_str_html"]);
-									
-									$("#pred_results_table").tablesorter();
-									
-									$(".pred_results_fname_cell").click( function(){
-										window.open("/source_details/"+data['id']+"/"+$(this).text(), "_blank");
-									});
-									
-								});
-								
-								clearInterval(checkStatus);
-							}
-						}
-					, 2000);
-					
-					
-				});
-			
-			
-			
-			
-			
-			
-			{% else %}
-				$(document).ready(function(){
-					
-					
-					
-					$('#tabs').tabs( "option", "active", 0);
-					
-					$("#survey_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing survey classification...");
-					$("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing science classification...");
-					
-					plot_light_curve();
-					
-					$("#class_pred_results").load("/classPred", function(){
-						$("#features").load("/features", function(){
-							$("#features_link_div").show();
-						});
-						$.get("/featuresDict", function(data){
-							draw_lines(data.avg_err, data.cads_med, data.avg_double_to_single_step, data.cads_std);
-						});
-					});
-										
-					
-				});
-			
-			{% endif %}
-			
+                {% if RESULTS %}
+                        
+                        {% if ACTION == "buildingModel" %}
+                                
+                                $(document).ready(function(){
+                                
+                                        
+                                        var index = $('#tabs a[href="#buildModelTab"]').parent().index();
+                                        $('#tabs').tabs( "option", "active", false);
+                                                
+                                        $("#results_header").html("<b>Model Creation for {{ model_name }}:</b>");
+                                        
+                                        
+                                        var checkStatus = setInterval(
+                                                function(){ 
+                                                        var job_status_str = check_job_status({{ PID }});
+                                                        $("#status_div").html(job_status_str); 
+                                                        if( job_status_str.indexOf("finished") != -1) {
+                                                                
+                                                                $("#model_build_results").html("Loading results...");
+                                                                
+                                                                $.get("/load_model_build_results/{{ new_model_key }}", function(data){
+                                                                        
+                                                                        $("#model_build_results").html(data["results_msg"]);
+                                                                        
+                                                                });
+                                                                
+                                                                
+                                                                clearInterval(checkStatus);
+                                                        }
+                                                }
+                                        , 1000);
+                                        
+                                        
+                                });
+                                
+                                
+                        
+                        
+                        
+                        {% elif ACTION == "PLOT_FEATURES" %}
+                                
+                                $(document).ready(function(){
+                                
+                                        var index = $('#tabs a[href="#featurizeTab"]').parent().index();
+                                        $('#tabs').tabs( "option", "active", false);
+                                                
+                                        $("#results_header").html("<b>{{ PROJECT_NAME }}:</b>");
+                                        
+                                        $("#model_build_results").hide();
+                                        $("#class_pred_results").hide();
+                                        
+                                        drawScatterplotMatrix("/static/data/{{ PROJECT_NAME }}_features_with_classes.csv");
+                                        
+                                });
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        {% elif ACTION == "featurizing" %}
+                                
+                                $(document).ready(function(){
+                                
+                                        $('#results_header').html("<b>Generating features for new feature set {{ featureset_name }}:</b>");
+                                
+                                        $('#tabs').tabs( "option", "active", false);
+                                        
+                                        var checkStatus = setInterval(
+                                                function(){ 
+                                                        var job_status_str = check_job_status({{ PID }});
+                                                        $("#status_div").html(job_status_str); 
+                                                        if( job_status_str.indexOf("finished") != -1) {
+                                                                $("#model_build_results").html("Loading results...");
+                                                                
+                                                                $.get("/load_featurization_results/{{ new_featset_key }}", function(data){
+                                                                        
+                                                                        $("#model_build_results").html(data["results_msg"]);
+                                                                        
+                                                                });
+                                                                $('#tabs').tabs( "option", "active", false);
+                                                                drawScatterplotMatrix("/static/data/{{ new_featset_key }}_features_with_classes.csv");
+                                                                clearInterval(checkStatus);
+                                                        }
+                                                }
+                                        , 1000);
+                                        
+                                });
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        {% elif ACTION == "predicting" %}
+                                
+                                $(document).ready(function(){
+                                
+                                        $('#tabs').tabs( "option", "active", false);
+                                        
+                                        $("#results_header").html("<b>Prediction Results for model {{ prediction_model_name }} - {{ model_type }}</b>");
+                                        
+                                        $("#model_build_results").html("<img src='/static/media/spinner_black.gif'> Featurizing your new time series data and performing model predictions.");
+                                        $("#status_div").html("<img src='/static/media/spinner_black.gif'> Featurizing your new time series data...");
+                                        
+                                        var checkStatus = setInterval(
+                                                function(){ 
+                                                        var job_status_str = check_job_status({{ PID }});
+                                                        $("#status_div").html(job_status_str); 
+                                                        if( job_status_str.indexOf("finished") != -1) {
+                                                                $("#model_build_results").html("Featurization and prediction complete.").show();
+                                                                
+                                                                $.get("/load_prediction_results/{{ prediction_entry_key }}", function(data){
+                                                                        
+                                                                        $("#class_pred_results").html(data["results_str_html"]);
+                                                                        
+                                                                        $("#pred_results_table").tablesorter();
+                                                                        
+                                                                        $(".pred_results_fname_cell").click( function(){
+                                                                                window.open("/source_details/"+data['id']+"/"+$(this).text(), "_blank");
+                                                                        });
+                                                                        
+                                                                });
+                                                                
+                                                                clearInterval(checkStatus);
+                                                        }
+                                                }
+                                        , 1000);
+                                        
+                                        
+                                });
+                        
+                        
+                        
+                        
+                        
+                        
+                        {% else %}
+                                $(document).ready(function(){
+                                        
+                                        
+                                        
+                                        $('#tabs').tabs( "option", "active", 0);
+                                        
+                                        $("#survey_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing survey classification...");
+                                        $("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing science classification...");
+                                        
+                                        plot_light_curve();
+                                        
+                                        $("#class_pred_results").load("/classPred", function(){
+                                                $("#features").load("/features", function(){
+                                                        $("#features_link_div").show();
+                                                });
+                                                $.get("/featuresDict", function(data){
+                                                        draw_lines(data.avg_err, data.cads_med, data.avg_double_to_single_step, data.cads_std);
+                                                });
+                                        });
+                                                                                
+                                        
+                                });
+                        
+                        {% endif %}
+                        
 
-		{% elif PROCESS_STATUS %}
-			
-			
-			var checkStatus = setInterval(function(){ $("#survey_pred_results").html(check_job_status({{ PID }}); ); }, 5000); 
-			
-			
-		{% else %}
-
-
-		{% endif %}
+                {% elif PROCESS_STATUS %}
+                        
+                        
+                        var checkStatus = setInterval(function(){ $("#survey_pred_results").html(check_job_status({{ PID }}); ); }, 1000); 
+                        
+                        
+                {% else %}
 
 
-
-
+                {% endif %}
 
 
 
 
-	</script>
+
+
+
+
+        </script>
 
 {% endblock %}
 
