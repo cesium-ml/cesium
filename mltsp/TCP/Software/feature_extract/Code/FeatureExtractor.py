@@ -13,9 +13,6 @@ from scipy import fftpack, stats, optimize
 
 import time
 
-from . import internal_generated_extractors_holder # 20080508 KLUDGE
-
-#20090321#import amara
 
 class ExtractException(Exception):
     "extractor refused to extract"
@@ -31,11 +28,6 @@ class Feature(ResultObject):
     pass
 
 class GeneralExtractor(object):
-    # 20080508 KLUDGE:
-    igea = internal_generated_extractors_holder.\
-                    Internal_Gen_Extractors_Accessor() # 20080508 KLUDGE
-    glob_internally_generated_extractors = igea.glob_internally_generated_extractors
-
     why_fail = "This didn't fail as far as I know" # implement in subclasses please
     minpoints = 0
     maxpoints = 28200 #20090127: dstarr adds this after seeing a ws_variability_extractor related memory balloon possibly due to a +30k dataset.
@@ -59,8 +51,6 @@ class GeneralExtractor(object):
                 self.why_fail = False # I didn't fail so far
             except ExtractException as e:
                 result = False
-                print("!"*80, "\n", "Extraction failed for", self.extname, "\n", e, "\n!"*80, "\n")
-                #raise(e)
                 #self.why_fail = "I don't know why it failed"
             self.prepare_obj(result)
         ### check that resources are not wasted
@@ -123,12 +113,6 @@ class GeneralExtractor(object):
         except KeyError:
             pass
 
-        ####20110512commentout#'frequencies':self.fgen(input_dic['time_data'])}) # 20110512: NOTE: this and self.frequencies are not used by any current features (used to be related to old lomb implementations).  About to add a new self.frequencies overwriting declaration in lomb_scargle_extractor.py:extractor(), which will allow the first freq self.frequencies, self.psd to be accessible to outside code.
-        #try:
-        #        import pdb; pdb.set_trace()
-        #       self.frequencies = where['frequencies']
-        #except KeyError:
-        #       self.frequencies = numpy.array([])
         try:
             self.rms_data = where['rms_data']
         except KeyError:
@@ -187,16 +171,6 @@ class GeneralExtractor(object):
         error (boolean): True to proagate the error of fetched extractors """
         if not band: band = self.band
         if not properties: properties = self.properties
-        if isinstance(extractor_name, type(u'abc')): # For 2/3 compatibility
-            extractor_name = str(extractor_name)
-        if not isinstance(extractor_name, str):
-            try:
-                print("Method %s is still using old fetch procedure, calling %s" % (self.extname, extractor_name.extname))
-            except Exception as e:
-                print("Exception occurred in FeatureExtractor.fetch_extr():", e)
-            return self.fetch_extr_old(extractor_name,properties,error, band, returnall, return_object)
-        #print extractor_name, self.properties, self.band
-        # # # # # # # # dstarr KLUDGE (next single condition:):
         from . import feature_interfaces
         fetched_extractor = feature_interfaces.feature_interface.request_extractor(extractor_name) # the feature interface is in charge of storing and finding extractors, receives an extractor or False
         if not fetched_extractor: #if the feature_interface was unable to find the extractor
@@ -213,34 +187,13 @@ class GeneralExtractor(object):
         if ret_object.result is False and error: # if the result is an error
             self.ex_error(ret_object.why) # then propagate the error
         return returner
-    def fetch_extr_old(     self,extractor_name,properties=None,error=True, band=None, returnall = False, return_object = False):
-        """ Fetch the result from other extractors
-        error (boolean): True to proagate the error of fetched extractors """
-        if not band: band = self.band
-        if not properties: properties = self.properties
-        #print extractor_name, self.properties, self.band
-        # # # # # # # # dstarr KLUDGE (next single condition:):
-        if return_object:
-            ret_object = extractor_name()
-            #result = ret_object.result
-            result = True # KLUDGE
-            returner = ret_object
-        elif returnall: # return the entire object
-            ret_object = extractor_name().extr(properties,band=band)
-            result = ret_object.result
-            returner = ret_object
-        else:
-            ret_object = extractor_name().extr(properties,band=band)
-            result = ret_object.result
-            returner = result
-        if result is False and error:
-            self.ex_error(ret_object.why)
-        return returner
+
     def ex_error(self,text="I don't know why"):
         """ a feature extractor's way of raising an error cleanly """
         self.why_fail = text
         print(self.why_fail, self.extname)
         raise ExtractException(text)
+
     def longenough(self):
         """ will not perform extraction if there aren't enough data points, minpoints set at extractor level """
         try:
@@ -249,6 +202,7 @@ class GeneralExtractor(object):
                 self.ex_error("not enough (or too much) data points: %d" % (len(self.flux_data)))
         except:
             self.ex_error("not enough (or too much) data points")
+
 class FeatureExtractor(GeneralExtractor):
     out_type = Feature
     internal_use_only = False # dstarr adds this.  But a bit of a KLUDGE
@@ -313,29 +267,3 @@ class ContextFeatureExtractor(ContextExtractor,FeatureExtractor):
     pass
 class ContextInterExtractor(ContextExtractor,InterExtractor):
     pass
-
-# Extractors
-####################****************############
-# Extractor Outputs
-
-"""class Extracted(object):
-        def __init__(self,data):
-                self.data = data
-        def __repr__(self):
-                return str(self.data)
-        def newobj(self,new):
-                self.data = new
-                return self
-        def __add__(self,other):
-                new = self.data + other
-                self.newobj(new)
-        def __abs__(self):
-                new = abs(self.data)
-                self.newobj(new)
-        def __getitem__(self,key):
-                return self.data[key]
-        def __getattr__(self,name):
-                print name
-#               exec "return self.data.%s" % name
-                out = eval("self.data.%s" % name)
-                return out"""

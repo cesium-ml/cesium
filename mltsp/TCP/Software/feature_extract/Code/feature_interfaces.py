@@ -8,43 +8,18 @@ standard_library.install_aliases()
 import os, sys
 import numpy
 from numpy import *
-#from . import extractors
-#from .extractors import *
-#from fetchers import *
-from . import internal_generated_extractors_holder
 
-if sys.version.startswith("2"):
-    avtype = [(u'extname'.encode("utf-8"),u'S100'.encode("utf-8")),
-              (u'extractor'.encode("utf-8"),object_),
-              ('active'.encode("utf-8"),bool_)] # format of available_extractors
-elif sys.version.startswith("3"):
-    avtype = [('extname','S100'), ('extractor',object_), ('active',bool_)]
-#avtype = [(str('extname'),str('S100')), (str('extractor'),object_), (str('active'),bool_)] # format of available_extractors
-
+avtype = [('extname','S100'), ('extractor',object_), ('active',bool_)]
 
 class FeatureInterface(object):
     """This serves as an interface between signals and extractors.
     An instance of this object is generated when the module is imported
     """
     def __init__(self):
-        igea = internal_generated_extractors_holder.\
-                                    Internal_Gen_Extractors_Accessor()
-        # obsolete:
-        self.glob_internally_generated_extractors = \
-                               igea.glob_internally_generated_extractors
-
         # 20081216: dstarr sees that we keep on appending signals here (and growing memory) when he thinks only one signal is needed in self.subscribing_signals[] to do the feature extractions for a source. : (original function == True):
         self.debug__original_do_append_signals_to_subscribing_signals = False
         self.subscribing_signals = []
         self.available_extractors = empty(0,avtype) # declare the recipient numpy array for extractors
-
-    #def register_signal(self,signal):
-    #       self.subscribing_signals.append(signal)
-    #       for ext_name,extractor in self.available_extractors.\
-    #                                                  iteritems():
-    #               signal.update(extractor())
-    # 20071215: dstarr modifies this since he thinks order of load matters
-    #       and a dictionary .iteritems() or .values() is not applicable:
 
     def register_signal(self,signal, list_of_extractors, initialize = True):
         """ initialize determines whether all the active extractors are immediately applied to the signal """
@@ -60,7 +35,6 @@ class FeatureInterface(object):
                 #       print 'yo'
                 extractor_obj = an_extractor['extractor']() # instantiate
                 signal.update(extractor_obj)
-
 
     def register_extractor(self,extractor):
         self.available_extractors = append(self.available_extractors, \
@@ -161,12 +135,6 @@ def initialize(list_of_extractors):
     fs = feature_extraction_interface.Internal_Feature_Extractors()
     for key_name in fs.feature_ordered_keys:
         list_of_extractors.append(key_name)
-    #print(list_of_extractors)
-    # The following list is no-longer explicitly defined here.
-    #    Rather, I build the list in feature_extraction_interface.py
-    #list_of_extractors.extend([ weighted_average_extractor , chi2extractor , dc_extractor , dist_from_u_extractor , fourierextractor , linear_extractor , max_slope_extractor , medianextractor , beyond1std_extractor , stdvs_from_u_extractor , old_dcextractor , power_spectrum_extractor , power_extractor , montecarlo_extractor ,  pct_80_montecarlo_extractor , pct_90_montecarlo_extractor , pct_95_montecarlo_extractor , pct_99_montecarlo_extractor , significant_80_power_extractor , significant_90_power_extractor , significant_95_power_extractor , significant_99_power_extractor , first_freq_extractor , sine_fit_extractor , sine_leastsq_extractor , skew_extractor , stdextractor , wei_av_uncertainty_extractor  , lomb_extractor , first_lomb_extractor , sine_lomb_extractor , second_extractor , third_extractor , second_lomb_extractor , ratio21, ratio31, ratio32]) # order matters!
-    #for extractor in extractors.__dict__.values():
-    #for extractor in list_of_extractors:
     list_of_extractor_objects = []
 
     from . import extractors
@@ -174,18 +142,9 @@ def initialize(list_of_extractors):
     for extractor_name in list_of_extractors:
         d = {}
         extractor = getattr(extractors, extractor_name + '_extractor')
-        #exec("extractor = %s" % str(extractor_name), globals(), d) #KLUDGY
-        #try:
-        #    extractor = d["extractor"]
-        #except KeyError:
-        #    extractor = None
         list_of_extractor_objects.append(extractor)
         if isinstance(extractor,type):
             instance = extractor()
-            #if isinstance(instance,FeatureExtractor.GeneralExtractor):
-            #    instance.register_extractor()
-            #else:
-            #    pass
             try:
                 # TODO: Figure out why we have to register the extractor
                 # both on the extractor and the feature_interface instance
