@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
 import numpy
 from numpy import random, pi
@@ -6,7 +7,7 @@ try:
 	from pylab import *
 except:
 	pass
-from common_functions import *
+from .common_functions import *
 
 class sine_leastsq_extractor(InterExtractor,ChiSquare):
 	active = True

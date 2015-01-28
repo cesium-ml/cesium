@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
 
-from common_functions.plot_methods import plot_vs_frequencies
+from .common_functions.plot_methods import plot_vs_frequencies
 
 
 class pct_80_montecarlo_extractor(plot_vs_frequencies,InterExtractor):

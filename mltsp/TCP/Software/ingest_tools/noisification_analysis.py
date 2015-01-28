@@ -47,6 +47,8 @@ NOTE: to look at values in the dotastro_feat_valies TABLE:
 
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys
 import MySQLdb
@@ -89,10 +91,10 @@ class Ipython_Controller:
         """
 	while ((self.tc.queue_status()['scheduled'] > 0) or
  	       (self.tc.queue_status()['pending'] > 0)):
-            print self.tc.queue_status()
-            print 'Sleep... 3 in regenerate_vosource_xmls.py'
+            print(self.tc.queue_status())
+            print('Sleep... 3 in regenerate_vosource_xmls.py')
             time.sleep(3)
-        print 'done with while loop'
+        print('done with while loop')
 
 
 class DB_Connector:
@@ -139,7 +141,7 @@ class Noisification_Task_Populator(DB_Connector):
         npoint_tup_list.sort(reverse=True)
         
         if len(npoint_tup_list) == 0:
-            print "No filters found for source:", srcid
+            print("No filters found for source:", srcid)
             return
 
         filter_best = npoint_tup_list[0][1]
@@ -148,7 +150,7 @@ class Noisification_Task_Populator(DB_Connector):
         out_feat_dict = {}
         for feat_name, feat_obj in filt_dict['features'].iteritems():
             try:
-                print feat_obj, '\t', feat_name
+                print(feat_obj, '\t', feat_name)
                 out_feat_dict[feat_name] = str(float(str(feat_obj)))
                 if ((out_feat_dict[feat_name] == 'Fail') or (out_feat_dict[feat_name] == 'nan') or
                     (out_feat_dict[feat_name] == 'inf')  or (out_feat_dict[feat_name] == 'None')):
@@ -198,7 +200,7 @@ class Noisification_Task_Populator(DB_Connector):
         npoint_tup_list.sort(reverse=True)
         
         if len(npoint_tup_list) == 0:
-            print "No filters found for source:", srcid
+            print("No filters found for source:", srcid)
             return
 
         filter_best = npoint_tup_list[0][1]
@@ -207,7 +209,7 @@ class Noisification_Task_Populator(DB_Connector):
         out_feat_dict = {}
         for feat_name, feat_obj in filt_dict['features'].iteritems():
             try:
-                print feat_obj, '\t', feat_name
+                print(feat_obj, '\t', feat_name)
                 out_feat_dict[feat_name] = str(float(str(feat_obj)))
             except:
                 out_feat_dict[feat_name] = 'NULL'
@@ -291,7 +293,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
             try:
                 self.cursor.execute(drop_str)
             except:
-                print "Table already exists?:", drop_str
+                print("Table already exists?:", drop_str)
 
 
     def create_tables(self):
@@ -348,7 +350,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
         class_dotastro_lookup = {}
 
         for src_id, src_dict in progen_srcdict.iteritems():
-            if not class_dotastro_lookup.has_key(src_dict['class']):
+            if src_dict['class'] not in class_dotastro_lookup:
                 class_dotastro_lookup[src_dict['class']] = []
             class_dotastro_lookup[src_dict['class']].append(src_id)
         return class_dotastro_lookup
@@ -395,7 +397,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
                      'db':self.pars['mysql_database'], 
                      'port':self.pars['mysql_port']}
         import os,sys
-        import noisification_analysis
+        from . import noisification_analysis
         sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract'))
         sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract/Code'))
         from Code import *
@@ -472,7 +474,7 @@ time.sleep(3)
             ##### For non-parallel testing:
         
             import os,sys
-            import noisification_analysis
+            from . import noisification_analysis
             sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract'))
             sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract/Code'))
             from Code import *
@@ -935,7 +937,7 @@ time.sleep(3)
                                             normed=0, alpha=0.75, label='DotAstro source matched',
                                             rwidth=1.0, histtype='barstacked') #THIS DOESNT WORK FOR .hist(): , colors=range(len(plot_data_list)), cmap=pyplot.cm.spectral
             except:
-                print 'EXCEPT: noisification_analysis.py:885, class_dict=', class_dict
+                print('EXCEPT: noisification_analysis.py:885, class_dict=', class_dict)
                 #n2, bins, patches = ax.hist(plot_data_list[0],
                 #                            50, log=0,
                 #                            normed=0, facecolor='r', alpha=0.75, label='DotAstro source matched',
@@ -982,18 +984,18 @@ time.sleep(3)
         # dotastro_src_feat_dict :: [src_id]:<feat_val>
 
         """
-        if not self.hist_data_dict.has_key(schema_name):
+        if schema_name not in self.hist_data_dict:
             self.hist_data_dict[schema_name] = {}
-        if not self.hist_data_dict[schema_name].has_key(feat_name):
+        if feat_name not in self.hist_data_dict[schema_name]:
             self.hist_data_dict[schema_name][feat_name] = {}
-        if not self.hist_data_dict[schema_name][feat_name].has_key(class_name):
+        if class_name not in self.hist_data_dict[schema_name][feat_name]:
             self.hist_data_dict[schema_name][feat_name][class_name] = {}
 
 
-        if not self.hist_data_dict[schema_name][feat_name][class_name].has_key('dotastro_noise_relation_dicts'):
+        if 'dotastro_noise_relation_dicts' not in self.hist_data_dict[schema_name][feat_name][class_name]:
             self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'] = {} 
 
-        if not self.hist_data_dict[schema_name][feat_name][class_name].has_key('jsbvar_noise_relation_dicts'):
+        if 'jsbvar_noise_relation_dicts' not in self.hist_data_dict[schema_name][feat_name][class_name]:
             self.hist_data_dict[schema_name][feat_name][class_name]['jsbvar_featval_lists'] = {'all_featvals':[]} 
 
         # Debug:
@@ -1007,7 +1009,7 @@ time.sleep(3)
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
             all_noisesrc_featval_list.append(feat_dict['feat_val'])
-            if not self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'].has_key(dotastro_srcid):
+            if dotastro_srcid not in self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts']:
                 self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'][dotastro_srcid] = {\
                             'dotastro_featvals':[],
                             'noisified_featvals':[]}
@@ -1033,7 +1035,7 @@ time.sleep(3)
             if feat_val != None:
                 all_dotastro_featval_list.append(feat_val)
                 #ax.plot([feat_val], [3], 'o', color='r')
-                if self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'].has_key(dotastro_srcid):
+                if dotastro_srcid in self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts']:
                     self.hist_data_dict[schema_name][feat_name][class_name] \
                           ['dotastro_noise_relation_dicts'][dotastro_srcid]['dotastro_featvals'].append(feat_val)
 
@@ -1102,7 +1104,7 @@ time.sleep(3)
 
         all_related_classes = []
         all_related_classes.append(class_name)
-        if disambiguate_sci_class_dict.has_key(class_name):
+        if class_name in disambiguate_sci_class_dict:
             canonical_classname = disambiguate_sci_class_dict[class_name]
             if not canonical_classname in all_related_classes:
                 all_related_classes.append(canonical_classname)
@@ -1119,11 +1121,11 @@ time.sleep(3)
                         all_related_classes.append(canonical_classname)
                     #all_related_classes.append(class_name)
 
-        if not self.related_classes_dict.has_key(schema_name):
+        if schema_name not in self.related_classes_dict:
             self.related_classes_dict[schema_name] = {}
-        if not self.related_classes_dict[schema_name].has_key(feat_name):
+        if feat_name not in self.related_classes_dict[schema_name]:
             self.related_classes_dict[schema_name][feat_name] = {}
-        if not self.related_classes_dict[schema_name][feat_name].has_key(class_name):
+        if class_name not in self.related_classes_dict[schema_name][feat_name]:
             self.related_classes_dict[schema_name][feat_name][class_name] = {}
 
         self.related_classes_dict[schema_name][feat_name][class_name] = all_related_classes

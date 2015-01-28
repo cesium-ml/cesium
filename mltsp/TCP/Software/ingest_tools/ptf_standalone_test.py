@@ -7,6 +7,8 @@
    v0.1 Initial version: Simulate recieving a PTF transient diff-mag object.
         - NOW see ptf_master.py for this functionality.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 
 ptf_diff_source = {\
@@ -22,9 +24,9 @@ ptf_diff_source = {\
     'dec_rms':2.78e-05,# deg
     }
 
-import ingest_tools
+from . import ingest_tools
 ingest_tools_pars = ingest_tools.pars
-import feature_extraction_interface
+from . import feature_extraction_interface
 
 ingest_tools_pars.update({\
     'rdb_name_2':'object_test_db',
@@ -120,8 +122,8 @@ if __name__ == '__main__':
                                                 0.000277778*5.0, write_ps=0, \
                                                 only_sources_wo_features=0,\
                                                 skip_remote_sdss_retrieval=True)
-    print "Num sources found:", len(src_list)
-    print objids_list, src_list
+    print("Num sources found:", len(src_list))
+    print(objids_list, src_list)
 
     # ASSERT that len(src_list)==1 AND (src_list[0].d['src_id'] contains all
     #                                   unique src_ids in objids_list[]
@@ -139,7 +141,7 @@ if __name__ == '__main__':
     all_found_sources_in_lookup_table = True
     for source_obj in src_list:
         if source_obj.d['src_id'] not in result_srcid_list:
-            print "WARNING: >0 clustered sources were not in obj_srcid_lookup table", result_srcid_list, source_obj.d['src_id']
+            print("WARNING: >0 clustered sources were not in obj_srcid_lookup table", result_srcid_list, source_obj.d['src_id'])
             all_found_sources_in_lookup_table = False
             break
 

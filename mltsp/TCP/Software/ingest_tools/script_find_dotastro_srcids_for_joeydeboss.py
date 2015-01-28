@@ -2,6 +2,7 @@
 """ 20110116: Looking at alsit of Joey debosscher source ids,
 I determine the dotastro.org source ids.
 """
+from __future__ import print_function
 import os, sys
 import MySQLdb
 sys.path.append(os.path.abspath(os.path.expandvars('$TCP_DIR/' + 
@@ -52,15 +53,15 @@ class Find_DotAstro_Deboss_Sources():
             results = self.cursor.fetchall()
             tutor_source_id = results[0][0]
             if len(results) == 0:
-                print "NO MATCH: ", joey_id, class_name, source_name
+                print("NO MATCH: ", joey_id, class_name, source_name)
             elif len(results) > 1:
-                print "TOO MANY: ", joey_id, class_name, source_name
-                print results
+                print("TOO MANY: ", joey_id, class_name, source_name)
+                print(results)
             else:
                 pass #print joey_id, tutor_source_id, results[0][1]
 
             if tutor_source_id in tutor_source_id_list:
-                print "ALREADY matched this tutor source_id: %d(%s) joey_id=%d class_name=%s joey_source_name=%s" % (tutor_source_id, results[0][1], joey_id, class_name, source_name)
+                print("ALREADY matched this tutor source_id: %d(%s) joey_id=%d class_name=%s joey_source_name=%s" % (tutor_source_id, results[0][1], joey_id, class_name, source_name))
             else:
                 tutor_source_id_list.append(tutor_source_id)
 
@@ -74,10 +75,10 @@ class Find_DotAstro_Deboss_Sources():
 
         for row in results:
             if row[0] not in tutor_source_id_list:
-                print "In TUTOR, but not in Joey 1542 list: source_id=%d source_name=%s" % (row[0], row[1])
+                print("In TUTOR, but not in Joey 1542 list: source_id=%d source_name=%s" % (row[0], row[1]))
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import ContextInterExtractor
 
 #from power_extractor import power_extractor as power_extractor
-import sdss
+from . import sdss
 
 class intersdss_extractor(ContextInterExtractor): 
 	"""intermediate call to the sdss server
@@ -44,11 +45,11 @@ class intersdss_extractor(ContextInterExtractor):
 	def extract(self):
 		posdict = self.fetch_extr('position_intermediate')
 
-		if not posdict.has_key('ra') or posdict['dec'] is None:
+		if 'ra' not in posdict or posdict['dec'] is None:
 			self.ex_error("bad RA or DEC in the intermediate ng extractor. check install pyephem and input coordinates")
 
 		#20090126 dstarr comments this conditional out: #if not self.n:
-		if self.properties['data']['multiband']['inter'].has_key('sdss_internal_struct'):
+		if 'sdss_internal_struct' in self.properties['data']['multiband']['inter']:
 			self.s = self.properties['data']['multiband']['inter']['sdss_internal_struct']
 		else:
 			self.s = sdss.sdssq(pos=(posdict['ra'],posdict['dec']),verbose=self.verbose,maxd=self.light_cutoff*1.05)

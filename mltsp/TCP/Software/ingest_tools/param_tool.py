@@ -24,6 +24,7 @@
 
 # TODO: Note: This probably forces all command line param values into
 #               string form.
+from __future__ import print_function
 import sys, os
 
 def read_pars_from_file(par_file_path):
@@ -42,18 +43,18 @@ def add_command_args(pars, verbose):
                 par_name = first_half_raw.lstrip().rstrip()
                 last_half_raw = elem[(i_sep+1):]
                 par_value = last_half_raw.lstrip().rstrip()
-                if (pars.has_key(par_name)):
+                if (par_name in pars):
                     pars.update({par_name:par_value})
                 else:
                     if (verbose == 1):
-                        print "I don't think \"", par_name,"\" is a parameter!"
+                        print("I don't think \"", par_name,"\" is a parameter!")
     return pars
 
 def print_params(pars):
-    print "----- Parameters Used:"
+    print("----- Parameters Used:")
     for k, v in pars.iteritems():
-	print str(k), ':', v
-    print "---------------------"
+	print(str(k), ':', v)
+    print("---------------------")
 
 def get_pars(par_file_path, verbose=1):
     """ Main function, will get parameters from file, and from arguments

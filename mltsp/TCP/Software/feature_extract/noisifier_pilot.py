@@ -10,6 +10,8 @@ NOTE:
      - e.g. .bashrc/execute for bash:
                 export TCP_DIR=/home/pteluser/src/TCP/
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys
 
@@ -18,7 +20,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract/Code'))
 
-from Code import generators_importers, feature_interfaces
+from .Code import generators_importers, feature_interfaces
 
 signals_list = []
 
@@ -41,7 +43,7 @@ def fetch_noisified(signal, band):
 
 feature_added_VOSource_XML_fpath = '/tmp/test_feature_algorithms.VOSource.xml'
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
+print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
 
 
 def main():

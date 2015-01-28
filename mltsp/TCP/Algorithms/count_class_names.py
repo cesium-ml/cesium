@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ Tally the occurances of various science classes found in class_names datafile
 """
+from __future__ import print_function
 import os, sys
 import pprint
 import MySQLdb
@@ -31,7 +32,7 @@ lines = open('class_names').readlines()
 tally_dict = {}
 for line in lines:
     class_name = line.strip()
-    if not tally_dict.has_key(class_name):
+    if class_name not in tally_dict:
         tally_dict[class_name] = [1, class_name]
     else:
         tally_dict[class_name][0] += 1
@@ -53,9 +54,9 @@ for a in sorted_elems:
         db.tutor_cursor.execute(select_str)
         results = db.tutor_cursor.fetchall()
     try:
-        print "%4d %35s http://dotastro.org/lightcurves/class.php?Class_ID=%d " % (a[0], a[1], int(results[0][0]))
+        print("%4d %35s http://dotastro.org/lightcurves/class.php?Class_ID=%d " % (a[0], a[1], int(results[0][0])))
     except:
-        print "!!!", len(results), class_name
+        print("!!!", len(results), class_name)
 
 
 """

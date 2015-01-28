@@ -21,6 +21,8 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
    (on CITRIS-33node cluster): module load intel/11.1.072 gcc
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 try:
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
@@ -71,7 +73,7 @@ from starvars_feature_generation import StarVars_ASAS_Feature_Generation
 sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
 """ % (str(self.pars))
 
-        print 'before mec()'
+        print('before mec()')
         engine_ids = mec.get_ids()
         pending_result_dict = {}
         for engine_id in engine_ids:
@@ -84,11 +86,11 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
                 try:
                     result_val = pending_result.get_result(block=False)
                 except:
-                    print "get_result() Except. Still pending on engine: %d" % (engine_id)
+                    print("get_result() Except. Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
                     result_val = None # 20110105 added
                 if result_val == None:
-                    print "Still pending on engine: %d" % (engine_id)
+                    print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
                 mec.clear_pending_results()
@@ -102,15 +104,15 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
                 ###
                 i_count = 0
             else:
-                print "sleeping..."
+                print("sleeping...")
                 time.sleep(5)
                 pending_result_dict = still_pending_dict
             n_pending = len(pending_result_dict)
             i_count += 1
 
-        print 'after mec()'
+        print('after mec()')
         time.sleep(5) # This may be needed, although mec() seems to wait for all the Ipython clients to finish
-        print 'after sleep()'
+        print('after sleep()')
 
 
         task_id_list = []
@@ -135,7 +137,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
             matplotlib.use('agg')
             sys.path.append(os.path.abspath('/global/home/users/dstarr/src/TCP/Software/ingest_tools'))
             sys.path.append(os.path.abspath('/global/home/users/dstarr/src/TCP/Software/citris33'))
-            from starvars_feature_generation import StarVars_ASAS_Feature_Generation
+            from .starvars_feature_generation import StarVars_ASAS_Feature_Generation
             sv_asas = StarVars_ASAS_Feature_Generation(pars=self.pars) # # # IMPORTANT
             tmp_stdout = sys.stdout
             sys.stdout = open(os.devnull, 'w')
@@ -206,10 +208,10 @@ sys.stdout = tmp_stdout
                else:
                    now = datetime.datetime.now()
                    if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
-                       print "dtime_pending=1 timeout break!"
+                       print("dtime_pending=1 timeout break!")
                        break
-            print tc.queue_status()
-            print 'Sleep... 60 in starvars_feature_generation:IPython_Parallel_Processing.main()', datetime.datetime.utcnow()
+            print(tc.queue_status())
+            print('Sleep... 60 in starvars_feature_generation:IPython_Parallel_Processing.main()', datetime.datetime.utcnow())
             time.sleep(60)
         # IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in task_id_list:
@@ -236,7 +238,7 @@ sys.stdout = tmp_stdout
             else:
                 arff_rows.append(row)
 
-        print tc.queue_status()
+        print(tc.queue_status())
         return header_lines[:-2] + arff_rows
 
 
@@ -259,13 +261,13 @@ sys.stdout = tmp_stdout
 
         rc = Client(self.pars['ipython']['local_client_json_fpath'],
                     sshserver=self.pars['ipython']['remote_hostname'])
-        print 'rc.ids:', rc.ids
+        print('rc.ids:', rc.ids)
 
         ##### Multi-engine:
         dview = rc[:] # Direct View Object:  use all engines
 
         while len(dview.queue_status().keys()) < (self.pars['ipython']['n_engines'] + 1):
-            print "%s Waiting for (%d) more engines to start." % (str(datetime.datetime.now()), (self.pars['ipython']['n_engines'] + 1) - len(dview.queue_status().keys()))
+            print("%s Waiting for (%d) more engines to start." % (str(datetime.datetime.now()), (self.pars['ipython']['n_engines'] + 1) - len(dview.queue_status().keys())))
             time.sleep(1)
             dview = rc[:]
         dview.block=True  # all subsequent dview/multi-engine method calls will block.
@@ -298,7 +300,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             matplotlib.use('agg')
             sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/ingest_tools'))
             sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
-            from starvars_feature_generation import StarVars_ASAS_Feature_Generation
+            from .starvars_feature_generation import StarVars_ASAS_Feature_Generation
 
             sv_asas = StarVars_ASAS_Feature_Generation(pars=self.pars['task']) # # # IMPORTANT
             
@@ -331,8 +333,8 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             import cStringIO
             arff_output_fp = cStringIO.StringIO()
             out_dict = {}
-            from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
-            from starvars_feature_generation import StarVars_ASAS_Feature_Generation #path already defined
+            from .get_colors_for_tutor_sources import Parse_Nomad_Colors_List
+            from .starvars_feature_generation import StarVars_ASAS_Feature_Generation #path already defined
             sv_asas = StarVars_ASAS_Feature_Generation(pars=pars)
             sv_asas.generate_arff_using_asasdat(data_fpaths=sublist,
                                                 include_arff_header=False,
@@ -351,11 +353,11 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
                              self.pars['task']) for i_min in imin_list])
 
         while not out.ready():
-            print "  %s T_elapsed=%0.1f  PercProgress=%0.2f" % (str(datetime.datetime.now()),out.elapsed,100. * out.progress/len(out))
+            print("  %s T_elapsed=%0.1f  PercProgress=%0.2f" % (str(datetime.datetime.now()),out.elapsed,100. * out.progress/len(out)))
             time.sleep(5)
 
-        print 'wall_time:', out.wall_time
-        print 'Factor speedup:', out.serial_time / out.wall_time
+        print('wall_time:', out.wall_time)
+        print('Factor speedup:', out.serial_time / out.wall_time)
         result_arff_list = []
         for result in out:
             result_arff_list.extend([a.strip() for a in result['arff_rows_str'].split('\n')])
@@ -474,7 +476,7 @@ class StarVars_ASAS_Feature_Generation:
     def example_dat_parse(self):
         """
         """
-        import tutor_database_project_insert
+        from . import tutor_database_project_insert
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         if 0:
             ### requires mysql connection to TUTOR:
@@ -493,7 +495,7 @@ class StarVars_ASAS_Feature_Generation:
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None, skip_class=False):
@@ -506,8 +508,8 @@ class StarVars_ASAS_Feature_Generation:
               
         Partially adapted from: TCP/Software/citris33/arff_generation_master_using_generic_ts_data.py:get_dat_arffstrs()
         """
-        from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
-        import tutor_database_project_insert
+        from .get_colors_for_tutor_sources import Parse_Nomad_Colors_List
+        from . import tutor_database_project_insert
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=self.pars)
         adt.frame_limitmags = self.retrieve_limitmags_from_pkl()
 
@@ -540,7 +542,7 @@ class StarVars_ASAS_Feature_Generation:
             try:
                 xml_str = self.form_xml_string(mag_data_dict)
             except:
-                print "FAILED:form_xml_string()", dat_fpath
+                print("FAILED:form_xml_string()", dat_fpath)
                 continue # skip this source
             #from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
             #ParseNomadColorsList = Parse_Nomad_Colors_List(fpath=os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src_list'))
@@ -627,7 +629,7 @@ if __name__ == '__main__':
                                             arff_output_fp=arff_output_fp)
 
         arff_rows_str = arff_output_fp.getvalue()
-        print arff_rows_str
+        print(arff_rows_str)
 
     if 0:
         ### Example: generate arff feature string, write to some file:
@@ -647,6 +649,6 @@ if __name__ == '__main__':
         for row in combined_arff_rows:
             fp.write(row + '\n')
         fp.close()
-        print "Wrote:", pars['out_arff_fpath']
+        print("Wrote:", pars['out_arff_fpath'])
         import pdb; pdb.set_trace()
-        print
+        print()

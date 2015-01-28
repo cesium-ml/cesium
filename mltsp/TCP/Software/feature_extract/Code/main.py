@@ -6,8 +6,10 @@ then run its test, assigning it a name
 then you can plot more things if you want, e.g.:
 > sig.plots('dc')
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
-import generators_importers
+from . import generators_importers
 
 signals_list = []
 
@@ -37,4 +39,4 @@ def test(stdev = 1.0, clear=True, signals_list=signals_list):
 	return sig
 def xml_print():
 	for signal in signals_list:
-		print signal.xml_print.xml()
+		print(signal.xml_print.xml())

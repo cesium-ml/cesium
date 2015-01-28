@@ -39,6 +39,7 @@ I suspect we might get more mileage out of leaving nharm=8, but only
 using stats on the first 4 as features.
 
 """
+from __future__ import print_function
 
 
 import sys, os
@@ -174,7 +175,7 @@ if __name__ == '__main__':
     #psd,res = lombr(x,y,dy0,f0,df,numf)
     psd,res = lombr(x,y,dy0,f0,df,numf, detrend_order=1)
     import pdb; pdb.set_trace()
-    print
+    print()
     psd1,res1 = lombr(x,y-res['model'],dy0,f0,df,numf, detrend_order=0)
     plot (freqin,psd)
 

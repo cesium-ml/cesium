@@ -23,6 +23,8 @@ pdb.py on citris cluster:
      /global/home/users/dstarr/src/install/epd-6.2-2-rh5-x86_64/lib/python2.6/pdb.py nomad_colors_assoc_activelearn.py
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -105,7 +107,7 @@ ncaa.load_data_on_task_engine(classifier_filepath="%s", train_fpath="%s", test_f
 """ % (str(testset_indicies), classifier_filepath, train_fpath, test_fpath, str(r_pars))
         #self.mec.execute(exec_str)
 
-        print 'before mec()'
+        print('before mec()')
         #print mec_exec_str
         #import pdb; pdb.set_trace()
         engine_ids = self.mec.get_ids()
@@ -120,11 +122,11 @@ ncaa.load_data_on_task_engine(classifier_filepath="%s", train_fpath="%s", test_f
                 try:
                     result_val = pending_result.get_result(block=False)
                 except:
-                    print "get_result() Except. Still pending on engine: %d" % (engine_id)
+                    print("get_result() Except. Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
                     result_val = None # 20110105 added
                 if result_val == None:
-                    print "Still pending on engine: %d" % (engine_id)
+                    print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
                 self.mec.clear_pending_results()
@@ -138,15 +140,15 @@ ncaa.load_data_on_task_engine(classifier_filepath="%s", train_fpath="%s", test_f
                 ###
                 i_count = 0
             else:
-                print "sleeping..."
+                print("sleeping...")
                 time.sleep(5)
                 pending_result_dict = still_pending_dict
             n_pending = len(pending_result_dict)
             i_count += 1
 
-        print 'after mec()'
+        print('after mec()')
         time.sleep(5) # This may be needed, although mec() seems to wait for all the Ipython clients to finish
-        print 'after sleep()'
+        print('after sleep()')
 
 
 
@@ -192,7 +194,7 @@ class Nomad_Colors_Assoc_AL:
 
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
 
@@ -358,7 +360,7 @@ class Nomad_Colors_Assoc_AL:
 
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
 
@@ -439,7 +441,7 @@ class Nomad_Colors_Assoc_AL:
 
         ''' % (num_srcs_for_users, ntrees, mtry, nfolds, nodesize, "%*%", nodesize)
             import pdb; pdb.set_trace()
-            print
+            print()
 
 
             classifier_out = robjects.r(r_str)
@@ -452,7 +454,7 @@ class Nomad_Colors_Assoc_AL:
             cax = ax.imshow(data, interpolation='nearest')
             plt.show()
             import pdb; pdb.set_trace()
-            print
+            print()
         ################################################################
 
         
@@ -504,7 +506,7 @@ class Nomad_Colors_Assoc_AL:
         ###loop:   0,1 0,2 0,3 0,tr  1,2 1,3 1,tr   2,3 2,tr
         for i in range(0, n_predict_parts):
             for j in range(i, n_predict_parts + 1):
-                print datetime.datetime.now(), i, j, n_predict_parts, 'n_p:', n_p
+                print(datetime.datetime.now(), i, j, n_predict_parts, 'n_p:', n_p)
                 r_str  = '''
     # starts at 0:
     i=%d
@@ -547,7 +549,7 @@ class Nomad_Colors_Assoc_AL:
 
         
         import pdb; pdb.set_trace()
-        print
+        print()
 
         vote_arr = numpy.zeros((nte,2))
         prox_arr = numpy.zeros((nte,nte + ntr))
@@ -578,7 +580,7 @@ class Nomad_Colors_Assoc_AL:
             cax = ax.imshow(data, interpolation='nearest')
             plt.show()
             import pdb; pdb.set_trace()
-            print
+            print()
 
         possible_classes = robjects.r("rf_clfr$classes")
 
@@ -678,7 +680,7 @@ class Nomad_Colors_Assoc_AL:
         This just loads testdata, traindata, and some params into R
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
@@ -808,7 +810,7 @@ class Nomad_Colors_Assoc_AL:
             #plt.savefig("/global/home/users/dstarr/scratch/nomad_asas_acvs_classifier/rho_bot.eps")
             plt.show()
             import pdb; pdb.set_trace()
-            print
+            print()
 
         #prox_0_dict = {}
         prox_ntree_dict = {}
@@ -992,10 +994,10 @@ class Nomad_Colors_Assoc_AL:
                else:
                    now = datetime.datetime.now()
                    if ((now - dtime_pending_1) >= datetime.timedelta(seconds=1200)):
-                       print "dtime_pending=1 timeout break!"
+                       print("dtime_pending=1 timeout break!")
                        break
-            print self.ipy_tasks.tc.queue_status()
-            print 'Sleep... 60', datetime.datetime.utcnow()
+            print(self.ipy_tasks.tc.queue_status())
+            print('Sleep... 60', datetime.datetime.utcnow())
             time.sleep(60) #(60)
         # IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in self.ipy_tasks.task_id_list:
@@ -1021,7 +1023,7 @@ class Nomad_Colors_Assoc_AL:
                 #update_combo_results(combo_results_dict=combo_results_dict,
                 #                     ipython_return_dict=copy.deepcopy(ipython_return_dict))
         ####
-        print self.ipy_tasks.tc.queue_status()
+        print(self.ipy_tasks.tc.queue_status())
         return {'prox_ntree_list':prox_ntree_list,
                 'prox_else_pkl_list':prox_else_pkl_list,#'prox_else_inds_list':prox_else_inds_list,
                 'prox_else_vals_list':prox_else_vals_list,
@@ -1065,7 +1067,7 @@ class Nomad_Colors_Assoc_AL:
                     # ??? what other params need to be passed in above?
 
                     import pdb; pdb.set_trace()
-                    print
+                    print()
                     
                 else:
                     # NOTE: this is adapted from activelearn_utils.py : L1495
@@ -1138,11 +1140,11 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
             dt_i0 = datetime.datetime.now()
             vote_arr[(i*n_p):(i+1)*n_p,:] = votes_list[i]
             dt_f0 = datetime.datetime.now()
-            print 'vote_arr[(i*n_p):(i+1)*n_p,:] = votes_list[i]', dt_f0 - dt_i0
+            print('vote_arr[(i*n_p):(i+1)*n_p,:] = votes_list[i]', dt_f0 - dt_i0)
 
             for j in range(i, pars['n_predict_parts'] + 1):
                 dt_now = datetime.datetime.now()
-                print i, j, dt_now - dt_prev
+                print(i, j, dt_now - dt_prev)
                 dt_prev = dt_now
 
                 fp = open(prox_else_pkl_list[i][j])
@@ -1179,21 +1181,21 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
                 #print
 
         dt_f = datetime.datetime.now()
-        print 'construction:', dt_f - dt_i
+        print('construction:', dt_f - dt_i)
 
         dt_i = datetime.datetime.now()
         #prox_sparse = prox_arr.tocsr()
         prox_else_coo = prox_else_arr.tocoo()
         del(prox_else_arr)
         dt_f = datetime.datetime.now()
-        print 'convert to coo:', dt_f - dt_i
+        print('convert to coo:', dt_f - dt_i)
 
         dt_i = datetime.datetime.now()
         #prox_sparse = prox_arr.tocsr()
         prox_else_csr = prox_else_coo.tocsr()/float(pars['ntrees'])
         del(prox_else_coo)
         dt_f = datetime.datetime.now()
-        print 'convert to csr:', dt_f - dt_i
+        print('convert to csr:', dt_f - dt_i)
 
         if 0:
             ### This is only do-able for small total size proximity matricies:
@@ -1224,7 +1226,7 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
         nbar_2 = numpy.array(prox_ntree_arr[:nte,nte+1:(nte+ntr)].sum(axis=1), dtype=numpy.float32)
         nbar = nbar_1 + nbar_2
         dt_f = datetime.datetime.now()
-        print 'sum:', dt_f - dt_i
+        print('sum:', dt_f - dt_i)
         #import pdb; pdb.set_trace()
         #print
 
@@ -1235,12 +1237,12 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
         #errdecr_mat = numpy.mat((1-phat)/(nbar+1)) * prox_sparse[:nte,:nte]  #(((1-phat)/(nbar+1))).T * prox_arr[:nte,:nte] # this is Delta V  # MemoryError @ 50000
         phatnbar = scipy.sparse.lil_matrix((1-phat)/(nbar+1), dtype=numpy.float32)
         dt_f = datetime.datetime.now()
-        print 'phatnbar LIL def:', dt_f - dt_i
+        print('phatnbar LIL def:', dt_f - dt_i)
 
         dt_i = datetime.datetime.now()
         phatnbar_sparse = phatnbar.tocsr()
         dt_f = datetime.datetime.now()
-        print 'phatnbar toCSR def:', dt_f - dt_i
+        print('phatnbar toCSR def:', dt_f - dt_i)
 
         dt_i = datetime.datetime.now()
         #errdecr_mat = phatnbar_sparse * prox_sparse[:nte,:nte]
@@ -1248,7 +1250,7 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
         errdecr_mat_2 = phatnbar_sparse * prox_ntree_arr[:nte,:nte]
         errdecr_mat = errdecr_mat_1 + errdecr_mat_2
         dt_f = datetime.datetime.now()
-        print 'errdecr calc:', dt_f - dt_i
+        print('errdecr calc:', dt_f - dt_i)
         #import pdb; pdb.set_trace()
         #print
 
@@ -1264,12 +1266,12 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
         #errdecr_arr = errdecr_mat.toarray().ravel() # this is of len(n_test)
         errdecr_arr = numpy.array(errdecr_mat)[0]
         dt_f = datetime.datetime.now()
-        print 'errdecr_mat.toarray()', dt_f - dt_i
+        print('errdecr_mat.toarray()', dt_f - dt_i)
 
         dt_i = datetime.datetime.now()
         select = numpy.random.choice(xrange(len(errdecr_arr)),size=pars['num_srcs_for_users'], replace=False, p=errdecr_arr/errdecr_arr.sum())
         dt_f = datetime.datetime.now()
-        print 'select choice():', dt_f - dt_i
+        print('select choice():', dt_f - dt_i)
 
         #import pdb; pdb.set_trace()
         #print
@@ -1401,10 +1403,10 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
             try:
                 srcid = "%d%0.2d" % (int(elems[0]), int(elems[2]))
             except:
-                print 'EXCEPT:', elems, i, line
+                print('EXCEPT:', elems, i, line)
                 # NOTE: should not have any blank lines in file, or we may get here.
                 import pdb; pdb.set_trace()
-                print
+                print()
             new_line = "%s,%s" % (srcid, ','.join(elems[1:]))
             test_lines2.append(new_line)
         test_str = '\n'.join(test_lines2)
@@ -1502,7 +1504,7 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
 
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def run_parallel(self, train_fpath='', test_fpath='', 
@@ -1549,11 +1551,11 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
         nte = robjects.r("n.te")[0]
         ntr = robjects.r("n.tr")[0]
         n_p = robjects.r("n_p")[0]
-        print 'nte:', nte, 'ntr:', ntr, 'n_p:', n_p
+        print('nte:', nte, 'ntr:', ntr, 'n_p:', n_p)
         if int(nte) != pars['n_test_to_sample']:
-            print "Hit the weird case where R misses one data point in dataframe"
+            print("Hit the weird case where R misses one data point in dataframe")
             import pdb; pdb.set_trace()
-            print
+            print()
 
         if not do_debug_single_thread: 
             self.ipy_tasks = IPython_Task_Administrator()
@@ -1584,7 +1586,7 @@ out_dict = ncaa.actlearn_randomforest__predict_task(i=i, j=j, n_predict_parts=n_
                                      num_srcs_for_users=pars['num_srcs_for_users'])
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 class Analyze_Nomad_Features:
@@ -1631,7 +1633,7 @@ class Analyze_Nomad_Features:
             ax.legend(loc=2)
             pyplot.show()
             import pdb; pdb.set_trace()
-            print
+            print()
             pyplot.clf()
 
 
@@ -1668,12 +1670,12 @@ class Analyze_Nomad_Features:
         (a,b,c) = os.popen3(exec_str)
         a.close()
         c.close()
-        print exec_str
+        print(exec_str)
         lines_str = b.read()
         b.close()
 
         tf = datetime.datetime.now()
-        print tf - ti
+        print(tf - ti)
         return lines_str
     
 
@@ -1743,7 +1745,7 @@ class Analyze_Nomad_Features:
             #print line
             if len(color_str_list) != 6:
                 import pdb; pdb.set_trace()
-                print # DEBUG ONLY
+                print() # DEBUG ONLY
                 continue
 
             mag_dict = {}
@@ -1789,7 +1791,7 @@ class Analyze_Nomad_Features:
         """
         import cPickle
         if not os.path.exists(nomad_source_pkl_fpath):
-            from get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
+            from .get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
             GetColorsUsingNomad = Get_Colors_Using_Nomad(pars=pars)
             all_source_dict = GetColorsUsingNomad.get_source_dict(projid_list=projid_list)
 
@@ -1801,7 +1803,7 @@ class Analyze_Nomad_Features:
                 dec = all_source_dict['dec_list'][i]
                 nomad_fpath = "%s/%d.dat" % (nomad_data_cache_dirpath, src_id)
                 if not os.path.exists(nomad_fpath):
-                    print i, src_id
+                    print(i, src_id)
                     nomad_outstr = self.get_nomad_sources_for_ra_dec(ra=ra, dec=dec,
                                                                     avg_epoch=None)
                     fp = open(nomad_fpath, 'w')
@@ -1839,11 +1841,11 @@ class Analyze_Nomad_Features:
         """
         import cPickle
         if not os.path.exists(nomad_source_pkl_fpath):
-            from get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
+            from .get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
             GetColorsUsingNomad = Get_Colors_Using_Nomad(pars=pars)
             all_source_dict = GetColorsUsingNomad.get_linear_source_dict_from_tcpdb()
             import pdb; pdb.set_trace()
-            print
+            print()
 
             self.pars.update({'nomad_radius':nomad_radius, # 60
                               'nomad_n_results':nomad_n_results})
@@ -1853,7 +1855,7 @@ class Analyze_Nomad_Features:
                 dec = all_source_dict['dec_list'][i]
                 nomad_fpath = "%s/%d.dat" % (nomad_data_cache_dirpath, src_id)
                 if not os.path.exists(nomad_fpath):
-                    print i, src_id
+                    print(i, src_id)
                     nomad_outstr = self.get_nomad_sources_for_ra_dec(ra=ra, dec=dec,
                                                                     avg_epoch=None)
                     fp = open(nomad_fpath, 'w')
@@ -1891,7 +1893,7 @@ class Analyze_Nomad_Features:
         """
         import cPickle
         #if not os.path.exists(nomad_source_pkl_fpath):
-        from get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
+        from .get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
         GetColorsUsingNomad = Get_Colors_Using_Nomad(pars=pars)
         do_loop = True
         while do_loop:
@@ -1909,7 +1911,7 @@ class Analyze_Nomad_Features:
                 dec = all_source_dict['dec_list'][i]
                 nomad_fpath = "%s/%d.dat" % (nomad_data_cache_dirpath, src_id)
                 if not os.path.exists(nomad_fpath):
-                    print i, src_id
+                    print(i, src_id)
                     nomad_outstr = self.get_nomad_sources_for_ra_dec(ra=ra, dec=dec,
                                                                     avg_epoch=None)
                     fp = open(nomad_fpath, 'w')
@@ -1959,7 +1961,7 @@ class Analyze_Nomad_Features:
         
         import cPickle
         #if not os.path.exists(nomad_source_pkl_fpath):
-        from get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
+        from .get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
         GetColorsUsingNomad = Get_Colors_Using_Nomad(pars=pars)
         n_obj_per_iter = 100
         for i_low in range(0, len(objids), n_obj_per_iter):
@@ -1980,7 +1982,7 @@ class Analyze_Nomad_Features:
                 dec = all_source_dict['dec_list'][i]
                 nomad_fpath = "%s/%d.dat" % (nomad_data_cache_dirpath, src_id)
                 if not os.path.exists(nomad_fpath):
-                    print i, src_id
+                    print(i, src_id)
                     nomad_outstr = self.get_nomad_sources_for_ra_dec(ra=ra, dec=dec,
                                                                     avg_epoch=None)
                     fp = open(nomad_fpath, 'w')
@@ -2034,7 +2036,7 @@ class Analyze_Nomad_Features:
         
         import cPickle
         #if not os.path.exists(nomad_source_pkl_fpath):
-        from get_colors_for_tutor_sources import Get_Colors_Using_Nomad #, Database_Utils
+        from .get_colors_for_tutor_sources import Get_Colors_Using_Nomad #, Database_Utils
         GetColorsUsingNomad = Get_Colors_Using_Nomad(pars=pars)
         #n_obj_per_iter = 100
         #for i_low in range(0, len(objids), n_obj_per_iter):
@@ -2054,7 +2056,7 @@ class Analyze_Nomad_Features:
                 dec = all_source_dict['dec_list'][i]
                 nomad_fpath = "%s/%s.dat" % (nomad_data_cache_dirpath, src_id)
                 if not os.path.exists(nomad_fpath):
-                    print i, src_id
+                    print(i, src_id)
                     nomad_outstr = self.get_nomad_sources_for_ra_dec(ra=ra, dec=dec,
                                                                     avg_epoch=None)
                     fp = open(nomad_fpath, 'w')
@@ -2159,7 +2161,7 @@ class Analyze_Nomad_Features:
         for i, gt_src_id in enumerate(train_groundtruth_dict['srcid_list']):
             # This is the initial index of the matching srcid:
             if not gt_src_id in crossmatch_classified_dict['srcid_list']:
-                print "CROSSMATCH CLASSIFIER DOESNT have source:", gt_src_id
+                print("CROSSMATCH CLASSIFIER DOESNT have source:", gt_src_id)
                 continue
             j_crossmatch = crossmatch_classified_dict['srcid_list'].index(gt_src_id)
             match_found = False
@@ -2188,28 +2190,28 @@ class Analyze_Nomad_Features:
                             count_same_not += 1
                     else:
                         count_different += 1
-                        print "DIFFCLASS: %s dist:gt=%f cm=%f j:gt=%f cm=%f gt=%s cm=%s" % (gt_src_id,
+                        print("DIFFCLASS: %s dist:gt=%f cm=%f j:gt=%f cm=%f gt=%s cm=%s" % (gt_src_id,
                                    train_groundtruth_dict['featname_longfeatval_dict']['dist'][i],
                                    crossmatch_classified_dict['featname_longfeatval_dict']['dist'][j],
                                    train_groundtruth_dict['featname_longfeatval_dict']['j_acvs_nomad'][i],
                                    crossmatch_classified_dict['featname_longfeatval_dict']['j_acvs_nomad'][j],
                                    train_groundtruth_dict['class_list'][i],
-                                   crossmatch_classified_dict['class_list'][j])
+                                   crossmatch_classified_dict['class_list'][j]))
 
                     break
             if not match_found:
-                print "NO MATCH %s dist:gt=%f v_diff:gt=%s jk_diff:gt=%f j:gt=%f gt=%s" % (gt_src_id,
+                print("NO MATCH %s dist:gt=%f v_diff:gt=%s jk_diff:gt=%f j:gt=%f gt=%s" % (gt_src_id,
                                    train_groundtruth_dict['featname_longfeatval_dict']['dist'][i],
                                    str(train_groundtruth_dict['featname_longfeatval_dict']['v_tutor_nomad'][i]),
                                    train_groundtruth_dict['featname_longfeatval_dict']['jk_acvs_nomad'][i],
                                    train_groundtruth_dict['featname_longfeatval_dict']['j_acvs_nomad'][i],
-                                   train_groundtruth_dict['class_list'][i])
+                                   train_groundtruth_dict['class_list'][i]))
                 #import pdb; pdb.set_trace()
                 #print
                 
-        print "count_same_match=%d count_same_not=%d count_different=%d" % (count_same_match, count_same_not, count_different)
+        print("count_same_match=%d count_same_not=%d count_different=%d" % (count_same_match, count_same_not, count_different))
         import pdb; pdb.set_trace()
-        print
+        print()
 
                 # TODO: match the JHK, and then make sure classes match
             
@@ -2315,7 +2317,7 @@ if __name__ == '__main__':
                               nomad_n_results=20,
                               return_outdict=False)
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     if 1:
@@ -2335,7 +2337,7 @@ if __name__ == '__main__':
 
 
         import pdb; pdb.set_trace()
-        print
+        print()
     if 0:
         ### LINEAR - NOMAD source association for ~7K linear sources in TUTOR):
         anf = Analyze_Nomad_Features(pars=pars)
@@ -2348,7 +2350,7 @@ if __name__ == '__main__':
 
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
     n_predict_parts= int(n_test_to_sample / n_items_per_task) #20
 
@@ -2362,16 +2364,16 @@ if __name__ == '__main__':
                                                                      nomad_radius=120, # 60
                                                                      nomad_n_results=30)
         import pdb; pdb.set_trace()
-        print
+        print()
         #######sources_dict = {}
         sources_dict = anf.generate_random_position_distances(sources_dict)
         if 0:
             ### Fill the ~/scratch/nomad_asas_acvs_classifier/train_withsrcid.arff file with classifier crossmatch assocations using the acvs/nomad features .pkl file generated above.
             pars['classifier_filepath'] = classifier_filepath
-            from get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
+            from .get_colors_for_tutor_sources import Get_Colors_Using_Nomad, Database_Utils
             GetColorsUsingNomad = Get_Colors_Using_Nomad(pars=pars)
 
-            from tutor_database_project_insert import ASAS_Data_Tools
+            from .tutor_database_project_insert import ASAS_Data_Tools
             ASASDataTools = ASAS_Data_Tools(pars={'source_data_fpath':os.path.abspath(os.environ.get("TCP_DIR") + \
                                                 'Data/allstars/ACVS.1.1')})
             asas_ndarray = ASASDataTools.retrieve_parse_asas_acvs_source_data()
@@ -2394,7 +2396,7 @@ if __name__ == '__main__':
         #                           test_fpath=test_fpath)
         
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     if 0:

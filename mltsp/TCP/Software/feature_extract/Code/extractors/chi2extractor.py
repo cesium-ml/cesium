@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import FeatureExtractor
-from common_functions import ChiSquare
+from .common_functions import ChiSquare
 
 class chi2extractor(FeatureExtractor,ChiSquare):
 	active = True

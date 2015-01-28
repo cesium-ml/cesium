@@ -16,6 +16,8 @@ Do as in: (but in parallel):
 snclassifier_testing_wrapper.py
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
 import MySQLdb
 import copy
@@ -36,7 +38,7 @@ def invoke_pdb(type, value, tb):
     """                                                                            
     import traceback, pdb
     traceback.print_exception(type, value, tb)
-    print
+    print()
     pdb.pm() 
 
 
@@ -129,13 +131,13 @@ class Simbad_Data:
             self.cursor.execute(select_str)
             rows = self.cursor.fetchall()
             for row in rows:
-                print (PTFname,
+                print((PTFname,
                        initial_lbl_cand_id,
                        ra,
                        dec,
                        tab_filename,
                        otype,
-                       main_id), '\n', row, '\n\n'
+                       main_id), '\n', row, '\n\n')
 
     def get_noningested_ptfids(self):
         """ query the RDB, return a list of ids (and related information).
@@ -182,9 +184,9 @@ class Associate_Simbad_PTF_Sources:
         NOTE: much of this is adapted from snclassifier_testing_wrapper.py
               which is adapted from get_classifications_for_caltechid.py..__main__()
         """
-        import get_classifications_for_caltechid
-        import ingest_tools
-        import ptf_master
+        from . import get_classifications_for_caltechid
+        from . import ingest_tools
+        from . import ptf_master
 
         self.DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator(use_postgre_ptf=True)
         self.PTFPostgreServer = ptf_master.PTF_Postgre_Server(pars=ingest_tools.pars, \
@@ -222,7 +224,7 @@ class Associate_Simbad_PTF_Sources:
             #TODO: check if srcid.xml composed from ptf_cand_dict{srcid} is in the expected directory.  If so, just pass that xml-fpath as xml_handle.  Otherwise, generate the xml string (and write to file) and pass that.
             xml_fpath = "%s/%s.xml" % (self.pars['out_xmls_dirpath'], short_name)
             if os.path.exists(xml_fpath):
-                print "Found on disk:", xml_fpath 
+                print("Found on disk:", xml_fpath) 
             else:
                 # NOTE: Since the Caltech database is currently down and we know we've ingested these ptf-ids already into our local database...
                 #"""
@@ -241,7 +243,7 @@ class Associate_Simbad_PTF_Sources:
                 fp = open(xml_fpath, 'w')
                 fp.write(ingested_src_xmltuple_dict[matching_source_dict['src_id']])
                 fp.close()
-                print "Wrote on disk:", xml_fpath 
+                print("Wrote on disk:", xml_fpath) 
                 #pprint.pprint(ptf_cand_dict)
                 self.SimbadData.update_table(short_name=short_name, tcp_srcid=matching_source_dict['src_id'])
 
@@ -296,7 +298,7 @@ class Generate_Summary_Webpage:
         rows = self.SimbadData.cursor.fetchall()
         for row in rows:
             (ptf_shortname, src_id, init_lbl_id, ra, decl, tab_filename, simbad_otype, simbad_main_id) = row
-            if not out_dict.has_key(simbad_otype):
+            if simbad_otype not in out_dict:
                 out_dict[simbad_otype] = {}
             out_dict[simbad_otype][ptf_shortname] = {'ptf_shortname':ptf_shortname,
                                                      'src_id':src_id,

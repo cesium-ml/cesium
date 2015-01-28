@@ -15,6 +15,7 @@
 ##         perhaps in feature generation.
 
 ######
+from __future__ import print_function
 import sys
 import os
 
@@ -72,8 +73,8 @@ class lomb_model(object):
                         phase = freq_dict["harmonics_rel_phase"][harmonic]
                         new = amp * sin(omega * (times - time_offset) + phase)
                         data += new
-            print "length of data is:", len(data)
-            print "data:", data
+            print("length of data is:", len(data))
+            print("data:", data)
             return data
         return model
         
@@ -107,10 +108,10 @@ class period_folding_model(lomb_model):
             progenitor_file.write("%f\t%f\t%f\n" % (available[n], m[n], m_err[n]))
         progenitor_file.close()
 
-        print "RETURNING t_fold:"
-        print t_fold
-        print "RETURNING t_fold_model:"
-        print t_fold_model
+        print("RETURNING t_fold:")
+        print(t_fold)
+        print("RETURNING t_fold_model:")
+        print(t_fold_model)
         return t_fold, t_fold_model
 
         
@@ -288,9 +289,9 @@ class observatory_source_interface(object):
             plt.savefig("/tmp/ggg.png")
             #os.system("eog /tmp/ggg.png &")
             plt.show()
-            print
+            print()
             import pdb; pdb.set_trace()
-            print
+            print()
         return out_dict
 
 
@@ -931,16 +932,16 @@ class GetPeriodFoldForWeb:
            [{"label":"Period Fold", "color":#36477b, 
                                     "data":[[1,1],[2,4],[3,9],[4,16]]}]
         """
-        print "make db connect"
+        print("make db connect")
         self.make_db_connection()
-        print "before mysql query"
+        print("before mysql query")
         self.generate_featname_featid_lookup()
-        print "after mysql query"
+        print("after mysql query")
         if source_id >= 100000000:
             src_dict = self.get_source_arrays__dotastro(source_id)
         else:
             src_dict = self.get_source_arrays(source_id)
-        print "finished generating src_dict"
+        print("finished generating src_dict")
         lc_dict = {}
         lomb_folded_dict = self.generate_lomb_period_fold(src_dict)
         lc_dict.update(lomb_folded_dict)
@@ -991,7 +992,7 @@ if sys_argv_1 == 'get_period_fold2':
     source_id = int(sys_argv_2)
     GetPeriodFoldForWeb = GetPeriodFoldForWeb()
     json_out_string = GetPeriodFoldForWeb.main(source_id)
-    print json_out_string
+    print(json_out_string)
 
 if sys_argv_1 == 'get_period_fold4':
     from lomb_scargle import *
@@ -1045,7 +1046,7 @@ if sys_argv_1 == 'get_period_fold5':
     source_id = int(sys_argv_2)
     GetPeriodFoldForWeb = GetPeriodFoldForWeb()
     db_dict = GetPeriodFoldForWeb.online_dictionary(source_id)
-    print db_dict
+    print(db_dict)
 
 if __name__ == '__main__':
     ### 20101012: Added __main__ for testing use only, to see tracebacks from LombScargle code.

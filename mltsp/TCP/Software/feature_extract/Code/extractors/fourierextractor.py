@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
 import numpy
 from numpy import random, round
@@ -6,8 +7,8 @@ try:
 	from pylab import *
 except:
 	pass
-from common_functions import *
-from common_functions.plot_methods import plot_vs_frequencies
+from .common_functions import *
+from .common_functions.plot_methods import plot_vs_frequencies
 
 class fourierextractor(plot_vs_frequencies,InterExtractor):
 	active = 1

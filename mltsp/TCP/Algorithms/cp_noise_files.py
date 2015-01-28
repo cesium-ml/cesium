@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ scps noise trained weka .model files neede for classification
 """
+from __future__ import print_function
 
 import sys, os
 import glob
@@ -101,7 +102,7 @@ def retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict):
             retrieve_host_dict['hostname'],
             dirname,
             dirname)
-        print exec_str
+        print(exec_str)
         os.system(exec_str)
     
 

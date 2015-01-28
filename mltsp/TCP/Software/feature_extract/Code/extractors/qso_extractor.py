@@ -37,7 +37,7 @@ class qso_generic(FeatureExtractor):
 	qso_key = 'to_be_overloaded'
 	def extract(self):
             qso_dict = self.fetch_extr('qso')
-            if qso_dict.has_key(self.qso_key):
+            if self.qso_key in qso_dict:
                 return qso_dict[self.qso_key]
             else:
                 self.ex_error('qso_extractor dictionary does not have key %s' % (self.qso_key))

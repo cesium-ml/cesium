@@ -4,6 +4,7 @@
 
 PDB: /scisoft/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/pdb.py dbxml_test.py
 """
+from __future__ import print_function
 import sys, os
 import datetime
 import traceback
@@ -134,7 +135,7 @@ class DBXML_Container_Instance:
             result_list.append(value.asString())
         if verbose == 'yes':
             for result in result_list:
-                print result
+                print(result)
         return result_list
 
 

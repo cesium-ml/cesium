@@ -11,8 +11,10 @@
 NOTE: This script is to be run in a *NIX 'screen' to persist.
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
-import obj_id_sockets
+from . import obj_id_sockets
 
 
 class Tunnel_Class:
@@ -20,10 +22,10 @@ class Tunnel_Class:
     """
     def execute_str(self, a_str):
         if not self.pars['only_print_ssh_tunnels']:
-            print '#     EXECUTING:'
+            print('#     EXECUTING:')
             os.system(a_str)
 
-        print a_str
+        print(a_str)
 
 
     def make_local_tunnel_str(self, port_client_local=0, \

@@ -15,6 +15,8 @@
 ##         perhaps in feature generation.
 
 ######
+from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import os
 
@@ -41,14 +43,14 @@ from numpy import * # from numpy import loadtxt,long,linspace,pi,arctan2,sin,cos
 from scipy.optimize import fmin, brute
 from scipy import random
 from numpy.random import rand
-import lomb_scargle # obsolete?
-from lomb_scargle import peak2sigma,lprob2sigma, lomb, get_peak_width # obsolete?
-import pre_whiten # obsolete?
-from lomb_scargle_refine import lomb as lombr
+from . import lomb_scargle # obsolete?
+from .lomb_scargle import peak2sigma,lprob2sigma, lomb, get_peak_width # obsolete?
+from . import pre_whiten # obsolete?
+from .lomb_scargle_refine import lomb as lombr
 
 import pickle
 import copy
-from multi_harmonic_fit import multi_harmonic_fit as mh
+from .multi_harmonic_fit import multi_harmonic_fit as mh
 from scipy.special import gammaincc,gammaln
 from scipy.stats import scoreatpercentile
 
@@ -72,8 +74,8 @@ class lomb_model(object):
                         phase = freq_dict["harmonics_rel_phase"][harmonic]
                         new = amp * sin(omega * (times - time_offset) + phase)
                         data += new
-            print "length of data is:", len(data)
-            print "data:", data
+            print("length of data is:", len(data))
+            print("data:", data)
             return data
         return model
         
@@ -107,10 +109,10 @@ class period_folding_model(lomb_model):
             progenitor_file.write("%f\t%f\t%f\n" % (available[n], m[n], m_err[n]))
         progenitor_file.close()
 
-        print "RETURNING t_fold:"
-        print t_fold
-        print "RETURNING t_fold_model:"
-        print t_fold_model
+        print("RETURNING t_fold:")
+        print(t_fold)
+        print("RETURNING t_fold_model:")
+        print(t_fold_model)
         return t_fold, t_fold_model
 
         
@@ -288,9 +290,9 @@ class observatory_source_interface(object):
             plt.savefig("/tmp/ggg.png")
             #os.system("eog /tmp/ggg.png &")
             plt.show()
-            print
+            print()
             import pdb; pdb.set_trace()
-            print
+            print()
         return out_dict
 
 
@@ -353,8 +355,8 @@ class observatory_source_interface(object):
                                 lambda0_range=lambda0_range, nharm=nharm, detrend_order=0)
             
             
-            print "*"*80, "  RES:\n\n", res, "\n\n"
-            print "*"*80, "  lombr parameters:\n\n", x,ytest,dy0,f0,df,numf, tone_control, lambda0_range, nharm, "\n\n"
+            print("*"*80, "  RES:\n\n", res, "\n\n")
+            print("*"*80, "  lombr parameters:\n\n", x,ytest,dy0,f0,df,numf, tone_control, lambda0_range, nharm, "\n\n")
             
             
             ytest -= res['model']
@@ -937,16 +939,16 @@ class GetPeriodFoldForWeb:
            [{"label":"Period Fold", "color":#36477b, 
                                     "data":[[1,1],[2,4],[3,9],[4,16]]}]
         """
-        print "make db connect"
+        print("make db connect")
         self.make_db_connection()
-        print "before mysql query"
+        print("before mysql query")
         self.generate_featname_featid_lookup()
-        print "after mysql query"
+        print("after mysql query")
         if source_id >= 100000000:
             src_dict = self.get_source_arrays__dotastro(source_id)
         else:
             src_dict = self.get_source_arrays(source_id)
-        print "finished generating src_dict"
+        print("finished generating src_dict")
         lc_dict = {}
         lomb_folded_dict = self.generate_lomb_period_fold(src_dict)
         lc_dict.update(lomb_folded_dict)
@@ -997,11 +999,11 @@ if sys_argv_1 == 'get_period_fold2':
     source_id = int(sys_argv_2)
     GetPeriodFoldForWeb = GetPeriodFoldForWeb()
     json_out_string = GetPeriodFoldForWeb.main(source_id)
-    print json_out_string
+    print(json_out_string)
 
 if sys_argv_1 == 'get_period_fold4':
-    from lomb_scargle import *
-    from pre_whiten import *
+    from .lomb_scargle import *
+    from .pre_whiten import *
     from numpy import random
     time = arange(0,7.5,0.3)
     mags = sin(time)
@@ -1051,7 +1053,7 @@ if sys_argv_1 == 'get_period_fold5':
     source_id = int(sys_argv_2)
     GetPeriodFoldForWeb = GetPeriodFoldForWeb()
     db_dict = GetPeriodFoldForWeb.online_dictionary(source_id)
-    print db_dict
+    print(db_dict)
 
 if __name__ == '__main__':
     ### 20101012: Added __main__ for testing use only, to see tracebacks from LombScargle code.

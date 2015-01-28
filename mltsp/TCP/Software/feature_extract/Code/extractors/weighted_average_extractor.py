@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import FeatureExtractor
 
 try:
 	from pylab import *
 except:
 	pass
-from common_functions.plot_methods import plot_horizontal_line
+from .common_functions.plot_methods import plot_horizontal_line
 
 class weighted_average_extractor(plot_horizontal_line,FeatureExtractor):
 	active = True

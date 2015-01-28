@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 
 from ..FeatureExtractor import FeatureExtractor
 import numpy
@@ -7,11 +8,11 @@ try:
 	from pylab import *
 except:
 	pass
-from common_functions import *
+from .common_functions import *
 
 #from power_extractor import power_extractor as power_extractor # could also use one of the x% significant extractors
 from scipy import stats
-from common_functions.plot_methods import plot_vertical_line
+from .common_functions.plot_methods import plot_vertical_line
 
 
 class second_extractor(plot_vertical_line,FeatureExtractor):

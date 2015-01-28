@@ -32,9 +32,11 @@ TODO: Feature & classification client:
      - Also: do classification of srcid & INSERT/UPDATE in all-srcid batches
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
-import ingest_tools
-import plugin_classifier
+from . import ingest_tools
+from . import plugin_classifier
 try:
     import MySQLdb
 except:
@@ -94,7 +96,7 @@ class Source_Feature_Class_Generator:
     """ Class which deals with generating features and classes for sources.
     """
     def __init__(self, pars):
-        import obj_id_sockets
+        from . import obj_id_sockets
         #import numpy # to get a random number, but also used in feature code
 
         #f = open('testsuite.transx_production_configs.par.py')
@@ -519,7 +521,7 @@ class ClassificationHandler:
 
 	    for fea in self.arffmaker.master_features:
 	    	val = None
-	    	if obj['features'].has_key(fea):
+	    	if fea in obj['features']:
 	    		str_fea_val = str(obj['features'][fea])
 	    		if ((str_fea_val == "False") or 
 	    		    (str_fea_val == "inf") or
@@ -679,7 +681,7 @@ class ClassificationHandler:
 
         """
         if do_logging:
-            print "before: self.PlugClass.do_classification()"
+            print("before: self.PlugClass.do_classification()")
         #does this do both mlens3 and weka & return?
         (class_probs_dict, plugin_classification_dict) = \
                                  self.PlugClass.do_classification(vosource_list, \
@@ -687,7 +689,7 @@ class ClassificationHandler:
                                           self.class_schema_definition_dicts, \
                                           do_logging=do_logging)
         if do_logging:
-            print "before: class TABLE INSERT"
+            print("before: class TABLE INSERT")
 
         # KLUDGE: this externally accessible list is referenced for TESTING
         #      using analyze_iterative_tutor_classification.py via ptf_master.py
@@ -732,7 +734,7 @@ class ClassificationHandler:
                                         prob,
                                         src_id,
                                         class_rank))
-                if not self.classname_classprob_classrank_list.has_key(plugin_name):
+                if plugin_name not in self.classname_classprob_classrank_list:
                     self.classname_classprob_classrank_list[plugin_name] = []
                 self.classname_classprob_classrank_list[plugin_name].append(\
                                              (class_name, prob, class_rank))
@@ -746,10 +748,10 @@ class ClassificationHandler:
             # Insert classifications into VOSource.xml strings which we return:
             for (src_id, orig_vosource_xml) in vosource_list:
                 if do_logging:
-                    print "before: db_importer.vosource_classification_obj()"
+                    print("before: db_importer.vosource_classification_obj()")
                 vosource_class_obj = db_importer.vosource_classification_obj()
                 if do_logging:
-                    print "before: vosource_class_obj.add_classif_prob("
+                    print("before: vosource_class_obj.add_classif_prob(")
                 for class_dict in class_probs_dict[src_id]:
                     schema_id = class_dict['schema_id']
                     #class_id = class_dict['class_id']
@@ -762,12 +764,12 @@ class ClassificationHandler:
                                                 src_name=str(src_id),
                                                 class_schema_name=str(schema_id))
                 if do_logging:
-                    print "before: add_class_xml_to_existing_vosource_xml()"
+                    print("before: add_class_xml_to_existing_vosource_xml()")
                 new_xml_string = vosource_class_obj.\
                         add_class_xml_to_existing_vosource_xml(orig_vosource_xml)
                 new_vosource_list.append((src_id, new_xml_string))
         if do_logging:
-            print "At Return in generate_insert_classification_using_vosource_list() (CLASSIFICATIONS DONE)"
+            print("At Return in generate_insert_classification_using_vosource_list() (CLASSIFICATIONS DONE)")
         return new_vosource_list
 
 

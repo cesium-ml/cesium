@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import FeatureExtractor
 
-from first_freq_extractor import first_freq_extractor
-from common_functions.plot_methods import plot_vertical_line
+from .first_freq_extractor import first_freq_extractor
+from .common_functions.plot_methods import plot_vertical_line
 
 class first_lomb_extractor(first_freq_extractor):
 	""" extracts the first frequency from the lomb periodogram"""

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ retrieve xmls for a particular tutor/dotastro class_id
 """
+from __future__ import print_function
 import os, sys
 import pprint
 import MySQLdb
@@ -44,9 +45,9 @@ class Retrieve_XMLs:
             results = self.db.tutor_cursor.fetchall()
 
             if len(results)== 0:
-                print datetime.datetime.now(), "No sources for project_id=%d" % (proj_id)
+                print(datetime.datetime.now(), "No sources for project_id=%d" % (proj_id))
             else:
-                print datetime.datetime.now(), "Project_id=", proj_id, "N sources=", len(results)
+                print(datetime.datetime.now(), "Project_id=", proj_id, "N sources=", len(results))
 
             srcid_list = []
             for row in results:
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     for projid in skip_projids:
         proj_id_list.remove(projid)
 
-    print
+    print()
     RetrieveXMLs.retrieve_xmls_for_proj_list(base_dirpath="/media/raid_0/all_tutor_xmls",
                                              proj_id_list=proj_id_list)
 

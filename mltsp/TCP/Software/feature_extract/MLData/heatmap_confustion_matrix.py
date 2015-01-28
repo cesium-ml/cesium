@@ -2,6 +2,7 @@
 """
    v0.1 Make an HTML heatmap table of a Weka classify confusion matrix.
 """
+from __future__ import print_function
 import sys, os
 
 __old__input_table_str = """
@@ -141,7 +142,7 @@ if __name__ == '__main__':
     fp.close()
 
     for i in xrange(len(total_per_class_list)):
-        print total_per_class_list[i], '\t', class_name_list[i]
+        print(total_per_class_list[i], '\t', class_name_list[i])
 
     # TODO: make a cost matrix which is all normalized.
     n_avg = sum(total_per_class_list) / float(len(total_per_class_list))

@@ -21,6 +21,8 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
 
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 import cPickle
 
@@ -212,7 +214,7 @@ class StarVars_LINEAR_Feature_Generation:
     def example_dat_parse(self):
         """
         """
-        import tutor_database_project_insert
+        from . import tutor_database_project_insert
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         if 0:
             ### requires mysql connection to TUTOR:
@@ -233,7 +235,7 @@ class StarVars_LINEAR_Feature_Generation:
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None):
@@ -246,7 +248,7 @@ class StarVars_LINEAR_Feature_Generation:
               
         Partially adapted from: TCP/Software/citris33/arff_generation_master_using_generic_ts_data.py:get_dat_arffstrs()
         """
-        import tutor_database_project_insert
+        from . import tutor_database_project_insert
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         adt.frame_limitmags = self.retrieve_limitmags_from_pkl()
 
@@ -344,12 +346,12 @@ if __name__ == '__main__':
 	try:
             LC[i]  = readLC( files[i] )
 	except:
-            print 'ERROR: File', i, 'in LC dictionary is not a light curve!'
+            print('ERROR: File', i, 'in LC dictionary is not a light curve!')
             continue
         try:
             xml[i] = sv_asas.form_xml_string( LC[i] )
         except:
-            print 'ERROR: Unable to form xml string for LC['+str(i)+']'
+            print('ERROR: Unable to form xml string for LC['+str(i)+']')
     
     buff = open( '/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat/xml.pickle', 'wb' )
     cPickle.dump(xml, buff )
@@ -357,4 +359,4 @@ if __name__ == '__main__':
 
     endTime = time.time()
     totalTime = endTime - startTime
-    print '\nTotal time:', totalTime, 's'
+    print('\nTotal time:', totalTime, 's')

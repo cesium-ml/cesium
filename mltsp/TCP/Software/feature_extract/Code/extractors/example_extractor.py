@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import FeatureExtractor
 
-from common_functions.Example_Methods import Example_Methods
+from .common_functions.Example_Methods import Example_Methods
 
 class example_extractor(FeatureExtractor,Example_Methods):
 	""" Just an example extractor skeleton.  For full example, see: 

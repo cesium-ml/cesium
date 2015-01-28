@@ -8,6 +8,8 @@ NOTE:
      - e.g. .bashrc/execute for bash:
                 export TCP_DIR=/home/pteluser/src/TCP/
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys
 import warnings
@@ -17,7 +19,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                       'Software/feature_extract'))
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract/Code'))
-from Code import *
+from .Code import *
 import db_importer
 
 signals_list = []
@@ -67,9 +69,9 @@ if 0:
     ### Sigma clipping example:
     from data_cleaning import sigmaclip_sdict_ts
     sigma = 1
-    print sigma, 'before:', len(gen.sig.x_sdict['ts']['V']['m'])
+    print(sigma, 'before:', len(gen.sig.x_sdict['ts']['V']['m']))
     sigmaclip_sdict_ts(gen.sig.x_sdict['ts'], sigma_low=sigma, sigma_high=sigma)
-    print sigma, 'after:', len(gen.sig.x_sdict['ts']['V']['m'])
+    print(sigma, 'after:', len(gen.sig.x_sdict['ts']['V']['m']))
 
 gen.sig.add_features_to_xml_string(gen.signals_list)
 
@@ -77,7 +79,7 @@ gen.sig.add_features_to_xml_string(gen.signals_list)
 feature_added_VOSource_XML_fpath = '/tmp/vosource_out.xml'
 #gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
+print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
 
 #print "signals_list[0].properties['data'].keys()"
 #for f in signals_list[0].properties['data'].keys():

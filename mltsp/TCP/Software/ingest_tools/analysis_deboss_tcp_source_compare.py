@@ -5,6 +5,8 @@ for the matching sources.
 
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
 import MySQLdb
 from optparse import OptionParser
@@ -14,7 +16,7 @@ import copy
 import time
 import pprint
 import random
-import feature_extraction_interface# NEEDED BY: self.get_src_obj_list() 
+from . import feature_extraction_interface# NEEDED BY: self.get_src_obj_list() 
 #                                               Feature_database()...
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
@@ -24,7 +26,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract'))
 from Code import *
 
-import ingest_tools # NEEDED BY: generate_pairwise_classifications_for_perc_subset_lightcurves()
+from . import ingest_tools # NEEDED BY: generate_pairwise_classifications_for_perc_subset_lightcurves()
 
 
 
@@ -50,7 +52,7 @@ def parse_options():
                       help="Analysis of feature, classification, vote confidence values for pairwise component classifiers applied to percent sampled debosscher data.")
 
     (options, args) = parser.parse_args()
-    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
+    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
     return options
 
 
@@ -118,10 +120,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -132,10 +134,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -146,10 +148,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -160,10 +162,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -176,10 +178,10 @@ class Analysis_Deboss_TCP_Source_Compare:
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_attribfiles:
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
+                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -195,7 +197,7 @@ class Analysis_Deboss_TCP_Source_Compare:
         for dotastro_srcid, attribfiles in dotastro_srcid_to_attribfiles.iteritems():
             matches_found = 0
             for attrib_file in attribfiles:
-                if deboss_attrib_dict.has_key(attrib_file):
+                if attrib_file in deboss_attrib_dict:
                     if os.path.exists("/home/pteluser/analysis/debosscher_20100707/TS-HIPPARCOS/" + attrib_file):
                         matches_found += 1
                         # I've checked that this only occurs once per dotastro sourceid (no multi LCs in there):
@@ -255,7 +257,7 @@ class Analysis_Deboss_TCP_Source_Compare:
                     ts_dict[filter_name][xml_elem['name']] = xml_elem['val']
 
 
-            print ### find matching vosource.xml fpath
+            print() ### find matching vosource.xml fpath
 
 
         ### retrieve the mag[], merr[], time[] from (Joey-like) vosourcexml string
@@ -279,14 +281,14 @@ class Analysis_Deboss_TCP_Source_Compare:
         """
         # TODO: calculate freq differences from debosser freq values
         # TODO: generate plot
-        import pairwise_classification
+        from . import pairwise_classification
         pars = {'dotastro_arff_fpath':'/home/pteluser/scratch/deboss_percexclude__50k_26perc.arff',
                 'arff_sciclass_dict_pkl_fpath':'/home/pteluser/deboss_percexclude__50k_26perc.pkl'}
         pc = pairwise_classification.Pairwise_Classification(pars=pars)
         ### NOTE: this generates a pkl file containing the arff_sciclass_dict structure:
         arff_sciclass_dict = pc.parse_arff(arff_has_ids=True, arff_has_classes=True, has_srcid=True, get_features=True)
         feat_id_name_dict = pc.feat_id_names
-        print
+        print()
 
 
 
@@ -360,20 +362,20 @@ class Analysis_Deboss_TCP_Source_Compare:
             #print srcid, "%6.6f" % (debos_featval), freq1, freq2, freq3
             #"""
             if abs(freq1 - debos_featval) < 0.2:
-                print srcid, "%6.6f" % (debos_featval), 'freq1', \
-                      "%6.6f" % (freq1 - debos_featval), freq1, '\t', freq2, freq3
+                print(srcid, "%6.6f" % (debos_featval), 'freq1', \
+                      "%6.6f" % (freq1 - debos_featval), freq1, '\t', freq2, freq3)
                 
             elif abs(freq2 - debos_featval) < 0.2:
-                print srcid, "%6.6f" % (debos_featval), 'freq2', \
-                      "%6.6f" % (freq2 - debos_featval), freq2, '\t', freq1, freq3
+                print(srcid, "%6.6f" % (debos_featval), 'freq2', \
+                      "%6.6f" % (freq2 - debos_featval), freq2, '\t', freq1, freq3)
 
             elif abs(freq3 - debos_featval) < 0.2:
-                print srcid, "%6.6f" % (debos_featval), 'freq3', \
-                      "%6.6f" % (freq3 - debos_featval), freq3, '\t', freq1, freq2
+                print(srcid, "%6.6f" % (debos_featval), 'freq3', \
+                      "%6.6f" % (freq3 - debos_featval), freq3, '\t', freq1, freq2)
 
             else:
                 #print srcid, "%6.6f" % (debos_featval), ' NONE         ', freq1, freq2, freq3
-                print srcid, "%6.6f" % (debos_featval), ' NO_MATCH\t\t\t', freq1, freq2, freq3
+                print(srcid, "%6.6f" % (debos_featval), ' NO_MATCH\t\t\t', freq1, freq2, freq3)
             #"""
                 
 
@@ -571,8 +573,8 @@ os.system(os.path.expandvars("rm $HOME/scratch/xmls_deboss_percentage_exclude_2/
 		    tasks_to_pop.append(task_id)
 	    for task_id in tasks_to_pop:
 	        self.task_id_list.remove(task_id)
-            print self.tc.queue_status()
-            print 'Sleep... 20  in generate_pairwise_classifications_for_perc_subset_lightcurves()'
+            print(self.tc.queue_status())
+            print('Sleep... 20  in generate_pairwise_classifications_for_perc_subset_lightcurves()')
 	    time.sleep(20)
 
 
@@ -840,7 +842,7 @@ if (pid == pid_read) and (gethostname() != 'tranx'):
             ax = fig.add_subplot(1, 1, 1) # (n_row, n_cols, i_feat + 1)
 
             for i_class, classname_1 in enumerate(sorted_class_name_list):
-                if not classname_1_dict.has_key(classname_1):
+                if classname_1 not in classname_1_dict:
                     continue
                 classifier_name = classname_1_dict[classname_1]
 

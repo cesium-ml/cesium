@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import FeatureExtractor
 from numpy import median as med
-from common_functions.plot_methods import plot_horizontal_line
+from .common_functions.plot_methods import plot_horizontal_line
 
 class medianextractor(plot_horizontal_line,FeatureExtractor):
 	active = True

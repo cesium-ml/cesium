@@ -1,9 +1,11 @@
 """ This module is an implementation of lomb_scargle using type( """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from ..FeatureExtractor import FeatureExtractor
 from ..FeatureExtractor import InterExtractor
-from common_functions.lomb_scargle import lomb
-from common_functions.pre_whiten import pre_whiten
+from .common_functions.lomb_scargle import lomb
+from .common_functions.pre_whiten import pre_whiten
 
 from pylab import *
 
@@ -70,7 +72,7 @@ class lomb_generic(FeatureExtractor):
 	def extract(self):
 		lomb_dict = self.fetch_extr('lomb_scargle') # fetches the dictionary from lomb_scargle_extractor with the useful lomb scargle results in it
 		# If lomb_dict is partially filled, most likely lomb couldn't compute completely due to FALSE condition: (dof>0 and harm_dict['nharm']>0 and harm_dict['signif']>0)
-		if lomb_dict.has_key(self.lomb_key):
+		if self.lomb_key in lomb_dict:
 			return lomb_dict[self.lomb_key] # finds the correct keyword that this class is assigned to, this could be replaced by self.extname if it wasn't for the _alt
 		else:
 			self.exerror('Lomb Scargle Dictionary does not have key %s' % (self.lomb_key))
@@ -78,10 +80,10 @@ class lomb_generic(FeatureExtractor):
 lomb_features = ['freq_searched_min', 'freq1_harmonics_rel_phase_error_1', 'freq1_harmonics_peak2peak_flux', 'freq1_harmonics_rel_phase_error_3', 'freq1_harmonics_rel_phase_error_2', 'freq1_harmonics_rel_phase_0', 'freq1_harmonics_rel_phase_1', 'freq1_harmonics_rel_phase_2', 'freq1_harmonics_rel_phase_3', 'freq1_harmonics_amplitude_2', 'freq1_harmonics_amplitude_3', 'freq1_harmonics_amplitude_0', 'freq1_harmonics_amplitude_1', 'freq2_signif', 'freq1_harmonics_peak2peak_flux_error', 'freq1_harmonics_signif', 'freq3', 'freq2', 'freq1', 'freq1_harmonics_rel_phase_error_0', 'freq1_harmonics_freq_0', 'freq1_harmonics_freq_1', 'freq1_harmonics_freq_2', 'freq1_harmonics_freq_3', 'freq3_signif', 'freq1_harmonics_nharm', 'freq1_harmonics_moments_err_0', 'freq1_harmonics_moments_err_1', 'freq1_harmonics_moments_err_2', 'freq1_harmonics_moments_err_3', 'freq1_signif', 'freq1_harmonics_moments_0', 'freq1_harmonics_moments_1', 'freq1_harmonics_moments_2', 'freq1_harmonics_moments_3', 'freq1_harmonics_amplitude_error_3', 'freq1_harmonics_amplitude_error_2', 'freq1_harmonics_amplitude_error_1', 'freq1_harmonics_amplitude_error_0', 'freq_searched_max']
 
 for feature in lomb_features:
-	print "About to prepare type", feature
+	print("About to prepare type", feature)
 	newclass = type(feature, (lomb_generic,), {'__doc__': feature, 'extname':feature, 'lomb_key':feature}) # see http://docs.python.org/lib/built-in-funcs.html for documentation of type()
 	exec "%s = newclass" % (feature)
-	print "new extname:"
+	print("new extname:")
 	exec "print %s().extname" % (feature)
 
 

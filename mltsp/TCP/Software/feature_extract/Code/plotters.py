@@ -1,10 +1,12 @@
+from __future__ import print_function
+from __future__ import absolute_import
 try:
 	from pylab import *
 except:
 	pass
 from numpy import *
 import numpy
-import feature_interfaces
+from . import feature_interfaces
 
 
 class plotter(object):
@@ -20,10 +22,10 @@ class plotter(object):
 		else:
 #			try:
 			extractor = feature_interfaces.extractor_fetch(what)
-			if properties.has_key(what):
+			if what in properties:
 				pass
 			else:
-				print what,'not available'
+				print(what,'not available')
 				return None
 			extractor.plots(properties)
 #			except KeyError:

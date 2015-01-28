@@ -2,6 +2,7 @@
 """
    v0.1 Initial version: thread off ingest_tools.py instances to muli nodes.
 """
+from __future__ import print_function
 
 #TODO: Test before threading, that the ssh method exists until finished
 #       (wait for bug to occur)
@@ -76,7 +77,7 @@ class Sdss_Ingest_Monitor:
             for t in run_dict['running_threads']:
                 if not t.isAlive():
                     run_dict['running_threads'].remove(t)
-                    print 'removed from:', hostname
+                    print('removed from:', hostname)
 
 
     def start_new_threads(self):

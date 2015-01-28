@@ -7,6 +7,7 @@ This parses arff files which have been generated from ASAS .dat files
      using starvars_feature_generation.py:IPython_Parallel_processing.main()
 
 """
+from __future__ import print_function
 import sys, os
 import numpy
 
@@ -65,7 +66,7 @@ class Macc_Asas_Aperture_Analysis:
                               feat_name))
         tups_list.sort(reverse=True)
         for (i_sort, a, b, name) in tups_list:
-            print "ABS: mean=%0.3lf std=%0.3lf\t%s" % (a, b, name)
+            print("ABS: mean=%0.3lf std=%0.3lf\t%s" % (a, b, name))
 
     def subselect_1000_sources(self):
         """ Just for taking aperture perturbed sources and subselecting 1000 random sources.
@@ -123,7 +124,7 @@ class Macc_Asas_Aperture_Analysis:
         fp.write(out_str)
         fp.close()
         import pdb; pdb.set_trace()
-        print
+        print()
         
 
     def main(self):
@@ -167,7 +168,7 @@ class Macc_Asas_Aperture_Analysis:
                              perturb_srcid_dict=large_srcid_dict)
 
         import pdb; pdb.set_trace()
-        print
+        print()
         # TODO: do for large aper
         # TODO: visualize deltas somehow for large and small delta apertures
 

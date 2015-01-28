@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
 import numpy
 
 from ..generators_importers.montecarlo_gen import montecarlo_gen
-from power_extractor import power_extractor
+from .power_extractor import power_extractor
 class montecarlo_extractor(InterExtractor):
 	""" Performs a montecarlo bootstrap on the data to determine the significance of a power spectrum """
 	active = True

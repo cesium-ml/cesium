@@ -3,6 +3,7 @@
 """
 cluster: Monte Carlo simulation of clustering
 """
+from __future__ import print_function
 
 import os,sys
 import datetime
@@ -142,7 +143,7 @@ class obs:
         
         ## todo: put the logic here
         yes_source = []
-        print len(slist)
+        print(len(slist))
         source_odds = []
         for s in slist:
             (match_bool, simple_odds, sigma_n, midpt) = \
@@ -153,7 +154,7 @@ class obs:
                     s.current_err[1], sigma_0)
 
             if match_bool:
-                print ("associated",sqrt(-2.0*simple_odds),sqrt(sigma_n**2 + sigma_0**2))
+                print(("associated",sqrt(-2.0*simple_odds),sqrt(sigma_n**2 + sigma_0**2)))
                 yes_source.append(s)
                 source_odds.append(simple_odds)
                 
@@ -161,7 +162,7 @@ class obs:
             #print (simple_odds)
 
         if len(yes_source) == 0:
-            print ("no association",self.pos)
+            print(("no association",self.pos))
             return {'answer': False, 'sources': []}
             
         else:
@@ -176,7 +177,7 @@ class obs:
         
         ## todo: put the logic here
         yes_source = []
-        print len(slist)
+        print(len(slist))
         source_odds = []
         for s in slist:
             # log (Po(center)*Ps(center)/Po(midpoint)Ps(midpoint))
@@ -200,7 +201,7 @@ class obs:
             sigma_n            = sqrt(2.0*log(num_obs_associated))
             
             if -2.0*simple_odds < sigma_n**2 + sigma_0**2:
-                print ("associated",sqrt(-2.0*simple_odds),sqrt(sigma_n**2 + sigma_0**2))
+                print(("associated",sqrt(-2.0*simple_odds),sqrt(sigma_n**2 + sigma_0**2)))
                 yes_source.append(s)
                 source_odds.append(simple_odds)
                 
@@ -208,7 +209,7 @@ class obs:
             #print (simple_odds)
 
         if len(yes_source) == 0:
-            print ("no association",self.pos)
+            print(("no association",self.pos))
             return {'answer': False, 'sources': []}
             
         else:
@@ -263,7 +264,7 @@ class source:
         """
         global blah
         if self.stype=="real":
-            print "! not supposed to do this with a real source.."
+            print("! not supposed to do this with a real source..")
             return
         if len(self.associated_obs) == 0:
             return
@@ -310,7 +311,7 @@ class testreal:
         f = open(fname,"r")
         obj_dict = cPickle.load(f)
         f.close()
-        print "there are %i observations loaded from the pickle file" % len(obj_dict)
+        print("there are %i observations loaded from the pickle file" % len(obj_dict))
         # dstarr adds this to convert the objects into the format expected by: is_object_associated_with_source_algorithm_jbloom()
         # # # # # # # #
         self.obj_dict = {}
@@ -342,7 +343,7 @@ class testreal:
             #print the_source_ind
             #the_source_ind = numarray.compress(dist == min(dist),numarray.arange(len(self.constructed_source_list)))
             the_source = self.constructed_source_list[the_source_ind[0]]
-            print the_source
+            print(the_source)
             #dist = numarray.sqrt( (the_source.current_pos[0] - self.real_pos[:,0])**2 + (the_source.current_pos[1] - self.real_pos[:,1])**2)
             #print "min distances to nearest real source = %f arcsec" % min(dist)
             #the_source_ind = numarray.compress(dist == min(dist), numarray.fromlist(range(len(self.real_list))))
@@ -357,7 +358,7 @@ class testreal:
             #print the_source_ind
             #the_source_ind = numarray.compress(dist == min(dist),numarray.arange(len(self.constructed_source_list)))
             the_source = self.real_list[the_source_ind[0]]
-            print the_source
+            print(the_source)
 
 
     def run(self,shuffle=True):
@@ -369,7 +370,7 @@ class testreal:
             random.shuffle(obslist)
             random.shuffle(obslist)
             random.shuffle(obslist)
-            print "shuffled"
+            print("shuffled")
         for theo in obslist:
             # choose a real source to draw an observation from
             o = obs(initial_pos=[theo[0],theo[1]],assumed_err=[theo[2],theo[3]])
@@ -387,7 +388,7 @@ class testreal:
                 ## make a new source
                 s = source(start_pos=copy.copy(o.pos),stype='constructed',start_err=copy.copy(o.assumed_err),current_pos=copy.copy(o.pos),\
                     current_err=copy.copy(o.assumed_err),associated_obs=[copy.deepcopy(o)])
-                print "1 new source"
+                print("1 new source")
                 #print s
                 #print s.associated_obs
                 constructed_source_list.append(copy.deepcopy(s))
@@ -431,12 +432,12 @@ class simulate:
             #print the_source_ind
             #the_source_ind = numarray.compress(dist == min(dist),numarray.arange(len(self.constructed_source_list)))
             the_source = self.constructed_source_list[the_source_ind[0]]
-            print the_source
+            print(the_source)
             dist = numarray.sqrt( (the_source.current_pos[0] - self.real_pos[:,0])**2 + (the_source.current_pos[1] - self.real_pos[:,1])**2)
-            print "min distances to nearest real source = %f arcsec" % min(dist)
+            print("min distances to nearest real source = %f arcsec" % min(dist))
             the_source_ind = numarray.compress(dist == min(dist), numarray.fromlist(range(len(self.real_list))))
             the_source = self.real_list[the_source_ind[0]]
-            print "That real source is at ra=%f dec=%f" % (the_source.start_pos[0],the_source.start_pos[1])
+            print("That real source is at ra=%f dec=%f" % (the_source.start_pos[0],the_source.start_pos[1]))
         if event.key == 'r':
             dist = numarray.sqrt( (self.real_pos[:,0] - ra)**2 + (self.real_pos[:,1] - dec)**2)
             
@@ -446,7 +447,7 @@ class simulate:
             #print the_source_ind
             #the_source_ind = numarray.compress(dist == min(dist),numarray.arange(len(self.constructed_source_list)))
             the_source = self.real_list[the_source_ind[0]]
-            print the_source
+            print(the_source)
             
             
     def run(self,n_sources = 3, n_observations = 21, ra_range = [-20.0,20.0],dec_range=[-20.0,20.0],typical_err=0.3,reuse=True):
@@ -492,7 +493,7 @@ class simulate:
                 ## make a new source
                 s = source(start_pos=copy.copy(o.pos),stype='constructed',start_err=copy.copy(o.assumed_err),current_pos=copy.copy(o.pos),\
                     current_err=copy.copy(o.assumed_err),associated_obs=[copy.deepcopy(o)])
-                print "new source"
+                print("new source")
                 #print s
                 #print s.associated_obs
                 constructed_source_list.append(copy.deepcopy(s))

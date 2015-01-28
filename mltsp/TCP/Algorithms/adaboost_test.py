@@ -23,6 +23,7 @@ preds / sum(alphas)  :: normalized predictions, range: [-1..1]
 
 
 """
+from __future__ import print_function
 import sys, os
 
 
@@ -59,6 +60,6 @@ if __name__ == '__main__':
         note = 'match'
         if prediction != orig_int_classif:
             note = 'misclassified'
-        print "i=%4d  conf=%lf  pred=%2d  orig=%2d %s" % (i, confidence, prediction, orig_int_classif, note)
+        print("i=%4d  conf=%lf  pred=%2d  orig=%2d %s" % (i, confidence, prediction, orig_int_classif, note))
 
-    print
+    print()

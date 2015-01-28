@@ -3,6 +3,7 @@
    v0.1 Summarize all feature extractors.
    
 """
+from __future__ import absolute_import
 import os, sys
 import copy
 
@@ -57,7 +58,7 @@ class Summarize_Available_Features:
                                               'Software/feature_extract'))
         sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                       'Software/feature_extract/Code'))
-        from Code import *
+        from .Code import *
         import db_importer
 
         signals_list = []
@@ -73,9 +74,9 @@ class Summarize_Available_Features:
                     #        - if everyone named their extractors with a '_extractor' suffix, this would work!!!
                     if 'closest_light' in feat_name:
                         feat_name = feat_name.replace('closest_light','closest_in_light')
-                    if not out_feat_dict.has_key(feat_name):
+                    if feat_name not in out_feat_dict:
                         feat_name = feat_name + '_extractor'
-                    if not out_feat_dict.has_key(feat_name):
+                    if feat_name not in out_feat_dict:
                         feat_name = feat_name.replace('_extractor','extractor')
 
                     if feat_name in skipped_features:

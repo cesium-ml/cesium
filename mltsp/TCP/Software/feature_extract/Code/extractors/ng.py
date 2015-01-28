@@ -5,18 +5,20 @@ ng -- gets the nearest galaxies
 USAGE:
    ./ng.py [ra]
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import csv
 import os
 import sqlite3
 import numpy, math
-import geohash2
+from . import geohash2
 from math import sin, cos, radians, sqrt, atan2, degrees
 import copy
 
 __author__ = "Josh Bloom"
 __version__ = "10 Nov 2008"
 
-if os.environ.has_key("TCP_DIR"):
+if "TCP_DIR" in os.environ:
 	DATADIR = os.environ.get("TCP_DIR") + "Data/"
 else:
 	DATADIR = ""
@@ -45,13 +47,13 @@ class GalGetter:
 	
 		if not os.path.exists(self.inname):
 			if self.verbose:
-				print "inname = %s does not exist" % self.inname
+				print("inname = %s does not exist" % self.inname)
 			return None
 		
 		r = csv.reader(open(self.inname), delimiter="|")
 	
 		## figure out the headers
-		tmp = numpy.array([s.strip() for s in r.next()])
+		tmp = numpy.array([s.strip() for s in next(r)])
 		use_indices = []
 		for i in range(len(tmp)):
 			if not (tmp[i] in skip_headers):
@@ -123,13 +125,13 @@ class GalGetter:
 				i+=1
 			except:
 				if self.verbose:
-					print "row %i" % i
+					print("row %i" % i)
 				i+=1
 				continue
 		conn.commit()
 		conn.close()
 		if self.verbose:
-			print "min_depth ", min_depth
+			print("min_depth ", min_depth)
 		return self.dbname
 
 	def getgi(self,pos=(None,None),error=1.0,min_depth=def_min_depth):
@@ -353,7 +355,7 @@ class GalGetter:
 		if pa == -99.0 and semimajor == 6e-99:
 			
 			if self.verbose:
-				print "bad pa or size: returning %f %f" % (d/(assumed_size_if_none/3600.0),d)
+				print("bad pa or size: returning %f %f" % (d/(assumed_size_if_none/3600.0),d))
 			return (d/(assumed_size_if_none/3600.0), None)
 		## get the angle from the center of this galaxy to the source
 		dra  = self.distance(lon0,lat0,lon,lat0)
@@ -383,14 +385,14 @@ def test():
 	global ddd
 	ddd = GalGetter(max_rows=-1)
 	ddd.getgals()
-	print ddd
+	print(ddd)
 	ddd.writeds9()
 	
 def test1():
 	conn = sqlite3.connect(ddd.dbname)
 	c = conn.cursor()
 	c.execute('select * from galaxies')
-	for r in c: print r
+	for r in c: print(r)
 
 def get_closest_by_light(pos=(None,None),max_d=300.0,radius=1.0):
 	"""to be called by the extrators"""
@@ -456,4 +458,4 @@ if __name__ == "__main__":
 		ddd.writeds9(fname=options.ds9name)
 	
 	if not options.ntop:
-		print ddd
+		print(ddd)

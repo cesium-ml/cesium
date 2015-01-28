@@ -59,6 +59,7 @@ TODO: Is ipcontroller doing some logging?
 TODO: EC2 connection?
 
 """
+from __future__ import print_function
 import os, sys
 import time
 import threading # used for scp/ssh tasks.
@@ -129,10 +130,10 @@ class Setup_System:
                 thread_list.append(t)
 
         for t in thread_list:
-            print "scp/ssh thread (%s) waiting..." % (client_dict['hostname'])
+            print("scp/ssh thread (%s) waiting..." % (client_dict['hostname']))
             t.join(10.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
-                print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
+                print("! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname']))
                 
 
     def kill_engines_on_taskclients(self):
@@ -157,16 +158,16 @@ class Setup_System:
                                        client_dict['username'],
                                        client_dict['hostname'],
                                        home_dirpath)
-                print exec_str
+                print(exec_str)
                 t = threading.Thread(target=os.system, args=[exec_str])
                 t.start()
                 thread_list.append(t)
 
         for t in thread_list:
-            print "scp/ssh thread (%s) waiting..." % (client_dict['hostname'])
+            print("scp/ssh thread (%s) waiting..." % (client_dict['hostname']))
             t.join(10.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
-                print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
+                print("! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname']))
 
 
     def start_engines_on_taskclients(self):
@@ -190,7 +191,7 @@ class Setup_System:
                     # here we spawn a remote ssh session.
                     ### NOTE: nice -19 works, but since I run on my onw machines, I dont do:
                     #exec_str = "ssh -fn -p %d %s@%s nice -19 ipengine &" % ( \
-                    if client_dict.has_key('nice'):
+                    if 'nice' in client_dict:
                         exec_str = "ssh -fn -p %d %s@%s nice -%d ipengine &" % ( \
                                            client_dict['ssh_port'],
                                            client_dict['username'],
@@ -201,15 +202,15 @@ class Setup_System:
                                            client_dict['ssh_port'],
                                            client_dict['username'],
                                            client_dict['hostname'])
-                    print exec_str
+                    print(exec_str)
                     t = threading.Thread(target=os.system, args=[exec_str])
                     t.start()
                     thread_list.append(t)
         for t in thread_list:
-            print "scp/ssh thread (%s) waiting..." % (client_dict['hostname'])
+            print("scp/ssh thread (%s) waiting..." % (client_dict['hostname']))
             t.join(20.0) # wait 10 seconds for scp/ssh
             if t.isAlive():
-                print "! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname'])
+                print("! Thread (%s) has not returned! (dead host?)" % (client_dict['hostname']))
 
 
     def main(self):
@@ -230,7 +231,7 @@ class Setup_System:
                 self.start_engines_on_taskclients()
                 flag_done = True
             except:
-                print "Setup_System.main() Except.  sleeping(20)"
+                print("Setup_System.main() Except.  sleeping(20)")
                 time.sleep(20) # wait a couple seconds, probably an incomplete file scp or .mec() initialization failure.
 
 
@@ -271,14 +272,14 @@ os.environ['CLASSPATH']=os.path.expandvars('$HOME/src/install/weka-3-5-7/weka.ja
             ###       finished tasks, but afterwards you cannot retrieve values (below):
             #if (i % n_iters_per_clear == 0):
             #    tc.clear()
-        print '!!! NUMBER OF TASKS STILL SCHEDULED: ', tc.queue_status()['scheduled']
+        print('!!! NUMBER OF TASKS STILL SCHEDULED: ', tc.queue_status()['scheduled'])
         for i,taskid in enumerate(task_list):
             ### NOTE: The following retrieval doesnt work if 
             ###       tc.clear()      was called earlier:
             task_result = tc.get_task_result(taskid, block=True)
-            print task_result['cat']
-        print 'done'
-        print tc.queue_status()
+            print(task_result['cat'])
+        print('done')
+        print(tc.queue_status())
         #del tc
         #time.sleep(1)
 

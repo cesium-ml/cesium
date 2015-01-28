@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys, os
 import MySQLdb
 
@@ -47,7 +48,7 @@ class Fill_Classid_Lookup_With_All_Dotastro_Classes:
 
         self.class_cursor.execute(''.join(insert_list)[:-2])
 
-        print
+        print()
 
 
 if __name__ == '__main__':

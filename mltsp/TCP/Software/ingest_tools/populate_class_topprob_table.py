@@ -84,6 +84,7 @@ SELECT * FROM temp_class_srcids_with_classrank0
          LIMIT 200 ;
 
 """
+from __future__ import print_function
 import os, sys
 import MySQLdb
 
@@ -139,7 +140,7 @@ class Populate_Analysis_Tables:
         
         for (schema_id, class_id) in results:
             if schema_id==2:
-                print 'yo'
+                print('yo')
             if only_ptf_sources:
                 # This will only choose PTF sources (which are jdac_class_name="VarStar").
                 select_str = "SELECT src_id, prob FROM temp_class_srcids_with_classrank0 INNER JOIN source_test_db.caltech_classif_summary ON temp_class_srcids_with_classrank0.src_id=caltech_classif_summary.tcp_source_id WHERE schema_id=%d AND class_id=%d AND caltech_classif_summary.jdac_class_name='VarStar' ORDER BY prob DESC LIMIT 6" % (schema_id, class_id)
@@ -235,4 +236,4 @@ if __name__ == '__main__':
                                 schema_id_high=100000,
                                 only_ptf_sources=True)
 
-    print "done"
+    print("done")

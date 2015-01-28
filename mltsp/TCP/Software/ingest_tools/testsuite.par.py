@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 parameters = {
     'test_suite__enable_traceback':True, # False: (default), True: for PDB use
     'test_suite__preserve_tables_databases_servers':False, # False: (default)
@@ -467,7 +468,7 @@ parameters['ingest_tools_pars']['source_region_lock_user'] = parameters['mysql_u
 parameters['ingest_tools_pars']['footprint_user'] = parameters['mysql_username']
 parameters['ingest_tools_pars']['sdss_astrom_repo_user'] = parameters['mysql_username']
 
-import ingest_tools
+from . import ingest_tools
 parameters['ingest_tools_pars']['ptf_postgre_select_columns'] = ingest_tools.pars['ptf_postgre_select_columns']
 parameters['ingest_tools_pars']['ptf_rdb_columns_list'] = ingest_tools.pars['ptf_rdb_columns_list']
 parameters['ingest_tools_pars']['ptf_rdb_select_columns'] = ingest_tools.pars['ptf_rdb_select_columns']

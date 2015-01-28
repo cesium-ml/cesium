@@ -21,6 +21,8 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
 
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 #sys.path.append("/global/u1/d/dchesny/BUILD/MySQL-python-1.2.3/build/lib.linux-x86_64-2.7")
 sys.path.insert(0,os.path.expandvars("/global/u1/d/dchesny/BUILD/MySQL-python-1.2.3/build/lib.linux-x86_64-2.7"))
@@ -208,7 +210,7 @@ class StarVars_LINEAR_Feature_Generation:
     def example_dat_parse(self):
         """
         """
-        import tutor_database_project_insert
+        from . import tutor_database_project_insert
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         if 0:
             ### requires mysql connection to TUTOR:
@@ -229,7 +231,7 @@ class StarVars_LINEAR_Feature_Generation:
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None):
@@ -242,7 +244,7 @@ class StarVars_LINEAR_Feature_Generation:
               
         Partially adapted from: TCP/Software/citris33/arff_generation_master_using_generic_ts_data.py:get_dat_arffstrs()
         """
-        import tutor_database_project_insert
+        from . import tutor_database_project_insert
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         adt.frame_limitmags = self.retrieve_limitmags_from_pkl()
 
@@ -319,7 +321,7 @@ if __name__ == '__main__':
 
     startTime = time.time()
     flist	  = sys.argv[1]
-    print '\n flist =', flist
+    print('\n flist =', flist)
     indir = '/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat'
 #    print '\n indir =', indir
     files = index( indir )
@@ -573,9 +575,9 @@ if __name__ == '__main__':
     j = 0
     for file in runfiles:
         j += 1
-        print 'writing features for file', j, 'of', len(runfiles)
+        print('writing features for file', j, 'of', len(runfiles))
         mag_data_dict = readLC(file)
-        print 'mag_data_dict generated for LC', j, 'of', len(runfiles)
+        print('mag_data_dict generated for LC', j, 'of', len(runfiles))
         arff_output_fp = open( 'out' + str(flist) + '.arff', 'w' )
         sv_asas.generate_arff_using_asasdat(data_fpaths=runfiles,
                                             include_arff_header=False,
@@ -583,9 +585,9 @@ if __name__ == '__main__':
 
         sleep(20)
 
-        print '\nCompleted writing features for LC', j, 'of', len(runfiles)
+        print('\nCompleted writing features for LC', j, 'of', len(runfiles))
         arff_output_fp.close()
-        print '\nClosed output file successfully'
+        print('\nClosed output file successfully')
 #        arff_rows_str = arff_output_fp.getvalue()
 #        print arff_rows_str
 
@@ -678,7 +680,7 @@ if __name__ == '__main__':
     endTime = time.time()
     
     totalTime = endTime - startTime
-    print '\nTotal time:', totalTime, 's'
+    print('\nTotal time:', totalTime, 's')
 
 #     if 1:
 #         ### Example: generate arff feature string, do not write to file:

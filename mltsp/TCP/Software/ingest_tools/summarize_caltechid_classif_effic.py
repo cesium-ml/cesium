@@ -2,12 +2,13 @@
 """ summarize how well general classifications of ptf09xxx were made,
 when compared with caltech followup statictics
 """
+from __future__ import print_function
 
 import sys, os
 try:
     import psycopg2
 except:
-    print "UNABLE to import psycopg2"
+    print("UNABLE to import psycopg2")
     pass
 import MySQLdb
 import pprint
@@ -42,9 +43,9 @@ class CaltechDB:
                             #if mag > -99:
                             followup_count += 1
                         else:
-                            print "!!! %s  telescope=%s camera=%s filt=%s mag=%lf issub=%s" % (shortname, telescope, camera, filt, mag, issub)
+                            print("!!! %s  telescope=%s camera=%s filt=%s mag=%lf issub=%s" % (shortname, telescope, camera, filt, mag, issub))
                     # TODO: then count the number of spectroscopic & imaging
-                if not overall_dict[overall_class_type]['followup_count_dict'].has_key(followup_count):
+                if followup_count not in overall_dict[overall_class_type]['followup_count_dict']:
                     overall_dict[overall_class_type]['followup_count_dict'][followup_count] = []
                 overall_dict[overall_class_type]['followup_count_dict'][followup_count].append(shortname)
                 #print shortname, "followup_count:", followup_count
@@ -67,7 +68,7 @@ class CaltechDB:
                 if len(rows) > 0:
                     for row in rows:
                         (type, comment) = row
-                        if not overall_dict[overall_class_type]['specclass_types_dict'].has_key(comment):
+                        if comment not in overall_dict[overall_class_type]['specclass_types_dict']:
                             overall_dict[overall_class_type]['specclass_types_dict'][comment] = []
                         if not shortname in overall_dict[overall_class_type]['specclass_types_dict'][comment]:
                             overall_dict[overall_class_type]['specclass_types_dict'][comment].append(shortname)
@@ -117,7 +118,7 @@ class MysqlLocalDB:
                                   'overall_class_type':overall_class_type,
                                   'overall_science_class':overall_science_class,
                                   'overall_class_prob':overall_class_prob}
-            if not overall_dict.has_key(overall_class_type):
+            if overall_class_type not in overall_dict:
                 overall_dict[overall_class_type] = {'followup_count_dict':{},
                                                     'specclass_types_dict':{},
                                                     'specclass_ids':[],
@@ -156,10 +157,10 @@ def summarize_overall_dict(overall_dict):
         class_dict = overall_dict[overall_class_type]
         (total_all_count, total_follow_count, most_followed_ptfids) = \
                              get_followup_summary_for_classtype(class_dict)
-        print overall_class_type, "  TOTAL sources:", total_all_count, \
-              ", % with Followup:", total_follow_count / float(total_all_count), most_followed_ptfids
+        print(overall_class_type, "  TOTAL sources:", total_all_count, \
+              ", % with Followup:", total_follow_count / float(total_all_count), most_followed_ptfids)
 
-        print "#####", overall_class_type
+        print("#####", overall_class_type)
         pprint.pprint(class_dict['specclass_types_dict'])
         #print "#", overall_class_type, "class_dict['specclass_ids']"
         #pprint.pprint(class_dict['specclass_ids'])
@@ -238,7 +239,7 @@ class HTMLizeResults:
         fp.write(a)
         fp.close()
         os.system("scp /tmp/summarize_caltechid_classif_effic.html pteluser@lyra.berkeley.edu:www/tcp/")
-        print "yo"
+        print("yo")
 
 
 if __name__ == '__main__':

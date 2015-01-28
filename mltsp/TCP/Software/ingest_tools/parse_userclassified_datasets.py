@@ -13,14 +13,16 @@ ipython --pylab
 import pl        # this has way of making use of these files
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
 import copy
 import numpy
 import MySQLdb
 import reevaluate_feat_class
-import get_classifications_for_tcp_marked_variables
-import ptf_master
-import ingest_tools
+from . import get_classifications_for_tcp_marked_variables
+from . import ptf_master
+from . import ingest_tools
 
 # For NON-PARALLEL:
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/MLData')
@@ -91,7 +93,7 @@ class Data_Parse(DB_Connector):
                 else:
                     data_dict[col_names[i]] = str(val)
             src_id = data_dict['jsb_source_id'] # ['main_id']
-            if not all_data_dict.has_key(src_id):
+            if src_id not in all_data_dict:
                 all_data_dict[src_id] = {'src_id':src_id,
                                          'class_type':data_dict['otype'],
                                          'ra':data_dict['ra'],
@@ -147,11 +149,11 @@ class Data_Parse(DB_Connector):
                         data_dict[col_names[i]] = float(val)
                 else:
                     data_dict[col_names[i]] = str(val)
-            if not srcid_lookup.has_key(data_dict['simbad_name']):
+            if data_dict['simbad_name'] not in srcid_lookup:
                 max_srcid += 1
                 srcid_lookup[data_dict['simbad_name']] = copy.copy(max_srcid) # data_dict['simbad_name'] # ['main_id']
             src_id = srcid_lookup[data_dict['simbad_name']]
-            if not all_data_dict.has_key(src_id):
+            if src_id not in all_data_dict:
                 all_data_dict[src_id] = {'src_id':src_id,
                                          'class_type':data_dict['simbad_type'],
                                          'ra':data_dict['ra'],
@@ -462,7 +464,7 @@ class Data_Parse(DB_Connector):
         ##### ingest_tools.py : get_vosourcelist_for_ptf_using_srcid()
 
 
-        print
+        print()
 
         # TODO: ? What will arff generation code want?
         #    - want to generate arff with PTF/TCP data but user-classifications.
@@ -481,7 +483,7 @@ class Data_Parse(DB_Connector):
         """
         from IPython.kernel import client # 20091202 added
         ##### Do classifications using schema
-        import get_classifications_for_ptf_srcid_and_class_schema
+        from . import get_classifications_for_ptf_srcid_and_class_schema
         IpythonTaskController = get_classifications_for_ptf_srcid_and_class_schema.\
                                      Ipython_Task_Controller(schema_str=schema_str)
         IpythonTaskController.initialize_ipengines()
@@ -500,9 +502,9 @@ class Data_Parse(DB_Connector):
             short_srcid_list = srcid_list[i_low:i_low + list_incr]
             if 0:
                 ### For debugging only:
-                import classification_interface
-                import plugin_classifier
-                import get_classifications_for_ptf_srcid_and_class_schema
+                from . import classification_interface
+                from . import plugin_classifier
+                from . import get_classifications_for_ptf_srcid_and_class_schema
                 Get_Classifications_For_Ptf_Srcid = get_classifications_for_ptf_srcid_and_class_schema.GetClassificationsForPtfSrcid(schema_str=schema_str)
                 Get_Classifications_For_Ptf_Srcid.main(src_id=short_srcid_list[0])
             exec_str = """schema_str="%s"
@@ -638,7 +640,7 @@ order by src_id"""
                 tcp_freqs.append(row[0])
                 nepochs.append(row[1])
                 jsb_freqs.append(1.0 / row[3])
-                if not all_freq_dict.has_key(srcid):
+                if srcid not in all_freq_dict:
                     all_freq_dict[srcid] = {}
                 all_freq_dict[srcid][freq_name] = row[0]
                 all_freq_dict[srcid]['jsb_freq'] = 1.0 / row[3]
@@ -722,7 +724,7 @@ order by src_id"""
                 tcp_freqs.append(row[0])
                 nepochs.append(row[1])
                 jsb_freqs.append(1.0 / row[3])
-                if not all_freq_dict.has_key(srcid):
+                if srcid not in all_freq_dict:
                     all_freq_dict[srcid] = {}
                 all_freq_dict[srcid][freq_name] = row[0]
                 all_freq_dict[srcid]['jsb_freq'] = 1.0 / row[3]
@@ -825,7 +827,7 @@ if __name__ == '__main__':
         #if os.path.exists(pars['result_arff_fpath']):
         #    os.system("rm " + pars['result_arff_fpath'])
 
-        import generate_weka_classifiers
+        from . import generate_weka_classifiers
         ParallelArffMaker = generate_weka_classifiers.Parallel_Arff_Maker(pars={})
         ParallelArffMaker.generate_arff_using_xmls( \
                      vosource_xml_dirpath=pars['intermed_xmls_dirpath'], \

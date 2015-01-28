@@ -1,3 +1,4 @@
+from __future__ import print_function
 from xml.etree import ElementTree
 from pprint import pprint
 
@@ -12,7 +13,7 @@ def main():
     #configdict['settings']['color'] = 'red'
 
     # or you can access it like object attributes
-    print configdict.tdf.created_by
+    print(configdict.tdf.created_by)
     configdict.tdf.created_by = 'red'
 
     root = ConvertDictToXml(configdict)
@@ -36,7 +37,7 @@ class XmlDictObject(dict):
         self.__setitem__(item, value)
     
     def __str__(self):
-        if self.has_key('_text'):
+        if '_text' in self:
             return self.__getitem__('_text')
         else:
             return ''
@@ -97,7 +98,7 @@ def _ConvertXmlToDictRecurse(node, dictclass):
     for child in node:
         # recursively add the element's children
         newitem = _ConvertXmlToDictRecurse(child, dictclass)
-        if nodedict.has_key(child.tag):
+        if child.tag in nodedict:
             # found duplicate tag, force a list
             if type(nodedict[child.tag]) is type([]):
                 # append to existing list

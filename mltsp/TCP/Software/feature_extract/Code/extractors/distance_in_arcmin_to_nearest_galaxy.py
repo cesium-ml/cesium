@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ..FeatureExtractor import ContextFeatureExtractor
 
 class distance_in_arcmin_to_nearest_galaxy(ContextFeatureExtractor): 
@@ -24,6 +25,6 @@ class distance_in_arcmin_to_nearest_galaxy(ContextFeatureExtractor):
 		else:
 			rez = tmp['distance']
 		if self.verbose:
-			print tmp
+			print(tmp)
 		return rez
 

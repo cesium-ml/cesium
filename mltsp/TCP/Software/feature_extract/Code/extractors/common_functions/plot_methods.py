@@ -1,3 +1,4 @@
+from __future__ import print_function
 try:
 	import pylab
 except:
@@ -33,8 +34,8 @@ class plot_vertical_line(object):
 	""" inheritable function to plot oneself against the frequency axis """
 	extname = 'plot vertical line inheritable method' #extractor's name
 	def plot_feature(self,properties):
-		print self.extname
-		print properties[self.extname]
+		print(self.extname)
+		print(properties[self.extname])
 		axvline(x=properties[self.extname],label=self.extname)
 class plot_horizontal_line(object):
 	""" inheritable function to plot oneself horizontally """

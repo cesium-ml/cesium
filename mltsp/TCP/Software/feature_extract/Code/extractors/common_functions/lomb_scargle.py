@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from __future__ import division
+from __future__ import print_function
 from numpy import *
 from numpy.random import normal
 from scipy.stats import norm,betai
@@ -607,7 +608,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
     if (freqin==[]):
         numf = long( ceil( (fmax-fmin)/df ) )
         if (numf>num_freq_max):
-            if (verbosity>1): print ("Warning: shrinking num_freq %d -> %d (num_freq_max)") % (numf,num_freq_max)
+            if (verbosity>1): print(("Warning: shrinking num_freq %d -> %d (num_freq_max)") % (numf,num_freq_max))
             numf = long(num_freq_max)
             #fmax = fmin + numf*df
             df = (fmax - fmin)/numf
@@ -753,7 +754,7 @@ def lomb__old_pre20100912(time, signal, delta_time=[], signal_err=[], freqin=[],
         psdpeak = zeros(multiple, dtype=float)
         for m in range(multiple):
             if ((m+1)%100 == 0) and (verbosity>0):
-                print "...working on %ith simulation. (%.2f Done)" % (m,m/multiple)
+                print("...working on %ith simulation. (%.2f Done)" % (m,m/multiple))
 
             # Gaussian noise simulation
             cn = normal(loc=0.0,scale=1.,size=n0)/sqrt(wt)
@@ -858,21 +859,21 @@ signal_err=dnoisedata,freqin=frequencies,fap=fap,multiple=multiple)
     freq_max = freqs[imax]
 
     mpsd=max(psd)
-    print ("Peak=%.2f @ %.2f Hz, significance estimate: %.1f-sigma (T-test)") % (mpsd,freq_max,signi)
+    print(("Peak=%.2f @ %.2f Hz, significance estimate: %.1f-sigma (T-test)") % (mpsd,freq_max,signi))
 
     if (len(peak_sort)>0):
 
       psd0 = peak_sort[ long((1-fap)*(multiple-1)) ]
-      print ("Expected peak %.2f for False Alarm of %.2e") % (psd0,fap)
+      print(("Expected peak %.2f for False Alarm of %.2e") % (psd0,fap))
 
       Prob0 = betai( 0.5*N-2.,0.5,(N-1.)/(N-1.+2.*psd0) )
       Nindep = log(1-fap)/log(1-Prob0)
       horne = long(-6.362+1.193*N+0.00098*N**2.)
       if (horne <= 0): horne=5
-      print ("Estimated number of independent trials: %.2f (horne=%d)") % (Nindep,horne)
+      print(("Estimated number of independent trials: %.2f (horne=%d)") % (Nindep,horne))
 
       nover = sum( peak_sort>=mpsd )
-      print ("Fraction of simulations with peak greater than observed value: %d/%d") % (nover,multiple)
+      print(("Fraction of simulations with peak greater than observed value: %d/%d") % (nover,multiple))
 
 """
 import Gnuplot

@@ -14,6 +14,7 @@ suspect_reason         semicolon separated list why orb_period is suspect
 best_orb_chi2	       best chi2 fitting orb_period from polyfit
 orb_signif             LS significance
 """
+from __future__ import print_function
 
 __author__ = "J. S. Bloom, D. Starr"
 __version__ = "0.32"
@@ -96,7 +97,7 @@ class ebfeature:
         period=1./res2['freq']
         self.rrlp = period
         if self.verbose:
-            print "Initial pulstional Period is %.8f day" % self.rrlp
+            print("Initial pulstional Period is %.8f day" % self.rrlp)
         
         self.features.update({"p_pulse_initial": self.rrlp})
         
@@ -134,7 +135,7 @@ class ebfeature:
             tmp = (offs > -1*rr[0]) & (offs < -1*rr[1])
             nhigh = float(tmp.sum())/self.nepochs
             if self.verbose:
-                print "%i: low = %f high = %f  feature-%i-ratio-diff = %f" % (s,nlow,nhigh,s,nhigh - nlow)
+                print("%i: low = %f high = %f  feature-%i-ratio-diff = %f" % (s,nlow,nhigh,s,nhigh - nlow))
             
             self.features.update({"feature-%i-ratio-diff" % s: (nhigh - nlow)*100.0})
             
@@ -178,7 +179,7 @@ class ebfeature:
                 if dosave:
                     plt.savefig("pulse-%s-p=%f.png" % (os.path.basename(self.name),period))
                     if self.verbose:
-                        print "saved...", "pulse-%s-p=%f.png" % (os.path.basename(self.name),period)
+                        print("saved...", "pulse-%s-p=%f.png" % (os.path.basename(self.name),period))
                 plt.draw()
             except:
                 pass
@@ -232,12 +233,12 @@ class ebfeature:
             periodin = 1/freqin
             
             if self.verbose:
-                print "P min, max", min(periodin),max(periodin)
+                print("P min, max", min(periodin),max(periodin))
 
             psdr,res2 = lombr(self.x0,new_y,self.dy0,f0,df,numf)
             period=1./res2['freq']
             if self.verbose:
-                print "orb period = %f sigf = %f" % (period,res2['signif'])
+                print("orb period = %f sigf = %f" % (period,res2['signif']))
             self.last_res = res2
             s = selectp.selectp(self.x0, new_y, self.dy_orig, period, mults=[1.0,2.0], dynamic=dynamic, verbose=self.verbose, srcid=self.srcid)
             s.select()
@@ -275,7 +276,7 @@ class ebfeature:
                     s.plot_best(extra="suspect=%s %s" % (is_suspect,"" if not is_suspect else "(" + ",".join(reason) + ")"))
                     plt.savefig("orb-%s-p=%f-sig=%f.png" % (os.path.basename(self.name),period,res2['signif']))
                     if self.verbose:
-                        print "saved...", "org-%s-p=%f.png" % (os.path.basename(self.name),period)
+                        print("saved...", "org-%s-p=%f.png" % (os.path.basename(self.name),period))
                 except:
                     pass
         except:
@@ -283,9 +284,9 @@ class ebfeature:
 
         
     def old_stuff(self):
-        print res2['chi2'], res2['chi0']
+        print(res2['chi2'], res2['chi0'])
         if self.verbose:
-            print "New Period is %.8f day" % period
+            print("New Period is %.8f day" % period)
         
         plt.figure(2)
         plt.cla()
@@ -310,14 +311,14 @@ class ebfeature:
         period1=1./res2['freq']
 
         if self.verbose:
-            print "New Period is %.8f day" % period1
+            print("New Period is %.8f day" % period1)
         
         plt.figure(4)
         plt.cla()
         tt=(self.x0/period1) % 1.; s=tt.argsort()
         plt.errorbar (tt[s],new_y[s],self.dy_orig[s],fmt='o',c="b")
         plt.plot(tt[s],res2['model'][s],c="r")
-        print res2['chi2'], res2['chi0']
+        print(res2['chi2'], res2['chi0'])
         f = open("lc2.dat","w")
         z = zip(tt[s] - 0.5,new_y[s],self.dy_orig[s])
         for l in z:
@@ -342,10 +343,10 @@ def runben(doplot=False):
     for f in l:
         if f.find(".dat") != -1:
             fname = f
-            print "working on", f
+            print("working on", f)
             x0,y,dy, name =_load_ben_data(fname)
             if len(np.where(ttt['name'] == int(os.path.basename(name)))[0]) != 0:
-                print "... already in list, skipping"
+                print("... already in list, skipping")
                 continue
             a = ebfeature(t=x0,m=y,merr=dy,name=name)
             a.gen_orbital_period(doplot=doplot)
@@ -371,7 +372,7 @@ def runcand(doplot=False):
     for f in l:
         if f.find(".xml") != -1:
             fname = "BenLike/" + f
-            print "working on", f
+            print("working on", f)
             x0,y,dy, name = _load_dotastro_data(fname)
             a = ebfeature(t=x0,m=y,merr=dy,name=name)
             a.gen_orbital_period(doplot=doplot)
@@ -394,10 +395,10 @@ def test():
     """This is a test to show how to Ben's input files (t, m, merr)"""
     x0,y,dy, name = _load_ben_data()
     import pdb; pdb.set_trace()
-    print
+    print()
     a = ebfeature(t=x0,m=y,merr=dy,fix_initial_period=True,initial_period=0.4422664540092584,name=name)
     a.gen_orbital_period(doplot=True)
-    print a.features
+    print(a.features)
     
 def test2():
     
@@ -408,14 +409,14 @@ def test2():
     #  ebfeature instantiation
     a = ebfeature(t=x0,m=y,merr=dy,name=name)
     a.gen_orbital_period(doplot=True)
-    print a.features
+    print(a.features)
     
 if __name__ == '__main__':
     ### this section is just for testing
     # using t, m, merr:
     test()
     import pdb; pdb.set_trace()
-    print
+    print()
 
     ### using xml file:
     test2()

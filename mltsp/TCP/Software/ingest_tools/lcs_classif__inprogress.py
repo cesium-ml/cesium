@@ -12,6 +12,7 @@ script_output = p.stdout.readlines()
 /home/dstarr/src/TCP/Software/ingest_tools/lcs_classif.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
 
 """
+from __future__ import print_function
 import sys, os
 import urllib
 import cStringIO
@@ -278,5 +279,5 @@ if __name__ == '__main__':
     #print "blahblah"
     out_dict = main()
     #print "yoyoyo"
-    print out_dict
+    print(out_dict)
 

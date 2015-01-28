@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 import numpy
-from storage import storage
+from .storage import storage
 
-from generator import generator
+from .generator import generator
 
 class sgwindn_gen(generator): #signal with individual noise (each data point has a different standard deviation)
 	name = "signal with individual noise"

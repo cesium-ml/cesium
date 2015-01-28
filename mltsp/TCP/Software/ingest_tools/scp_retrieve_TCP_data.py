@@ -3,9 +3,10 @@
    v0.1 This retrieves TCP related data files, weka .models, etc... which
         are required to run as a TCP task client / ipengine client.
 """
+from __future__ import absolute_import
 
 import os, sys
-import ingest_tools
+from . import ingest_tools
 ingest_tools_pars = ingest_tools.pars
 
 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
 
     for class_schema_name, class_dict in ingest_tools_pars[\
                          'class_schema_definition_dicts'].iteritems():
-        if class_dict.has_key('weka_training_model_fpath'):
+        if 'weka_training_model_fpath' in class_dict:
             class_dirpath = class_dict['weka_training_model_fpath'][: \
                                 class_dict['weka_training_model_fpath'].rfind('/')]
             if not os.path.exists(class_dirpath):

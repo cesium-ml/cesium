@@ -6,10 +6,11 @@ The noisifier generator first noisifies the data.
 Created by Maxime Rischard on 2008-05-26.
 
 """
+from __future__ import absolute_import
 
 import numpy
 
-from gen_or_imp import gen_or_imp
+from .gen_or_imp import gen_or_imp
 
 class copy_gen(gen_or_imp):
 	name = "copy generator"

@@ -33,6 +33,7 @@ OUTPUT FORMAT:
   Source2 Block
     ...
 """
+from __future__ import print_function
 import os, sys
 import xmlrpclib
 import random
@@ -64,8 +65,8 @@ class Mysql_Server_Query:
         results = self.cursor.fetchall()
         for result in results:
             for elem in result:
-                print elem,
-            print
+                print(elem, end=' ')
+            print()
 
 
 
@@ -102,8 +103,8 @@ class Mysql_Server_Query:
         results = self.cursor.fetchall()
         for result in results:
             for elem in result:
-                print elem,
-            print
+                print(elem, end=' ')
+            print()
 
 
 
@@ -119,7 +120,7 @@ if len(sys.argv) == 4:
     ra = float(sys.argv[1])
     dec = float(sys.argv[2])
     box_size = float(sys.argv[3])
-    print "#INPUT: ra=%lf dec=%lf box_size=%lf\n" % (ra, dec, box_size)
+    print("#INPUT: ra=%lf dec=%lf box_size=%lf\n" % (ra, dec, box_size))
 
 if ((ra < 0) or
     (ra > 360) or
@@ -127,7 +128,7 @@ if ((ra < 0) or
     (dec > 90) or
     (box_size < 0.008888) or
     (box_size > 30.0)):
-    print "Input values out of range!"
+    print("Input values out of range!")
     sys.exit()
 
 
@@ -151,16 +152,16 @@ os.system("rm " + out_filepath)
 fp = open(out_filepath, 'w')
 for s_i in xrange(len(src_list)):
     for filter_name in src_list[s_i].keys():
-        print "\n##### source_id=%d filter=%s" % (\
-                              src_list[s_i][filter_name]['src_id'], filter_name)
-        print "# ra=%lf ra_rms=%lf" % (src_list[s_i][filter_name]['ra'],\
-                                       src_list[s_i][filter_name]['ra_rms'])
-        print "# dec=%lf dec_rms=%lf"%(src_list[s_i][filter_name]['dec'],\
-                                       src_list[s_i][filter_name]['dec_rms'])
+        print("\n##### source_id=%d filter=%s" % (\
+                              src_list[s_i][filter_name]['src_id'], filter_name))
+        print("# ra=%lf ra_rms=%lf" % (src_list[s_i][filter_name]['ra'],\
+                                       src_list[s_i][filter_name]['ra_rms']))
+        print("# dec=%lf dec_rms=%lf"%(src_list[s_i][filter_name]['dec'],\
+                                       src_list[s_i][filter_name]['dec_rms']))
         for epoch_i in xrange(len(src_list[s_i][filter_name]['t'])):
-            print "%lf %lf %lf" % (src_list[s_i][filter_name]['t'][epoch_i],\
+            print("%lf %lf %lf" % (src_list[s_i][filter_name]['t'][epoch_i],\
                                    src_list[s_i][filter_name]['m'][epoch_i],\
-                                   src_list[s_i][filter_name]['m_err'][epoch_i])
+                                   src_list[s_i][filter_name]['m_err'][epoch_i]))
             fp.write(\
                   "%lf %lf %lf\n" % (src_list[s_i][filter_name]['t'][epoch_i],\
                                    src_list[s_i][filter_name]['m'][epoch_i],\

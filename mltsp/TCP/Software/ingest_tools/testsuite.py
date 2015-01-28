@@ -54,6 +54,8 @@ DEBUG NOTES:
       - In testsuite.par.py, SET: 'test_suite__enable_traceback':True
       - In emacs:     /usr/lib/python2.5/pdb.py testsuite.py
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 import unittest
 import MySQLdb
@@ -67,9 +69,9 @@ astro_phot_path = os.environ.get("TCP_DIR") +'/Software/AstroPhot'
 sys.path.append(ingest_tools_path)
 sys.path.append(astro_phot_path)
 
-import ingest_tools
+from . import ingest_tools
 import ptel_astrophot
-import feature_extraction_interface
+from . import feature_extraction_interface
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                       'Software/feature_extract'))
@@ -331,7 +333,7 @@ echo "
                  index_dict['rdb_server_db'], \
                  index_dict['primary_table_colname'], \
                  index_dict['obj_id_reference_tablename'])
-            print exec_str
+            print(exec_str)
             os.system(exec_str)
 
 
@@ -362,7 +364,7 @@ echo "
             self.mysql_hostname, \
             self.mysql_hostname, \
             self.mysql_username)
-        print exec_str
+        print(exec_str)
         os.system(exec_str)
 
 
@@ -413,8 +415,8 @@ echo "
                 has_been_ingested = self.rdbt.check_obsid_has_been_ingested(\
                                                           mos_fname_root_trunc)
             except:
-                print "SKIP INSERT of existing ptel objects:", \
-                                                          mos_fname_root_trunc
+                print("SKIP INSERT of existing ptel objects:", \
+                                                          mos_fname_root_trunc)
                 continue
             if (has_been_ingested == 0):
                 a = ptel_astrophot.PTEL_data_block(mos_globpath, \
@@ -626,11 +628,11 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
                             return_bool = return_bool and True
                             #print "OK feature: %40.40s in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen))
                         else:
-                            print "WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen))
+                            print("WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen)))
                             return_bool = return_bool and False # could just set to False & return, but I want to see all features which fail.
                     except:
                         # Probably get here because feat_val_gen is not float()'able
-                        print "WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen))
+                        print("WARNING: %40.40s mismatch in %s, expected:%lf, generated:%s" % (feat_name, fname, feat_val_expected, str(feat_val_gen)))
                         return_bool = return_bool and False # could just set to False & return, but I want to see all features which fail.
         return return_bool
 
@@ -697,7 +699,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         """ Generate features for some Pairitel sources. Enter in feature table
         """
         import db_importer
-        import feature_extraction_interface
+        from . import feature_extraction_interface
 
         pars = ingest_tools.pars
         pars.update(self.pars['ingest_tools_pars']) # Use TestSuite params
@@ -729,7 +731,7 @@ WHERE (x0.feat_val > 0.340430) and (x0.feat_val < 0.340432)
         server = xmlrpclib.ServerProxy(server_url)
         
         src_list = server.get_sources_for_radec(49.556229, -0.883328, 0.05, '')
-        print 'len(src_list) :', len(src_list)
+        print('len(src_list) :', len(src_list))
         #print server.system.listMethods()
 
         # TODO test the source values which are returned. (RDB values check?)
@@ -931,7 +933,7 @@ if __name__ == '__main__':
         method_list.sort()
         for method in method_list:
             method_str = "cm." + method + "()"
-            print method_str
+            print(method_str)
             #exec(method_str)
             ### This allows stepping into & breaking in check functions:
             if method_str == "cm.check_40_feature_extraction_sanity_check()":

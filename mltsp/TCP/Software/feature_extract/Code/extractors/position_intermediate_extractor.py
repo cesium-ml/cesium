@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ..FeatureExtractor import ContextInterExtractor
 #from ..FeatureExtractor import FeatureExtractor
 import math
@@ -7,7 +8,7 @@ ok_to_use = True
 try:
 	import ephem
 except:
-	print "!position_intermedite_extractor: pyephem not installed. The position features will fail."
+	print("!position_intermedite_extractor: pyephem not installed. The position features will fail.")
 	ok_to_use = False
 
 default = {'galb': None, 'gall': None, 'ecb': None, 'ecl': None, 'ra': None, 'dec': None}

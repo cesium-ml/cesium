@@ -8,6 +8,7 @@ feature_extraction_interface.py
 PDB Command:
    /usr/lib/python2.5/pdb.py test.py
 """
+from __future__ import print_function
 import sys, os
 try:
     import pylab
@@ -42,7 +43,7 @@ class GetFeatIdLookupDicts:
         for result in results:
             (feat_name, filter_id, feat_id) = result
             feature_lookup_dict[(filter_id, feat_name)] = feat_id
-            if not filt_lookup_dict.has_key(filter_id):
+            if filter_id not in filt_lookup_dict:
                 filt_lookup_dict[filter_id] = {}
             filt_lookup_dict[filter_id][feat_name] = feat_id
         
@@ -699,7 +700,7 @@ class Feature_database:
         reduced_rez = []
         for src_rez in orig_rez:
             for temp_rez in src_rez.values():
-                if temp_rez.has_key('src_id'):
+                if 'src_id' in temp_rez:
                     src_id = temp_rez['src_id']
                     break
             select_str ="SELECT TRUE FROM feat_values WHERE src_id=%d LIMIT 1"\
@@ -763,8 +764,8 @@ class Feature_database:
                     #if feat_name == 'flux_percentile_ratio_mid50':
                     #    import pdb; pdb.set_trace()
                     #    print 'yo', feat_name, filt_name
-                    if signal_obj.properties['data'][filt_name]\
-                                                ['features'].has_key(feat_name):
+                    if feat_name in signal_obj.properties['data'][filt_name]\
+                                                ['features']:
                         feat_val = str(signal_obj.properties['data'][filt_name]\
                                                         ['features'][feat_name])
                         if ((feat_val == 'Fail') or (feat_val == 'nan') or
@@ -820,7 +821,7 @@ class Feature_database:
             #self.cursor.execute(''.join(insert_list)[:-2])
             insert_str = ''.join(insert_list)[:-2] + ' ON DUPLICATE KEY UPDATE feat_val=VALUES(feat_val)'
             self.cursor.execute(insert_str)
-            print 'feature RDB INSERTed/UPDATEd %d sources.' % (len(srcid_list))
+            print('feature RDB INSERTed/UPDATEd %d sources.' % (len(srcid_list)))
 
             # TODO: lets also insert / update which filter was used for the features, into the RDB.
 
@@ -921,10 +922,10 @@ class Plot_Signals:
                             feat_length = len(signal_obj.properties['data'][filt]\
                                               ['inter'][feature_name][0])
                             if feat_length > 0:
-                                print 'Added:  ', feature_name
+                                print('Added:  ', feature_name)
                                 features_to_plot.append(feature_name)
                         except:
-                            print 'Skipped:', feature_name
+                            print('Skipped:', feature_name)
         features_to_plot.sort()
         return features_to_plot
 
@@ -1048,7 +1049,7 @@ class Plot_Signals:
         for feat in scalar_features:
             print_list.append('%10.10s' % (feat))
         print_str = '    '.join(print_list)
-        print print_str
+        print(print_str)
         pylab.text(0.1, -0.11 + i*0.012, print_str, horizontalalignment='left', \
                    verticalalignment='bottom', rotation=0, size=6)
         ######

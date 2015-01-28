@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 
 from ..FeatureExtractor import InterExtractor
 import numpy
@@ -7,10 +8,10 @@ try:
 	from pylab import *
 except:
 	pass
-from common_functions import *
+from .common_functions import *
 
-from dist_from_u_extractor import dist_from_u_extractor
-from wei_av_uncertainty_extractor import wei_av_uncertainty_extractor
+from .dist_from_u_extractor import dist_from_u_extractor
+from .wei_av_uncertainty_extractor import wei_av_uncertainty_extractor
 
 class stdvs_from_u_extractor(InterExtractor):
 	active = True

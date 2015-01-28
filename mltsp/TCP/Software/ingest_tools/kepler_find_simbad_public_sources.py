@@ -5,6 +5,7 @@ TODO: for each source (which is public and has a lightcurve), parse the ra,dec
 TODO: then with the ra,dec query simbad/NED to see if any classifications / knowledge.
 
 """
+from __future__ import print_function
 import sys, os
 import socket
 socket.setdefaulttimeout(20) # for urllib2 timeout of urlopen()
@@ -146,9 +147,9 @@ LOAD DATA INFILE '%s' INTO TABLE kepler_kic
         self.cursor.execute(alter_table)
 
 
-        print "DONE."
+        print("DONE.")
         import pdb; pdb.set_trace()
-        print
+        print()
 
 class Kepler_Sources:
     """
@@ -176,7 +177,7 @@ class Kepler_Sources:
                     if substr == 'tarfiles':
                         pass
                     else:
-                        print substr
+                        print(substr)
                         kepid_4char_list.append(substr)
 
             kepid_dict = {}
@@ -226,7 +227,7 @@ class Kepler_Sources:
             for line in lines[:-1]:
                 elems = line.split('|')
                 if int(elems[2]) == kepid:
-                    print i, n_kepids, len(lines)
+                    print(i, n_kepids, len(lines))
                     ra_dict[kepid] = float(elems[0])
                     dec_dict[kepid] = float(elems[1])
 
@@ -352,7 +353,7 @@ class Kepler_Sources:
             for row in results:
                 (kepid, ra_deg, dec_deg, gmag, rmag, tm_designation) = row
                 import pdb; pdb.set_trace()
-                print
+                print()
                 xml_fpath = "%s/%d.xml" % (self.pars['simbad_votable_cache_dirpath'], kepid)
                 ### This condition can be done if we think we will be querying previously retrieved sources:
                 ###    - we have saved xmls for kepids >= 154612 (and not explicitly public_timeseries 150k)
@@ -361,7 +362,7 @@ class Kepler_Sources:
                 name_str = "2MASS J%s" % (tm_designation)
                 votable_str = self.query_votable_name(name=name_str)
                 if len(votable_str) < 310:
-                    print "NO SIMBAD: %d len:%d RA,D: %lf %lf %s " % (kepid, len(votable_str), ra_deg, dec_deg, name_str)
+                    print("NO SIMBAD: %d len:%d RA,D: %lf %lf %s " % (kepid, len(votable_str), ra_deg, dec_deg, name_str))
                     continue
 
                 #print "Y! SIMBAD info: %d RA, Dec: %lf %lf %s" % (kepid, ra_deg, dec_deg, name_str)
@@ -374,7 +375,7 @@ class Kepler_Sources:
                     continue
                 
                 out_str = "%d '%s'" % (kepid, class_str)
-                print out_str
+                print(out_str)
                 fp_txt.write(out_str + '\n')
 
                 class_dict[kepid] = class_str
@@ -424,7 +425,7 @@ class Kepler_Sources:
                 continue
             
             out_str = "%d '%s'" % (kepid, class_str)
-            print out_str
+            print(out_str)
             fp_txt.write(out_str + '\n')
 
             class_dict[kepid] = class_str
@@ -455,7 +456,7 @@ class Kepler_Sources:
         fp = open(self.pars['kep_simbad_class_txt_fpath'])
         
         for row in results:
-            print row
+            print(row)
 
 
         
@@ -484,7 +485,7 @@ class Kepler_Sources:
         # TODO: query simbad code with given ra, dec
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 if __name__ == '__main__':
 

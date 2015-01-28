@@ -5,6 +5,7 @@ Compile the python module using fortran code using:
 f2py -c flaplace.f -m flaplace
 
 """
+from __future__ import print_function
 import os, sys
 import numpy
 
@@ -33,7 +34,7 @@ class Simple_Fortran_Test:
         dy = 1
         for i in range(10):
             u = self.fortranTimeStep(u, dx, dy)
-            print u
+            print(u)
         
 class RF_Fortran_Test:
     """ Wrapping PARF missing-value Fortran re-implementation of RandomForest.

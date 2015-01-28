@@ -3,6 +3,7 @@
 """
 dumbass tool to run skycoor on random assortment of coordinate string formats
 """
+from __future__ import print_function
 import os,string
 skycoor = "/scisoft/i386/bin/skycoor"
 
@@ -47,15 +48,15 @@ def reckonpos(a):
 		#print a[0]
 		seps = "hmso'" + '""'
 		b = a[0]
-		print b
+		print(b)
 		for s in seps:
 			ttt = b.index(s)
-			print ttt
+			print(ttt)
 			if ttt != -1:
 				if string.digits.find(b[ttt - 1]) != -1  and string.digits.find(b[ttt - 2]) == -1:
 					b[ttt - 2] = "0"
 		a[0] = b
-		print b + "***"
+		print(b + "***")
 		tmp = [a for a in a[0] if string.ascii_letters.find(a) == -1 and "=".find(a) == -1 and "'".find(a) == -1 \
 		    and '"'.find(a) == -1]
 		tmp = "".join(tmp)
@@ -69,7 +70,7 @@ def reckonpos(a):
 			## too many periods, remove all those at the beginning and the end
 			sss = string.strip(sss,".")
 		
-		print sss
+		print(sss)
 		tmp = [x for x in sss.split(" ") if x != ""]
 		if len(tmp) == 6:
 			ra = ":".join(tmp[0:3])

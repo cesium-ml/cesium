@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 from numpy import empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
 from scipy import weave
-from lomb_scargle import lprob2sigma
+from .lomb_scargle import lprob2sigma
 from scipy.stats import f as fdist
-from ls_support import lomb_code,lomb_scargle_support
-from numc_eigs import scode as eigs_code
+from .ls_support import lomb_code,lomb_scargle_support
+from .numc_eigs import scode as eigs_code
 
 def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
     """

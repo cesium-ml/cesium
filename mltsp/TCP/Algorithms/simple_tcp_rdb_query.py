@@ -2,6 +2,7 @@
 """
    v0.1 An example / demo file on how to connect to TCP MySQL server
 """
+from __future__ import print_function
 
 
 import sys, os
@@ -46,8 +47,8 @@ JOIN object_test_db.sdss_events_a USING (obj_id)
 WHERE (DIF_HTMCircle(%lf, %lf, 0.01))
 ORDER BY src_id, t
     """ % (ra, dec)
-    print "SDSS filter numbers translate using {0:'u',1:'g',2:'r',3:'i',4:'z'}"
+    print("SDSS filter numbers translate using {0:'u',1:'g',2:'r',3:'i',4:'z'}")
     cursor.execute(select_str)
     results = cursor.fetchall()
     for row in results:
-        print row
+        print(row)

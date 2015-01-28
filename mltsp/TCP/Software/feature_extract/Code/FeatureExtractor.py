@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import numpy
 from numpy import random
 from scipy import fftpack, stats, optimize
@@ -7,16 +9,16 @@ try:
 except:
     pass
 try:
-    from extractors import *
+    from .extractors import *
 except:
     pass
 
 import time
 
-import internal_generated_extractors_holder # 20080508 KLUDGE
+from . import internal_generated_extractors_holder # 20080508 KLUDGE
 
 try:
-    import feature_interfaces
+    from . import feature_interfaces
 except:
     pass
 #20090321#import amara
@@ -53,7 +55,7 @@ class GeneralExtractor(object):
         self.properties = properties
         self.finddatadic(properties,band=band) # find the dictionary of the signal properties that contains the actual data
         if not self.checkalready(): # if it doesn't exist already
-            print self.extname, "extracting right now"
+            print(self.extname, "extracting right now")
             try:
                 self.set_names(self.dic['input'])
                 self.longenough() # check that there is enough data to run this
@@ -82,11 +84,11 @@ class GeneralExtractor(object):
     def checkalready(self):
         """ check if this feature has already been extracted in the past """
         for subdic in ['input','features','inter']:
-            if self.dic[subdic].has_key(self.extname): # test to see if this feature has already been extracted
+            if self.extname in self.dic[subdic]: # test to see if this feature has already been extracted
                 output = self.dic[subdic][self.extname]
                 #print "SKIP", self.extname, subdic
                 self.output = output
-                print "skipping", self.extname
+                print("skipping", self.extname)
                 return True # yes it already exists
             else: pass
         return False # no it doesn't exist yet
@@ -168,12 +170,12 @@ class GeneralExtractor(object):
         merge = dict(properties['input'], **properties['features'])
         merge = dict(merge, **properties['inter'])
         if self == 'Fail':
-            print "I can't print myself, I'm a failure", self.extname
+            print("I can't print myself, I'm a failure", self.extname)
         else:
             self.plot_feature(merge) # delegates at extractor (subclass) level, each extractor knows how to plot itself
         legend()
     def plot_feature(self,properties):
-        print "I don't know how to plot myself", self.extname # implement in subclasses
+        print("I don't know how to plot myself", self.extname) # implement in subclasses
 
 
     def fetch_extr(self,extractor_name,properties=None,error=True, band=None, returnall = False, return_object = False):
@@ -182,7 +184,7 @@ class GeneralExtractor(object):
         if not band: band = self.band
         if not properties: properties = self.properties
         if not isinstance(extractor_name, str):
-            print "Method %s is still using old fetch procedure, calling %s" % (self.extname, extractor_name.extname)
+            print("Method %s is still using old fetch procedure, calling %s" % (self.extname, extractor_name.extname))
             return self.fetch_extr_old(extractor_name,properties,error, band, returnall, return_object)
         #print extractor_name, self.properties, self.band
         # # # # # # # # dstarr KLUDGE (next single condition:):
@@ -227,8 +229,8 @@ class GeneralExtractor(object):
     def ex_error(self,text="I don't know why"):
         """ a feature extractor's way of raising an error cleanly """
         self.why_fail = text
-        print self.why_fail, self.extname
-        raise ExtractException, text
+        print(self.why_fail, self.extname)
+        raise ExtractException(text)
     def longenough(self):
         """ will not perform extraction if there aren't enough data points, minpoints set at extractor level """
         try:
@@ -275,10 +277,10 @@ class MultiExtractor(ContextExtractor):
     def set_names(self,where):
         """ prepares the most commonly used inputs for easy access """
         ContextExtractor.set_names(self,where)
-        if not self.multidic.has_key(self.band1):
+        if self.band1 not in self.multidic:
             self.ex_error("Multiband extractor %s did not find band '%s' in '%s'" % (self.extname, self.band1, self.multidic.keys()))
         else: pass
-        if not self.multidic.has_key(self.band2):
+        if self.band2 not in self.multidic:
             self.ex_error("Multiband extractor %s did not find band '%s' in '%s'" % (self.extname, self.band2, self.multidic.keys()))
         else: pass
         self.dic1 = self.multidic[self.band1]

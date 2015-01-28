@@ -14,6 +14,8 @@ Currently, this writes a .arff file which can be used to visualize the dependenc
 
 NOTE: only context features are used by the SN classification code.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
@@ -24,7 +26,7 @@ from Code import *
 import db_importer
 import glob
 import pprint
-import sn_classifier
+from . import sn_classifier
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract/Code/extractors'))
 #import vosource_parse
@@ -149,7 +151,7 @@ This code saves XMLs into a seperate directory.
             weka_line_list.append("'" + str(orig_sci_class) + "'")
 
             weka_line = ','.join(weka_line_list)
-            print '!', weka_line
+            print('!', weka_line)
             body_lines_list.append(weka_line)
 
         header_str = """% date = 2009-03-06 05:00:37.323219

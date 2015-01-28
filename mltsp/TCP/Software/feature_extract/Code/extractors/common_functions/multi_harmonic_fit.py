@@ -1,7 +1,9 @@
+from __future__ import print_function
+from __future__ import absolute_import
 from numpy import sin,cos,sqrt,empty,pi,dot,arctan2,atleast_1d,diag,arange,abs,ones,array,zeros,log,trace
 from scipy.linalg import cho_solve,cho_factor
 
-from pre_whiten import chi2sigma
+from .pre_whiten import chi2sigma
 
 def CholeskyInverse(t,B):
     """

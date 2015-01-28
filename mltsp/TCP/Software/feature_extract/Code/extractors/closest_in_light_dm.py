@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ..FeatureExtractor import ContextFeatureExtractor
 
 class closest_in_light_dm(ContextFeatureExtractor): 
@@ -21,5 +22,5 @@ class closest_in_light_dm(ContextFeatureExtractor):
                 else:
                         rez = ret
                 if self.verbose:
-                        print n
+                        print(n)
                 return rez

@@ -4,6 +4,8 @@
 
 NOTE: derived from ptf_master.py
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 import random
 
@@ -23,9 +25,9 @@ class Diff_Obj_Source_Populator:
         """ Import all module dependencies during client "initialization"
         """
         # store specific function as something local?
-        import ingest_tools
+        from . import ingest_tools
         ingest_tools_pars = ingest_tools.pars
-        import feature_extraction_interface
+        from . import feature_extraction_interface
         ingest_tools_pars.update({\
             'rdb_name_2':self.pars['object_dbname'],
             'rdb_name_3':self.pars['object_dbname'],
@@ -258,11 +260,11 @@ class Source_Reevaluation:
             (odds_list, matching_src_dict) = self.dosp.srcdbt.is_object_associated_with_source(obj_dict, source_dict_alldict.values(), sigma_0=3.0)
             #print obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
             if len(matching_src_dict) > 1:
-                print "+1 ASSOCIATED SOURCE", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
+                print("+1 ASSOCIATED SOURCE", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict)
             if objid_srcid_lookup.get(obj_id,'NONE') != matching_src_dict.values()[0]['src_id']:
-                print "MISMATCH", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
-            print '! odds_list = %d \tmatching_src_dict = %d\tnobjs = %d' % (len(odds_list), len(matching_src_dict), matching_src_dict.values()[0]['nobjs'])
-        print 'yo'
+                print("MISMATCH", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict)
+            print('! odds_list = %d \tmatching_src_dict = %d\tnobjs = %d' % (len(odds_list), len(matching_src_dict), matching_src_dict.values()[0]['nobjs']))
+        print('yo')
 
         # TODO: what I really want is to re-generate all sources using
         #     obj_dict_alldict.

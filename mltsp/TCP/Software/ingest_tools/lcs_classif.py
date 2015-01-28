@@ -12,6 +12,7 @@ script_output = p.stdout.readlines()
 /big_data/dstarr/src/TCP/Software/ingest_tools/lcs_classif.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
 
 """
+from __future__ import print_function
 import sys, os
 import urllib
 import cStringIO
@@ -159,9 +160,9 @@ def main():
     """ Main function
     """
     if len(sys.argv) < 2:
-	print "lcs_classif.py - len(sys.argv) < 2. Returning..."
+	print("lcs_classif.py - len(sys.argv) < 2. Returning...")
         return {}
-    print "lcs_classif.py - sys.argv[1] =", sys.argv[1]
+    print("lcs_classif.py - sys.argv[1] =", sys.argv[1])
     timeseries_url = sys.argv[1]
 
     t_list = []
@@ -280,5 +281,5 @@ if __name__ == '__main__':
     #print "blahblah"
     out_dict = main()
     #print "yoyoyo"
-    print out_dict
+    print(out_dict)
 

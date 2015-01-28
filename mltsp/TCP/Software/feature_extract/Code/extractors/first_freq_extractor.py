@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import FeatureExtractor
-from common_functions import plot_methods
+from .common_functions import plot_methods
 
-from common_functions.plot_methods import plot_vertical_line
+from .common_functions.plot_methods import plot_vertical_line
 
 class first_freq_extractor(plot_vertical_line,FeatureExtractor): 
 	"""grabs the highest frequency from an fft or lomb power spectrum"""

@@ -43,15 +43,17 @@ if is_junk
 return (is_undetermined)
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 import copy
 import math
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                 'Software/RealBogus/Code'))
 import cand
-import ingest_tools
-import ptf_master
-import jdac
+from . import ingest_tools
+from . import ptf_master
+from . import jdac
 import numpy
 import time
 
@@ -75,7 +77,7 @@ def parse_options():
                       help="Use Ipython Parallel nodes with weka classifications of PTF VarStar sources.")
 
     (options, args) = parser.parse_args()
-    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
+    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
     return options
 
 
@@ -134,7 +136,7 @@ class CaltechDB:
         try:
             import psycopg2
         except:
-            print "UNABLE to import psycopg2"
+            print("UNABLE to import psycopg2")
             return {}
         conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
         pg_cursor = conn.cursor()
@@ -159,7 +161,7 @@ class CaltechDB:
         try:
             import psycopg2
         except:
-            print "UNABLE to import psycopg2"
+            print("UNABLE to import psycopg2")
             return []
 
         conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
@@ -274,7 +276,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
 
         # TODO: check for candidate_id in dict
         matching_source_dict = {}
-        if ptf_cand_dict.has_key('id'):
+        if 'id' in ptf_cand_dict:
             matching_source_dict = self.get_srcid_containing_candidate( \
                                               srcid_summary_dict, ptf_cand_dict)
         if len(matching_source_dict) == 0:
@@ -317,7 +319,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         for i, ujd in enumerate(matching_source_dict['ujd']):
             # we just do this single epoch case to make things run faster:
             do_pymp = False
-            if not ptf_cand_dict.has_key('id'):
+            if 'id' not in ptf_cand_dict:
                 do_pymp = True
             elif matching_source_dict['obj_id'][i] == ptf_cand_dict['id']:
                 do_pymp = True
@@ -326,7 +328,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
                 obj_ids_matched = True
                 pym = cand.pymp(pos=(ptf_cand_dict['ra'],ptf_cand_dict['dec']), time_obs=ujd,
                        radius=rock_dist)
-                print ra, dec, pym.pos
+                print(ra, dec, pym.pos)
                 try:
                     rez = pym.isrock()
                     if rez['isrock']:
@@ -369,7 +371,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         for ujd in matching_source_dict['ujd']:
             pym = cand.pymp(pos=(ra,dec), time_obs=ujd,
                        radius=rock_dist)
-            print ra, dec, pym.pos
+            print(ra, dec, pym.pos)
             rez = pym.isrock()
             if rez['isrock']:
                 is_rock_count += 1
@@ -427,7 +429,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
                 is_interesting_cand_dict[candidate_id] = copy.copy(nearby_class)
 
             ellip_list.append(self.cand_lblq.get_candidates_ellip(candidate_id))
-            if ptf_cand_dict.has_key('id'):
+            if 'id' in ptf_cand_dict:
                 if candidate_id == ptf_cand_dict['id']:
                     ptf_cand_summarize_dict = copy.deepcopy(nearby_class)
 
@@ -440,7 +442,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         if str(out_dict['nearby_sqrt_rbscales_avg']) == 'nan':
             out_dict['nearby_sqrt_rbscales_avg'] = 'Null'
 
-        if ptf_cand_dict.has_key('id'):
+        if 'id' in ptf_cand_dict:
             rb_slope_val = self.get_rb_slope(candidate_id=ptf_cand_dict['id'])
             out_dict['rb_slope_val'] = rb_slope_val
 
@@ -450,7 +452,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
             slope_val_list.append(rb_slope_val)
         out_dict['rb_slope_val_avg'] = sum(slope_val_list)/float(len(slope_val_list))
         
-        if ptf_cand_dict.has_key('id'):
+        if 'id' in ptf_cand_dict:
             out_dict['ellip'] = self.cand_lblq.get_candidates_ellip(ptf_cand_dict['id'])
         out_dict['ellip_avg'] = sum(ellip_list) / float(len(ellip_list))
 
@@ -610,7 +612,7 @@ WHERE src_id = %d AND schema_id >= %d
                 weighted_prob_list.append(prob_weighted)
                 class_dict['prob_weighted'] = prob_weighted
                 prob = class_dict['prob']
-                if prob_key_classdict.has_key(prob):
+                if prob in prob_key_classdict:
                     prob += 0.0001 # KLUDGE, just to make unique and get in dict
                 prob_key_classdict[prob] = class_dict
 
@@ -841,7 +843,7 @@ WHERE src_id = %d AND schema_id >= %d
             on_duplicate_update_str += "%s=VALUES(%s), " % (col_name, col_name)
             
         insert_str = ''.join(insert_list)[:-2] + on_duplicate_update_str[:-2]
-        print insert_str
+        print(insert_str)
         self.rdbt.cursor.execute(insert_str)
 
 
@@ -932,7 +934,7 @@ def table_insert_ptf_cand(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifi
     # # # # #ptf_cand_dict = Caltech_DB.get_ptf_candid_info(cand_shortname=ptf_cand_shortname)
     ptf_cand_dict = Caltech_DB.get_ptf_candid_info___non_caltech_db_hack(cand_shortname=ptf_cand_shortname)
 
-    print ptf_cand_dict
+    print(ptf_cand_dict)
 
     #if ptf_cand_dict['id'] == 12035841:
     #    # This is a case where ingested_srcids is not filled:
@@ -946,30 +948,30 @@ def table_insert_ptf_cand(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifi
                                                      ptf_cand_dict, ingested_srcids)
 
     if len(matching_source_dict) == 0:
-        print "no associate / generated / matching source found for:"
-        print "ptf_cand_dict=", ptf_cand_dict
-        print "ingested_srcids=",  ingested_srcids
+        print("no associate / generated / matching source found for:")
+        print("ptf_cand_dict=", ptf_cand_dict)
+        print("ingested_srcids=",  ingested_srcids)
         return 
     
     ##### TCP classifications:
     tcp_classif = Get_Classifications_For_Ptfid.get_TCP_classifications(matching_source_dict)
-    print tcp_classif
+    print(tcp_classif)
 
     ##### IsRock / PyMPChecker Classifier:
     rock_classif = Get_Classifications_For_Ptfid.get_is_rock_info(matching_source_dict, ptf_cand_dict)
-    print "rock_classif['is_rock_count']", rock_classif['is_rock_count']
+    print("rock_classif['is_rock_count']", rock_classif['is_rock_count'])
 
     ##### Josh's D.A. Classifier:
     # # # # This should do all of the following in a function and the L689 - 704 stuff, just returning/adding to jdac_dict:
     #        extracted_prob(float,'Null'), extracted_name(string,'Null'), extracted_confid(float, 'Null')
     jdac_class = Get_Classifications_For_Ptfid.extract_jdac_classifs(ptf_cand_dict)
-    print "JDAC:", jdac_class
+    print("JDAC:", jdac_class)
 
 
     # TODO: I should actually do a count for all epochs in source...
     ##### Nearby candidate classifier:
     nearby_classif = Get_Classifications_For_Ptfid.get_nearby_classifier_info(matching_source_dict, ptf_cand_dict)
-    print "nearby_classif['is_interesting_count']", nearby_classif['is_interesting_count']
+    print("nearby_classif['is_interesting_count']", nearby_classif['is_interesting_count'])
 
     #tcp_classif['is_junk'] = False
     #if nearby_classif['is_interesting_count'] <= 1:
@@ -1052,7 +1054,7 @@ else:
                                             push={'short_name':short_name}))#, retries=3))
                 task_id_list.append(taskid)
             except:
-                print "EXCEPT!: taskid=", taskid, exec_str
+                print("EXCEPT!: taskid=", taskid, exec_str)
 
 
 
@@ -1081,9 +1083,9 @@ else:
                 matching_source_dict = Get_Classifications_For_Ptfid.get_closest_matching_tcp_source( \
                                                                  ptf_cand_dict, ingested_srcids)
                 if len(matching_source_dict) == 0:
-                    print "no associate / generated / matching source found for:"
-                    print "ptf_cand_dict=", ptf_cand_dict
-                    print "ingested_srcids=",  ingested_srcids
+                    print("no associate / generated / matching source found for:")
+                    print("ptf_cand_dict=", ptf_cand_dict)
+                    print("ingested_srcids=",  ingested_srcids)
                     continue
                 tcp_classif = Get_Classifications_For_Ptfid.get_TCP_classifications(matching_source_dict)
                 #print tcp_classif

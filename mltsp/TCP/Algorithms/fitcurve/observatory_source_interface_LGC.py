@@ -3,6 +3,7 @@
 """
 the observatory emits certain demands, fulfilled by this interface
 """
+from __future__ import print_function
 import sys
 import os
 
@@ -158,11 +159,11 @@ class spline_model(lomb_model):
                         window = logical_and(available > (desired_times.min()-10.), available < (desired_times.max()+10))
 
                         data, rms = spline_fitted_magnitudes(available, m, m_err, desired_times, mindiff = mindiff)
-                except AssertionError, description:
+                except AssertionError as description:
                     latest_description = description
                     continue
                 else:
-                    print "passed"
+                    print("passed")
                     ispassed = True
                     break
             assert ispassed, "Didn't find a time shift that works, latest reason:" + str(latest_description)
@@ -250,7 +251,7 @@ class observatory_source_interface(object):
                 nharm = harm_dict["nharm"]
                 if nharm == 0:
                     break
-                print "frequency", i+1, "nharm", nharm 
+                print("frequency", i+1, "nharm", nharm) 
                 ytest, harm_dict = pre_whiten.pre_whiten(available, ytest, freq_max, delta_time=dx, signal_err=m_err, dof=dof, nharm_min=nharm, nharm_max=nharm)
                 out_dict[dstr] = {}
                 freq_dict = out_dict[dstr]
@@ -290,7 +291,7 @@ class observatory_source_interface(object):
                     picked_band_key = picked_band + ":" + item.split(":")[1]
                 except IndexError:
                     break
-        print picked_band_key
+        print(picked_band_key)
         try:
             if len(sys.argv) > 4:
                 if sys.argv[4] != 'tutor':
@@ -310,7 +311,7 @@ class observatory_source_interface(object):
             else:
                 band_dic = ts[picked_band]
         except KeyError:
-            print "print ts.keys()", ts.keys()
+            print("print ts.keys()", ts.keys())
             raise KeyError
         # we then make a copy of this dictionary for us to work with:
         my_dic = band_dic.copy()
@@ -322,17 +323,17 @@ class observatory_source_interface(object):
         self.out_dict = self.get_out_dict(available, m, m_err, xml_file)
         passed = False
         for model in self.list_of_models:
-            print "trying", model
+            print("trying", model)
             try:
                 model_function = model.create_model(available,m,m_err, self.out_dict)
                 model_output = model_function(needed)
-            except AssertionError, description:
-                print "we caught an assertion error %s" % description
+            except AssertionError as description:
+                print("we caught an assertion error %s" % description)
                 continue
             else:
                 passed = True
                 break
-        print passed, "passed?"
+        print(passed, "passed?")
         assert passed, "None of the models supplied worked :-/"
         # reduce my_dic to these picked times
         model_flux = model_output["flux"]
@@ -430,11 +431,11 @@ def main():
                 mindiff_multiplier = 1
             t = generic_observatory.time_series_generator()
             time_series = t.generate_time_series(vega, my_obs)
-            print "mindiff_multiplier should be: ", mindiff_multiplier
+            print("mindiff_multiplier should be: ", mindiff_multiplier)
             try:
                 output = my_obs.observe(target=vega, times = time_series, band = "V")
-            except AssertionError, description:
-                print "Failed %s times so far, because of %s" % ((i+1), description)
+            except AssertionError as description:
+                print("Failed %s times so far, because of %s" % ((i+1), description))
             else:
                 return output
     return request_noisified()

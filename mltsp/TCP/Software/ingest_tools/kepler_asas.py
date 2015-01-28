@@ -6,6 +6,8 @@
 wget http://www.astro.uni.wroc.pl/ldb/asas/Table_1.txt
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys
 import urllib2
@@ -88,7 +90,7 @@ def get_file_from_url(dirpath, url_modifier, asas_id):
         fp.write(data_str)
         fp.close()
         f_size = os.stat(fpath).st_size
-        print "Got:", asas_id
+        print("Got:", asas_id)
     
 
 def retrieve_ts_data(out_dict, asas_v_dirpath='', asas_i_dirpath=''):
@@ -109,17 +111,17 @@ def retrieve_ts_data(out_dict, asas_v_dirpath='', asas_i_dirpath=''):
             get_file_from_url(asas_v_dirpath, 'lcv',
                           out_dict['data_dict']['ASAS_ID_V'][i])
         except:
-            print "EXCEPT: V", asas_id
+            print("EXCEPT: V", asas_id)
 
         ### I:
         try:
             get_file_from_url(asas_i_dirpath, 'lci',
                           out_dict['data_dict']['ASAS_ID_I'][i])
         except:
-            print "EXCEPT: I", asas_id
+            print("EXCEPT: I", asas_id)
 
     import pdb; pdb.set_trace()
-    print
+    print()
 
 
 def retrieve_nomad_color_files(data_dict={}, pars={}):
@@ -130,7 +132,7 @@ def retrieve_nomad_color_files(data_dict={}, pars={}):
                        'dec_list':data_dict['data_dict']['DEC'],
                        'objids':data_dict['data_dict']['No']}
 
-    import nomad_colors_assoc_activelearn
+    from . import nomad_colors_assoc_activelearn
     nomad_data_cache_dirpath = '/home/dstarr/scratch/nomad_cache_asas_kepler'
 
     pars = {}
@@ -150,7 +152,7 @@ def retrieve_nomad_color_files(data_dict={}, pars={}):
 def classify_best_nomad_sources(nomad_sources={}, asas_data_dict={}, pars={}):
     """ Adapted from get_colors_for_tutor_sources.py:generate_nomad_tutor_source_associations()
     """
-    import get_colors_for_tutor_sources
+    from . import get_colors_for_tutor_sources
     gc = get_colors_for_tutor_sources.Get_Colors_Using_Nomad(pars=pars)
     best_nomad_sources = gc.generate_nomad_source_associations_without_tutor(nomad_sources=nomad_sources, asas_data_dict=asas_data_dict)
     gc.update_bestnomad_list_file(best_nomad_lists=best_nomad_sources, projid=0)
@@ -191,7 +193,7 @@ def remove_sources_with_many_missing_attribs(data_dict, exclude_feats=['freq_sig
         else:
             new_list.append(srcid)
     data_dict['srcid_list'] = new_list
-    print "Removed %d sources with few useful features" % (len(exclude_src_i_set))
+    print("Removed %d sources with few useful features" % (len(exclude_src_i_set)))
 
         
     
@@ -239,7 +241,7 @@ if __name__ == '__main__':
         classify_best_nomad_sources(nomad_sources=nomad_sources, asas_data_dict=asas_data_dict, pars=pars)
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
     ### NEXT step is to use
     ### starvars_feature_generation.py::ipp.main_ipython13() to
@@ -338,8 +340,8 @@ if __name__ == '__main__':
         for tup in classif_results['predictions']['tups']:
             #final_dict[tup[3]] = tup[2]
             if ((tup[1] == 0) or (tup[1] == 1)):
-                print tup[0], tup[1], tup[3], '\t', tup[2]
+                print(tup[0], tup[1], tup[3], '\t', tup[2])
         import pdb; pdb.set_trace()
-        print
+        print()
 
 

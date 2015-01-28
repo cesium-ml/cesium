@@ -15,6 +15,7 @@ NOTE: This also requires reference to a PATH which contains required Python modu
 
 
 """
+from __future__ import print_function
 import os, sys
 import pprint
 
@@ -134,15 +135,15 @@ if __name__ == '__main__':
 
 
         ##### This gives some examples of access to "d"'s XmlDictObject components:
-        print d.data['ts'].keys()
+        print(d.data['ts'].keys())
         #['I:table6235', 'V:table7886']
-        print d.data['ts']['I:table6235'][2]['name']
+        print(d.data['ts']['I:table6235'][2]['name'])
         #m_err
 
-        print d.feat_dict.keys()
+        print(d.feat_dict.keys())
         #['I:table6235', 'multiband', 'V:table7886']
 
-        print d.feat_dict['I:table6235'].keys()
+        print(d.feat_dict['I:table6235'].keys())
         #['ratio32', 'ratio31', 'freq3_harmonics_amplitude_error_0', 'freq1_harmonics_peak2peak_flux', 'beyond1std', 'freq1_harmonics_rel_phase_0', 'max_slope',  .... ]
 
         import pprint

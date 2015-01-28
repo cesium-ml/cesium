@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
-from common_functions.plot_methods import plot_vs_frequencies
+from .common_functions.plot_methods import plot_vs_frequencies
 
 class power_spectrum_extractor(plot_vs_frequencies,InterExtractor):
 	active = False

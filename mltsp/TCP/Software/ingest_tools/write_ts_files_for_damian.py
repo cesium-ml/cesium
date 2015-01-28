@@ -7,6 +7,7 @@
  - lookup file describes:
  - proj_id src_id survey_name orig_class algo_class_1 algo_prob_1 . . .
 """
+from __future__ import print_function
 
 import sys, os
 
@@ -140,7 +141,7 @@ TODO:
             write_str = "%d %d %s %s %s\n" % ( \
                             src_id, proj_id, survey_name, tutor_class_name,
                             algo_class_str)
-            print write_str,
+            print(write_str, end=' ')
             #import pdb; pdb.set_trace()
             #print
             fp.write(write_str)
@@ -209,7 +210,7 @@ TODO:
         self.make_summary_file(srcid_list=srcid_list, srcid_classname=srcid_classname)
         
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
 if __name__ == '__main__':

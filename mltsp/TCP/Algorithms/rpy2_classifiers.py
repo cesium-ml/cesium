@@ -8,6 +8,7 @@ Tested using:
   rpy2  2.1.9
 
 """
+from __future__ import print_function
 import os, sys
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -368,7 +369,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
@@ -390,7 +391,7 @@ class Rpy2Classifier:
         robjects.globalenv['yte'] = testdata_dict['classes']
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
         r_str  = '''
 
@@ -535,7 +536,7 @@ class Rpy2Classifier:
             fp.write("%d %lf %s\n" % (ntree, err, str(datetime.datetime.now() - now)))
             fp.close()
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def generate_imputed_arff_for_ntree(self, feature_data_dict, mtry=None, ntree=None, header_str=None, feature_list=[], srcid_list=[], class_list=[], train_srcids=[]):
@@ -598,7 +599,7 @@ class Rpy2Classifier:
             try:
                 r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
             except:
-                print 'feat_longlist.count(None)=', feat_longlist.count(None), '\t', feat_name
+                print('feat_longlist.count(None)=', feat_longlist.count(None), '\t', feat_name)
                 raise # apparently None values are not automatically converted to numpy.nan.  Must do earlier.
             #print feat_longlist.count(numpy.nan), '\t', feat_name
         #import pdb; pdb.set_trace()
@@ -633,7 +634,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         if do_ignore_NA_features:
-            print "actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete"
+            print("actlearn_randomforest():: do_ignore_NA_features==True not implemented because obsolete")
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
@@ -848,9 +849,9 @@ class Rpy2Classifier:
         IDAdd = robjects.globalenv['IDAdd']
         predAdd = robjects.globalenv['predAdd']
 
-        print "Chosen high confidence sources:"
+        print("Chosen high confidence sources:")
         for i, source_id in enumerate(list(IDAdd)):
-            print source_id, list(predAdd)[i]
+            print(source_id, list(predAdd)[i])
 
         # Want to return a list of one source_id from each class, and also a list of the rest.
 
@@ -1370,7 +1371,7 @@ class GenerateFoldedClassifiers:
 
         class_indlist = {}
         for i, class_name in enumerate(full_data_dict['class_list']):
-            if not class_indlist.has_key(class_name):
+            if class_name not in class_indlist:
                 class_indlist[class_name]  = []
             class_indlist[class_name].append(i)
 
@@ -1396,7 +1397,7 @@ class GenerateFoldedClassifiers:
 
         if do_stratified:
             ### Stratified case will have to keep track of which srcids were used in each train/classif fold.
-            print 'do_stratified!!!  Case not coded yet!'
+            print('do_stratified!!!  Case not coded yet!')
             
             raise
         else:
@@ -1463,12 +1464,12 @@ class GenerateFoldedClassifiers:
                                                 do_ignore_NA_features=do_ignore_NA_features,
                                                 ntrees=ntrees, mtry=mtry, nfolds=nfolds, nodesize=nodesize)
         else:
-            print 'incorrect classifier_type!'
+            print('incorrect classifier_type!')
             raise
 
         rc.save_classifier(classifier_dict=classifier_dict,
                            fpath=classifier_fpath)
-        print 'WROTE:', classifier_fpath
+        print('WROTE:', classifier_fpath)
 
 
 
@@ -1523,7 +1524,7 @@ if __name__ == '__main__':
                                                 do_ignore_NA_features=do_ignore_NA_features)
             rc.save_classifier(classifier_dict=classifier_dict,
                                fpath=classifier_fpath)
-            print 'WROTE:', classifier_fpath
+            print('WROTE:', classifier_fpath)
             sys.exit()
         else:
             r_name='rf_clfr'

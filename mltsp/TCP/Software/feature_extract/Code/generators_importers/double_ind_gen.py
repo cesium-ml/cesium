@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import numpy
-from storage import storage
+from .storage import storage
 
-from sgwindn_gen import sgwindn_gen
-from double_sig_gen import double_sig_gen
+from .sgwindn_gen import sgwindn_gen
+from .double_sig_gen import double_sig_gen
 
 class double_ind_gen(sgwindn_gen,double_sig_gen):
 	name = 'double sine wave with individual noise, evenly sampled'

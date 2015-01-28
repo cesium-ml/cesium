@@ -8,11 +8,13 @@ plugin_classifier.py
 
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 import copy
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/Code/extractors')
 import mlens3  # for microlensing classification
-import sn_classifier
+from . import sn_classifier
 
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/MLData')
 import arffify
@@ -20,14 +22,14 @@ import arffify
 
 # KLUDGE: this is ugly (importing ptf_master.py from within here.)  the Diff_Obj_Source_Populator
 #           class should exist in a seperate module / file:
-import ptf_master # required by tions_for_tcp_marked_variables.get_overall_classification_without_repopulation()
-import ingest_tools
+from . import ptf_master # required by tions_for_tcp_marked_variables.get_overall_classification_without_repopulation()
+from . import ingest_tools
 try:
-    import get_classifications_for_caltechid
+    from . import get_classifications_for_caltechid
 except:
     pass
 try:
-    import get_classifications_for_tcp_marked_variables # required by tions_for_tcp_marked_variables.get_overall_classification_without_repopulation()
+    from . import get_classifications_for_tcp_marked_variables # required by tions_for_tcp_marked_variables.get_overall_classification_without_repopulation()
 except:
     pass
 
@@ -35,9 +37,9 @@ except:
 try:
     import jpype
 except:
-    print "EXCEPT: plugin_classifier.py.  Possibly on a development system without Java Weka of JPype installed."
+    print("EXCEPT: plugin_classifier.py.  Possibly on a development system without Java Weka of JPype installed.")
     pass # KLUDGE: This would except on a development system without Java Weka of JPype installed.
-import weka_classifier
+from . import weka_classifier
 os.environ["JAVA_HOME"] = '/usr/lib/jvm/java-6-sun-1.6.0.03'
 os.environ["CLASSPATH"] += os.path.expandvars(':$TCP_DIR/Software/ingest_tools')
 
@@ -128,7 +130,7 @@ class PluginClassifier:
 
 	    for fea in new_master_features_list:
 	    	val = None
-	    	if obj['features'].has_key(fea):
+	    	if fea in obj['features']:
 	    		str_fea_val = str(obj['features'][fea])
 	    		if ((str_fea_val == "False") or 
 	    		    (str_fea_val == "inf") or
@@ -205,18 +207,18 @@ class PluginClassifier:
         #       as well as a couple tailored n_epochs .model classification
         # TODO: Maybe pass in a .model into this function:
         if do_logging:
-            print "before: self.arffmaker.populate_features_and_classes_using_local_xmls()"
+            print("before: self.arffmaker.populate_features_and_classes_using_local_xmls()")
 
         self.arffmaker.populate_features_and_classes_using_local_xmls(\
                                              srcid_xml_tuple_list=vosource_list)
         try:
             n_epochs_fromfeats = self.arffmaker.master_list[0]['features'][('n_points', 'float')]
         except:
-            print "EXCEPT: self.arffmaker.master_list[0]['features'][('n_points', 'float')] : Empty array?"
+            print("EXCEPT: self.arffmaker.master_list[0]['features'][('n_points', 'float')] : Empty array?")
             n_epochs_fromfeats = 0
 
         if do_logging:
-            print "before: n_epochs_fromfeats > 1.0 try/except"
+            print("before: n_epochs_fromfeats > 1.0 try/except")
 
         if n_epochs_fromfeats > 1.0:
             class_schema_name_list = self.class_schema_definition_dicts.keys()
@@ -233,9 +235,9 @@ class PluginClassifier:
                                                                             iteritems():
                         plugin_classification_dict[src_id].update(plugin_dict)
                 except:
-                    print "EXCEPT: Calling get_class_probs_using_jvm_weka_instance()"
+                    print("EXCEPT: Calling get_class_probs_using_jvm_weka_instance()")
         if do_logging:
-            print "after: n_epochs_fromfeats > 1.0 try/except"
+            print("after: n_epochs_fromfeats > 1.0 try/except")
 
         #DEBUG# return ({},{})
         ##### Microlensing classification:
@@ -244,12 +246,12 @@ class PluginClassifier:
             ##########s_fp = cStringIO.StringIO(vosource_xml_str)
             # TODO: I need to create google-pseudo-fp for this string:
             if do_logging:
-                print "before: mlens3.EventData(vosource_xml_str)"
+                print("before: mlens3.EventData(vosource_xml_str)")
  	    d = mlens3.EventData(vosource_xml_str)
             ##########del s_fp #.close()
 
             if do_logging:
-                print "before: mlens3.Mlens(datamodel=d,doplot=False)"
+                print("before: mlens3.Mlens(datamodel=d,doplot=False)")
  	    ## run the fitter (turn off doplot for running without pylab)
  	    m = mlens3.Mlens(datamodel=d,doplot=False)#,doplot=True)
  	    ### prob_mlens should be between 0 and 1...anything above 0.8 is pretty sure bet
@@ -258,14 +260,14 @@ class PluginClassifier:
 
             ##### Nat/Dovi case:
             if do_logging:
-                print "before: sn_classifier.Dovi_SN(datamodel=d,doplot=False)"
+                print("before: sn_classifier.Dovi_SN(datamodel=d,doplot=False)")
  	    sn = sn_classifier.Dovi_SN(datamodel=d,doplot=False)#,doplot=True)
             plugin_classification_dict[src_id]['Dovi SN'] = sn.final_results
             #import pprint
             #pprint.pprint(plugin_classification_dict[src_id]['Dovi SN'].get('probabilities',{}))
             #print 'yo'
         if do_logging:
-            print "after: for src_id,vosource_xml_str in vosource_list"
+            print("after: for src_id,vosource_xml_str in vosource_list")
 
 
         ##### Combined / Final Classification:
@@ -321,23 +323,23 @@ class PluginClassifier:
         #           class should exist in a seperate module / file:
 
         if do_logging:
-            print "before: DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator"
+            print("before: DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator")
 
         DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator(use_postgre_ptf=False) #True)
 
         if do_logging:
-            print "after: DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator"
+            print("after: DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator")
 
         src_id = int(vosource_list[0][0]) # we can assume at this point that len(vosource_list) > 0
 
         select_str = """SELECT id, realbogus, ujd, source_test_db.srcid_lookup.ra, source_test_db.srcid_lookup.decl FROM object_test_db.obj_srcid_lookup JOIN object_test_db.ptf_events ON (object_test_db.ptf_events.id = object_test_db.obj_srcid_lookup.obj_id) JOIN source_test_db.srcid_lookup USING (src_id) where survey_id=3 AND src_id=%d""" % (src_id)
         if do_logging:
-            print select_str
+            print(select_str)
 
         DiffObjSourcePopulator.rdbt.cursor.execute(select_str)
         rdb_rows = DiffObjSourcePopulator.rdbt.cursor.fetchall()
         if do_logging:
-            print "after select .execute()"
+            print("after select .execute()")
         general_classif_source_dict = {'obj_id':[],
                                        'realbogus':[],                        
                                        'ujd':[],
@@ -350,23 +352,23 @@ class PluginClassifier:
             general_classif_source_dict['ujd'].append(row[2])
 
         if do_logging:
-            print "before: Get_Classifications_For_Ptfid = get_classifications_for_caltechid.GetClassifications"
+            print("before: Get_Classifications_For_Ptfid = get_classifications_for_caltechid.GetClassifications")
 
         #PTFPostgreServer = ptf_master.PTF_Postgre_Server(pars=ingest_tools.pars, \
         #                                                 rdbt=DiffObjSourcePopulator.rdbt)
         PTFPostgreServer = None
         Get_Classifications_For_Ptfid = get_classifications_for_caltechid.GetClassificationsForPtfid(rdbt=DiffObjSourcePopulator.rdbt)
         if do_logging:
-            print "before: general_classif_dict = get_classifications_for_tcp_marked_variables.get_overall"
+            print("before: general_classif_dict = get_classifications_for_tcp_marked_variables.get_overall")
 
         general_classif_dict = get_classifications_for_tcp_marked_variables.get_overall_classification_without_repopulation(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifications_For_Ptfid, Caltech_DB=None, matching_source_dict=general_classif_source_dict)
 
         if do_logging:
-            print "after: general_classif_dict = get_classifications_for_tcp_marked_variables.get_overall"
+            print("after: general_classif_dict = get_classifications_for_tcp_marked_variables.get_overall")
 
         DiffObjSourcePopulator.rdbt.cursor.close()
 
-        if general_classif_dict.has_key('science_class'):
+        if 'science_class' in general_classif_dict:
             class_type = general_classif_dict['science_class']
         else:
             class_type = general_classif_dict['overall_type']
@@ -397,7 +399,7 @@ class PluginClassifier:
         ##### DEBUG:
         #print class_probs_dict
         if do_logging:
-            print "(end of) do_classification()"
+            print("(end of) do_classification()")
         return (class_probs_dict, plugin_classification_dict)
 
 

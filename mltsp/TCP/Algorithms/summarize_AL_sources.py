@@ -2,6 +2,7 @@
 """ Summarizes certain science class sources found in AL*.dat files
 
 """
+from __future__ import print_function
 
 import sys, os
 import MySQLdb
@@ -38,8 +39,8 @@ if __name__ == '__main__':
 
     fpaths = glob.glob("%s/%s" % (pars['al_dirpath'], pars['al_glob_str']))
 
-    print """<html><body><table>
-    """
+    print("""<html><body><table>
+    """)
     for fpath in fpaths:
         tup_list = loadtxt(fpath,
                            dtype={'names': ('src_id', 'class_id'),
@@ -50,7 +51,7 @@ if __name__ == '__main__':
         classid_list = tup_list['class_id']
         for i, classid in enumerate(classid_list):
             if classid in pars['classids_of_interest']:
-                print '<tr><td>%d (%s) %s     <A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d">%d</A></td></tr>' % (srcid_list[i], fpath[fpath.rfind('/')+1:], class_id_name[classid].replace(' ','_'), srcid_list[i], srcid_list[i])
+                print('<tr><td>%d (%s) %s     <A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d">%d</A></td></tr>' % (srcid_list[i], fpath[fpath.rfind('/')+1:], class_id_name[classid].replace(' ','_'), srcid_list[i], srcid_list[i]))
 
     select_str = "select source_id, class_id from sources where project_id = 123"
     DatabaseUtils.tutor_cursor.execute(select_str)
@@ -60,10 +61,10 @@ if __name__ == '__main__':
     for row in results:
         (source_id, classid) = row
         if classid in pars['classids_of_interest']:
-            print '<tr><td>%d (%s) %s     <A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d">%d</A></td></tr>' % (source_id, "Debosscher", class_id_name[classid].replace(' ','_'), source_id, source_id)
+            print('<tr><td>%d (%s) %s     <A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d">%d</A></td></tr>' % (source_id, "Debosscher", class_id_name[classid].replace(' ','_'), source_id, source_id))
 
-    print """</table></body></html>
-    """
+    print("""</table></body></html>
+    """)
     import pdb; pdb.set_trace()
-    print
+    print()
     

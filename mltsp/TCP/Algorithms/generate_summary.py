@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ Generate a summary of metacost.results Weka output in Noisification/* dirs
 """
+from __future__ import print_function
 
 import sys, os
 import glob
@@ -26,4 +27,4 @@ if __name__ == '__main__':
                   "Correctly Classified Instances" in line):
                 percent = float(line[52:line.rfind('%')-1])
                 break
-        print "%0.2f %s" % (percent, case_name)
+        print("%0.2f %s" % (percent, case_name))

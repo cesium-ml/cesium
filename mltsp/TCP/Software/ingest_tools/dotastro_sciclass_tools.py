@@ -7,6 +7,7 @@
   
 
 """
+from __future__ import print_function
 import os, sys
 try:
     import MySQLdb
@@ -274,7 +275,7 @@ class Dotastro_Sciclass_Tools:
             out_dict['shortname_ispublic'][class_shortname] = class_is_public
 
         ### Add the top class, which seems to connect the "moving source", "variable stars [Alt]", "Variable Stars", "Variable Sources (Non-stellar)" together
-        out_dict['classid_shortname'][0L] = "_varstar_" # top grandfather science class
+        out_dict['classid_shortname'][0] = "_varstar_" # top grandfather science class
         out_dict['shortname_longname']["_varstar_"] = "_varstar_" # top grandfather science class
         out_dict['longname_shortname']["_varstar_"] = "_varstar_" # top grandfather science class
         out_dict['shortname_isactive']["_varstar_"] = "No"
@@ -283,18 +284,18 @@ class Dotastro_Sciclass_Tools:
 
         #import pdb; pdb.set_trace()
         ### 'Chemically Peculiar Stars':'CP' is only a Deboscher(12) project-class and has no parents or equivalent science classes.  So, we hardcode "_varstar_" as the parent
-        out_dict['classid_shortname'][1000000L] = "Chemically Peculiar Stars"
+        out_dict['classid_shortname'][1000000] = "Chemically Peculiar Stars"
         out_dict['shortname_longname']["CP"] = "Chemically Peculiar Stars"
         out_dict['longname_shortname']["Chemically Peculiar Stars"] = "CP" # top grandfather science class
         out_dict['shortname_isactive']["CP"] = "No"
         out_dict['shortname_ispublic']["CP"] = "No"
         out_dict['shortname_nsrcs']["CP"] = 0
-        out_dict['shortname_parent_id']["CP"] = 0L
+        out_dict['shortname_parent_id']["CP"] = 0
 
         ### Add counts of sources: select * FROM sources WHERE   EXISTS(SELECT Observations.Observation_ID FROM Observations WHERE Observations.Source_ID = sources.Source_ID) limit 10;
 
         for class_id, class_shortname in out_dict['classid_shortname'].iteritems():
-            if class_id == 0L:
+            if class_id == 0:
                 continue # skip
             select_str = "SELECT count(*) FROM sources WHERE class_id=%d" % (class_id)
             self.cursor.execute(select_str)
@@ -306,8 +307,8 @@ class Dotastro_Sciclass_Tools:
         classid_list = out_dict['classid_shortname'].keys()
         for class_id in classid_list:
             class_shortname = out_dict['classid_shortname'][class_id]
-            if (self.pars['canonical_shortnames'].has_key(class_shortname) and
-                           out_dict['shortname_longname'].has_key(class_shortname)):
+            if (class_shortname in self.pars['canonical_shortnames'] and
+                           class_shortname in out_dict['shortname_longname']):
                 out_dict['shortname_nsrcs'][self.pars['canonical_shortnames'][class_shortname]] += \
                                            out_dict['shortname_nsrcs'][class_shortname]
                 ### ??? Why are these pop()'d?
@@ -322,7 +323,7 @@ class Dotastro_Sciclass_Tools:
         ### Add parent shortnames:
         for class_shortname, class_parent_id in out_dict['shortname_parent_id'].iteritems():
             parent_shortname = out_dict['classid_shortname'][class_parent_id]
-            if self.pars['canonical_shortnames'].has_key(parent_shortname):
+            if parent_shortname in self.pars['canonical_shortnames']:
                 parent_shortname = self.pars['canonical_shortnames'][parent_shortname]
             out_dict['shortname_parentshortname'][class_shortname] = parent_shortname
 
@@ -466,29 +467,29 @@ class Dotastro_Sciclass_Tools:
                 nonarff_srcid_list.append(srcid)
                 #print 'Not in arff:', srcid, class_name_lookup[srcid]
             else:
-                print '          IN arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid])
+                print('          IN arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid]))
                 
         nonarff_srcid_list.sort()
 
         for srcid in nonarff_srcid_list:
             if source_name_lookup[srcid] in tar_dict['tar_src_list']:
-                print ' IN tar, NOT arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid])
+                print(' IN tar, NOT arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid]))
             else:
-                print 'NOT tar, NOT arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid])
+                print('NOT tar, NOT arff,  IN DotA: %7s\t%s\t%s' % (srcid, source_name_lookup[srcid], class_name_lookup[srcid]))
 
         source_names_in_dotastro = source_name_lookup.values()
         for source_name in tar_dict['tar_src_list']:
             if source_name not in source_names_in_dotastro:
-                print ' IN tar, NOT arff, NOT DotA: %7s\t%s\t%s' % ('', source_name, tar_dict['short_fpath_lookup'][source_name])
+                print(' IN tar, NOT arff, NOT DotA: %7s\t%s\t%s' % ('', source_name, tar_dict['short_fpath_lookup'][source_name]))
 
         #for srcid in nonarff_srcid_list:
         #    print 'Not in arff:', srcid, source_name_lookup[srcid], class_name_lookup[srcid]
         #import pprint
         #pprint.pprint(nonarff_srcid_list)
-        print tar_dict['tar_src_list']
-        print 
-        print len(nonarff_srcid_list), 'out of:', len(all_srcid_list), '(', len(all_srcid_list) - len(nonarff_srcid_list), ')'
-        print
+        print(tar_dict['tar_src_list'])
+        print() 
+        print(len(nonarff_srcid_list), 'out of:', len(all_srcid_list), '(', len(all_srcid_list) - len(nonarff_srcid_list), ')')
+        print()
                 
 
 
@@ -528,7 +529,7 @@ if __name__ == '__main__':
                     "only_catalina_highconf"]
 
     for filter_type in filter_types:
-        print filter_type
+        print(filter_type)
         DotastroSciclassTools.generate_dotastro_sql_filterd_arff(old_arff=old_arff, new_arff=new_arff,
                                                                  filter_type=filter_type)
 
@@ -536,4 +537,4 @@ if __name__ == '__main__':
 
     #DotastroSciclassTools.generate_cytoscape_viewable_files(sciclass_lookup)
 
-    print 
+    print() 

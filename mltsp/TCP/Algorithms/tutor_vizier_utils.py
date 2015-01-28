@@ -19,6 +19,7 @@ NOTE: will need to place timeseries data files in lyr3 directory using:
     
 
 """
+from __future__ import print_function
 import sys, os 
 
 def parse_tsv(tsv_fpath):
@@ -66,9 +67,9 @@ http://vizier.cfa.harvard.edu/viz-bin/nph-Plot/Vgraph/txt?J/A%2bA/461/183/./phot
         os.system('mkdir -p %s' % (data_download_dirpath))
     
     data_dict = parse_tsv(tsv_fpath)
-    print data_dict['data_lists'].keys()
-    print 'FileName', data_dict['data_lists']['FileName'][10]
-    print 'RAJ2000', data_dict['data_lists']['RAJ2000'][10]
+    print(data_dict['data_lists'].keys())
+    print('FileName', data_dict['data_lists']['FileName'][10])
+    print('RAJ2000', data_dict['data_lists']['RAJ2000'][10])
 
     for fname in data_dict['data_lists']['FileName']:
         #get_str = "curl -O %s%s%s" % (data_url_prefix, fname, data_url_suffix)
@@ -76,8 +77,8 @@ http://vizier.cfa.harvard.edu/viz-bin/nph-Plot/Vgraph/txt?J/A%2bA/461/183/./phot
                                                data_download_dirpath, fname)
         os.system(get_str)
 
-    print "TSV file:\n\t", tsv_fpath
-    print "Timeseries dat downloaded to:\n\t", data_download_dirpath
+    print("TSV file:\n\t", tsv_fpath)
+    print("Timeseries dat downloaded to:\n\t", data_download_dirpath)
 
 
 

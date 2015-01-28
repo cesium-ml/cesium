@@ -21,13 +21,15 @@ TODO: In order to have regeneration of xmls / arff done on a larger scale ipytho
      Need to follow test_pairwise_on_citris33_ipython.py Ipython code.
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 import MySQLdb
 import datetime
 #import ingest_tools # This is done to get tcptutor and classdb server configs
 
-import populate_feat_db_using_TCPTUTOR_sources
-import generate_weka_classifiers
+from . import populate_feat_db_using_TCPTUTOR_sources
+from . import generate_weka_classifiers
 
 class Generate_Features_For_Several_Surveys:
     """ Main controlling singleton for generate_features_for_several_surveys.py
@@ -228,7 +230,7 @@ class Generate_Features_For_Several_Surveys:
         n_srcs = parse_dict['n_srcs']
 
         if n_srcs == 0:
-            print 'ERROR: n_srcs == 0!!!'
+            print('ERROR: n_srcs == 0!!!')
             raise
         feat_str = '\n'.join(arff_features)
 
@@ -292,7 +294,7 @@ class Generate_Features_For_Several_Surveys:
         n_srcs = parse_dict['n_srcs']
 
         if n_srcs == 0:
-            print 'ERROR: n_srcs == 0!!!'
+            print('ERROR: n_srcs == 0!!!')
             raise
         feat_str = '\n'.join(arff_features)
 

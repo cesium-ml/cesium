@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
 
-from sine_leastsq_extractor import sine_leastsq_extractor
+from .sine_leastsq_extractor import sine_leastsq_extractor
 
 class sine_lomb_extractor(sine_leastsq_extractor):
 	"""Fits a sine wave using the lomb result as an estimate """

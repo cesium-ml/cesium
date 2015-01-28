@@ -2,6 +2,7 @@
 # web_feat_extract_wrapper.py
 #   v0.1 initial version
 
+from __future__ import print_function
 import sys, os
 import xmlrpclib
 
@@ -22,12 +23,12 @@ if __name__ == '__main__':
    	#for elem in out_vals:
     	#    print "%s<br>" % (str(elem))
 
-    	print """
+    	print("""
 <TABLE BORDER CELLPADDING=0 CELLSPACING=2>
 <tr>
   <td><a href="%s"> <IMG SRC="%s" WIDTH=950 HEIGHT=700></a>  </td>
 </tr>
 </table>
-""" % (str(out_vals[1]), str(out_vals[1]))
+""" % (str(out_vals[1]), str(out_vals[1])))
     except:
-	print "EXCEPT: in web_feat_extract_wrapper.py", srcid, vosource_url
+	print("EXCEPT: in web_feat_extract_wrapper.py", srcid, vosource_url)

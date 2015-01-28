@@ -1,6 +1,8 @@
-import feature_interfaces
-import plotters
-import FeatureExtractor
+from __future__ import print_function
+from __future__ import absolute_import
+from . import feature_interfaces
+from . import plotters
+from . import FeatureExtractor
 
 #global_list_of_extractors = [] # Global KLUDGE: # 20071215 dstarr.  Apparently this is done since feature_interfaces.initialize() is called outside of everything
 global_list_of_extractors = feature_interfaces.initialize([])
@@ -103,19 +105,19 @@ class signal_with_bands(signal):
 			else: raise "weird kinda of result, don't know what to do with it"
 			#self.write_result(write_where,result)
 	def default_band(self):
-		print "Warning: using default band"
+		print("Warning: using default band")
 		return 'Vmag'
 	def choose_plotter(self):
 		self.plotter = plotters.plotter()
 	def prinprop(self,list_what,band=None):
 		if band == 'all':
 			for aband in self.properties['data']:
-				print aband,
+				print(aband, end=' ')
 				self.iprint(list_what,aband)
 		else: self.iprint(list_what,band)
 	def iprint(self,list_what,band=None):
 		for what in list_what:
-			print self.find_where(band)[what]
+			print(self.find_where(band)[what])
 	def plots(self,list_what,band=None):
 		if band == 'all':
 			for aband in self.properties['data']:

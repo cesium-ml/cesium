@@ -2,9 +2,10 @@
 # this is Nat's code copied over from the feature_extract project on August 3rd 2008, but I copied over nat's original svn upload, not Dan's modification (the modifications did not apply to this project)
 
 from __future__ import division
+from __future__ import absolute_import
 from numpy import *
 
-from lomb_scargle import lprob2sigma
+from .lomb_scargle import lprob2sigma
 
 def chi2sigma(chi0,chi1,nu0,nharm):
     from scipy.stats import betai

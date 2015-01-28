@@ -6,6 +6,7 @@
 - Using distance cut when querying simbad votable.
      - distance cuts come from nomad / color distance code:  get_colors_for_tutor_sources.py
 """
+from __future__ import print_function
 import os, sys
 import cPickle
 import MySQLdb
@@ -114,21 +115,21 @@ class Determine_Simbad_Class(TCPDb):
                         mainid_list.append(mainid)
 
             if abs(dist_list[0] - nomad_sources[src_id]['dist']) <= 0.5:
-                print "[0] matches: %d nomad=%lf deldist=%lf simbad=%s mainid=%s %s %s" % (src_id, nomad_sources[src_id]['dist'], abs(dist_list[0] - nomad_sources[src_id]['dist']), class_list[0], mainid_list[0], str(dist_list), str(class_list))
+                print("[0] matches: %d nomad=%lf deldist=%lf simbad=%s mainid=%s %s %s" % (src_id, nomad_sources[src_id]['dist'], abs(dist_list[0] - nomad_sources[src_id]['dist']), class_list[0], mainid_list[0], str(dist_list), str(class_list)))
                 srcid_class_match_dict[src_id] = {'class':class_list[0], 'simbad_dist':dist_list[0], 'simbad_sptype':sptype_list[0], 'main_id':mainid_list[0]}
                 srcid_class_match_dict[src_id].update(nomad_sources[src_id])
             else:
                 match_found = False
                 for i in range(len(dist_list)):
                     if abs(dist_list[i] - nomad_sources[src_id]['dist']) <= 0.5:
-                        print "[%d] matches: %d nomad=%lf simbad=%lf simbad=%s mainid=%s %s %s" % (i, src_id, nomad_sources[src_id]['dist'], dist_list[i], class_list[i], mainid_list[i], str(dist_list), str(class_list))
+                        print("[%d] matches: %d nomad=%lf simbad=%lf simbad=%s mainid=%s %s %s" % (i, src_id, nomad_sources[src_id]['dist'], dist_list[i], class_list[i], mainid_list[i], str(dist_list), str(class_list)))
                         srcid_class_match_dict[src_id] = {'class':class_list[i], 'simbad_dist':dist_list[i], 'simbad_sptype':sptype_list[i], 'main_id':mainid_list[i]}
                         srcid_class_match_dict[src_id].update(nomad_sources[src_id])
 
                         match_found = True
                         break
                 if not match_found:
-                    print "NO dist match: %d nomad=%lf simbad=%s simbad=%s" % (src_id, nomad_sources[src_id]['dist'], str(dist_list), str(class_list))
+                    print("NO dist match: %d nomad=%lf simbad=%s simbad=%s" % (src_id, nomad_sources[src_id]['dist'], str(dist_list), str(class_list)))
                     
         return srcid_class_match_dict
 
@@ -153,7 +154,7 @@ class Determine_Simbad_Class(TCPDb):
         self.cursor.execute(''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE simbad_class=VALUES(simbad_class), simbad_dist=VALUES(simbad_dist), simbad_sptype=VALUES(simbad_sptype), main_id=VALUES(main_id)")
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     def get_simbad_abstracts(self, srcid_class_match_dict):
@@ -181,7 +182,7 @@ class Determine_Simbad_Class(TCPDb):
         for i, src_id in enumerate(srcid_list):
             src_bib_dict = src_litrefs[src_id]
             for bibcode, abstract_url in src_bib_dict.iteritems():
-                if abstracts_dict.has_key(bibcode):
+                if bibcode in abstracts_dict:
                     continue # skip since we parsed this already
                 fpath = "%s/%s" % (abs_bibcodes_dirpath, bibcode.replace('/','___'))
 
@@ -209,7 +210,7 @@ class Determine_Simbad_Class(TCPDb):
                 try:
                     abstract_rows = soup.html.body('p', limit=2)[1]('table', limit=2)[1]('tr')
                 except:
-                    print "skipping:", bibcode
+                    print("skipping:", bibcode)
                     continue
 
                 for r in abstract_rows:
@@ -224,7 +225,7 @@ class Determine_Simbad_Class(TCPDb):
                     elif 'Keywords:' in str(r('td')[0].getText()):
                         keywords = r('td')[2].getText() # in UNICODE
                 #print "title:%s \nauthors:%s \npub:%s \ndate:%s \nkeywords:%s\n" % (title, authors, publication, publication_date, keywords)
-                print i, src_id, bibcode, title[:60]
+                print(i, src_id, bibcode, title[:60])
                 abstracts_dict[bibcode] = {'title':title,
                                            'authors':authors,
                                            'publication':publication,
@@ -237,7 +238,7 @@ class Determine_Simbad_Class(TCPDb):
         cPickle.dump(abstracts_dict, fp ,1)
         fp.close()
         import pdb; pdb.set_trace()
-        print
+        print()
 
 
     # OBSOLETE:
@@ -269,11 +270,11 @@ class Determine_Simbad_Class(TCPDb):
             #print soup
             try:
                 bib_rows = soup.html.body.form('table', limit=2)[1]('tr')
-                print 'parsed:', i, n_srcid, src_id
+                print('parsed:', i, n_srcid, src_id)
             except:
                 # likely no results returned
                 #print 'len(soup.html.body.form.table):', len(soup.html.body.form.table)
-                print 'skip:  ', i, n_srcid, src_id
+                print('skip:  ', i, n_srcid, src_id)
                 continue
             for r in bib_rows:
                 for td in r('td'):
@@ -302,7 +303,7 @@ class Determine_Simbad_Class(TCPDb):
 
 
         import pdb; pdb.set_trace()
-        print
+        print()
         fp = open('/tmp/src_litrefs.pkl','wb')
         cPickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
         fp.close()
@@ -351,11 +352,11 @@ class Determine_Simbad_Class(TCPDb):
             #print soup
             try:
                 bib_rows = soup.html.body.form('table', limit=2)[1]('tr')
-                print 'parsed:', i, n_srcid, src_id, src_dict['main_id']
+                print('parsed:', i, n_srcid, src_id, src_dict['main_id'])
             except:
                 # likely no results returned
                 #print 'len(soup.html.body.form.table):', len(soup.html.body.form.table)
-                print 'skip:  ', i, n_srcid, src_id, src_dict['main_id']
+                print('skip:  ', i, n_srcid, src_id, src_dict['main_id'])
                 continue
             for r in bib_rows:
                 for td in r('td'):
@@ -384,7 +385,7 @@ class Determine_Simbad_Class(TCPDb):
 
 
         import pdb; pdb.set_trace()
-        print
+        print()
         fp = open('/tmp/src_litrefs.pkl','wb')
         cPickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
         fp.close()
@@ -451,7 +452,7 @@ class Determine_Simbad_Class(TCPDb):
             #print class_name, n_left_space, parent_dict[class_name]#, parents#, class_descript
             parents.append(class_name)
             class_descriptions[class_name] = class_descript
-            if not child_dict.has_key(parent_dict[class_name]):
+            if parent_dict[class_name] not in child_dict:
                 child_dict[parent_dict[class_name]] = [class_name]
             else:
                 child_dict[parent_dict[class_name]].append(class_name)
@@ -641,7 +642,7 @@ class Determine_Simbad_Class(TCPDb):
         bibcode_list = src_litrefs[src_id].keys()
         bibcode_list.sort(reverse=True)
         for bibcode in bibcode_list:
-            if not abstracts_dict.has_key(bibcode):
+            if bibcode not in abstracts_dict:
                 continue # there are 82 of 38000 abstracts entries which were not correctly downloaded (in HTML: Please try your query again")
             lines.append(' '*4 + str(bibcode))# + ' '*4 + str(abstracts_dict[bibcode]['title']))
             #lines.append(' '*12 + str(abstracts_dict[bibcode]['title']))
@@ -734,7 +735,7 @@ class Determine_Simbad_Class(TCPDb):
         if 0:
             ### This is just to ensure that all of the abstract files in a dir are relevant
             for i, src_id in enumerate(cat_probs['dotAstro_ID']):
-                if not src_litrefs.has_key(src_id):
+                if src_id not in src_litrefs:
                     continue
                 bibcode_list = src_litrefs[src_id].keys()
                 for bibcode in bibcode_list:
@@ -748,7 +749,7 @@ class Determine_Simbad_Class(TCPDb):
                 
         fp = open('/home/dstarr/scratch/determine_simbad.source_data', 'w')
         for i, src_id in enumerate(cat_probs['dotAstro_ID']):
-            if not srcid_class_match_dict.has_key(src_id):
+            if src_id not in srcid_class_match_dict:
                 continue # we skip this source since there is no simbad equivalent
             out_str = self.write_source_summary_file(src_id=src_id,
                                            i_cat=i,
@@ -787,7 +788,7 @@ class Determine_Simbad_Class(TCPDb):
                                            
         fp.close()
         import pdb; pdb.set_trace()
-        print
+        print()
 
         if 0:
             ### This just prints the unique simbad classes used in literature for ASAS sources
@@ -823,7 +824,7 @@ class Determine_Simbad_Class(TCPDb):
         self.write_summary_files(srcid_class_match_dict)
 
         import pdb; pdb.set_trace()
-        print
+        print()
 
     
 if __name__ == '__main__':

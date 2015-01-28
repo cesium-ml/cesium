@@ -24,6 +24,8 @@
     - make statements about multiple lens
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 from numpy import *
 from math import degrees, pi
 from scipy.optimize import leastsq, fmin, fmin_powell
@@ -49,8 +51,8 @@ import copy, sys, os
 try:
 	from matplotlib.pylab import *
 except:
-        print "unable to import matplotlib"
-import vosource_parse, xmldict
+        print("unable to import matplotlib")
+from . import vosource_parse, xmldict
 #from pprint import pprint, pformat# dstarr disables pprint function since I'd rather not have this module constantly in memory if just for debugging use.
 
 __version__ = "1.0.2"
@@ -100,14 +102,14 @@ class Mlens:
 		for k,v in rez.values()[0].iteritems():
 			a += " --> sub-set name: %s <-- \n" % k
 			a += "  +  metadata  ---\n"
-			ndata = -1 if not v.has_key("ndata") else v['ndata']
-			normalcy_prob = -1 if not v.has_key("normalcy_prob") else v['normalcy_prob']
-			p_chi         = -1 if not v.has_key("p_chi") else v['p_chi'] 
-			res_var       = -1 if not v.has_key("resid_var") else v['resid_var']
-			chisq         = -1 if not v.has_key("chisq") else v['chisq']
-			dof           = -1 if not v.has_key("dof") else v['dof']
-			frac_data_remaining = 1 if not v.has_key("frac_data_remaining") else v['frac_data_remaining']
-			beta          = [-1,-1,-1,-1,-1,-1] if not v.has_key("beta") else v['beta']
+			ndata = -1 if "ndata" not in v else v['ndata']
+			normalcy_prob = -1 if "normalcy_prob" not in v else v['normalcy_prob']
+			p_chi         = -1 if "p_chi" not in v else v['p_chi'] 
+			res_var       = -1 if "resid_var" not in v else v['resid_var']
+			chisq         = -1 if "chisq" not in v else v['chisq']
+			dof           = -1 if "dof" not in v else v['dof']
+			frac_data_remaining = 1 if "frac_data_remaining" not in v else v['frac_data_remaining']
+			beta          = [-1,-1,-1,-1,-1,-1] if "beta" not in v else v['beta']
 			if len(beta) == 6:
 				eq = "f(t) = %8.3e + (%7.3f + %8.3e x t) * g(u[t])" % (beta[5],beta[3],beta[4])
 			elif len(beta) == 5:
@@ -126,13 +128,13 @@ class Mlens:
 		return a
 	def renorm_data(self,dat,rez,dset="sig5"):
 
-		if not rez.values()[0].has_key(dset):
+		if dset not in rez.values()[0]:
 			dset = "all"
-		if not rez.values()[0].has_key(dset):
+		if dset not in rez.values()[0]:
 			durga
 			return (dat[0],dat[1],dat[2])
 		v=rez.values()[0][dset]
-		if not v.has_key("beta"):
+		if "beta" not in v:
 			durga
 			return  (dat[0],dat[1],dat[2])
 			
@@ -151,8 +153,8 @@ class Mlens:
 	def run(self,multifilt=False):
 		
 		if not multifilt:
-			print "Warning: we're only going to use the filter with the most data for now"
-			print "         in the future we'll combine the results"
+			print("Warning: we're only going to use the filter with the most data for now")
+			print("         in the future we'll combine the results")
 			self.all_fits = []
 			self.all_out = []
 			if self.doplot:
@@ -168,7 +170,7 @@ class Mlens:
 
 			f = thef
 			tt, ff, fferr = [], [], []
-			print "using %i epochs from filter %s" % (maxdata,f)
+			print("using %i epochs from filter %s" % (maxdata,f))
 			dat = [self.data.t(f),self.data.flux(f),self.data.flux_err(f)]
 			minx = min([min(self.data.t(f)),minx])
 			miny = min([min(self.data.flux(f)),miny])
@@ -179,9 +181,9 @@ class Mlens:
 				self.all_fits.append({f: self._filt_run(dat,f)})
 				self.all_out.append({f: self.inspect_output_by_filter(self.all_fits[-1],dat,doplot=self.doplot)})
 				if self.verbose:
-					print self.out_print(self.all_out[-1])
+					print(self.out_print(self.all_out[-1]))
 			except:
-				print "EXCEPT: mlens3.py:168 self.inspect_output_by_filter(..).  Probably not enough datapoints."
+				print("EXCEPT: mlens3.py:168 self.inspect_output_by_filter(..).  Probably not enough datapoints.")
 				return
 			tnorm, fluxnorm, flux_errnorm = self.renorm_data(dat,self.all_out[-1],dset="sig5")
 			tt.extend(list(tnorm))
@@ -196,7 +198,7 @@ class Mlens:
 			return
 		else:
 			if not isinstance(self.data,EventData):
-				print "bad data model"
+				print("bad data model")
 		
 			self.all_fits = []
 			self.all_out = []
@@ -207,7 +209,7 @@ class Mlens:
 			miny, maxy = 1e9,-99
 			tt, ff, fferr = [], [], []
 			for f in self.data.filts:
-				print "filter %s" % f
+				print("filter %s" % f)
 				dat = [self.data.t(f),self.data.flux(f),self.data.flux_err(f)]
 				minx = min([min(self.data.t(f)),minx])
 				miny = min([min(self.data.flux(f)),miny])
@@ -217,7 +219,7 @@ class Mlens:
 					self.all_fits.append({f: self._filt_run(dat,f)})
 					self.all_out.append({f: self.inspect_output_by_filter(self.all_fits[-1],dat,doplot=self.doplot)})
 					if self.verbose:
-						print self.out_print(self.all_out[-1])
+						print(self.out_print(self.all_out[-1]))
 				except:
 					continue
 				tnorm, fluxnorm, flux_errnorm = self.renorm_data(dat,self.all_out[-1],dset="sig5")
@@ -230,10 +232,10 @@ class Mlens:
 				xlim([minx,maxx])
 				ylim([0.9*miny,maxy*1.1])
 		
-			print self.data.filts
+			print(self.data.filts)
 			if len(self.data.filts) > 1:
-				print "combined fit"
-				print dat
+				print("combined fit")
+				print(dat)
 				#dat = [array(tt),array(ff),array(fferr)]
 				#self.all_fits.append({"all": self._filt_run(dat,"all")})
 				#self.all_out.append({"all": self.inspect_output_by_filter(self.all_fits[-1],dat)})
@@ -294,12 +296,12 @@ class Mlens:
 			             "umin": {"val": v['umin']['val'], "err": v['umin']['err'], "sig": umin_sig}}}}
 			ret.append(tmp)
 			if self.verbose:
-				print (k, final_p, avgpval, te_prob, effective_prob, umin_sig,te_sig,t0_sig,p_peak_before,p_peak_after)
+				print((k, final_p, avgpval, te_prob, effective_prob, umin_sig,te_sig,t0_sig,p_peak_before,p_peak_after))
 		## what's the robustness of the result (how much do the parameters change on clipping)?
 		## how well observed are all the data (how much do the parameters change on clipping)?
 		if self.verbose:
-				print "Best probability of a being a single microlens = %f" % bestp
-				print "Robustness of the 3 parameter fit = %f " % besta
+				print("Best probability of a being a single microlens = %f" % bestp)
+				print("Robustness of the 3 parameter fit = %f " % besta)
 		ret = {"value_added_properties": ret}
 		#tmp = {"probabilities": {"single-lens": bestp, "single-lens-parameter-robustness": besta}}
 		#dstarr prefers a more generic form:   ("weight" is just a 0..1 quantifier)
@@ -594,7 +596,7 @@ class EventData:
 	        a_feat_dict = dict(feat_obj)
 	        feat_name = a_feat_dict.get('name',{}).get('_text','NOT_A_FEATURE')
 		filt_name = a_feat_dict.get('filter',{}).get('_text','NOT_A_FILTER')
-		if not self.feat_dict.has_key(filt_name):
+		if filt_name not in self.feat_dict:
 			self.feat_dict[filt_name] = {}
 		self.feat_dict[filt_name][feat_name] = a_feat_dict # ??? need to copy.deepcopy() this?
 
@@ -608,11 +610,11 @@ class EventData:
 			else:
 				ret = array([])
 				for c in self.data['ts'][filt]:
-					if c.has_key("name"):
+					if "name" in c:
 						if c['name'] == "t":
 							ret = c['val']
 							break
-					if c.has_key("system"):
+					if "system" in c:
 						if c['system'] == "TIMESYS":
 							ret = c["val"]
 							break
@@ -630,7 +632,7 @@ class EventData:
 				else:
 					ret = array([])
 					for c in self.data['ts'][filt]:
-						if c.has_key("name"):
+						if "name" in c:
 							if c['name'].find("err") != -1:
 								continue
 							#if c['name'] == "f" or c['name'].find("flux") != -1:
@@ -639,7 +641,7 @@ class EventData:
 							#if c['name'] == "m" or c['name'].find("mag") != -1:
 							#	ret = zp*10**(-0.4*c["val"])
 							#	break
-						if c.has_key("ucd"):
+						if "ucd" in c:
 							if c['ucd'].find("err") != -1:
 								continue
 							if c['ucd'].find("rel flux") != -1:
@@ -651,7 +653,7 @@ class EventData:
 							if c['ucd'].find("phot.mag") != -1:
 								ret = zp*10**(-0.4*c["val"])
 								break
-						if c.has_key("unit"):
+						if "unit" in c:
 							if c['unit'].find("Jy") != -1 or c['unit'].find("erg") != -1:
 								ret = c["val"]
 								break
@@ -686,7 +688,7 @@ class EventData:
 						#	if c['name'] == "m_err":
 						#			ret = c["val"]*self.flux(filt,zp)
 						#			break
-						if c.has_key("ucd"):
+						if "ucd" in c:
 							if c['ucd'].find("flux") != -1 and c['ucd'].find("err") != -1:
 								ret = c["val"]
 								break
@@ -734,7 +736,7 @@ def test():
 	#pprint(d.flux_err("B"))
 	#durga
 	m = Mlens(datamodel=d,doplot=True)
-	print m
+	print(m)
 	#errorbar(d.t("I"),d.flux("I"),d.flux_err("I"))
 	#print d.t("I").median()
 

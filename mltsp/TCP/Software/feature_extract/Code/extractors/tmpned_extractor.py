@@ -1,9 +1,11 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #from ..FeatureExtractor import FeatureExtractor
 from ..FeatureExtractor import ContextInterExtractor
 #from ..FeatureExtractor import MultiExtractor
 
 #from power_extractor import power_extractor as power_extractor
-import ned
+from . import ned
 
 class tmpned_extractor(ContextInterExtractor): 
 	"""the Galactic coordinate b (latitude) in degrees"""
@@ -15,7 +17,7 @@ class tmpned_extractor(ContextInterExtractor):
 		#20080617_dstarr_comments_out#self.ex_error("let's not do this today")
 		posdict = self.fetch_extr('position_intermediate')
 
-		if not posdict.has_key('ra') or posdict['dec'] is None:
+		if 'ra' not in posdict or posdict['dec'] is None:
 			self.ex_error("bad RA or DEC in the intermediate extractor. check install pyephem and input coordinates")
 		
 		if not self.n:
@@ -23,7 +25,7 @@ class tmpned_extractor(ContextInterExtractor):
 			# This module should exist in the local path:
 			#try: ### 20090123 dstarr comments this out.
 			try:
-				import ned_cache_server
+				from . import ned_cache_server
 				ncc = ned_cache_server.Ned_Cache_Client(ned_cache_server.pars)
 				#self.n = ncc.retrieve_queue_ned_dict(posdict['ra'], \
 				#			     posdict['dec'])
@@ -34,7 +36,7 @@ class tmpned_extractor(ContextInterExtractor):
 				self.properties['data']['multiband']['inter']['sdss_internal_struct'] = sdss_obj
 				
 			except:
-				print "MySQL connection to NED cache server FAILED"
+				print("MySQL connection to NED cache server FAILED")
 			###self.n = ned.NED(pos=(posdict['ra'],posdict['dec']),verbose=True, do_threaded=True) # dstarr changes flags to be verbose, ...
 		
 		

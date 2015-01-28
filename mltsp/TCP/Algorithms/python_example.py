@@ -2,6 +2,7 @@
 """
    v0.1 An example / demo file on how to connect to TCP MySQL server
 """
+from __future__ import print_function
 
 
 import sys, os
@@ -48,7 +49,7 @@ class Postgre_Database_Class_Example:
 </table>
 </body></html>
 """
-        print out_str
+        print(out_str)
         
         # Then, out_str could be file_pointer.write(out_str) to some .html file. 
 
@@ -79,7 +80,7 @@ class Postgre_Database_Class_Example:
 
         rows = pg_cursor.fetchall()
         for row in rows:
-            print row
+            print(row)
 
         # Can also display the results in an html string (which could be written to file):
         self.print_rows_in_html_table_form(rows)
@@ -122,7 +123,7 @@ class Postgre_Database_Class_Example:
                                        'dec':row[3],
                                        'isspectra':row[4],
                                        'jd_time':row[5]}
-            print
+            print()
 
         # NOTE: Return a single ptf-events row/epoch/observation which
         #     most closely correlates to the Caltech classification time.
@@ -175,7 +176,7 @@ ORDER BY src_id, ujd DESC
         rows = pg_cursor.fetchall()
         for row in rows:
             (candidate_id, bogus, suspect, unclear, maybe, realish, realbogus) = row
-            print candidate_id, realbogus
+            print(candidate_id, realbogus)
 
 
 if __name__ == '__main__':
@@ -207,7 +208,7 @@ if __name__ == '__main__':
     cursor.execute(select_str)
     results = cursor.fetchall()
     for row in results:
-        print row
+        print(row)
 
 
     # This example queries the TCP Mysql database (on tranx), for a position,

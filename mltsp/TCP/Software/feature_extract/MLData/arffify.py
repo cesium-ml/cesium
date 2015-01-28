@@ -15,6 +15,7 @@ py> import arffify
 py> a = arffify.Maker(search=["Cepheids","RR Lyrae - Asymmetric","Mira","W Ursae Majoris",])  ## search is a list of string names to look up
  
 """
+from __future__ import print_function
 import os,sys
 #try:
 #	import amara
@@ -164,7 +165,7 @@ class Maker:
 	        'classdb_database':'source_test_db', #'source_db',
 		't_sleep':0.2,
 		'number_threads':4,
-		'tcp_tutor_srcid_offset':100000000L,
+		'tcp_tutor_srcid_offset':100000000,
 		'local_xmls_fpath':os.path.expandvars('$HOME/scratch/TUTOR_vosources'), 
 		'skip_sci_class_list':['','Variable Stars'], #20110202: dstarr excludes  'UNKNOWN', since unclassified ASAS sources need o be included in the arff files.  # Science classes to skip from adding to .arff
 		'disambiguate_sci_class_dict':{'Pulsating Variable Stars':'Pulsating Variable',#'Pulsating Variable':'Pulsating Variable Stars', #20100702 disable: 'Pulsating Variable Stars':'Pulsating Variable', # Ambiguous key classes are given value class_name
@@ -541,7 +542,7 @@ class Maker:
 			b =  """a = %s""" % f.read()
 			exec b
 			if self.verbose:
-				print "[%s] %i objects returned" % (s,len(a))
+				print("[%s] %i objects returned" % (s,len(a)))
 			tmplist.extend([int(x) + self.pars['tcp_tutor_srcid_offset'] for x in a])
 		tmplist = list(set(tmplist))
 		return tmplist
@@ -670,7 +671,7 @@ class Maker:
 			#for fea in self.master_features:
 			for fea in condensed_master_features:
 				val = "?"
-				if obj['features'].has_key(fea):
+				if fea in obj['features']:
 					if fea[1] == 'float':
 						if ((obj['features'][fea] == "False") or 
 						    (str(obj['features'][fea]) == "inf") or
@@ -730,7 +731,7 @@ class Maker:
 		#if type(outfile) != type(sys.stdout):
 		if type(outfile) == type(''):
 			f.close()
-			print "Wrote:", self.outfile
+			print("Wrote:", self.outfile)
 		
 	def populate_features_and_classes(self):
 		
@@ -739,7 +740,7 @@ class Maker:
 		self.master_features = []
 		self.grabber = XMLgrabber(verbose=self.verbose)
 		for num in self.therange:
-			print num
+			print(num)
 			x = self.grabber.grab(num)
 			
 			if x is not None:
@@ -805,17 +806,17 @@ class Maker:
 			if (not self.skip_class) and (len(raw_class) > 0):
 				if self.convert_class_abrvs_to_names:
 					if raw_class in self.pars['skip_sci_class_list']:
-						print "Skipping GENERIC class:", raw_class, "for source:", num
+						print("Skipping GENERIC class:", raw_class, "for source:", num)
 						continue # skip this class since probably too generic to be useful for classification. 
-					if not self.class_abrv_lookup.has_key(raw_class):
-						print "Skipping UNKNOWN class:", raw_class, "for source:", num
+					if raw_class not in self.class_abrv_lookup:
+						print("Skipping UNKNOWN class:", raw_class, "for source:", num)
 						continue # This class isn't in the lookup_dict{}, which is probably due to this class being added recently.  We will skip this source.
 					if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
 						raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
 					theclass = self.class_abrv_lookup[raw_class]
 				else:
 					if raw_class in self.pars['skip_sci_class_list']:
-						print "Skipping GENERIC class:", raw_class, "for source:", num
+						print("Skipping GENERIC class:", raw_class, "for source:", num)
 						continue # skip this class since probably too generic to be useful for classification. 
 					if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
 						raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
@@ -848,17 +849,17 @@ class Maker:
 		if (not self.skip_class) and (len(raw_class) > 0):
 			if self.convert_class_abrvs_to_names:
 				if raw_class in self.pars['skip_sci_class_list']:
-					print "Skipping GENERIC class:", raw_class, "for source:", num
+					print("Skipping GENERIC class:", raw_class, "for source:", num)
 					return # skip this class since probably too generic to be useful for classification. 
-				if not self.class_abrv_lookup.has_key(raw_class):
-					print "Skipping UNKNOWN class:", raw_class, "for source:", num
+				if raw_class not in self.class_abrv_lookup:
+					print("Skipping UNKNOWN class:", raw_class, "for source:", num)
 					return # This class isn't in the lookup_dict{}, which is probably due to this class being added recently.  We will skip this source.
 				if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
 					raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
 				theclass = self.class_abrv_lookup[raw_class]
 			else:
 				if raw_class in self.pars['skip_sci_class_list']:
-					print "Skipping GENERIC class:", raw_class, "for source:", num
+					print("Skipping GENERIC class:", raw_class, "for source:", num)
 					return#skip this class since probably too generic to be useful for classification
 				if raw_class in self.pars['disambiguate_sci_class_dict'].keys():
 					raw_class = self.pars['disambiguate_sci_class_dict'][raw_class]
@@ -925,10 +926,10 @@ class Maker:
 				# if this is float, replace string if string exists
 				# This is KLUDGY, since it shows that we should not index dict with type() in the index tuple, but instead should just use the feature only:
 				if thetype == 'string':
-					if not ret.has_key((str(feat_name),'float')):
+					if (str(feat_name),'float') not in ret:
 						ret.update({(str(feat_name),thetype): val})
 				elif thetype == 'float':
-					if ret.has_key((str(feat_name),'string')):
+					if (str(feat_name),'string') in ret:
 						ret.pop((str(feat_name),'string'))
 					ret.update({(str(feat_name),thetype): val})
 				else:
@@ -975,7 +976,7 @@ class Maker:
 					
 				continue
 			try:
-				print i
+				print(i)
 				tmp = int(i)
 				self.therange.append(tmp)
 			except:
@@ -1006,7 +1007,7 @@ class XMLgrabber:
 					return None
 				if tmp.find('database_query_error') != -1:
 					if self.verbose:
-						print "No object number %i" % num
+						print("No object number %i" % num)
 					return None
 				tmp1 = amara.parse(tmp)
 				fileloc = str(unicode(tmp1.A.href))

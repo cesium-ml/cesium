@@ -14,6 +14,8 @@ NOTE: debug using:
 /Library/Frameworks/Python.framework/Versions/Current/lib/python2.5/pdb.py form_vosource_xml_using_rdb.py 402126
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import sys, os
 #os.system("whoami")
 #os.environ["PYTHON_EGG_CACHE"] = "/Library/Frameworks/Python.framework/Versions/4.1.30101/lib/python2.5/site-packages/"
@@ -32,7 +34,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                    'Software/feature_extract/Code'))
 import db_importer
 
-import ingest_tools
+from . import ingest_tools
 ingest_tools_pars = ingest_tools.pars
 
 
@@ -87,14 +89,14 @@ class MakeVosourceUsingRdb:
         filter_conv_dict = {'g':'ptf_g', 'R':'ptf_r'}
         #for srcid in source_dict.keys():
         if 1:
-            if s_dict.has_key('ra'):
+            if 'ra' in s_dict:
                 ra = s_dict['ra']
                 dec = s_dict['dec']
             
             for filt_name in filter_conv_dict.values():
-                if not s_dict['ts'].has_key(filt_name):
+                if filt_name not in s_dict['ts']:
                     s_dict['ts'][filt_name] = {}
-                if not s_dict['ts'][filt_name].has_key('limitmags'):
+                if 'limitmags' not in s_dict['ts'][filt_name]:
                     s_dict['ts'][filt_name]['limitmags'] = {'t':[], 'lmt_mg':[]}
             select_str = "SELECT filter, ujd, lmt_mg from %s WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (self.pars['ptf_mysql_candidate_footprint'], ra, dec)
             self.obj_cursor.execute(select_str)
@@ -128,7 +130,7 @@ class MakeVosourceUsingRdb:
         data_dict = {}
         for result in results:
             filt_name = self.pars['filter_conv_dict'][result[3]] # this translates to: ptf_g or ptf_r
-            if not data_dict.has_key(filt_name):
+            if filt_name not in data_dict:
                 data_dict[filt_name] = {'t_list':[],
                                         'm_list':[],
                                         'm_err_list':[]}
@@ -295,7 +297,7 @@ class MakeVosourceUsingRdb:
         if len(out_xml_fpath) > 3:
 	        source.write_xml(out_xml_fpath=out_xml_fpath)
 	else:
-		print source.xml_string
+		print(source.xml_string)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from ..FeatureExtractor import InterExtractor
-from common_functions import lomb_scargle
-from common_functions.plot_methods import plot_vs_frequencies
+from .common_functions import lomb_scargle
+from .common_functions.plot_methods import plot_vs_frequencies
 from numpy import arange
 
 class lomb_extractor(plot_vs_frequencies,InterExtractor):
@@ -29,7 +30,7 @@ class lomb_extractor(plot_vs_frequencies,InterExtractor):
 		#import pdb; pdb.set_trace()
 		if 0:
 		        ### TEST / DEBUGGING only:
-			from common_functions import plot_analysis_psd
+			from .common_functions import plot_analysis_psd
 			plot_analysis_psd.do_plot(psd, freqs, signi, simsigni, psdpeaks, x=var['x'], y=var['y'])
 			
 		result = psd

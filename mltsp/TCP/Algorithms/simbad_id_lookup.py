@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ Adapted from josh's simbad.py
 """
+from __future__ import print_function
 
 import os, sys
 
@@ -86,11 +87,11 @@ if __name__ == '__main__':
     #a_str = query_html(src_name = "HIP 8")
     a_str = query_votable(src_name = "HIP 8")
     sci_class = parse_class(a_str)
-    print sci_class
+    print(sci_class)
 
     sys.exit()
 
     html_str = query_html(src_name = "HD 27290")
 
     hip_ids = parse_html_for_ids(html_str, instr_identifier='HIP')
-    print hip_ids
+    print(hip_ids)

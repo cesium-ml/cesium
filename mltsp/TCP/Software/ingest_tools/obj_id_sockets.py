@@ -29,12 +29,14 @@ NOTE: Server started using shell command:
         ./obj_id_sockets.py server_type=src_id
 
 """
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
 import MySQLdb
 import socket
 import time
 import datetime
-import param_tool
+from . import param_tool
 
 ### Global variable used in <object>.pars:
 pars = {'server_type':'', # This must be specified as an argv parameter
@@ -145,7 +147,7 @@ class socket_server:
         try:
             n_rows = long(results[0][0])
         except:
-            print "ERROR: unable to retrieve count(*):", select_str
+            print("ERROR: unable to retrieve count(*):", select_str)
             sys.exit()
         if n_rows == 0:
             return 1 # start at obj_id = 1
@@ -158,7 +160,7 @@ class socket_server:
         try:
             max_obj_id = long(results[0][0])
         except:
-            print "ERROR: unable to retrieve max(obj_id):", select_str
+            print("ERROR: unable to retrieve max(obj_id):", select_str)
             sys.exit()
         return max_obj_id
 
@@ -170,11 +172,11 @@ class socket_server:
         try:
             s.bind(('', int(self.pars['socket_server_port'])))
         except:
-            print "!!! EXCEPT obj_id_sockets.py: ", self.server_type, self.pars['socket_server_port'], self.pars['socket_server_host_ip'], self.pars['rdb_server_user'], self.pars['rdb_server_db'], self.pars['obj_id_reference_tablename']
+            print("!!! EXCEPT obj_id_sockets.py: ", self.server_type, self.pars['socket_server_port'], self.pars['socket_server_host_ip'], self.pars['rdb_server_user'], self.pars['rdb_server_db'], self.pars['obj_id_reference_tablename'])
             raise 
-        print "Listen Port:", self.pars['socket_server_port']
+        print("Listen Port:", self.pars['socket_server_port'])
         cur_obj_id = max_obj_id 
-        print "In listening loop..."
+        print("In listening loop...")
         while 1:
             s.listen(1)
             while 1:
@@ -187,7 +189,7 @@ class socket_server:
                 out_i_low = cur_obj_id + 1
                 cur_obj_id = cur_obj_id + num_rows_wanted 
                 out_i_high = cur_obj_id
-                print datetime.datetime.now(), num_rows_wanted, out_i_low, out_i_high
+                print(datetime.datetime.now(), num_rows_wanted, out_i_low, out_i_high)
                 out_str = "%d %d" % (out_i_low, out_i_high)
                 conn.send(out_str)
                 conn.close()
@@ -198,7 +200,7 @@ class socket_server:
         """ Main server runtime routine.
         """
         max_obj_id = self.get_current_max_obj_id()
-        print "Initial index:", max_obj_id
+        print("Initial index:", max_obj_id)
         self.listen_loop(max_obj_id)
 
 
@@ -217,9 +219,9 @@ class socket_server:
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(('', int(self.pars['socket_server_port'])))
-        print "Listen Port:", self.pars['socket_server_port']
+        print("Listen Port:", self.pars['socket_server_port'])
         #cur_obj_id = max_obj_id 
-        print "In listening loop..."
+        print("In listening loop...")
         socket_served_srcid_list = []
         while 1:
             s.listen(1)
@@ -256,7 +258,7 @@ class socket_server:
                 #out_i_low = cur_obj_id + 1
                 #cur_obj_id = cur_obj_id + num_rows_wanted 
                 #out_i_high = cur_obj_id
-                print datetime.datetime.now(), i_range, "srcids sent"
+                print(datetime.datetime.now(), i_range, "srcids sent")
                 #out_str = "%d %d" % (out_i_low, out_i_high)
                 conn.send(out_str)
                 conn.close()
@@ -296,7 +298,7 @@ class socket_client:
             i_high = long(rec_data[1])
             return (i_low, i_high)
         except:
-            print "FAIL: obj_id_sockets.py:", self.pars['socket_server_host_ip'], self.pars['socket_server_port']
+            print("FAIL: obj_id_sockets.py:", self.pars['socket_server_host_ip'], self.pars['socket_server_port'])
             return (-1, -1)
 
 
@@ -316,7 +318,7 @@ class socket_client:
                 srcid_list.append(int(elem)) # ? Do no anamolous entries occur?
             return srcid_list
         except:
-            print "FAIL: obj_id_sockets.py: get_feat_class_srcid_group()"
+            print("FAIL: obj_id_sockets.py: get_feat_class_srcid_group()")
             return []
 
 

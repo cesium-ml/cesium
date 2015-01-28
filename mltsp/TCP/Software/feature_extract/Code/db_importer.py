@@ -56,6 +56,8 @@ py> pprint.pprint(s.x_sdict)
 
 if the source was made from Dan's codes then use s.d for the dictionary.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 __author__ = "JSB"
 __version__ = "9-Aug-2007"
@@ -156,17 +158,17 @@ class vosource_classification_obj:
         NOTE: human_algo == ["algorithm" OR "human"]
         NOTE: catalog_tcp == ["catalog" OR "tcp"]
         """
-        if not self._classes.has_key(human_algo):
+        if human_algo not in self._classes:
             self._classes[human_algo] = {}
-        if not self._classes[human_algo].has_key(catalog_tcp):
+        if catalog_tcp not in self._classes[human_algo]:
             self._classes[human_algo][catalog_tcp] = {}
-        if not self._classes[human_algo][catalog_tcp].has_key(src_name):
+        if src_name not in self._classes[human_algo][catalog_tcp]:
             self._classes[human_algo][catalog_tcp][src_name] = {}
-        if not self._classes[human_algo][catalog_tcp][src_name].has_key(class_schema_name):
+        if class_schema_name not in self._classes[human_algo][catalog_tcp][src_name]:
             self._classes[human_algo][catalog_tcp][src_name][class_schema_name] = {}
-        if not self._classes[human_algo][catalog_tcp][src_name][class_schema_name].has_key(class_name):
+        if class_name not in self._classes[human_algo][catalog_tcp][src_name][class_schema_name]:
             self._classes[human_algo][catalog_tcp][src_name][class_schema_name][class_name] = {}
-        if not self._classes[human_algo][catalog_tcp][src_name][class_schema_name].has_key(class_name):
+        if class_name not in self._classes[human_algo][catalog_tcp][src_name][class_schema_name]:
             self._classes[human_algo][catalog_tcp][src_name][class_schema_name][class_name] = {}
         self._classes[human_algo][catalog_tcp][src_name][class_schema_name][class_name]['prob'] = prob
             
@@ -220,7 +222,7 @@ class vosource_classification_obj:
             if ind == -1:
                 ind = vosource_end_str.rfind('</Vosource')
                 if ind == -1:
-                    print "Unable to find </VOSOURCE> at end of string!"
+                    print("Unable to find </VOSOURCE> at end of string!")
                     return old_vosource_str
 
         # get the true index of the beginning of </VOSOURCE>:
@@ -298,7 +300,7 @@ class Source:
 		f.write(self.xml_string)
                 if type(out_xml_fpath) == type(""):
                         f.close()
-                        print "wrote %s " % fname
+                        print("wrote %s " % fname)
 		return
 		
 	def _handle_start(self):
@@ -326,17 +328,17 @@ class Source:
 		# NOTE: I want to choose the self.sdict entry which has all of the source info.
 		#       - this is needed because some filters just contain limiting mags and not much source info.
 		for entry in all_entries:
-			if self.sdict[entry].has_key('m'):
+			if 'm' in self.sdict[entry]:
 				best_represent_entry = entry
 				break
 		for m in metakeys:
-			if self.sdict[best_represent_entry].has_key(m):
+			if m in self.sdict[best_represent_entry]:
 				self.d.update({m: self.sdict[best_represent_entry][m]})
 			for b in all_entries:
-				if self.sdict[b].has_key(m):
+				if m in self.sdict[b]:
 					self.sdict[b].pop(m)
 		self.d.update({'ts': self.sdict})
-		if self.d.has_key("src_id"):
+		if "src_id" in self.d:
 			self.id = self.d['src_id']
 		self.coerced_to_dict = True
 		return
@@ -346,7 +348,7 @@ class Source:
 		if not self.coerced_to_dict:
 			return
 		
-		if not dic.has_key("ts"):
+		if "ts" not in dic:
 			warning("no timeseries to plot")
 			return
 				
@@ -360,7 +362,7 @@ class Source:
 		#print bands
 		for i in range(len(bands)):
 			filt = bands[i]
-			if not dic['ts'].has_key(filt):
+			if filt not in dic['ts']:
 				continue
 			#g = [ numpy.array(dic['ts'][filt]['t']),numpy.array(dic['ts'][filt]['m']),numpy.array(dic['ts'][filt]['m_err']) ]
 			
@@ -397,7 +399,7 @@ class Source:
 			         save_plot_name = save_plot_name.replace(".png",".ps")
 			 f.close()
 			 if self.verbose:
-			         print "+ save light curve %s" % save_plot_name
+			         print("+ save light curve %s" % save_plot_name)
 
 
 	def normalize_vosource_tags(self, xml_str):
@@ -635,7 +637,7 @@ class Source:
 		    		band_name_with_data = band
 		    		break
 		    combo_band_dict = copy.deepcopy(ts_without_combo[band_name_with_data])
-		    if not combo_band_dict.has_key('limitmags'):
+		    if 'limitmags' not in combo_band_dict:
 		    	combo_band_dict['limitmags'] = {'lmt_mg':[], 't':[]}
 		    for band,data_dict in ts_without_combo.iteritems():
 		    	if band == band_name_with_data:
@@ -649,7 +651,7 @@ class Source:
 		    for i,t_val in enumerate(combo_band_dict.get('t',[])):
 		    	t_tup_list.append((t_val,i))
 		    t_tup_list.sort()
-		    i_sorted_list = map(lambda (a,b): b, t_tup_list)
+		    i_sorted_list = map(lambda a_b: a_b[1], t_tup_list)
 		    combo_band_dict['m'] = map(lambda i: combo_band_dict['m'][i], i_sorted_list)
 		    combo_band_dict['m_err'] = map(lambda i: combo_band_dict['m_err'][i], i_sorted_list)
 		    combo_band_dict['t'] = map(lambda i: combo_band_dict['t'][i], i_sorted_list)
@@ -658,7 +660,7 @@ class Source:
 		    for i,t_val in enumerate(combo_band_dict['limitmags']['t']):
 		    	t_tup_list.append((t_val,i))
 		    t_tup_list.sort()
-		    i_sorted_list = map(lambda (a,b): b, t_tup_list)
+		    i_sorted_list = map(lambda a_b1: a_b1[1], t_tup_list)
 		    combo_band_dict['limitmags']['lmt_mg'] = map(lambda i: combo_band_dict['limitmags']['lmt_mg'][i], i_sorted_list)
 		    combo_band_dict['limitmags']['t'] = map(lambda i: combo_band_dict['limitmags']['t'][i], i_sorted_list)
 
@@ -973,7 +975,7 @@ class Source:
 	        		band_name_with_data = band
 	        		break
 	        combo_band_dict = copy.deepcopy(ts_without_combo[band_name_with_data])
-	        if not combo_band_dict.has_key('limitmags'):
+	        if 'limitmags' not in combo_band_dict:
 	        	combo_band_dict['limitmags'] = {'lmt_mg':[], 't':[]}
 	        for band,data_dict in ts_without_combo.iteritems():
 	        	if band == band_name_with_data:
@@ -987,7 +989,7 @@ class Source:
 	        for i,t_val in enumerate(combo_band_dict.get('t',[])):
 	        	t_tup_list.append((t_val,i))
 	        t_tup_list.sort()
-	        i_sorted_list = map(lambda (a,b): b, t_tup_list)
+	        i_sorted_list = map(lambda a_b2: a_b2[1], t_tup_list)
 	        combo_band_dict['m'] = map(lambda i: combo_band_dict['m'][i], i_sorted_list)
 	        combo_band_dict['m_err'] = map(lambda i: combo_band_dict['m_err'][i], i_sorted_list)
 	        combo_band_dict['t'] = map(lambda i: combo_band_dict['t'][i], i_sorted_list)
@@ -996,7 +998,7 @@ class Source:
 	        for i,t_val in enumerate(combo_band_dict['limitmags']['t']):
 	        	t_tup_list.append((t_val,i))
 	        t_tup_list.sort()
-	        i_sorted_list = map(lambda (a,b): b, t_tup_list)
+	        i_sorted_list = map(lambda a_b3: a_b3[1], t_tup_list)
 	        combo_band_dict['limitmags']['lmt_mg'] = map(lambda i: combo_band_dict['limitmags']['lmt_mg'][i], i_sorted_list)
 	        combo_band_dict['limitmags']['t'] = map(lambda i: combo_band_dict['limitmags']['t'][i], i_sorted_list)
 
@@ -1033,7 +1035,7 @@ class Source:
 		ElementTree.SubElement(TIMESYS, "TimeUnits", ucd="time.epoch", datatype="float", unit="day")
 		ElementTree.SubElement(TIMESYS, "TimeWidthDefault", ucd="time.period", unit="seconds").text = "10.0"
 		ElementTree.SubElement(TIMESYS, "TimeSystem", ucd="frame.time.scale").text = "UTC"
-		if sdict.has_key("ts"):
+		if "ts" in sdict:
 			filts = sdict['ts'].keys()
                         if 'combo_band' in filts:
                             filts.remove('combo_band')
@@ -1114,17 +1116,17 @@ class Source:
 		## put in some versioning to start
 		sss += """%s<history>\n%s<created datetime="%s" codebase="%s" codebase_version="%s"/>\n%s</history>\n""" % \
 			(__tab__*xmllevel,__tab__*(xmllevel+1),str(datetime.datetime.utcnow()),os.path.basename(__file__),__version__,__tab__*xmllevel)
-		if sdict.has_key("src_id"):
+		if "src_id" in sdict:
 			sss += "%s<ID>%s</ID>\n" % (__tab__*xmllevel,sdict['src_id']) 
 		
 		## get the positional info
-		if sdict.has_key("ra") and sdict.has_key("dec"):
+		if "ra" in sdict and "dec" in sdict:
 			sss += "%s<WhereWhen>\n" % (__tab__*xmllevel)
 			sss += '%s<Description>Best positional information of the source</Description>\n' % (__tab__*(xmllevel + 1))
 			sss += '%s<Position2D unit="deg">\n%s<Value2>\n' % (__tab__*(xmllevel + 1),__tab__*(xmllevel + 2))
 			sss += "%s<c1>%s</c1>\n%s<c2>%s</c2>\n%s</Value2>\n" % \
 				(__tab__*(xmllevel + 3),str(sdict['ra']),__tab__*(xmllevel + 3),str(sdict['dec']),__tab__*(xmllevel + 2))
-			if sdict.has_key("ra_rms") and sdict.has_key("dec_rms"):
+			if "ra_rms" in sdict and "dec_rms" in sdict:
 				xmllevel += 1
 				sss += "%s<Error2>\n" % (__tab__*(xmllevel + 1))
 				sss += "%s<c1>%s</c1>\n%s<c2>%s</c2>\n%s</Error2>\n" % \
@@ -1134,7 +1136,7 @@ class Source:
 			sss += "%s</WhereWhen>\n" % (__tab__*xmllevel)
 		
 		## now do the timeseries
-		if sdict.has_key("ts"):
+		if "ts" in sdict:
 			sss +=  __tab__*xmllevel + vo_timeseries.vo_timeseries_preamble 
 			xmllevel += 1
 			sss +=  __tab__*xmllevel + vo_timeseries.vo_timeseries_mjd
@@ -1147,18 +1149,18 @@ class Source:
 
 				# NOTE: KLUDGE: for now I clump both filters together for limiting magnitudes, since
 				#    it will take more of a rework to seperate filters in all TCP code.
-				if bdata.has_key('t'):
+				if 't' in bdata:
 					# KLUDGE: I'm also assuming m, m_err exist.
 					bdata['is_limit'] = [False] * len(bdata['t'])
                                         is_limit = bdata['is_limit'] # 20091102 dstarr adds this line
-				elif bdata.has_key('limitmags'):
+				elif 'limitmags' in bdata:
 					# This filter had no normal (t,m,m_err) data.  Just lim-mags
 					bdata['is_limit'] = []
 					bdata['t'] = []
 					bdata['m'] = []
 					bdata['m_err'] = []
 
-				if bdata.has_key('limitmags'):
+				if 'limitmags' in bdata:
 					bdata['is_limit'].extend([True] * len(bdata['limitmags']['t']))
 					bdata['t'].extend(bdata['limitmags']['t'])
 					bdata['m'].extend(bdata['limitmags']['lmt_mg'])
@@ -1169,7 +1171,7 @@ class Source:
 				xmllevel += 1
 				col = 1
 				has_m = has_m_err = has_t = False
-				if bdata.has_key('t'):
+				if 't' in bdata:
 					sss += '%s<FIELD name="t" ID="col%i" system="TIMESYS" datatype="float" unit="day"/>\n' \
 						% (__tab__*xmllevel,col)
 					t = numarray.array(bdata['t'])
@@ -1180,12 +1182,12 @@ class Source:
 				else:
 					warning("no time array given for filter %s" % b)
 
-				if bdata.has_key('limitmags'):
+				if 'limitmags' in bdata:
 					try:
 						is_limit = numarray.array(bdata['is_limit'])[tsort]
 					except:
 						is_limit = numarray.array(bdata['is_limit'])
-				if bdata.has_key("m"):
+				if "m" in bdata:
 					sss += '%s<FIELD name="m" ID="col%i" ucd="phot.mag;em.opt.%s" datatype="float" unit="mag"/>\n' \
 						% (__tab__*xmllevel,col,b)
 					has_m = True
@@ -1194,7 +1196,7 @@ class Source:
 					except:
 						m = numarray.array(bdata['m'])
 					col += 1
-				if bdata.has_key("m_err"):
+				if "m_err" in bdata:
 					sss += '%s<FIELD name="m_err" ID="col%i" ucd="stat.error;phot.mag;em.opt.%s" datatype="float" unit="mag"/>\n' \
 						% (__tab__*xmllevel,col,b)
 					has_m_err = True	
@@ -1204,7 +1206,7 @@ class Source:
 						m_err = numarray.array(bdata['m_err'])
 					col += 1
 
-				if bdata.has_key("objid_candid"):
+				if "objid_candid" in bdata:
 					ptf_charac_val_list = []
 					ptf_charac_name_list = ['a_elip_candid', 'b_elip_candid', 'chip_id', 'dec_candidate', 'dec_subtract', 'dtime_observe', 'dtime_reductn', 'field_id', 'filter_id', 'fourier_factor', 'fwhm_obj_candid', 'fwhm_obj_subtr', 'hp_il', 'hp_iu', 'hp_kern_radius', 'hp_newskybkg', 'hp_newskysig', 'hp_nsx', 'hp_nsy', 'hp_refskybkg', 'hp_refskysig', 'hp_rss', 'hp_tl', 'hp_tu', 'img_id_candid', 'img_id_refer', 'mag_refer', 'mag_sig_refer', 'mag_sig_subtr', 'mag_subtr', 'nn_a_elip', 'nn_b_elip', 'nn_dec', 'nn_distance', 'nn_mag', 'nn_mag_sig', 'nn_ra', 'nn_star_galaxy', 'nn_x', 'nn_y', 'objid_candid', 'objid_subtract', 'perc_cand_saved', 'percent_incres', 'positive_pix_ratio', 'quality_factor', 'ra_candidate', 'ra_subtract', 'signoise_subt_big_ap', 'signoise_subt_normap', 'surf_bright', 'x_candidate', 'x_subtref', 'y_candidate', 'y_subtref', 'zp_candidate', 'zp_reference']
 					for charac in ptf_charac_name_list:
@@ -1235,7 +1237,7 @@ class Source:
 							sss += "<TD>%f</TD>" % m[i]
 						if has_m_err:
 							sss += "<TD>%f</TD>" % m_err[i]
-						if bdata.has_key("objid_candid"):
+						if "objid_candid" in bdata:
 							# TODO: I need to have ptf_charac_name_list[j][i] in array form, in case there are >1 ptf datapoint
 							for j in xrange(len(ptf_charac_name_list)):
 								sss += "<TD>%lf</TD>" % float(ptf_charac_val_list[j][i])
@@ -1249,7 +1251,7 @@ class Source:
 			sss += "%s</Resource>\n" % (__tab__*xmllevel)
 			xmllevel -= 1
 			sss += __tab__*xmllevel  + "</VOTimeseries>\n"
-		if sdict.has_key("features"):
+		if "features" in sdict:
 			sss += "%s<Features>\n" % (__tab__*xmllevel)
 			xmllevel += 1
 			for filt_name,filt_dict in sdict["features"].iteritems():
@@ -1291,7 +1293,7 @@ class Source:
 			sss += "%s</Features>\n" % (__tab__*xmllevel)
 
                 ####
-		if sdict.has_key("class"):
+		if "class" in sdict:
                         vosource_class_obj = vosource_classification_obj()
                         # 20081023: dstarr comments out:
                         #vosource_class_obj.add_classif_prob(class_name="tutor",
@@ -1476,14 +1478,14 @@ fk5
 			label = "s" + str(src_id) + ":" + ";".join(ss)
 			f.write("point(%s,%s) # point=circle text={%s}\n" % (ra,dec,label))
 		f.close()
-		print "wrote %s" % fname
+		print("wrote %s" % fname)
 
 	def get_search_help(self):
 		if self.allow_search:
 			if self.search_type  == "full":
-				print self.server.system.methodHelp("get_sources_for_radec")
+				print(self.server.system.methodHelp("get_sources_for_radec"))
 			else:
-				print self.server.system.methodHelp("get_sources_for_radec_assume_in_src_db")
+				print(self.server.system.methodHelp("get_sources_for_radec_assume_in_src_db"))
 		return
 		
 	def __del__(self):
@@ -1600,7 +1602,7 @@ class TestClass:
             sys.path.append(os.path.abspath(os.environ.get("TCP_DIR","") + \
                           'Software/feature_extract/Code'))
             from Code import generators_importers
-            import db_importer
+            from . import db_importer
 
             signals_list = []
             gen = generators_importers.from_xml(signals_list)

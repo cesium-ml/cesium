@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ..FeatureExtractor import ContextFeatureExtractor
 
 class sdss_rosat_flux_in_mJy(ContextFeatureExtractor): 
@@ -12,27 +13,27 @@ class sdss_rosat_flux_in_mJy(ContextFeatureExtractor):
                 
                 if n is None:
                     if self.verbose:
-                        print "Nothing in the sdss extractor"
+                        print("Nothing in the sdss extractor")
                     return None
                     
-                if not n.has_key("in_footprint"):
+                if "in_footprint" not in n:
                     if self.verbose:
-                        print "No footprint info in the sdss extractor. Should never happen."
+                        print("No footprint info in the sdss extractor. Should never happen.")
                     return None
                 
                 if not n['in_footprint']:
                     if self.verbose:
-                        print "Not in the footprint"
+                        print("Not in the footprint")
                     return None
 
-                if not n.has_key("rosat_flux_in_mJy"):
+                if "rosat_flux_in_mJy" not in n:
                     if self.verbose:
-                        print "Desired parameter was not determined"
+                        print("Desired parameter was not determined")
                     return None
 
-                if not n.has_key("dist_in_arcmin"):
+                if "dist_in_arcmin" not in n:
                     if self.verbose:
-                        print "Desired parameter was not determined"
+                        print("Desired parameter was not determined")
                     return None
                     
                 if n["dist_in_arcmin"] > self.light_cutoff:
@@ -40,5 +41,5 @@ class sdss_rosat_flux_in_mJy(ContextFeatureExtractor):
                 else:
                     rez = n["rosat_flux_in_mJy"]
                 if self.verbose:
-                        print n
+                        print(n)
                 return rez

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """ When given a csv lightcurve, generate features.
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 import os, sys
 import csv
@@ -9,7 +11,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                       'Software/feature_extract'))
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
               'Software/feature_extract/Code'))
-from Code import *
+from .Code import *
 import db_importer
 
 
@@ -96,8 +98,8 @@ if __name__ == '__main__':
     gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
     import pprint
     pprint.pprint((signals_list[0].properties['data']['v']['features'].keys()).sort())
-    print
-    print 'freq1_harmonics_freq_0 =', signals_list[0].properties['data']['v']['features']['freq1_harmonics_freq_0']
-    print
+    print()
+    print('freq1_harmonics_freq_0 =', signals_list[0].properties['data']['v']['features']['freq1_harmonics_freq_0'])
+    print()
 
     #import pdb; pdb.set_trace()
