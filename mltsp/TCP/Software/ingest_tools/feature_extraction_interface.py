@@ -8,17 +8,6 @@ feature_extraction_interface.py
 PDB Command:
    /usr/lib/python2.5/pdb.py test.py
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 try:
     import pylab
@@ -28,12 +17,10 @@ import numpy
 
 import glob
 
-base_dir = os.path.dirname(__file__)
-tcp_dir = os.path.join(base_dir, '../..')
-ext1 = os.path.join(tcp_dir, 'Software/feature_extract/Code/extractors/')
+ext1 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/'
 #ext2 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/common_function/'
 
-class GetFeatIdLookupDicts(object):
+class GetFeatIdLookupDicts:
     """ This class retrieves a couple lookup dicts from disk, and
     if they dont exist, they are generated from an RDB query and written to disk.
 
@@ -59,19 +46,19 @@ class GetFeatIdLookupDicts(object):
         for result in results:
             (feat_name, filter_id, feat_id) = result
             feature_lookup_dict[(filter_id, feat_name)] = feat_id
-            if filter_id not in filt_lookup_dict:
+            if not filt_lookup_dict.has_key(filter_id):
                 filt_lookup_dict[filter_id] = {}
             filt_lookup_dict[filter_id][feat_name] = feat_id
-
+        
         return (feature_lookup_dict, filt_lookup_dict)
 
-
+        
     def write_dicts_to_disk(self, feature_lookup_dict, filt_lookup_dict):
         """ Write dicts to dictfile which is generally under $TCP_DATA_DIR.
         """
-        import pickle
+        import cPickle
         fp = open(self.reference_feat_dict_fpath, "w")
-        pickle.dump((feature_lookup_dict, filt_lookup_dict),fp)
+        cPickle.dump((feature_lookup_dict, filt_lookup_dict),fp)
         fp.close()
 
 
@@ -94,242 +81,71 @@ class GetFeatIdLookupDicts(object):
         (feature_lookup_dict, filt_lookup_dict) = \
                                 self.form_dicts_from_rdb_query()
             #self.write_dicts_to_disk(feature_lookup_dict, filt_lookup_dict)
-
+            
         self.feature_lookup_dict = feature_lookup_dict
         self.filt_lookup_dict = filt_lookup_dict
 
 
-class Final_Features(object):
-    """ Class which contains final, extracted (scalar) feature definition
-    lists and dictionaries.
-
-    I found a list of these in:
-    signals_list[0].properties['data']['i']['features']
-    """
-    def __init__(self):
-        self.ife = Internal_Feature_Extractors()
-        #self.ife.features_tup_list
-
-        # TODO: to form self.features_dict{} I need to:
-        #  - make mysql-friendly names using replace() for 'table_name'
-        #  - assume FLOAT & INDEX
-        import copy
-
-        self.string_replace_dict = {'-':'_',
-                                    ' ':'',
-                                    '.':'_',
-                                    '_extractor':'',
-                                    'extractor':''}
-        self.filter_list = ['u','g','r','i','z','j','h','k','X'] # cooresponds to RDB 'filt' indexes: [SDSS(5), PTEL(3), <dummy/extra filter is last in list>]
-        self.filter_dict = {}
-        i = 0
-        for filt in self.filter_list:
-            self.filter_dict[filt] = i
-            i += 1
-
-        self.features_dict = {}
-        for (extractor_name,notso_empty_dict) in self.ife.features_tup_list:
-            #print extractor_name
-            ext_name_mysql_safe = copy.copy(extractor_name)
-            for old_str,new_str in self.string_replace_dict.items():
-                ext_name_mysql_safe = ext_name_mysql_safe.replace(old_str,new_str)
-
-            self.features_dict[extractor_name] = {\
-                'out_type':'FLOAT',
-                'table_name':ext_name_mysql_safe,
-                'index_type':'INDEX',
-                'internal':notso_empty_dict['internal'],
-                'doc':notso_empty_dict['doc']}
-        """
-        self.features_dict = { \
-            'std': {\
-                'out_type':'FLOAT',
-                'table_name':'std_dev',
-                'index_type':'INDEX'},
-            'third': {\
-                'out_type':'FLOAT',
-                'table_name':'third_freq',
-                'index_type':'INDEX'},
-            'first_frequency': {\
-                'out_type':'FLOAT',
-                'table_name':'first_freq',
-                'index_type':'INDEX'},
-            'chi2': {\
-                'out_type':'FLOAT',
-                'table_name':'chi2',
-                'index_type':'INDEX'},
-            'weighted average': {\
-                'out_type':'FLOAT',
-                'table_name':'weighted_avg',
-                'index_type':'INDEX'},
-            'median': {\
-                'out_type':'FLOAT',
-                'table_name':'feat_median',
-                'index_type':'INDEX'},
-            'dc': {\
-                'out_type':'FLOAT',
-                'table_name':'feat_dc',
-                'index_type':'INDEX'},
-            'max_slope': {\
-                'out_type':'FLOAT',
-                'table_name':'max_slope',
-                'index_type':'INDEX'},
-            'freq ratio 2-1': {\
-                'out_type':'FLOAT',
-                'table_name':'freq_ratio_21',
-                'index_type':'INDEX'},
-            'second': {\
-                'out_type':'FLOAT',
-                'table_name':'second_freq',
-                'index_type':'INDEX'},
-            'old dc': {\
-                'out_type':'FLOAT',
-                'table_name':'old_dc',
-                'index_type':'INDEX'},
-            'n of pts beyond 1 std from u': {\
-                'out_type':'FLOAT',
-                'table_name':'n_pts_by_1_std',
-                'index_type':'INDEX'},
-            'freq ratio 3-2': {\
-                'out_type':'FLOAT',
-                'table_name':'freq_ratio_32',
-                'index_type':'INDEX'},
-            'freq ratio 3-1': {\
-                'out_type':'FLOAT',
-                'table_name':'freq_ratio_31',
-                'index_type':'INDEX'},
-            'skew': {\
-                'out_type':'FLOAT',
-                'table_name':'feat_skew',
-                'index_type':'INDEX'},
-            'weighted average uncertainty': {\
-                'out_type':'FLOAT',
-                'table_name':'weight_avg_uncert',
-                'index_type':'INDEX'}}
-            """
-        #self.features_ordered_list = self.features_dict.keys()
-        #self.features_ordered_list.sort()
-
-class Feature_database(object):
-    """ Class which contains generation and access methods for
-    all possible feature extractors.
-
-    # USE:
-    import feature_extraction_interface
-    feat_db = feature_extraction_interface.Feature_database()
-    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \
-                                        rdb_user='', rdb_name='')
-    feat_db.create_feature_tables()
-    feat_db.insert_srclist_features_into_rdb_tables(self, signals_list)
-    """
-    def __init__(self):
-        self.final_features = Final_Features()
-
-    def initialize_mysql_connection(self, rdb_host_ip='', rdb_user='', \
-                                    rdb_name='', rdb_port=3306, \
-                                    feat_lookup_tablename='',\
-                                    feat_values_tablename='', \
-                                    db=None):
-        """ Create connection to feature mysql server.
-        """
-        import MySQLdb
-        if db == None:
-            self.db = MySQLdb.connect(host=rdb_host_ip, user=rdb_user, \
-                                  db=rdb_name, port=rdb_port, compress=1)
-        else:
-            self.db = db
-        self.cursor = self.db.cursor()
-        self.feat_lookup_tablename = feat_lookup_tablename
-        self.feat_values_tablename = feat_values_tablename
-
-        self.attempt_to_fill_feat_lookup_tablename()
-
-
-    def attempt_to_fill_feat_lookup_tablename(self):
-        """ KLUDGE: Attempt to retrieve self.feat_lookup_tablename values and
-                    populate self.feature_lookup_dict{}
-        """
-        try:
-            select_str = "SELECT (feat_id, filter_id, feat_name) FROM %s" % (self.feat_lookup_tablename)
-            self.cursor.execute(select_str)
-            results = self.cursor.fetchall()
-
-            self.feature_lookup_dict = {}
-            for result in results:
-                (feat_id, filt_num, feat_name) = result
-                self.feature_lookup_dict[(filt_num, feat_name)] = feat_id
-        except:
-            pass
-
-
-    def drop_feature_tables(self):
-        """ DROP MySQL tables for all features.
-
-        Tables of form:
-        src_id (INT UNSIGNED), feat <some-format, FLOAT?>
-        """
-        for feat_name,feat_dict in self.final_features.features_dict.items():
-            for filt_name in self.final_features.filter_list:
-                #create_str = "CREATE TABLE %s_%s (INDEX(src_id), %s(%s))" % (filt_name, feat_name, feat_dict['index_type'], feat_dict['out_type'])
-                create_str = "DROP TABLE %s_%s" % (filt_name, feat_dict['table_name'])
-                try:
-                    self.cursor.execute(create_str)
-                except:
-                    pass
-                    #print 'FAIL:', create_str
-
-
-
-class Internal_Feature_Extractors(object):
+class Internal_Feature_Extractors:
     """ Class which contains "internal feature" definition lists & dictionaries
     """
-
+    
     ## modules (instead of classes) will break the test suite. Put these here as appropriate.
-    ignores = ["min_extractor","max_extractor","third_extractor"]
-
+    ignores = ["min_extractor","max_extractor","third_extractor"] 
+    
     def __init__(self):
         # This needs to retain list ordering, but I figure it'd be useful
         #    to have potential dictionary attributes associated with
         #    each internal-feature extractor.
+        
+        ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
+        init = ext1 + "__init__.py"
+        f = open(init)
+        ff = f.readlines()
+        f.close()
+        features = []
+        for l in ff:
+            if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
+                tmp = l.split("import")[-1].strip().split(",")
+                #print (tmp,len(tmp))
+                features.extend(tmp)
+        
+        #tmp = glob.glob(ext1 + "*extract*.py")
+        #features = []
+        #for i in range(len(tmp)):
+        #    ug = open(tmp[i],"r")
+        #    ff = ug.readlines()
+        #    ug.close()
+        #    for l in ff:
+        #        if l[:15].find("class ") != -1 and l.find("#class") == -1:
+        #            addit = True
+        #            for i in self.ignores:
+        #                if l.find(i) != -1:
+        #                    addit = False
+        #                    print (l,i)
+        #            if addit:
+        #                features.append(l.split("class ")[1].split("(")[0])
+        tmp = "self.features_tup_list = [" + ", ".join(["('" + x + "',{})" for x in features]) + "]"
+        #print tmp
+        exec tmp
 
-        import inspect
-        
-        from ..feature_extract.Code.FeatureExtractor import FeatureExtractor, InterExtractor
-        from ..feature_extract.Code import extractors
-        
-        extractor_candidates = [extractor for (name, extractor) in inspect.getmembers(extractors)
-                                if inspect.isclass(extractor)]
-        extractors = [extractor.extname for extractor in extractor_candidates
-                      if issubclass(extractor, (FeatureExtractor, InterExtractor))]
-        features = [e.replace('_extractor', '') for e in extractors]
-        
-        self.features_tup_list = [(feature, {}) for feature in features]
-
+        # Get doc strings (KLUDGY! but works.):
         for (feat_name,feat_dict) in self.features_tup_list:
-            d = {}
-            from ..feature_extract.Code import extractors
-            feature = getattr(extractors, feat_name + '_extractor')
-            doc = getattr(feature, '__doc__', '')
-            #exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % str(feat_name), globals(), d)
+            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % (feat_name)
             #print x
-            feat_dict['doc'] = doc
-            
-            import inspect
-            #exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = #inspect.getmembers(Code.extractors.%s)" % (feat_name), globals(), d)
-           # try:
-           #     x = d["x"]
-           # except KeyError:
-            #    x = None
-            
+            if x == None:
+                x = ''
+            feat_dict['doc'] = x
+            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name)
             feat_dict['internal'] = 'false'
-            for member_name, member_val in inspect.getmembers(feature):
+            for member_name,member_val in x:
                 if member_name == 'internal_use_only':
                     if member_val == True:
                         feat_dict['internal'] = 'true'
                     break
 
         #TODO: I need to store this info to feat_values table.
-
+        
         ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
 
         #print self.features_tup_list
@@ -343,7 +159,7 @@ class Internal_Feature_Extractors(object):
             self.feature_dict[feat_name] = feat_dict
 
 
-class Final_Features(object):
+class Final_Features:
     """ Class which contains final, extracted (scalar) feature definition
     lists and dictionaries.
 
@@ -359,7 +175,7 @@ class Final_Features(object):
         #  - assume FLOAT & INDEX
         import copy
 
-        self.string_replace_dict = {'-':'_',
+        self.string_replace_dict = {'-':'_', 
                                     ' ':'',
                                     '.':'_',
                                     '_extractor':'',
@@ -375,7 +191,7 @@ class Final_Features(object):
         for (extractor_name,notso_empty_dict) in self.ife.features_tup_list:
             #print extractor_name
             ext_name_mysql_safe = copy.copy(extractor_name)
-            for old_str,new_str in self.string_replace_dict.items():
+            for old_str,new_str in self.string_replace_dict.iteritems():
                 ext_name_mysql_safe = ext_name_mysql_safe.replace(old_str,new_str)
 
             self.features_dict[extractor_name] = {\
@@ -454,14 +270,14 @@ class Final_Features(object):
         #self.features_ordered_list = self.features_dict.keys()
         #self.features_ordered_list.sort()
 
-class Feature_database(object):
+class Feature_database:
     """ Class which contains generation and access methods for
     all possible feature extractors.
 
     # USE:
     import feature_extraction_interface
     feat_db = feature_extraction_interface.Feature_database()
-    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \
+    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \ 
                                         rdb_user='', rdb_name='')
     feat_db.create_feature_tables()
     feat_db.insert_srclist_features_into_rdb_tables(self, signals_list)
@@ -512,7 +328,261 @@ class Feature_database(object):
         Tables of form:
         src_id (INT UNSIGNED), feat <some-format, FLOAT?>
         """
-        for feat_name,feat_dict in self.final_features.features_dict.items():
+        for feat_name,feat_dict in self.final_features.features_dict.iteritems():
+            for filt_name in self.final_features.filter_list:
+                #create_str = "CREATE TABLE %s_%s (INDEX(src_id), %s(%s))" % (filt_name, feat_name, feat_dict['index_type'], feat_dict['out_type'])
+                create_str = "DROP TABLE %s_%s" % (filt_name, feat_dict['table_name'])
+                try:
+                    self.cursor.execute(create_str)
+                except:
+                    pass
+                    #print 'FAIL:', create_str
+
+
+
+class Internal_Feature_Extractors:
+    """ Class which contains "internal feature" definition lists & dictionaries
+    """
+    
+    ## modules (instead of classes) will break the test suite. Put these here as appropriate.
+    ignores = ["min_extractor","max_extractor","third_extractor"] 
+    
+    def __init__(self):
+        # This needs to retain list ordering, but I figure it'd be useful
+        #    to have potential dictionary attributes associated with
+        #    each internal-feature extractor.
+        
+        ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
+        init = ext1 + "__init__.py"
+        f = open(init)
+        ff = f.readlines()
+        f.close()
+        features = []
+        for l in ff:
+            if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
+                tmp = l.split("import")[-1].strip().split(",")
+                #print (tmp,len(tmp))
+                features.extend(tmp)
+        
+        #tmp = glob.glob(ext1 + "*extract*.py")
+        #features = []
+        #for i in range(len(tmp)):
+        #    ug = open(tmp[i],"r")
+        #    ff = ug.readlines()
+        #    ug.close()
+        #    for l in ff:
+        #        if l[:15].find("class ") != -1 and l.find("#class") == -1:
+        #            addit = True
+        #            for i in self.ignores:
+        #                if l.find(i) != -1:
+        #                    addit = False
+        #                    print (l,i)
+        #            if addit:
+        #                features.append(l.split("class ")[1].split("(")[0])
+        tmp = "self.features_tup_list = [" + ", ".join(["('" + x + "',{})" for x in features]) + "]"
+        #print tmp
+        exec tmp
+
+        # Get doc strings (KLUDGY! but works.):
+        for (feat_name,feat_dict) in self.features_tup_list:
+            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % (feat_name)
+            #print x
+            if x == None:
+                x = ''
+            feat_dict['doc'] = x
+            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name)
+            feat_dict['internal'] = 'false'
+            for member_name,member_val in x:
+                if member_name == 'internal_use_only':
+                    if member_val == True:
+                        feat_dict['internal'] = 'true'
+                    break
+
+        #TODO: I need to store this info to feat_values table.
+        
+        ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
+
+        #print self.features_tup_list
+
+        # TODO: I'm sure there is an efficient way to form a dictionary
+        #       from the above tuple list, using map(), filter(), etc...
+        self.feature_dict = {}
+        self.feature_ordered_keys = []
+        for (feat_name,feat_dict) in self.features_tup_list:
+            self.feature_ordered_keys.append(feat_name)
+            self.feature_dict[feat_name] = feat_dict
+
+
+class Final_Features:
+    """ Class which contains final, extracted (scalar) feature definition
+    lists and dictionaries.
+
+    I found a list of these in:
+    signals_list[0].properties['data']['i']['features']
+    """
+    def __init__(self):
+        self.ife = Internal_Feature_Extractors()
+        #self.ife.features_tup_list
+
+        # TODO: to form self.features_dict{} I need to:
+        #  - make mysql-friendly names using replace() for 'table_name'
+        #  - assume FLOAT & INDEX
+        import copy
+
+        self.string_replace_dict = {'-':'_', 
+                                    ' ':'',
+                                    '.':'_',
+                                    '_extractor':'',
+                                    'extractor':''}
+        self.filter_list = ['u','g','r','i','z','j','h','k','X'] # cooresponds to RDB 'filt' indexes: [SDSS(5), PTEL(3), <dummy/extra filter is last in list>]
+        self.filter_dict = {}
+        i = 0
+        for filt in self.filter_list:
+            self.filter_dict[filt] = i
+            i += 1
+
+        self.features_dict = {}
+        for (extractor_name,notso_empty_dict) in self.ife.features_tup_list:
+            #print extractor_name
+            ext_name_mysql_safe = copy.copy(extractor_name)
+            for old_str,new_str in self.string_replace_dict.iteritems():
+                ext_name_mysql_safe = ext_name_mysql_safe.replace(old_str,new_str)
+
+            self.features_dict[extractor_name] = {\
+                'out_type':'FLOAT',
+                'table_name':ext_name_mysql_safe,
+                'index_type':'INDEX',
+                'internal':notso_empty_dict['internal'],
+                'doc':notso_empty_dict['doc']}
+        """
+        self.features_dict = { \
+            'std': {\
+                'out_type':'FLOAT',
+                'table_name':'std_dev',
+                'index_type':'INDEX'},
+            'third': {\
+                'out_type':'FLOAT',
+                'table_name':'third_freq',
+                'index_type':'INDEX'},
+            'first_frequency': {\
+                'out_type':'FLOAT',
+                'table_name':'first_freq',
+                'index_type':'INDEX'},
+            'chi2': {\
+                'out_type':'FLOAT',
+                'table_name':'chi2',
+                'index_type':'INDEX'},
+            'weighted average': {\
+                'out_type':'FLOAT',
+                'table_name':'weighted_avg',
+                'index_type':'INDEX'},
+            'median': {\
+                'out_type':'FLOAT',
+                'table_name':'feat_median',
+                'index_type':'INDEX'},
+            'dc': {\
+                'out_type':'FLOAT',
+                'table_name':'feat_dc',
+                'index_type':'INDEX'},
+            'max_slope': {\
+                'out_type':'FLOAT',
+                'table_name':'max_slope',
+                'index_type':'INDEX'},
+            'freq ratio 2-1': {\
+                'out_type':'FLOAT',
+                'table_name':'freq_ratio_21',
+                'index_type':'INDEX'},
+            'second': {\
+                'out_type':'FLOAT',
+                'table_name':'second_freq',
+                'index_type':'INDEX'},
+            'old dc': {\
+                'out_type':'FLOAT',
+                'table_name':'old_dc',
+                'index_type':'INDEX'},
+            'n of pts beyond 1 std from u': {\
+                'out_type':'FLOAT',
+                'table_name':'n_pts_by_1_std',
+                'index_type':'INDEX'},
+            'freq ratio 3-2': {\
+                'out_type':'FLOAT',
+                'table_name':'freq_ratio_32',
+                'index_type':'INDEX'},
+            'freq ratio 3-1': {\
+                'out_type':'FLOAT',
+                'table_name':'freq_ratio_31',
+                'index_type':'INDEX'},
+            'skew': {\
+                'out_type':'FLOAT',
+                'table_name':'feat_skew',
+                'index_type':'INDEX'},
+            'weighted average uncertainty': {\
+                'out_type':'FLOAT',
+                'table_name':'weight_avg_uncert',
+                'index_type':'INDEX'}}
+            """
+        #self.features_ordered_list = self.features_dict.keys()
+        #self.features_ordered_list.sort()
+
+class Feature_database:
+    """ Class which contains generation and access methods for
+    all possible feature extractors.
+
+    # USE:
+    import feature_extraction_interface
+    feat_db = feature_extraction_interface.Feature_database()
+    feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.45', \ 
+                                        rdb_user='', rdb_name='')
+    feat_db.create_feature_tables()
+    feat_db.insert_srclist_features_into_rdb_tables(self, signals_list)
+    """
+    def __init__(self):
+        self.final_features = Final_Features()
+
+    def initialize_mysql_connection(self, rdb_host_ip='', rdb_user='', \
+                                    rdb_name='', rdb_port=3306, \
+                                    feat_lookup_tablename='',\
+                                    feat_values_tablename='', \
+                                    db=None):
+        """ Create connection to feature mysql server.
+        """
+        import MySQLdb
+        if db == None:
+            self.db = MySQLdb.connect(host=rdb_host_ip, user=rdb_user, \
+                                  db=rdb_name, port=rdb_port, compress=1)
+        else:
+            self.db = db
+        self.cursor = self.db.cursor()
+        self.feat_lookup_tablename = feat_lookup_tablename
+        self.feat_values_tablename = feat_values_tablename
+
+        self.attempt_to_fill_feat_lookup_tablename()
+
+
+    def attempt_to_fill_feat_lookup_tablename(self):
+        """ KLUDGE: Attempt to retrieve self.feat_lookup_tablename values and
+                    populate self.feature_lookup_dict{}
+        """
+        try:
+            select_str = "SELECT (feat_id, filter_id, feat_name) FROM %s" % (self.feat_lookup_tablename)
+            self.cursor.execute(select_str)
+            results = self.cursor.fetchall()
+
+            self.feature_lookup_dict = {}
+            for result in results:
+                (feat_id, filt_num, feat_name) = result
+                self.feature_lookup_dict[(filt_num, feat_name)] = feat_id
+        except:
+            pass
+
+
+    def drop_feature_tables(self):
+        """ DROP MySQL tables for all features.
+
+        Tables of form:
+        src_id (INT UNSIGNED), feat <some-format, FLOAT?>
+        """
+        for feat_name,feat_dict in self.final_features.features_dict.iteritems():
             for filt_name in self.final_features.filter_list:
                 #create_str = "CREATE TABLE %s_%s (INDEX(src_id), %s(%s))" % (filt_name, feat_name, feat_dict['index_type'], feat_dict['out_type'])
                 create_str = "DROP TABLE %s_%s" % (filt_name, feat_dict['table_name'])
@@ -539,14 +609,14 @@ class Feature_database(object):
         """
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
-        for filt_num in range(len(self.final_features.filter_list)):
+        for filt_num in xrange(len(self.final_features.filter_list)):
             self.filt_lookup_dict[filt_num] = {}
         i = 0
         #feat_id_partition_groups = []
-        for feat_name_internal,feat_dict in self.final_features.features_dict.items():
+        for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
             feat_name = feat_dict['table_name']
             #feat_id_list = []
-            for filt_num in range(len(self.final_features.filter_list)):
+            for filt_num in xrange(len(self.final_features.filter_list)):
                 self.feature_lookup_dict[(filt_num, feat_name)] = i
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 #feat_id_list.append(str(i))
@@ -575,28 +645,28 @@ class Feature_database(object):
 
         """
         # KLUDGE: This is repeated in create_feature_lookup_dict() which
-        #   was probably called earlier.  feat_id_partition_groups should
-        #   probably be self. and everything done in mentioned function.
+        #   was probably called earlier.  feat_id_partition_groups should 
+        #   probably be self. and everything done in mentioned function. 
         #   Then this section can be removed.
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
-        for filt_num in range(len(self.final_features.filter_list)):
+        for filt_num in xrange(len(self.final_features.filter_list)):
             self.filt_lookup_dict[filt_num] = {}
         i = 0
         feat_id_partition_groups = []
         inter_partition_list = []
         in_partition_count = 0
 
-        for feat_name_internal,feat_dict in self.final_features.features_dict.items():
+        for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
             feat_name = feat_dict['table_name']
 
             feat_id_list = []
-            for filt_num in range(len(self.final_features.filter_list)):
+            for filt_num in xrange(len(self.final_features.filter_list)):
                 self.feature_lookup_dict[(filt_num, feat_name)] = i
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 feat_id_list.append(str(i))
                 i += 1
-
+                
             in_partition_count += 1
             inter_partition_list.extend(feat_id_list)
             # The following clusters 4 features (and their filters) to a partitn
@@ -613,9 +683,9 @@ class Feature_database(object):
         inter_partition_list = []
         in_partition_count = 0
         # NOTE: it seems we need at leas 50 * (9 filters) extra added at the moment
-        for i_future_feature in range(1000):
+        for i_future_feature in xrange(1000):
             feat_id_list = []
-            for filt_num in range(len(self.final_features.filter_list)):
+            for filt_num in xrange(len(self.final_features.filter_list)):
                 feat_id_list.append(str(i))
                 i += 1
             in_partition_count += 1
@@ -634,13 +704,13 @@ class Feature_database(object):
             self.cursor.execute(create_str)
 
             insert_list = ["INSERT INTO %s (feat_id, filter_id, feat_name, doc_str, is_internal) VALUES " % (self.feat_lookup_tablename)]
-            for (filt_num,feat_name),i_feat in self.feature_lookup_dict.items():
+            for (filt_num,feat_name),i_feat in self.feature_lookup_dict.iteritems():
                 # KLUDGY: list structure is not ideal here:
                 doc_str = ''
                 #for temp_feat_name,temp_dict in self.final_features.ife.\
                 #                                                 features_tup_list:
                 for temp_feat_name,temp_dict in self.final_features.features_dict.\
-                                                                        items():
+                                                                        iteritems():
                     if feat_name == temp_dict['table_name']:
                         doc_str = temp_dict['doc'][:2000].replace("'","_").replace('"',"_")#.replace("","_")
                         internal = temp_dict['internal']
@@ -660,7 +730,7 @@ class Feature_database(object):
             i += 1
 
         import pdb; pdb.set_trace()
-
+        
 
         self.cursor.execute(''.join(create_str_list)[:-2] + ")")
 
@@ -679,20 +749,20 @@ class Feature_database(object):
         ... <for all feature-filter combination>
         """
         # KLUDGE: This is repeated in create_feature_lookup_dict() which
-        #   was probably called earlier.  feat_id_partition_groups should
-        #   probably be self. and everything done in mentioned function.
+        #   was probably called earlier.  feat_id_partition_groups should 
+        #   probably be self. and everything done in mentioned function. 
         #   Then this section can be removed.
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
-        for filt_num in range(len(self.final_features.filter_list)):
+        for filt_num in xrange(len(self.final_features.filter_list)):
             self.filt_lookup_dict[filt_num] = {}
         i = 0
         feat_id_partition_groups = []
-        for feat_name_internal,feat_dict in self.final_features.features_dict.items():
+        for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
             feat_name = feat_dict['table_name']
 
             feat_id_list = []
-            for filt_num in range(len(self.final_features.filter_list)):
+            for filt_num in xrange(len(self.final_features.filter_list)):
                 self.feature_lookup_dict[(filt_num, feat_name)] = i
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 feat_id_list.append(str(i))
@@ -702,7 +772,7 @@ class Feature_database(object):
         self.cursor.execute(create_str)
 
         insert_list = ["INSERT INTO %s (feat_id, filter_id, feat_name) VALUES " % (self.feat_lookup_tablename)]
-        for (filt_num,feat_name),i_feat in self.feature_lookup_dict.items():
+        for (filt_num,feat_name),i_feat in self.feature_lookup_dict.iteritems():
             insert_list.append('(%d,%d,"%s"), '% (i_feat, filt_num, feat_name))
         self.cursor.execute(''.join(insert_list)[:-2])
 
@@ -725,8 +795,8 @@ class Feature_database(object):
         featureless_srcids = []
         reduced_rez = []
         for src_rez in orig_rez:
-            for temp_rez in list(src_rez.values()):
-                if 'src_id' in temp_rez:
+            for temp_rez in src_rez.values():
+                if temp_rez.has_key('src_id'):
                     src_id = temp_rez['src_id']
                     break
             select_str ="SELECT TRUE FROM feat_values WHERE src_id=%d LIMIT 1"\
@@ -745,9 +815,9 @@ class Feature_database(object):
         insert each src_id & feature-list into their cooresponding table.
         """
         insert_dict = {}
-        for filt_num in range(len(self.final_features.filter_list)):
+        for filt_num in xrange(len(self.final_features.filter_list)):
             insert_dict[filt_num] = {}
-            for feat_name_internal,feat_dict in self.final_features.features_dict.items():
+            for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
                 feat_name = feat_dict['table_name']
                 insert_dict[filt_num][feat_name] = []
 
@@ -758,7 +828,7 @@ class Feature_database(object):
 
             ### 20100527 dstarr adds a new condition since we have disabled the combo_band, which chooses the filter with the most epochs:
             filter_epoch_counts = []
-            for filt_name in list(signal_obj.properties['data'].keys()):
+            for filt_name in signal_obj.properties['data'].keys():
                 if not filt_name in ['multiband', 'combo_band']:
                     filter_epoch_counts.append((len(signal_obj.properties['data'][filt_name]['input']['flux_data']), filt_name))
             filter_epoch_counts.sort(reverse=True)
@@ -766,7 +836,7 @@ class Feature_database(object):
             used_filters_list.append(filter_most_sampled)
             ###
 
-            for filt_name in list(signal_obj.properties['data'].keys()):
+            for filt_name in signal_obj.properties['data'].keys():
                 # 20090617 KLUDGE:
                 #    (in the next 2 lines) I am going to just include the ['multiband', 'combo_band'] and not ['ptf_g', 'ptf_r'] bands since they are combined into ['combo_band'].  NOTE: I think ['multiband'] has features like: 'ws_variability_ru', but not other features... so it is complimentary
                 ### 20100527 dstarr adds a new condition since we have disabled the combo_band, which chooses the filter with the most epochs:
@@ -775,14 +845,14 @@ class Feature_database(object):
                 if not filt_name in ['multiband', 'combo_band', filter_most_sampled]:
                     continue # skip this band (probably a specific filter)
 
-
+                
                 if filt_name in self.final_features.filter_list:
                     filt_num = self.final_features.filter_list.index(filt_name)
                 else:
                     filt_num = len(self.final_features.filter_list) - 1 # Given dummy filter
-                for feat_name_internal,feat_dict in self.final_features.features_dict.items():
+                for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
                     feat_name = feat_dict['table_name']
-                    # NOTE: if a certain feature was not generated, we don't INSERT
+                    # NOTE: if a certain feature was not generated, we don't INSERT 
                     #       it into the RDB.  This alleviates lots of NULL feat values.
                     #if not signal_obj.properties['data'][filt_name]\
                     #                            ['features'].has_key(feat_name):
@@ -790,8 +860,8 @@ class Feature_database(object):
                     #if feat_name == 'flux_percentile_ratio_mid50':
                     #    import pdb; pdb.set_trace()
                     #    print 'yo', feat_name, filt_name
-                    if feat_name in signal_obj.properties['data'][filt_name]\
-                                                ['features']:
+                    if signal_obj.properties['data'][filt_name]\
+                                                ['features'].has_key(feat_name):
                         feat_val = str(signal_obj.properties['data'][filt_name]\
                                                         ['features'][feat_name])
                         if ((feat_val == 'Fail') or (feat_val == 'nan') or
@@ -813,19 +883,19 @@ class Feature_database(object):
         #     a unique MySQL Table Partition file):
         # # # # # # # # # #
         # TODO: ? which is MySQL faster (using partitions): mini INSERT of MEGA
-
+        
         if do_rdb_insert:
             #insert_list = ["INSERT INTO %s (src_id, feat_id, feat_val, feat_weight) VALUES " % (self.feat_values_tablename)]
             insert_list = ["INSERT INTO %s (src_id, feat_id, feat_val) VALUES " % (self.feat_values_tablename)]
         else:
             insert_list = []
         # THIS is pretty KLUDGY since it iterates over all know filters (multiple surveys):  And, all ptf is in filter_id=8, even though that includes 2 filter + combo_band:
-        for filt_num,filt_dict in insert_dict.items():
-            for feat_name,val_list in filt_dict.items():
+        for filt_num,filt_dict in insert_dict.iteritems():
+            for feat_name,val_list in filt_dict.iteritems():
                 #if 'flux_percentile_ratio' in feat_name:
                 #if len(val_list) == 0:
                 #    print 'len()==0', feat_name, filt_num, val_list
-
+                    
                 #if (filt_num == 8) and (feat_name == 'flux_percentile_ratio_mid50'):
                 #    import pdb; pdb.set_trace()
                 #    print 'yo', feat_name, filt_num, val_list
@@ -835,7 +905,7 @@ class Feature_database(object):
                     #insert_list.append("(%d,%d,%s,1.0), " % (src_id, \
                     insert_list.append("(%d,%d,%s), " % (src_id, \
                                self.feature_lookup_dict[(filt_num, feat_name)],\
-                               feat_val))
+                               feat_val)) 
         if do_rdb_insert and len(insert_list) > 1:
 
             if do_delete_existing_featvals:
@@ -847,7 +917,7 @@ class Feature_database(object):
             #self.cursor.execute(''.join(insert_list)[:-2])
             insert_str = ''.join(insert_list)[:-2] + ' ON DUPLICATE KEY UPDATE feat_val=VALUES(feat_val)'
             self.cursor.execute(insert_str)
-            print('feature RDB INSERTed/UPDATEd %d sources.' % (len(srcid_list)))
+            print 'feature RDB INSERTed/UPDATEd %d sources.' % (len(srcid_list))
 
             # TODO: lets also insert / update which filter was used for the features, into the RDB.
 
@@ -864,7 +934,7 @@ class Feature_database(object):
         table_names = []
         for filt_name in self.final_features.filter_list:
             for feat_name,feat_dict in self.final_features.features_dict.\
-                                                                    items():
+                                                                    iteritems():
                 table_names.append("%s_%s" %(filt_name,feat_dict['table_name']))
         table_names.sort()
 
@@ -889,7 +959,7 @@ class Feature_database(object):
             for row in results:
                 temp_list.append(row[i])
             out_dict[table_name] = temp_list
-
+            
         return out_dict # e.g.: 'z_std':[4,5,6,7,...]
 
 
@@ -910,7 +980,7 @@ class Feature_database(object):
         remote_url = "%s%s" %(feature_summary_webserver_url_prefix, fname_root)
         return remote_url
 
-class Plot_Signals(object):
+class Plot_Signals:
     """
     # TODO: I would like a plot which:
     #   - input: signals_list[0]
@@ -932,7 +1002,7 @@ class Plot_Signals(object):
             'subplot_x_buffer':0.01,
             'subplot_y_buffer':0.02,
             'filters_list':['u', 'g', 'r', 'i', 'z', 'j', 'h', 'k'],
-            }
+            }   
 
 
     def get_features_to_plot_list(self, signal_obj):
@@ -940,18 +1010,18 @@ class Plot_Signals(object):
         NOTE: this covers the possibility that some filters may contain extra features
         """
         features_to_plot = []
-        for filt in list(signal_obj.properties['data'].keys()):
-            for feature_name in list(signal_obj.properties['data'][filt]['inter'].keys()):
+        for filt in signal_obj.properties['data'].keys():
+            for feature_name in signal_obj.properties['data'][filt]['inter'].keys():
                 if feature_name not in features_to_plot:
                     if feature_name not in self.pars['excluded_inters']:
                         try:
                             feat_length = len(signal_obj.properties['data'][filt]\
                                               ['inter'][feature_name][0])
                             if feat_length > 0:
-                                print('Added:  ', feature_name)
+                                print 'Added:  ', feature_name
                                 features_to_plot.append(feature_name)
                         except:
-                            print('Skipped:', feature_name)
+                            print 'Skipped:', feature_name
         features_to_plot.sort()
         return features_to_plot
 
@@ -985,7 +1055,7 @@ class Plot_Signals(object):
         feature_plot_positions_dict = {}
         for i_filt in range(len(filters_to_plot)):
             filt = filters_to_plot[i_filt]
-            if filt not in list(feature_plot_positions_dict.keys()):
+            if filt not in feature_plot_positions_dict.keys():
                 feature_plot_positions_dict[filt] = {}
             for i_feat in range(len(features_to_plot)):
                 feature = features_to_plot[i_feat]
@@ -1013,8 +1083,8 @@ class Plot_Signals(object):
         #for filt in self.pars['filters_list']:
         #    if filt in available_filters:
         #        filters_to_plot.append(filt)
-        filters_to_plot = list(signal_obj.properties['data'].keys())
-
+        filters_to_plot = signal_obj.properties['data'].keys()
+                            
         feature_plot_positions_dict= self.get_feature_plot_pos_dict(signal_obj,\
                                            features_to_plot=features_to_plot, \
                                            filters_to_plot=filters_to_plot)
@@ -1048,7 +1118,7 @@ class Plot_Signals(object):
         # Insert feature scalars in-between subplots:
         i = 0
         for filt in filters_to_plot:
-            scalar_features = list(signal_obj.properties['data'][filt]['features'].keys())
+            scalar_features = signal_obj.properties['data'][filt]['features'].keys()
             scalar_features.sort()
             print_list = ["%3.3s" % (filt)]
             for feat in scalar_features:
@@ -1068,14 +1138,14 @@ class Plot_Signals(object):
             i += 1
 
         # Now add a key/title to the scalar features:
-        scalar_features = list(signal_obj.properties['data'][filters_to_plot[0]][\
-                                                              'features'].keys())
+        scalar_features = signal_obj.properties['data'][filters_to_plot[0]][\
+                                                              'features'].keys()
         scalar_features.sort()
         print_list = ['   '] #["%3.3s" % ('')]
         for feat in scalar_features:
             print_list.append('%10.10s' % (feat))
         print_str = '    '.join(print_list)
-        print(print_str)
+        print print_str
         pylab.text(0.1, -0.11 + i*0.012, print_str, horizontalalignment='left', \
                    verticalalignment='bottom', rotation=0, size=6)
         ######
@@ -1138,7 +1208,7 @@ class Plot_Signals(object):
             self.generate_multi_filter_plot(signal_obj, ps_fpath=ps_fpath)
 
 
-class AddNewFeatures(object):
+class AddNewFeatures:
     """ Add some new features to the feat_lookup TABLE without
     re-generating, re-indexing this table (rerunning testsuite.py).
     """
@@ -1227,12 +1297,12 @@ if __name__ == '__main__':
     gen = generators_importers.from_xml(signals_list) # see Software/feature_extract/Code/main.py
     gen.generate(xml_handle="/home/dstarr/src/TCP/Software/feature_extract/Code/source_5.xml")
     try:
-        print(list(signals_list[0].properties['data']['i']['inter'].keys()))
-        print(signals_list[0].properties['data']['i']['inter']['power'])
-        print(signals_list[0].properties['data']['i']['features'])
+        print signals_list[0].properties['data']['i']['inter'].keys()
+        print signals_list[0].properties['data']['i']['inter']['power']
+        print signals_list[0].properties['data']['i']['features']
     except:
-        print('except')
-
+        print 'except'
+    
     #import pylab
     #pylab.plot(signals_list[0].properties['data']['i']['input']['time_data'], signals_list[0].properties['data']['i']['input']['flux_data'], 'ro')
     #pylab.title('M vs. t')
@@ -1243,3 +1313,4 @@ if __name__ == '__main__':
 
     ps = Plot_Signals(signals_list, gen)
     ps.write_multi_filter_ps_files()
+

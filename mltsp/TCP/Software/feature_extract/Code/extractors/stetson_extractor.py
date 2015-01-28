@@ -1,15 +1,8 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import os,sys
 from ..FeatureExtractor import FeatureExtractor
 
-#sys.path.append(os.path.abspath(os.environ.get("TCP_DIR")+'/Algorithms'))
-from .....Algorithms.stetson_stats import stetson_mean, stetson_j, stetson_k
+sys.path.append(os.path.abspath(os.environ.get("TCP_DIR")+'/Algorithms'))
+from stetson_stats import stetson_mean, stetson_j, stetson_k
 
 
 class stetson_mean_extractor(FeatureExtractor):

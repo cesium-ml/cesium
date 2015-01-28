@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
 This module is intended to:
  - Remotely retrieve a source for a given (ra,dec)
@@ -7,13 +7,6 @@ This module is intended to:
  - (update?) XML encapsulation of source to include feature extaction info.
  - (?) Hook into an HTML/PHP interface for source query & Source XML return
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 
 def check_dependencies():
@@ -21,11 +14,11 @@ def check_dependencies():
     """
     needed_envs_list = ["TCP_DIR"]
     for env_name in needed_envs_list:
-        if env_name not in os.environ:
-            print("ERROR: Environ Var: %s not defined!" % (env_name))
+        if not os.environ.has_key(env_name):
+            print "ERROR: Environ Var: %s not defined!" % (env_name)
             sys.exit()
         elif len(os.environ[env_name]) == 0:
-            print("ERROR: Environ Var: %s len()==0" % (env_name))
+            print "ERROR: Environ Var: %s len()==0" % (env_name)
             sys.exit()
 
 
@@ -77,8 +70,8 @@ if __name__ == '__main__':
     #     extracted features.
 
     # I shold be able to get source dict using something like:
-    import xmlrpc.client
-    server = xmlrpc.client.ServerProxy("http://192.168.1.45:8000")
-    print(server.system.listMethods())
-    print(server.system.methodHelp("get_sources_for_radec"))
+    import xmlrpclib
+    server = xmlrpclib.ServerProxy("http://192.168.1.45:8000")
+    print server.system.listMethods()
+    print server.system.methodHelp("get_sources_for_radec")
     #src_list = server.get_sources_for_radec(ra, dec, box_range)

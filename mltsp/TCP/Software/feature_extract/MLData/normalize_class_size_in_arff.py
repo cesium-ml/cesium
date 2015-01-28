@@ -1,18 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 create duplicate entries for clases with few entries, so that they are as populated as mos populated classes (its 3am).
 
 NOTE: MUST MAKE SURE THAT INPUT .arff FILE HAS an extra blank line at end of file.
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import open
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 
 class_num_rows_dict = {\
@@ -54,14 +45,14 @@ if __name__ == '__main__':
     out_arff_fpath = "/home/pteluser/scratch/train_output_allclass_14feat_class_scaled.arff"
     os.system("rm " + out_arff_fpath)
     fp_out = open(out_arff_fpath, 'w')
-
+    
     class_name_to_arff_lines_list = {}
-    for class_name in list(class_num_rows_dict.keys()):
+    for class_name in class_num_rows_dict.keys():
         class_name_to_arff_lines_list[class_name] = []
 
     lines = open(arff_fpath).readlines()
 
-    for i in range(len(lines)):
+    for i in xrange(len(lines)):
         fp_out.write(lines[i])
         if "@data" in lines[i]:
             break
@@ -82,7 +73,7 @@ if __name__ == '__main__':
 
     max_n_rows = max(class_num_rows_dict.values())
 
-    for class_name, n_rows in class_num_rows_dict.items():
+    for class_name, n_rows in class_num_rows_dict.iteritems():
         if n_rows == max_n_rows:
             for line in class_name_to_arff_lines_list[class_name]:
                 fp_out.write(line)

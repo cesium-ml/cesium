@@ -1,29 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 Test script for SDSS source re-evaluation
 
 NOTE: derived from ptf_master.py
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import random
 
 
-class Diff_Obj_Source_Populator(object):
+class Diff_Obj_Source_Populator:
     """ Matches/generates source for diff-obj, features...
      - This is instantiated on a ipython1 node
      - This should be initialized (module imports) by PTF-polling thread
      - NOTE: I cant extract this class into a different module, since
-        ptf_master invokes methods in clients, via ipython1
+        ptf_master invokes methods in clients, via ipython1 
     """
     def __init__(self, pars):
         self.pars = pars
@@ -93,7 +83,7 @@ class Diff_Obj_Source_Populator(object):
                            ingest_tools.get_features_using_srcid_xml_tuple_list
 
 
-class Source_Reevaluation(object):
+class Source_Reevaluation:
     """ Used for testing, to re-evaluate whether objects are still associated
     with existing sources.
     """
@@ -156,13 +146,13 @@ class Source_Reevaluation(object):
             source_dict_alldict[result[0]] = source_dict
         return source_dict_alldict
 
-
+    
     def retrieve_objid_srcid_lookupdict(self, srcid_list):
         """ Retrieve a lookup dict for getting srcid = __dict__[objid]
         """
         objid_srcid_lookup = {}
         for src_id in srcid_list:
-            select_str = """SELECT obj_id
+            select_str = """SELECT obj_id 
             FROM %s WHERE src_id=%d AND survey_id=%d
             """ % (self.pars['obj_srcid_tablename'],
                    src_id,
@@ -212,7 +202,7 @@ class Source_Reevaluation(object):
         The obj-source matching shoul represent how effectiove the algorithm is.
         """
         n_reeval_iterations = 2
-
+        
         self.dosp = Diff_Obj_Source_Populator(self.pars)
 
         obj_dict_alldict = self.retrieve_obj_dict_alldict()
@@ -224,14 +214,14 @@ class Source_Reevaluation(object):
         #          Database-valid src-id indexes, and assign them instead.
         skipped_obj_dicts = []
 
-        for i_reeval in range(n_reeval_iterations):
+        for i_reeval in xrange(n_reeval_iterations):
 
             local_srcdbt_sources = []
 
-            reordered_obj_lists = list(source_dict_alldict.values())
+            reordered_obj_lists = source_dict_alldict.values()
             random.shuffle(reordered_obj_lists)
 
-            for obj_id,obj_dict in obj_dict_alldict.items():
+            for obj_id,obj_dict in obj_dict_alldict.iteritems():
 
                 for i in range(len(obj_dict['obj_ids'])):
                     objid_to_filt_dict[obj_dict['obj_ids'][i]] = \
@@ -262,17 +252,17 @@ class Source_Reevaluation(object):
         source_dict_alldict = self.retrieve_source_dict_alldict()
 
         objid_srcid_lookup = self.retrieve_objid_srcid_lookupdict(
-                                                    list(source_dict_alldict.keys()))
+                                                    source_dict_alldict.keys())
 
-        for obj_id,obj_dict in obj_dict_alldict.items():
-            (odds_list, matching_src_dict) = self.dosp.srcdbt.is_object_associated_with_source(obj_dict, list(source_dict_alldict.values()), sigma_0=3.0)
+        for obj_id,obj_dict in obj_dict_alldict.iteritems():
+            (odds_list, matching_src_dict) = self.dosp.srcdbt.is_object_associated_with_source(obj_dict, source_dict_alldict.values(), sigma_0=3.0)
             #print obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
             if len(matching_src_dict) > 1:
-                print("+1 ASSOCIATED SOURCE", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict)
-            if objid_srcid_lookup.get(obj_id,'NONE') != list(matching_src_dict.values())[0]['src_id']:
-                print("MISMATCH", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict)
-            print('! odds_list = %d \tmatching_src_dict = %d\tnobjs = %d' % (len(odds_list), len(matching_src_dict), list(matching_src_dict.values())[0]['nobjs']))
-        print('yo')
+                print "+1 ASSOCIATED SOURCE", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
+            if objid_srcid_lookup.get(obj_id,'NONE') != matching_src_dict.values()[0]['src_id']:
+                print "MISMATCH", obj_id, objid_srcid_lookup.get(obj_id,'NONE'), odds_list, matching_src_dict
+            print '! odds_list = %d \tmatching_src_dict = %d\tnobjs = %d' % (len(odds_list), len(matching_src_dict), matching_src_dict.values()[0]['nobjs'])
+        print 'yo'
 
         # TODO: what I really want is to re-generate all sources using
         #     obj_dict_alldict.
@@ -283,7 +273,7 @@ class Source_Reevaluation(object):
         # - using an empty local_srcdbt_sources, to start with
         # - and randomizing the object list, which is currently generated
         #      by objs_dict.values()
-
+        
 
         # And, remember, the point is to find
 
@@ -322,7 +312,7 @@ class Source_Reevaluation(object):
         #  - Then, we create a source-dict/list of the strongest-found sources
         #     and their most/all associated objects
         #  - And we then continue building source for the rest of the objects.
-        #
+        #   
 
         ###########
         # TODO: I need the outer interface to this source creating algorithm to be exactly like existing code:

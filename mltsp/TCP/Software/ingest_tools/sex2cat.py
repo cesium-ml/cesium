@@ -4,14 +4,6 @@
 converts sex to ds9 catalog file. Allows user to input directly
 into the ds9 image and search as you would, e.g., 2MASS or USNO B1.0
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import os,sys,datetime,copy
 
@@ -22,7 +14,7 @@ __version__ = "0.1; 12 June 2006"
 ## get this as part of the starbase list
 sextotable = '/usr/local/bin/sextotable'
 if not os.path.exists(sextotable):
-    sextotable = os.path.expanduser("~") + "/redux/Helper/sextotable"
+   sextotable = os.path.expanduser("~") + "/redux/Helper/sextotable"
 
 
 
@@ -32,13 +24,13 @@ def sex2cat(fname,outname=None,append_filter=True):
     headers. Such .sex files will be generated from trans.photm
     """
     if not os.path.exists(sextotable):
-        print("sextotable path does not exist")
+        print "sextotable path does not exist"
         return None
-
+    
     if not os.path.exists(fname):
-        print("input files %s does not exist" % fname)
+        print "input files %s does not exist" % fname
         return None
-
+    
     if append_filter:
         ## parse out the filter name from the sextractor file
         f = open(fname,'r')
@@ -48,28 +40,28 @@ def sex2cat(fname,outname=None,append_filter=True):
         start_cpu = 'unknown'
         stop_cpu  = 'unknown'
         phot_rms = 'unknown'
+        
+        for l in ll:
+           if l.find('STRT_CPU =') != -1:
+              start_cpu = l.split('STRT_CPU =')[1].split('#')[0].strip()
+           if l.find('STOP_CPU =') != -1:
+              stop_cpu = l.split('STOP_CPU =')[1].split('#')[0].strip()
+           if l.find('PHOT_RMS =') != -1:
+              phot_rms = l.split('PHOT_RMS =')[1].split('#')[0].strip()
 
         for l in ll:
-            if l.find('STRT_CPU =') != -1:
-                start_cpu = l.split('STRT_CPU =')[1].split('#')[0].strip()
-            if l.find('STOP_CPU =') != -1:
-                stop_cpu = l.split('STOP_CPU =')[1].split('#')[0].strip()
-            if l.find('PHOT_RMS =') != -1:
-                phot_rms = l.split('PHOT_RMS =')[1].split('#')[0].strip()
-
-        for l in ll:
-            if l.find('FILTER =') != -1:
-                filter = l.split('FILTER =')[1].split('#')[0].strip()
-                break
-        print('detected the filter as: %s' % filter)
-
+           if l.find('FILTER =') != -1:
+              filter = l.split('FILTER =')[1].split('#')[0].strip()
+              break
+        print 'detected the filter as: %s' % filter
+        
     if outname is None:
         outname = fname + ".cat"
-
-
+        
+    
     if os.path.exists(outname):
         os.remove(outname)
-
+    
     os.system("%s < %s > %s" % (sextotable,fname,outname))
     ## now edit that file
     f = open(outname,'r')
@@ -85,30 +77,32 @@ def sex2cat(fname,outname=None,append_filter=True):
                 l = l.replace('MAG', filter + "MAG")
         if l.find("KEYWORDS") == -1:
             outl.append(l)
-
-
+        
+    
     extra = ["# written by sex2cat\n", "# from file %s at %s\n" % (fname,datetime.datetime.utcnow()),\
              "# version = %s author = %s\n" % (__version__,__author__), \
              '# PHOT_RMS = %s\n' % (phot_rms), \
              '# STRT_CPU = %s\n' % (start_cpu), \
              '# STOP_CPU = %s\n\n' % (stop_cpu)]
-
+    
     f = open(outname,'w')
     f.writelines(extra)
     f.writelines(outl)
     f.close()
-
+    
     return outname
-
+    
 if __name__ == "__main__":
-
+    
     outname = None
     if len(sys.argv) <= 1:
-        print("usage: sex2cat.py insexname.sex [outname]")
+        print "usage: sex2cat.py insexname.sex [outname]"
         sys.exit()
-
+        
     if len(sys.argv) > 2:
         outname = sys.argv[2]
-
+    
     ret = sex2cat(sys.argv[1],outname)
-    print("returned: %s" % ret)
+    print "returned: %s" % ret
+    
+    

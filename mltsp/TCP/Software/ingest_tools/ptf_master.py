@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.2 Version which allows polling and retrieval of objects from PTF TABLE.
    v0.1 Initial version: Poll for PTF objects, spawn source generation tasks.
@@ -11,7 +11,7 @@
 
 NOTE: This requires TCP MySQL servers, objid/srcid socket servers, etc. set up:
         ./testsuite.py
-
+ 
 NOTE: Prior to running, need to initialize Ipython1 Cluster server:
         ipcluster -n 2
 
@@ -19,17 +19,6 @@ TO run, generally just do:
         ./ptf_master.py
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from builtins import str
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import datetime
 import math
@@ -58,17 +47,17 @@ def mjd_2_datetime(mjd):
     ut = dtime_wo_leapsecond_correction
     # These conditionals are taken from ptel_astrophot.py..ut2mjd():
     if ut > datetime.datetime(2006,1,1):
-        off = 33.0
+    	off = 33.0
     elif ut > datetime.datetime(1999,1,1):
-        off = 32.0
+    	off = 32.0
     elif ut > datetime.datetime(1997,7,1):
-        off = 31.0
+    	off = 31.0
     elif ut > datetime.datetime(1996,1,1):
-        off = 30.0
+    	off = 30.0
     elif ut > datetime.datetime(1994,7,1):
-        off = 29.0
+    	off = 29.0	
     else:
-        print('dont know how to do this .. actually I do but I laszy')
+    	print 'dont know how to do this .. actually I do but I laszy'
         return datetime.datetime(1,1,1) # Some obvious ERROR value is returned
 
     return dtime_wo_leapsecond_correction - datetime.timedelta(seconds=off)
@@ -89,12 +78,12 @@ def sig_INT_handler(signum, frame):
     signal_occurred = 'SIGINT'
 
 
-class Diff_Obj_Source_Populator(object):
+class Diff_Obj_Source_Populator:
     """ Matches/generates source for diff-obj, features...
      - This is instantiated on a ipython1 node
      - This should be initialized (module imports) by PTF-polling thread
      - NOTE: I cant extract this class into a different module, since
-        ptf_master invokes methods in clients, via ipython1
+        ptf_master invokes methods in clients, via ipython1 
     """
     def __init__(self, use_postgre_ptf=True):
         self.use_postgre_ptf = use_postgre_ptf
@@ -208,7 +197,7 @@ class Diff_Obj_Source_Populator(object):
         results = self.rdbt.cursor.fetchall()
 
         objid_offset = 1
-        while objid_offset <= 100:
+        while objid_offset <= 100: 
             objid_candid = results[0][0] + objid_offset
 
             insert_list = ["INSERT INTO %s (%s) VALUES " % ( \
@@ -337,34 +326,34 @@ class Diff_Obj_Source_Populator(object):
                                               do_features_gen_insert=False)
         srcid_xml_tuple_list = []
         srcid_xml_tuple_with_features_list = []
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         #20090504: added the two following conditions when there were no conditions prior:
         # This INSERT of features into RDB places high load on MySQL query-server and it isnt that critical:
         # This is KLUDGY since it assumes that there is just one source in the signals_list
         # NOTE: This should be: len(src_list) > 0 !!!
         if do_logging:
-            print("before: [band_with_mags]['m'] > ...")
+            print "before: [band_with_mags]['m'] > ..."
         n_epochs = 0
         if len(src_list) > 0:
-            band_with_mags = list(src_list[0].d.get('ts',{}).keys())[0]
-            for band,b_dict in src_list[0].d.get('ts',{}).items():
-                if 'm' in b_dict:
+            band_with_mags = src_list[0].d.get('ts',{}).keys()[0]
+            for band,b_dict in src_list[0].d.get('ts',{}).iteritems():
+                if b_dict.has_key('m'):
                     band_with_mags = band
                     break
             n_epochs = len(src_list[0].d.get('ts',{})[band_with_mags]['m'])
-            if 1:
+	    if 1:
                 for source_obj in src_list:
                     src_id = source_obj.d['src_id']
                     srcid_xml_tuple_list.append((src_id, source_obj.xml_string))
 
                 if do_logging:
-                    print("before: (ptf_master) self.get_features_using_srcid_xml_tuple_list()")
+                    print "before: (ptf_master) self.get_features_using_srcid_xml_tuple_list()"
                 (signals_list, srcid_dict) = \
                               self.get_features_using_srcid_xml_tuple_list(\
                                                       srcid_xml_tuple_list, write_ps=0,
                                                       return_featd_xml_string=True) # 20090724 dstarr adds return_featd_xml_string=T
                 if do_logging:
-                    print("before: source_obj.add_features_to_xml_string(signals_list)")
+                    print "before: source_obj.add_features_to_xml_string(signals_list)"
 
                 # This algorithm is taken from to ingest_tools.py::get_features_for_most_sampled_sources_client_loop():
                 for source_obj in src_list:
@@ -379,13 +368,13 @@ class Diff_Obj_Source_Populator(object):
                 # The following condition may be tweaked:
                 #           >= 5   >= 15 > 15 > 5 >= 0 > 10 >= 10 > 7 >= 7  > 8 >= 8:
                 if len(src_list[0].d.get('ts',{})[band_with_mags]['m']) >= n_epochs_cut:
-                    self.srcdbt.update_featsgen_in_srcid_lookup_table(list(srcid_dict.keys()))
+                    self.srcdbt.update_featsgen_in_srcid_lookup_table(srcid_dict.keys())
                     self.feat_db.insert_srclist_features_into_rdb_tables(signals_list, \
-                                                                       list(srcid_dict.keys()))
-                    # So, only source with >= 15 epochs will have features inserted into the feature RDB
+                                                                       srcid_dict.keys())
+		    # So, only source with >= 15 epochs will have features inserted into the feature RDB
                     ######
         if do_logging:
-            print("after: [band_with_mags]['m'] > ...")
+            print "after: [band_with_mags]['m'] > ..."
         return (srcid_xml_tuple_with_features_list, n_epochs)
 
 
@@ -396,7 +385,7 @@ class Diff_Obj_Source_Populator(object):
         os.chdir(os.path.expandvars("$HOME/src/TCP/Software/mp_checker")) # Needed for import
         is_first_iteration = True
         out_diff_obj_list = []
-        for diff_obj in diff_obj_list:
+        for diff_obj in diff_obj_list:        
             ra_h_float = diff_obj['ra'] / 15.0
             ra_h = int(ra_h_float)
             ra_m_float = (ra_h_float - ra_h) * 60.0
@@ -412,20 +401,20 @@ class Diff_Obj_Source_Populator(object):
             dec_s_float = (dec_m_float - dec_m) * 60.0
             if dec_s_float > 59.999999:
                 dec_s_float = 59.999999# deal with Python float error, .004"accr
-
+            
             t_dtime_list = [mjd_2_datetime(diff_obj['dtime_reductn']),
                             mjd_2_datetime(diff_obj['dtime_observe'])]
             is_nearby_mp = False
             for t_dtime in t_dtime_list:
                 sys.argv = ['blah',
-                            str(ra_h),  str(ra_m),  str(ra_s_float),
-                            str(dec_h), str(dec_m), str(dec_s_float),
-                            str(t_dtime.year),
-                            str(t_dtime.month),
-                            str(t_dtime.day),
-                            str(t_dtime.hour),
-                            str(t_dtime.minute),
-                            str(t_dtime.second + (t_dtime.microsecond / 1e6)),
+                            str(ra_h),  str(ra_m),  str(ra_s_float), 
+                            str(dec_h), str(dec_m), str(dec_s_float), 
+                            str(t_dtime.year), 
+                            str(t_dtime.month), 
+                            str(t_dtime.day), 
+                            str(t_dtime.hour), 
+                            str(t_dtime.minute), 
+                            str(t_dtime.second + (t_dtime.microsecond / 1e6)), 
                             str(int(self.pars['34mp_arcsec_thresh'])), # len of returned list of close minor planets
                             '10'] # radius in degrees of search region
                 if is_first_iteration:
@@ -463,7 +452,7 @@ class Diff_Obj_Source_Populator(object):
         # TODO: PTF objects should be contained in a seperate database so migration PostgreSQL is easy.
 
         # NOTE: For now I retrieve ALL rows, but eventually get last rows (somehow):
-        # TODO: this should connect to the postgresql server
+        # TODO: this should connect to the postgresql server 
         ###if self.use_postgre_ptf:
         # This first condition is obsolete:
         if False:
@@ -487,15 +476,15 @@ class Diff_Obj_Source_Populator(object):
             rdb_rows = self.rdbt.cursor.fetchall()
 
         obj_epoch_list = []
-
-        for i in range(len(rdb_rows)-n_last_rows, len(rdb_rows)):
+        
+        for i in range(len(rdb_rows)-n_last_rows, len(rdb_rows)): 
             row = rdb_rows[i]
             obj_epoch = ingest_tools.extract_obj_epoch_from_ptf_query_row(row)
             obj_epoch_list.append(obj_epoch)
         return obj_epoch_list
 
 
-class PTF_Poll_And_Spawn(object):
+class PTF_Poll_And_Spawn:
     """ Spawns PTF-polling thread
      - eventually, this queries remote DB for new object entries, retrieves.
      - quick-kludge: Just use hardcoded diff-objects
@@ -516,9 +505,9 @@ sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/ingest_too
 import ptf_master
 DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator(use_postgre_ptf=%s)
 """ % (str(use_postgre_ptf))
-            print(mec.execute(exec_str))
+            print mec.execute(exec_str)
         except:
-            print("first try of mec.execute() failed!  Sleeping 60secs")
+            print "first try of mec.execute() failed!  Sleeping 60secs"
             time.sleep(60)
             exec_str = """
 import sys
@@ -527,7 +516,7 @@ sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/ingest_too
 import ptf_master
 DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator(use_postgre_ptf=%s)
 """ % (str(use_postgre_ptf))
-            print(mec.execute(exec_str))
+            print mec.execute(exec_str)
 
 
     def exclude_existing_diff_objs(self, tc, diff_obj_list):
@@ -600,13 +589,13 @@ already_exists = len(results) > 0
         """
         #           >= 5   >= 15 > 15 > 5 >= 0 > 10 >= 10 > 7 >= 7  > 8 >= 8:
         n_diff_objs = len(diff_obj_list)
-        for i in range(0,n_diff_objs, n_diffobjs_per_task):
+        for i in xrange(0,n_diff_objs, n_diffobjs_per_task):
             if i >= n_diff_objs:
                 break
             diff_obj_sub_list = copy.deepcopy(diff_obj_list[i:i+n_diffobjs_per_task])# KLUDGE this copy may be overkill
             ####
             #### NOTE: for the (n_objs >= X)  cut, see classification_interface.py:generate_insert_classification_using_vosource_list()
-            #### NOTE: the (n_objs >= 3) ....???
+	    #### NOTE: the (n_objs >= 3) ....???
             #### Also NOTE: ingest_diffobj( ... n_epochs_cut=7) is just used to determine whether to insert features into the feature RDB tables.  At present, the features are still calculated for all n_epoch cases (just not added to RDB depending on this cut)
             ####
             exec_str = """
@@ -653,7 +642,7 @@ DiffObjSourcePopulator.class_interface.classify_and_insert_using_vosource_list(s
 
 
 
-class PTF_Postgre_Server(object):
+class PTF_Postgre_Server:
     """ Contains methods for making a connection to the LBL PostgreSQL
     database, as well as retrieve 'recent' diff_objects from the PGSQL server.
 
@@ -680,7 +669,7 @@ script_str_list = tsso.generate_table_creation_script_strs()
         from socket import gethostname
         if gethostname() == 'tranx':
             try:
-                import psycopg2
+	        import psycopg2
                 self.pg_conn = psycopg2.connect(\
                      "dbname='%s' user='%s' host='%s' password='%s' port=%d" % \
                                     (self.pars['ptf_postgre_dbname'],\
@@ -691,8 +680,8 @@ script_str_list = tsso.generate_table_creation_script_strs()
                 self.pg_conn.set_isolation_level(2)
                 #self.pg_cursor = self.pg_conn.cursor()
             except:
-                print('EXCEPT! Unable to connect to PTF PostgreSQL server:', \
-                                                       self.pars['ptf_postgre_host'])
+                print 'EXCEPT! Unable to connect to PTF PostgreSQL server:', \
+                                                       self.pars['ptf_postgre_host']
 
 
             import apply_groupthink_filter
@@ -770,7 +759,7 @@ script_str_list = tsso.generate_table_creation_script_strs()
                     do_pgsql_query = False
                 except:
                     import psycopg2 # KLUDGE
-                    print('EXCEPT near L652: self.pg_cursor.execute().   Waiting 30 secs...')
+                    print 'EXCEPT near L652: self.pg_cursor.execute().   Waiting 30 secs...'
                     time.sleep(30) # something happened to the LBL PostgreSQL server.  Wait a bit.
                     self.pg_conn = psycopg2.connect(\
                               "dbname='%s' user='%s' host='%s' password='%s' port=%d" % \
@@ -845,14 +834,14 @@ script_str_list = tsso.generate_table_creation_script_strs()
 
         #if len(rdb_rows) > 0:
         if len(insert_list) > 1:
-            try:
-                self.rdbt.cursor.execute(''.join(insert_list)[:-2] + on_duplicate_update_str[:-2])
+	    try:
+	        self.rdbt.cursor.execute(''.join(insert_list)[:-2] + on_duplicate_update_str[:-2])
                 ###### pre 20091018:
-                #self.rdbt.cursor.execute(''.join(insert_list_obj_src_lookup)[:-2] + " ON DUPLICATE KEY UPDATE src_id=VALUES(src_id), obj_id=VALUES(obj_id), survey_id=VALUES(survey_id)")
-                self.rdbt.cursor.execute(''.join(insert_list_obj_src_lookup)[:-2] + " ON DUPLICATE KEY UPDATE obj_id=VALUES(obj_id), survey_id=VALUES(survey_id)") # this "ON DUPLICATE KEY UPDATE" essentially does nothing, but allows the INSERT to occur when an object already exists in obj_srcid_lookup TABLE.
-            except:
-                print("RDB INSERT ERROR (from select into rdb):", select_str)
-                pass
+		#self.rdbt.cursor.execute(''.join(insert_list_obj_src_lookup)[:-2] + " ON DUPLICATE KEY UPDATE src_id=VALUES(src_id), obj_id=VALUES(obj_id), survey_id=VALUES(survey_id)")
+		self.rdbt.cursor.execute(''.join(insert_list_obj_src_lookup)[:-2] + " ON DUPLICATE KEY UPDATE obj_id=VALUES(obj_id), survey_id=VALUES(survey_id)") # this "ON DUPLICATE KEY UPDATE" essentially does nothing, but allows the INSERT to occur when an object already exists in obj_srcid_lookup TABLE.
+	    except:
+	        print "RDB INSERT ERROR (from select into rdb):", select_str
+	        pass
 
         ### WAS: retrieve_last_ptf_objects_from_rdb_table()
         #select_str = """SELECT %s FROM %s """ % (\
@@ -925,12 +914,12 @@ script_str_list = tsso.generate_table_creation_script_strs()
                 # # # # # # #
                 # Also add the GroupThink/RealBogus metric to the end of the row list:
 
-                if row[0] in id_classif_dict:
-                    print("  if: get_ptf_ids_not_ingested_due_to_error() row[0]=", row[0])
+                if id_classif_dict.has_key(row[0]):
+                    print "  if: get_ptf_ids_not_ingested_due_to_error() row[0]=", row[0]
                     reduced_row_list.extend([id_classif_dict[row[0]][x] for x in realbogus_internal_colname_list])
                 else:
                     # shouldn't get here more than only very occasionally...
-                    print("else: get_ptf_ids_not_ingested_due_to_error() row[0]=", row[0])
+                    print "else: get_ptf_ids_not_ingested_due_to_error() row[0]=", row[0]
                     id_classif_dict = self.Classify_LBL_PTF_Using_GT.\
                                            get_groupthink_classifications( \
                                                id_low=row[0],
@@ -948,8 +937,8 @@ script_str_list = tsso.generate_table_creation_script_strs()
                     obj_epoch = ingest_tools.extract_obj_epoch_from_ptf_query_row(row)
                     obj_epoch_dict_list.append(obj_epoch)
                 except:
-                    print("Except in get_ptf_ids_not_ingested_due_to_error(): row=", row)
-                    print(row)
+                    print "Except in get_ptf_ids_not_ingested_due_to_error(): row=", row
+                    print row
                     raise
         return obj_epoch_dict_list
 
@@ -1054,7 +1043,7 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
         #    - the TUTOR database insert code?
         """
         srcid_xml_tuple_list = [(srcid_num, vosource_xml_fpath)]
-        (signals_list, srcid_dict) = \
+	(signals_list, srcid_dict) = \
                         ingest_tools.get_features_using_srcid_xml_tuple_list( \
                              srcid_xml_tuple_list, ps_fpath='',\
                              return_gendict=True, \
@@ -1073,24 +1062,24 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
         # TODO: Or, I could just convert these into magnitudes which are
         #           relative to some arbitrary reference flux.
 
-        if (len(list(gen.sig.x_sdict['ts'].values())[0].get('m',[])) == 0):
-            print("SKIPPING (due to len(gen.sig.x_sdict['ts'].values()[0].get('m',[])) == 0)")
+        if (len(gen.sig.x_sdict['ts'].values()[0].get('m',[])) == 0):
+            print "SKIPPING (due to len(gen.sig.x_sdict['ts'].values()[0].get('m',[])) == 0)"
             return
-        elif (min(list(gen.sig.x_sdict['ts'].values())[0]['m']) < -26):
+        elif (min(gen.sig.x_sdict['ts'].values()[0]['m']) < -26):
             # 20090211 dstarr comments out condition and modifies to above:
             # elif (min(gen.sig.x_sdict['ts'].values()[0]['m']) < 1):
             # Then probably TUTOR differential fluxes & not magnitudes,
             #  so we skip this source.
-            print("SKIPPING (due to mag_min=%lf): %s\n\t max=%lf" % ( \
-                                    min(list(gen.sig.x_sdict['ts'].values())[0]['m']),
+            print "SKIPPING (due to mag_min=%lf): %s\n\t max=%lf" % ( \
+                                    min(gen.sig.x_sdict['ts'].values()[0]['m']),
                                     vosource_xml_fpath,
-                                    max(list(gen.sig.x_sdict['ts'].values())[0]['m'])))
+                                    max(gen.sig.x_sdict['ts'].values()[0]['m']))
             return
 
         # gen.sig.x_sdict # This contains the source data structure
         # NOTE: features are still generated in the above function
 
-        # Since we run this for TESTING,
+        # Since we run this for TESTING, 
         #   We generate random ra,dec so that we don't overlap with
         #   existing sources/objects in the assumingly sparse test DB.
         ra = random.random() * 360.0
@@ -1098,23 +1087,23 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
 
         if insert_row_into_iterative_class_probs:
             import MySQLdb
-            db = MySQLdb.connect(host=ingest_tools.pars['rdb_host_ip_4'],
+            db = MySQLdb.connect(host=ingest_tools.pars['rdb_host_ip_4'], 
                                  user=ingest_tools.pars['rdb_user_4'],
                                  db=ingest_tools.pars['rdb_name_4'],
                                  port=ingest_tools.pars['rdb_port_4'])
             icp_cursor = db.cursor()
             insert_list = ['INSERT INTO iterative_class_probs (src_id, epoch_id, class_0, class_1, class_2, prob_0, prob_1, prob_2) VALUES ']
-
+        
         #i_filt = gen.sig.x_sdict['ts'].keys()[0]
         # Choose the most sampled filter:
         tup_list = []
-        for x_filt in list(gen.sig.x_sdict['ts'].keys()):
+        for x_filt in gen.sig.x_sdict['ts'].keys():
             n_pts = len(gen.sig.x_sdict['ts'][x_filt].get('m',[]))
             tup_list.append((n_pts, x_filt))
         tup_list.sort(reverse=True)
         i_filt = tup_list[0][1]
-
-        for i in range((len(gen.sig.x_sdict['ts'][i_filt]['m']))):
+        
+        for i in xrange((len(gen.sig.x_sdict['ts'][i_filt]['m']))):
             gc.collect() # DEBUG : force garbage collection on each iteration.  generally gets 6-7k of collectable things (Python internal/accounting tuples, lists, dicts, some classes)
             # # # # # # # heap_obj.iso(<var>) # list the shortest paths to a variable (P24)
             # # # # # # # heap_obj.pb()  # create a TK GUI profile browser. (P24)
@@ -1143,7 +1132,7 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
             # - I suspect "amara" may be duplicating on each iteration
             #     - if so, I should pass in a single amara instance?
             #     - or del()
-
+            
             # # # # # # #
             # # # # # # #
             ptf_diff_obj_list =DiffObjSourcePopulator.insert_simple_ptf_object(\
@@ -1161,14 +1150,14 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
                                        srcid_xml_tuple_list)
             # IF FLAGGED:
             #  - query for current classification and insert into table:
-            #           iterative_class_probs
+            #           iterative_class_probs 
             if insert_row_into_iterative_class_probs:
                 src_id = gen.sig.x_sdict['src_id']
                 # If single-lens, if >0.85,  then attempt adding prob.
                 # any other plugin_name, insert if prob fits into top 3.
                 class_prob_list = [('',0.),('',0.),('',0.)]
                 for plugin_name,tup_list in DiffObjSourcePopulator.class_interface.\
-                                     classname_classprob_classrank_list.items():
+                                     classname_classprob_classrank_list.iteritems():
                     if plugin_name == 'mlens3 MicroLens':
                         if tup_list[0][1] >= 0.85:
                             try_insert_classprob_into_top3(class_prob_list, tup_list[0][0], tup_list[0][1])
@@ -1200,7 +1189,7 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
 
         # Do some kind of triggerable while loop here:
         n_objs_to_insert = 10000000 # ==1 KLUDGE : since we are just retrieving the same row from the PTF PostgreSQL database below.
-        for i in range(n_objs_to_insert):
+        for i in xrange(n_objs_to_insert):
             # This retrieves "recent" ptf diff_objects from LBL PGSQL server
             #  and inserts into a local Mysql object RDB, which is the queried
             #  for these "recent" objects and inserted into diff_obj_list format
@@ -1227,9 +1216,9 @@ def test_nonthread_nonipython1(use_postgre_ptf=True, \
                 #    print 'EXCEPT: srcid=%d : Already exists in Table: src_class_probs?' % (srcid_xml_tuple_list[0][0])
 
 
-class Task_Master(object):
+class Task_Master:
     """ This singleton controls the periodic restart of ipcontroller
-    which is needed due to its inevitable per-task memory leak.
+    which is needed due to its inevitable per-task memory leak.  
 
     NOTE: There should be a table existing in 'object_test_db', which
     is used here for accounting of what lbl-ptf id ranges have been
@@ -1264,10 +1253,10 @@ class Task_Master(object):
         num_scheduled = self.tc.queue_status()['scheduled']
         while (num_scheduled >= (self.pars['num_ids_to_attempt_ingest']/ \
                                 float(self.pars['n_diffobjs_per_task']))):
-            # We WAIT for num scheduled to get smaller
-            time.sleep(5) # give LBL server a breath
-            num_scheduled = self.tc.queue_status()['scheduled']
-            print(self.tc.queue_status())
+           # We WAIT for num scheduled to get smaller
+           time.sleep(5) # give LBL server a breath
+           num_scheduled = self.tc.queue_status()['scheduled']
+           print self.tc.queue_status()
         if num_scheduled == 0:
             return True # this triggers tc/mec garbage collection
 
@@ -1297,7 +1286,7 @@ class Task_Master(object):
                     do_pgsql_query = False
                 except:
                     import psycopg2 # KLUDGE
-                    print(datetime.datetime.utcnow(), 'EXCEPT near L1098: self.pg_cursor.execute().   Waiting 30 secs...')
+                    print datetime.datetime.utcnow(), 'EXCEPT near L1098: self.pg_cursor.execute().   Waiting 30 secs...'
                     time.sleep(30) # something happened to the LBL PostgreSQL server.  Wait a bit.
                     try:
                         self.pg_conn = psycopg2.connect(\
@@ -1310,12 +1299,12 @@ class Task_Master(object):
                         self.pg_conn.set_isolation_level(2)
                         #self.PTFPostgreServer.pg_cursor = self.pg_conn.cursor()
                     except:
-                        print("unable to do: conn = psycopg2.connect()")
-
+                        print "unable to do: conn = psycopg2.connect()"
+                
         if len(rdb_rows) > 0:
             return int(rdb_rows[0][0])
         else:
-            print("!!! NO rows in PTF LBL table!")
+            print "!!! NO rows in PTF LBL table!"
             return 0
 
 
@@ -1330,7 +1319,7 @@ class Task_Master(object):
         if len(rdb_rows) > 0:
             return rdb_rows[0][0]
         else:
-            print("!!! count(*) FAILed in get_n_rows_ingestacct()")
+            print "!!! count(*) FAILed in get_n_rows_ingestacct()"
             return 0
 
 
@@ -1345,11 +1334,11 @@ class Task_Master(object):
         if len(rdb_rows) > 0:
             return rdb_rows[0][0]
         else:
-            print("!!! count(*) FAILed in get_n_rows_ingestacct()")
+            print "!!! count(*) FAILed in get_n_rows_ingestacct()"
             return 0
 
 
-
+        
     def get_ingestacct_matching_range(self, lbl_max_id):
         """ See if any rows in lbl_ingest_acct TABLE match
         the given id (from LBL ptf table).
@@ -1484,16 +1473,16 @@ class Task_Master(object):
         else:
             return 0 # I think it is ok to get here the first time ever.
 
-
+       
     def get_lbl_id_range_for_ingestion(self, n_rows_in_lbl_ingest_acct, max_rangeid):
         """ Query tables to determine the (range_id, id_low, id_high)
         of LBL ptf objects which should be source generated & classified.
         """
         lbl_max_id = self.get_lbl_maxid()
         mysql_max_id = self.get_mysql_ptfevents_maxid()
-        if lbl_max_id > self.current_max_id_being_ingested:
+        if lbl_max_id > self.current_max_id_being_ingested: 
             (range_id,id_low,id_high) = self.get_ingestacct_matching_range(lbl_max_id)
-            if range_id > 0:
+            if range_id > 0: 
                 return (range_id,id_low,id_high)
             else:
                 #20090723 comment out:
@@ -1526,16 +1515,16 @@ class Task_Master(object):
         """
         lbl_max_id = self.get_lbl_maxid()
         mysql_max_id = self.get_mysql_ptfevents_maxid()
-        #if lbl_max_id > self.current_max_id_being_ingested:
+        #if lbl_max_id > self.current_max_id_being_ingested: 
         #     (then we can see if there are any existing i_range which matches this id)
         #     (  if not, then we generate a new range_id, and ranges)
-
+        
         # else:
         #     ( then we are currently ingesting a range which contains this lbl_max_id)
         #     ( so, we should queue the next 1000 from lbl_ingest_accounting TABLE
         # TODO: I want to see if any existing i_range matches lbl_max
         (range_id,id_low,id_high) = self.get_ingestacct_matching_range(lbl_max_id)
-        if range_id > 0:
+        if range_id > 0: 
             return (range_id,id_low,id_high)
         else:
             new_range_id = n_rows_in_lbl_ingest_acct + 1
@@ -1566,7 +1555,7 @@ class Task_Master(object):
             self.tc.clear() # This supposedly clears the list of finished task objects in the task-client
             self.mec.flush() # This doesnt seem to do much in our system.
             #print '>>> TaskClient CLEARED'
-
+        
         hasbeen_ingested_ptf_obj_list = []
         n_rows_in_lbl_ingest_acct = 1 # KLUDGE: just get into loop first time
         while ((len(hasbeen_ingested_ptf_obj_list) < \
@@ -1596,7 +1585,7 @@ class Task_Master(object):
             if range_id == None:
                 # This is when everything has been done in lbl_ingest_acct table,
                 #    and there are no new rows in the LBL pgsql ptf candidates table.
-                print("Nothing in lbl_ingest_acct, PTF ingestion up-to-date.  Sleep(60)...")
+                print "Nothing in lbl_ingest_acct, PTF ingestion up-to-date.  Sleep(60)..."
                 time.sleep(60)
                 continue # go back to the top
 
@@ -1613,14 +1602,14 @@ class Task_Master(object):
             elif (id_high - id_low) > 0:
                 # We will ingest all of these in a sec, so remove from acct table
                 ingest_id_low = id_low
-                ingest_id_high = id_high
+                ingest_id_high = id_high 
                 self.delete_row_in_ingestacct(range_id)
             elif id_high > 0:
                 # Unlikely, but we just insert a single row (the max(id) from lbl_ptf)
                 ingest_id_low = id_high
                 ingest_id_high = id_high
             else:
-                print("Here max(id) from lbl_ptf == 0, not considered likely.  Probably something else.")
+                print "Here max(id) from lbl_ptf == 0, not considered likely.  Probably something else."
                 raise
 
             # TODO: if this is the first time through, I could check whether:
@@ -1628,7 +1617,7 @@ class Task_Master(object):
             #       - which means they were not correctly source-found and classified.
             #   - I could then add these obj_id to the ptf_diff_obj_list.
 
-            print(range_id,id_low,id_high, ingest_id_low, ingest_id_high - ingest_id_low)
+            print range_id,id_low,id_high, ingest_id_low, ingest_id_high - ingest_id_low
 
             #id_classif_dict = self.PTFPostgreServer.Classify_LBL_PTF_Using_GT.\
             #                               get_groupthink_classifications( \
@@ -1655,7 +1644,7 @@ class Task_Master(object):
                 is_first_time = False
 
             ptf_diff_obj_list = self.PTFPollAndSpawn.apply_constraints(self.tc, ptf_diff_obj_list)
-
+        
             self.PTFPollAndSpawn.spawn_ingestion_tasks_using_diff_objs(self.tc, \
                                                               ptf_diff_obj_list, \
                                                     n_diffobjs_per_task=self.pars['n_diffobjs_per_task'])
@@ -1676,7 +1665,7 @@ class Task_Master(object):
         self.initialize_classes()
         self.current_max_id_being_ingested = -1 # this variable is KLUDGY
         while True:
-            # Stay in this loop until SIGTERM
+            # Stay in this loop until SIGTERM 
             total_n_diff_obj_ingested = 0
             while ((signal_occurred != 'SIGTERM') and
                    (signal_occurred != 'SIGINT') and
@@ -1687,26 +1676,26 @@ class Task_Master(object):
                 #   to have:  (when interested in ingesting the 130 range):
                 #| range_id | id_low   | id_high  | id_high_initial | dtime_touch         |
                 #+----------+----------+----------+-----------------+---------------------+
-                #|      128 | 13829677 | 13836141 |        13839144 | 2009-07-07 16:35:59 |
+                #|      128 | 13829677 | 13836141 |        13839144 | 2009-07-07 16:35:59 | 
                 #|      129 | 14286232 | 27000000 |        27000001 | 2009-07-24 11:03:43 |
-                #|      130 | 27000001 | 27736685 |        27741686 | 2009-07-24 11:01:16 |
+                #|      130 | 27000001 | 27736685 |        27741686 | 2009-07-24 11:01:16 | 
                 num_diffobjs_ingested = self.ingest_some_lbl_epochs(ingest_greatest_ids=True)#False, ingest_specific_range_id=2) #20090723 dstarr adds the last keyword, expecting it to be removed  quickly.
                 total_n_diff_obj_ingested +=  num_diffobjs_ingested
 
             # TODO: wait for (tc.queue_status()['scheduled'] == 0)
             if ((signal_occurred == 'SIGTERM') or
                 (signal_occurred == 'SIGINT')):
-                print('Recieved: %s, shutting down...' % (signal_occurred))
+                print 'Recieved: %s, shutting down...' % (signal_occurred)
                 # now all tasks have finished, so we can exit.
                 return
             else:
-                print("TODO: restart ipengines, ipcontroller. using ipython_cluster_setup.py methods")
+                print "TODO: restart ipengines, ipcontroller. using ipython_cluster_setup.py methods"
                 num_scheduled = self.tc.queue_status()['scheduled']
                 while (num_scheduled > 0):
-                    # We WAIT for num scheduled to get smaller
-                    time.sleep(5) # give LBL server a breath
-                    num_scheduled = self.tc.queue_status()['scheduled']
-                    print('WAITING for 0:', self.tc.queue_status())
+                   # We WAIT for num scheduled to get smaller
+                   time.sleep(5) # give LBL server a breath
+                   num_scheduled = self.tc.queue_status()['scheduled']
+                   print 'WAITING for 0:', self.tc.queue_status()
 
                 os.system('/home/pteluser/src/TCP/Software/ingest_tools/ipython_cluster_setup.py')
                 #time.sleep(180)
@@ -1715,7 +1704,7 @@ class Task_Master(object):
                     self.tc = client.TaskClient()
                 except:
                     self.mec = client.MultiEngineClient()
-                    self.tc = client.TaskClient()
+                    self.tc = client.TaskClient()                    
                 time.sleep(70) # We give some time for ipengines to initialize (sgn02 requires > 30secs)
                 self.PTFPollAndSpawn.initialize_clients(self.mec, use_postgre_ptf=True)
                 #time.sleep(60)
@@ -1727,7 +1716,7 @@ if __name__ == '__main__':
     if 0:
         # Connect to LBL PTF database for new objects
         test_nonthread_nonipython1(use_postgre_ptf=True, \
-                               case_simulate_ptf_stream_using_vosource=False,
+                               case_simulate_ptf_stream_using_vosource=False, 
                                vosource_xml_fpath='',
                                case_poll_for_recent_postgre_table_entries=True)
         sys.exit()
@@ -1737,7 +1726,7 @@ if __name__ == '__main__':
     #    #13#vosource_xml_fpath =os.path.expandvars('$TCP_DIR/Data/mira_HIP_100599.xml')
     #    vosource_xml_fpath = os.path.expandvars('$TCP_DIR/Data/rr_lyrae_fundemental_mode_HIP_90053.xml')
     #    test_nonthread_nonipython1(use_postgre_ptf=False, \
-    #                           case_simulate_ptf_stream_using_vosource=True,
+    #                           case_simulate_ptf_stream_using_vosource=True, 
     #                           vosource_xml_fpath=vosource_xml_fpath,
     #                           case_poll_for_recent_postgre_table_entries=False)
     #sys.exit()
@@ -1756,7 +1745,7 @@ if __name__ == '__main__':
 
     TaskMaster = Task_Master(master_pars)
     TaskMaster.main()
-    print("ALL DONE!")
+    print "ALL DONE!"
     time.sleep(5) # is this needed?
     sys.exit()
 
@@ -1775,9 +1764,9 @@ if __name__ == '__main__':
     n_objs_to_insert = 170000 # number of rows in test table
     # # # # # #
 
-    for i in range(0,n_objs_to_insert,num_ids_to_attempt_ingest):
+    for i in xrange(0,n_objs_to_insert,num_ids_to_attempt_ingest):
         # TODO: do a sleep(), or better: wait for ipython1 list to drop below ~20 queued tasks.
-
+        
         # TODO: eventually, on ptf_master.py startup, retrive largest obj_id from mysql ptf DB, and
         #       start with index_offset = max_obj_id + 1
         # COMBINE THESE FUNCTIONS & RETURN ptf_diff_obj_list
@@ -1791,25 +1780,25 @@ if __name__ == '__main__':
 
         # TODO: this following task could actually be done (parallel) on each spawned task client:
         ptf_diff_obj_list = PTFPollAndSpawn.apply_constraints(tc, ptf_diff_obj_list)
-
+        
         PTFPollAndSpawn.spawn_ingestion_tasks_using_diff_objs(tc, ptf_diff_obj_list, \
                                                               n_diffobjs_per_task=n_diffobjs_per_task)
 
         num_scheduled = tc.queue_status()['scheduled']
-
+        
         while num_scheduled >= (num_ids_to_attempt_ingest/float(n_diffobjs_per_task)):
-            print("num_scheduled=%d,  num_ids_to_attempt_ingest=%d" % (num_scheduled,num_ids_to_attempt_ingest))
-            print("i=%d, n_objs_to_insert=%d, ,num_ids_to_attempt_ingest=%d" % (i,n_objs_to_insert,num_ids_to_attempt_ingest))
+            print "num_scheduled=%d,  num_ids_to_attempt_ingest=%d" % (num_scheduled,num_ids_to_attempt_ingest)
+            print "i=%d, n_objs_to_insert=%d, ,num_ids_to_attempt_ingest=%d" % (i,n_objs_to_insert,num_ids_to_attempt_ingest)
             time.sleep(5) # give LBL server a breath
             num_scheduled = tc.queue_status()['scheduled']
-            print(tc.queue_status())
+            print tc.queue_status()
         if i != 0:
             # I feel weird doing this on the first iteration...
             tc.clear()  # This periodically clears the list of finished task objects in the task-client
             mec.flush()
-            print('######################################################')
-            print('               TaskClient   CLEARED')
-            print('######################################################')
+            print '######################################################'
+            print '               TaskClient   CLEARED'
+            print '######################################################'
     # TODO (want): PTFPollAndSpawn.<check for timed-out tasks>
     #   - This would then connect back to tasks / barrier tasks
     #   - This would require tasks being stored in a PTF_Poll_And_Spawn property
@@ -1853,3 +1842,4 @@ if __name__ == '__main__':
 
 
     # TODO: Test a ra,dec,t which coincides with a Minor-planet, so I can see this source excluded.
+

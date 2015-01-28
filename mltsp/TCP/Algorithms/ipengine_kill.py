@@ -1,20 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """ This kills ipython-parallel's ipengine which I cannot
 seem to directly ssh-exeucte a pkill on.
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from builtins import int
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 
 if __name__ == '__main__':
 
-    command_str = "ps awwux | grep bin.ipengine"
+    command_str = "ps awwux | grep bin.ipengine" 
 
     (a,b,c) = os.popen3(command_str)
     a.close()

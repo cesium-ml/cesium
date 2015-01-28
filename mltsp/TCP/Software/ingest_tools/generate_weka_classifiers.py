@@ -59,26 +59,15 @@ Options:
 # # # # #
 ### LCOGT cch1 generation of noisified based classifier using TUTOR data:
 #    -> this requires a manual PDB hack to spawn off bpsh tasks on cch1 cluster
-./generate_weka_classifiers.py -u frq17.9  --n_noisified_per_orig_vosource=50 --n_epochs=20 --n_sources_needed_for_class_inclusion=100 --fit_metric_cutoff=0.05 --generate_noisified --regenerate_features
+./generate_weka_classifiers.py -u frq17.9  --n_noisified_per_orig_vosource=50 --n_epochs=20 --n_sources_needed_for_class_inclusion=100 --fit_metric_cutoff=0.05 --generate_noisified --regenerate_features 
 
-# do PDB cch1 parallel bpsh spawning trick...
+# do PDB cch1 parallel bpsh spawning trick... 
 # Afterwards (1-2 hrs) run:   (below takes 5 mins)
 ./generate_weka_classifiers.py -u frq17.9  --n_noisified_per_orig_vosource=50 --n_epochs=20 --n_sources_needed_for_class_inclusion=100 --fit_metric_cutoff=0.05 --train_mode --generate_model
 # # # # #
 
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import int
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 from optparse import OptionParser
 import time
@@ -172,12 +161,12 @@ def parse_options():
                       action="store", default=None, \
                       help="")
     parser.add_option("-s","--use_srcid_times",
-                      dest="use_srcid_times",
+                      dest="use_srcid_times", 
                       action="store", default=None,
                       help="The srcid whose time array will be used for noisification cadence, rather than using a generated cadence")
 
     (options, args) = parser.parse_args()
-    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
+    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
     return options
 
 
@@ -202,12 +191,12 @@ def parse_confuse_matrix_generate_costmatrix(weka_ZeroR_confuse_matrix_outfpath,
     exec_str = os.path.expandvars("$TCP_DIR/Software/feature_extract/MLData/heatmap_confustion_matrix.py %s %s" % \
                                   (temp_fpath, cost_matrix_fpath))
     os.system(exec_str)
+    
 
-
-class Parallel_Arff_Maker(object):
+class Parallel_Arff_Maker:
     """ Class which spawns off ipengine tasks similar to arffify.Maker.run(),
     whose results are then combined to create a single .arrf file which
-    represents the features in the given vosource.xml files.
+    represents the features in the given vosource.xml files. 
 
     """
 
@@ -217,7 +206,7 @@ class Parallel_Arff_Maker(object):
         self.mec = client.MultiEngineClient()
         #self.mec.reset(targets=self.mec.get_ids()) # Reset the namespaces of all engines
         self.tc = client.TaskClient()
-        self.task_id_list = []
+	self.task_id_list = []
 
         #### 2011-01-21 added:
         self.mec.reset(targets=self.mec.get_ids())
@@ -229,11 +218,11 @@ class Parallel_Arff_Maker(object):
     def initialize_clients(self):
         """ Instantiate ipython1 clients, import all module dependencies.
         """
-        #task_str = """cat = os.getpid()"""
-        #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-        #time.sleep(2)
-        #print self.tc.get_task_result(taskid, block=False).results
-        #print 'hey'
+	#task_str = """cat = os.getpid()"""
+	#taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+	#time.sleep(2)
+	#print self.tc.get_task_result(taskid, block=False).results
+	#print 'hey'
 
 
         # 20090815(before): a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=True, dorun=False)
@@ -244,28 +233,28 @@ sys.path.append(os.environ.get('TCP_DIR') + '/Software/feature_extract/MLData')
 import arffify
 a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
 """
-        ###
-        ###a = arffify.Maker(dorun=False)
-        ###a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False,flag_retrieve_class_abrvs_from_TUTOR=True,dorun=False)
+	###
+	###a = arffify.Maker(dorun=False)
+	###a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False,flag_retrieve_class_abrvs_from_TUTOR=True,dorun=False)
         #print exec_str
         self.mec.execute(exec_str)
-        time.sleep(2) # This may be needed.
+	time.sleep(2) # This may be needed.
 
-        # testing:
-        #task_str = """cat = os.getpid()"""
-        #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-        #time.sleep(1)
-        #print self.tc.get_task_result(taskid, block=False).results
-        #print 'yo'
+	# testing:
+	#task_str = """cat = os.getpid()"""
+	#taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+	#time.sleep(1)
+	#print self.tc.get_task_result(taskid, block=False).results
+	#print 'yo'
 
 
     def spawn_off_arff_line_tasks(self, vosource_xml_dirpath):
         """ This spawns off ipython task clients which
-        take vosource.xml fpaths and generate feature/class structure
-        which will be used to create a .arff line.
-        The task results should be 'pulled' and then inserted into a final
-        Weka .arff file.
-        """
+	take vosource.xml fpaths and generate feature/class structure
+	which will be used to create a .arff line.
+	The task results should be 'pulled' and then inserted into a final
+	Weka .arff file.
+	"""
         ##### For testing:
         skipped_deb_srcids = ['12645', '12646', '12649', '12653', '12655', '12656', '12658', '12660', '12670', '12675', '12700', '12745', '12766', '12797', '12798', '12806', '12841', '12847', '12849', '12850', '12851', '12852', '12853', '12854', '12856', '12858', '12861', '12864', '12868', '12869', '12870', '12875', '12879', '12882', '12885', '12886', '12888', '12890', '12891', '12893', '12895', '12901', '12904', '12907', '12909', '12914', '12915', '12921', '12923', '12924', '12928', '12930', '12932', '12933', '12934', '12936', '12941', '12948', '12950', '12957', '12958', '12960', '12961', '12970', '13007', '13024', '13034', '13059', '13076', '13078', '13091', '13094', '13119', '13122', '13128', '13156', '13170', '13172', '13239', '13242', '13246', '13247', '13261', '13268', '13280', '13324', '13333', '13354', '13360', '13362', '13369', '13374', '13402', '13418', '13420', '13421', '13423', '13424', '13425', '13427', '13429', '13432', '13433', '13439', '13440', '13442', '13443', '13444', '13448', '13458', '13462', '13465', '13466', '13469', '13471', '13476', '13477', '13478', '13480', '13481', '13483', '13484', '13491', '13493', '13495', '13500', '13502', '13505', '13511', '13519', '13520', '13521', '13530', '13535', '13543', '13544', '13552', '13553', '13560', '13561', '13564', '13565', '13571', '13573', '13577', '13580', '13582', '13591', '13594', '13596', '13602', '13607', '13608', '13616', '13618', '13622', '13623', '13625', '13630', '13632', '13638', '13642', '13646', '13647', '13650', '13656', '13657', '13668', '13676', '13678', '13680', '13686', '13687', '13689', '13690', '13692', '13694', '13695', '13698', '13701', '13703', '13704', '13708', '13712', '13716', '13717', '13718', '13719', '13722', '13723', '13731', '13733', '13739', '13740', '13743', '13744', '13747', '13748', '13750', '13760', '13763', '13774', '13776', '13777', '13780', '13782', '13783', '13784', '13786', '13788', '13793', '13800', '13804', '13806', '13810', '13814', '13815', '13819', '13824', '13826', '13832', '13833', '13838', '13843', '13847', '13851', '13854', '13858', '13860', '13869', '13873', '13881', '13882', '13885', '13888', '13889', '13890', '13892', '13893', '13894', '13896', '13898', '13900', '13906', '13911', '13922', '13927', '13928', '13929', '13936', '13938', '13942', '13944', '13951', '13955', '13957', '13958', '13959', '13962', '13965', '13972', '13974', '13988', '13989', '13996', '13997', '13998', '14004', '14006', '14009', '14010', '14017', '14018', '14024', '14025', '14028', '14029', '14032', '14035', '14043', '14047', '14048', '14051', '14055', '14056', '14065', '14066', '14070', '14071', '14072', '14087', '14088', '14089', '14093', '14095', '14104', '14108', '14109', '14113', '14117', '14120', '14122', '14125', '14129', '14133', '14136', '14137', '14151', '14155', '14157', '14163', '14166', '14167', '14168', '14174', '14175', '14181', '14182', '14186', '14191', '14194', '14198', '14205', '14206', '14216', '14218', '14219', '14225', '14226', '14234', '14239', '14243', '14244', '14246', '14247', '14248', '14250', '14251', '14255', '14256', '14263', '14269', '14275', '14280', '14282']
         import dotastro_sciclass_tools
@@ -276,22 +265,22 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
         xml_fpath_list = glob.glob(vosource_xml_dirpath + '/*xml')
         # KLUDGE: This can potentially load a lot of xml-strings into memory:
         for xml_fpath in xml_fpath_list:
-            fname = xml_fpath[xml_fpath.rfind('/')+1:xml_fpath.rfind('.')]
+	    fname = xml_fpath[xml_fpath.rfind('/')+1:xml_fpath.rfind('.')]
             num = fname # Seems OK: ?CAN I just use the filename rather than the sourceid?  # xml_fname[:xml_fname.rfind('.')]
             #srcid_xml_tuple_list.append((num, xml_fpath))
 
-            #task_str = """cat = os.getpid()"""
-            #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-            #time.sleep(1)
-            #print self.tc.get_task_result(taskid, block=False).results
-            #print 'yo'
+	    #task_str = """cat = os.getpid()"""
+	    #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+	    #time.sleep(1)
+	    #print self.tc.get_task_result(taskid, block=False).results
+	    #print 'yo'
 
             ##### For testing:
             #if "100017522.xml" in xml_fpath:
             #    print "yo"
             if 0:
                 import pdb; pdb.set_trace()
-                print()
+                print
                 num_orig_str = str(int(num) - 100000000)
                 if num_orig_str in skipped_deb_srcids:
                     #print num_orig_str
@@ -301,15 +290,15 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
 
                     a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
                     out_dict = a.generate_arff_line_for_vosourcexml(num=str(num), xml_fpath=xml_fpath)
-                    print('!!!', results[0])
+                    print '!!!', results[0]
                 else:
                     try:
                         a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
                         out_dict = a.generate_arff_line_for_vosourcexml(num=str(num), xml_fpath=xml_fpath)
                     except:
-                        print("barf on some xml:", xml_fpath)
-
-
+                        print "barf on some xml:", xml_fpath
+                    
+                
             #print xml_fpath
             #continue
             #####
@@ -323,28 +312,28 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
                                             pull='out_dict', retries=3))
                     self.task_id_list.append(taskid)
                 except:
-                    print("EXCEPT!: taskid=", taskid, exec_str)
+                    print "EXCEPT!: taskid=", taskid, exec_str
 
-            #task_str = """cat = os.getpid()"""
-            #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-            ##time.sleep(1)
-            #print self.tc.get_task_result(taskid, block=False).results
-            #print 'yo'
+	    #task_str = """cat = os.getpid()"""
+	    #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+	    ##time.sleep(1)
+	    #print self.tc.get_task_result(taskid, block=False).results
+	    #print 'yo'
 
 
     def condense_task_results_and_form_arff(self):
         """
-        """
-        master_list = []
-        master_features_dict = {}
-        all_class_list = []
+	"""
+	master_list = []
+	master_features_dict = {}
+	all_class_list = []
         master_classes_dict = {}
-
-        while ((self.tc.queue_status()['scheduled'] > 0) or
-               (self.tc.queue_status()['pending'] > 0)):
+	
+	while ((self.tc.queue_status()['scheduled'] > 0) or
+ 	       (self.tc.queue_status()['pending'] > 0)):
             tasks_to_pop = []
-            for task_id in self.task_id_list:
-                temp = self.tc.get_task_result(task_id, block=False)
+	    for task_id in self.task_id_list:
+	        temp = self.tc.get_task_result(task_id, block=False)
                 if temp == None:
                     continue
                 temp2 = temp.results
@@ -354,27 +343,27 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
                 if results == None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 out_dict = results
-                if len(out_dict) > 0:
-                    tasks_to_pop.append(task_id)
-                    master_list.append(out_dict)
-                    all_class_list.append(out_dict['class'])
+		if len(out_dict) > 0:
+		    tasks_to_pop.append(task_id)
+		    master_list.append(out_dict)
+		    all_class_list.append(out_dict['class'])
                     master_classes_dict[out_dict['class']] = 0
-                    for feat_tup in out_dict['features']:
-                        master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
-            for task_id in tasks_to_pop:
-                self.task_id_list.remove(task_id)
-            print(self.tc.queue_status())
-            print('Sleep... 3  in generate_weka_classifiers.py')
-            time.sleep(3)
+		    for feat_tup in out_dict['features']:
+		        master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
+	    for task_id in tasks_to_pop:
+	        self.task_id_list.remove(task_id)
+            print self.tc.queue_status()
+            print 'Sleep... 3  in generate_weka_classifiers.py'
+	    time.sleep(3)
 
         #for i in self.task_id_list:
         #    print i, type(self.tc.get_task_result(i, block=False).results.get('out_dict',{}))
 
         if len(master_list) < self.tc.queue_status()['succeeded']:
             tasks_to_pop = []
-            for task_id in self.task_id_list:
-                # TODO: try/except this: ???
-                temp = self.tc.get_task_result(task_id, block=False)
+	    for task_id in self.task_id_list:
+	        # TODO: try/except this: ???
+	        temp = self.tc.get_task_result(task_id, block=False)
                 if temp == None:
                     continue
                 temp2 = temp.results
@@ -385,39 +374,39 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
                 if results == None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 out_dict = results
-                if len(out_dict) > 0:
-                    tasks_to_pop.append(task_id)
-                    master_list.append(out_dict)
-                    all_class_list.append(out_dict['class'])
+		if len(out_dict) > 0:
+		    tasks_to_pop.append(task_id)
+		    master_list.append(out_dict)
+		    all_class_list.append(out_dict['class'])
                     master_classes_dict[out_dict['class']] = 0
-                    for feat_tup in out_dict['features']:
-                        master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
+		    for feat_tup in out_dict['features']:
+		        master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
-        master_features = list(master_features_dict.keys())
-        master_classes = list(master_classes_dict.keys())
-        # master_classes
-        # master_list
-        return (master_features, all_class_list, master_classes, master_list)
+        master_features = master_features_dict.keys()
+        master_classes = master_classes_dict.keys()
+	# master_classes
+	# master_list
+	return (master_features, all_class_list, master_classes, master_list)
 
-
+    
     def write_arff_using_Maker(self, master_features, all_class_list, \
-                               master_classes, master_list, \
-                               out_arff_fpath='', \
+			       master_classes, master_list, \
+			       out_arff_fpath='', \
                                n_sources_needed_for_class_inclusion=10):
         """ Use arffify.py method to write a .arrf file.
-        """
-        a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
+	"""
+	a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
                           dorun=False, add_srcid_to_arff=True)
-        a.master_features = master_features
-        a.all_class_list = all_class_list
-        a.master_classes = master_classes
-        a.master_list = master_list
-        a.write_arff(outfile=out_arff_fpath, \
+	a.master_features = master_features
+	a.all_class_list = all_class_list
+	a.master_classes = master_classes
+	a.master_list = master_list
+	a.write_arff(outfile=out_arff_fpath, \
                      remove_sparse_classes=True, \
                      n_sources_needed_for_class_inclusion=n_sources_needed_for_class_inclusion)#, classes_arff_str='', remove_sparse_classes=False)
-
+	
 
     def generate_arff_using_xmls(self, vosource_xml_dirpath='', out_arff_fpath='', \
                                  n_sources_needed_for_class_inclusion=10):
@@ -425,13 +414,13 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
     whose results are then combined to create a single .arrf file which
     represents the features in the given vosource.xml files.
         """
-        self.initialize_clients()
-        self.spawn_off_arff_line_tasks(vosource_xml_dirpath)
-        (master_features, all_class_list, master_classes, master_list) = \
-                                self.condense_task_results_and_form_arff()
-        self.write_arff_using_Maker(master_features, all_class_list, \
-                                    master_classes, master_list, \
-                                    out_arff_fpath=out_arff_fpath, \
+	self.initialize_clients()
+	self.spawn_off_arff_line_tasks(vosource_xml_dirpath)
+	(master_features, all_class_list, master_classes, master_list) = \
+			        self.condense_task_results_and_form_arff()
+	self.write_arff_using_Maker(master_features, all_class_list, \
+				    master_classes, master_list, \
+				    out_arff_fpath=out_arff_fpath, \
                                     n_sources_needed_for_class_inclusion=n_sources_needed_for_class_inclusion)
 
 
@@ -519,12 +508,12 @@ if __name__ == '__main__':
                                       (options.unfeat_xml_dir, options.train_xml_dir))
         os.system(exec_str)
         #print "PLEASE RUN THIS IN PDB TO ENSURE TASKING ONTO BEOWULF NODES:"
-        print(exec_str)
+        print exec_str
         #pass
-
+        
     if options.train_mode:
         # This generates /tmp/train_output.arff using VOSource.xmls:
-
+        
         ParallelArffMaker = Parallel_Arff_Maker(pars={})
         ParallelArffMaker.generate_arff_using_xmls( \
                  vosource_xml_dirpath=options.train_xml_dir, \
@@ -534,10 +523,10 @@ if __name__ == '__main__':
 
         # NON-PARALLEL:
         #a = arffify.Maker(search=[], outfile=options.train_arff_path, \
-        #                  skip_class=False, local_xmls=True,
+        #                  skip_class=False, local_xmls=True, 
         #                  convert_class_abrvs_to_names=False,
         #                  flag_retrieve_class_abrvs_from_TUTOR=True,
-        #                  local_xmls_fpath=options.train_xml_dir)
+        #                  local_xmls_fpath=options.train_xml_dir) 
         #a = arffify.Maker(search=["Cepheids","RR Lyrae - Asymmetric","Mira","W Ursae Majoris",]) # search[] Allows just a couple science classes to be used
 
     # TODO: it might be nice to generate a simple cost-matrix using weka output & heat_map...py
@@ -585,3 +574,4 @@ if __name__ == '__main__':
         ###exec_str = "/usr/lib/jvm/java-6-sun-1.6.0.03/bin/java -Xmx12000m -cp GridWeka2.jar weka.classifiers.trees.J48 -C 0.25 -M 2 -t %s -d %s" % \
         ###               (options.train_arff_path, options.weka_model_path)
         #print exec_str
+

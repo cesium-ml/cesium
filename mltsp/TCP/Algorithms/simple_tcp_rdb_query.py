@@ -1,14 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 An example / demo file on how to connect to TCP MySQL server
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 
 import sys, os
@@ -40,7 +33,7 @@ if __name__ == '__main__':
     ##### This gets the PTF limiting magnitude for an (ra,dec):
     #select_str = "SELECT filter, ujd, lmt_mg from object_test_db.ptf_candidate_footprint WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (ra, dec)
     select_str = """
-SELECT source_test_db.srcid_lookup_htm.src_id,
+SELECT source_test_db.srcid_lookup_htm.src_id, 
        object_test_db.sdss_events_a.t,
        object_test_db.sdss_events_a.jsb_mag,
        object_test_db.sdss_events_a.jsb_mag_err,
@@ -53,8 +46,8 @@ JOIN object_test_db.sdss_events_a USING (obj_id)
 WHERE (DIF_HTMCircle(%lf, %lf, 0.01))
 ORDER BY src_id, t
     """ % (ra, dec)
-    print("SDSS filter numbers translate using {0:'u',1:'g',2:'r',3:'i',4:'z'}")
+    print "SDSS filter numbers translate using {0:'u',1:'g',2:'r',3:'i',4:'z'}"
     cursor.execute(select_str)
     results = cursor.fetchall()
     for row in results:
-        print(row)
+        print row

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 Given a srcid and class schema, get the classification probabilities.
 
@@ -12,28 +12,18 @@
 ##### NOTE:
 
 CREATE TABLE one_src_model_class_probs (schema_id SMALLINT UNSIGNED,
-                                        schema_comment VARCHAR(80) DEFAULT '',
-                                        class_id SMALLINT UNSIGNED,
-                                        class_name VARCHAR(100) DEFAULT '',
-                                        prob FLOAT DEFAULT 1.0,
-                                        src_id INT UNSIGNED,
-                                        class_rank TINYINT DEFAULT 0,
+                                        schema_comment VARCHAR(80) DEFAULT '', 
+			                class_id SMALLINT UNSIGNED, 
+                                        class_name VARCHAR(100) DEFAULT '', 
+			                prob FLOAT DEFAULT 1.0,
+		                        src_id INT UNSIGNED,
+			                class_rank TINYINT DEFAULT 0,
                                         prob_weight FLOAT DEFAULT 1.0,
-                                        gen_dtime DATETIME,
-                                        PRIMARY KEY(schema_comment, src_id, class_rank),
+			                gen_dtime DATETIME,
+			                PRIMARY KEY(schema_comment, src_id, class_rank),
                                         INDEX(gen_dtime),
                                         INDEX(prob));
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 import os, sys
 import classification_interface
@@ -42,7 +32,7 @@ import ptf_master
 import MySQLdb
 
 
-class GetClassificationsForPtfSrcid(object):
+class GetClassificationsForPtfSrcid:
     """ Main class for get_classifications_for_ptf_srcid_and_class_schema.py
     """
     def __init__(self, schema_str=""):
@@ -105,7 +95,7 @@ class GetClassificationsForPtfSrcid(object):
         #                     db=self.DiffObjSourcePopulator.xrsio.pars['rdb_name_2'],
         #                     port=self.DiffObjSourcePopulator.xrsio.pars['rdb_port_2'])
         #cursor = db.cursor()
-
+        
         insert_list = ['INSERT INTO source_test_db.one_src_model_class_probs (schema_id, schema_comment, class_id, class_name, prob, src_id, class_rank, gen_dtime) VALUES ']
 
         skip_schema_ids = [0,1,2] # microlens, dovi, general
@@ -182,7 +172,7 @@ class GetClassificationsForPtfSrcid(object):
                                            src_id=src_id, schema_str=self.schema_str)
 
 
-class Ipython_Task_Controller(object):
+class Ipython_Task_Controller:
     """ This class deals with initializing, spawning, controlling the ipython tasks
     """
     def __init__(self, schema_str=""):
@@ -211,7 +201,7 @@ class Ipython_Task_Controller(object):
         #import MySQLdb
         #import get_classifications_for_ptf_srcid_and_class_schema
         #Get_Classifications_For_Ptf_Srcid = get_classifications_for_ptf_srcid_and_class_schema.GetClassificationsForPtfSrcid(schema_str=self.schema_str)
-
+            
         exec_str = """import os,sys
 import classification_interface
 import plugin_classifier
@@ -268,7 +258,7 @@ del Get_Classifications_For_Ptf_Srcid""" % (self.schema_str)
 
         # KLUDGE: unfortunately we need to reinitialize taskclient due to memory leaks in a primary class.
         list_incr = 5
-        for i_low in range(0, len(total_srcid_list), list_incr):
+        for i_low in xrange(0, len(total_srcid_list), list_incr):
             short_srcid_list = total_srcid_list[i_low:i_low + list_incr]
             exec_str = """schema_str="%s"
 for src_id in srcid_list:
@@ -281,19 +271,19 @@ for src_id in srcid_list:
         pass # skipping this srcid""" % (self.schema_str)
             taskid = self.tc.run(client.StringTask(exec_str, \
                                                    push={'srcid_list':short_srcid_list}))
-
+            
 
 
     def wait_for_tasks_to_finish(self):
         """ Wait for task client / ipengine tasks to finish.
         """
         import time
-        while ((self.tc.queue_status()['scheduled'] > 0) or
-               (self.tc.queue_status()['pending'] > 0)):
-            print(self.tc.queue_status())
-            print('Sleep... 3 in get_classifications_for_ptf_srcid_and_class_schema.py')
+	while ((self.tc.queue_status()['scheduled'] > 0) or
+ 	       (self.tc.queue_status()['pending'] > 0)):
+            print self.tc.queue_status()
+            print 'Sleep... 3 in get_classifications_for_ptf_srcid_and_class_schema.py'
             time.sleep(3)
-        print('done with while loop')
+        print 'done with while loop'
 
 
     def main(self):
@@ -338,4 +328,6 @@ if __name__ == '__main__':
                     Get_Classifications_For_Ptf_Srcid.main( \
                                   src_id=src_id)
             except:
-                print('skipping', src_id)
+                print 'skipping', src_id
+
+

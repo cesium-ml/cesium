@@ -1,47 +1,49 @@
-"""This module is a low-tech implementation of lomb_scargle_extractor using
-regular expressions
-"""
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
+""" This module is a low-tech implementation of lomb_scargle_extractor using regular expressions """
 
 from ..FeatureExtractor import FeatureExtractor
 from ..FeatureExtractor import InterExtractor
+from common_functions.lomb_scargle import lomb
+from common_functions.pre_whiten import pre_whiten
 
-from .common_functions import lightcurve
-import copy  # 20100902 added
-
+try:
+    from pylab import *
+except:
+    pass
+from numpy import log, exp, arange, median, ceil
+import common_functions.lightcurve as lightcurve
+import copy # 20100902 added
 
 class lomb_scargle_extractor(InterExtractor):
     """ wrapper for common_functions lomb_scargle and pre_whiten
     """
     internal_use_only = False
     active = True
-    extname = 'lomb_scargle'
-
+    extname = 'lomb_scargle' 
     def extract(self):
-        src_dict = {}
-        src_dict['t'] = copy.copy(self.time_data)  # 20100902 added the copy()
-        src_dict['m'] = copy.copy(self.flux_data)  # 20100902 addde the copy()
-        src_dict['m_err'] = copy.copy(self.rms_data) # 20100902 added the copy()
 
+        src_dict = {}
+        src_dict['t'] = copy.copy(self.time_data) # 20100902 added the copy()
+        src_dict['m'] = copy.copy(self.flux_data) # 20100902 addde the copy()
+        src_dict['m_err'] = copy.copy(self.rms_data) # 20100902 added the copy()
+        
+        
+        print "m_err:", src_dict['m_err']
+        
         if len(self.time_data) == 0:
             self.ex_error(text="self.time_data of len()==0")
         try:
             obs = lightcurve.observatory_source_interface()
             db_dictionary, cn_output = obs.lomb_code(src_dict['m'],
-                               src_dict['m_err'],
-                               src_dict['t'],
-                                                     srcid=self.dic['input'].get('srcid',0))# 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
+                                           src_dict['m_err'],
+                                           src_dict['t'],
+                                 srcid=self.dic['input'].get('srcid',0))# 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
         except Exception as theErr:
-            print(theErr, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print theErr, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" 
             self.ex_error(text="lomb_scargle_extractor::obs.lomb_code() except")
             db_dictionary = {} # I think we dont get here since the above line excepts
+
+        #import pdb; pdb.set_trace()
+        #print
 
         out_dict = {}
         dstr_list = ['freq1','freq2','freq3']#,'freq4']
@@ -51,9 +53,9 @@ class lomb_scargle_extractor(InterExtractor):
                 n_harm_iters = len(lomb_dict['harmonics_amplitude'])
             else:
                 n_harm_iters = 1 + 3 # includes primary component
-
+                
             out_dict["%s_harmonics_freq_0" % (dstr)] = lomb_dict['frequency']
-            for i in range(n_harm_iters):
+            for i in xrange(n_harm_iters):
                 out_dict["%s_harmonics_amplitude_%d" % (dstr, i)] = \
                   lomb_dict['harmonics_amplitude'][i]
                 out_dict["%s_harmonics_amplitude_error_%d" % (dstr, i)] = \
@@ -159,7 +161,7 @@ class lomb_scargle_extractor(InterExtractor):
         return out_dict
 
 
-
+        
 class lomb_generic(FeatureExtractor):
     """ Generic lomb extractor grabs value from dictionary  """
     internal_use_only = False
@@ -169,11 +171,11 @@ class lomb_generic(FeatureExtractor):
     def extract(self):
         lomb_dict = self.fetch_extr('lomb_scargle') # fetches the dictionary from lomb_scargle_extractor with the useful lomb scargle results in it
         # If lomb_dict is partially filled, most likely lomb couldn't compute completely due to FALSE condition: (dof>0 and harm_dict['nharm']>0 and harm_dict['signif']>0)
-        if self.lomb_key in lomb_dict:
+        if lomb_dict.has_key(self.lomb_key):
             return lomb_dict[self.lomb_key] # finds the correct keyword that this class is assigned to, this could be replaced by self.extname if it wasn't for the _alt
         else:
             self.ex_error('Lomb Scargle Dictionary does not have key %s' % (self.lomb_key))
-
+        
 #[!'freq_searched_min',
 # !'freq1_harmonics_rel_phase_error_1',
 # !'freq1_harmonics_peak2peak_flux',
@@ -215,20 +217,20 @@ class lomb_generic(FeatureExtractor):
 # !'freq1_harmonics_amplitude_error_0',
 # !'freq_searched_max']
 
-# regex from !'(\S+)',\n to
-#       class $1_extractor(lomb_generic):
-#               """ $1 """
-#               extname = "$1"
-#               lomb_key = "$1"
-#
+# regex from !'(\S+)',\n to 
+#   class $1_extractor(lomb_generic):
+#       """ $1 """
+#       extname = "$1"
+#       lomb_key = "$1"
+#       
 # (need a newline at the end)
 
 
 
 #class freq1_extractor(lomb_generic):
-#       """ freq1 """
-#       extname = "freq1"
-#       lomb_key = "freq1"
+#   """ freq1 """
+#   extname = "freq1"
+#   lomb_key = "freq1"
 
 class freq1_harmonics_amplitude_0_extractor(lomb_generic):
     """ freq1_harmonics_amplitude_0 """
@@ -256,19 +258,19 @@ class freq1_harmonics_amplitude_error_0_extractor(lomb_generic):
     lomb_key = "freq1_harmonics_amplitude_error_0"
 
 #class freq1_harmonics_amplitude_error_1_extractor(lomb_generic):
-#       """ freq1_harmonics_amplitude_error_1 """
-#       extname = "freq1_harmonics_amplitude_error_1"
-#       lomb_key = "freq1_harmonics_amplitude_error_1"
+#   """ freq1_harmonics_amplitude_error_1 """
+#   extname = "freq1_harmonics_amplitude_error_1"
+#   lomb_key = "freq1_harmonics_amplitude_error_1"
 #
 #class freq1_harmonics_amplitude_error_2_extractor(lomb_generic):
-#       """ freq1_harmonics_amplitude_error_2 """
-#       extname = "freq1_harmonics_amplitude_error_2"
-#       lomb_key = "freq1_harmonics_amplitude_error_2"
+#   """ freq1_harmonics_amplitude_error_2 """
+#   extname = "freq1_harmonics_amplitude_error_2"
+#   lomb_key = "freq1_harmonics_amplitude_error_2"
 #
 #class freq1_harmonics_amplitude_error_3_extractor(lomb_generic):
-#       """ freq1_harmonics_amplitude_error_3 """
-#       extname = "freq1_harmonics_amplitude_error_3"
-#       lomb_key = "freq1_harmonics_amplitude_error_3"
+#   """ freq1_harmonics_amplitude_error_3 """
+#   extname = "freq1_harmonics_amplitude_error_3"
+#   lomb_key = "freq1_harmonics_amplitude_error_3"
 
 class freq1_harmonics_freq_0_extractor(lomb_generic):
     """ freq1_harmonics_freq_0 """
@@ -276,19 +278,19 @@ class freq1_harmonics_freq_0_extractor(lomb_generic):
     lomb_key = "freq1_harmonics_freq_0"
 
 #class freq1_harmonics_freq_1_extractor(lomb_generic):
-#       """ freq1_harmonics_freq_1 """
-#       extname = "freq1_harmonics_freq_1"
-#       lomb_key = "freq1_harmonics_freq_1"
+#   """ freq1_harmonics_freq_1 """
+#   extname = "freq1_harmonics_freq_1"
+#   lomb_key = "freq1_harmonics_freq_1"
 #
 #class freq1_harmonics_freq_2_extractor(lomb_generic):
-#       """ freq1_harmonics_freq_2 """
-#       extname = "freq1_harmonics_freq_2"
-#       lomb_key = "freq1_harmonics_freq_2"
+#   """ freq1_harmonics_freq_2 """
+#   extname = "freq1_harmonics_freq_2"
+#   lomb_key = "freq1_harmonics_freq_2"
 #
 #class freq1_harmonics_freq_3_extractor(lomb_generic):
-#       """ freq1_harmonics_freq_3 """
-#       extname = "freq1_harmonics_freq_3"
-#       lomb_key = "freq1_harmonics_freq_3"
+#   """ freq1_harmonics_freq_3 """
+#   extname = "freq1_harmonics_freq_3"
+#   lomb_key = "freq1_harmonics_freq_3"
 
 class freq1_harmonics_moments_0_extractor(lomb_generic):
     """ freq1_harmonics_moments_0 """
@@ -316,24 +318,24 @@ class freq1_harmonics_moments_err_0_extractor(lomb_generic):
     lomb_key = "freq1_harmonics_moments_err_0"
 
 #class freq1_harmonics_moments_err_1_extractor(lomb_generic):
-#       """ freq1_harmonics_moments_err_1 """
-#       extname = "freq1_harmonics_moments_err_1"
-#       lomb_key = "freq1_harmonics_moments_err_1"
+#   """ freq1_harmonics_moments_err_1 """
+#   extname = "freq1_harmonics_moments_err_1"
+#   lomb_key = "freq1_harmonics_moments_err_1"
 #
 #class freq1_harmonics_moments_err_2_extractor(lomb_generic):
-#       """ freq1_harmonics_moments_err_2 """
-#       extname = "freq1_harmonics_moments_err_2"
-#       lomb_key = "freq1_harmonics_moments_err_2"
+#   """ freq1_harmonics_moments_err_2 """
+#   extname = "freq1_harmonics_moments_err_2"
+#   lomb_key = "freq1_harmonics_moments_err_2"
 #
 #class freq1_harmonics_moments_err_3_extractor(lomb_generic):
-#       """ freq1_harmonics_moments_err_3 """
-#       extname = "freq1_harmonics_moments_err_3"
-#       lomb_key = "freq1_harmonics_moments_err_3"
+#   """ freq1_harmonics_moments_err_3 """
+#   extname = "freq1_harmonics_moments_err_3"
+#   lomb_key = "freq1_harmonics_moments_err_3"
 
 ## class freq1_harmonics_nharm_extractor(lomb_generic):
-##      """ freq1_harmonics_nharm """
-##      extname = "freq1_harmonics_nharm"
-##      lomb_key = "freq1_harmonics_nharm"
+##  """ freq1_harmonics_nharm """
+##  extname = "freq1_harmonics_nharm"
+##  lomb_key = "freq1_harmonics_nharm"
 
 class freq1_harmonics_peak2peak_flux_extractor(lomb_generic):
     """ freq1_harmonics_peak2peak_flux """
@@ -383,34 +385,34 @@ class freq1_lambda_extractor(lomb_generic):
 
 
 #class freq1_harmonics_rel_phase_error_1_extractor(lomb_generic):
-#       """ freq1_harmonics_rel_phase_error_1 """
-#       extname = "freq1_harmonics_rel_phase_error_1"
-#       lomb_key = "freq1_harmonics_rel_phase_error_1"
+#   """ freq1_harmonics_rel_phase_error_1 """
+#   extname = "freq1_harmonics_rel_phase_error_1"
+#   lomb_key = "freq1_harmonics_rel_phase_error_1"
 #
 #class freq1_harmonics_rel_phase_error_2_extractor(lomb_generic):
-#       """ freq1_harmonics_rel_phase_error_2 """
-#       extname = "freq1_harmonics_rel_phase_error_2"
-#       lomb_key = "freq1_harmonics_rel_phase_error_2"
+#   """ freq1_harmonics_rel_phase_error_2 """
+#   extname = "freq1_harmonics_rel_phase_error_2"
+#   lomb_key = "freq1_harmonics_rel_phase_error_2"
 #
 #class freq1_harmonics_rel_phase_error_3_extractor(lomb_generic):
-#       """ freq1_harmonics_rel_phase_error_3 """
-#       extname = "freq1_harmonics_rel_phase_error_3"
-#       lomb_key = "freq1_harmonics_rel_phase_error_3"
+#   """ freq1_harmonics_rel_phase_error_3 """
+#   extname = "freq1_harmonics_rel_phase_error_3"
+#   lomb_key = "freq1_harmonics_rel_phase_error_3"
 
 ## class freq1_harmonics_signif_extractor(lomb_generic):
-##      """ freq1_harmonics_signif """
-##      extname = "freq1_harmonics_signif"
-##      lomb_key = "freq1_harmonics_signif"
+##  """ freq1_harmonics_signif """
+##  extname = "freq1_harmonics_signif"
+##  lomb_key = "freq1_harmonics_signif"
 
 ## class freq1_signif_extractor(lomb_generic):
-##      """ freq1_signif """
-##      extname = "freq1_signif"
-##      lomb_key = "freq1_signif"
+##  """ freq1_signif """
+##  extname = "freq1_signif"
+##  lomb_key = "freq1_signif"
 
 ## class freq2_extractor(lomb_generic):
-##      """ freq2 """
-##      extname = "freq2"
-##      lomb_key = "freq2"
+##  """ freq2 """
+##  extname = "freq2"
+##  lomb_key = "freq2"
 
 class freq2_harmonics_amplitude_0_extractor(lomb_generic):
     """ freq2_harmonics_amplitude_0 """
@@ -438,19 +440,19 @@ class freq2_harmonics_amplitude_error_0_extractor(lomb_generic):
     lomb_key = "freq2_harmonics_amplitude_error_0"
 
 #class freq2_harmonics_amplitude_error_1_extractor(lomb_generic):
-#       """ freq2_harmonics_amplitude_error_1 """
-#       extname = "freq2_harmonics_amplitude_error_1"
-#       lomb_key = "freq2_harmonics_amplitude_error_1"
+#   """ freq2_harmonics_amplitude_error_1 """
+#   extname = "freq2_harmonics_amplitude_error_1"
+#   lomb_key = "freq2_harmonics_amplitude_error_1"
 #
 #class freq2_harmonics_amplitude_error_2_extractor(lomb_generic):
-#       """ freq2_harmonics_amplitude_error_2 """
-#       extname = "freq2_harmonics_amplitude_error_2"
-#       lomb_key = "freq2_harmonics_amplitude_error_2"
+#   """ freq2_harmonics_amplitude_error_2 """
+#   extname = "freq2_harmonics_amplitude_error_2"
+#   lomb_key = "freq2_harmonics_amplitude_error_2"
 #
 #class freq2_harmonics_amplitude_error_3_extractor(lomb_generic):
-#       """ freq2_harmonics_amplitude_error_3 """
-#       extname = "freq2_harmonics_amplitude_error_3"
-#       lomb_key = "freq2_harmonics_amplitude_error_3"
+#   """ freq2_harmonics_amplitude_error_3 """
+#   extname = "freq2_harmonics_amplitude_error_3"
+#   lomb_key = "freq2_harmonics_amplitude_error_3"
 
 class freq2_harmonics_freq_0_extractor(lomb_generic):
     """ freq2_harmonics_freq_0 """
@@ -458,19 +460,19 @@ class freq2_harmonics_freq_0_extractor(lomb_generic):
     lomb_key = "freq2_harmonics_freq_0"
 
 #class freq2_harmonics_freq_1_extractor(lomb_generic):
-#       """ freq2_harmonics_freq_1 """
-#       extname = "freq2_harmonics_freq_1"
-#       lomb_key = "freq2_harmonics_freq_1"
+#   """ freq2_harmonics_freq_1 """
+#   extname = "freq2_harmonics_freq_1"
+#   lomb_key = "freq2_harmonics_freq_1"
 #
 #class freq2_harmonics_freq_2_extractor(lomb_generic):
-#       """ freq2_harmonics_freq_2 """
-#       extname = "freq2_harmonics_freq_2"
-#       lomb_key = "freq2_harmonics_freq_2"
+#   """ freq2_harmonics_freq_2 """
+#   extname = "freq2_harmonics_freq_2"
+#   lomb_key = "freq2_harmonics_freq_2"
 #
 #class freq2_harmonics_freq_3_extractor(lomb_generic):
-#       """ freq2_harmonics_freq_3 """
-#       extname = "freq2_harmonics_freq_3"
-#       lomb_key = "freq2_harmonics_freq_3"
+#   """ freq2_harmonics_freq_3 """
+#   extname = "freq2_harmonics_freq_3"
+#   lomb_key = "freq2_harmonics_freq_3"
 
 class freq2_harmonics_moments_0_extractor(lomb_generic):
     """ freq2_harmonics_moments_0 """
@@ -498,34 +500,34 @@ class freq2_harmonics_moments_err_0_extractor(lomb_generic):
     lomb_key = "freq2_harmonics_moments_err_0"
 
 #class freq2_harmonics_moments_err_1_extractor(lomb_generic):
-#       """ freq2_harmonics_moments_err_1 """
-#       extname = "freq2_harmonics_moments_err_1"
-#       lomb_key = "freq2_harmonics_moments_err_1"
+#   """ freq2_harmonics_moments_err_1 """
+#   extname = "freq2_harmonics_moments_err_1"
+#   lomb_key = "freq2_harmonics_moments_err_1"
 #
 #class freq2_harmonics_moments_err_2_extractor(lomb_generic):
-#       """ freq2_harmonics_moments_err_2 """
-#       extname = "freq2_harmonics_moments_err_2"
-#       lomb_key = "freq2_harmonics_moments_err_2"
+#   """ freq2_harmonics_moments_err_2 """
+#   extname = "freq2_harmonics_moments_err_2"
+#   lomb_key = "freq2_harmonics_moments_err_2"
 #
 #class freq2_harmonics_moments_err_3_extractor(lomb_generic):
-#       """ freq2_harmonics_moments_err_3 """
-#       extname = "freq2_harmonics_moments_err_3"
-#       lomb_key = "freq2_harmonics_moments_err_3"
+#   """ freq2_harmonics_moments_err_3 """
+#   extname = "freq2_harmonics_moments_err_3"
+#   lomb_key = "freq2_harmonics_moments_err_3"
 
 ## class freq2_harmonics_nharm_extractor(lomb_generic):
-##      """ freq2_harmonics_nharm """
-##      extname = "freq2_harmonics_nharm"
-##      lomb_key = "freq2_harmonics_nharm"
+##  """ freq2_harmonics_nharm """
+##  extname = "freq2_harmonics_nharm"
+##  lomb_key = "freq2_harmonics_nharm"
 
 ## class freq2_harmonics_peak2peak_flux_extractor(lomb_generic):
-##      """ freq2_harmonics_peak2peak_flux """
-##      extname = "freq2_harmonics_peak2peak_flux"
-##      lomb_key = "freq2_harmonics_peak2peak_flux"
+##  """ freq2_harmonics_peak2peak_flux """
+##  extname = "freq2_harmonics_peak2peak_flux"
+##  lomb_key = "freq2_harmonics_peak2peak_flux"
 
 ## class freq2_harmonics_peak2peak_flux_error_extractor(lomb_generic):
-##      """ freq2_harmonics_peak2peak_flux_error """
-##      extname = "freq2_harmonics_peak2peak_flux_error"
-##      lomb_key = "freq2_harmonics_peak2peak_flux_error"
+##  """ freq2_harmonics_peak2peak_flux_error """
+##  extname = "freq2_harmonics_peak2peak_flux_error"
+##  lomb_key = "freq2_harmonics_peak2peak_flux_error"
 
 class freq2_harmonics_rel_phase_0_extractor(lomb_generic):
     """ freq2_harmonics_rel_phase_0 """
@@ -553,34 +555,34 @@ class freq2_harmonics_rel_phase_error_0_extractor(lomb_generic):
     lomb_key = "freq2_harmonics_rel_phase_error_0"
 
 #class freq2_harmonics_rel_phase_error_1_extractor(lomb_generic):
-#       """ freq2_harmonics_rel_phase_error_1 """
-#       extname = "freq2_harmonics_rel_phase_error_1"
-#       lomb_key = "freq2_harmonics_rel_phase_error_1"
+#   """ freq2_harmonics_rel_phase_error_1 """
+#   extname = "freq2_harmonics_rel_phase_error_1"
+#   lomb_key = "freq2_harmonics_rel_phase_error_1"
 #
 #class freq2_harmonics_rel_phase_error_2_extractor(lomb_generic):
-#       """ freq2_harmonics_rel_phase_error_2 """
-#       extname = "freq2_harmonics_rel_phase_error_2"
-#       lomb_key = "freq2_harmonics_rel_phase_error_2"
+#   """ freq2_harmonics_rel_phase_error_2 """
+#   extname = "freq2_harmonics_rel_phase_error_2"
+#   lomb_key = "freq2_harmonics_rel_phase_error_2"
 #
 #class freq2_harmonics_rel_phase_error_3_extractor(lomb_generic):
-#       """ freq2_harmonics_rel_phase_error_3 """
-#       extname = "freq2_harmonics_rel_phase_error_3"
-#       lomb_key = "freq2_harmonics_rel_phase_error_3"
+#   """ freq2_harmonics_rel_phase_error_3 """
+#   extname = "freq2_harmonics_rel_phase_error_3"
+#   lomb_key = "freq2_harmonics_rel_phase_error_3"
 
 ## class freq2_harmonics_signif_extractor(lomb_generic):
-##      """ freq2_harmonics_signif """
-##      extname = "freq2_harmonics_signif"
-##      lomb_key = "freq2_harmonics_signif"
+##  """ freq2_harmonics_signif """
+##  extname = "freq2_harmonics_signif"
+##  lomb_key = "freq2_harmonics_signif"
 
 ## class freq2_signif_extractor(lomb_generic):
-##      """ freq2_signif """
-##      extname = "freq2_signif"
-##      lomb_key = "freq2_signif"
+##  """ freq2_signif """
+##  extname = "freq2_signif"
+##  lomb_key = "freq2_signif"
 
 ## class freq3_extractor(lomb_generic):
-##      """ freq3 """
-##      extname = "freq3"
-##      lomb_key = "freq3"
+##  """ freq3 """
+##  extname = "freq3"
+##  lomb_key = "freq3"
 
 class freq3_harmonics_amplitude_0_extractor(lomb_generic):
     """ freq3_harmonics_amplitude_0 """
@@ -608,19 +610,19 @@ class freq3_harmonics_amplitude_error_0_extractor(lomb_generic):
     lomb_key = "freq3_harmonics_amplitude_error_0"
 
 #class freq3_harmonics_amplitude_error_1_extractor(lomb_generic):
-#       """ freq3_harmonics_amplitude_error_1 """
-#       extname = "freq3_harmonics_amplitude_error_1"
-#       lomb_key = "freq3_harmonics_amplitude_error_1"
+#   """ freq3_harmonics_amplitude_error_1 """
+#   extname = "freq3_harmonics_amplitude_error_1"
+#   lomb_key = "freq3_harmonics_amplitude_error_1"
 #
 #class freq3_harmonics_amplitude_error_2_extractor(lomb_generic):
-#       """ freq3_harmonics_amplitude_error_2 """
-#       extname = "freq3_harmonics_amplitude_error_2"
-#       lomb_key = "freq3_harmonics_amplitude_error_2"
+#   """ freq3_harmonics_amplitude_error_2 """
+#   extname = "freq3_harmonics_amplitude_error_2"
+#   lomb_key = "freq3_harmonics_amplitude_error_2"
 #
 #class freq3_harmonics_amplitude_error_3_extractor(lomb_generic):
-#       """ freq3_harmonics_amplitude_error_3 """
-#       extname = "freq3_harmonics_amplitude_error_3"
-#       lomb_key = "freq3_harmonics_amplitude_error_3"
+#   """ freq3_harmonics_amplitude_error_3 """
+#   extname = "freq3_harmonics_amplitude_error_3"
+#   lomb_key = "freq3_harmonics_amplitude_error_3"
 
 class freq3_harmonics_freq_0_extractor(lomb_generic):
     """ freq3_harmonics_freq_0 """
@@ -628,19 +630,19 @@ class freq3_harmonics_freq_0_extractor(lomb_generic):
     lomb_key = "freq3_harmonics_freq_0"
 
 #class freq3_harmonics_freq_1_extractor(lomb_generic):
-#       """ freq3_harmonics_freq_1 """
-#       extname = "freq3_harmonics_freq_1"
-#       lomb_key = "freq3_harmonics_freq_1"
+#   """ freq3_harmonics_freq_1 """
+#   extname = "freq3_harmonics_freq_1"
+#   lomb_key = "freq3_harmonics_freq_1"
 #
 #class freq3_harmonics_freq_2_extractor(lomb_generic):
-#       """ freq3_harmonics_freq_2 """
-#       extname = "freq3_harmonics_freq_2"
-#       lomb_key = "freq3_harmonics_freq_2"
+#   """ freq3_harmonics_freq_2 """
+#   extname = "freq3_harmonics_freq_2"
+#   lomb_key = "freq3_harmonics_freq_2"
 #
 #class freq3_harmonics_freq_3_extractor(lomb_generic):
-#       """ freq3_harmonics_freq_3 """
-#       extname = "freq3_harmonics_freq_3"
-#       lomb_key = "freq3_harmonics_freq_3"
+#   """ freq3_harmonics_freq_3 """
+#   extname = "freq3_harmonics_freq_3"
+#   lomb_key = "freq3_harmonics_freq_3"
 
 class freq3_harmonics_moments_0_extractor(lomb_generic):
     """ freq3_harmonics_moments_0 """
@@ -668,34 +670,34 @@ class freq3_harmonics_moments_err_0_extractor(lomb_generic):
     lomb_key = "freq3_harmonics_moments_err_0"
 
 #class freq3_harmonics_moments_err_1_extractor(lomb_generic):
-#       """ freq3_harmonics_moments_err_1 """
-#       extname = "freq3_harmonics_moments_err_1"
-#       lomb_key = "freq3_harmonics_moments_err_1"
+#   """ freq3_harmonics_moments_err_1 """
+#   extname = "freq3_harmonics_moments_err_1"
+#   lomb_key = "freq3_harmonics_moments_err_1"
 #
 #class freq3_harmonics_moments_err_2_extractor(lomb_generic):
-#       """ freq3_harmonics_moments_err_2 """
-#       extname = "freq3_harmonics_moments_err_2"
-#       lomb_key = "freq3_harmonics_moments_err_2"
+#   """ freq3_harmonics_moments_err_2 """
+#   extname = "freq3_harmonics_moments_err_2"
+#   lomb_key = "freq3_harmonics_moments_err_2"
 #
 #class freq3_harmonics_moments_err_3_extractor(lomb_generic):
-#       """ freq3_harmonics_moments_err_3 """
-#       extname = "freq3_harmonics_moments_err_3"
-#       lomb_key = "freq3_harmonics_moments_err_3"
+#   """ freq3_harmonics_moments_err_3 """
+#   extname = "freq3_harmonics_moments_err_3"
+#   lomb_key = "freq3_harmonics_moments_err_3"
 
 ## class freq3_harmonics_nharm_extractor(lomb_generic):
-##      """ freq3_harmonics_nharm """
-##      extname = "freq3_harmonics_nharm"
-##      lomb_key = "freq3_harmonics_nharm"
+##  """ freq3_harmonics_nharm """
+##  extname = "freq3_harmonics_nharm"
+##  lomb_key = "freq3_harmonics_nharm"
 
 ## class freq3_harmonics_peak2peak_flux_extractor(lomb_generic):
-##      """ freq3_harmonics_peak2peak_flux """
-##      extname = "freq3_harmonics_peak2peak_flux"
-##      lomb_key = "freq3_harmonics_peak2peak_flux"
+##  """ freq3_harmonics_peak2peak_flux """
+##  extname = "freq3_harmonics_peak2peak_flux"
+##  lomb_key = "freq3_harmonics_peak2peak_flux"
 
 ## class freq3_harmonics_peak2peak_flux_error_extractor(lomb_generic):
-##      """ freq3_harmonics_peak2peak_flux_error """
-##      extname = "freq3_harmonics_peak2peak_flux_error"
-##      lomb_key = "freq3_harmonics_peak2peak_flux_error"
+##  """ freq3_harmonics_peak2peak_flux_error """
+##  extname = "freq3_harmonics_peak2peak_flux_error"
+##  lomb_key = "freq3_harmonics_peak2peak_flux_error"
 
 class freq3_harmonics_rel_phase_0_extractor(lomb_generic):
     """ freq3_harmonics_rel_phase_0 """
@@ -723,47 +725,47 @@ class freq3_harmonics_rel_phase_error_0_extractor(lomb_generic):
     lomb_key = "freq3_harmonics_rel_phase_error_0"
 
 #class freq3_harmonics_rel_phase_error_1_extractor(lomb_generic):
-#       """ freq3_harmonics_rel_phase_error_1 """
-#       extname = "freq3_harmonics_rel_phase_error_1"
-#       lomb_key = "freq3_harmonics_rel_phase_error_1"
+#   """ freq3_harmonics_rel_phase_error_1 """
+#   extname = "freq3_harmonics_rel_phase_error_1"
+#   lomb_key = "freq3_harmonics_rel_phase_error_1"
 #
 #class freq3_harmonics_rel_phase_error_2_extractor(lomb_generic):
-#       """ freq3_harmonics_rel_phase_error_2 """
-#       extname = "freq3_harmonics_rel_phase_error_2"
-#       lomb_key = "freq3_harmonics_rel_phase_error_2"
+#   """ freq3_harmonics_rel_phase_error_2 """
+#   extname = "freq3_harmonics_rel_phase_error_2"
+#   lomb_key = "freq3_harmonics_rel_phase_error_2"
 #
 #class freq3_harmonics_rel_phase_error_3_extractor(lomb_generic):
-#       """ freq3_harmonics_rel_phase_error_3 """
-#       extname = "freq3_harmonics_rel_phase_error_3"
-#       lomb_key = "freq3_harmonics_rel_phase_error_3"
+#   """ freq3_harmonics_rel_phase_error_3 """
+#   extname = "freq3_harmonics_rel_phase_error_3"
+#   lomb_key = "freq3_harmonics_rel_phase_error_3"
 
 ## class freq3_harmonics_signif_extractor(lomb_generic):
-##      """ freq3_harmonics_signif """
-##      extname = "freq3_harmonics_signif"
-##      lomb_key = "freq3_harmonics_signif"
+##  """ freq3_harmonics_signif """
+##  extname = "freq3_harmonics_signif"
+##  lomb_key = "freq3_harmonics_signif"
 
 ## class freq3_signif_extractor(lomb_generic):
-##      """ freq3_signif """
-##      extname = "freq3_signif"
-##      lomb_key = "freq3_signif"
+##  """ freq3_signif """
+##  extname = "freq3_signif"
+##  lomb_key = "freq3_signif"
 
 ## class freq_searched_max_extractor(lomb_generic):
-##      """ freq_searched_max """
-##      extname = "freq_searched_max"
-##      lomb_key = "freq_searched_max"
+##  """ freq_searched_max """
+##  extname = "freq_searched_max"
+##  lomb_key = "freq_searched_max"
 
 ## class freq_searched_min_extractor(lomb_generic):
-##      """ freq_searched_min """
-##      extname = "freq_searched_min"
-##      lomb_key = "freq_searched_min"
+##  """ freq_searched_min """
+##  extname = "freq_searched_min"
+##  lomb_key = "freq_searched_min"
 
 ######
-
+    
 class freq_harmonics_offset_extractor(lomb_generic):
     """ freq_harmonics_offset """
     extname = "freq_harmonics_offset"
     lomb_key = "freq_harmonics_offset"
-
+    
 class freq_y_offset_extractor(lomb_generic):
     """ freq_y_offset """
     extname = "freq_y_offset"
@@ -790,7 +792,7 @@ class freq_varrat_extractor(lomb_generic):
     lomb_key = "varrat"
 
 ########
-
+    
 class freq_signif_ratio_21_extractor(lomb_generic):
     """ freq_signif_ratio_21 """
     extname = "freq_signif_ratio_21"
@@ -823,18 +825,18 @@ class freq_amplitude_ratio_31_extractor(lomb_generic):
 
 class p2p_scatter_2praw_extractor(lomb_generic):
     """ From arXiv 1101_2406v1 Dubath 20110112  paper.
-sum of the squares of the magnitude
-differences between pairs of successive data points in the light
+sum of the squares of the magnitude 
+differences between pairs of successive data points in the light 
 curve folded around twice the period divided by the same quantity
-derived from the raw light curve.       """
+derived from the raw light curve.   """
     extname = "p2p_scatter_2praw"
     lomb_key = "p2p_scatter_2praw"
 
 class p2p_scatter_over_mad_extractor(lomb_generic):
     """ From arXiv 1101_2406v1 Dubath 20110112  paper.
-median of the absolute values of the differences
+median of the absolute values of the differences 
 between successive magnitudes in the raw light curve normalized
-by the Median Absolute Deviation (MAD) around the median.
+by the Median Absolute Deviation (MAD) around the median. 
 """
     extname = "p2p_scatter_over_mad"
     lomb_key = "p2p_scatter_over_mad"
@@ -842,9 +844,9 @@ by the Median Absolute Deviation (MAD) around the median.
 
 class p2p_scatter_pfold_over_mad_extractor(lomb_generic):
     """ From arXiv 1101_2406v1 Dubath 20110112  paper.
-median of the absolute values of the
-differences between successive magnitudes in the folded light
-curve normalized by the Median Absolute Deviation (MAD)
+median of the absolute values of the 
+differences between successive magnitudes in the folded light 
+curve normalized by the Median Absolute Deviation (MAD) 
 around the median of the raw lightcurve. """
     extname = "p2p_scatter_pfold_over_mad"
     lomb_key = "p2p_scatter_pfold_over_mad"
@@ -853,10 +855,10 @@ around the median of the raw lightcurve. """
 class medperc90_2p_p_extractor(lomb_generic):
     """ From arXiv 1101_2406v1 Dubath 20110112  paper.
 Percentile90:2P/P:
-the 90-th percentile of the absolute residual values around the 2P model
-divided by the same quantity
-for the residuals around the P model. The 2P model is a model
-recomputed using twice the period value.
+the 90-th percentile of the absolute residual values around the 2P model 
+divided by the same quantity 
+for the residuals around the P model. The 2P model is a model 
+recomputed using twice the period value. 
 """
     extname = "medperc90_2p_p"
     lomb_key = "medperc90_2p_p"
@@ -900,3 +902,4 @@ class freq_model_max_delta_mags_extractor(lomb_generic):
     """ freq_model_max_delta_mags : ratio of model phase between max1 and min2 over phase between min2 to max3 """
     extname = "freq_model_max_delta_mags"
     lomb_key = "model_max_delta_mags"
+

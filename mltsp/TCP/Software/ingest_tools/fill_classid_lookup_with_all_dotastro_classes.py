@@ -1,18 +1,10 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 #!/usr/bin/env python
 
 import sys, os
 import MySQLdb
 
 
-class Fill_Classid_Lookup_With_All_Dotastro_Classes(object):
+class Fill_Classid_Lookup_With_All_Dotastro_Classes:
     """ This selects all class_names, class_ids from Dotastro.org database and inserts into
     tranx RDB:source_test_db.classid_lookup TABLE using schema_id=10000
     """
@@ -55,7 +47,7 @@ class Fill_Classid_Lookup_With_All_Dotastro_Classes(object):
 
         self.class_cursor.execute(''.join(insert_list)[:-2])
 
-        print()
+        print
 
 
 if __name__ == '__main__':
@@ -68,7 +60,7 @@ if __name__ == '__main__':
         'tcptutor_port':3306,
         'classdb_hostname':'192.168.1.25', # This is my LOCAL replicated DB
         'classdb_username':'pteluser', #'pteluser',
-        'classdb_port':     3306,
+        'classdb_port':     3306, 
         'classdb_database':'source_test_db', #'source_db',
         'classid_lookup_tablename':'classid_lookup'}
 

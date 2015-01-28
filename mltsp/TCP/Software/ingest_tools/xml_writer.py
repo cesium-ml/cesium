@@ -21,20 +21,8 @@ module load python/2.7.1 numpy/1.6.1 scipy/0.10.1 ipython/0.12.1 R/2.12.1 mysql/
 
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import open
-from builtins import map
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
-import pickle
+import cPickle
 
 #sys.path.append("/global/u1/d/dchesny/BUILD/MySQL-python-1.2.3/build/lib.linux-x86_64-2.7")
 sys.path.insert(0,os.path.expandvars("/global/u1/d/dchesny/BUILD/MySQL-python-1.2.3/build/lib.linux-x86_64-2.7"))
@@ -52,10 +40,10 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 # CALLING SEQUENCE: files = index( directory )
 #
 # INPUTS:
-#       indir   - a directory path
+#	indir   - a directory path
 #
 # OUTPUTS:
-#       files = a list containing the full path names of all files in the directory
+#	files = a list containing the full path names of all files in the directory
 #-
 """
 def index( directory ):
@@ -90,7 +78,7 @@ def index( directory ):
     #       A file containing three numpy arrays: date, mag, dmag
     #-
 """
-
+    
 #    def readLC(infile):  # reads in 3-column data and returns phase[], mag[], dmag[]
 def readLC(infile):
     import numpy as np
@@ -104,7 +92,7 @@ def readLC(infile):
     lines   = open(infile).readlines()
 
     for line in lines:
-        fields = list(map( float, line.split() ))
+        fields = map( float, line.split() )
         date.append( fields[0] )
         mag.append( fields[1] )
         dmag.append( fields[2] )
@@ -122,13 +110,13 @@ def readLC(infile):
 
 
 
-class StarVars_LINEAR_Feature_Generation(object):
+class StarVars_LINEAR_Feature_Generation:
     """
     """
     def __init__(self, pars={}):
         self.head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-        <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -148,11 +136,11 @@ class StarVars_LINEAR_Feature_Generation(object):
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-                        <TimeType ucd="frame.time.system?">MJD</TimeType>
-                        <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-                        <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
-                        <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-                </TIMESYS>
+			<TimeType ucd="frame.time.system?">MJD</TimeType> 
+			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+		</TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -178,11 +166,11 @@ class StarVars_LINEAR_Feature_Generation(object):
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import pickle
+        import cPickle
         import gzip
         ### This is just for writing the pickle file:
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'w')
-        pickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
+        cPickle.dump(frame_limitmags, fp, 1) # 1 means binary pkl used
         fp.close()
 
 
@@ -191,22 +179,22 @@ class StarVars_LINEAR_Feature_Generation(object):
         in a Pickle file and which was originally retrieved from
         mysql and from adt.retrieve_fullcat_frame_limitmags()
         """
-        import pickle
+        import cPickle
         import gzip
         fp = gzip.open(self.pars['limitmags_pkl_gz_fpath'],'rb')
-        frame_limitmags = pickle.load(fp)
+        frame_limitmags = cPickle.load(fp)
         fp.close()
         return frame_limitmags
 
-
+    
     def form_xml_string(self, mag_data_dict):
         """
-        Take timeseries dict data and place into VOSource XML format,
+    	Take timeseries dict data and place into VOSource XML format, 
         which TCP feature generation code expects.
-
+       
         Adapted from: TCP/Software/feature_extract/format_csv_getfeats.py
         """
-
+        
         data_str_list = []
 
         for i, t in enumerate(mag_data_dict['t']):
@@ -215,7 +203,7 @@ class StarVars_LINEAR_Feature_Generation(object):
             data_str = '              <TR row="%d"><TD>%lf</TD><TD>%lf</TD><TD>%lf</TD></TR>' % \
                 (i, t, m, m_err)
             data_str_list.append(data_str)
-
+            
         all_data_str = '\n'.join(data_str_list)
         out_xml = self.head_str + all_data_str + self.tail_str
 
@@ -228,7 +216,7 @@ class StarVars_LINEAR_Feature_Generation(object):
         adt = tutor_database_project_insert.ASAS_Data_Tools(pars=pars)
         if 0:
             ### requires mysql connection to TUTOR:
-            adt.retrieve_fullcat_frame_limitmags()
+            adt.retrieve_fullcat_frame_limitmags() 
             self.write_limitmags_into_pkl(adt.frame_limitmags)
 
         ### This is done when we don't have a connection to the mysql database.
@@ -240,12 +228,12 @@ class StarVars_LINEAR_Feature_Generation(object):
         """mag_data_dict = adt.filter_best_ts_aperture(source_intermed_dict)
         """
         xml_str = self.form_xml_string(mag_data_dict)
-
-
+        
+        
         ### TODO Generate the features for this xml string
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
     def generate_arff_using_asasdat(self, data_fpaths=[], include_arff_header=False, arff_output_fp=None):
@@ -255,7 +243,7 @@ class StarVars_LINEAR_Feature_Generation(object):
         - generate features from timeseries (placing in intermediate XML-string format)
         - collect resulting features for all given sources, and place in ARFF style file
               which will later be read by ML training/classification code.
-
+              
         Partially adapted from: TCP/Software/citris33/arff_generation_master_using_generic_ts_data.py:get_dat_arffstrs()
         """
         import tutor_database_project_insert
@@ -288,14 +276,14 @@ class StarVars_LINEAR_Feature_Generation(object):
             """mag_data_dict = adt.filter_best_ts_aperture(source_intermed_dict)
             """
             # Need to have a function like this for LINEAR data:
-
+            
             xml_str = self.form_xml_string(mag_data_dict)
-
+            
             ### Generate the features:
             signals_list = []
             gen = generators_importers.from_xml(signals_list)
             gen.generate(xml_handle=xml_str)
-            gen.sig.add_features_to_xml_string(signals_list)
+            gen.sig.add_features_to_xml_string(signals_list)                
             gen.sig.x_sdict['src_id'] = new_srcid
             dbi_src = db_importer.Source(make_dict_if_given_xml=False)
             dbi_src.source_dict_to_xml(gen.sig.x_sdict)
@@ -312,9 +300,9 @@ class StarVars_LINEAR_Feature_Generation(object):
                 master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-        master_features = list(master_features_dict.keys())
-        master_classes = list(master_classes_dict.keys())
-        a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
+        master_features = master_features_dict.keys()
+        master_classes = master_classes_dict.keys()
+        a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
                           dorun=False, add_srcid_to_arff=True)
@@ -353,20 +341,20 @@ if __name__ == '__main__':
     LC  = {}
     xml = {}
     for i in range( 0, len(files) ):
-        try:
+	try:
             LC[i]  = readLC( files[i] )
-        except:
-            print('ERROR: File', i, 'in LC dictionary is not a light curve!')
+	except:
+            print 'ERROR: File', i, 'in LC dictionary is not a light curve!'
             continue
         try:
             xml[i] = sv_asas.form_xml_string( LC[i] )
         except:
-            print('ERROR: Unable to form xml string for LC['+str(i)+']')
-
+            print 'ERROR: Unable to form xml string for LC['+str(i)+']'
+    
     buff = open( '/project/projectdirs/m1583/linear/allLINEARfinal_lc_dat/xml.pickle', 'wb' )
-    pickle.dump(xml, buff )
+    cPickle.dump(xml, buff )
     buff.close()
 
     endTime = time.time()
     totalTime = endTime - startTime
-    print('\nTotal time:', totalTime, 's')
+    print '\nTotal time:', totalTime, 's'

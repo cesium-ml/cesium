@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """ This generates TCP science class pairwise classifiers which are based on
     the tinyboost Eads modified Adaboost (with confidences) classifier.
 
@@ -19,22 +19,10 @@
         - identify this pair classifier so that Hadoop can uese these names on the fly.
   - then try classifying some source (initally taken from the trainingset)
      - apply every pairwise classifier and combine to find the final classification.
-
+     
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import str
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
-import pickle
+import cPickle
 import gzip
 import copy
 import pprint   ### For debugging only
@@ -47,7 +35,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 #from matplotlib import rcParams
 import time
-import threading
+import threading  
 import random
 
 from optparse import OptionParser
@@ -56,7 +44,7 @@ import dotastro_sciclass_tools
 
 #20100927: dstarr doesnt rember why this is done: #os.environ['TCP_DIR'] = os.path.expandvars('$HOME/src/TCP/')
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR")+'/Software/RealBogus/Code'))
-try:
+try: 
     # This should only be needed for adaboost classification (will raise an exception if tinyboost compiled package is not installed)
     import classifier_adaboost_wrapper
 except:
@@ -124,15 +112,15 @@ def parse_options():
 
 
     (options, args) = parser.parse_args()
-    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
+    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
     return options
 
 
-class Feature_Distribution_Plots(object):
+class Feature_Distribution_Plots:
     """ Generate feature-value distribution plots (.png) for some
         specific science classes.  This is useful for determining which features are
         effective or ambiguous for distinguishing between several science classes.
-
+    
     """
     def __init__(self, pars):
         self.pars = pars
@@ -168,7 +156,7 @@ class Feature_Distribution_Plots(object):
 
                 # # # #{<feat_name>:{<class_name>:{<srcid>:<featval>}}}
                 {<feat_name>:{<srcid>:<featval>}}
-
+        
 
 select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_id from feat_values join feat_lookup ON (feat_values.feat_id=feat_lookup.feat_id and filter_id=8) where src_id=100148829 order by feat_name;
         """
@@ -178,7 +166,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
         for feat_name in featname_list:
             featvals_dict[feat_name] = {}
 
-        for srcid in list(classif_summary_dict['srcid_classif_summary']['srcid_dict'].keys()):
+        for srcid in classif_summary_dict['srcid_classif_summary']['srcid_dict'].keys():
             select_str = "SELECT feat_lookup.feat_name, feat_values.feat_val FROM feat_values JOIN feat_lookup ON (feat_values.feat_id=feat_lookup.feat_id and filter_id=8) where src_id=%d" % (srcid + 100000000)
             self.tcp_cursor.execute(select_str)
             results = self.tcp_cursor.fetchall()
@@ -243,7 +231,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
 
         matplotlib.rcParams['axes.unicode_minus'] = False
         fig = plt.figure(figsize=(18,70), dpi=100)
-        feat_keys = list(featvals_dict.keys())
+        feat_keys = featvals_dict.keys()
         feat_keys.sort()
         for i_feat, feat_name in enumerate(feat_keys):
             feat_dict = featvals_dict[feat_name]
@@ -264,7 +252,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
             target_color_list = []
             for srcid_str in pairwise_pruned_dict[target_class_name]['srcid_list']:
                 srcid_int = int(srcid_str)
-                if srcid_int not in feat_dict:
+                if not feat_dict.has_key(srcid_int):
                     continue
                 sym_color = self.pars['feat_distrib_colors'][0]
                 for i, compare_class in enumerate(self.pars['feat_distrib_classes']['comparison_classes']):
@@ -298,7 +286,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
 
                 featval_list = []
                 for srcid_int in classif_summary_dict['srcid_classif_summary']['pairclass_dict'][compare_class_name]:
-                    if srcid_int not in feat_dict:
+                    if not feat_dict.has_key(srcid_int):
                         continue
                     featval_list.append(feat_dict[srcid_int])
                 featval_arr = numpy.array(featval_list)
@@ -384,7 +372,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
             running_threads.append(t)
             local_img_fpath_list.append(img_fpath)
 
-        print()
+        print
         while len(running_threads) > 0:
             time.sleep(self.pars['t_sleep'])
             for thr in running_threads:
@@ -398,7 +386,7 @@ select src_id, feat_values.feat_val, feat_lookup.feat_name, feat_lookup.filter_i
 
 
 
-class Weka_Pairwise_Classification(object):
+class Weka_Pairwise_Classification:
     """ Do Pairwise Classification using weka (rather than AdaBoost)
 
     JPype classification code taken from plugin_classifier.py: L71, L83, L165
@@ -465,10 +453,10 @@ class Weka_Pairwise_Classification(object):
         """ Load the JPype classifiers for each pairwise case using weka .model files.
         """
         import weka_classifier
-        for pair_name, pair_dict in classifier_dict.items():
+        for pair_name, pair_dict in classifier_dict.iteritems():
             if pair_path_replace_tup == None:
                 self.wc[pair_name] = weka_classifier.WekaClassifier( \
-                                                           pair_dict['model_fpath'],
+                                                           pair_dict['model_fpath'], 
                                                            pair_dict['arff_fpath'])
             else:
                 self.wc[pair_name] = weka_classifier.WekaClassifier( \
@@ -481,7 +469,7 @@ class Weka_Pairwise_Classification(object):
     def reload_weka_classifiers(self, classifier_dict={}, pair_path_replace_tup=None):
         """ Load the JPype classifiers for each pairwise case using weka .model files.
         """
-        for pair_name, pair_dict in classifier_dict.items():
+        for pair_name, pair_dict in classifier_dict.iteritems():
             if pair_path_replace_tup == None:
                 self.wc[pair_name].reload_model_for_same_classes( \
                                                            pair_dict['model_fpath'])
@@ -492,7 +480,7 @@ class Weka_Pairwise_Classification(object):
 
 
 
-
+            
     def convert_to_weka_record(self, arff_row):
         """ Convert arff row string into a "weka record" list which is usable by:
 
@@ -534,12 +522,12 @@ class Weka_Pairwise_Classification(object):
 
 ???? I think we should be generating the top_feats not just for a scienc lass,
      - but, per: (science_class, pairwise)
-     - so that cytoscape attribsnfor connection between source and science_class
+     - so that cytoscape attribsnfor connection between source and science_class 
 
         """
-        for class_name, class_dict in class_summary.items():
+        for class_name, class_dict in class_summary.iteritems():
             class_dict['top_feats'] = [(0.0,'blah1'), (0.0,'blah2')]
-        print()
+        print
         # # #sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + '/Software/web'))
         # # #import apply_J48_classification
         # # #ApplyJ48Classification = apply_J48_classification.Apply_J48_Classification(pars={})
@@ -579,7 +567,7 @@ use aprse_dcisiontree_lines_into_tuplist
         """
 
 
-
+        
 
     def do_pairwise_classification(self, classifier_dict={}, pairwise_pruned_dict={}, set_num=None, store_confids=True):
         """
@@ -589,12 +577,12 @@ use aprse_dcisiontree_lines_into_tuplist
 ** Parse the classification model Pickle
 *** .model fpath
 ** Parse (trainingset .arff-row Pickle)
-** Do:
+** Do: 
 *** generate classifications
 *** tally individual pairwise classifications
         """
         if len(self.pars['taxonomy_prune_defs']['terminating_classes']) == 0:
-            class_shortname_list = list(pairwise_pruned_dict.keys())
+            class_shortname_list = pairwise_pruned_dict.keys()
             class_shortname_list.sort()
         else:
             class_shortname_list = self.pars['taxonomy_prune_defs']['terminating_classes']
@@ -603,7 +591,7 @@ use aprse_dcisiontree_lines_into_tuplist
                                         len(class_shortname_list)))
         confusion_matrix_index_class_dict = {}
         for i, class_name in enumerate(class_shortname_list):
-
+            
             confusion_matrix_index_class_dict[class_name] = i
 
         class_summary = {}
@@ -636,17 +624,17 @@ use aprse_dcisiontree_lines_into_tuplist
             srcid_classif_summary['pairclass_dict'][class_name] = []
 
         if store_confids:
-            for classifier_name in list(classifier_dict.keys()):
+            for classifier_name in classifier_dict.keys():
                 srcid_classif_summary['confids'][classifier_name]={'class_pred':[],
                                                                'class_conf':[],
                                                                'orig_class':[]}
 
         i_inputrow = 0
-        for orig_class, orig_class_dict in pairwise_pruned_dict.items():
-            print(orig_class)
+        for orig_class, orig_class_dict in pairwise_pruned_dict.iteritems():
+            print orig_class
             if self.fp_cyto_nodeattrib != None:
                 self.fp_cyto_nodeattrib.write("%s\t%s\t0\n" % (orig_class, orig_class))
-            if orig_class not in class_summary:
+            if not class_summary.has_key(orig_class):
                 continue # # # # # This occurs in test_pairwise_on_citris33_ipython.py call, when using all 1392 debosscher sources.  SX is available in xml, but not used by debosscher-25class confusion matrix, thus the pruning of the dotastrodataset to 25 classes still results in SX existing in pairwise_pruned_dict.
             class_summary[orig_class]['n_sources'] = orig_class_dict['count']
 
@@ -661,7 +649,7 @@ use aprse_dcisiontree_lines_into_tuplist
                             set_source = int(orig_class_dict['srcid_list'][i_src].split('_')[2])
                             if set_source != set_num:
                                 continue # Skip classifying this source since it doesnt belong to the specified set.
-
+                            
 
                     else:
                         srcid_dotastro = int(srcid_dotastro)
@@ -674,10 +662,10 @@ use aprse_dcisiontree_lines_into_tuplist
                 weka_record = self.convert_to_weka_record(arff_row)
 
                 tally_dict = copy.deepcopy(tally_dict_empty)
-                for classifier_name in list(classifier_dict.keys()):
+                for classifier_name in classifier_dict.keys():
                     # # # #import pdb; pdb.set_trace()
                     classified_result = self.wc[classifier_name].get_class_distribution(weka_record)
-
+                    
                     if classified_result[0][1] > classified_result[1][1]:
                         sciclass_pred = classified_result[0][0]
                         notpred_sciclass = classified_result[1][0]
@@ -691,14 +679,14 @@ use aprse_dcisiontree_lines_into_tuplist
                         srcid_classif_summary['confids'][classifier_name]['class_pred'].append(sciclass_pred)
                         srcid_classif_summary['confids'][classifier_name]['class_conf'].append(confidence)
                         srcid_classif_summary['confids'][classifier_name]['orig_class'].append(orig_class)
-
+                    
                     if sciclass_pred == orig_class:
                         class_summary[orig_class]['tot_correctly_sub_classified'] += 1
 
                     tally_dict[sciclass_pred]['classif_count'] += confidence
                     tally_dict[notpred_sciclass]['notclassif_count'] += confidence
                 sort_list = []
-                for sciclass, class_dict in tally_dict.items():
+                for sciclass, class_dict in tally_dict.iteritems():
                     sort_list.append((class_dict['classif_count'], sciclass))
                 sort_list.sort(reverse=True)
 
@@ -721,7 +709,7 @@ use aprse_dcisiontree_lines_into_tuplist
                 i_orig_class = confusion_matrix_index_class_dict[orig_class]
                 i_predict_class = confusion_matrix_index_class_dict[sort_list[0][1]]
                 confusion_matrix[i_orig_class][i_predict_class] += 1
-
+                
                 if sort_list[0][1] == orig_class:
                     class_summary[orig_class]['tot_correctly_final_classified'] += 1
                 else:
@@ -790,7 +778,7 @@ use aprse_dcisiontree_lines_into_tuplist
 
 
 
-
+        
     def fill_stats_tables(self, table_stats=None, classif_summary_dict={},
                           debosscher_confusion_data=None):
         """ Fill stats like true positive rate, false positive rate...
@@ -811,7 +799,7 @@ use aprse_dcisiontree_lines_into_tuplist
         ElementTree.SubElement(tr, "TD", bgcolor="#2a2a2a").text = "N srcs"
         ElementTree.SubElement(tr, "TD", bgcolor="#2a2a2a").text = "TP_rate"
         ElementTree.SubElement(tr, "TD", bgcolor="#2a2a2a").text = "FP_rate"
-
+        
         tr_list = [] # This is used to add extra statistics on the final column
         diagonal_sum = 0
         for i, row_list in enumerate(classif_summary_dict['confusion_matrix']):
@@ -849,7 +837,7 @@ use aprse_dcisiontree_lines_into_tuplist
             tr_list.append(tr)
 
 
-        ### add extra statistics on the final column:
+        ### add extra statistics on the final column: 
         false_classification_rate = 1 - (diagonal_sum / float(sum(class_total_counts)))
         ### I think I want each elem of diag to be devided by class_total_counts[i]
 
@@ -863,7 +851,7 @@ use aprse_dcisiontree_lines_into_tuplist
         """
         # TODO retrieve html (or have shortened form placed in Data/ , xmlize, parse into structure, generate confusion html matrix (with heatmap colors)
         from xml.etree import ElementTree
-
+        
         t = ElementTree.fromstring(open(table_fpath).read())
 
         class_name_list = []
@@ -936,7 +924,7 @@ use aprse_dcisiontree_lines_into_tuplist
         for i in range(len(class_name_list)):
             ElementTree.SubElement(tr_percent, "TD", bgcolor="#2a2a2a").text = "%s" % (ascii_letters[i])
         ElementTree.SubElement(tr_percent, "TD", bgcolor="#000000").text = "%s" % (table_percent_name)
-
+            
         for i, row_list in enumerate(confusion_matrix):
             if table_count != None:
                 tr_count = ElementTree.SubElement(table_count, "TR")
@@ -944,14 +932,14 @@ use aprse_dcisiontree_lines_into_tuplist
             for j, elem in enumerate(row_list):
                 ### Figure out the Color intensity for the count table:
                 try:
-                    count_color_fraction = float(elem) / float(count_color_count_max)
+                    count_color_fraction = float(elem) / float(count_color_count_max)                    
                 except:
                     count_color_fraction = 0.0 # div by zero catch
 
                 str_val = "%3.0d" % (int(elem))
                 if (i == j):
                     str_val = "%3.3d" % (int(elem))
-
+                    
                 if ((count_color_fraction > 0.0099999) and (count_color_fraction < 0.15)):
                     count_color_fraction = 0.15 # give small count_color_fractions some minimum color
                 elif (count_color_fraction > 1.0):
@@ -1022,7 +1010,7 @@ use aprse_dcisiontree_lines_into_tuplist
         val_list = []
         class_total_counts = []
 
-        #### OTOD maybe do this for
+        #### OTOD maybe do this for 
         for row_list in confusion_matrix:
             row_val_list = []
             for elem in row_list:
@@ -1042,24 +1030,24 @@ use aprse_dcisiontree_lines_into_tuplist
         for i in range(len(class_name_list)):
             ElementTree.SubElement(tr_percent, "TD", bgcolor="#2a2a2a").text = "%s" % (ascii_letters[i])
         ElementTree.SubElement(tr_percent, "TD", bgcolor="#000000").text = "%s" % (table_percent_name)
-
+            
         for i, row_list in enumerate(confusion_matrix):
             #import pdb; pdb.set_trace()
-
+        
             if table_count != None:
                 tr_count = ElementTree.SubElement(table_count, "TR")
             tr_percent = ElementTree.SubElement(table_percent, "TR")
             for j, elem in enumerate(row_list):
                 ### Figure out the Color intensity for the count table:
                 try:
-                    count_color_fraction = float(elem) / float(count_color_count_max)
+                    count_color_fraction = float(elem) / float(count_color_count_max)                    
                 except:
                     count_color_fraction = 0.0 # div by zero catch
 
                 str_val = "%3.0d" % (int(elem))
                 if (i == j):
                     str_val = "%3.3d" % (int(elem))
-
+                    
                 if ((count_color_fraction > 0.0099999) and (count_color_fraction < 0.15)):
                     count_color_fraction = 0.15 # give small count_color_fractions some minimum color
                 elif (count_color_fraction > 1.0):
@@ -1143,7 +1131,7 @@ use aprse_dcisiontree_lines_into_tuplist
         tr_main = ElementTree.SubElement(table_main, "TR")
 
         ### This table contains counts of classifications and mis-classifications for
-        ###    Pairsise classifier.  This is less informative than the percentage table:
+        ###    Pairsise classifier.  This is less informative than the percentage table:        
         #table_count = ElementTree.SubElement(ElementTree.SubElement(tr_main, "TD"),
         #                                     "TABLE", BORDER="1",
         #                                     CELLPADDING="2", CELLSPACING="1",
@@ -1188,7 +1176,7 @@ use aprse_dcisiontree_lines_into_tuplist
         #                                     CELLPADDING="2", CELLSPACING="1",
         #                                     style="color: white;")
         table_debosscher_count = None
-
+        
 
         if pars['debosscher_classes']:
             confusion_matrix = []
@@ -1240,7 +1228,7 @@ use aprse_dcisiontree_lines_into_tuplist
                 for j,debos_count in enumerate(deb_row_list):
                     new_row.append( \
                                    (classif_summary_dict['confusion_matrix'][i][j] /
-                                    float(pairwise_count_dict['class_total_counts'][i])) -
+                                    float(pairwise_count_dict['class_total_counts'][i])) - 
                                    (debos_count) / float(debosscher_confusion_data['class_total_counts'][i]))
                 percdiff_confusion_matrix.append(new_row)
 
@@ -1253,12 +1241,12 @@ use aprse_dcisiontree_lines_into_tuplist
 
         ### Make HTML pretty, write:
         self.add_pretty_indents_to_elemtree(html, 0)
-        tree = ElementTree.ElementTree(html)
+	tree = ElementTree.ElementTree(html)
 
         if os.path.exists(html_fpath):
             os.system('rm ' + html_fpath)
         fp = open(html_fpath, 'w')
-        tree.write(fp, encoding="UTF-8")
+	tree.write(fp, encoding="UTF-8")
         fp.close()
 
 
@@ -1270,7 +1258,7 @@ use aprse_dcisiontree_lines_into_tuplist
         """
         crossval_data_dict = []
         n_sources_list = []
-        for class_name, class_dict in sciclass_dict.items():
+        for class_name, class_dict in sciclass_dict.iteritems():
             if class_dict['count'] > 0:
                 n_sources_list.append(class_dict['count'])
 
@@ -1283,7 +1271,7 @@ use aprse_dcisiontree_lines_into_tuplist
 
         for i_fold in range(n_folds):
             crossvalid_dict = {'train':{}, 'classify':{}}
-            for class_name, class_dict in sciclass_dict.items():
+            for class_name, class_dict in sciclass_dict.iteritems():
                 crossvalid_dict['train'][class_name] =    {'count': 0, 'arffrow_with_classnames': [],
                                                            'arffrow_wo_classnames': [], 'srcid_list': []}
                 crossvalid_dict['classify'][class_name] = {'count': 0, 'arffrow_with_classnames': [],
@@ -1292,11 +1280,11 @@ use aprse_dcisiontree_lines_into_tuplist
 
 
         if do_stratified:
-            for class_name, class_dict in sciclass_dict.items():
+            for class_name, class_dict in sciclass_dict.iteritems():
                 n_to_classify = class_dict['count'] / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
-                ind_list = list(range(len(class_dict['srcid_list'])))
+                ind_list = range(len(class_dict['srcid_list']))
                 random.shuffle(ind_list)
-
+                
                 for i_fold in range(n_folds):
                     sub_range = ind_list[i_fold * n_to_classify:((i_fold + 1) * n_to_classify)]
                     for i in sub_range:
@@ -1307,7 +1295,7 @@ use aprse_dcisiontree_lines_into_tuplist
                                                                           class_dict['arffrow_wo_classnames'][i])
                         crossval_data_dict[i_fold]['classify'][class_name]['srcid_list'].append( \
                                                                           class_dict['srcid_list'][i])
-                    train_inds = [x for x in ind_list if x not in sub_range]
+                    train_inds = filter(lambda x: x not in sub_range, ind_list)
                     for i in train_inds:
                         crossval_data_dict[i_fold]['train'][class_name]['count'] += 1
                         crossval_data_dict[i_fold]['train'][class_name]['arffrow_with_classnames'].append( \
@@ -1319,12 +1307,12 @@ use aprse_dcisiontree_lines_into_tuplist
                     #print class_name, 'n_src:', class_dict['count'], 'i_fold:', i_fold, 'n_to_classify:', n_to_classify, 'len/range:', 'train:', len(crossval_data_dict[class_name][i_fold]['train']['srcid_list']), 'classify:', len(crossval_data_dict[class_name][i_fold]['classify']['srcid_list'])
         else:
             # The non cross-validation using stratified folds:
-            for class_name, class_dict in sciclass_dict.items():
+            for class_name, class_dict in sciclass_dict.iteritems():
                 if crossvalid_fold_percent == None:
                     n_to_classify = class_dict['count'] / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
                 else:
                     n_to_classify = int(class_dict['count'] * (crossvalid_fold_percent / 100.))
-                ind_list = list(range(len(class_dict['srcid_list'])))
+                ind_list = range(len(class_dict['srcid_list']))
                 for i_fold in range(n_folds):
                     random.shuffle(ind_list)
                     sub_range = ind_list[:n_to_classify]
@@ -1336,7 +1324,7 @@ use aprse_dcisiontree_lines_into_tuplist
                                                                           class_dict['arffrow_wo_classnames'][i])
                         crossval_data_dict[i_fold]['classify'][class_name]['srcid_list'].append( \
                                                                           class_dict['srcid_list'][i])
-                    train_inds = [x for x in ind_list if x not in sub_range]
+                    train_inds = filter(lambda x: x not in sub_range, ind_list)
                     for i in train_inds:
                         crossval_data_dict[i_fold]['train'][class_name]['count'] += 1
                         crossval_data_dict[i_fold]['train'][class_name]['arffrow_with_classnames'].append( \
@@ -1346,7 +1334,7 @@ use aprse_dcisiontree_lines_into_tuplist
                         crossval_data_dict[i_fold]['train'][class_name]['srcid_list'].append( \
                                                                        class_dict['srcid_list'][i])
                     #print class_name, 'n_src:', class_dict['count'], 'i_fold:', i_fold, 'n_to_classify:', n_to_classify, 'len/range:', 'train:', len(crossval_data_dict[class_name][i_fold]['train']['srcid_list']), 'classify:', len(crossval_data_dict[class_name][i_fold]['classify']['srcid_list'])
-
+            
 
 
         return {'n_folds':n_folds,
@@ -1358,11 +1346,11 @@ use aprse_dcisiontree_lines_into_tuplist
         crossvalidation trainingset and classification dataset.
 
         if n_folds == None:   then use the minimum n_sources any sci-class has.
-
+        
         """
         crossval_data_dict = []
         n_sources_list = []
-        for class_name, class_dict in sciclass_dict.items():
+        for class_name, class_dict in sciclass_dict.iteritems():
             if class_dict['count'] > 0:
                 n_sources_list.append(class_dict['count'])
 
@@ -1375,18 +1363,18 @@ use aprse_dcisiontree_lines_into_tuplist
 
         for i_fold in range(n_folds):
             crossvalid_dict = {'train':{}, 'classify':{}}
-            for class_name, class_dict in sciclass_dict.items():
+            for class_name, class_dict in sciclass_dict.iteritems():
                 crossvalid_dict['train'][class_name] =    {'count': 0, 'arffrow_with_classnames': [],
                                                            'arffrow_wo_classnames': [], 'srcid_list': []}
                 crossvalid_dict['classify'][class_name] = {'count': 0, 'arffrow_with_classnames': [],
                                                            'arffrow_wo_classnames': [], 'srcid_list': []}
             crossval_data_dict.append(copy.deepcopy(crossvalid_dict))
 
-        for class_name, class_dict in sciclass_dict.items():
+        for class_name, class_dict in sciclass_dict.iteritems():
             n_to_classify = class_dict['count'] / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
-            ind_list = list(range(len(class_dict['srcid_list'])))
+            ind_list = range(len(class_dict['srcid_list']))
             random.shuffle(ind_list)
-
+            
             for i_fold in range(n_folds):
                 sub_range = ind_list[i_fold * n_to_classify:((i_fold + 1) * n_to_classify)]
                 for i in sub_range:
@@ -1397,7 +1385,7 @@ use aprse_dcisiontree_lines_into_tuplist
                                                                       class_dict['arffrow_wo_classnames'][i])
                     crossval_data_dict[i_fold]['classify'][class_name]['srcid_list'].append( \
                                                                       class_dict['srcid_list'][i])
-                train_inds = [x for x in ind_list if x not in sub_range]
+                train_inds = filter(lambda x: x not in sub_range, ind_list)
                 for i in train_inds:
                     crossval_data_dict[i_fold]['train'][class_name]['count'] += 1
                     crossval_data_dict[i_fold]['train'][class_name]['arffrow_with_classnames'].append( \
@@ -1443,9 +1431,9 @@ import pairwise_classification
 PCVPWorker = pairwise_classification.Pairwise_Cross_Validation_Parallel_Worker(pars={})
         """
         self.mec.execute(exec_str)
-        time.sleep(2) # This may be needed.
+	time.sleep(2) # This may be needed.
 
-        self.task_id_list = []
+	self.task_id_list = []
 
         cross_valid_dataset = self.partition_sciclassdict_into_folds(n_folds=n_folds,
                                                                      do_stratified=do_stratified,
@@ -1482,17 +1470,17 @@ PCVPWorker = pairwise_classification.Pairwise_Cross_Validation_Parallel_Worker(p
             #    classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_dataset=cross_valid_dataset, i_fold=i_fold)
             exec_str = """PCVPWorker = pairwise_classification.Pairwise_Cross_Validation_Parallel_Worker(pars=%s)
 classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_dataset=cross_valid_dataset, i_fold=i_fold)""" % (str(node_pars))
-            taskid = self.tc.run(client.StringTask(exec_str, retries=3,
+            taskid = self.tc.run(client.StringTask(exec_str, retries=3, 
                                                    push={'cross_valid_dataset':cross_valid_dataset,
                                                          'i_fold':i_fold},
                                                    pull='classif_summary_dict'))
             self.task_id_list.append(taskid)
 
-        while ((self.tc.queue_status()['scheduled'] > 0) or
-               (self.tc.queue_status()['pending'] > 0)):
+	while ((self.tc.queue_status()['scheduled'] > 0) or
+ 	       (self.tc.queue_status()['pending'] > 0)):
             tasks_to_pop = []
-            for task_id in self.task_id_list:
-                temp = self.tc.get_task_result(task_id, block=False)
+	    for task_id in self.task_id_list:
+	        temp = self.tc.get_task_result(task_id, block=False)
                 if temp == None:
                     continue
                 temp2 = temp.results
@@ -1500,17 +1488,17 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                     continue
                 results = temp2.get('classif_summary_dict',None)
                 if results == None:
-                    continue # skip these
+                    continue # skip these 
                 if len(results) > 0:
-                    tasks_to_pop.append(task_id)
+		    tasks_to_pop.append(task_id)
                     classif_summary_dict = results
                     list_of_folded_confmatricies.append(classif_summary_dict['confusion_matrix'])
 
-            for task_id in tasks_to_pop:
-                self.task_id_list.remove(task_id)
-            print(self.tc.queue_status())
-            print('Sleep... 10  in generate_pairwise_classifications_for_perc_subset_lightcurves()')
-            time.sleep(10)
+	    for task_id in tasks_to_pop:
+	        self.task_id_list.remove(task_id)
+            print self.tc.queue_status()
+            print 'Sleep... 10  in generate_pairwise_classifications_for_perc_subset_lightcurves()'
+	    time.sleep(10)
 
         total_confmatrix = numpy.zeros((list_of_folded_confmatricies[0].shape[0],
                                         list_of_folded_confmatricies[0].shape[0]))
@@ -1528,17 +1516,17 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
     def partition_test_sciclass_dict_into_sampling_percentages(self, pruned_sciclass_dict):
         """ Given a pairwise sciclass_dict which has source_ids of the form 12345_0.4,
         Which represents a percentage or epochs which are used in that source.
-
+        
         """
         perc_pruned_sciclass_dict = {}
-        for class_name, class_dict in pruned_sciclass_dict.items():
+        for class_name, class_dict in pruned_sciclass_dict.iteritems():
             for i, src_name in enumerate(class_dict['srcid_list']):
                 srcname_list = src_name.split('_')
                 src_id = srcname_list[0]
                 percent = srcname_list[1]
-                if percent not in perc_pruned_sciclass_dict:
+                if not perc_pruned_sciclass_dict.has_key(percent):
                     perc_pruned_sciclass_dict[percent] = {}
-                if class_name not in perc_pruned_sciclass_dict[percent]:
+                if not perc_pruned_sciclass_dict[percent].has_key(class_name):
                     perc_pruned_sciclass_dict[percent][class_name] = {'count':0,
                                                                       'arffrow_with_classnames':[],
                                                                       'arffrow_wo_classnames':[],
@@ -1555,11 +1543,11 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
     def tally_correctly_classified_for_percent(self, percent, set_num, pw_classifier_name, classif_summary_dict, percent_tally_summary_dict, classifier_confidence_analysis_dict={}):
         """
         This fills a dictionary which will be used to generate an analysis plot:
-
+        
             percent_tally_summary_dict[class_name]{'error':[F/total errors array],
                                                    'percent':[percent LC array]}
         """
-        if percent not in classifier_confidence_analysis_dict:
+        if not classifier_confidence_analysis_dict.has_key(percent):
             classifier_confidence_analysis_dict[percent] = {}
 
         classifier_confidence_analysis_dict[percent][set_num] = {\
@@ -1567,25 +1555,25 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                          'confusion_matrix':copy.deepcopy(classif_summary_dict['confusion_matrix']),
                          'confusion_matrix_index_class_dict':copy.deepcopy(classif_summary_dict['confusion_matrix_index_class_dict']),
                          'confusion_matrix_index_list':copy.deepcopy(classif_summary_dict['confusion_matrix_index_list'])}
-
+        
         index = None   # Kind of KLUDGEY way to do this
-
+        
         #for class_name, class_dict in classif_summary_dict:
         for i, confusion_row in enumerate(classif_summary_dict['confusion_matrix']):
             class_name = classif_summary_dict['confusion_matrix_index_list'][i]
-            if class_name not in percent_tally_summary_dict:
+            if not percent_tally_summary_dict.has_key(class_name):
                 percent_tally_summary_dict[class_name] = {}
-            if pw_classifier_name not in percent_tally_summary_dict[class_name]:
+            if not percent_tally_summary_dict[class_name].has_key(pw_classifier_name):
                 percent_tally_summary_dict[class_name][pw_classifier_name] = {}
-                for j_set in range(self.pars['num_percent_epoch_error_iterations']):
+                for j_set in xrange(self.pars['num_percent_epoch_error_iterations']):
                     percent_tally_summary_dict[class_name][pw_classifier_name][j_set] = {\
                                                                      'percent_false_list':[],
                                                                      'sampling_percent_list':[],
                                                                      'count_total':[],
                                                                      'count_true':[]}
-            # here we can assume this exists:
+            # here we can assume this exists: 
             #     percent_tally_summary_dict[class_name][set_num]['sampling_percent_list']
-
+            
             # # Maybe we can do the following on a higher function level
             #   - need to do the following on after all proccess have completed
 
@@ -1593,9 +1581,9 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
 
             # # # # debug only:
             if (class_name == 'mira') or (class_name == 'rr-c'):
-                print(percent, set_num, pw_classifier_name, class_name, 'count_total:', count_total, 'pairwise:L1561')
+                print percent, set_num, pw_classifier_name, class_name, 'count_total:', count_total, 'pairwise:L1561'
                 #import pdb; pdb.set_trace()
-            # # # #
+            # # # # 
 
             if count_total > 0:
                 ### Only do this if there are sources for this science_class
@@ -1625,25 +1613,25 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                 percent_tally_summary_dict[class_name][pw_classifier_name][set_num]['sampling_percent_list'].insert(index, percent)
                 percent_tally_summary_dict[class_name][pw_classifier_name][set_num]['count_total'].insert(index, count_total)
                 percent_tally_summary_dict[class_name][pw_classifier_name][set_num]['count_true'].insert(index, count_true)
-
+            
 
 
     # OBSOLETE:
     def tally_correctly_classified_for_percent__old(self, percent, set_num, classif_summary_dict, percent_tally_summary_dict):
         """
         This fills a dictionary which will be used to generate an analysis plot:
-
+        
             percent_tally_summary_dict[class_name]{'error':[F/total errors array],
                                                    'percent':[percent LC array]}
         """
         index = None   # Kind of KLUDGEY way to do this
-
+        
         #for class_name, class_dict in classif_summary_dict:
         for i, confusion_row in enumerate(classif_summary_dict['confusion_matrix']):
             class_name = classif_summary_dict['confusion_matrix_index_list'][i]
-            if class_name not in percent_tally_summary_dict:
+            if not percent_tally_summary_dict.has_key(class_name):
                 percent_tally_summary_dict[class_name] = {}
-                for set_num in range(self.pars['num_percent_epoch_error_iterations']):
+                for set_num in xrange(self.pars['num_percent_epoch_error_iterations']):
                     percent_tally_summary_dict[class_name][set_num] = {'percent_false_list':[],
                                                                        'sampling_percent_list':[]}
             count_total = sum(confusion_row)
@@ -1699,11 +1687,11 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
         for i, class_name in enumerate(class_name_list):
             # for each percent, want to get all (3) percent_false
             #   - then I can later avg & std these
-
+            
             ### (I think this logic is needed):
             #sampling_percent_list = []
             a_match = False
-            for a_dict in list(percent_tally_summary_dict[class_name].values()):
+            for a_dict in percent_tally_summary_dict[class_name].values():
                 if len(a_dict[0]['percent_false_list']) > 0:
                     a_match = True
                     #for samp_perc_str in a_dict[0]['sampling_percent_list']:
@@ -1718,33 +1706,33 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
 
             percent_false_dict = {}
             #for set_num, set_dict in enumerate(percent_tally_summary_dict[class_name]):
-            for pw_classifier_name, pw_dict in percent_tally_summary_dict[class_name].items():
-                for set_num, set_dict in pw_dict.items():
+            for pw_classifier_name, pw_dict in percent_tally_summary_dict[class_name].iteritems():
+                for set_num, set_dict in pw_dict.iteritems():
                     if len(set_dict['percent_false_list']) == 0:
                         continue # skip this set
                         #pre20101015: raise "?Mybe forgot to ensure pars['num_percent_epoch_error_iterations'] is the same in pairwise_classification.py and analysis_deboss_tcp_source_compare.py?" # shouldnt get here due to no-data condition/continue above.
                     for j, elem in enumerate(set_dict['sampling_percent_list']):
                         samp_perc = float(elem)
-                        if samp_perc not in percent_false_dict:
+                        if not percent_false_dict.has_key(samp_perc):
                             percent_false_dict[samp_perc] = []
                         #if set_dict['percent_false_list'][j] > 0.:
                         #    print 'yo!'
                         # # # # This next line doesn't make sense?:
                         percent_false_dict[samp_perc].append(set_dict['percent_false_list'][j])
-                        if samp_perc not in allclass_percent_count_total_dict:
+                        if not allclass_percent_count_total_dict.has_key(samp_perc):
                             allclass_percent_count_total_dict[samp_perc] = {}
                             allclass_percent_count_true_dict[samp_perc] = {}
-                        if pw_classifier_name not in allclass_percent_count_total_dict[samp_perc]:
+                        if not allclass_percent_count_total_dict[samp_perc].has_key(pw_classifier_name):
                             allclass_percent_count_total_dict[samp_perc][pw_classifier_name] = {}
                             allclass_percent_count_true_dict[samp_perc][pw_classifier_name] = {}
-                        if set_num not in allclass_percent_count_total_dict[samp_perc][pw_classifier_name]:
+                        if not allclass_percent_count_total_dict[samp_perc][pw_classifier_name].has_key(set_num):
                             allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num] = 0
                             allclass_percent_count_true_dict[samp_perc][pw_classifier_name][set_num] = 0
                         allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num] += set_dict['count_total'][j]
                         allclass_percent_count_true_dict[samp_perc][pw_classifier_name][set_num] += set_dict['count_true'][j]
                         #20110106#print '!!!', 'j:', j, 'samp_perc:', samp_perc, 'pw_classifier_name:', pw_classifier_name, 'set_num:', set_num, 'count_total:', allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num], 'count_true:', allclass_percent_count_true_dict[samp_perc][pw_classifier_name][set_num], class_name#, "set_dict['sampling_percent_list']:", set_dict['sampling_percent_list']
 
-
+                
                         #allclass_percent_count_total_dict[samp_perc].append(set_dict['count_total'][j])
                         #allclass_percent_count_true_dict[samp_perc].append(set_dict['count_true'][j])
 
@@ -1755,12 +1743,12 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
             #print class_name, percent_false_dict
 
 
-            # # # # # # # # #
+            # # # # # # # # # 
             # ??? is the following needed anymore? :
-            # # # # # # # # #
+            # # # # # # # # # 
             sort_tups = []
             for samp_perc in sampling_percent_list:
-                if samp_perc in percent_false_dict:
+                if percent_false_dict.has_key(samp_perc):
                     per_false_list = percent_false_dict[samp_perc]
                     #20110106#print ">>> %s samp_perc=%f len(per_false_list)=%d" % (class_name, samp_perc, len(per_false_list))
                     sort_tups.append((samp_perc, numpy.average(per_false_list), numpy.std(per_false_list)))
@@ -1822,18 +1810,18 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
             perc_false_list = []
             # # # TODO: need to actually iterate over classifier and append these to the list
             #     - but, this requires allclass_percent_count_total_dict to have classifier
-            for pw_classifier_name in list(allclass_percent_count_total_dict[samp_perc].keys()):
-                for set_num in list(allclass_percent_count_total_dict[samp_perc][pw_classifier_name].keys()):
+            for pw_classifier_name in allclass_percent_count_total_dict[samp_perc].keys():
+                for set_num in allclass_percent_count_total_dict[samp_perc][pw_classifier_name].keys():
                     if float(allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num]) == 0:
-                        percent_false = 0 # 20101224 added
+                        percent_false = 0 # 20101224 added 
                     else:
                         percent_false = (allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num] - allclass_percent_count_true_dict[samp_perc][pw_classifier_name][set_num]) / float(allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num])
                     #if percent_false != 0:
                     #    import pdb; pdb.set_trace()
-                    print('>>> set:', set_num, 'perc:', samp_perc, pw_classifier_name, \
+                    print '>>> set:', set_num, 'perc:', samp_perc, pw_classifier_name, \
                         'all:', allclass_percent_count_total_dict[samp_perc][pw_classifier_name][set_num], \
                         'true:', allclass_percent_count_true_dict[samp_perc][pw_classifier_name][set_num], \
-                        'F%:', percent_false)
+                        'F%:', percent_false
                     #if percent_false != 0:
                     #    import pdb; pdb.set_trace()
                     perc_false_list.append(percent_false)
@@ -1849,7 +1837,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
         ax.errorbar(sampling_percent_list, avg_all_perc_false_list, yerr=std_all_perc_false_list,
                     c='#000000', label='(ALL)', linewidth=3,
                     elinewidth=1, marker='o', markersize=4)
-
+        
         # TITLE: missing points for a (class,percent) mean no predictions were made for that class
 
         ax.set_xlim(.1, 1.01)
@@ -1859,7 +1847,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
         ax.set_xlabel("Percent of epochs used (missing points mean no predictions made for class,percent)")
         ax.set_ylabel("Percent of False classifications")
         ax.legend(loc=3, ncol=2, columnspacing=1)
-
+        
         plt.savefig(img_fpath)
 
 
@@ -1896,7 +1884,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
         deboss_classes_name = self.pars['debosscher_confusion_table3_fpath'][ \
                                            self.pars['debosscher_confusion_table3_fpath'].rfind('/')+1:
                                            self.pars['debosscher_confusion_table3_fpath'].rfind('.')]
-
+        
         self.pars['trainset_pruned_pklgz_fpath'] = "%s/pairwise_trainset__%s.pkl.gz" % ( \
                                                    self.pars['cyto_work_final_fpath'], deboss_classes_name)
         self.pars['weka_pairwise_classifiers_pkl_fpath'] = "%s/pairwise_classifier__%s.pkl.gz" % ( \
@@ -1918,38 +1906,38 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
             pairwise_pruned_dict = a_dict['pruned_sciclass_dict']
             pairwise_dict = a_dict['pairwise_dict']
 
-            #self.pars['weka_pairwise_classifiers_pkl_fpath'] =
+            #self.pars['weka_pairwise_classifiers_pkl_fpath'] = 
             PairwiseClassification.generate_weka_classifiers(pairwise_dict=pairwise_dict,
                                                         arff_has_ids=arff_has_ids,
-                                                        arff_has_classes=arff_has_classes)
+                                                        arff_has_classes=arff_has_classes)            
         else:
             fp=open(self.pars['weka_pairwise_classifiers_pkl_fpath'],'rb')
             ### This gets the classifier (pairwise_dict):
-            pairwise_dict=pickle.load(fp)
+            pairwise_dict=cPickle.load(fp)
             fp.close()
 
             fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
-            pairwise_pruned_dict=pickle.load(fp)
+            pairwise_pruned_dict=cPickle.load(fp)
             fp.close()
 
         if not os.path.exists(self.pars['crossvalid_pklgz_fpath']):
-            crossvalid_summary_dict = self.generate_cross_validation_statistics(
-                                           dotastro_classes=dotastro_classes,
+            crossvalid_summary_dict = self.generate_cross_validation_statistics( 
+                                           dotastro_classes=dotastro_classes, 
                                            pruned_sciclass_dict=pairwise_pruned_dict,
                                            n_folds=self.pars['crossvalid_nfolds'],
                                            crossvalid_fold_percent=self.pars['crossvalid_fold_percent'],
                                            do_stratified=self.pars['crossvalid_do_stratified'])
             fp = gzip.open(self.pars['crossvalid_pklgz_fpath'],'wb')
-            pickle.dump(crossvalid_summary_dict,fp,1) # ,1) means a binary pkl is used.
+            cPickle.dump(crossvalid_summary_dict,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp = gzip.open(self.pars['crossvalid_pklgz_fpath'],'rb')
-            crossvalid_summary_dict = pickle.load(fp)
+            crossvalid_summary_dict = cPickle.load(fp)
             fp.close()
 
 
         self.load_weka_classifiers(classifier_dict=pairwise_dict)
-
+        
         # TODO: it might be nice to be able to generate this pairwise_pruned dict for any
         #     .arff dict so that we can generate classifications and a confusion matrix
         #       for any given .arff file.
@@ -1963,13 +1951,13 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
             classif_summary_dict = self.do_pairwise_classification(classifier_dict=pairwise_dict,
                                                                pairwise_pruned_dict=pairwise_pruned_dict)
             fp = gzip.open(self.pars['classification_summary_pklgz_fpath'],'wb')
-            pickle.dump(classif_summary_dict,fp,1) # ,1) means a binary pkl is used.
+            cPickle.dump(classif_summary_dict,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp = gzip.open(self.pars['classification_summary_pklgz_fpath'],'rb')
-            classif_summary_dict = pickle.load(fp)
+            classif_summary_dict = cPickle.load(fp)
             fp.close()
-
+            
 
         self.copy_cyto_file_to_final_path()
         self.write_confusionmatrix_heatmap_html(classif_summary_dict,
@@ -2038,7 +2026,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
 
         ########## NOTE: the Ipython clients also do this via .mec() above:
         fp=open('/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/pairwise_classifier__debosscher_table3.pkl.gz','rb')
-        pairwise_dict=pickle.load(fp)
+        pairwise_dict=cPickle.load(fp)
         fp.close()
         ### Load JPype weka classifiers using .model info:
         self.load_weka_classifiers(classifier_dict=pairwise_dict)
@@ -2059,11 +2047,11 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                                          has_srcid=True)
             pruned_sciclass_dict = a_dict['pruned_sciclass_dict']
             #pairwise_dict = a_dict['pairwise_dict']
-
+            
         else:
             fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
             #pairwise_pruned_dict=cPickle.load(fp)
-            pruned_sciclass_dict=pickle.load(fp)
+            pruned_sciclass_dict=cPickle.load(fp)
             fp.close()
 
 
@@ -2124,7 +2112,7 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
        pars_str,
        pairwise_dict_classifier_fpath[pairwise_dict_classifier_fpath.rfind('/')+1:])
             #WekaPairwiseClassification.initialize_temp_cyto_files() ### ??? Not sure if this is needed in Ipython clients:
-
+            
             self.mec.execute(mec_exec_str)
             time.sleep(2) # This may be needed.
 
@@ -2133,26 +2121,26 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
 
             perc_pruned_sciclass_dict = self.partition_test_sciclass_dict_into_sampling_percentages( \
                                                                                pruned_sciclass_dict)
-            percent_list = list(perc_pruned_sciclass_dict.keys())
+            percent_list = perc_pruned_sciclass_dict.keys()
             #percent_list.sort()
             percent_list.sort(reverse=True)
             for percent in percent_list:
                 pruned_sciclass_dict = perc_pruned_sciclass_dict[percent]
-                print('Percent:', percent)
+                print 'Percent:', percent
 
                 if 0:
                     import pairwise_classification
                     WekaPairwiseClassification = pairwise_classification.Weka_Pairwise_Classification(pars={'pruned_classif_summary_stats_pkl_fpath': '/home/pteluser/scratch/pruned_classif_summary_stats.pkl', 'feat_dist_plots': False, 'pairwise_classifier_pklgz_dirpath': '/home/pteluser/scratch/pairwise_classifiers', 'taxonomy_prune_defs': {'terminating_classes': ['mira', 'sreg', 'rv', 'dc', 'piic', 'cm', 'rr-ab', 'rr-c', 'rr-d', 'ds', 'lboo', 'bc', 'spb', 'gd', 'be', 'pvsg', 'CP', 'wr', 'tt', 'haebe', 'sdorad', 'ell', 'alg', 'bly', 'wu']}, 'number_threads': 13, 'feat_dist_image_remote_scp_str': 'pteluser@lyra.berkeley.edu:www/dstarr/pairwise_images/', 'pairwise_schema_name': 'noprune', 'debosscher_classes': False, 'arff_has_ids': False, 'classification_summary_pklgz_fpath': '/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/xmls_deboss_percentage_exclude__pairwise_result_classification_summary.pkl.gz', 'feat_distrib_classes': {'target_class': 'lboo', 'comparison_classes': ['pvsg', 'gd', 'ds']}, 'tcp_port': 3306, 'pairwise_classifier_dirpath': '/home/pteluser/scratch/pairwise_classifiers', 'min_num_sources_for_pairwise_class_inclusion': 6, 'arff_has_classes': True, 'num_percent_epoch_error_iterations': 1, 'debosscher_confusion_table3_fpath': '/home/pteluser/src/TCP/Data/debosscher_table3.html', 'cyto_work_final_fpath': '/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher', 'cyto_network_fname': 'pairwise_class.cyto.network', 'pairwise_trainingset_dirpath': '/home/pteluser/scratch/pairwise_trainingsets', 'tcp_database': 'source_test_db', 'dotastro_arff_fpath': '/home/pteluser/scratch/xmls_deboss_percentage_exclude.arff', 'arff_sciclass_dict_pkl_fpath': '/home/pteluser/scratch/arff_sciclass_dict.pkl', 'trainset_pruned_pklgz_fpath': '/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/xmls_deboss_percentage_exclude__pairwise_result.pkl.gz', 'feat_dist_image_rooturl': 'http://lyra.berkeley.edu/~jbloom/dstarr/pairwise_images', 'tcp_username': 'pteluser', 'crossvalid_pklgz_fpath': '/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/xmls_deboss_percentage_exclude__pairwise_result__crossvalid_data.pkl.gz', 'tcp_hostname': '192.168.1.25', 'confusion_stats_html_fpath': '/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/xmls_deboss_percentage_exclude__pairwise_result_classif_stats.html', 'debosscher_class_lookup': {'BE': 'be', 'RRAB': 'rr-ab', 'MIRA': 'mira', 'WR': 'wr', 'SDBV': 'sdbv', 'FUORI': 'fuor', 'RVTAU': 'rv', 'DMCEP': 'cm', 'GDOR': 'gd', 'LBV': 'sdorad', 'ROAP': 'rot', 'RRD': 'rr-d', 'RRC': 'rr-c', 'DAV': 'pwd', 'SXPHE': 'sx', 'HAEBE': 'haebe', 'SPB': 'spb', 'LBOO': 'lboo', 'ELL': 'ell', 'XB': 'xrbin', 'BCEP': 'bc', 'EA': 'alg', 'PTCEP': 'piic', 'SLR': 'NOTMATCHED', 'EB': 'bly', 'EW': 'wu', 'CP': 'CP', 'CV': 'cv', 'PVSG': 'pvsg', 'TTAU': 'tt', 'DSCUT': 'ds', 'CLCEP': 'dc', 'SR': 'sreg', 'GWVIR': 'gw', 'DBV': 'pwd'}, 'debosscher_confusion_table4_fpath': '/home/pteluser/src/TCP/Data/debosscher_table4.html', 'pairwise_scratch_dirpath': '/media/raid_0/pairwise_scratch', 'feat_dist_image_local_dirpath': '/media/raid_0/pairwise_scratch/pairwise_scp_data', 'feat_distrib_colors': ['#000000', '#ff3366', '#660000', '#aa0000', '#ff0000', '#ff6600', '#996600', '#cc9900', '#ffff00', '#ffcc33', '#ffff99', '#99ff99', '#666600', '#99cc00', '#00cc00', '#006600', '#339966', '#33ff99', '#006666', '#66ffff', '#0066ff', '#0000cc', '#660099', '#993366', '#ff99ff', '#440044'], 't_sleep': 0.20000000000000001, 'cyto_nodeattrib_fname': 'pairwise_class.cyto.nodeattrib', 'plot_symb': ['o', 's', 'v', 'd', '<'], 'weka_pairwise_classifiers_pkl_fpath': '/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/weka_pairwise_classifier.pkl'})
                     fp=open("/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/pairwise_classifier__debosscher_table3.pkl.gz",'rb')
-                    pairwise_dict=pickle.load(fp)
+                    pairwise_dict=cPickle.load(fp)
                     fp.close()
                     WekaPairwiseClassification.load_weka_classifiers(classifier_dict=pairwise_dict)
                     WekaPairwiseClassification.initialize_temp_cyto_files()
-                    for set_num in range(self.pars['num_percent_epoch_error_iterations']):
+                    for set_num in xrange(self.pars['num_percent_epoch_error_iterations']):
                         out_dict = WekaPairwiseClassification.ipython_client__deboss_percentage_exclude_analysis(set_num, percent, pairwise_dict, pruned_sciclass_dict)
                     #import pdb; pdb.set_trace()
 
-                for set_num in range(self.pars['num_percent_epoch_error_iterations']):
+                for set_num in xrange(self.pars['num_percent_epoch_error_iterations']):
                     tc_exec_str = "out_dict = WekaPairwiseClassification.ipython_client__deboss_percentage_exclude_analysis(set_num, percent, pairwise_dict, pruned_sciclass_dict)"
                     taskid = self.tc.run(client.StringTask(tc_exec_str, pull='out_dict', retries=3,
                                                        push={'set_num':set_num,
@@ -2162,11 +2150,11 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
                     self.task_id_list.append(taskid)
 
             percent_tally_summary_dict = {}
-            while ((self.tc.queue_status()['scheduled'] > 0) or
-                   (self.tc.queue_status()['pending'] > 0)):
+	    while ((self.tc.queue_status()['scheduled'] > 0) or
+ 	           (self.tc.queue_status()['pending'] > 0)):
                 tasks_to_pop = []
-                for task_id in self.task_id_list:
-                    temp = self.tc.get_task_result(task_id, block=False)
+	        for task_id in self.task_id_list:
+	            temp = self.tc.get_task_result(task_id, block=False)
                     if temp == None:
                         continue
                     temp2 = temp.results
@@ -2184,15 +2172,15 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
                                                                     out_dict['classif_summary_dict'],
                                                                     percent_tally_summary_dict,
                                                                     classifier_confidence_analysis_dict=classifier_confidence_analysis_dict)
-                for task_id in tasks_to_pop:
-                    self.task_id_list.remove(task_id)
-                print(self.tc.queue_status())
-                print('Sleep... 10  in ipython_master__deboss_percentage_exclude_analysis()')
-                time.sleep(10)
-                print('yoyoyo')
+	        for task_id in tasks_to_pop:
+	            self.task_id_list.remove(task_id)
+                print self.tc.queue_status()
+                print 'Sleep... 10  in ipython_master__deboss_percentage_exclude_analysis()'
+	        time.sleep(10)
+                print 'yoyoyo'
             # IN CASE THERE are still tasks which have not been pulled/retrieved:
             for task_id in self.task_id_list:
-                temp = self.tc.get_task_result(task_id, block=False)
+	        temp = self.tc.get_task_result(task_id, block=False)
                 if temp == None:
                     continue
                 temp2 = temp.results
@@ -2211,18 +2199,18 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
                                                                 percent_tally_summary_dict,
                                                                 classifier_confidence_analysis_dict=classifier_confidence_analysis_dict)
             fp = gzip.open(pklgz_fpath,'wb')
-            pickle.dump(percent_tally_summary_dict,fp,1) # ,1) means a binary pkl is used.
+            cPickle.dump(percent_tally_summary_dict,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp=gzip.open(pklgz_fpath,'rb')
-            percent_tally_summary_dict=pickle.load(fp)
+            percent_tally_summary_dict=cPickle.load(fp)
             fp.close()
 
         classifier_confidence_analysis_fpath = '/home/pteluser/scratch/classifier_confidence_analysis.pkl.gz'
         if os.path.exists(classifier_confidence_analysis_fpath):
             os.system('rm ' + classifier_confidence_analysis_fpath)
         fp = gzip.open(classifier_confidence_analysis_fpath,'wb')
-        pickle.dump(classifier_confidence_analysis_dict,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(classifier_confidence_analysis_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
         #import pdb; pdb.set_trace()
@@ -2244,7 +2232,7 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
         self.pars['taxonomy_prune_defs']['terminating_classes'] = dotastro_classes
 
         fp=open('/home/pteluser/Dropbox/work/WEKAj48_dotastro_ge1srcs_period_nonper__exclude_non_debosscher/pairwise_classifier__debosscher_table3.pkl.gz','rb')
-        pairwise_dict=pickle.load(fp)
+        pairwise_dict=cPickle.load(fp)
         fp.close()
 
         ### Load JPype weka classifiers using .model info:
@@ -2264,11 +2252,11 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
                                          has_srcid=True)
             pruned_sciclass_dict = a_dict['pruned_sciclass_dict']
             #pairwise_dict = a_dict['pairwise_dict']
-
+            
         else:
             fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
             #pairwise_pruned_dict=cPickle.load(fp)
-            pruned_sciclass_dict=pickle.load(fp)
+            pruned_sciclass_dict=cPickle.load(fp)
             fp.close()
 
 
@@ -2281,22 +2269,22 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
             perc_pruned_sciclass_dict = self.partition_test_sciclass_dict_into_sampling_percentages( \
                                                                                pruned_sciclass_dict)
             percent_tally_summary_dict = {}
-            percent_list = list(perc_pruned_sciclass_dict.keys())
+            percent_list = perc_pruned_sciclass_dict.keys()
             #percent_list.sort()
             percent_list.sort(reverse=True)
             for percent in percent_list:
                 pruned_sciclass_dict = perc_pruned_sciclass_dict[percent]
-                print('Percent:', percent)
+                print 'Percent:', percent
                 classif_summary_dict = self.do_pairwise_classification(classifier_dict=pairwise_dict,
                                                                        pairwise_pruned_dict=pruned_sciclass_dict)
                 self.tally_correctly_classified_for_percent(percent, classif_summary_dict, percent_tally_summary_dict)
 
             fp = gzip.open(pklgz_fpath,'wb')
-            pickle.dump(percent_tally_summary_dict,fp,1) # ,1) means a binary pkl is used.
+            cPickle.dump(percent_tally_summary_dict,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp=gzip.open(pklgz_fpath,'rb')
-            percent_tally_summary_dict=pickle.load(fp)
+            percent_tally_summary_dict=cPickle.load(fp)
             fp.close()
 
         self.plot_percent_tally_summary_dict(percent_tally_summary_dict)
@@ -2313,11 +2301,11 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
 
         #debos_classes_name = self.form_debosscher_classes_name(\
         #                                  debosscher_confusion_data=debosscher_confusion_data)
-
+        
 
         #fp=gzip.open(self.pars['weka_pairwise_classifiers_pkl_fpath'],'rb')
         fp=open(self.pars['weka_pairwise_classifiers_pkl_fpath'],'rb')
-        pairwise_dict=pickle.load(fp)
+        pairwise_dict=cPickle.load(fp)
         fp.close()
 
         ### Load JPype weka classifiers using .model info:
@@ -2337,10 +2325,10 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
                                          has_srcid=True)
             pruned_sciclass_dict = a_dict['pruned_sciclass_dict']
             pairwise_dict = a_dict['pairwise_dict']
-
+            
 
         fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
-        pairwise_pruned_dict=pickle.load(fp)
+        pairwise_pruned_dict=cPickle.load(fp)
         fp.close()
 
         self.initialize_temp_cyto_files()
@@ -2352,7 +2340,7 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
 
 
 
-class Test_Example(object):
+class Test_Example:
     """ Test case / example class
     """
     def __init__(self, pars={}):
@@ -2365,10 +2353,10 @@ class Test_Example(object):
         arffrow_tups = [("sne", "2.162,2.0,0.0053282182438,2.55090195635,0.702928248516,0.188299399184,0.0853351581732,0.306187780088,0.205958893895,0.216289555174,0.0053282182438,-0.124394776891,23.3580520327,0.00367702648004,-0.904973211272,6.05564055936,0.0350294994587,2.80813223337,5.27392523503,-2.23428210218,-2.86580747521,0.349652335223,2.69069983158,0.31463106821,1.69707408596,3.48520407775,7.83568496402,2.75038673891,0.0053282182438,0.39160330964,0.0665352511945,0.0607257947202,0.0406020944045,0.0053282182438,0.439950111808,37.7034063201,-0.22184590449,-0.515693283073,7.97774524672,0.447686493506,1.7921955914,1.34471480133,0.180273221282,1.39787119835,1.48542920427,-1.54289099897,1.41100587329,0.17488709034,0.169280134169,0.32265377148,2.01871518912,0.0539946935208,0.0184983669692,0.00152904572163,0.00246177414402,0.00351218024472,0.0539946935208,0.65646684733,3.3519012806,0.38221127332,-2.09925632409,17.6179404532,14.6861040649,57.6000889149,0.127980248486,0.181313917301,1.67435402877,1.58195296201,2.01890019525,1.20891221146,9.28586368803,4.47649040333,3.14714961224,0.315492615375,0.0053282182438,0.0,25.0,0.333333333333,-0.402873531426,57697.7027284")]
         AdaboostWrapper = classifier_adaboost_wrapper.Adaboost_Wrapper(pars)
         #####
-        pklgz_fpath = "%s/%s.pkl.gz" % (pars['pairwise_classifier_pklgz_dirpath'],
+        pklgz_fpath = "%s/%s.pkl.gz" % (pars['pairwise_classifier_pklgz_dirpath'], 
                                         pars['pairwise_schema_name'])
         fp=gzip.open(pklgz_fpath,'rb')
-        pairwise_schema_dict=pickle.load(fp)
+        pairwise_schema_dict=cPickle.load(fp)
         fp.close()
         #####
 
@@ -2382,7 +2370,7 @@ class Test_Example(object):
         i_inputrow = 0
         for i_src, (class_expected, arff_row) in enumerate(arffrow_tups):
             tally_dict = copy.deepcopy(tally_dict_empty)
-            for classifier_name in list(pairwise_schema_dict.keys()):
+            for classifier_name in pairwise_schema_dict.keys():
                 line = "%d %s %d %s" % (i_inputrow, classifier_name, i_src, arff_row)
 
                 # # # # #
@@ -2416,7 +2404,7 @@ class Test_Example(object):
                 normalized_preds = AdaboostWrapper.apply_classifier( \
                                                                 toclassify_data=train_data,
                                                                 classifier_dict=classifier_dict)
-
+                
                 if normalized_preds[0] < 0:
                     sciclass_pred = classifier_dict['classname_tup'][0]
                     notpred_sciclass = classifier_dict['classname_tup'][1]
@@ -2425,13 +2413,13 @@ class Test_Example(object):
                     notpred_sciclass = classifier_dict['classname_tup'][0]
 
                 confidence = numpy.abs(normalized_preds[0])
-                print("%s;%s;%lf;%s" % (src_id, sciclass_pred, confidence, classifier_dict['fname_root']))
+                print "%s;%s;%lf;%s" % (src_id, sciclass_pred, confidence, classifier_dict['fname_root'])
                 tally_dict[sciclass_pred]['classif_count'] += 1
                 tally_dict[sciclass_pred]['classif_conf_total'] += confidence
                 tally_dict[notpred_sciclass]['notclassif_count'] += 1
                 tally_dict[notpred_sciclass]['notclassif_conf_total'] += confidence
             sort_list = []
-            for sciclass, class_dict in tally_dict.items():
+            for sciclass, class_dict in tally_dict.iteritems():
                 sort_list.append((class_dict['classif_count'], sciclass))
             sort_list.sort(reverse=True)
             for count, sciclass in sort_list[:10]:
@@ -2445,10 +2433,10 @@ class Test_Example(object):
                                              float(tally_dict[sciclass]['notclassif_count'])
                 else:
                     avgnotconf = 0
-                print("(%s) %8.8s\t count=%d \t avgconf=%8.8s\t notclassif=%d\t avgnotconf=%f" % (\
-                       class_expected, sciclass,
+                print "(%s) %8.8s\t count=%d \t avgconf=%8.8s\t notclassif=%d\t avgnotconf=%f" % (\
+                       class_expected, sciclass, 
                        tally_dict[sciclass]['classif_count'], str(avgconf),
-                       tally_dict[sciclass]['notclassif_count'], avgnotconf))
+                       tally_dict[sciclass]['notclassif_count'], avgnotconf)
         return
 
 
@@ -2458,18 +2446,18 @@ class Test_Example(object):
         """
 
         fp=gzip.open(self.pars['trainset_pruned_pklgz_fpath'],'rb')
-        pairwise_pruned_dict=pickle.load(fp)
+        pairwise_pruned_dict=cPickle.load(fp)
         fp.close()
 
         #arffrow_tups = [("sne", "2.162,2.0,0.0053282182438,2.55090195635,0.702928248516,0.188299399184,0.0853351581732,0.306187780088,0.205958893895,0.216289555174,0.0053282182438,-0.124394776891,23.3580520327,0.00367702648004,-0.904973211272,6.05564055936,0.0350294994587,2.80813223337,5.27392523503,-2.23428210218,-2.86580747521,0.349652335223,2.69069983158,0.31463106821,1.69707408596,3.48520407775,7.83568496402,2.75038673891,0.0053282182438,0.39160330964,0.0665352511945,0.0607257947202,0.0406020944045,0.0053282182438,0.439950111808,37.7034063201,-0.22184590449,-0.515693283073,7.97774524672,0.447686493506,1.7921955914,1.34471480133,0.180273221282,1.39787119835,1.48542920427,-1.54289099897,1.41100587329,0.17488709034,0.169280134169,0.32265377148,2.01871518912,0.0539946935208,0.0184983669692,0.00152904572163,0.00246177414402,0.00351218024472,0.0539946935208,0.65646684733,3.3519012806,0.38221127332,-2.09925632409,17.6179404532,14.6861040649,57.6000889149,0.127980248486,0.181313917301,1.67435402877,1.58195296201,2.01890019525,1.20891221146,9.28586368803,4.47649040333,3.14714961224,0.315492615375,0.0053282182438,0.0,25.0,0.333333333333,-0.402873531426,57697.7027284")]
-
+        
 
         AdaboostWrapper = classifier_adaboost_wrapper.Adaboost_Wrapper(pars)
         #####
-        pklgz_fpath = "%s/%s.pkl.gz" % (pars['pairwise_classifier_pklgz_dirpath'],
+        pklgz_fpath = "%s/%s.pkl.gz" % (pars['pairwise_classifier_pklgz_dirpath'], 
                                         pars['pairwise_schema_name'])
         fp=gzip.open(pklgz_fpath,'rb')
-        pairwise_schema_dict=pickle.load(fp)
+        pairwise_schema_dict=cPickle.load(fp)
         fp.close()
         #####
 
@@ -2503,28 +2491,28 @@ class Test_Example(object):
         ###     used when vote-combined classifing some scienceclass:
         ###     some_dict[sciclass]['top_feats'][0]{'feat_name]:, 'top_feats'}
         tally_feat_dict = {}
-        for pairname, pair_dict in pairwise_schema_dict.items():
+        for pairname, pair_dict in pairwise_schema_dict.iteritems():
 
             pprint.pprint((pairname, pair_dict['top_feats'])) # DEBUG USE ONLY
 
             for a_class in pairname.split(';'):
-                if a_class not in tally_feat_dict:
+                if not tally_feat_dict.has_key(a_class):
                     tally_feat_dict[a_class] = {}
                 for top_feat_dict in pairwise_schema_dict[pairname]['top_feats']:
                     feat_name = top_feat_dict['feat_name']
                     tot_alpha = top_feat_dict['tot_alpha']
                     if tot_alpha == numpy.inf:
                         tot_alpha = 0.0 #KLUDGE (I'm guessing this is a terminating node), for rrlyra__nov only
-                    if feat_name not in tally_feat_dict[a_class]:
+                    if not tally_feat_dict[a_class].has_key(feat_name):
                         tally_feat_dict[a_class][feat_name] = 0.0
                     tally_feat_dict[a_class][feat_name] += tot_alpha
 
         # Now we want to sort the [(tot_alpha, feat_name)]
         #     and order a list of reverse ranked, which is dict[class_name]
         #   this dict can then be used with[scilacc] at L316
-        for class_name, class_dict in tally_feat_dict.items():
+        for class_name, class_dict in tally_feat_dict.iteritems():
             tup_sort_list = []
-            for feat_name, total_alpha in class_dict.items():
+            for feat_name, total_alpha in class_dict.iteritems():
                 tup_sort_list.append((total_alpha, feat_name))
             tup_sort_list.sort(reverse=True)
             class_summary[class_name]['top_feats'] = copy.copy(tup_sort_list[:3])
@@ -2539,7 +2527,7 @@ class Test_Example(object):
         if os.path.exists(fpath):
             os.system('rm ' + fpath)
         fp_cyto_nodeattrib = open(fpath, 'w')
-
+        
 
         tally_dict_empty = {}
         for classifier_name in self.pars['taxonomy_prune_defs']['terminating_classes']:
@@ -2549,10 +2537,10 @@ class Test_Example(object):
                                                  'notclassif_conf_total':0.}
         i_inputrow = 0
 
-        for orig_class, orig_class_dict in pairwise_pruned_dict.items():
+        for orig_class, orig_class_dict in pairwise_pruned_dict.iteritems():
             #if orig_class == 'nov':
             #    print 'yo'
-            print(orig_class)
+            print orig_class
             fp_cyto_nodeattrib.write("%s\t%s\t0\t0\n" % (orig_class, orig_class))
             class_summary[orig_class]['n_sources'] = orig_class_dict['count']
             for i_src, arff_row in enumerate(orig_class_dict['arffrow_wo_classnames']):
@@ -2573,7 +2561,7 @@ class Test_Example(object):
                 #train_data = train_data.T # want: (29, 574) similar shape
 
                 tally_dict = copy.deepcopy(tally_dict_empty)
-                for classifier_name in list(pairwise_schema_dict.keys()):
+                for classifier_name in pairwise_schema_dict.keys():
                     classifier_dict = pairwise_schema_dict[classifier_name]
 
                     normalized_preds = AdaboostWrapper.apply_classifier(toclassify_data=train_data,
@@ -2601,23 +2589,23 @@ class Test_Example(object):
                     tally_dict[sciclass_pred]['classif_count'] += abs(normalized_preds[0])
                     tally_dict[notpred_sciclass]['notclassif_count'] += abs(normalized_preds[0])
                 sort_list = []
-                for sciclass, class_dict in tally_dict.items():
+                for sciclass, class_dict in tally_dict.iteritems():
                     sort_list.append((class_dict['classif_count'], sciclass))
                 sort_list.sort(reverse=True)
 
                 # # # # KLUDGE: running this classifier twice, could be avoided if this info was cached in some data structure:
                 # TODO: if we are doing ++1 counting, then we need to account for more than 2 equal counts in the sort_list (and somehow go through them and choose a winner).  Maybe using confidences at theis stage would be smart
                 if sort_list[0][0] == sort_list[1][0]:
-                    print("!!!, sort_list[0][0] == sort_list[1][0]")
+                    print "!!!, sort_list[0][0] == sort_list[1][0]"
                     classifier_name = "%s;%s" % (sort_list[0][1], sort_list[1][1])
-                    if classifier_name not in pairwise_schema_dict:
+                    if not pairwise_schema_dict.has_key(classifier_name):
                         classifier_name = "%s;%s" % (sort_list[1][1], sort_list[0][1])
                     try:
                         classifier_dict = pairwise_schema_dict[classifier_name]
                     except:
-                        print('ERROR: unknown classifier_name:', classifier_name)
+                        print 'ERROR: unknown classifier_name:', classifier_name
                         raise
-
+                        
                     normalized_preds = AdaboostWrapper.apply_classifier(toclassify_data=train_data,
                                                                     classifier_dict=classifier_dict)
 
@@ -2628,11 +2616,11 @@ class Test_Example(object):
                     tally_dict[sciclass_pred]['classif_count'] += 1
 
                     sort_list = []
-                    for sciclass, class_dict in tally_dict.items():
+                    for sciclass, class_dict in tally_dict.iteritems():
                         sort_list.append((class_dict['classif_count'], sciclass))
                     sort_list.sort(reverse=True)
                 # # # #
-
+                
                 #for count, sciclass in sort_list[:3]:
                 for count, sciclass in sort_list[:2]:
                     ### I want the 3rd weight to be 1, and the others to be (count_n - count_3rd)**3
@@ -2645,7 +2633,7 @@ class Test_Example(object):
                     #pair_list = [sciclass, ]
                     #pair_list.sort()
                     #pair_name = pair_list[0] + ';' + pair_list[1]
-                    # # # NOTE: now that I am filling
+                    # # # NOTE: now that I am filling 
 
                     fp_cyto_network.write("%s_%d\t%s\t%lf\t%s\t%s\t%s_%lf\t%s_%lf\n" % (orig_class, i_src, sciclass, weight, orig_class, sciclass, class_summary[sciclass]['top_feats'][0][1], class_summary[sciclass]['top_feats'][0][0], class_summary[sciclass]['top_feats'][1][1], class_summary[sciclass]['top_feats'][1][0]))
 
@@ -2658,7 +2646,7 @@ class Test_Example(object):
         if os.path.exists(self.pars['pruned_classif_summary_stats_pkl_fpath']):
             os.system('rm ' + self.pars['pruned_classif_summary_stats_pkl_fpath'])
         fp = open(self.pars['pruned_classif_summary_stats_pkl_fpath'],'w')
-        pickle.dump(class_summary, fp)
+        cPickle.dump(class_summary, fp)
         fp.close()
 
         fp_cyto_network.close()
@@ -2686,13 +2674,13 @@ class Test_Example(object):
         self.get_classifications_for_pruned_trainset_rows()
 
 
-class Pairwise_Classification(object):
+class Pairwise_Classification:
     """
     """
     def __init__(self, pars):
         self.pars = pars
         self.DotastroSciclassTools = dotastro_sciclass_tools.Dotastro_Sciclass_Tools()
-        if 'sciclass_lookup' in pars:
+        if pars.has_key('sciclass_lookup'):
             self.sciclass_lookup = pars['sciclass_lookup'] # This occurs when on citriss33 and no MySQL is used.
         else:
             self.sciclass_lookup = self.DotastroSciclassTools.get_sciclass_lookup_dict()
@@ -2709,7 +2697,7 @@ class Pairwise_Classification(object):
         """
         ##### NOTE: I disable this so that self.feat_id_names{} can be filled and since it
         #####    takes a couple secounds during classifier creation:
-
+        
         #if os.path.exists(self.pars['arff_sciclass_dict_pkl_fpath']):
         #    arff_sciclass_dict = cPickle.load(open(self.pars['arff_sciclass_dict_pkl_fpath']))
         #    return arff_sciclass_dict
@@ -2760,11 +2748,11 @@ class Pairwise_Classification(object):
             else:
                 # This is when weka write .arff and classes without spaces are not contained in quotes
                 i_sciclass = line.rfind(",") + 1
-                class_name = line[i_sciclass:].strip()#.replace(",",'')
+                class_name = line[i_sciclass:].strip()#.replace(",",'')                
                 i_sciclass = line.rfind(",") + 2
             ###KLUDGE: the .arff file may have some long-science-class names from the
             ###     tutor dataset, or ?(maybe with ',' and '-' string replacement)?
-            if class_name not in self.sciclass_lookup['longname_shortname']:
+            if not self.sciclass_lookup['longname_shortname'].has_key(class_name):
                 #print '!!!', class_name
                 temp_classname = class_name.replace(',','-')
                 if '-' in temp_classname:
@@ -2775,7 +2763,7 @@ class Pairwise_Classification(object):
                 for elem in class_elems_unstripped:
                     class_elems.append(elem.strip())
                 replacement_classname = None
-                for a_longclassname in list(self.sciclass_lookup['longname_shortname'].keys()):
+                for a_longclassname in self.sciclass_lookup['longname_shortname'].keys():
                     a_match = True
                     for elem in class_elems:
                         if not elem in a_longclassname:
@@ -2786,16 +2774,16 @@ class Pairwise_Classification(object):
                         #print 'MATCH:', replacement_classname
                         break
                 if replacement_classname == None:
-                    print('pairwise_classifications.parse_arff(): No match found:', class_name, class_elems)
+                    print 'pairwise_classifications.parse_arff(): No match found:', class_name, class_elems
                 class_name = replacement_classname
             ### Now we use this known longclassname to get the equivalent shortname,
             #   which we will use in the .arff file
             shortname = self.sciclass_lookup['longname_shortname'][class_name]
-            if shortname in self.DotastroSciclassTools.pars['canonical_shortnames']:
+            if self.DotastroSciclassTools.pars['canonical_shortnames'].has_key(shortname):
                 shortname = self.DotastroSciclassTools.pars['canonical_shortnames'][shortname]
 
 
-            if shortname not in arff_sciclass_dict:
+            if not arff_sciclass_dict.has_key(shortname):
                 arff_sciclass_dict[shortname] = {'count':0,
                                                  'srcid_list':[],
                                                  'arffrow_with_classnames':[],
@@ -2837,7 +2825,7 @@ class Pairwise_Classification(object):
 
         if write_pkl:
             fp = open(self.pars['arff_sciclass_dict_pkl_fpath'],'w')
-            pickle.dump(arff_sciclass_dict, fp)
+            cPickle.dump(arff_sciclass_dict, fp)
             fp.close()
 
 
@@ -2853,7 +2841,7 @@ class Pairwise_Classification(object):
               included for pairwise classification
         """
         pairwise_sciclass_list = []
-        for sciclass_name, sciclass_dict in arff_sciclass_dict.items():
+        for sciclass_name, sciclass_dict in arff_sciclass_dict.iteritems():
             if sciclass_dict['count'] >= self.pars['min_num_sources_for_pairwise_class_inclusion']:
                 pairwise_sciclass_list.append(sciclass_name)
 
@@ -2870,7 +2858,7 @@ class Pairwise_Classification(object):
                 pair_list.sort()
                 pair_name = pair_list[0] + ';' + pair_list[1]
                 if ((classname_1 == classname_2) or \
-                    (pair_name in list(pairwise_trainingset_row_dict.keys()))):
+                    (pair_name in pairwise_trainingset_row_dict.keys())):
                     continue # skip this combo since redundant
                 if 1:
                     fname_root = pair_name.replace(';','___').replace(' ','_').replace(',','_')
@@ -2894,7 +2882,7 @@ class Pairwise_Classification(object):
                          arff_sciclass_dict[classname_1]['arffrow_with_classnames'])
                     pairwise_trainingset_row_dict[pair_name]['arffrow_with_classnames'].extend( \
                          arff_sciclass_dict[classname_2]['arffrow_with_classnames'])
-
+            
                     pairwise_trainingset_row_dict[pair_name]['arffrow_wo_classnames'].extend( \
                          arff_sciclass_dict[classname_1]['arffrow_wo_classnames'])
                     pairwise_trainingset_row_dict[pair_name]['arffrow_wo_classnames'].extend( \
@@ -2916,7 +2904,7 @@ class Pairwise_Classification(object):
         ### First add for all elements in the arff_sciclass_dict for <terminating classes of interest>.
         for shortname in self.pars['taxonomy_prune_defs']['terminating_classes']:
             #longname = self.sciclass_lookup['shortname_longname'][shortname]
-            if shortname in arff_sciclass_dict:
+            if arff_sciclass_dict.has_key(shortname):
                 pruned_sciclass_dict[shortname] = copy.deepcopy(arff_sciclass_dict[shortname])
             else:
                 # We have no data for this itself, but we still want to have a structure
@@ -2926,9 +2914,9 @@ class Pairwise_Classification(object):
                                                    'arffrow_with_classnames':[],
                                                    'arffrow_wo_classnames':[]}
         ### Next add all classes which are decendents of <terminating classes of interest>
-        for shortname, class_dict in arff_sciclass_dict.items():
+        for shortname, class_dict in arff_sciclass_dict.iteritems():
             #shortname = self.sciclass_lookup['longname_shortname'][longname]
-            if shortname in self.DotastroSciclassTools.pars['canonical_shortnames']:
+            if self.DotastroSciclassTools.pars['canonical_shortnames'].has_key(shortname):
                 shortname = self.DotastroSciclassTools.pars['canonical_shortnames'][shortname]
 
             cur_shortname = shortname
@@ -2971,8 +2959,8 @@ class Pairwise_Classification(object):
               included for pairwise classification
         """
         pairwise_sciclass_list = []
-        for sciclass_name, sciclass_dict in arff_sciclass_dict.items():
-            print(sciclass_name, sciclass_dict['count'], self.pars['min_num_sources_for_pairwise_class_inclusion'])
+        for sciclass_name, sciclass_dict in arff_sciclass_dict.iteritems():
+            print sciclass_name, sciclass_dict['count'], self.pars['min_num_sources_for_pairwise_class_inclusion']
             if sciclass_dict['count'] >= self.pars['min_num_sources_for_pairwise_class_inclusion']:
                 pairwise_sciclass_list.append(sciclass_name)
 
@@ -2989,7 +2977,7 @@ class Pairwise_Classification(object):
                 pair_list.sort()
                 pair_name = pair_list[0] + ';' + pair_list[1]
                 if ((classname_1 == classname_2) or \
-                    (pair_name in list(pairwise_trainingset_row_dict.keys()))):
+                    (pair_name in pairwise_trainingset_row_dict.keys())):
                     continue # skip this combo since redundant
                 if 1:
                     fname_root = pair_name.replace(';','___').replace(' ','_').replace(',','_')
@@ -3013,7 +3001,7 @@ class Pairwise_Classification(object):
                          arff_sciclass_dict[classname_1]['arffrow_with_classnames'])
                     pairwise_trainingset_row_dict[pair_name]['arffrow_with_classnames'].extend( \
                          arff_sciclass_dict[classname_2]['arffrow_with_classnames'])
-
+            
                     pairwise_trainingset_row_dict[pair_name]['arffrow_wo_classnames'].extend( \
                          arff_sciclass_dict[classname_1]['arffrow_wo_classnames'])
                     pairwise_trainingset_row_dict[pair_name]['arffrow_wo_classnames'].extend( \
@@ -3034,7 +3022,7 @@ class Pairwise_Classification(object):
         """
         os.system("rm " + pkl_fpath)
         fp=gzip.open(pkl_fpath,'wb')
-        pickle.dump(sciclass_dict,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(sciclass_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
 
@@ -3061,7 +3049,7 @@ class Pairwise_Classification(object):
 
 
     def generate_confidence_dict_given_pairwise_arff_fpath(self, arffbody_fpath):
-        """ Given an arff fpath which has only 2 science classifications,
+        """ Given an arff fpath which has only 2 science classifications, 
         Convert these classes into realnumber confidences [-1,1] which can be
         used by confidence rated AdaBoost.
 
@@ -3076,15 +3064,15 @@ class Pairwise_Classification(object):
                 continue
             i_sciclass = line.rfind("'",0,line.rfind("'")) + 1
             class_name = line[i_sciclass:].replace("'",'').strip()
-            if not class_name in list(confidence_class_summary.keys()):
+            if not class_name in confidence_class_summary.keys():
                 confidence_class_summary[class_name] = {'count':0,
                                                         'conf_val':low_confid_val}
                 low_confid_val += 2
             confidence_class_summary[class_name]['count'] += 1
             confid_dict[j] = confidence_class_summary[class_name]['conf_val']
 
-        if len(list(confidence_class_summary.keys())) != 2:
-            print('ERROR, not a pairwise, 2 class arff', arffbody_fpath, confidence_class_summary)
+        if len(confidence_class_summary.keys()) != 2:
+            print 'ERROR, not a pairwise, 2 class arff', arffbody_fpath, confidence_class_summary
         return (confid_dict, confidence_class_summary)
 
 
@@ -3107,7 +3095,7 @@ class Pairwise_Classification(object):
             os.system('rm ' + model_fpath)
         if os.path.exists(results_fpath):
             os.system('rm ' + results_fpath)
-
+        
         t_start = datetime.datetime.now()
         exec_str = "/usr/lib/jvm/java-6-sun-1.6.0.03/bin/java weka.classifiers.trees.J48 -t %s -d %s -C 0.25 -M 2" % (arff_fpath, model_fpath)
         (a,b,c) = os.popen3(exec_str)
@@ -3116,7 +3104,7 @@ class Pairwise_Classification(object):
         while not file_is_written:
             t_now = datetime.datetime.now()
             if t_now > (t_start + datetime.timedelta(seconds=10)):
-                print('ERROR: unable to generate .model:', exec_str)
+                print 'ERROR: unable to generate .model:', exec_str
                 #file_is_written = True # NOTE: file is not really written
                 break
             if not os.path.exists(model_fpath):
@@ -3127,7 +3115,7 @@ class Pairwise_Classification(object):
                 #file_is_written = True # some time has passed.  We are done writing.
                 break
             time.sleep(1)
-
+        
         a.close()
         c.close()
         lines = b.read()
@@ -3137,7 +3125,7 @@ class Pairwise_Classification(object):
         fp.close()
 
         if len(lines) < 10:
-            print(exec_str)
+            print exec_str
 
         return {'model_fpath':model_fpath,
                 'results_fpath':results_fpath,
@@ -3190,18 +3178,18 @@ class Pairwise_Classification(object):
          - store the model in some .pkl or reference fpath for later weka classification
          - (Then in classifier)
             - similar to adaboost classifier structure, but parse the weka .model
-            - See:
+            - See: 
 
 pprint.pprint(pairwise_dict['c;sne'])
 {'arff_fpath': '/home/pteluser/scratch/pairwise_trainingsets/c___sne.arffbody',
  'classname_tup': ('c', 'sne'),
  'fname_root': 'c___sne',
  'src_count_tup': (679, 373)}
-
+        
         """
         orig_arff_header_lines = self.parse_orig_arff_header_lines()
-
-        for pairclass_name, pairclass_dict in pairwise_dict.items():
+            
+        for pairclass_name, pairclass_dict in pairwise_dict.iteritems():
             full_arff_fpath = self.write_full_arff_fpath(pairclass_dict=pairclass_dict, \
                                                          orig_arff_header_lines=orig_arff_header_lines)
             path_dict = self.generate_weka_model(arff_fpath=full_arff_fpath, model_fpath='', result_fpath='')
@@ -3211,9 +3199,9 @@ pprint.pprint(pairwise_dict['c;sne'])
         if os.path.exists(self.pars['weka_pairwise_classifiers_pkl_fpath']):
             os.system('rm ' + self.pars['weka_pairwise_classifiers_pkl_fpath'])
         fp=open(self.pars['weka_pairwise_classifiers_pkl_fpath'],'wb')
-        pickle.dump(pairwise_dict,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(pairwise_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
-
+        
 
     def generate_classifiers(self, pairwise_dict={}, arff_has_ids=False, arff_has_classes=True):
         """ Main function for generating pairwise AdaBoost classifiers.
@@ -3225,11 +3213,11 @@ pprint.pprint(pairwise_dict['c;sne'])
 
         #pairwise_dict = self.generate_pairwise_arffbody_trainingsets(arff_has_ids=arff_has_ids,
         #                                                             arff_has_classes=arff_has_classes)
-
+        
         ### Generate the classifiers:
         AdaboostWrapper = classifier_adaboost_wrapper.Adaboost_Wrapper(pars)
         pkl_out_dict = {}
-        for pair_name, apair_dict in pairwise_dict.items():
+        for pair_name, apair_dict in pairwise_dict.iteritems():
             #print pair_name
             arffbody_fpath = apair_dict['arff_fpath']
 
@@ -3244,13 +3232,13 @@ pprint.pprint(pairwise_dict['c;sne'])
                                                                   confid_dict=confid_dict,
                                                                   arff_has_ids=arff_has_ids,
                                                                   arff_has_classes=arff_has_classes)
-
+            
 
             try:
                 classifier_dict = AdaboostWrapper.generate_classifier(train_data=train_data,
                                                                   ordered_classifs=ordered_classifs_arr)
             except:
-                print("EXCEPT: Wrapper.generate_classifier(), probably unable to find 'edge' for:", pair_name)
+                print "EXCEPT: Wrapper.generate_classifier(), probably unable to find 'edge' for:", pair_name
                 continue
             classifier_dict.update(apair_dict)
             #print pair_name, classifier_dict['alphas'][:3], classifier_dict['thresholds'][:3]
@@ -3261,11 +3249,11 @@ pprint.pprint(pairwise_dict['c;sne'])
                 feat_weight_dict = {}
                 for i, alpha in enumerate(classifier_dict['alphas']):
                     feat_id = classifier_dict['k'][i]
-                    if feat_id not in feat_weight_dict:
+                    if not feat_weight_dict.has_key(feat_id):
                         feat_weight_dict[feat_id] = 0.0
                     feat_weight_dict[feat_id] += alpha
                 sort_tups = []
-                for feat_id, tot_alpha in feat_weight_dict.items():
+                for feat_id, tot_alpha in feat_weight_dict.iteritems():
                     sort_tups.append((tot_alpha, feat_id))
                 sort_tups.sort(reverse=True)
                 classifier_dict['top_feats'] = []
@@ -3279,12 +3267,12 @@ pprint.pprint(pairwise_dict['c;sne'])
                 feat_weight_dict = {}
                 for i, alpha in enumerate(classifier_dict['alphas']):
                     feat_id = classifier_dict['k'][i]
-                    if feat_id not in feat_weight_dict:
+                    if not feat_weight_dict.has_key(feat_id):
                         feat_weight_dict[feat_id] = alpha
                     if alpha > feat_weight_dict[feat_id]:
                         feat_weight_dict[feat_id] = alpha
                 sort_tups = []
-                for feat_id, max_alpha in feat_weight_dict.items():
+                for feat_id, max_alpha in feat_weight_dict.iteritems():
                     sort_tups.append((max_alpha, feat_id))
                 sort_tups.sort(reverse=True)
                 classifier_dict['top_feats'] = []
@@ -3313,20 +3301,20 @@ pprint.pprint(pairwise_dict['c;sne'])
                 #pprint.pprint(normalized_preds)
                 #print
 
+        
 
 
-
-        pklgz_fpath = "%s/%s.pkl.gz" % (self.pars['pairwise_classifier_pklgz_dirpath'],
+        pklgz_fpath = "%s/%s.pkl.gz" % (self.pars['pairwise_classifier_pklgz_dirpath'], 
                                         self.pars['pairwise_schema_name'])
         fp=gzip.open(pklgz_fpath,'wb')
-        pickle.dump(pkl_out_dict,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(pkl_out_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
 
-class Pairwise_Cross_Validation_Parallel_Worker(object):
+class Pairwise_Cross_Validation_Parallel_Worker:
     """ A class which is to be used on IPython clients, do perform
     the training and classification components of 10-fold cross validation.
-
+    
     """
     def __init__(self, pars={}):
         self.pars = pars
@@ -3370,7 +3358,7 @@ class Pairwise_Cross_Validation_Parallel_Worker(object):
                                        classifier_dict=pairwise_dict,
                                   pairwise_pruned_dict=cross_valid_dataset['crossval_data_dict'][i_fold]['train'])
         return classif_summary_dict
-
+    
 
     # This works for single mode:
     def do_cross_validation_element__backup(self, cross_valid_dataset={}, i_fold=0):
@@ -3419,7 +3407,7 @@ if __name__ == '__main__':
             'crossvalid_fold_percent':40., #NOTE: only valid if do_stratified=False  #float x in x/y OR None==just use the percent 1/nfolds
             'tcp_hostname':'192.168.1.25',
             'tcp_username':'pteluser',
-            'tcp_port':     3306,
+            'tcp_port':     3306, 
             'tcp_database':'source_test_db',
             'dotastro_arff_fpath':os.path.expandvars('$HOME/scratch/train_output_20100517_dotastro_xml_with_features__default.arff'),#os.path.expandvars('$HOME/scratch/train_output_20100517_dotastro_xml_with_features.arff'),
             'arff_sciclass_dict_pkl_fpath':os.path.expandvars('$HOME/scratch/arff_sciclass_dict.pkl'),
@@ -3481,7 +3469,7 @@ if __name__ == '__main__':
             'debosscher_confusion_table3_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/debosscher_table3.html'),
             'debosscher_confusion_table4_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/debosscher_table4.html'),
             'debosscher_class_lookup':{ \
-                'BCEP':'bc',
+                'BCEP':'bc',    
                 'BE':'be', #NO LCs   # Pulsating Be-stars  (57) : HIP, GENEVA
                 'CLCEP':'dc',
                 'CP':'CP',
@@ -3564,7 +3552,7 @@ if __name__ == '__main__':
             pairwise_dict = a_dict['pairwise_dict']
             PairwiseClassification.generate_weka_classifiers(pairwise_dict=pairwise_dict,
                                                         arff_has_ids=arff_has_ids,
-                                                        arff_has_classes=arff_has_classes)
+                                                        arff_has_classes=arff_has_classes)            
         elif options.deboss_percentage_exclude_analysis:
             WekaPairwiseClassification = Weka_Pairwise_Classification(pars=pars)
             #WekaPairwiseClassification.main_deboss_percentage_exclude_analysis()
@@ -3584,7 +3572,7 @@ if __name__ == '__main__':
             pruned_sciclass_dict = PairwiseClassification.condense_taxonomy_of_sciclassdict(arff_sciclass_dict)
             PairwiseClassification.write_sciclass_dict_pkl(pkl_fpath=pars['trainset_pruned_pklgz_fpath'],
                                                            sciclass_dict=pruned_sciclass_dict)
-
+            
         elif options.generate:
             PairwiseClassification = Pairwise_Classification(pars)
             a_dict = PairwiseClassification.generate_pairwise_arffbody_trainingsets( \
@@ -3607,10 +3595,10 @@ if __name__ == '__main__':
         AdaboostWrapper = classifier_adaboost_wrapper.Adaboost_Wrapper(pars)
 
         #####
-        pklgz_fpath = "%s/%s.pkl.gz" % (pars['pairwise_classifier_pklgz_dirpath'],
+        pklgz_fpath = "%s/%s.pkl.gz" % (pars['pairwise_classifier_pklgz_dirpath'], 
                                         pars['pairwise_schema_name'])
         fp=gzip.open(pklgz_fpath,'rb')
-        pairwise_schema_dict=pickle.load(fp)
+        pairwise_schema_dict=cPickle.load(fp)
         fp.close()
         #####
 
@@ -3647,13 +3635,14 @@ if __name__ == '__main__':
             normalized_preds = AdaboostWrapper.apply_classifier( \
                                                             toclassify_data=train_data,
                                                             classifier_dict=classifier_dict)
-
+            
             if normalized_preds[0] < 0:
                 sciclass_pred = classifier_dict['classname_tup'][0]
             else:
                 sciclass_pred = classifier_dict['classname_tup'][1]
 
             confidence = numpy.abs(normalized_preds[0])
-            print("%s;%s;%lf;%s" % (src_id, sciclass_pred, confidence, classifier_dict['fname_root']))
+            print "%s;%s;%lf;%s" % (src_id, sciclass_pred, confidence, classifier_dict['fname_root'])
 
-        ### echo "Microlensing_Event___Type_Ia_Supernovae.pkl;1234567;2.162,2.0,0.0053282182438,2.55090195635,0.702928248516,0.188299399184,0.0853351581732,0.306187780088,0.205958893895,0.216289555174,0.0053282182438,-0.124394776891,23.3580520327,0.00367702648004,-0.904973211272,6.05564055936,0.0350294994587,2.80813223337,5.27392523503,-2.23428210218,-2.86580747521,0.349652335223,2.69069983158,0.31463106821,1.69707408596,3.48520407775,7.83568496402,2.75038673891,0.0053282182438,0.39160330964,0.0665352511945,0.0607257947202,0.0406020944045,0.0053282182438,0.439950111808,37.7034063201,-0.22184590449,-0.515693283073,7.97774524672,0.447686493506,1.7921955914,1.34471480133,0.180273221282,1.39787119835,1.48542920427,-1.54289099897,1.41100587329,0.17488709034,0.169280134169,0.32265377148,2.01871518912,0.0539946935208,0.0184983669692,0.00152904572163,0.00246177414402,0.00351218024472,0.0539946935208,0.65646684733,3.3519012806,0.38221127332,-2.09925632409,17.6179404532,14.6861040649,57.6000889149,0.127980248486,0.181313917301,1.67435402877,1.58195296201,2.01890019525,1.20891221146,9.28586368803,4.47649040333,3.14714961224,0.315492615375,0.0053282182438,0.0,25.0,0.333333333333,-0.402873531426,57697.7027284" | ./pairwise_classification.py
+        ### echo "Microlensing_Event___Type_Ia_Supernovae.pkl;1234567;2.162,2.0,0.0053282182438,2.55090195635,0.702928248516,0.188299399184,0.0853351581732,0.306187780088,0.205958893895,0.216289555174,0.0053282182438,-0.124394776891,23.3580520327,0.00367702648004,-0.904973211272,6.05564055936,0.0350294994587,2.80813223337,5.27392523503,-2.23428210218,-2.86580747521,0.349652335223,2.69069983158,0.31463106821,1.69707408596,3.48520407775,7.83568496402,2.75038673891,0.0053282182438,0.39160330964,0.0665352511945,0.0607257947202,0.0406020944045,0.0053282182438,0.439950111808,37.7034063201,-0.22184590449,-0.515693283073,7.97774524672,0.447686493506,1.7921955914,1.34471480133,0.180273221282,1.39787119835,1.48542920427,-1.54289099897,1.41100587329,0.17488709034,0.169280134169,0.32265377148,2.01871518912,0.0539946935208,0.0184983669692,0.00152904572163,0.00246177414402,0.00351218024472,0.0539946935208,0.65646684733,3.3519012806,0.38221127332,-2.09925632409,17.6179404532,14.6861040649,57.6000889149,0.127980248486,0.181313917301,1.67435402877,1.58195296201,2.01890019525,1.20891221146,9.28586368803,4.47649040333,3.14714961224,0.315492615375,0.0053282182438,0.0,25.0,0.333333333333,-0.402873531426,57697.7027284" | ./pairwise_classification.py 
+

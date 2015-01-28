@@ -2,21 +2,10 @@
 """ Do a couple tasks needed for Debosscher paper tables (20101118)
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import int
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import pprint
 import MySQLdb
-import pickle
+import cPickle
 import gzip
 import analysis_deboss_tcp_source_compare
 import glob
@@ -26,14 +15,14 @@ import simbad_id_lookup
 
 ### This is a list of science class associations which Josh discerned when looking at double classified sources:
 josh_classifs = {\
-5267:{'tutorid':148038, 'tcp_class':'LBV',  'comment':'2nd tutorid=161329L'},
-19893:{'tutorid':148103, 'tcp_class':'GDOR', 'comment':'2nd tutorid=148841L'},
-23428:{'tutorid':148137, 'tcp_class':'LBV',  'comment':'2nd tutorid=161330L'},
-26403:{'tutorid':148174, 'tcp_class':'HAEBE','comment':'2nd tutorid=161337L'},
-54413:{'tutorid':148375, 'tcp_class':'HAEBE','comment':'2nd tutorid=161335L'},
-86624:{'tutorid':148583, 'tcp_class':'LBV', 'comment':'2nd tutorid=161328L'},
-89956:{'tutorid':148614, 'tcp_class':'LBV', 'comment':'2nd tutorid=161327L'},
-89963:{'tutorid':148615, 'tcp_class':'LBV', 'comment':'2nd tutorid=161326L'}}
+5267:{'tutorid':148038L, 'tcp_class':'LBV',  'comment':'2nd tutorid=161329L'},
+19893:{'tutorid':148103L, 'tcp_class':'GDOR', 'comment':'2nd tutorid=148841L'},
+23428:{'tutorid':148137L, 'tcp_class':'LBV',  'comment':'2nd tutorid=161330L'},
+26403:{'tutorid':148174L, 'tcp_class':'HAEBE','comment':'2nd tutorid=161337L'},
+54413:{'tutorid':148375L, 'tcp_class':'HAEBE','comment':'2nd tutorid=161335L'},
+86624:{'tutorid':148583L, 'tcp_class':'LBV', 'comment':'2nd tutorid=161328L'},
+89956:{'tutorid':148614L, 'tcp_class':'LBV', 'comment':'2nd tutorid=161327L'},
+89963:{'tutorid':148615L, 'tcp_class':'LBV', 'comment':'2nd tutorid=161326L'}}
 
 # 20101202: dstarr finds that some of the new-sources (not found in project=122 tutor) have double classes
 #       and a specific dict is needed in this case to disambiguate the sources for these classes:
@@ -367,13 +356,13 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
         if not os.path.exists(pkl_fpath):
             debos_tcp_dict = self.get_deboss_dotastro_source_lookup__modified()
             fp = gzip.open(pkl_fpath,'wb')
-            pickle.dump(debos_tcp_dict, fp, 1) # ,1) means a binary pkl is used.
+            cPickle.dump(debos_tcp_dict, fp, 1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp = gzip.open(pkl_fpath,'rb')
-            debos_tcp_dict = pickle.load(fp)
+            debos_tcp_dict = cPickle.load(fp)
             fp.close()
-
+            
         ### NOTE: it seems there are no sources with more than 1:1 srcid matchups (so don't need to do the following):
         #for tcp_srcid, deb_srcid_list in debos_tcp_dict['dotastro_srcid_to_debos_srcname'].iteritems():
         #    if len(deb_srcid_list) > 1:
@@ -385,19 +374,19 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
         ### NOTE: it seems that all of the sources in debos_tcp_dict['dotastro_srcid_to_debos_srcname']
         ####   have more than 0 epochs in TCP
         debos_tcp_dict['srcid_nepochs'] = {}
-        for tcp_srcid, deb_srcid_list in debos_tcp_dict['dotastro_srcid_to_debos_srcname'].items():
-            select_str = "select nobjs from srcid_lookup where src_id = %d" % (tcp_srcid + 100000000)
+        for tcp_srcid, deb_srcid_list in debos_tcp_dict['dotastro_srcid_to_debos_srcname'].iteritems():
+            select_str = "select nobjs from srcid_lookup where src_id = %d" % (tcp_srcid + 100000000) 
             self.tcp_cursor.execute(select_str)
             results = self.tcp_cursor.fetchall()
             if len(results) == 0:
-                print("NONE!!!:", tcp_srcid)
+                print "NONE!!!:", tcp_srcid
             elif results[0][0] < 1:
-                print("NO epochs in TCP", tcp_srcid, results[0], deb_srcid_list, debos_tcp_dict['dotastro_srcid_to_attribfiles'][tcp_srcid])
+                print "NO epochs in TCP", tcp_srcid, results[0], deb_srcid_list, debos_tcp_dict['dotastro_srcid_to_attribfiles'][tcp_srcid]
             else:
                 debos_tcp_dict['srcid_nepochs'][tcp_srcid] = results[0][0]
 
         self.determine_deboss_classes_for_srcids(debos_tcp_dict)
-
+        
         #20110102disable# final_assocations_dict = self.determine_which_joey_downloaded_hip_is_not_in_tutor(debos_tcp_dict)
 
         new_debos_tcp_dict = self.confirm_idsdebdat_in_tutor()
@@ -416,7 +405,7 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
             if os.path.exists(pkl_fpath):
                 os.system('rm ' + pkl_fpath)
             fp = open(pkl_fpath, 'w')
-            pickle.dump(final_assocations_dict, fp)
+            cPickle.dump(final_assocations_dict, fp)
             fp.close()
             import pdb; pdb.set_trace()
 
@@ -429,11 +418,11 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
         ### TODO: count how many sources for each survey
 
-        print()
+        print
 
 
     def determine_which_joey_downloaded_hip_is_not_in_tutor(self, debos_tcp_dict):
-        """
+        """ 
 
         It seems "HD xxxx" sources also may have HIPPARCOS numbers not listed in Debos datasets
 
@@ -451,56 +440,56 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
         # I actually want to do this in reverse: look for all HIP
         tcpid_to_hipid = {}
-        for tcp_id, sublist in debos_tcp_dict['dotastro_srcid_to_debos_srcname'].items():
+        for tcp_id, sublist in debos_tcp_dict['dotastro_srcid_to_debos_srcname'].iteritems():
             hipid_str_list = sublist
-            if tcp_id not in debos_tcp_dict['tcpsrcid_surveys']:
+            if not debos_tcp_dict['tcpsrcid_surveys'].has_key(tcp_id):
                 hipid_str_list = []
                 for elem in sublist:
                     html_str = simbad_id_lookup.query_html(src_name=elem)
                     hip_ids = simbad_id_lookup.parse_html_for_ids(html_str, instr_identifier='HIP')
-                    print("NOT in debos_tcp_dict['tcpsrcid_surveys'], adding:", hip_ids, 'tcp_id:', tcp_id, 'deb_id:', sublist)
+                    print "NOT in debos_tcp_dict['tcpsrcid_surveys'], adding:", hip_ids, 'tcp_id:', tcp_id, 'deb_id:', sublist
                     hipid_str_list.extend(hip_ids)
                     #import pdb; pdb.set_trace()
                     # TODO: want to store that this is a deboss source which is HIP, but no tcp_id
                 if len(hipid_str_list) == 0:
-                    print('!!!', tcp_id, sublist)
-
+                    print '!!!', tcp_id, sublist
+                    
             elif debos_tcp_dict['tcpsrcid_surveys'][tcp_id] != 'hip':
                 continue
             assert(len(hipid_str_list) == 1)
 
             if 'HD' in hipid_str_list[0]:
-                if hipid_str_list[0] in simbad_hd_hip_dict:
+                if simbad_hd_hip_dict.has_key(hipid_str_list[0]):
                     hipid_str_list = [simbad_hd_hip_dict[hipid_str_list[0]]]
                 else:
                     html_str = simbad_id_lookup.query_html(src_name=hipid_str_list[0])
                     hip_ids = simbad_id_lookup.parse_html_for_ids(html_str, instr_identifier='HIP')
-                    print("HD with Simbad HIP: ", hip_ids, 'tcp_id:', tcp_id, 'deb_id:', sublist)
+                    print "HD with Simbad HIP: ", hip_ids, 'tcp_id:', tcp_id, 'deb_id:', sublist
                     hipid_str_list = hip_ids
-
+                
 
             ### So now we can store hip_id:tcp_id
             hipid_str = hipid_str_list[0][hipid_str_list[0].find('HIP ') + 4:]
 
             tcpid_to_hipid[tcp_id] = int(hipid_str)
 
-            if int(hipid_str) not in all_hipids_dict:
+            if not all_hipids_dict.has_key(int(hipid_str)):
                 #all_hipids_dict[int(hipid_str)] = ['NONE', tcp_id, sublist[0], debos_tcp_dict['tcpsrcid_classes'][tcp_id]]
                 all_hipids_dict[int(hipid_str)] = {'xml':'NO XML', 'tutorid':tcp_id, 'tutor_name':sublist[0], 'tcp_class':debos_tcp_dict['tcpsrcid_classes'][tcp_id]}
             else:
                 #all_hipids_dict[int(hipid_str)].extend([tcp_id, sublist[0], debos_tcp_dict['tcpsrcid_classes'][tcp_id]])
-                if 'tutorid' in all_hipids_dict[int(hipid_str)]:
+                if all_hipids_dict[int(hipid_str)].has_key('tutorid'):
                     #all_hipids_dict[int(hipid_str)].update({'extra':[tcp_id, sublist[0], debos_tcp_dict['tcpsrcid_classes'][tcp_id]], 'comment':"extra tutor srcid"})
                     all_hipids_dict[int(hipid_str)].update({'comment':"extra tutor srcid"})
                 else:
                     all_hipids_dict[int(hipid_str)].update({'tutorid':tcp_id, 'tutor_name':sublist[0], 'tcp_class':debos_tcp_dict['tcpsrcid_classes'][tcp_id]})
-
+ 
 
 
         ##### Some summary metrics:
         #import pprint
         #pprint.pprint(all_hipids_dict)
-        hids_sort = list(all_hipids_dict.keys())
+        hids_sort = all_hipids_dict.keys()
         hids_sort.sort()
         #for hid in hids_sort:
         #    hlist = all_hipids_dict[hid]
@@ -508,19 +497,19 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
         joey_hipids_not_in_tutor = []
         for hip_id in joey_hip_ids:
-            if hip_id not in list(tcpid_to_hipid.values()):
+            if hip_id not in tcpid_to_hipid.values():
                 joey_hipids_not_in_tutor.append(hip_id)
 
-        print()
-        print("num of hip_ids that joey found but which are not in TUTOR:%d" % (len(joey_hipids_not_in_tutor)))
+        print
+        print "num of hip_ids that joey found but which are not in TUTOR:%d" % (len(joey_hipids_not_in_tutor))
 
-        print("There are 845 HIP sources with TCP_ids, 1044 Joey HIP sources")
-        print("this means there should be 199 HIP sources which joey found which are not in TCP")
-        print("There are supposedly 272 joey sources which do not have TCP matches, using above compare algos")
-        print()
-
+        print "There are 845 HIP sources with TCP_ids, 1044 Joey HIP sources"
+        print "this means there should be 199 HIP sources which joey found which are not in TCP"
+        print "There are supposedly 272 joey sources which do not have TCP matches, using above compare algos"
+        print
+        
         ##### Summary of final associations for each joey-xml file:
-        hids_sort = list(all_hipids_dict.keys())
+        hids_sort = all_hipids_dict.keys()
         hids_sort.sort()
         final_hipids_dict = {}
 
@@ -541,20 +530,20 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
             #if hid == 26403:
             #    import pdb; pdb.set_trace()
             hdict = all_hipids_dict[hid]
-            if hid in josh_classifs:
+            if josh_classifs.has_key(hid):
                 hdict.update(josh_classifs[hid])
-            if 'tcp_class' in hdict:
+            if hdict.has_key('tcp_class'):
                 if type(hdict['tcp_class']) == type([]):
                     #assert(len(hdict['tcp_class']) == 1)
                     if len(hdict['tcp_class']) == 2:
-                        print("DOUBLE CLASS:", hdict)
+                        print "DOUBLE CLASS:", hdict
                         hdict['tcp_class'] = [hdict['tcp_class'][0]]
                     elif len(hdict['tcp_class']) == 0:
-                        print("$$$ NO CLASS$$$:", hdict)
+                        print "$$$ NO CLASS$$$:", hdict
                 else:
                     hdict['tcp_class'] = [hdict['tcp_class']]
             else:
-                if not hid in list(simbad_classes.keys()):
+                if not hid in simbad_classes.keys():
                     a_str = simbad_id_lookup.query_votable(src_name = "HIP %d" % (hid))
                     sci_class = simbad_id_lookup.parse_class(a_str)
                 else:
@@ -563,37 +552,37 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
                 ### ok, now check whether this corresponds to debos_classifs
                 test_srcname = "HIP %d" % (hid)
-                if hid in dstarr_newsrc_classes:
+                if dstarr_newsrc_classes.has_key(hid):
                     deb_listdat_class = dstarr_newsrc_classes[hid]
                     if deb_listdat_class == '':
                         continue
-                    if test_srcname in position_dict:
+                    if position_dict.has_key(test_srcname):
                         radec_dict = position_dict[test_srcname]
                     else:
                         html_str = simbad_id_lookup.query_html(src_name=test_srcname)
                         hd_ids = simbad_id_lookup.parse_html_for_ids(html_str, instr_identifier='HD')
-                        if hd_ids[0] in debos_classifs:
+                        if debos_classifs.has_key(hd_ids[0]):
                             radec_dict = position_dict[hd_ids[0]]
                         else:
-                            print(hid, "4_NO_MATCH", test_srcname, deb_src_class, hd_ids)
-
-                elif test_srcname in debos_classifs:
+                            print hid, "4_NO_MATCH", test_srcname, deb_src_class, hd_ids
+                        
+                elif debos_classifs.has_key(test_srcname):
                     #print hid, '1_deb:', debos_classifs[test_srcname], 'mine:', deb_sci_class
                     deb_listdat_class = debos_classifs[test_srcname]
                     radec_dict = position_dict[test_srcname]
-                elif hdict.get('tutor_name','xxx') in debos_classifs:
+                elif debos_classifs.has_key(hdict.get('tutor_name','xxx')):
                     #print hid, '2_deb:', debos_classifs[hdict['tutor_name']], 'mine:', deb_sci_class
                     deb_listdat_class = debos_classifs[hdict['tutor_name']]
                     radec_dict = position_dict[hdict['tutor_name']]
                 else:
                     html_str = simbad_id_lookup.query_html(src_name=test_srcname)
                     hd_ids = simbad_id_lookup.parse_html_for_ids(html_str, instr_identifier='HD')
-                    if hd_ids[0] in debos_classifs:
+                    if debos_classifs.has_key(hd_ids[0]):
                         #print hid, '3_deb:', debos_classifs[hd_ids[0]], 'mine:', deb_sci_class
                         deb_listdat_class = debos_classifs[hd_ids[0]]
                         radec_dict = position_dict[hd_ids[0]]
                     else:
-                        print(hid, "4_NO_MATCH", test_srcname, deb_src_class, hd_ids)
+                        print hid, "4_NO_MATCH", test_srcname, deb_src_class, hd_ids
 
                 if deb_listdat_class != deb_sci_class:
                     #print '!!!mismatch classes: ', hid, 'listdat:', deb_listdat_class, 'mine:', deb_sci_class
@@ -603,19 +592,19 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 hdict.update(radec_dict)
                 #print hid, sci_class
 
-            print("HIP=%d\txml='%s'\tclass='%s'\tTutorID=%s\tcomment='%s'\tra=%4.4f\tdec=%4.4f" % ( \
+            print "HIP=%d\txml='%s'\tclass='%s'\tTutorID=%s\tcomment='%s'\tra=%4.4f\tdec=%4.4f" % ( \
                        hid,
                        hdict['xml'],
                        hdict['tcp_class'],
                        hdict.get('tutorid',"''"),
                        hdict.get('comment',''),
                        hdict.get('ra',0.0),
-                       hdict.get('dec',0.0)))
+                       hdict.get('dec',0.0))
             return_dict[hid] = hdict
 
 
         return return_dict
-
+        
         #unmatched_deb_ids = []
         #for sublist in debos_tcp_dict['dotastro_srcid_to_debos_srcname'].values():
         #    unmatched_deb_ids.extend(sublist)
@@ -669,7 +658,7 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
             fname = vals[0]
             class_list = vals[1:]
 
-            assert(fname not in debclass_dict)
+            assert(not debclass_dict.has_key(fname))
             debclass_dict[fname] = class_list
 
         return debclass_dict
@@ -678,12 +667,12 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
     def get_somefeats_for_tutor_sourceid(self, src_id=None):
         """ parse existing xmls with extracted features, to determine the source period
         """
-        sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract/Code/extractors'))
+        sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract/Code/extractors')) 
         import mlens3
 
         d = mlens3.EventData("/home/pteluser/scratch/vosource_xml_writedir/%d.xml" % \
                              (100000000 + src_id))
-        filt_list  = list(d.feat_dict.keys())
+        filt_list  = d.feat_dict.keys()
         filt_list.remove('multiband')
         filt = filt_list[0]
         f1_str = d.feat_dict[filt]['freq1_harmonics_freq_0']['val']['_text']
@@ -702,13 +691,13 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
         surveys_for_class = {}
         nepoch_list_per_survey = {'ogle':[], 'hip':[]}
         i = 0
-        for src_id, class_list in debos_tcp_dict['tcpsrcid_classes'].items():
-            print("count_sources(%d/%d)" % (i, len(debos_tcp_dict['tcpsrcid_classes'])))
+        for src_id, class_list in debos_tcp_dict['tcpsrcid_classes'].iteritems():
+            print "count_sources(%d/%d)" % (i, len(debos_tcp_dict['tcpsrcid_classes']))
             i+= 1
             #pre20110101# for a_class in class_list:
             #### So, post 20110101: we assume the first class is the chosen class
             for a_class in class_list[:1]:
-                if a_class not in class_count:
+                if not class_count.has_key(a_class):
                     class_count[a_class] = 0
                     class_nepoch_lists[a_class] = []
                     class_period_lists[a_class] = []
@@ -731,7 +720,7 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
         survey_count = {'hip':0, 'ogle':0}
         survey_nepoch_lists = {'hip':[], 'ogle':[]}
-        for src_id, survey in debos_tcp_dict['tcpsrcid_surveys'].items():
+        for src_id, survey in debos_tcp_dict['tcpsrcid_surveys'].iteritems():
             survey_count[survey] += 1
             survey_nepoch_lists[survey].append(debos_tcp_dict['srcid_nepochs'][src_id])
 
@@ -766,7 +755,7 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                       'EB', # beta lyrae
                       'EW', # w ursae major
                       ]
-        print("class\t NLC\t %NLCdeb\tsurvey\t<Npts>\t min(f1)\t<f1>\t max(f1)")
+        print "class\t NLC\t %NLCdeb\tsurvey\t<Npts>\t min(f1)\t<f1>\t max(f1)"
         for deb_class in class_keys:
             count = class_count[deb_class]
 
@@ -781,24 +770,24 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 survey_str = "HIPPARCOS"
             else:
                 survey_str = "XXXXXXXXXXXXXXXXXXXX"
-
-
+                
+                
 
             #print "%s\t %d\t %0.1f\t\t%d\t %0.4f\t\t%0.2f\t %0.4f" % ( \
-            print("%s\t &%d\t &%0.1f\t\t&%s&%d\t &%0.4f\t&%0.2f\t &%0.4f\\\\" % ( \
+            print "%s\t &%d\t &%0.1f\t\t&%s&%d\t &%0.4f\t&%0.2f\t &%0.4f\\\\" % ( \
                                                 deb_class,
                                                 count,
                                                 count / float(self.pars['deb_src_counts'][deb_class]) * 100.,
                                                 survey_str,
                                                 int(sum(class_nepoch_lists[deb_class])/ \
                                                     float(len(class_nepoch_lists[deb_class]))),
-                                                min(class_period_lists[deb_class]),
+                                                min(class_period_lists[deb_class]), 
                                                 sum(class_period_lists[deb_class])/ \
                                                 float(len(class_period_lists[deb_class])),
-                                                max(class_period_lists[deb_class])))
-
-        print()
-        print("survey\t NLC\t %NLCdeb <Npts>")
+                                                max(class_period_lists[deb_class]))
+            
+        print
+        print "survey\t NLC\t %NLCdeb <Npts>"
         survey_names = {'hip':'HIPPARCOS', 'ogle':'OGLE'}
         nepochs_debos = {'hip':1044, 'ogle':527}
         for survey in ['hip', 'ogle']:
@@ -808,12 +797,12 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
             nepoch_avg = sum(nepoch_list_per_survey[survey]) / float(len(nepoch_list_per_survey[survey]))
 
             #print "%s\t %d\t %0.1f\t %d" % ( \
-            print("%s\t &%d\t &%0.1f\t &%d\\\\" % ( \
+            print "%s\t &%d\t &%0.1f\t &%d\\\\" % ( \
                                             survey_names[survey],
                                             count,
                                             count / float(nepochs_debos[survey]) * 100.,
-                                            int(nepoch_avg)))
-
+                                            int(nepoch_avg))
+                    
         import pdb; pdb.set_trace()
 
 
@@ -840,9 +829,9 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 self.tutor_cursor.execute(select_str)
                 results = self.tutor_cursor.fetchall()
                 if len(results) > 1:
-                    print("matches > 1:", f_id, survey)
+                    print "matches > 1:", f_id, survey
                     for res in results:
-                        print('          ', res)
+                        print '          ', res
                 elif len(results) == 1:
                     (source_id, source_name, class_short_name) = results[0]
                 else:
@@ -851,15 +840,15 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                     self.tutor_cursor.execute(select_str)
                     results = self.tutor_cursor.fetchall()
                     if len(results) > 1:
-                        print("matches > 1:", f_id, survey)
+                        print "matches > 1:", f_id, survey
                         for res in results:
-                            print('          ', res)
+                            print '          ', res
                     elif len(results) == 1:
                         (source_id, source_name, class_short_name) = results[0]
                     else:
                         f_hdname = 'HD ' + str(f_id)
                         f_hipname = 'HIP ' + str(f_id)
-                        for hd_name, hip_name in simbad_hd_hip_dict.items():
+                        for hd_name, hip_name in simbad_hd_hip_dict.iteritems():
                             if f_hdname == hd_name:
                                 # then we query using the hip_name since query using hd_name nowork
                                 select_str = 'select source_id, source_name, class_short_name from sources JOIN classes using (class_id) where project_id=123 and source_name="%s"' % (hip_name.replace(' ',''))
@@ -873,13 +862,13 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                                 else:
                                     (source_id, source_name, class_short_name) = results[0]
 
-                                print(results)
+                                print results
                                 import pdb; pdb.set_trace()
-                                print()
+                                print
                                 break
 
                             elif f_hipname == hip_name:
-                                # then we query using the hd_name
+                                # then we query using the hd_name 
                                 select_str = 'select source_id, source_name, class_short_name from sources JOIN classes using (class_id) where project_id=123 and source_name="%s"' % (hd_name.replace(' ',''))
                                 self.tutor_cursor.execute(select_str)
                                 results = self.tutor_cursor.fetchall()
@@ -892,41 +881,41 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                                     (source_id, source_name, class_short_name) = results[0]
                                 break
 
-
+                        
 
             elif survey == 'ogle':
                 select_str = 'select source_id, source_name, class_short_name from sources JOIN classes using (class_id) where project_id=122 and source_id=%d' % (f_id)
                 self.tutor_cursor.execute(select_str)
                 results = self.tutor_cursor.fetchall()
                 if len(results) > 1:
-                    print("matches > 1:(in proj=122)", f_id, survey)
+                    print "matches > 1:(in proj=122)", f_id, survey
                     for res in results:
-                        print('          ', res)
+                        print '          ', res
                     continue
                 elif len(results) == 0:
-                    print("matches ==0:(in proj=122)", f_id, survey)
+                    print "matches ==0:(in proj=122)", f_id, survey
                     continue
                 (source_id_122, source_name_122, class_short_name_122) = results[0]
                 select_str = 'select source_id, source_name, class_short_name from sources JOIN classes using (class_id) where project_id=123 and source_name="%s"' % (source_name_122)
                 self.tutor_cursor.execute(select_str)
                 results = self.tutor_cursor.fetchall()
                 if len(results) > 1:
-                    print("source_name matches > 1:(in proj=123)", f_id, survey)
+                    print "source_name matches > 1:(in proj=123)", f_id, survey
                     for res in results:
-                        print('          ', res)
+                        print '          ', res
                     continue
                 elif len(results) == 0:
-                    print("source_name matches ==0:(in proj=123)", f_id, survey)
+                    print "source_name matches ==0:(in proj=123)", f_id, survey
                     continue
                 (source_id, source_name, class_short_name) = results[0]
                 if class_short_name != class_short_name_122:
-                    print("id_123=%d source_name=%s class_123=%s class_122=%s" % \
-                          (source_id, source_name, class_short_name, class_short_name_122))
+                    print "id_123=%d source_name=%s class_123=%s class_122=%s" % \
+                          (source_id, source_name, class_short_name, class_short_name_122)
 
             # KLUDGEY:
             class_short_name_upper = class_short_name.upper()
             matched_class = False
-            for deb_cname, tut_cname in self.pars['debosscher_class_lookup'].items():
+            for deb_cname, tut_cname in self.pars['debosscher_class_lookup'].iteritems():
                 if class_short_name == tut_cname:
                     deb_class = deb_cname
                     matched_class = True
@@ -936,11 +925,11 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                     matched_class = True
                     break
             if matched_class == False:
-                print(tcp_srcid, fname_list, class_short_name)
+                print tcp_srcid, fname_list, class_short_name
                 import pdb; pdb.set_trace()
-                print()
+                print
             #print '#', f_id, source_id, source_name, class_short_name
-            print(f_id, '\t', deb_cname, '\t', source_name)
+            print f_id, '\t', deb_cname, '\t', source_name
             out_dict['tcpsrcid_classes'][source_id] = [deb_cname]
             out_dict['tcpsrcid_surveys'][source_id] = survey
             out_dict['srcid_nepochs'][source_id] = 1
@@ -950,23 +939,23 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
     def determine_deboss_classes_for_srcids(self, debos_tcp_dict):
         """ For each tcp_srcid, determine the 1 or more debosscher classes taken from the Deboss datafiles.
-        """
+        """ 
         debclass_dict_ogle = self.fill_debclass_dict(self.pars['debclass_ogle_fpath'])
-        ogle_fnames = list(debclass_dict_ogle.keys())
+        ogle_fnames = debclass_dict_ogle.keys()
 
         debclass_dict_hip = self.fill_debclass_dict(self.pars['debclass_hip_fpath'])
-        hip_fnames = list(debclass_dict_hip.keys())
+        hip_fnames = debclass_dict_hip.keys()
 
 
         tcpsrcid_surveys = {}
         tcpsrcid_classes = {}
-        for tcp_srcid, fname_list in debos_tcp_dict['dotastro_srcid_to_attribfiles'].items():
+        for tcp_srcid, fname_list in debos_tcp_dict['dotastro_srcid_to_attribfiles'].iteritems():
             select_str = "select class_short_name, source_name from sources JOIN classes using (class_id) where project_id=123 and source_id=%d" % (tcp_srcid)
             self.tutor_cursor.execute(select_str)
             results = self.tutor_cursor.fetchall()
 
             if len(results) == 0:
-                print("NONE!!!:", tcp_srcid, "Data file not in ts-OGLE / ts-HIPPARCOS files:", fname, tcp_srcid)
+                print "NONE!!!:", tcp_srcid, "Data file not in ts-OGLE / ts-HIPPARCOS files:", fname, tcp_srcid
                 continue
             class_short_name = results[0][0]
             source_name = results[0][1]
@@ -976,14 +965,14 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 tcpsrcid_surveys[tcp_srcid] = 'ogle'
             else:
                 hdname = source_name.replace('HD','HD ')
-                if hdname in list(simbad_hd_hip_dict.keys()):
+                if hdname in simbad_hd_hip_dict.keys():
                     tcpsrcid_surveys[tcp_srcid] = 'hip'
                 else:
-                    print('!!! survey not known!', tcp_srcid, source_name)
+                    print '!!! survey not known!', tcp_srcid, source_name
             # KLUDGEY:
             class_short_name_upper = class_short_name.upper()
             matched_class = False
-            for deb_cname, tut_cname in self.pars['debosscher_class_lookup'].items():
+            for deb_cname, tut_cname in self.pars['debosscher_class_lookup'].iteritems():
                 if class_short_name == tut_cname:
                     tcpsrcid_classes[tcp_srcid] = [deb_cname]
                     matched_class = True
@@ -993,9 +982,9 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                     matched_class = True
                     break
             if matched_class == False:
-                print(tcp_srcid, fname_list, class_short_name)
+                print tcp_srcid, fname_list, class_short_name
                 import pdb; pdb.set_trace()
-                print()
+                print
 
         debos_tcp_dict['tcpsrcid_classes'] = tcpsrcid_classes
         debos_tcp_dict['tcpsrcid_surveys'] = tcpsrcid_surveys
@@ -1003,22 +992,22 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
     def determine_deboss_classes_for_srcids__old(self, debos_tcp_dict):
         """ For each tcp_srcid, determine the 1 or more debosscher classes taken from the Deboss datafiles.
-        """
+        """ 
 
         debclass_dict = {} # 'LC_fname':[<class1>, <class2>]
 
         debclass_dict_ogle = self.fill_debclass_dict(self.pars['debclass_ogle_fpath'])
         debclass_dict.update(debclass_dict_ogle)
-        ogle_fnames = list(debclass_dict_ogle.keys())
+        ogle_fnames = debclass_dict_ogle.keys()
 
         debclass_dict_hip = self.fill_debclass_dict(self.pars['debclass_hip_fpath'])
         debclass_dict.update(debclass_dict_hip)
-        hip_fnames = list(debclass_dict_hip.keys())
+        hip_fnames = debclass_dict_hip.keys()
 
 
         tcpsrcid_surveys = {}
         tcpsrcid_classes = {}
-        for tcp_srcid, fname_list in debos_tcp_dict['dotastro_srcid_to_attribfiles'].items():
+        for tcp_srcid, fname_list in debos_tcp_dict['dotastro_srcid_to_attribfiles'].iteritems():
             #if tcp_srcid == 163844:
             #    print 'yo' #164149:
             tcpsrcid_classes[tcp_srcid] = []
@@ -1029,29 +1018,29 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 else:
                     sorted_fname_list.append(fname)
             for fname in sorted_fname_list:
-                if fname not in debclass_dict:
+                if not debclass_dict.has_key(fname):
                     # NOTE: I checked a selection of these and indeed there dont seem to be these fnames or similar numbers in the ts-OGLE / ts-HIPPARCOS files:
                     #print "Data file not in ts-OGLE / ts-HIPPARCOS files:", fname, tcp_srcid
                     select_str = "select class_short_name, source_name from sources JOIN classes using (class_id) where project_id=123 and source_id=%d" % (tcp_srcid)
                     self.tutor_cursor.execute(select_str)
                     results = self.tutor_cursor.fetchall()
                     if len(results) == 0:
-                        print("NONE!!!:", tcp_srcid, "Data file not in ts-OGLE / ts-HIPPARCOS files:", fname, tcp_srcid)
+                        print "NONE!!!:", tcp_srcid, "Data file not in ts-OGLE / ts-HIPPARCOS files:", fname, tcp_srcid
                         continue
                     class_short_name = results[0][0]
                     source_name = results[0][1]
-                    if tcp_srcid not in tcpsrcid_surveys:
+                    if not tcpsrcid_surveys.has_key(tcp_srcid):
                         if 'hip' in source_name.lower():
                             tcpsrcid_surveys[tcp_srcid] = 'hip'
                         else:
                             tcpsrcid_surveys[tcp_srcid] = 'ogle' # if below doesnt match, then we use this
                             for a_fname in hip_fnames:
                                 if fname in a_fname:
-                                    print("! ! ! ! tcp_srcid=%d: source_name=%s not HIPlike, but fname=%s is in ts-HIPPARCOS" % (tcp_src_id, source_name, fname))
+                                    print "! ! ! ! tcp_srcid=%d: source_name=%s not HIPlike, but fname=%s is in ts-HIPPARCOS" % (tcp_src_id, source_name, fname)
                                     tcpsrcid_surveys[tcp_srcid] = 'hip'
                                     break
                     # KLUDGEY:
-                    for deb_cname, tut_cname in self.pars['debosscher_class_lookup'].items():
+                    for deb_cname, tut_cname in self.pars['debosscher_class_lookup'].iteritems():
                         if class_short_name == tut_cname:
                             tcpsrcid_classes[tcp_srcid].append(deb_cname)
                             break
@@ -1063,13 +1052,13 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 elif fname in hip_fnames:
                     assert(tcpsrcid_surveys.get(tcp_srcid, 'hip') == 'hip')
                     tcpsrcid_surveys[tcp_srcid] = 'hip'
-
+                    
                 for a_class in debclass_dict[fname]:
                     assert(not a_class in tcpsrcid_classes[tcp_srcid])
                 tcpsrcid_classes[tcp_srcid].extend(debclass_dict[fname])
 
-
-
+        
+                
 
         ### For each srcid:[filename], get the classes
         ###   -> ensure that for a srcid, there are not more than the classes what are defined for a single data file
@@ -1083,8 +1072,8 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
         #    for deb_class in deb_class_list:
         #        print self.pars['debosscher_class_lookup'][deb_class],
         #    print '; Nepochs:', debos_tcp_dict['srcid_nepochs'][tcp_srcid], tcpsrcid_surveys[tcp_srcid]
-
-
+            
+            
         debos_tcp_dict['tcpsrcid_classes'] = tcpsrcid_classes
         debos_tcp_dict['tcpsrcid_surveys'] = tcpsrcid_surveys
 
@@ -1121,23 +1110,23 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
         dotastro_srcid_to_attribfiles = {}
         dotastro_srcid_to_debos_srcname = {}
         # # #import pdb; pdb.set_trace()
-        for source_name, fname_list in deboss_srcname_fname_lookup.items():
+        for source_name, fname_list in deboss_srcname_fname_lookup.iteritems():
             #if 'HIP 54413' in source_name:
             #    print 'yo'
             debos_srcname_to_dotastro_srcid[source_name] = []
             fname_match_found = False
             for filename in fname_list:
                 select_str = 'SELECT source_id, source_name, project_id, class_id, pclass_id FROM sources WHERE project_id=123 and source_name = "%s"' % (source_name)
-                print(select_str)
+                print select_str
                 self.tutor_cursor.execute(select_str)
                 results = self.tutor_cursor.fetchall()
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if results[0][0] not in dotastro_srcid_to_attribfiles:
+                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
+                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -1148,10 +1137,10 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if results[0][0] not in dotastro_srcid_to_attribfiles:
+                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
+                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -1162,10 +1151,10 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if results[0][0] not in dotastro_srcid_to_attribfiles:
+                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
+                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -1176,10 +1165,10 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if results[0][0] not in dotastro_srcid_to_attribfiles:
+                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
+                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -1192,10 +1181,10 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 if len(results) != 0:
                     if results[0][0] not in debos_srcname_to_dotastro_srcid[source_name]:
                         debos_srcname_to_dotastro_srcid[source_name].append(results[0][0])
-                    if results[0][0] not in dotastro_srcid_to_attribfiles:
+                    if not dotastro_srcid_to_attribfiles.has_key(results[0][0]):
                         dotastro_srcid_to_attribfiles[results[0][0]] = []
                     dotastro_srcid_to_attribfiles[results[0][0]].append(filename)
-                    if results[0][0] not in dotastro_srcid_to_debos_srcname:
+                    if not dotastro_srcid_to_debos_srcname.has_key(results[0][0]):
                         dotastro_srcid_to_debos_srcname[results[0][0]] = []
                     if not source_name in dotastro_srcid_to_debos_srcname[results[0][0]]:
                         dotastro_srcid_to_debos_srcname[results[0][0]].append(source_name)
@@ -1206,12 +1195,12 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
 
         #for dotastro_srcid, debos_srcname in dotastro_srcid_to_debos_srcname.iteritems():
         #    print dotastro_srcid, debos_srcname
-
+        
         dotastro_srcid_to_debos_attribs = {}
-        for dotastro_srcid, attribfiles in dotastro_srcid_to_attribfiles.items():
+        for dotastro_srcid, attribfiles in dotastro_srcid_to_attribfiles.iteritems():
             matches_found = 0
             for attrib_file in attribfiles:
-                if attrib_file in deboss_attrib_dict:
+                if deboss_attrib_dict.has_key(attrib_file):
                     if os.path.exists("/home/pteluser/analysis/debosscher_20100707/TS-HIPPARCOS/" + attrib_file):
                         matches_found += 1
                         # I've checked that this only occurs once per dotastro sourceid (no multi LCs in there):
@@ -1232,7 +1221,7 @@ class Deb_Paper_Analysis(analysis_deboss_tcp_source_compare.Analysis_Deboss_TCP_
                 'dotastro_srcid_to_attribfiles':dotastro_srcid_to_attribfiles}
 
 
-class tutor_db(object):
+class tutor_db:
     """
     """
     def __init__(self):
@@ -1258,13 +1247,13 @@ class tutor_db(object):
 if __name__ == '__main__':
     #db = tutor_db()
 
-
+    
     ### 20101118: This pars{} is taken from analysis_deboss_tcp_source_compare.py:
     pars_tutor = {'num_percent_epoch_error_iterations':2, # !!! NOTE: This must be the same in pairwise_classification.py:pars[]
             'subsample_percents_to_generate_xmls':[0.1], # This takes 22 cores ??? considering that tranx will do a second round (count=22 + 8)  # # # #TODO: 16perc * 9sets is much more reasonable, memory/resource/ipython-node wise
             'tcp_hostname':'192.168.1.25',
             'tcp_username':'pteluser',
-            'tcp_port':     3306,
+            'tcp_port':     3306, 
             'tcp_database':'source_test_db',
             'tcptutor_hostname':'192.168.1.103',
             'tcptutor_username':'tutor',
@@ -1286,7 +1275,7 @@ if __name__ == '__main__':
             'crossvalid_fold_percent':40., #NOTE: only valid if do_stratified=False  #float x in x/y OR None==just use the percent 1/nfolds
             'tcp_hostname':'192.168.1.25',
             'tcp_username':'pteluser',
-            'tcp_port':     3306,
+            'tcp_port':     3306, 
             'tcp_database':'source_test_db',
             'dotastro_arff_fpath':os.path.expandvars('$HOME/scratch/train_output_20100517_dotastro_xml_with_features__default.arff'),#os.path.expandvars('$HOME/scratch/train_output_20100517_dotastro_xml_with_features.arff'),
             'arff_sciclass_dict_pkl_fpath':os.path.expandvars('$HOME/scratch/arff_sciclass_dict.pkl'),
@@ -1348,7 +1337,7 @@ if __name__ == '__main__':
             'debosscher_confusion_table3_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/debosscher_table3.html'),
             'debosscher_confusion_table4_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/debosscher_table4.html'),
             'debosscher_class_lookup':{ \
-                'BCEP':'bc',
+                'BCEP':'bc',    
                 'BE':'be', #NO LCs   # Pulsating Be-stars  (57) : HIP, GENEVA
                 'CLCEP':'dc',
                 'CP':'CP',

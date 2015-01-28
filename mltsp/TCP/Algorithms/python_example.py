@@ -1,16 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 An example / demo file on how to connect to TCP MySQL server
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 
 import sys, os
@@ -18,7 +9,7 @@ import MySQLdb
 import pprint
 
 
-class Postgre_Database_Class_Example(object):
+class Postgre_Database_Class_Example:
     """
     This class is used to demo a postgre database connection.
 
@@ -27,17 +18,17 @@ class Postgre_Database_Class_Example(object):
 
     def __init__(self, pars):
         """ This is a function which is always called upon class initialization.
-
+        
         """
         # This can set a passed in parameter dictionary to a variable which is
         #    usable through-out this class/object.
-        self.pars = pars
+        self.pars = pars 
 
     def print_rows_in_html_table_form(self, rows):
         """ This demo just prints the row results in something which
         could be saved as an html file and then viewed using a web browser.
         The links for sources could then be followed.
-
+    
         """
         out_str = ""
 
@@ -57,9 +48,9 @@ class Postgre_Database_Class_Example(object):
 </table>
 </body></html>
 """
-        print(out_str)
-
-        # Then, out_str could be file_pointer.write(out_str) to some .html file.
+        print out_str
+        
+        # Then, out_str could be file_pointer.write(out_str) to some .html file. 
 
         # You could also figure out the URL for more information about a PTF source (Caltech or a nersc.gov page, I think) and then print a link column into the above html string:
         #  something like:
@@ -71,7 +62,7 @@ class Postgre_Database_Class_Example(object):
         """ This is the main'ish function.
 
         This module should work on the tranx computer (psycopg2 is installed).
-
+        
         """
 
         import psycopg2
@@ -88,7 +79,7 @@ class Postgre_Database_Class_Example(object):
 
         rows = pg_cursor.fetchall()
         for row in rows:
-            print(row)
+            print row
 
         # Can also display the results in an html string (which could be written to file):
         self.print_rows_in_html_table_form(rows)
@@ -99,7 +90,7 @@ class Postgre_Database_Class_Example(object):
         """ This function gets the datapoint / epoch for a source, which
         is closest to the time that Mansi/Robert/Brad identified the source
         as interesting / a transient.
-
+        
         """
         import psycopg2
         conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
@@ -131,7 +122,7 @@ class Postgre_Database_Class_Example(object):
                                        'dec':row[3],
                                        'isspectra':row[4],
                                        'jd_time':row[5]}
-            print()
+            print
 
         # NOTE: Return a single ptf-events row/epoch/observation which
         #     most closely correlates to the Caltech classification time.
@@ -143,15 +134,15 @@ class Postgre_Database_Class_Example(object):
                              db=pars['mysql_database'],
                              port=pars['mysql_port'])
         cursor = db.cursor()
-
-        for ct_src_dict in list(caltech_sources.values()):
+        
+        for ct_src_dict in caltech_sources.values():
             #select_str = "SELECT T1.*, (T1.ujd - 2454972.8723) AS t_aftr_classif FROM (SELECT id, ra, decl, ujd, mag, mag_err, realbogus, obj_srcid_lookup.src_id FROM ptf_events_htm JOIN obj_srcid_lookup ON (id=obj_id) WHERE obj_srcid_lookup.survey_id=3 AND DIF_HTMCircle(258.96142767, 64.23848418, 0.05)) AS T1 WHERE (T1.ujd - 2454972.8723) > -0.1 ORDER BY src_id, ujd DESC"
             select_str = """
-SELECT object_test_db.obj_srcid_lookup.src_id, T1.id, T1.ujd, T1.mag, T1.realbogus, (T1.ujd - %lf) AS t_aftr_classif
+SELECT object_test_db.obj_srcid_lookup.src_id, T1.id, T1.ujd, T1.mag, T1.realbogus, (T1.ujd - %lf) AS t_aftr_classif 
 FROM
        (SELECT id, ra, decl, ujd, mag, mag_err, realbogus
-        FROM object_test_db.ptf_events_htm
-        WHERE DIF_HTMCircle(%lf, %lf, 0.05)) AS T1
+        FROM object_test_db.ptf_events_htm 
+        WHERE DIF_HTMCircle(%lf, %lf, 0.05)) AS T1 
 JOIN object_test_db.obj_srcid_lookup ON (T1.id=object_test_db.obj_srcid_lookup.obj_id)
 WHERE object_test_db.obj_srcid_lookup.survey_id=3
 ORDER BY src_id, ujd DESC
@@ -184,7 +175,7 @@ ORDER BY src_id, ujd DESC
         rows = pg_cursor.fetchall()
         for row in rows:
             (candidate_id, bogus, suspect, unclear, maybe, realish, realbogus) = row
-            print(candidate_id, realbogus)
+            print candidate_id, realbogus
 
 
 if __name__ == '__main__':
@@ -216,7 +207,7 @@ if __name__ == '__main__':
     cursor.execute(select_str)
     results = cursor.fetchall()
     for row in results:
-        print(row)
+        print row
 
 
     # This example queries the TCP Mysql database (on tranx), for a position,
@@ -245,13 +236,13 @@ SELECT id, ra, decl, ujd, mag, mag_err, realbogus, obj_srcid_lookup.src_id FROM 
 +---------+--------------+--------------+---------------+---------+---------+-----------+--------+
 | id      | ra           | decl         | ujd           | mag     | mag_err | realbogus | src_id |
 +---------+--------------+--------------+---------------+---------+---------+-----------+--------+
-| 4731119 | 258.96127891 | 64.238416648 |  2454972.8723 |  18.784 |  0.0226 |     0.002 |  50343 |
-| 4731815 | 258.96142767 |  64.23848418 | 2454972.91348 | 19.8342 |  0.0788 |     0.019 |  50343 |
+| 4731119 | 258.96127891 | 64.238416648 |  2454972.8723 |  18.784 |  0.0226 |     0.002 |  50343 | 
+| 4731815 | 258.96142767 |  64.23848418 | 2454972.91348 | 19.8342 |  0.0788 |     0.019 |  50343 | 
 +---------+--------------+--------------+---------------+---------+---------+-----------+--------+
 
 select sources.name, sources.ra, sources.dec, phot.mag, phot.emag, phot.filter, phot.obsdate from sources JOIN phot ON (phot.sourceid=sources.id) where sources.name='09aa' ORDER BY obsdate;
 
- name |     ra     |   dec    |   mag   |   emag   | filter |         obsdate
+ name |     ra     |   dec    |   mag   |   emag   | filter |         obsdate         
 ------+------------+----------+---------+----------+--------+-------------------------
  09aa | 173.336234 | -9.41118 |     999 |      999 | R      | 2009-02-20 06:46:01.983
  09aa | 173.336234 | -9.41118 |     999 |      999 | R      | 2009-02-20 10:14:15.683
@@ -262,7 +253,7 @@ select sources.name, sources.ra, sources.dec, phot.mag, phot.emag, phot.filter, 
 
 select sources.name, sources.ra, sources.dec, annotations.username, annotations.type, annotations.comment from sources JOIN annotations ON (annotations.sourceid=sources.id) where sources.name='09aa' limit 10;
 
-name |     ra     |   dec    | username |      type      |  comment
+name |     ra     |   dec    | username |      type      |  comment  
 ------+------------+----------+----------+----------------+-----------
  09aa | 173.336234 | -9.41118 | robert   | classification | SN Ia
  09aa | 173.336234 | -9.41118 | robert   | redshift       | 0.12
@@ -280,15 +271,15 @@ mysql> select src_id, ptf_events.id, ptf_events.ujd, ptf_events.mag, ptf_events.
 +--------+---------+---------------+---------+------------+
 | src_id | id      | ujd           | mag     | realbogus  |
 +--------+---------+---------------+---------+------------+
-| 466081 | 4227695 | 2454972.93413 | 19.3241 |  0.0248442 |
-| 466081 | 4226964 | 2454972.90348 | 19.8569 | 0.00284416 |
+| 466081 | 4227695 | 2454972.93413 | 19.3241 |  0.0248442 | 
+| 466081 | 4226964 | 2454972.90348 | 19.8569 | 0.00284416 | 
 +--------+---------+---------------+---------+------------+
 2 rows in set (0.05 sec)
 
 
 
 ptfcands=> select * from sources order by creationdate DESC limit 50;
-  id  | sub_id | cand_id | name | iauname | status | programid |     ra     |    dec    | era | edec | classification | redshift |        creationdate        |        lastmodified        | priority | scheduling
+  id  | sub_id | cand_id | name | iauname | status | programid |     ra     |    dec    | era | edec | classification | redshift |        creationdate        |        lastmodified        | priority | scheduling 
 ------+--------+---------+------+---------+--------+-----------+------------+-----------+-----+------+----------------+----------+----------------------------+----------------------------+----------+------------
  1266 |  12985 | 4447384 | 09ke |         | active |        -1 | 215.047294 | 51.740923 |     |      |                |          | 2009-05-21 20:12:06.438379 | 2009-05-21 20:12:06.438379 |        5 | auto
  1265 |  12433 | 4256479 | 09kd |         | active |        -1 | 255.859193 | 43.766691 |     |      |                |          | 2009-05-21 19:47:39.956362 | 2009-05-21 19:47:39.956362 |        5 | auto
@@ -339,16 +330,16 @@ select src_id, feat_id, feat_name, feat_val from feat_values JOIN feat_lookup US
 +--------+---------+--------------------------------------+------------------+
 | src_id | feat_id | feat_name                            | feat_val         |
 +--------+---------+--------------------------------------+------------------+
-|    118 |    1061 | amplitude                            |        0.5036405 |
-|    118 |     287 | beyond1std                           |                0 |
-|    118 |     440 | chi2                                 |    57122.0446203 |
+|    118 |    1061 | amplitude                            |        0.5036405 | 
+|    118 |     287 | beyond1std                           |                0 | 
+|    118 |     440 | chi2                                 |    57122.0446203 | 
 
 
 ### This mimics the query on the tcp_ptf_summary.php webpage:
 
-SELECT x.feat_val, y.feat_val FROM feat_values AS x
+SELECT x.feat_val, y.feat_val FROM feat_values AS x 
           JOIN srcid_lookup USING (src_id)
-    INNER JOIN feat_values AS y
+    INNER JOIN feat_values AS y 
             ON y.src_id = x.src_id
            AND y.feat_id=(SELECT feat_id FROM feat_lookup WHERE (
                           feat_lookup.filter_id = 8 AND
@@ -377,13 +368,13 @@ psql -d ptfcands -U tcp -h navtara.caltech.edu --password
 ######
 # Here is what columns are in the ptfcands.saved_cands table:
 ptfcands=> select * from saved_cands limit 1;
- canname |     ra     |    dec    |   x    |   y    |                     expname                     | scanner |       ip        | class | comments | datesaved |  a   |  b   |   mag   | fwhm | sigma | max2sig | max3sig | flag |   type    | rundate  | visit | field  | chip | shortname | isspectra |   z   | cannum | phase |   specdate    | date | id | sub_id | obsjd |      type2
+ canname |     ra     |    dec    |   x    |   y    |                     expname                     | scanner |       ip        | class | comments | datesaved |  a   |  b   |   mag   | fwhm | sigma | max2sig | max3sig | flag |   type    | rundate  | visit | field  | chip | shortname | isspectra |   z   | cannum | phase |   specdate    | date | id | sub_id | obsjd |      type2      
 ---------+------------+-----------+--------+--------+-------------------------------------------------+---------+-----------------+-------+----------+-----------+------+------+---------+------+-------+---------+---------+------+-----------+----------+-------+--------+------+-----------+-----------+-------+--------+-------+---------------+------+----+--------+-------+-----------------
          | 120.196928 | 46.948476 | 1786.7 | 3495.8 | PTF200903171418_2_o_14865_00.w_cd.ptf_100224_00 | mansi   | 198.202.125.194 | Ia    |          |           | 0.85 | 0.79 | 20.1955 |  2.4 |  7.73 |       5 |       1 |    0 | Transient | 20090317 | 1     | 100224 | 0    | 09h       | t         | 0.121 |     12 | -2d   | Mar 20.360082 |      |    |        |       | SurelyTransient
-
+         
          | 171.386532 | 13.636271 |   1386 |  218.6 | PTF200903023554_1_o_12989_09.w_cd.ptf_002_09    | robert  | 75.27.243.136   |       |          |           | 1.31 | 1.27 | 19.0126 | 2.91 |  16.3 |       1 |       0 |    0 | Rock      |          |       |        |      | None      |           |       |        |       |               |      |    |        |       |
-
-         | 171.167212 | 13.376099 |  628.4 | 1144.2 | PTF200903023554_1_o_12989_09.w_cd.ptf_002_09    | robert  | 75.27.243.136   |       |          |           | 1.38 | 1.27 | 18.6404 | 3.24 | 21.42 |       0 |       0 |    0 | Rock      |          |       |        |      | None      |           |       |        |       |               |      |    |        |       |
+         
+         | 171.167212 | 13.376099 |  628.4 | 1144.2 | PTF200903023554_1_o_12989_09.w_cd.ptf_002_09    | robert  | 75.27.243.136   |       |          |           | 1.38 | 1.27 | 18.6404 | 3.24 | 21.42 |       0 |       0 |    0 | Rock      |          |       |        |      | None      |           |       |        |       |               |      |    |        |       | 
 
 
 

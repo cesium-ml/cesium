@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 First version, using Josh's Grey groupthink .model
 
@@ -14,20 +14,11 @@ TODO: just format into the expected database output file format.
     - the output .arff file ???doesnt need to be disk-written??? for classification?
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 try:
     import psycopg2
 except:
-    print("cant: import psycopg2")
+    print "cant: import psycopg2"
     pass
 import ingest_tools
 import datetime
@@ -36,7 +27,7 @@ import time
 sys.path.append(os.path.expandvars('$TCP_DIR/Software/RealBogus/Code/'))
 import out2arff
 
-class Classify_LBL_PTF_Using_GroupThink(object):
+class Classify_LBL_PTF_Using_GroupThink:
     """ This handles applying groputhink real-bogus classifiers to
     LBL PTF candidates.
     """
@@ -109,23 +100,23 @@ class Classify_LBL_PTF_Using_GroupThink(object):
             self.ptf_sub_table_columns_list.append(a_tup[0])
 
         self.ptf_postgre_select_columns = ("candidate.%s, subtraction.%s" % (\
-                  ', candidate.'.join(self.ptf_candidate_table_columns_list[:-2]),
+                  ', candidate.'.join(self.ptf_candidate_table_columns_list[:-2]), 
                   ', subtraction.'.join(self.ptf_sub_table_columns_list))).replace('decl','dec')
 
         ### Import some modules:
         try:
             import jpype
         except:
-            print("EXCEPT: import jpype")
+            print "EXCEPT: import jpype"
         import weka_classifier
         os.environ["JAVA_HOME"] = '/usr/lib/jvm/java-6-sun-1.6.0.03'
         os.environ["CLASSPATH"] += os.path.expandvars(':$TCP_DIR/Software/ingest_tools')
         if not jpype.isJVMStarted():
             #TODO / DEBUG: disable the next line for speed-ups once stable?
-            _jvmArgs = ["-ea"] # enable assertions
-            _jvmArgs.append("-Djava.class.path=" + \
-                            os.environ["CLASSPATH"])
-            jpype.startJVM(jpype.getDefaultJVMPath(), *_jvmArgs)
+        	_jvmArgs = ["-ea"] # enable assertions
+        	_jvmArgs.append("-Djava.class.path=" + \
+                                os.environ["CLASSPATH"])
+        	jpype.startJVM(jpype.getDefaultJVMPath(), *_jvmArgs)
 
         model_fpath = '/home/pteluser/scratch/groupthink_training/PTFgray-short-weka357.model'
         training_arff_fpath = '/home/pteluser/scratch/groupthink_training/PTFgray-short-train-noid.arff'
@@ -162,7 +153,7 @@ class Classify_LBL_PTF_Using_GroupThink(object):
                     import psycopg2 # KLUDGE
                 except:
                     pass
-                print(datetime.datetime.utcnow(), 'EXCEPT near apply_groupthink_filter.py:L147: self.pg_cursor.execute().   Waiting 30 secs...')
+                print datetime.datetime.utcnow(), 'EXCEPT near apply_groupthink_filter.py:L147: self.pg_cursor.execute().   Waiting 30 secs...'
                 time.sleep(30) # something happened to the LBL PostgreSQL server.  Wait a bit.
                 try:
                     conn = psycopg2.connect(\
@@ -174,14 +165,14 @@ class Classify_LBL_PTF_Using_GroupThink(object):
                              ingest_tools.pars['ptf_postgre_port']))
                     self.pg_cursor = conn.cursor()
                 except:
-                    print("unable to do: conn = psycopg2.connect()")
+                    print "unable to do: conn = psycopg2.connect()"
 
 
         #self.pg_cursor.execute(select_str)
         #rdb_rows = self.pg_cursor.fetchall()
 
         out_list = [("%s|%s" % (\
-                  '|'.join(self.ptf_candidate_table_columns_list[:-2]),
+                  '|'.join(self.ptf_candidate_table_columns_list[:-2]), 
                   '|'.join(self.ptf_sub_table_columns_list))).replace('decl','dec')]
 
         rownum_lblid_lookup = {}
@@ -215,7 +206,7 @@ class Classify_LBL_PTF_Using_GroupThink(object):
         ################
             # TODO: now do the above functionality in a method which can be called by ptf_master # # # # when 1000 rows are available.
             # TODO: use 0.50 as the cut.
-            # TODO: restart the ptf_master system.
+            # TODO: restart the ptf_master system. 
 
 
     def get_ptf_rows_with_good_classification(self, ptf_rows,
@@ -266,6 +257,6 @@ if __name__ == '__main__':
                         id_classif_dict=id_classif_dict,
                         gt_perc_cut=0.05)
     for row in real_rows:
-        print(row[0], id_classif_dict[row[0]], row)
+        print row[0], id_classif_dict[row[0]], row
 
-    print('done')
+    print 'done'

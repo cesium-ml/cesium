@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.2 code adapted for src-id index generation as well
    v0.1 initial version: obj-id index generation
@@ -19,7 +19,7 @@ NOTE: There is a bit of a hysteresis in how quickly the clients add objects
      a miniute pause.
 NOTE: Often the pars['socket_server_port'] needs to be incremented on restart.
 
-NOTE: If MySQL tables are going to be dropped (for testing purposes),
+NOTE: If MySQL tables are going to be dropped (for testing purposes), 
       obj_id_sockets.py will need to be restarted, in order to account for
       the max(obj_id).
 NOTE: Client is run with methods:
@@ -29,17 +29,6 @@ NOTE: Server started using shell command:
         ./obj_id_sockets.py server_type=src_id
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from builtins import range
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import MySQLdb
 import socket
@@ -126,7 +115,7 @@ pars = {'server_type':'', # This must be specified as an argv parameter
         }
 
 
-class socket_server(object):
+class socket_server:
     """ The socket server class.  One instance needed for each index type.
 
     NOTE: (passed in) pars{} is expected to be either:
@@ -145,7 +134,7 @@ class socket_server(object):
 
     def get_current_max_obj_id(self):
         """ Query the MySQL database to determine the current max obj_id index.
-        NOTE: This assumes there are no other obj_id_sockets.py sessions
+        NOTE: This assumes there are no other obj_id_sockets.py sessions 
         currently running.
         """
         # First test if the table is new & with no lines:
@@ -154,9 +143,9 @@ class socket_server(object):
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         try:
-            n_rows = int(results[0][0])
+            n_rows = long(results[0][0])
         except:
-            print("ERROR: unable to retrieve count(*):", select_str)
+            print "ERROR: unable to retrieve count(*):", select_str
             sys.exit()
         if n_rows == 0:
             return 1 # start at obj_id = 1
@@ -167,13 +156,13 @@ class socket_server(object):
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         try:
-            max_obj_id = int(results[0][0])
+            max_obj_id = long(results[0][0])
         except:
-            print("ERROR: unable to retrieve max(obj_id):", select_str)
+            print "ERROR: unable to retrieve max(obj_id):", select_str
             sys.exit()
         return max_obj_id
 
-
+    
     def listen_loop(self, max_obj_id):
         """ Listening loop which waits for client requests
         """
@@ -181,11 +170,11 @@ class socket_server(object):
         try:
             s.bind(('', int(self.pars['socket_server_port'])))
         except:
-            print("!!! EXCEPT obj_id_sockets.py: ", self.server_type, self.pars['socket_server_port'], self.pars['socket_server_host_ip'], self.pars['rdb_server_user'], self.pars['rdb_server_db'], self.pars['obj_id_reference_tablename'])
-            raise
-        print("Listen Port:", self.pars['socket_server_port'])
-        cur_obj_id = max_obj_id
-        print("In listening loop...")
+            print "!!! EXCEPT obj_id_sockets.py: ", self.server_type, self.pars['socket_server_port'], self.pars['socket_server_host_ip'], self.pars['rdb_server_user'], self.pars['rdb_server_db'], self.pars['obj_id_reference_tablename']
+            raise 
+        print "Listen Port:", self.pars['socket_server_port']
+        cur_obj_id = max_obj_id 
+        print "In listening loop..."
         while 1:
             s.listen(1)
             while 1:
@@ -194,11 +183,11 @@ class socket_server(object):
                 rec_str = conn.recv(1024).strip("'")
                 if len(rec_str) ==0:
                     continue # skip blank lines, which terminate queries
-                num_rows_wanted = int(rec_str)
+                num_rows_wanted = long(rec_str)
                 out_i_low = cur_obj_id + 1
-                cur_obj_id = cur_obj_id + num_rows_wanted
+                cur_obj_id = cur_obj_id + num_rows_wanted 
                 out_i_high = cur_obj_id
-                print(datetime.datetime.now(), num_rows_wanted, out_i_low, out_i_high)
+                print datetime.datetime.now(), num_rows_wanted, out_i_low, out_i_high
                 out_str = "%d %d" % (out_i_low, out_i_high)
                 conn.send(out_str)
                 conn.close()
@@ -209,7 +198,7 @@ class socket_server(object):
         """ Main server runtime routine.
         """
         max_obj_id = self.get_current_max_obj_id()
-        print("Initial index:", max_obj_id)
+        print "Initial index:", max_obj_id
         self.listen_loop(max_obj_id)
 
 
@@ -217,7 +206,7 @@ class socket_server(object):
         """ Index server which generates groups of source-ids which client
         generates features and science-classifications for.
         """
-        ##### TODO:
+        ##### TODO: 
         # - bind to socket
         # - while 1 loop
         #   - retrieve 100k srcids using MySQL SELECT
@@ -228,9 +217,9 @@ class socket_server(object):
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(('', int(self.pars['socket_server_port'])))
-        print("Listen Port:", self.pars['socket_server_port'])
-        #cur_obj_id = max_obj_id
-        print("In listening loop...")
+        print "Listen Port:", self.pars['socket_server_port']
+        #cur_obj_id = max_obj_id 
+        print "In listening loop..."
         socket_served_srcid_list = []
         while 1:
             s.listen(1)
@@ -253,7 +242,7 @@ class socket_server(object):
                     i_range = srcid_chunck_size
                 #srcid_list_for_client = []
                 out_str = ""
-                for i in range(i_range):
+                for i in xrange(i_range):
                     srcid = unfeated_srcid_list.pop()
                     #srcid_list_for_client.append(srcid)
                     out_str += " %s" % (srcid)
@@ -265,9 +254,9 @@ class socket_server(object):
                     continue # skip blank lines, which terminate queries
                 #num_rows_wanted = long(rec_str)
                 #out_i_low = cur_obj_id + 1
-                #cur_obj_id = cur_obj_id + num_rows_wanted
+                #cur_obj_id = cur_obj_id + num_rows_wanted 
                 #out_i_high = cur_obj_id
-                print(datetime.datetime.now(), i_range, "srcids sent")
+                print datetime.datetime.now(), i_range, "srcids sent"
                 #out_str = "%d %d" % (out_i_low, out_i_high)
                 conn.send(out_str)
                 conn.close()
@@ -276,7 +265,7 @@ class socket_server(object):
 
 
 
-class socket_client(object):
+class socket_client:
     """ The socket client object.
     The client sends how many rows it wants indicies for,
     expecting the server to return the start and end indexes allocated to it.
@@ -287,13 +276,13 @@ class socket_client(object):
     """
     def __init__(self, passed_pars, server_type=''):
         if len(server_type) == 0:
-            self.pars = passed_pars
+            self.pars = passed_pars 
         else:
             self.pars = pars[server_type] # obj_id_sockets.py local defined pars
 
 
     def get_index_range_from_server(self, num_rows_wanted):
-        """ Connect to the socket server, send num_rows_wanted,
+        """ Connect to the socket server, send num_rows_wanted, 
         and get the obj_id index range.
         """
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -303,11 +292,11 @@ class socket_client(object):
             data = s.recv(1024)
             s.close()
             rec_data = repr(data).strip("'").split()
-            i_low = int(rec_data[0])
-            i_high = int(rec_data[1])
+            i_low = long(rec_data[0])
+            i_high = long(rec_data[1])
             return (i_low, i_high)
         except:
-            print("FAIL: obj_id_sockets.py:", self.pars['socket_server_host_ip'], self.pars['socket_server_port'])
+            print "FAIL: obj_id_sockets.py:", self.pars['socket_server_host_ip'], self.pars['socket_server_port']
             return (-1, -1)
 
 
@@ -327,7 +316,7 @@ class socket_client(object):
                 srcid_list.append(int(elem)) # ? Do no anamolous entries occur?
             return srcid_list
         except:
-            print("FAIL: obj_id_sockets.py: get_feat_class_srcid_group()")
+            print "FAIL: obj_id_sockets.py: get_feat_class_srcid_group()"
             return []
 
 
@@ -341,3 +330,4 @@ if __name__ == '__main__':
     else:
         ss = socket_server(pars, server_type=pars['server_type'])
         ss.run()
+

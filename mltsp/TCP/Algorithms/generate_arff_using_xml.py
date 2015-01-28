@@ -12,14 +12,6 @@ NOTE: ASSUMES that the correct directory path pointing to the xmls is defined in
 
 NOTE: ASSUMES that environment variable TCP_DIR has been defined and works (can be printed/found in os.environ).
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import glob
 
@@ -47,7 +39,7 @@ if __name__ == '__main__':
         vosource_list.append((str(num), fpath))   # NOTE: a tuple of this form is needed.
 
 
-    a = arffify.Maker(search=[], skip_class=False, local_xmls=True,
+    a = arffify.Maker(search=[], skip_class=False, local_xmls=True, 
                           convert_class_abrvs_to_names=False,
                           flag_retrieve_class_abrvs_from_TUTOR=False,
                           dorun=False, add_srcid_to_arff=True)

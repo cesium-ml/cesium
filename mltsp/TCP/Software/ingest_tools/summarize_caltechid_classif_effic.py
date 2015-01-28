@@ -1,28 +1,19 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """ summarize how well general classifications of ptf09xxx were made,
 when compared with caltech followup statictics
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 import sys, os
 try:
     import psycopg2
 except:
-    print("UNABLE to import psycopg2")
+    print "UNABLE to import psycopg2"
     pass
 import MySQLdb
 import pprint
 
 
-class CaltechDB(object):
+class CaltechDB:
     """ Everything related to connections with caltech pgsql db
     """
     def __init__(self):
@@ -34,7 +25,7 @@ class CaltechDB(object):
         self.conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
         self.pg_cursor = self.conn.cursor()
 
-        for overall_class_type, class_dict in overall_dict.items():
+        for overall_class_type, class_dict in overall_dict.iteritems():
             for shortname in class_dict['shortname_list']:
                 # TODO: query caltech pgsql database for info using this shortname.
                 select_str = """SELECT telescope, camera, filter, mag, issub
@@ -51,9 +42,9 @@ class CaltechDB(object):
                             #if mag > -99:
                             followup_count += 1
                         else:
-                            print("!!! %s  telescope=%s camera=%s filt=%s mag=%lf issub=%s" % (shortname, telescope, camera, filt, mag, issub))
+                            print "!!! %s  telescope=%s camera=%s filt=%s mag=%lf issub=%s" % (shortname, telescope, camera, filt, mag, issub)
                     # TODO: then count the number of spectroscopic & imaging
-                if followup_count not in overall_dict[overall_class_type]['followup_count_dict']:
+                if not overall_dict[overall_class_type]['followup_count_dict'].has_key(followup_count):
                     overall_dict[overall_class_type]['followup_count_dict'][followup_count] = []
                 overall_dict[overall_class_type]['followup_count_dict'][followup_count].append(shortname)
                 #print shortname, "followup_count:", followup_count
@@ -66,7 +57,7 @@ class CaltechDB(object):
         self.conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
         self.pg_cursor = self.conn.cursor()
 
-        for overall_class_type, class_dict in overall_dict.items():
+        for overall_class_type, class_dict in overall_dict.iteritems():
             for shortname in class_dict['shortname_list']:
                 # TODO: query caltech pgsql database for info using this shortname.
                 select_str = """SELECT type, comment from sources join annotations on (sources.id=annotations.sourceid) where annotations.type='classification' AND name='%s'""" % (shortname)
@@ -76,7 +67,7 @@ class CaltechDB(object):
                 if len(rows) > 0:
                     for row in rows:
                         (type, comment) = row
-                        if comment not in overall_dict[overall_class_type]['specclass_types_dict']:
+                        if not overall_dict[overall_class_type]['specclass_types_dict'].has_key(comment):
                             overall_dict[overall_class_type]['specclass_types_dict'][comment] = []
                         if not shortname in overall_dict[overall_class_type]['specclass_types_dict'][comment]:
                             overall_dict[overall_class_type]['specclass_types_dict'][comment].append(shortname)
@@ -86,7 +77,7 @@ class CaltechDB(object):
         self.conn.close()
 
 
-class MysqlLocalDB(object):
+class MysqlLocalDB:
     """ Everything related to local tranx mysqldb querying.
     """
     def __init__(self):
@@ -102,7 +93,7 @@ class MysqlLocalDB(object):
                              db=pars['mysql_database'],
                              port=pars['mysql_port'])
         self.cursor = db.cursor()
-
+        
 
     def get_caltechid_overall_classifications(self):
         """ query caltech_classif_summary table and fill dict.
@@ -126,7 +117,7 @@ class MysqlLocalDB(object):
                                   'overall_class_type':overall_class_type,
                                   'overall_science_class':overall_science_class,
                                   'overall_class_prob':overall_class_prob}
-            if overall_class_type not in overall_dict:
+            if not overall_dict.has_key(overall_class_type):
                 overall_dict[overall_class_type] = {'followup_count_dict':{},
                                                     'specclass_types_dict':{},
                                                     'specclass_ids':[],
@@ -140,7 +131,7 @@ def get_followup_summary_for_classtype(class_dict):
     """
     total_all_count = 0
     total_follow_count = 0
-    count_list = list(class_dict['followup_count_dict'].keys())
+    count_list = class_dict['followup_count_dict'].keys()
     count_list.sort()
     for count_num in count_list:
         #print overall_class_type, count_num, len(class_dict['followup_count_dict'][count_num])
@@ -159,23 +150,23 @@ def get_followup_summary_for_classtype(class_dict):
 def summarize_overall_dict(overall_dict):
     """ Display a summary of general classes in overall_dict.
     """
-    overall_class_sort_list = list(overall_dict.keys())
+    overall_class_sort_list = overall_dict.keys()
     overall_class_sort_list.sort()
     for overall_class_type in overall_class_sort_list:
         class_dict = overall_dict[overall_class_type]
         (total_all_count, total_follow_count, most_followed_ptfids) = \
                              get_followup_summary_for_classtype(class_dict)
-        print(overall_class_type, "  TOTAL sources:", total_all_count, \
-              ", % with Followup:", total_follow_count / float(total_all_count), most_followed_ptfids)
+        print overall_class_type, "  TOTAL sources:", total_all_count, \
+              ", % with Followup:", total_follow_count / float(total_all_count), most_followed_ptfids
 
-        print("#####", overall_class_type)
+        print "#####", overall_class_type
         pprint.pprint(class_dict['specclass_types_dict'])
         #print "#", overall_class_type, "class_dict['specclass_ids']"
         #pprint.pprint(class_dict['specclass_ids'])
 
 
 
-class HTMLizeResults(object):
+class HTMLizeResults:
     """ Display results in overall_dict... in some .html file
     for further analysis.
     """
@@ -189,7 +180,7 @@ class HTMLizeResults(object):
         a += '<TABLE BORDER="1" CELLPADDING=4 CELLSPACING=1>'
         a += '<tr><td  colspan="20"><b>%s</b></td></tr>' % (overall_type)
         source_count = 0
-        for spec_class_name,ptfid_list in class_dict['specclass_types_dict'].items():
+        for spec_class_name,ptfid_list in class_dict['specclass_types_dict'].iteritems():
             if spec_class_name in ['AGN', 'AGN?', 'SN', 'SN Ia', 'SN Ib/c', 'SN II', 'SN?', 'galaxy']:
                 a += "<tr>"
                 a += '<td style="border: none">&nbsp;&nbsp;&nbsp;</td><td style="border: none"><b>%s</b></td><td style="border: none">&nbsp;&nbsp;</td>' % (spec_class_name)
@@ -197,7 +188,7 @@ class HTMLizeResults(object):
                     source_count += 1
                     a += """<td><a href="http://navtara.caltech.edu/cgi-bin/ptf/quicklc.cgi?name=%s">%s</a></td>""" % (ptf_id, ptf_id)
                 a += "</tr>"
-
+                
         a += '<tr><td style="border: none">%d</td><td style="border: none" colspan="20">&nbsp;&nbsp;&nbsp; spectroscopically confirmed SN/AGN</td></tr>' % (source_count)
         a += '<tr><td style="border: none">%d</td><td style="border: none" colspan="20">&nbsp;&nbsp;&nbsp; of 3177 ptf09xxx sources</td></tr>' % (total_all_count)
         a += "</table>"
@@ -206,7 +197,7 @@ class HTMLizeResults(object):
 
 
     def main(self, overall_dict):
-        """ Main
+        """ Main 
         a += ""
         a += "<td></td>"
         a += "<tr><td></td></tr>"
@@ -215,7 +206,7 @@ class HTMLizeResults(object):
                 <body>"""
 
         a += '<TABLE BORDER="0" CELLPADDING=4 CELLSPACING=1>'
-
+        
         a += "<tr>"
         ######################
         a += " <td>Interesting SN/AGN<br> with spatial context</td>"
@@ -247,7 +238,7 @@ class HTMLizeResults(object):
         fp.write(a)
         fp.close()
         os.system("scp /tmp/summarize_caltechid_classif_effic.html pteluser@lyra.berkeley.edu:www/tcp/")
-        print("yo")
+        print "yo"
 
 
 if __name__ == '__main__':
@@ -279,3 +270,4 @@ if __name__ == '__main__':
     #                                         1:[<ids>]
     #                                         2:[<ids>]
     #                                         3:[<ids>] ....
+

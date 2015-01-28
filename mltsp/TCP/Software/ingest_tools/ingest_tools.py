@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 ###NOTE: This works with Python 2.5.1
 """
    v0.5 More optimized source generation, feature generation.
@@ -35,18 +35,6 @@ NOTE: RDB database & table creation instructions are printed to stdio during
 ./ingest_tools.py do_get_source_features_radec=1 ra=49.599497 dec=-1.0050998 degree_range=0.0333333
 ./ingest_tools.py do_pairitel_pkl_ingest=1 ptel_pkl_fpath=/media/disk/src/voevent/phot.mosGRB.10752.1-2007May21_GRB.10752.1.s9.pkl
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from builtins import open
-from builtins import str
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 #20081020 NOT USED? # import traceback
 import glob
@@ -71,11 +59,11 @@ except:
 ###pylab.show()     ### These are needed to allow continual poplting scatter()
 ###       NOTE:  To enable the gradial obj/src plotting, uncomment this and
 ###              other '###pylab.{scatter,plot}' comments
-import numpy
+import numpy 
 #import numarray # only for source determining algorithms
-import pickle
+import cPickle
 import obj_id_sockets
-import urllib.request, urllib.parse, urllib.error
+import urllib
 import param_tool
 import socket # Just for getting the hostname
 #socket.setdefaulttimeout(10) # urllib.urlopen() needs a short timeout forced
@@ -116,7 +104,7 @@ try:
 except:
     pass # print "Except!: ingest_tools.py : from Code import *"
 
-import feature_extraction_interface# NEEDED BY: self.get_src_obj_list()
+import feature_extraction_interface# NEEDED BY: self.get_src_obj_list() 
 #                                               Feature_database()...
 
 new_rdb_col_defs = [\
@@ -374,7 +362,7 @@ pars = {\
     'tcptutor_port':3306,
     'classdb_hostname':'192.168.1.25', # This is my LOCAL replicated DB
     'classdb_username':'pteluser', #'pteluser',
-    'classdb_port':     3306,
+    'classdb_port':     3306, 
     'classdb_database':'source_test_db', #'source_db',
     'classid_lookup_tablename':'classid_lookup',
     'src_class_probs_tablename':'src_class_probs',
@@ -952,7 +940,7 @@ pars = {\
         'SPARE1':-2147483648,
     },
     'ptf_postgre_select_columns':("candidate.%s, subtraction.%s, rb_classifier.%s" % (\
-              ', candidate.'.join(ptf_candidate_table_columns_list[:-2]),
+              ', candidate.'.join(ptf_candidate_table_columns_list[:-2]), 
               ', subtraction.'.join(ptf_sub_table_columns_list),
               ', rb_classifier.'.join(ptf_realbogus_table_columns_list))).replace('decl','dec'),
     'ptf_rdb_columns_list':ptf_rdb_columns_list,
@@ -985,7 +973,7 @@ def extract_obj_epoch_from_ptf_query_row(row):
     if row[19] == 'g':
         filt_num = 8
     else:
-        filt_num = 9 # 'R'?
+        filt_num = 9 # 'R'?        
     obj_epoch = {}
     obj_epoch['flags'] = 0 # PTF defaults
     obj_epoch['flags2'] = 0# PTF defaults
@@ -1024,10 +1012,10 @@ def extract_obj_epoch_from_ptf_query_row(row):
     obj_epoch['realbogus'] = row[31]
 
     #obj_epoch['objid_candid'] = row[         0 ]
-    for i in range(len(ptf_rdb_columns_list)):
+    for i in xrange(len(ptf_rdb_columns_list)):
         # conditional is a kludge since PTF tables share some similar column
         #    names as my variables (yuck):
-        if ptf_rdb_columns_list[i] not in obj_epoch:
+        if not obj_epoch.has_key(ptf_rdb_columns_list[i]):
             #obj_epoch[ptf_rdb_columns_list[i]] = row[i]
             obj_epoch[ptf_rdb_columns_list[i]] = [row[i]]
     return obj_epoch
@@ -1037,93 +1025,93 @@ def get_features_using_srcid_xml_tuple_list(srcid_xml_tuple_list, \
                               write_ps=0, ps_fpath='', return_gendict=False, \
                               return_featd_xml_string=False,
                               xmlstring_dict_tofill=None):
-    """ Given a list of (integer_source_id, xml_handle);
-    where the src_id could just be int(0)  and
-    the xml_handle may be either a xml_string or a filepointer/path.
+        """ Given a list of (integer_source_id, xml_handle);
+        where the src_id could just be int(0)  and
+        the xml_handle may be either a xml_string or a filepointer/path.
 
-    This function generates features and writes summary PS if flagged.
-    """
-    import feature_extraction_interface
+        This function generates features and writes summary PS if flagged.
+        """
+        import feature_extraction_interface
 
-    ##### KLUDGE: 20110710 dstarr adds nomad_color code:
-    from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
-    ParseNomadColorsList = Parse_Nomad_Colors_List(fpath=os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src_list'))
-    #####
+        ##### KLUDGE: 20110710 dstarr adds nomad_color code:
+        from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
+        ParseNomadColorsList = Parse_Nomad_Colors_List(fpath=os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src_list'))
+        #####
 
-    signals_list = []
-    gen = generators_importers.from_xml(signals_list)
-    out_srcid_dict = {}
-    for (src_id, xml_handle) in srcid_xml_tuple_list:
+        signals_list = []
+        gen = generators_importers.from_xml(signals_list)
+	out_srcid_dict = {}
+        for (src_id, xml_handle) in srcid_xml_tuple_list:
             # This generates features for the source(s) -> signals_list:
 
             ##### KLUDGE: 20110710 dstarr adds nomad_color code:
-        new_xml_str = ParseNomadColorsList.get_colors_for_srcid(xml_str=xml_handle, srcid=src_id - 100000000)
-        #####
+            new_xml_str = ParseNomadColorsList.get_colors_for_srcid(xml_str=xml_handle, srcid=src_id - 100000000)
+            #####
 
-        gen.generate(xml_handle=new_xml_str)
-        #gen.generate(xml_handle="/home/dstarr/src/TCP/Software/feature_extract/Code/source_5.xml")
-        # This generates a plot summary of features for each source:
-        # this assert doesn't work when gen.sig.x_sdict['src_id'] is a URI string:
-        #assert(src_id == gen.sig.x_sdict['src_id'])
-
-
-        if return_gendict:
-            out_srcid_dict[src_id] = copy.deepcopy(gen.sig.x_sdict)
-        elif return_featd_xml_string:
-            gen.sig.add_features_to_xml_string(signals_list)
-            out_srcid_dict[src_id] = copy.deepcopy(gen.sig.xml_string)
-        else:
-            out_srcid_dict[src_id] = {}
-
-        # This is WAY KLUDGEY: If passed in dictionary, here we fill with: {srcid:xml_string}:
-        if (type(xmlstring_dict_tofill) == type({})) and not return_featd_xml_string:
-            gen.sig.add_features_to_xml_string(signals_list)
-            xmlstring_dict_tofill[src_id] = copy.deepcopy(gen.sig.xml_string)
-
-        if (write_ps != 0) or (len(ps_fpath) > 0):
-            try:
-                ps = feature_extraction_interface.Plot_Signals(\
-                                                     signals_list, gen)
-                if len(ps_fpath) == 0:
-                    ps_fpath = "/tmp/feature_plots_srcid_%d.ps" % (src_id)
-                ps.write_multi_filter_ps_files(ps_fpath=ps_fpath)
-            except:
-                print("EXCEPT in feature_extraction_interface.Plot_Signals(): no X11?")
-
-    # Here we add the featues to all xml_strings & insert back into
-    #         srcid_xml_tuple_list[]
-    #db_importer.add_features_to_xml_string(signals_list)
-    #for i in xrange(len(srcid_xml_tuple_list)):
-    #    src_id = srcid_xml_tuple_list[i][0]
-    #    for source_obj in signals_list:
-    #        if source_obj.d['src_id'] == src_id:
-    #            srcid_xml_tuple_list[i][1] =copy.copy(source_obj.xml_string)
-    #            break
-
-        # Another way to do this: have add_reatures_to_xml_string()
-        #     pass out all xml_strings (vs srcid)
-
-        # # # # # # # # # # #
-        # TODO: Can I get featues here?
-        # TODO : I need get_features_using_srcid_xml_tuple_list()
-        #    to add extracted features to source_obj.xml_string
-        #   - and update passed-in: srcid_xml_tuple_list[]
-        #    <<db_importer.py>>.add_features_to_xml_string(signals_list)
-
-    del(gen) # 20081216 DEBUG
+            gen.generate(xml_handle=new_xml_str)
+            #gen.generate(xml_handle="/home/dstarr/src/TCP/Software/feature_extract/Code/source_5.xml")
+            # This generates a plot summary of features for each source:
+            # this assert doesn't work when gen.sig.x_sdict['src_id'] is a URI string:
+	    #assert(src_id == gen.sig.x_sdict['src_id'])
 
 
-    # KLUDGE? I am making the assumption that signals_list == 1 and thus
-    #     gen.sig.x_sdict['src_id'] cooresponds to that signal
-    #  - if this isn't so, maybe gen.sig.x_sdict['src_id'] changes with each
-    #       Plot_signals().write_multi_filter_ps_files()
-    assert(len(signals_list) == len(srcid_xml_tuple_list))
-    return (signals_list, out_srcid_dict)
-    #source_features_list = []
-    #for signal_obj in signals_list:
-    # here I need to add something which can call the
-    #   insert_features_into_databass()
-    #return source_features_list
+            if return_gendict:
+                out_srcid_dict[src_id] = copy.deepcopy(gen.sig.x_sdict)
+            elif return_featd_xml_string:
+                gen.sig.add_features_to_xml_string(signals_list)
+                out_srcid_dict[src_id] = copy.deepcopy(gen.sig.xml_string)
+            else:
+                out_srcid_dict[src_id] = {}
+
+            # This is WAY KLUDGEY: If passed in dictionary, here we fill with: {srcid:xml_string}:
+            if (type(xmlstring_dict_tofill) == type({})) and not return_featd_xml_string:
+                gen.sig.add_features_to_xml_string(signals_list)
+                xmlstring_dict_tofill[src_id] = copy.deepcopy(gen.sig.xml_string)
+
+            if (write_ps != 0) or (len(ps_fpath) > 0):
+                try:
+                    ps = feature_extraction_interface.Plot_Signals(\
+                                                         signals_list, gen)
+                    if len(ps_fpath) == 0:
+                        ps_fpath = "/tmp/feature_plots_srcid_%d.ps" % (src_id)
+                    ps.write_multi_filter_ps_files(ps_fpath=ps_fpath)
+                except:
+                    print "EXCEPT in feature_extraction_interface.Plot_Signals(): no X11?"
+
+        # Here we add the featues to all xml_strings & insert back into
+        #         srcid_xml_tuple_list[]
+        #db_importer.add_features_to_xml_string(signals_list)
+        #for i in xrange(len(srcid_xml_tuple_list)):
+        #    src_id = srcid_xml_tuple_list[i][0]
+        #    for source_obj in signals_list:
+        #        if source_obj.d['src_id'] == src_id:
+        #            srcid_xml_tuple_list[i][1] =copy.copy(source_obj.xml_string)
+        #            break
+
+            # Another way to do this: have add_reatures_to_xml_string()
+            #     pass out all xml_strings (vs srcid)
+
+            # # # # # # # # # # #
+            # TODO: Can I get featues here?
+            # TODO : I need get_features_using_srcid_xml_tuple_list()
+            #    to add extracted features to source_obj.xml_string
+            #   - and update passed-in: srcid_xml_tuple_list[]
+            #    <<db_importer.py>>.add_features_to_xml_string(signals_list)
+
+        del(gen) # 20081216 DEBUG
+
+
+	# KLUDGE? I am making the assumption that signals_list == 1 and thus
+	#     gen.sig.x_sdict['src_id'] cooresponds to that signal
+	#  - if this isn't so, maybe gen.sig.x_sdict['src_id'] changes with each
+	#       Plot_signals().write_multi_filter_ps_files()
+	assert(len(signals_list) == len(srcid_xml_tuple_list))
+        return (signals_list, out_srcid_dict)
+        #source_features_list = []
+        #for signal_obj in signals_list:
+        # here I need to add something which can call the
+        #   insert_features_into_databass()
+        #return source_features_list
 
 
 # looks to be unused / obsolete:
@@ -1141,7 +1129,7 @@ def is_object_associated_with_source_algorithm(n_sources, \
              (obj_dec/obj_dec_rms**2 + \
               src_dec/src_dec_rms**2) / \
              (1.0/obj_dec_rms**2 + \
-              1.0/src_dec_rms**2)]
+              1.0/src_dec_rms**2)]    
     cos_dec_term = 1 # the cos term makes no sense if we are zeroing the src coords by subtracting the midpoint coords
     #cos_dec_term = numpy.cos(midpt[1]*numpy.pi/180.0)
     simple_odds = -0.5*((cos_dec_term * (src_ra - midpt[0])/ \
@@ -1159,17 +1147,17 @@ def is_object_associated_with_source_algorithm(n_sources, \
 def show_create_commands(rcd, srcdbt):
     """ Print all MySQL CREATE strings which are needed to set
     """
-    for create_str in list(rcd.create_event_table_str_dict.values()):
-        print(create_str)
-    print(rcd.create_sdss_obj_fcr_lookup_str)
-    print(rcd.create_sdss_obj_htm_lookup_str)
-    print(rcd.create_sdss_obj_rtree_lookup_str)
-    print(rcd.create_ptel_obj_htm_lookup_str)
-    print(rcd.create_ptel_obj_rtree_lookup_str)
-    print(srcdbt.create_source_table_str)
-    print(srcdbt.create_obj_srcid_lookup_str)
-    print(srcdbt.create_srcid_htm_lookup_str)
-    print(srcdbt.create_srcid_rtree_lookup_str)
+    for create_str in rcd.create_event_table_str_dict.values():
+        print create_str
+    print rcd.create_sdss_obj_fcr_lookup_str
+    print rcd.create_sdss_obj_htm_lookup_str
+    print rcd.create_sdss_obj_rtree_lookup_str
+    print rcd.create_ptel_obj_htm_lookup_str
+    print rcd.create_ptel_obj_rtree_lookup_str
+    print srcdbt.create_source_table_str 
+    print srcdbt.create_obj_srcid_lookup_str
+    print srcdbt.create_srcid_htm_lookup_str
+    print srcdbt.create_srcid_rtree_lookup_str
 
 
 # TODO: Need to find a home for this function.  Used by srcid & objid tasks:
@@ -1183,7 +1171,7 @@ def form_constraint_str_for_rtree_rectangle(ra_low, ra_high, dec_low, dec_high, 
 
 
 # This class could be contained in a seperate file:
-class Source_Region_Lock(object):
+class Source_Region_Lock:
     """ This class is used to handle accounting of which regions are currently
     being 'worked' on.  We are assuming that the activity is rather small,
     infrequent, and not thorough-put critical, so this ID insert is acceptable.
@@ -1205,14 +1193,14 @@ class Source_Region_Lock(object):
         self.rdb_name = rdb_name
         self.rdb_port = rdb_port
         self.table_name = table_name
-
+        
         self.db = MySQLdb.connect(host=self.rdb_host_ip, user=self.rdb_user, db=self.rdb_name, port=self.rdb_port)
         self.cursor = self.db.cursor()
 
 
     def try_lock_region(self, ra0=-999, dec0=-999, ra1=-999, dec1=-999):
         """ Attempt to lock the region.  Return coorsponding random lock-ID if
-        successful.  If can't lock, return -1.
+        successful.  If can't lock, return -1. 
 
         NOTE: INSERT fails if spatial region already exists in the lock table
         """
@@ -1239,13 +1227,13 @@ class Source_Region_Lock(object):
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         try:
-            if int(results[0][0]) == region_id:
+            if long(results[0][0]) == region_id:
                 return region_id
         except:
             pass
         return -1 # Didn't successfully insert new geometry.
 
-
+    
     def unlock_region(self, region_id):
         """ This will remove the RDB row of the locked region, using lock_id.
         """
@@ -1254,7 +1242,7 @@ class Source_Region_Lock(object):
         self.cursor.execute(delete_str)
 
 
-class HTM_Tools(object):
+class HTM_Tools:
     """ Singleton object which manages all HTM related methods.
 
     TODO NOTE(s):
@@ -1275,7 +1263,7 @@ class HTM_Tools(object):
     See code in /media/usb/src/HTM_sql/c/
      - htm_lookup_module.c htmlookup.py setup.py
      - In order to incorperate get_radius(nodes...) into a python module.
-     - ??? I thought there was an already constructed module which
+     - ??? I thought there was an already constructed module which 
        wrapped the HTM-id generation.
         - does the existing sdss_fp*py code call this?
         - Maybe this code is in trans1's TCP path?
@@ -1291,7 +1279,7 @@ class HTM_Tools(object):
         self.htm_intersect_exec_fpath = pars['htm_intersect_exec_fpath']
         self.htm_intersect_scratch_fpath = pars['htm_intersect_scratch_fpath']
         self.htm_id_depth = pars['htm_id_database_depth']
-
+        
         self.radian_per_degree = (numpy.float64(3.14159265358979323846) /\
                                   numpy.float64(180.0))
 
@@ -1313,7 +1301,7 @@ class HTM_Tools(object):
 
 
     def generate_htm_id(self, ra, dec, htm_id_depth=0):
-        """ Generates an HTM ID for the given ra, dec.
+        """ Generates an HTM ID for the given ra, dec.  
         Uses a simplified version of the HTM C code.
         Returns the HTM-ID
         """
@@ -1327,17 +1315,17 @@ class HTM_Tools(object):
         htm_id = b.read()
         b.close()
         return htm_id
-
+    
 
     def generate_hex_htm_id(self, ra, dec, htm_id_depth=0):
-        """ Generates an HTM ID for the given ra, dec.
+        """ Generates an HTM ID for the given ra, dec.  
         Uses a simplified version of the HTM C code.
         Returns the HTM-ID
         """
         if htm_id_depth == 0:
             htm_id_depth = self.htm_id_depth
         # kludge: the cpp 'lookup' doesn't like (-) decs, whereas the 'c' does
-        if dec < 0:
+        if dec < 0: 
             dec += 360
         command_str = "%s -hex %d %lf %lf" % (self.htm_cpp_lookup_exec_fpath, \
                                          htm_id_depth, ra, dec)
@@ -1354,13 +1342,13 @@ class HTM_Tools(object):
                 pass
         return '' # Error: HTM-id not found
 
-
+    
     def get_htmranges_using_radec_box(self,ra_low, ra_high, dec_low, dec_high):
         """ Given a box defined by (ra,dec) ranges, execute an HTM intersect
         for this range, and retrieve the HTM ranges, return in a list of tups.
         NOTE: cpp intersect output looks like:
            dstarr@bin/$ ./intersect -range 15 domain_rect
-           Ranges of nodes :
+           Ranges of nodes : 
            3DF5F4401:N3133113310100001 3DF5F4401:N3133113310100001
         """
         domain_file_lines = """#DOMAIN
@@ -1444,15 +1432,15 @@ class HTM_Tools(object):
         return htmids_list
 
 
-class Empty_Class(object):
+class Empty_Class:
     """ Just an empty, placeholder Class for simple objects.
     """
     def __init__(self):
         pass
 
 
-class RDB_Column_Defs(object):
-    """ Object which generates and stores all RDB column info, which is
+class RDB_Column_Defs:
+    """ Object which generates and stores all RDB column info, which is 
     refered to by algorithms.
     """
     def __init__(self, rdb_table_names='', rdb_db_name='', \
@@ -1467,7 +1455,7 @@ class RDB_Column_Defs(object):
             self.col_definitions = col_definitions
         else:
             self.col_definitions = [] # Currently this is filled later.
-
+            
 
     def create_obj_rtree_lookup(self, table_name):
         """ Create the MySQL Table which is used for finding obj_ids using
@@ -1542,11 +1530,11 @@ class RDB_Column_Defs(object):
 
         #20080222
         # A Hack to insert the self-generate indexes:
-        #if survey_name == 'sdss':
+        #if survey_name == 'sdss':    
         #    self.rdb_ind[survey_name].insert_str += 'obj_id, '
         #    self.rdb_ind[survey_name].insert_str += 'footprint_id, '
         #    insert_suffix = '%d, %d, '
-        #elif survey_name == 'pairitel':
+        #elif survey_name == 'pairitel':    
         #    self.rdb_ind[survey_name].insert_str += 'obj_id, '
         #    self.rdb_ind[survey_name].insert_str += 'footprint_id, '
         #    insert_suffix = '%d, %d, '
@@ -1566,7 +1554,7 @@ class RDB_Column_Defs(object):
             col_name = col_dict['fits_key']
 
             self.rdb_ind[survey_name].rdb_col_list.append(col_dict['fits_key'])
-            if survey_name == 'sdss':
+            if survey_name == 'sdss':                
                 if col_dict['internal_type'] == 'header':
                     self.sdss_rdb_header_dict[col_name] = col_dict['fits_ext']
                 elif col_dict['internal_type'] == 'row_1':
@@ -1576,11 +1564,11 @@ class RDB_Column_Defs(object):
             #elif survey_name == 'pairitel':
             #    pass # any special bits, like header or row1 variable addon.
 
-            if 'rdb_col_name' not in col_dict:
+            if not col_dict.has_key('rdb_col_name'):
                 col_dict['rdb_col_name'] = col_dict['fits_key']
             create_table_str += col_dict['rdb_col_name'] + ' ' + \
                                                     col_dict['rdb_type'] + ', '
-            if 'rdb_insert_format' in col_dict:
+            if col_dict.has_key('rdb_insert_format'):
                 self.rdb_ind[survey_name].insert_str += \
                                                 col_dict['rdb_col_name'] + ', '
                 self.rdb_ind[survey_name].load_str_mask += \
@@ -1590,7 +1578,7 @@ class RDB_Column_Defs(object):
                 #       when accessing these variables... to speed things up
                 exec_str = "self.rdb_ind['" + survey_name + "']." + \
                                     col_dict['accessor_name'] + ' = ' + str(i)
-                exec(exec_str)
+                exec exec_str
                 i+= 1
         # Add indicies to CREATE TABLE:  (append as last columns):
         for col_dict in self.col_definitions:
@@ -1612,7 +1600,7 @@ class RDB_Column_Defs(object):
         self.create_event_table_str_dict[survey_name] = create_table_str + ';'
 
 
-class Source_Database_Tools(object):
+class Source_Database_Tools:
     """ Singleton object which contains methods for accessing the source-id
     database.
 
@@ -1815,7 +1803,7 @@ class Source_Database_Tools(object):
         # declare update tup list...
         update_source_table_tups = []
         #update_rtree_lookup_table_tups = []
-
+        
         for src_i in srcindex_tobe_updated:
             src_id = local_srcdbt_sources[src_i]['src_id']
             ra = local_srcdbt_sources[src_i]['ra']
@@ -1843,7 +1831,7 @@ class Source_Database_Tools(object):
         """
         # NOTE: we must recalculate using values from all associated positions:
         related_objids = []
-        for obj_dict in list(rdb_obj_dict.values()):
+        for obj_dict in rdb_obj_dict.values():
             if obj_dict['src_id'] == local_srcdbt_sources[src_index]['src_id']:
                 related_objids.append(obj_dict)
         related_objids.append(obj_dict_compare) # Include the new assoc object.
@@ -1852,7 +1840,7 @@ class Source_Database_Tools(object):
         raerra_2 = numpy.array([x['ra_rms'] for x in related_objids])**2
         deca = numpy.array([x['decl'] for x in related_objids])
         decerra_2 = numpy.array([x['dec_rms'] for x in related_objids])**2
-
+        
         ra  = numpy.sum(raa/raerra_2)/numpy.sum(1.0/raerra_2)
         dec =  numpy.sum(deca/decerra_2)/numpy.sum(1.0/decerra_2)
         raerr  = pylab.sqrt(1.0/numpy.sum(1.0/raerra_2))
@@ -1865,10 +1853,10 @@ class Source_Database_Tools(object):
         local_srcdbt_sources[src_index]['nobjs'] += 1
 
 
-    # ?obsolete? (as of 20080519) : I don't like the conditional agorithms in this.  It seems SDSS already has a lot of dublicat objects with similar magnitudes and almost same time (and same ra,dec).
+    # ?obsolete? (as of 20080519) : I don't like the conditional agorithms in this.  It seems SDSS already has a lot of dublicat objects with similar magnitudes and almost same time (and same ra,dec). 
     def check_double_source(self, assoc_srcid_dict, objid_to_time_dict, \
                         obj_dict, objid_to_filt_dict, objid_range=20000):
-        """ Occasionally we may have an object which is associated with an
+        """ Occasionally we may have an object which is associated with an 
         existing source, but in reality is a second, real source in the same
         filter & frame.  We descern this here so we can create a new source.
         """
@@ -1904,7 +1892,7 @@ class Source_Database_Tools(object):
             # 20080519: dstarr decides to disable "double source check" since the check_double_source() algorithms seem kludgy and it is probably better to have spurious data added to a source then to have that source split arbitrarily among nearby sources (which are most likely parts of that source).
             ###if do_check_double_source or \
             ###   (len(assoc_srcid_dict['obj_ids']) == 0):
-            ###    # NOTE: if (len(odds_list) > 0) and (do_check_double_source != 'yes'):
+            ###    # NOTE: if (len(odds_list) > 0) and (do_check_double_source != 'yes'): 
             ###    #          - we will automatically add to existing src:
             ###    add_obj_to_src = 1
             ###else:
@@ -1932,14 +1920,14 @@ class Source_Database_Tools(object):
             ###    print "@@@@ DO NOT ADD or UPDATE source WITH object (add_obj_to_src == 2)"
             ###    # Do not add object to source, or create a new source
             ###    make_new_source = 0
-        return make_new_source
+        return make_new_source    
 
-
+    
     # It appears that this is not used / obsolete:
     def calculate_obj_source_associations_new(self, objs_dict, local_srcdbt_sources, objid_to_filt_dict, objid_to_time_dict, objid_to_survey_dict):
-        """ Given objects and existing sources for a ra,dec region;
-        Calculate object associations with existing sources, as well as
-        generate new sources when needed.
+        """ Given objects and existing sources for a ra,dec region; 
+	Calculate object associations with existing sources, as well as
+	generate new sources when needed.
 
         DERIVED FROM: calculate_obj_source_associations_original()
 
@@ -1954,23 +1942,23 @@ class Source_Database_Tools(object):
              but instead, have it wrap:
                  calculate_obj_source_associations_original()
              and have it make "prints" of mismatched sources, etc...
-        """
+	"""
         srcindex_tobe_inserted = []
         srcindex_tobe_updated = []
-        orig_objs_dict_list = list(objs_dict.values())
+        orig_objs_dict_list = objs_dict.values()
 
         # NOTE: Setting of objid_to_filt_dict{}, objid_to_time_dict{}
         #       Should be done only once.
-        for obj_dict in list(objs_dict.values()):
-            for i in range(len(obj_dict['obj_ids'])):
+        for obj_dict in objs_dict.values():
+            for i in xrange(len(obj_dict['obj_ids'])):
                 objid_to_filt_dict[obj_dict['obj_ids'][i]]=obj_dict['filts'][i]
                 objid_to_time_dict[obj_dict['obj_ids'][i]] = obj_dict['t']
         objid_to_survey_dict = {} # Not filled with anything useful right now.
 
         n_iters = 10
         source_structs_list = []
-        for i in range(n_iters):
-            objs_reordered_list = list(objs_dict.values())
+        for i in xrange(n_iters):
+            objs_reordered_list = objs_dict.values()
             random.shuffle(objs_reordered_list)
 
             #####
@@ -2025,7 +2013,7 @@ class Source_Database_Tools(object):
                         obj_dict['src_id'] = associated_srcid
             #KLUDGE: I attempt the source finding one more time on skipped objs:
             #    So, the following is duplicate code from above.
-            print("Mana mana")
+            print "Mana mana"
             for obj_dict in skipped_obj_dicts:
                 (odds_list, matching_src_dict) = \
                             self.is_object_associated_with_source(\
@@ -2042,8 +2030,8 @@ class Source_Database_Tools(object):
                     # Make new source:
                     fake_srcid -= 1
                     associated_srcid = fake_srcid
-                    src_dict = {'nobjs':1, 'src_id':fake_srcid,
-                                'ra':obj_dict['ra'], 'decl':obj_dict['decl'],
+                    src_dict = {'nobjs':1, 'src_id':fake_srcid, 
+                                'ra':obj_dict['ra'], 'decl':obj_dict['decl'], 
                                 'ra_rms':obj_dict['ra_rms'],
                                 'dec_rms':obj_dict['dec_rms'],\
                                 'obj_ids':obj_dict['obj_ids']}
@@ -2077,17 +2065,17 @@ class Source_Database_Tools(object):
 
 
     def calculate_obj_source_associations_original(self, objs_dict, local_srcdbt_sources, objid_to_filt_dict, objid_to_time_dict, objid_to_survey_dict, do_logging=False):
-        """ Given objects and existing sources for a ra,dec region;
-        Calculate object associations with existing sources, as well as
-        generate new sources when needed.
-        """
+        """ Given objects and existing sources for a ra,dec region; 
+	Calculate object associations with existing sources, as well as
+	generate new sources when needed.
+	"""
         srcindex_tobe_inserted = []
         srcindex_tobe_updated = []
         fake_srcid = 0 # This is decremented, so all temporary srcids
         #          are negative.  Before UPDATEing sources, I will determine
         #          Database-valid src-id indexes, and assign them instead.
         skipped_obj_dicts = []
-        for obj_dict_temp in list(objs_dict.values()):
+        for obj_dict_temp in objs_dict.values():
             obj_dict = obj_dict_temp
             for i in range(len(obj_dict['obj_ids'])):
                 #objid_to_survey_dict # ????
@@ -2095,16 +2083,16 @@ class Source_Database_Tools(object):
                                                            obj_dict['filts'][i]
                 objid_to_time_dict[obj_dict['obj_ids'][i]] = obj_dict['t']
             if do_logging:
-                print("before:is_object_associated_with_source()")
+                print "before:is_object_associated_with_source()"
             (odds_list, matching_src_dict) = \
                                       self.is_object_associated_with_source(\
                                              obj_dict, local_srcdbt_sources)
             if do_logging:
-                print("before:check_whether_new_source_to_be_created()")
-                print("""objs_dict, obj_dict, odds_list, matching_src_dict, \
+                print "before:check_whether_new_source_to_be_created()"
+                print """objs_dict, obj_dict, odds_list, matching_src_dict, \
                               srcindex_tobe_inserted, srcindex_tobe_updated, \
                               objid_to_filt_dict, objid_to_time_dict, \
-                            local_srcdbt_sources""")
+                            local_srcdbt_sources"""
                 import pprint
                 pprint.pprint((objs_dict, obj_dict, odds_list, matching_src_dict, \
                               srcindex_tobe_inserted, srcindex_tobe_updated, \
@@ -2120,7 +2108,7 @@ class Source_Database_Tools(object):
                 #if obj_dict['m_err'] > self.pars['src_create_delay_delta_m']:
                 #    skipped_obj_dicts.append(obj_dict)
                 should_make_source = False
-                if 'realbogus' in obj_dict:
+                if obj_dict.has_key('realbogus'):
                     if obj_dict['realbogus'] >= \
                                      self.pars['src_create_delay_realbogus_cut']:
                         should_make_source = True
@@ -2144,16 +2132,16 @@ class Source_Database_Tools(object):
                     obj_dict['src_id'] = associated_srcid
         #KLUDGE: I attempt the source finding one more time on skipped objs:
         #    So, the following is duplicate code from above.
-        print("Mana mana")
+        print "Mana mana"
         for obj_dict in skipped_obj_dicts:
             if do_logging:
-                print("before:(2)is_object_associated_with_source()")
+                print "before:(2)is_object_associated_with_source()"
             (odds_list, matching_src_dict) = \
                         self.is_object_associated_with_source(\
                                obj_dict, local_srcdbt_sources)
             # NOTE: if len(odds_list) > 0: we automatic add to existing src:
             if do_logging:
-                print("before:(2)check_whether_new_source_to_be_created()")
+                print "before:(2)check_whether_new_source_to_be_created()"
             do_make_new_source = self.check_whether_new_source_to_be_created(\
                            objs_dict, obj_dict, odds_list, matching_src_dict, \
                               srcindex_tobe_inserted, srcindex_tobe_updated,\
@@ -2161,7 +2149,7 @@ class Source_Database_Tools(object):
                              local_srcdbt_sources, do_check_double_source=False)
             if do_make_new_source == 1:
                 should_make_source = False
-                if 'realbogus' in obj_dict:
+                if obj_dict.has_key('realbogus'):
                     if obj_dict['realbogus'] >= \
                                      self.pars['src_create_delay_realbogus_cut']:
                         should_make_source = True
@@ -2180,7 +2168,7 @@ class Source_Database_Tools(object):
                 obj_dict['src_id'] = associated_srcid
 
         if do_logging:
-            print("after:(2)check_whether_new_source_to_be_created()")
+            print "after:(2)check_whether_new_source_to_be_created()"
         # KLUDGE: I've decided I need to reduce the srcindex_tobe_inserted
         #   list to only include sources where nobjs > 1.  This means
         #   I also need to reset/not update objects which had these
@@ -2195,7 +2183,7 @@ class Source_Database_Tools(object):
             #else:
             #    srcids_to_ignore.append(local_srcdbt_sources[src_i]['src_id'])
         return (reduced_srcindex_tobe_inserted, srcids_to_ignore, srcindex_tobe_updated, srcindex_tobe_inserted)
-
+	       
 
     def populate_srcids_using_objs_dict(self, rdbt, objs_dict, \
                                         ra_low, ra_high, dec_low, dec_high, \
@@ -2208,14 +2196,14 @@ class Source_Database_Tools(object):
             return
 
         if do_logging:
-            print("before: retrieve_sources_using_radec_box()")
+            print "before: retrieve_sources_using_radec_box()"
 
         i_blah = 0
         (local_srcdbt_sources, objid_to_filt_dict, objid_to_time_dict, objid_to_survey_dict) = self.retrieve_sources_using_radec_box(rdbt, ra_low, ra_high, dec_low, dec_high, skip_check_sdss_objs=skip_check_sdss_objs, \
                             skip_check_ptel_objs=skip_check_ptel_objs, skip_check_ptf_objs=skip_check_ptf_objs)
 
         if do_logging:
-            print("before: calculate_obj_source_associations_original()")
+            print "before: calculate_obj_source_associations_original()"
             import pprint
             print("objs_dict:")
             pprint.pprint(objs_dict)
@@ -2232,31 +2220,31 @@ class Source_Database_Tools(object):
             print("objid_to_survey_dict:")
             pprint.pprint(objid_to_survey_dict)
 
-        ##### TODO: replace this wih a smarter source-finding/generating algorm
-        ##### ::::::::
-        (reduced_srcindex_tobe_inserted, srcids_to_ignore, srcindex_tobe_updated, srcindex_tobe_inserted) = \
-                 self.calculate_obj_source_associations_original( \
-                                   objs_dict, local_srcdbt_sources,
-                                   objid_to_filt_dict, objid_to_time_dict,
-                                   objid_to_survey_dict, do_logging=do_logging)
-        ##### ^^^^^^^^^^
+	##### TODO: replace this wih a smarter source-finding/generating algorm
+	##### ::::::::
+	(reduced_srcindex_tobe_inserted, srcids_to_ignore, srcindex_tobe_updated, srcindex_tobe_inserted) = \
+	         self.calculate_obj_source_associations_original( \
+		                   objs_dict, local_srcdbt_sources, 
+		     	 	   objid_to_filt_dict, objid_to_time_dict,
+				   objid_to_survey_dict, do_logging=do_logging)
+	##### ^^^^^^^^^^
 
         if do_logging:
-            print("after: calculate_obj_source_associations_original()")
+            print "after: calculate_obj_source_associations_original()"
 
         tempsrcid_to_realsrcid = {}
         if len(reduced_srcindex_tobe_inserted) > 0:
             #(row_i_low, row_i_high) = self.srcid_socket_client.\
             #                               get_index_range_from_server(\
             #                               len(reduced_srcindex_tobe_inserted))
-            print(datetime.datetime.now(), "INSERT:", \
-                              len(reduced_srcindex_tobe_inserted), "sources.")
+            print datetime.datetime.now(), "INSERT:", \
+                              len(reduced_srcindex_tobe_inserted), "sources."
             # ??? Can I delay doing this a couple lines? :
             (row_i_low, row_i_high) = self.insert_new_sources_into_rdb( \
                         local_srcdbt_sources, \
                         tempsrcid_to_realsrcid, reduced_srcindex_tobe_inserted)
             i = 0
-            for real_srcid in range(row_i_low, row_i_high + 1):
+            for real_srcid in xrange(row_i_low, row_i_high + 1):
                 tempsrcid_to_realsrcid[\
                        local_srcdbt_sources[reduced_srcindex_tobe_inserted[i]]\
                                                        ['src_id']] = real_srcid
@@ -2264,8 +2252,8 @@ class Source_Database_Tools(object):
         self.update_sources_in_rdb(local_srcdbt_sources, srcindex_tobe_updated)
         rdbt.update_objid_in_rdb(objs_dict, tempsrcid_to_realsrcid, \
                                  srcids_to_ignore)
-        print("srcindex_tobe_INSERTed:", reduced_srcindex_tobe_inserted)
-        print("srcindex_tobe_UPDATEd:", srcindex_tobe_updated)
+        print "srcindex_tobe_INSERTed:", reduced_srcindex_tobe_inserted
+        print "srcindex_tobe_UPDATEd:", srcindex_tobe_updated
 
 
     def is_object_associated_with_source(self, obj_dict, sources_list, \
@@ -2301,7 +2289,7 @@ class Source_Database_Tools(object):
             #print ("no association",obj_dict)
             return ([], {})
         else:
-            return (list(matching_src_dict.keys()), matching_src_dict)
+            return (matching_src_dict.keys(), matching_src_dict)
 
 
     def update_featsgen_in_srcid_lookup_table(self, srcid_list, used_filters_list=[]):
@@ -2313,11 +2301,11 @@ class Source_Database_Tools(object):
                 update_str = 'UPDATE %s SET feat_gen_date=NOW(), feats_used_filt="%s" WHERE src_id=%d' % (self.pars['srcid_table_name'], used_filters_list[i], src_id)
             else:
                 update_str = "UPDATE %s SET feat_gen_date=NOW() WHERE src_id=%d" % (self.pars['srcid_table_name'], src_id)
-
+                
             self.cursor.execute(update_str)
 
 
-class Rdb_Tools(object):
+class Rdb_Tools:
     """ Singleton object which contains methods for accessing the single-epoch
     event database.
     """
@@ -2345,10 +2333,10 @@ class Rdb_Tools(object):
                                           user=self.rdb_user, \
                                           db=self.rdb_name, \
                                           port=self.rdb_port, \
-                                          connect_timeout=30) #compress=1,
+                                          connect_timeout=30) #compress=1, 
                 connection_made = True
             except:
-                print('! NO Rdb_Tools DB connection! PID(', str(os.getpid()), ')', self.rdb_host_ip, self.rdb_user, self.rdb_name, self.rdb_port)
+                print '! NO Rdb_Tools DB connection! PID(', str(os.getpid()), ')', self.rdb_host_ip, self.rdb_user, self.rdb_name, self.rdb_port
                 time.sleep(0.5) # KLUDGEY
         self.cursor = self.db.cursor()
 
@@ -2373,7 +2361,7 @@ class Rdb_Tools(object):
                 print 'EXCEPT! Unable to connect to PTF PostgreSQL server:', \
                                                    self.pars['ptf_postgre_host']
             """
-
+            
         self.ptel_ingest_acct_tablename = \
                                         self.pars['ptel_ingest_acct_tablename']
         self.sdss_tables_available = 0 # 1 == <tables are available>
@@ -2422,7 +2410,7 @@ class Rdb_Tools(object):
         #    self.sdss_socket_client = obj_id_sockets.socket_client( \
         #                                      sdss_obj_index_server_pars)
 
-
+        
     def test_table_availability(self):
         """ Test that tables are available and queriable for each survey
         (SDSS, PAIRITEL, PTF).
@@ -2435,7 +2423,7 @@ class Rdb_Tools(object):
                         self.pars['rdb_table_names']['ptf']],
             'sdss':[self.pars['obj_srcid_lookup_tablename'],
                     self.pars['rdb_table_names']['sdss']]}
-        for survey_name,table_names in table_names_dict.items():
+        for survey_name,table_names in table_names_dict.iteritems():
             n_ok_tables = 0
             for table_name in table_names:
                 select_str = "SELECT count(*) FROM %s" % (table_name)
@@ -2450,8 +2438,8 @@ class Rdb_Tools(object):
                 except:
                     pass
             if n_ok_tables != len(table_names):
-                print('ERROR: test_table_availability(): Unable to load DB:', \
-                      survey_name, ':', table_names)
+                print 'ERROR: test_table_availability(): Unable to load DB:', \
+                      survey_name, ':', table_names
             else:
                 if survey_name == 'pairitel':
                     self.ptel_tables_available = 1
@@ -2497,11 +2485,11 @@ class Rdb_Tools(object):
                     # CASE: x_root contains no filter
                     obs_root = x_root
                     fp = open(file_path)
-                    temp_pickle = pickle.load(fp)
-                    filt_list = list(temp_pickle.keys())
+                    temp_pickle = cPickle.load(fp)
+                    filt_list = temp_pickle.keys()
                     if len(filt_list) != 1:
-                        print("ERROR: pickle file has more than 1 filter:", \
-                                                   file_path)
+                        print "ERROR: pickle file has more than 1 filter:", \
+                                                   file_path
                         raise # FAIL horribly here.
                     filt_name = filt_list[0]
                     fp.close()
@@ -2584,20 +2572,20 @@ class Rdb_Tools(object):
             return 0
         return 0
 
-
+    
     def open_fitstable(self, table_fpath):
         """ Open pyfits table and return return file-pointer
         """
         try:
             fp = pyfits.open(table_fpath)
             if not (fp[1].data.size() > 0):
-                print('FAIL: open_fitstable(): bad size', table_fpath)
+                print 'FAIL: open_fitstable(): bad size', table_fpath
                 raise
             elif len(fp[1].data) != len(fp[5].data):
-                print('FITS Table ext1 1,5 len mismatch')
+                print 'FITS Table ext1 1,5 len mismatch'
                 raise
         except:
-            print('ERROR: open_fitstable(): open/parse:', table_fpath)
+            print 'ERROR: open_fitstable(): open/parse:', table_fpath
             traceback.format_exc()
             raise
         return fp
@@ -2606,7 +2594,7 @@ class Rdb_Tools(object):
     def get_tup_list_from_sdss_fits_fp(self, fp):
         """ Uses SDSS-II pyfits table to generate a tuple-list for RDB ingest.
         """
-        print("insert_fits_fp_data() python code...")
+        print "insert_fits_fp_data() python code..."
         # I get dict pointers to speed things up:
         ###?this no longer needed???# filter_list = self.pars['filters']
         #20080213 commented out: #ordered_col_list = self.srcd.rdb_ind['sdss'].rdb_col_list[2:]# skip first 3 cols since added explicitly below
@@ -2614,8 +2602,8 @@ class Rdb_Tools(object):
         sdss_header_to_xml = self.srcd.sdss_rdb_header_dict
         sdssrow_to_xml_1_dict = self.srcd.sdss_rdb_row_1_dict
         sdssrow_to_xml_5_dict = self.srcd.sdss_rdb_row_5_dict
-        sdssrow_to_xml_5_dict_keys = list(self.srcd.sdss_rdb_row_5_dict.keys())
-        range_filt_list = list(range(5))
+        sdssrow_to_xml_5_dict_keys = self.srcd.sdss_rdb_row_5_dict.keys()
+        range_filt_list = range(5)
 
         fcr_field = int(fp[0].header['field'])
         fcr_camcol = int(fp[0].header['camcol'])
@@ -2624,14 +2612,14 @@ class Rdb_Tools(object):
         fcrr_list = (fcr_field, fcr_camcol, fcr_run, fcr_rerun)
 
         header_dict = {}
-        for fits_key,ext in sdss_header_to_xml.items():
+        for fits_key,ext in sdss_header_to_xml.iteritems():
             header_dict[fits_key] = int(fp[ext].header[fits_key]) # KLUDGE: currently assume all interested header values are integer
         len_data = len(fp[1].data)
         tup_list = []
-        #obj_id_prefix = 'sdss' + str(header_dict['field']) + '_' + str(header_dict['camcol']) + '_' + str(header_dict['run']) + '_' + str(header_dict['rerun']) + '_'
-        for row_i in range(len_data):
+        #obj_id_prefix = 'sdss' + str(header_dict['field']) + '_' + str(header_dict['camcol']) + '_' + str(header_dict['run']) + '_' + str(header_dict['rerun']) + '_' 
+        for row_i in xrange(len_data):
             obj_dict = header_dict.copy()
-            for fits_key,ext in sdssrow_to_xml_1_dict.items():
+            for fits_key,ext in sdssrow_to_xml_1_dict.iteritems():
                 obj_dict[fits_key] = fp[ext].data[row_i].field(fits_key)
             ####htm_id = self.htm_tools.generate_hex_htm_id(obj_dict['ra'], \
             ####   obj_dict['dec'], htm_id_depth=self.pars['htm_id_database_depth'])
@@ -2655,7 +2643,7 @@ class Rdb_Tools(object):
 
 
     def get_tup_list_from_pairitel_phot_dict(self, phot_dict):
-        """ Using Pairitel objects-dict, form object tup_list for later
+        """ Using Pairitel objects-dict, form object tup_list for later 
         RDB insertion.  Return tup_list
 
         phot_dict['j']['photometry']['array_header'] = \
@@ -2665,7 +2653,7 @@ class Rdb_Tools(object):
         #ra_list = []
         #dec_list = []
         filter_num_dict = self.pars['pairitel_filter_num_dict']
-        filters = list(phot_dict.keys()) #Usually ['j','h','k'], but possib miss filt
+        filters = phot_dict.keys() #Usually ['j','h','k'], but possib miss filt
 
         ordered_col_list = self.srcd.rdb_ind['pairitel'].rdb_col_list[2:]# skip first 3 cols since added explicitly below
         t_val = phot_dict[filters[0]]['time']['mjdmid']
@@ -2705,7 +2693,7 @@ class Rdb_Tools(object):
                     else:
                         insert_list.append(str(obj_dict[col_name]))
                 tup_list.append(insert_list)
-                # NOTE: this tup_list should mirror:
+                # NOTE: this tup_list should mirror: 
                 #    self.srcd.rdb_ind['pairitel'].insert_str
                 elem_i += 1
         #print "ptel FOV Mean (ra,dec):", sum(ra_list) / len(ra_list), sum(dec_list) / len(dec_list)
@@ -2717,14 +2705,14 @@ class Rdb_Tools(object):
         """ Form & INSERT objid's (f,c,r) info into object/epoch RDB.
         """
         insert_list_fcr_lookup = []
-        for obj_id in range(row_i_low, row_i_high + 1):
+        for obj_id in xrange(row_i_low, row_i_high + 1):
             insert_list_fcr_lookup.append((obj_id, fcrr_list[0], \
                                      fcrr_list[1], fcrr_list[2], fcrr_list[3]))
         insert_str_list_fcr_lookup = []
         insert_str_list_fcr_lookup.append(\
             "INSERT INTO %s (obj_id, field, camcol, run, rerun) VALUES " % \
             (self.pars['sdss_obj_fcr_lookup_tablename']))
-        for i in range(len(insert_list_fcr_lookup)):
+        for i in xrange(len(insert_list_fcr_lookup)):
             insert_str_list_fcr_lookup.append(\
                        "(%s, %d, %d, %d, %d), " % (insert_list_fcr_lookup[i]))
         self.cursor.execute(''.join(insert_str_list_fcr_lookup)[:-2])
@@ -2761,17 +2749,17 @@ class Rdb_Tools(object):
 
         # KLUDGY: 20081223 needed:
         filterid_to_filternum = {}
-        for filt_num,filt_name in self.pars['filters'].items():
+        for filt_num,filt_name in self.pars['filters'].iteritems():
             filterid_to_filternum[filt_name] = filt_num
 
         # # # # # # #
         # KLUDGE: I should be entering some kind of limiting mags here, for all surveys:
         if len(limit_mags_dict) >0:
             insert_list = ["INSERT INTO %s (footprint_id, filter_id, mag_type, mag_val) VALUES " %  (self.pars['footprint_values_tablename'])]
-            for filter_id,filter_mags in limit_mags_dict.items():
+            for filter_id,filter_mags in limit_mags_dict.iteritems():
                 # 20081223: this is list use is obsolete now?: filter_num = self.pars['filters'].index(filter_id)
                 filter_num = filterid_to_filternum[filter_id]
-                for mag_type, mag_val in filter_mags.items():
+                for mag_type, mag_val in filter_mags.iteritems():
                     insert_list.append("(%d, %d, %d, %lf), " % (footprint_id, int(filter_num), int(mag_type), float(mag_val)))
             self.cursor.execute(''.join(insert_list)[:-2])
             self.cursor.execute("SELECT last_insert_id()")
@@ -2780,7 +2768,7 @@ class Rdb_Tools(object):
                 footprint_id = rows[0][0]
             else:
                 raise # shouldnt get here
-
+            
             insert_str = "INSERT INTO %s (footprint_id, survey_id, t, ing_date, radec_region) VALUES (%d, %d, %lf, NOW(), GeomFromText('POLYGON((%lf %lf, %lf %lf, %lf %lf, %lf %lf, %lf %lf))'))" % (self.pars['footprint_regions_tablename'], footprint_id, survey_num, t_val, ra_min, dec_max, ra_max, dec_max, ra_max, dec_min, ra_min, dec_min, ra_min, dec_max)
             self.footprint_cursor.execute(insert_str)
         return footprint_id
@@ -2812,8 +2800,8 @@ class Rdb_Tools(object):
         #elif survey_name == 'sdss':
         #    (row_i_low, row_i_high) = self.sdss_socket_client.\
         #                             get_index_range_from_server(len(tup_list))
-        #if (row_i_low, row_i_high) == (-1,-1):
-        #    return []
+	#if (row_i_low, row_i_high) == (-1,-1):
+	#    return []
         #return_objid_list = range(row_i_low, row_i_high + 1)
         #if survey_name == 'sdss':
         #    self.rdb_insert_sdss_fcr_lookup_data(fcrr_list, row_i_low, \
@@ -2879,7 +2867,7 @@ class Rdb_Tools(object):
                       "INSERT INTO %s (obj_id, src_id, survey_id) VALUES " % \
                        (self.pars['obj_srcid_lookup_tablename'])]
 
-        for i in range(len(insert_list_obj_data)):
+        for i in xrange(len(insert_list_obj_data)):
             insert_str_list_obj_data.append(obj_data_str_mask % \
                                              (insert_list_obj_data[i]))
 
@@ -2893,14 +2881,14 @@ class Rdb_Tools(object):
         else:
             raise # shouldnt get here
 
-        insert_list_srcid_lookup.extend(list(range(row_i_low, row_i_high + 1)))
+        insert_list_srcid_lookup.extend(range(row_i_low, row_i_high + 1))
 
-        for i in range(len(insert_list_obj_data)):
+        for i in xrange(len(insert_list_obj_data)):
             insert_str_list_srcid_lookup.append("(%s, 0, %d), " % \
                                      (insert_list_srcid_lookup[i], survey_num))
 
         self.cursor.execute(''.join(insert_str_list_srcid_lookup)[:-2])
-        return_objid_list = list(range(row_i_low, row_i_high + 1))
+        return_objid_list = range(row_i_low, row_i_high + 1)
         return return_objid_list
 
 
@@ -2909,7 +2897,7 @@ class Rdb_Tools(object):
         in a dictionary.
         """
         limit_mags_dict = {}
-        for filt_name,filt_dict in phot_dict.items():
+        for filt_name,filt_dict in phot_dict.iteritems():
             limit_mags_dict[filt_name] = copy.deepcopy(\
                                              filt_dict['photometry']['limits'])
         return limit_mags_dict
@@ -2925,12 +2913,12 @@ class Rdb_Tools(object):
         mag_dict = {}
         for tup_elem in tup_list:
             filt_i = int(tup_elem[filt_index])
-            if filt_i not in mag_dict:
+            if not mag_dict.has_key(filt_i):
                 mag_dict[filt_i] = []
             mag_dict[filt_i].append(tup_elem[mag_index])
-
+                
         limit_mags_dict = {}
-        for filt_num,mag_list in mag_dict.items():
+        for filt_num,mag_list in mag_dict.iteritems():
             mag_list.sort()
             n_mags = len(mag_list)
             m_median_01 = mag_list[int(n_mags * 0.1)]
@@ -2943,7 +2931,7 @@ class Rdb_Tools(object):
                                           8:m_median_08, \
                                           9:m_median_09}
         return limit_mags_dict
-
+    
 
     # obsolete:
     def get_fov_region_from_phot_dict_objects(self, phot_dict):
@@ -2972,23 +2960,23 @@ class Rdb_Tools(object):
         """
         pass
 
-
+    
     def insert_pairitel_astrometry_into_rdb(self,pickle_fpath='',phot_dict={},\
                                             mosfits_fpath=''):
 
-        """ Given a PAIRITEL astrometry pickle file,
+        """ Given a PAIRITEL astrometry pickle file, 
         Insert the objects into RDB.
         """
         if len(pickle_fpath) > 0:
             try:
                 fp = open(pickle_fpath)
             except:
-                print("Error opening:", pickle_fpath)
+                print "Error opening:", pickle_fpath
                 return
-            phot_dict = pickle.load(fp)
+            phot_dict = cPickle.load(fp)
             fp.close()
         elif len(phot_dict) == 0:
-            print("Error: insert_pairitel_astrometry_into_rdb(): given phot_dict{} is empty.")
+            print "Error: insert_pairitel_astrometry_into_rdb(): given phot_dict{} is empty."
             return
 
         #limit_mags_dict = self.get_limiting_mags_from_ptel_photdict(phot_dict)
@@ -3002,7 +2990,7 @@ class Rdb_Tools(object):
         #     obj_htm_tablename=self.pars['ptel_obj_htm_lookup_tablename'], \
         #     obj_rtree_tablename=self.pars['ptel_obj_rtree_lookup_tablename'],\
         if n_ingest == 0:
-            print("WARNING: No PAIRITEL data ingested into object-database!")
+            print "WARNING: No PAIRITEL data ingested into object-database!"
             #return
         #self.add_obsid_to_ingested_table(mos_globpath[mos_globpath.rfind('/')+1:][:30])
         if len(pickle_fpath) != 0:
@@ -3051,8 +3039,8 @@ class Rdb_Tools(object):
         """
         # Kludge: keep trying different random fields, which don't
         #       overlap currently-being-source-populated fields:
-        for i in range(1000000):
-
+        for i in xrange(1000000):
+            
             survey_condition_list = []
             if self.sdss_tables_available == 0:
                 survey_condition_list.append("(%s.survey_id != %d)" % (self.pars['obj_srcid_lookup_tablename'], self.pars['survey_id_dict']['sdss']))
@@ -3071,7 +3059,7 @@ class Rdb_Tools(object):
             self.cursor.execute(select_str)
             rdb_rows = self.cursor.fetchall()
             if len(rdb_rows) < 1:
-                print("NO MORE srcdid==0 ROWS in get_first_srcid0_object_epoch()")
+                print "NO MORE srcdid==0 ROWS in get_first_srcid0_object_epoch()"
                 return (-1,0,0,0,0) # Signal exit.
 
             #select_str = "SELECT obj_id,survey_id FROM %s LIMIT %d, 1" % (self.pars['obj_srcid_lookup_tablename'], row_number)
@@ -3085,7 +3073,7 @@ class Rdb_Tools(object):
                 obj_table_name = self.pars['rdb_table_names']['pairitel']
             elif survey_id == self.pars['survey_id_dict']['sdss']:
                 obj_table_name = self.pars['rdb_table_names']['sdss']
-
+            
             # KLUDGE: This Tracebacks when no obj_table_name (for debugging/warning)
             select_str ="SELECT HIGH_PRIORITY ra,decl FROM %s WHERE (obj_id=%d)" %\
                                                            (obj_table_name, obj_id)
@@ -3136,7 +3124,7 @@ class Rdb_Tools(object):
         except:
             row_number = -1
         if row_number < 0:
-            print("NO MORE srcdid==0 ROWS in get_first_srcid0_object_epoch()")
+            print "NO MORE srcdid==0 ROWS in get_first_srcid0_object_epoch()"
             return (-1,-1) # Signal exit.
 
         select_str = "SELECT obj_id,survey_id FROM %s LIMIT %d, 1" % (self.pars['obj_srcid_lookup_tablename'], row_number)
@@ -3151,7 +3139,7 @@ class Rdb_Tools(object):
             obj_table_name = self.pars['rdb_table_names']['pairitel']
         elif survey_id == self.pars['survey_id_dict']['sdss']:
             obj_table_name = self.pars['rdb_table_names']['sdss']
-
+        
         # KLUDGE: This Tracebacks when no obj_table_name (for debugging/warning)
         select_str ="SELECT HIGH_PRIORITY ra,decl FROM %s WHERE (obj_id=%d)" %\
                                                        (obj_table_name, obj_id)
@@ -3244,7 +3232,7 @@ class Rdb_Tools(object):
                 dict_key = (row[1],row[2],row[3],row[4], 0, survey_id) # object unique (all filters will have this key) - each filter is assumed around the same point in time for this instrument
             # TODO: I need to covert t into datetime.
             #    - I need a canned method for mysql-date -> datetime
-            if dict_key not in rdb_obj_dict:
+            if not rdb_obj_dict.has_key(dict_key):
                 rdb_obj_dict[dict_key] = {'ra':row[1], 'decl':row[2], 'ra_rms':row[3], 'dec_rms':row[4], 'obj_ids':[row[0]], 'src_id':0, 'm':row[5], 'm_err':row[6], 't':row[7], 'filts':[row[8]], 'survey_id':survey_id} #'filt':row[8]
             else:
                 rdb_obj_dict[dict_key]['obj_ids'].append(row[0])
@@ -3252,7 +3240,7 @@ class Rdb_Tools(object):
         return rdb_obj_dict
 
 
-    ############# Revised version:
+    ############# Revised version: 
     # These queries will interface with LBL's MySQL PTF diff-object database:
     def retrieve_objects_dict_near_radec_where_src0__ptf_specific(self, ra_low, ra_high, dec_low, dec_high, do_src0_constraint=1, objepoch_table_name='', obj_rtree_table_name='', survey_id=-1, do_logging=False):
         """ Given an ra,dec, and a spatial range, retrieve info from
@@ -3281,7 +3269,7 @@ class Rdb_Tools(object):
         #         ra_low, dec_low, ra_high, dec_high)
         #self.cursor.execute(create_str)
         if do_logging:
-            print("before: SELECT <ptf columns from local RDB>")
+            print "before: SELECT <ptf columns from local RDB>"
         #select_str = "SELECT %s FROM (SELECT %s FROM %s WHERE (DIF_HTMRectV(%lf, %lf, %lf, %lf))) AS blah JOIN %s ON id=obj_srcid_lookup.obj_id WHERE (%s)" % ( \
         #         self.pars['ptf_rdb_select_columns'], \
         #         self.pars['ptf_rdb_select_columns'], \
@@ -3304,7 +3292,7 @@ class Rdb_Tools(object):
         #self.cursor.execute("DROP TABLE blah")
 
         if do_logging:
-            print("before: extract_obj_epoch_from_ptf_query_row(row)")
+            print "before: extract_obj_epoch_from_ptf_query_row(row)"
         rdb_obj_dict = {}
         for row in rdb_rows:
             # NOTE: This tuple is only used as a unique identifier, useful
@@ -3344,7 +3332,7 @@ class Rdb_Tools(object):
                             self.pars['obj_srcid_lookup_tablename'] + \
                             " SET src_id=%s WHERE (obj_id=%s and survey_id=%s)"
         update_obj_srcid_lookup_tups = []
-        for obj_dict in list(objs_dict.values()):
+        for obj_dict in objs_dict.values():
             for obj_id in obj_dict['obj_ids']:
                 src_id = obj_dict['src_id']
                 # Bug:
@@ -3376,7 +3364,7 @@ class Rdb_Tools(object):
         """
         epoch_elem_str="(filt | t | jsb_mag | jsb_mag_err)"
         htm_id = self.htm_tools.generate_htm_id(ra, dec, htm_id_depth=self.pars['htm_id_query_depth'])
-        print('>', htm_id)
+        print '>', htm_id
         constr_xquery = '(starts-with(What/htm,"%s"))' % (htm_id)
         full_xquery = """collection("%s")/VOEvent[%s]/@uid""" % \
                                                  ("test.dbxml", constr_xquery)
@@ -3402,7 +3390,7 @@ class Rdb_Tools(object):
         # TODO: Make usre that the aboive dbxml query works as well...
         # TODO: test that result_list is of the correct form...
         #
-        for (t,m,me,f,did,ra,dec,ra_rms,dec_rms,htm) in result_list: print(t,m,me,f,did,ra,dec,ra_rms,dec_rms,htm)
+        for (t,m,me,f,did,ra,dec,ra_rms,dec_rms,htm) in result_list: print t,m,me,f,did,ra,dec,ra_rms,dec_rms,htm
         return result_list
 
 
@@ -3431,7 +3419,7 @@ class Rdb_Tools(object):
             #       I set to default/unused values:
             flags_str = "0 as flags, 0 as flags2, 10 as objc_type"
 
-        # Here we get objects, using a spatial constraint, and JOIN
+        # Here we get objects, using a spatial constraint, and JOIN 
         #
         # %s.src_id   self.pars['obj_srcid_lookup_tablename']
         #
@@ -3456,18 +3444,18 @@ class Rdb_Tools(object):
         self.cursor.execute(select_str)
         rdb_rows = self.cursor.fetchall()
         self.cursor.execute("DROP TABLE blah")
-        print("> Number SELECT returned object/epoch rows:", len(rdb_rows))
+        print "> Number SELECT returned object/epoch rows:", len(rdb_rows)
 
         # For SDSS, we often get duplicate 'object' data points due to astrometric reductions of drift-scan files....  So I average the magnitude & mag error (which seem to be consistantly close in duplicates).
         if filter_duplicate_time_data:
             time_data_tup_dict = {}
-            for rdb_row in rdb_rows:
+            for rdb_row in rdb_rows: 
                 t = rdb_row[3]
                 m = rdb_row[4]
                 f = rdb_row[6]
                 no_match = True
                 for (row_filt, t_low, t_high, m_low, m_high),entry in \
-                                                time_data_tup_dict.items():
+                                                time_data_tup_dict.iteritems():
                     if (f == row_filt) and (t >= t_low) and (t <= t_high) and \
                                            (m >= m_low) and (m <= m_high):
                         entry[4] += rdb_row[4] # magnitude
@@ -3482,14 +3470,14 @@ class Rdb_Tools(object):
                                                 m - 0.05, m + 0.05)] = obj_list
             rdb_rows = []
             for (f, t_low,t_high, m_low,m_high),entry in \
-                                                time_data_tup_dict.items():
+                                                time_data_tup_dict.iteritems():
                 entry[4] /= entry[-1]
                 entry[5] /= entry[-1]
                 rdb_rows.append(tuple(entry[:-1]))
-
+                
         obj_epoch_list = []
         for (flags, flags2, objc_type, \
-                t,m,me,f,sid,ra,dec,ra_rms,dec_rms,feat_gen_date) in rdb_rows:
+                t,m,me,f,sid,ra,dec,ra_rms,dec_rms,feat_gen_date) in rdb_rows: 
             obj_epoch = {}
             obj_epoch['flags'] = flags
             obj_epoch['flags2'] = flags2
@@ -3508,7 +3496,7 @@ class Rdb_Tools(object):
         return obj_epoch_list
 
 
-    ############# Revised version:
+    ############# Revised version: 
     # These queries will interface with LBL's MySQL PTF diff-object database:
     def select_and_form_objepoch_dict_using_constraint___ptf_case(self, constraint_str, object_tablename, survey_name='', survey_num=0, join_str='', filter_duplicate_time_data=False, only_constrain_using_srcid=None):
         """ Create SELECT string using given constraint str, retrieve sources
@@ -3543,12 +3531,12 @@ class Rdb_Tools(object):
                     self.pars['rdb_name_4'], self.pars['srcid_table_name'],
                     self.pars['rdb_name_4'], self.pars['srcid_table_name'],
                     self.pars['obj_srcid_lookup_tablename'],
-                    self.pars['rdb_table_names']['ptf'],
+                    self.pars['rdb_table_names']['ptf'], 
                     self.pars['obj_srcid_lookup_tablename'],
                     self.pars['rdb_name_4'], self.pars['srcid_table_name'],
                     survey_num, only_constrain_using_srcid)
         else:
-            ##### Here we get objects, using a spatial constraint, and JOIN
+            ##### Here we get objects, using a spatial constraint, and JOIN 
             select_str = """SELECT %s, %s.survey_id, %s.%s.feat_gen_date, %s.%s.src_id
             FROM (SELECT %d as survey_id, id FROM %s WHERE (%s)) AS x
             JOIN %s ON (%s.survey_id=%d AND x.id=%s.obj_id)
@@ -3564,7 +3552,7 @@ class Rdb_Tools(object):
               self.pars['obj_srcid_lookup_tablename'],
               survey_num,
               self.pars['obj_srcid_lookup_tablename'],
-              self.pars['rdb_table_names']['ptf'],
+              self.pars['rdb_table_names']['ptf'], 
               self.pars['rdb_name_4'], self.pars['srcid_table_name'])
 
         self.cursor.execute(select_str)
@@ -3574,7 +3562,7 @@ class Rdb_Tools(object):
         #obj_epoch_list = []
         last_index_object_table = len(self.pars['ptf_rdb_columns_list'])
         mag_time_id_dict = {}
-        for row in rdb_rows:
+        for row in rdb_rows: 
             obj_epoch = extract_obj_epoch_from_ptf_query_row(row)
             if obj_epoch['pos_sub'][0] == None:
                 # This case occurs when the mysql ptf_events table has not
@@ -3604,8 +3592,8 @@ class Rdb_Tools(object):
         # KLUDGY:
         final_obj_epoch_list = []
         added_mag_time_id_list = []
-        mag_time_id_list = list(mag_time_id_dict.keys())
-        for (mag,t,objid),obj_epoch in mag_time_id_dict.items():
+        mag_time_id_list = mag_time_id_dict.keys()
+        for (mag,t,objid),obj_epoch in mag_time_id_dict.iteritems():
             if (mag,t,objid) in added_mag_time_id_list:
                 continue # the equivalent obj_epoch already exists so go to next tuple
             already_added = False
@@ -3622,7 +3610,7 @@ class Rdb_Tools(object):
                     break
             if not already_added:
                 final_obj_epoch_list.append(obj_epoch)
-
+                
         return final_obj_epoch_list
 
 
@@ -3664,7 +3652,7 @@ class Rdb_Tools(object):
                     self.cursor.execute(update_str)
                     already_updated_htms.append(htm_id)
             debug_i += row_limit
-            print(debug_i)
+            print debug_i
 
 
     def add_limitmags_to_sourcedict(self, source_dict):
@@ -3675,24 +3663,24 @@ class Rdb_Tools(object):
                 are added to both source_dict[srcid]['ptf_g'] and ['ptf_r']
         """
         filter_conv_dict = {'g':'ptf_g', 'R':'ptf_r'}
-        for srcid in list(source_dict.keys()):
-            for temp_filter_name,temp_filter_dict in source_dict[srcid].items():
-                if 'ra' in temp_filter_dict:
+        for srcid in source_dict.keys():
+            for temp_filter_name,temp_filter_dict in source_dict[srcid].iteritems():
+                if temp_filter_dict.has_key('ra'):
                     ra = temp_filter_dict['ra']
                     dec = temp_filter_dict['dec']
                     break # get out of for loop.
-
-            for filt_name in list(filter_conv_dict.values()):
-                if filt_name not in source_dict[srcid]:
+                    
+            for filt_name in filter_conv_dict.values():
+                if not source_dict[srcid].has_key(filt_name):
                     source_dict[srcid][filt_name] = {}
-                if 'limitmags' not in source_dict[srcid][filt_name]:
+                if not source_dict[srcid][filt_name].has_key('limitmags'):
                     source_dict[srcid][filt_name]['limitmags'] = {'t':[], 'lmt_mg':[]}
             select_str = "SELECT filter, ujd, lmt_mg from %s WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (self.pars['ptf_mysql_candidate_footprint'], ra, dec)
             self.cursor.execute(select_str)
             rdb_rows = self.cursor.fetchall()
 
-            for filt_name,filt_dict in source_dict[srcid].items():
-                for row in rdb_rows:
+            for filt_name,filt_dict in source_dict[srcid].iteritems():
+                for row in rdb_rows: 
                     (filt, ujd, lmt_mg) = row
                     filt_name = filter_conv_dict[filt]
                     source_dict[srcid][filt_name]['limitmags']['t'].append(float(ujd))
@@ -3708,35 +3696,35 @@ class Rdb_Tools(object):
                 are added to both source_dict[srcid]['ptf_g'] and ['ptf_r']
         """
         filter_conv_dict = {'g':'ptf_g', 'R':'ptf_r'}
-        for srcid in list(source_dict.keys()):
-            temp_dict = list(source_dict[srcid].values())[0]
+        for srcid in source_dict.keys():
+            temp_dict = source_dict[srcid].values()[0]
             ra = temp_dict['ra']
             dec = temp_dict['dec']
-            for filt_dict in list(source_dict[srcid].values()):
-                if 'limitmags' not in filt_dict:
+            for filt_dict in source_dict[srcid].values():
+                if not filt_dict.has_key('limitmags'):
                     filt_dict['limitmags'] = {}
-                    for filt_name in list(filter_conv_dict.values()):
+                    for filt_name in filter_conv_dict.values():
                         filt_dict['limitmags'][filt_name] = {'t':[], 'lmt_mg':[]}
             select_str = "SELECT filter, ujd, lmt_mg from %s WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (self.pars['ptf_mysql_candidate_footprint'], ra, dec)
             self.cursor.execute(select_str)
             rdb_rows = self.cursor.fetchall()
 
-            for filt_dict in list(source_dict[srcid].values()):
-                for row in rdb_rows:
+            for filt_dict in source_dict[srcid].values():
+                for row in rdb_rows: 
                     (filt, ujd, lmt_mg) = row
                     filt_name = filter_conv_dict[filt]
                     filt_dict['limitmags'][filt_name]['t'].append(float(ujd))
                     filt_dict['limitmags'][filt_name]['lmt_mg'].append(float(lmt_mg))
 
 
-class Make_Plots(object):
+class Make_Plots:
     """ Singleton object which contains .ps plot generating methods.
     """
     def __init__(self, pars):
         self.pars = pars
 
     def form_source_dict_using_obj_epoch_list(self, obj_epoch_list):
-        """ Given a list of objects(object characs),
+        """ Given a list of objects(object characs), 
         form a dictionary of {<source>:{<filt>:{..source t[],m[],ra,dec,...}}}
         """
         plotd = {}
@@ -3756,12 +3744,12 @@ class Make_Plots(object):
             dec = obj_epoch['dec']
             ra_rms = obj_epoch['ra_rms'] / 3600.0
             dec_rms = obj_epoch['dec_rms'] / 3600.0
-            if srcid not in plotd:
+            if not plotd.has_key(srcid):
                 plotd[srcid] = {}
-            if filt not in plotd[srcid]:
+            if not plotd[srcid].has_key(filt):
                 plotd[srcid][filt]= {'t':[],'m':[],'m_err':[],'ra':0, 'dec':0,\
                                      'flags':[], 'flags2':[], 'objc_type':[]}
-                if 'objid_candid' in obj_epoch:
+                if obj_epoch.has_key('objid_candid'):
                     a_dict = plotd[srcid][filt]
                     a_dict['objid_candid'] = []
                     a_dict['objid_subtract'] = []
@@ -3831,7 +3819,7 @@ class Make_Plots(object):
             plotd[srcid][filt]['flags2'].append(flags2)
             plotd[srcid][filt]['objc_type'].append(objc_type)
 
-            plotd[srcid][filt]['feat_gen_date'] = feat_gen_date
+            plotd[srcid][filt]['feat_gen_date'] = feat_gen_date 
             plotd[srcid][filt]['ra'] = ra
             plotd[srcid][filt]['dec'] = dec
             plotd[srcid][filt]['ra_rms'] = ra_rms
@@ -3839,7 +3827,7 @@ class Make_Plots(object):
             plotd[srcid][filt]['src_id'] = srcid
 
             # # # # # # I need to add PTF dict stuff :
-            if 'objid_candid' in obj_epoch:
+            if obj_epoch.has_key('objid_candid'):
                 a_dict = plotd[srcid][filt]
                 a_dict['objid_candid'].append(obj_epoch['objid_candid'])
                 a_dict['objid_subtract'].append(obj_epoch['objid_subtract'])
@@ -3941,9 +3929,9 @@ class Make_Plots(object):
             srcid = obj_epoch['srcid']
             filt = self.pars['filters'][obj_epoch['filt']]
             # KLUDGY:
-            if 'm_raoff' not in source_dict[srcid][filt]:
+            if not source_dict[srcid][filt].has_key('m_raoff'):
                 source_dict[srcid][filt]['m_raoff'] = []
-            if 'm_decoff' not in source_dict[srcid][filt]:
+            if not source_dict[srcid][filt].has_key('m_decoff'):
                 source_dict[srcid][filt]['m_decoff'] = []
             t = obj_epoch['t']
             m = obj_epoch['m']
@@ -3965,7 +3953,7 @@ class Make_Plots(object):
         try:
             pylab.hold(True)
         except:
-            print('ERROR Generating pylab plot: DISPLAY issue?')
+            print 'ERROR Generating pylab plot: DISPLAY issue?'
 
         ###### M vs time
         ax = pylab.subplot(211)
@@ -3977,14 +3965,14 @@ class Make_Plots(object):
         factor_incr = 1.0/(num_levels + 1)
         color_tup_list = [] # len of num_points, filled with 5 color rgb tups
         cur_incr = factor_incr
-        for i_point in range((num_points/3) +1):
-            for i_rgb in range(3):
+        for i_point in xrange((num_points/3) +1):
+            for i_rgb in xrange(3):
                 ref_rgb = [cur_incr, cur_incr, cur_incr]
                 ref_rgb[i_rgb] = 1.0
                 point_rgb_list = []
                 for brt_fact in [0.2, 0.4, 0.6, 0.8, 1.0]:
                     cur_rgb = [0,0,0]
-                    for i in range(3):
+                    for i in xrange(3):
                         cur_rgb[i] = ref_rgb[i] * brt_fact
                         if cur_rgb[i] > 1:
                             cur_rgb[i] = 1
@@ -3993,9 +3981,9 @@ class Make_Plots(object):
             cur_incr += factor_incr
 
         i_did = 0
-        for did_dict in list(source_dict.values()):
+        for did_dict in source_dict.values():
             i_f = 0
-            for filt,f_dict in did_dict.items():
+            for filt,f_dict in did_dict.iteritems():
                 symbol = plot_sym_list[i_did]
                 pylab.errorbar(numpy.array(f_dict['t']),\
                                numpy.array(f_dict['m']),\
@@ -4012,9 +4000,9 @@ class Make_Plots(object):
         ##### M-offset(DEC) vs time
         ax = pylab.subplot(224)
         i_did = 0
-        for did_dict in list(source_dict.values()):
+        for did_dict in source_dict.values():
             i_f = 0
-            for filt,f_dict in did_dict.items():
+            for filt,f_dict in did_dict.iteritems():
                 symbol = plot_sym_list[i_did]
                 pylab.plot(numpy.array(f_dict['t']), numpy.array(f_dict['m_decoff']), symbol, marker=symbol, color=color_tup_list[i_did][i_f])
                 i_f += 1
@@ -4027,9 +4015,9 @@ class Make_Plots(object):
         ##### RA,DEC PLOT:
         ax = pylab.subplot(223)
         i_did = 0
-        for did_dict in list(source_dict.values()):
+        for did_dict in source_dict.values():
             symbol = plot_sym_list[i_did]
-            dd_i = list(did_dict.keys())[0] # Just an arbitrary dict index
+            dd_i = did_dict.keys()[0] # Just an arbitrary dict index
             pylab.errorbar([did_dict[dd_i]['ra']], [did_dict[dd_i]['dec']], \
                        xerr=did_dict[dd_i]['ra_rms'],\
                        yerr=did_dict[dd_i]['dec_rms'],\
@@ -4048,16 +4036,16 @@ class Make_Plots(object):
             os.system('rm ' + out_fpath)
         pylab.savefig(out_fpath)
 
-        print("WROTE:", out_fpath)
+        print "WROTE:", out_fpath
         pylab.close()
         try:
             pylab.hold(False)
         except:
-            print('ERROR Generating pylab plot: DISPLAY issue?')
+            print 'ERROR Generating pylab plot: DISPLAY issue?'
 
     # This is obsolete:
     def query_plot_ra_dec(self, pars, rdbt, htm_tools, ra, dec, box_degree_range):
-        """ Query the RDBs using (ra,dec,arcangle), generating a list of
+        """ Query the RDBs using (ra,dec,arcangle), generating a list of 
         HTMids using a HTM circle-query.  Plot the results.
         """
         half_range = box_degree_range / 2.0
@@ -4082,7 +4070,7 @@ class Make_Plots(object):
             out_fpath='/tmp/out.ps', do_show='yes', query_ra=ra, query_dec=dec)
 
 
-class SDSS_Local_Fits_Repository(object):
+class SDSS_Local_Fits_Repository:
     """ This contains methods which are used for generating dirpaths which
     are valid for the astrometry code (using a given f,c,r).
     This also contains methods for scp astrometry dirctories to/from the local
@@ -4090,7 +4078,7 @@ class SDSS_Local_Fits_Repository(object):
     """
     def __init__(self, pars):
         self.pars = pars
-
+    
     def scp_local_astrom_dirs_to_repository(self, field=0, camcol=0, run=0):
         """ This method scps the local astrometry dirpath and subdirectories
         to the corresponding repository astrom dirpath, for later retrieval.
@@ -4108,7 +4096,7 @@ class SDSS_Local_Fits_Repository(object):
         os.system(mkdir_cmd)
 
         local_astrom_path = "%s%d/%d" % (self.pars['sdss_astrom_local_dirpath'], run, field)
-        cwd = os.getcwdu()
+        cwd = os.getcwd()
         os.chdir(local_astrom_path)
         tar_command = "tar -czf %s/%d_%d_%d.tgz *%d-r%d-*%d.* *%d-%d-*%d.*" % (local_astrom_path, run, camcol, field, run, camcol, field, run, camcol, field)
         os.system(tar_command)
@@ -4122,7 +4110,7 @@ class SDSS_Local_Fits_Repository(object):
         rm_cmd = "rm %s/%d_%d_%d.tgz" % (local_astrom_path, run, camcol, field)
         os.system(rm_cmd)
         os.chdir(cwd)
-
+        
         # NOTE: The next called function should mark the FCR ingest_status=11
 
 
@@ -4142,7 +4130,7 @@ class SDSS_Local_Fits_Repository(object):
         file_list = b.read()
         b.close()
         if len(file_list) < 1:
-            return -1
+            return -1 
 
         # Create local dirpath if not exist:
         local_astrom_dirpath = "%s%d" % (self.pars['sdss_astrom_local_dirpath'], run)
@@ -4153,7 +4141,7 @@ class SDSS_Local_Fits_Repository(object):
             os.system('mkdir ' + local_astrom_dirpath)
 
         # scp files from repository to local dirpath:
-        # NOTE: I should determine whether -C compression helps while the
+        # NOTE: I should determine whether -C compression helps while the 
         #       TCP is fully loaded.
         if self.pars['sdss_astrom_repo_host_ip'] == "127.0.0.1":
             scp_command = "cp %s/%d/%d/%d_%d_%d.tgz %s/%d/%d/" % (self.pars['sdss_astrom_repo_dirpath'], run, field, run, camcol, field, self.pars['sdss_astrom_local_dirpath'], run, field)
@@ -4164,7 +4152,7 @@ class SDSS_Local_Fits_Repository(object):
         os.system(scp_command)
 
         local_astrom_path = "%s/%d/%d" % (self.pars['sdss_astrom_local_dirpath'], run, field)
-        cwd = os.getcwdu()
+        cwd = os.getcwd()
         os.chdir(local_astrom_path)
         tar_command = "tar -xzf %s/%d_%d_%d.tgz" % (local_astrom_path, run, camcol, field)
         os.system(tar_command)
@@ -4177,8 +4165,8 @@ class SDSS_Local_Fits_Repository(object):
         return 1 # success
 
 
-class TCP_Runtime_Methods(object):
-    """ A suite of TCP populating and querying methods which coordinate
+class TCP_Runtime_Methods:
+    """ A suite of TCP populating and querying methods which coordinate 
     various other object tasks together.
 
     NOTE: we try to keep this Class/Object as transparent as possible, passing
@@ -4189,7 +4177,7 @@ class TCP_Runtime_Methods(object):
         """ Will only have a TCP Scratch/Data directory as an internal variable
         """
         self.cur_pid = cur_pid
-        if "TCP_DATA_DIR" in os.environ:
+        if os.environ.has_key("TCP_DATA_DIR"):
             if not os.path.exists(os.environ.get("TCP_DATA_DIR")):
                 os.system("mkdir -p %s" % (os.environ.get("TCP_DATA_DIR")))
             self.tcp_data_dir_old = os.environ.get("TCP_DATA_DIR")
@@ -4202,7 +4190,7 @@ class TCP_Runtime_Methods(object):
             #      If so, that's super KLUDGY.
             #os.environ["TCP_DATA_DIR"] = self.tcp_data_dir # for sdss_*py
             return
-        print("ERROR: BAD environ var TCP_DATA_DIR:", os.environ.get("TCP_DATA_DIR"))
+        print "ERROR: BAD environ var TCP_DATA_DIR:", os.environ.get("TCP_DATA_DIR")
         sys.exit()
 
 
@@ -4245,9 +4233,9 @@ class TCP_Runtime_Methods(object):
             src_dec_high = dec + half_range + buffer_width
         else:
             n_iters = 1000000 #Go until (-1,-1) return/exit.
-
+            
         (obj_ra, obj_dec) = (ra, dec) # Define these just for 'print' below...
-        for i in range(n_iters):
+        for i in xrange(n_iters):
             # TODO/KLUDGE/NOTE: This will have problems at ra:0/360 discontin.:
             if n_iters != 1:
                 #(obj_ra, obj_dec) = rdbt.get_first_srcid0_object_epoch()
@@ -4259,8 +4247,8 @@ class TCP_Runtime_Methods(object):
                 src_ra_high = ra_high + buffer_width
                 src_dec_low = dec_low - buffer_width
                 src_dec_high = dec_high + buffer_width
-            print("%s Get objects in region (low corner): %0.4f %0.4f" % (\
-                                 str(datetime.datetime.now()), ra_low, dec_low))
+            print "%s Get objects in region (low corner): %0.4f %0.4f" % (\
+                                 str(datetime.datetime.now()), ra_low, dec_low)
             objs_dict = {}
             if ((rdbt.sdss_tables_available == 1) and (skip_check_sdss_objs==False)):
                 if (((ra_high - ra_low) < \
@@ -4306,7 +4294,7 @@ class TCP_Runtime_Methods(object):
                     DIF_HTM_tablename = \
                                    pars['ptf_object_table_name_DIF_HTM14']
                 if do_logging:
-                    print("before: rdbt.retrieve_objects_dict_near_radec_where_src0__ptf_specific()")
+                    print "before: rdbt.retrieve_objects_dict_near_radec_where_src0__ptf_specific()"
                 ptf_objs_dict = \
                   rdbt.retrieve_objects_dict_near_radec_where_src0__ptf_specific(\
                        ra_low, ra_high, dec_low, dec_high, do_src0_constraint=1, \
@@ -4317,7 +4305,7 @@ class TCP_Runtime_Methods(object):
                 #     objepoch_table_name=DIF_HTM_tablename, survey_id=3)
                 objs_dict.update(ptf_objs_dict)
 
-            print(datetime.datetime.now(), "Got", len(objs_dict), "objects in region")
+            print datetime.datetime.now(), "Got", len(objs_dict), "objects in region"
             srcdbt.populate_srcids_using_objs_dict(rdbt, objs_dict, \
                             src_ra_low, src_ra_high, src_dec_low, src_dec_high, \
                             skip_check_sdss_objs=skip_check_sdss_objs, \
@@ -4325,7 +4313,7 @@ class TCP_Runtime_Methods(object):
                             skip_check_ptf_objs=skip_check_ptf_objs, \
                                                    do_logging=do_logging)
             if do_logging:
-                print("after: srcdbt.populate_srcids_using_objs_dict()")
+                print "after: srcdbt.populate_srcids_using_objs_dict()"
             # KLUDGY Placement:
             if n_iters != 1:
                 rdbt.srl.unlock_region(region_id)
@@ -4333,12 +4321,12 @@ class TCP_Runtime_Methods(object):
 
     def add_sdssii_to_rdb_using_sdss_blocklist(self, slfits_repo, rdbt, \
                         block_list, scp_repo_retrieve_success, survey='DRSN1'):
-        """ Using a given [{field,camcol,run}, ...]; retrieves SDSSII
+        """ Using a given [{field,camcol,run}, ...]; retrieves SDSSII 
         data-tables, recalibrates and ingests into SDSSII RDB.
         """
         ingest_success = 3 # Incomplete astrophot run
         run_status = ''
-        print("Populating MySQL DB with SDSS FITS tables...")
+        print "Populating MySQL DB with SDSS FITS tables..."
         table_fpath_list = []
         b = sdss_astrophot.SDSS_multiblock()
         b.make_light_curve = 0 # Needed to not invoke plot routines
@@ -4346,7 +4334,7 @@ class TCP_Runtime_Methods(object):
         data_url = rdbt.pars['sdss_data_urls'][survey]
 
         #if 1:
-        print("Doing: sdss_astrophot.SDSS_multiblock.run_block_list(block_list, data_url=%s)" % (data_url))
+        print "Doing: sdss_astrophot.SDSS_multiblock.run_block_list(block_list, data_url=%s)" % (data_url)
         try:
             status = b.run_block_list(block_list, data_url=data_url)
             table_fpath_list = b.jsb_files
@@ -4359,13 +4347,13 @@ class TCP_Runtime_Methods(object):
         if 'failed [zps]' in run_status:
             return 4 # unsuccessful, astrophot failed-zps
         elif not ('completed' in run_status):
-            print('run_status:', run_status)
+            print 'run_status:', run_status
             return 3 # unsuccessful, astrophot incomplete
 
         # NOTE(20070820): In current ingestion implementation, only a single
         #    tuple exists in block_list[], which generates a single FITS Table
         #    in table_fpath_list[].  So this loop is generally done only once.:
-        # NOTE(20080314): If we retrieved astrom from repo tgz file, no
+        # NOTE(20080314): If we retrieved astrom from repo tgz file, no 
         #      need to tar.gz and send back to astrom repository.
         if scp_repo_retrieve_success != 1:
             for rfc_dict in block_list:
@@ -4376,7 +4364,7 @@ class TCP_Runtime_Methods(object):
             try:
                 fp = rdbt.open_fitstable(table_fpath_list[0])
             except:
-                print("Error opening:", table_fpath_list[0])
+                print "Error opening:", table_fpath_list[0]
                 return 2
             (tup_list, fcrr_list) = rdbt.get_tup_list_from_sdss_fits_fp(fp)
             fp.close()
@@ -4394,10 +4382,10 @@ class TCP_Runtime_Methods(object):
                               limit_mags_dict=limit_mags_dict)
                 n_ingest = len(objids_list)
             except:
-                print("EXCEPT in insert_object_tuplist_into_rdb()")
+                print "EXCEPT in insert_object_tuplist_into_rdb()"
                 return 4 # unsuccessful.  Except generally is a mysql error at the insert_str_list_obj_data INSERT. :: OperationalError: (2006, 'MySQL server has gone away')
             if n_ingest == 0:
-                print("WARNING: No SDSS data ingested for:",table_fpath_list[0])
+                print "WARNING: No SDSS data ingested for:",table_fpath_list[0]
                 return 2
             else:
                 return 11 # fully successful ingest
@@ -4409,27 +4397,27 @@ class TCP_Runtime_Methods(object):
         This code is derived from jbloom's sdss_astrophot.py.run_from_pos()
         """
         # Pre 20090723:
-        # http://sdssw1.fnal.gov/DRSN1-cgi-bin/FOOT?csvIn=ra%2Cdec%0D%0A30.0%2C-1.0%0D%0A;inputFile=;do_bestBox=yes;Submit=Submit%20Request
+	# http://sdssw1.fnal.gov/DRSN1-cgi-bin/FOOT?csvIn=ra%2Cdec%0D%0A30.0%2C-1.0%0D%0A;inputFile=;do_bestBox=yes;Submit=Submit%20Request
         # (current) post 20090723:
         #http://cas.sdss.org/Stripe82/en/tools/search/x_radial.asp?ra=15.5&dec=0.5&radius=0.1&min_u=0&max_u=20&min_g=0&max_g=20&min_r=0&max_r=20&min_i=0&max_i=20&min_z=0&max_z=20&entries=all&topnum=10&format=csv
-
-        #tmp = """ra,dec\n%f,%f""" % (ra,dec)
-        #params = urllib.urlencode({'csvIn': tmp})
+        
+	#tmp = """ra,dec\n%f,%f""" % (ra,dec)
+	#params = urllib.urlencode({'csvIn': tmp})
         random_fpath ="/tmp/%d.wget"%(numpy.random.random_integers(1000000000))
         url_str = "http://cas.sdss.org/Stripe82/en/tools/search/x_radial.asp?ra=%lf&dec=%lf&radius=0.1&min_u=0&max_u=20&min_g=0&max_g=20&min_r=0&max_r=20&min_i=0&max_i=20&min_z=0&max_z=20&entries=all&topnum=10&format=csv" % (ra, dec)
         wget_str = 'wget -t 1 -T 5 -O %s "%s"' % (random_fpath, url_str)
-        print("wget do:", wget_str)
+        print "wget do:", wget_str
         os.system(wget_str)
-        print("wget done")
+        print "wget done"
         footret = open(random_fpath).read()
         os.system("rm %s" % (random_fpath))
-        #f =urllib.urlopen(pars['sdss_footprint_urls'][survey], "%s;%s" % (params,pars['footprint_preamble']))
-        #footret =  f.read()
+	#f =urllib.urlopen(pars['sdss_footprint_urls'][survey], "%s;%s" % (params,pars['footprint_preamble']))
+	#footret =  f.read()
         #f.close()
         if len(footret) < 10:
-            print("ERROR: Bad return from footprint server.(ra,dec):", ra, dec)
+            print "ERROR: Bad return from footprint server.(ra,dec):", ra, dec
             return
-        res_string = footret#[start+5:end]
+	res_string = footret#[start+5:end]
         res_str_list = res_string.split('\n')
         #res_string:
         #objid,run,rerun,camcol,field,obj,type,ra,dec,u,g,r,i,z,Err_u,Err_g,Err_r,Err_i,Err_z
@@ -4450,27 +4438,27 @@ class TCP_Runtime_Methods(object):
         """ Given a (ra,dec), retrieve a list of SDSS (field,camcol,run).
         This code is derived from jbloom's sdss_astrophot.py.run_from_pos()
         """
-        # http://sdssw1.fnal.gov/DRSN1-cgi-bin/FOOT?csvIn=ra%2Cdec%0D%0A30.0%2C-1.0%0D%0A;inputFile=;do_bestBox=yes;Submit=Submit%20Request
-        tmp = """ra,dec\n%f,%f""" % (ra,dec)
-        params = urllib.parse.urlencode({'csvIn': tmp})
+	# http://sdssw1.fnal.gov/DRSN1-cgi-bin/FOOT?csvIn=ra%2Cdec%0D%0A30.0%2C-1.0%0D%0A;inputFile=;do_bestBox=yes;Submit=Submit%20Request
+	tmp = """ra,dec\n%f,%f""" % (ra,dec)
+	params = urllib.urlencode({'csvIn': tmp})
         random_fpath ="/tmp/%d.wget"%(numpy.random.random_integers(1000000000))
         wget_str = 'wget -t 1 -T 5 -O %s "%s%s;%s"' % (random_fpath, \
                                          pars['sdss_footprint_urls'][survey], \
                                          params, pars['footprint_preamble'])
-        print("wget do:", wget_str)
+        print "wget do:", wget_str
         os.system(wget_str)
-        print("wget done")
+        print "wget done"
         footret = open(random_fpath).read()
         os.system("rm %s" % (random_fpath))
-        #f =urllib.urlopen(pars['sdss_footprint_urls'][survey], "%s;%s" % (params,pars['footprint_preamble']))
-        #footret =  f.read()
+	#f =urllib.urlopen(pars['sdss_footprint_urls'][survey], "%s;%s" % (params,pars['footprint_preamble']))
+	#footret =  f.read()
         #f.close()
-        start = footret.find("<pre>")
-        end = footret.find("</pre>")
-        if start == -1 or end == -1:
-            print("ERROR: Bad return from footprint server.(ra,dec):", ra, dec)
+	start = footret.find("<pre>")
+	end = footret.find("</pre>")
+	if start == -1 or end == -1:
+            print "ERROR: Bad return from footprint server.(ra,dec):", ra, dec
             return
-        res_string = footret[start+5:end]
+	res_string = footret[start+5:end]
         res_str_list = res_string.split('\n')
         #res_string:
         #ra,        dec,       run,  rerun, camcol, field,  rowc, colc
@@ -4527,15 +4515,15 @@ class TCP_Runtime_Methods(object):
                      field=rfc_dict['field'], camcol=rfc_dict['camcol'], \
                       run=rfc_dict['run'])
             if scp_repo_retrieve_success == -1:
-                print("Error scp from repo->local where status=7:", \
-                     rfc_dict['field'], rfc_dict['camcol'], rfc_dict['run'])
-
+                print "Error scp from repo->local where status=7:", \
+                     rfc_dict['field'], rfc_dict['camcol'], rfc_dict['run']
+            
         ingest_success = self.add_sdssii_to_rdb_using_sdss_blocklist(\
                            slfits_repo, rdbt, [rfc_dict], \
                            scp_repo_retrieve_success, survey=survey)
-        print("sdss_rfc_ingest_using_ra_dec(%d/%d) %d,%d,%d success:%d" %\
+        print "sdss_rfc_ingest_using_ra_dec(%d/%d) %d,%d,%d success:%d" %\
               (cur_i, total_i, rfc_dict['run'], rfc_dict['field'], \
-               rfc_dict['camcol'], ingest_success))
+               rfc_dict['camcol'], ingest_success)
         sdss_fcr_iso.update_RDB_with_ingested_rfc_dict(rfc_dict, \
                                                           ingest_success)
         if do_delete_scratch_dir == 1:
@@ -4580,7 +4568,7 @@ class TCP_Runtime_Methods(object):
                                                      do_delete_scratch_dir=0):
         """ Loop over the SDSS rfc ingestion into RDB.
         """
-        for i in range(n_iters):
+        for i in xrange(n_iters):
             #rfc_dict = {'field': 266, 'camcol': 1, 'run': 5759}
             rfc_dict = sdss_fcr_iso.get_uningested_rfc_dict()
             if len(rfc_dict) == 0:
@@ -4608,7 +4596,7 @@ class TCP_Runtime_Methods(object):
             """
 
 
-class SDSS_FCR_Ingest_Status_Object(object):
+class SDSS_FCR_Ingest_Status_Object:
     """ Object which wraps all methods pertaining to the MySQL Table
     which contains accounting of which (field,camcol,run) has successfully
     been ingested into the SDSS object/epoch ('sdss_events') table.
@@ -4636,9 +4624,9 @@ class SDSS_FCR_Ingest_Status_Object(object):
         self.insert_prefix = 'INSERT INTO ' + self.table_name + ' (run, field, camcol, error, ingest_status) VALUES (%s, %s, %s, %s, %s)'
         self.create_command = """CREATE TABLE %s (run SMALLINT, field SMALLINT, camcol TINYINT, error TINYINT, ingest_status TINYINT, ingest_date DATETIME, host VARCHAR(10), INDEX USING HASH (field, camcol, run)) ENGINE=MEMORY""" % (self.table_name)
 
-
+    
     def get_num_uningested_fcr(self):
-        """ Get the number of SDSS (f,c,r) cases which have not yet been
+        """ Get the number of SDSS (f,c,r) cases which have not yet been 
         ingested or even have been attempted to be ingested.
         """
         try:
@@ -4653,21 +4641,21 @@ class SDSS_FCR_Ingest_Status_Object(object):
 
 
     def generate_rfc_insert_table(self, rf_list):
-        """ Generate a table of all run,field,camcol elems, in format
+        """ Generate a table of all run,field,camcol elems, in format 
         for a RDB executemany() insert into RDB table.
 
         Conditional: (not row_list in rdb_table_list) is inefficient, but
         only done once, ever.
-        """
+        """ 
         run_field_list = []
         rdb_table_list = []
         i = 1
         len_i = len(rf_list)
         for (run, field_start, field_end) in rf_list:
-            print(i, len_i)
+            print i, len_i
             i += 1
             run_str = str(run)
-            fields = list(range(field_start, field_end + 1))
+            fields = range(field_start, field_end + 1)
             for field in fields:
                 field_str = str(field)
                 rf_str = "%d_%d" % (run,field)
@@ -4697,8 +4685,8 @@ class SDSS_FCR_Ingest_Status_Object(object):
 
 
     def populate_rfc_rdb_table(self):
-        """ Create and populate the RDB with table which contains all
-        possible {Run, Field, Camcol} permutations needed for compete
+        """ Create and populate the RDB with table which contains all 
+        possible {Run, Field, Camcol} permutations needed for compete 
         RDB ingest of SDSS.
         """
         rf_list = self.get_sdss_rf_list_from_doc()
@@ -4723,7 +4711,7 @@ class SDSS_FCR_Ingest_Status_Object(object):
         """ Given a rfc_dict, update the SDSS RDB Table's coorsponding row
         that this case has been ingested.  Also update the finished ingest
         datetime in the row.
-
+        
         ingest_success values:
         0 : no ingest attempt made
         1 : being ingested
@@ -4745,10 +4733,10 @@ class SDSS_FCR_Ingest_Status_Object(object):
            and record the current ingest_date
         Return the rfc_dict for this row
 
-        NOTE: This is really a complete KLUDGE since I'd rather not perform
+        NOTE: This is really a complete KLUDGE since I'd rather not perform 
         a select to determine the exact number of (ingest_status==0) rows
-        every time I want a new (rfc) tuple.  So, if there are >10000 rows where (ingest_status==0), I just randomly select within the known number of rows.
-        This is a kludge because there may be other instances of
+        every time I want a new (rfc) tuple.  So, if there are >10000 rows where (ingest_status==0), I just randomly select within the known number of rows.  
+        This is a kludge because there may be other instances of 
         ingest_tools.py running, which are also decreasing the number of
         (ingest_status==0) rows.
 
@@ -4762,7 +4750,7 @@ class SDSS_FCR_Ingest_Status_Object(object):
         if self.n_uningested_rfc > 10000:
             offset = int((self.n_uningested_rfc-8000) * numpy.random.random())
         else:
-            print("NOTE: I prefer not performing this query very much...")
+            print "NOTE: I prefer not performing this query very much..."
             select_str = 'SELECT count(*) FROM ' + self.table_name + \
                           ' WHERE ((ingest_status = 0) or (ingest_status = 7))'
             self.cursor.execute(select_str)
@@ -4779,11 +4767,11 @@ class SDSS_FCR_Ingest_Status_Object(object):
         try:
             rfc_tup = results[0]
         except:
-            print("ERROR: rfc_tup = results[0] offset:", offset)
+            print "ERROR: rfc_tup = results[0] offset:", offset
             return {}
         if len(rfc_tup) != 3:
-            print("ERROR: rfc row didn't contain a complete (r,f,c): offset:", offset)
-            return {}
+            print "ERROR: rfc row didn't contain a complete (r,f,c): offset:", offset
+            return {} 
 
         # # # # TODO: the following should be common to any add_sdss_to_rdb code
         #if len(self.hostname) > 10:
@@ -4796,16 +4784,16 @@ class SDSS_FCR_Ingest_Status_Object(object):
         return {'run':rfc_tup[0], 'field':rfc_tup[1], 'camcol':rfc_tup[2]}
 
 
-class XRPC_RDB_Server_Interface_Object(object):
+class XRPC_RDB_Server_Interface_Object:
     """An object intended for use via a xmlrpclib/SimpleXMLRPCServer interface.
     Once the server connection is made, this object's methods are available
     for remote execution via the XMLRPC protocol.
-
+    
     This object provides method access of the object/source Relational Database
-    with functionality such as:
+    with functionality such as: 
       - get sources for a ra,dec, arcmin range
       ...
-
+    
 # Example of remote call/use:
 import xmlrpclib
 server = xmlrpclib.ServerProxy("http://192.168.1.45:8000")
@@ -4857,9 +4845,9 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         Output list: [{<source dict>}, {<source dict>}, ...]
            where <source dict> = {<filter>:{<dict of source characteristics>}}
         """
-        if ((ra < 0) or (ra >= 360) or (dec <= -90) or (dec >= 90) or
+        if ((ra < 0) or (ra >= 360) or (dec <= -90) or (dec >= 90) or 
             (box_range < 0.00001) or (box_range > 0.30)):
-            print("Warning: given out of range input:", ra, dec, box_range)
+            print "Warning: given out of range input:", ra, dec, box_range
             return []
 
         if only_plot != 1:
@@ -4878,7 +4866,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
                                                     skip_check_ptf_objs=skip_check_ptf_objs, \
                                                     do_logging=do_logging)
         if do_logging:
-            print("after: self.tcp_runs.populate_srcid_table_loop()")
+            print "after: self.tcp_runs.populate_srcid_table_loop()"
 
         half_range = box_range / 2.0
         ra_low = ra - half_range
@@ -4940,7 +4928,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
             obj_epoch_list.extend(obj_epoch_list_2)
         #####
         if do_logging:
-            print("before: mp.form_source_dict_using_obj_epoch_list(obj_epoch_list)")
+            print "before: mp.form_source_dict_using_obj_epoch_list(obj_epoch_list)"
         mp = Make_Plots(self.pars)
         source_dict = mp.form_source_dict_using_obj_epoch_list(obj_epoch_list)
         if ((len(summary_ps_fpath) > 0) and (len(obj_epoch_list) != 0)):
@@ -4949,31 +4937,31 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
                     out_fpath=summary_ps_fpath, do_show=self.pars['show_plot'],\
                     query_ra=ra, query_dec=dec)
             except:
-                print('Source summary PS plot failed')
+                print 'Source summary PS plot failed'
 
         if do_logging:
-            print("after: mp.form_source_dict_using_obj_epoch_list(obj_epoch_list)")
+            print "after: mp.form_source_dict_using_obj_epoch_list(obj_epoch_list)"
 
         # Adds PTF limiting-mags, ordered by src-id, for ra,dec region
         self.rdbt.add_limitmags_to_sourcedict(source_dict)
         if do_logging:
-            print("after: self.rdbt.add_limitmags_to_sourcedict(source_dict)")
+            print "after: self.rdbt.add_limitmags_to_sourcedict(source_dict)"
         # The returned list of sources should be sorted by distance from ra,dec:
         distance_dict = {}
-        for srcid,src_dict in source_dict.items():
-            for filt_dict in list(src_dict.values()):
-                if 'ra' in filt_dict:
+        for srcid,src_dict in source_dict.iteritems():
+            for filt_dict in src_dict.values():
+                if filt_dict.has_key('ra'):
                     src_ra = filt_dict['ra']
                     src_dec = filt_dict['dec']
                     break # get out of for:
             dist2 = (src_ra - ra)**2 + (src_dec - dec) **2
-            if dist2 in distance_dict:
-                while dist2 in distance_dict:
+            if distance_dict.has_key(dist2):
+                while distance_dict.has_key(dist2):
                     dist2 += 0.00000001 # KLUDGE!
             distance_dict[dist2] = src_dict
-        sorted_dist2s = list(distance_dict.keys())
+        sorted_dist2s = distance_dict.keys()
         sorted_dist2s.sort()
-
+        
         out_src_list = []
         for dist2 in sorted_dist2s:
             out_src_list.append(distance_dict[dist2])
@@ -5007,7 +4995,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         """
         import db_importer
         rez = self.form_objepochlist_for_ptf_using_srcid(src_id)
-        pe = db_importer.PositionExtractor(doplot=False, write_xml=False, do_remote_connection=0) #pos=(0., 0.), radius=0.,
+        pe = db_importer.PositionExtractor(doplot=False, write_xml=False, do_remote_connection=0) #pos=(0., 0.), radius=0., 
         pe.construct_sources(rez)
         src_obj_list = pe.sources   # source_obj.d['ts'][filt]['m']
         srcid_xml_tuple_list = []
@@ -5020,7 +5008,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         # For some reason srcid_xmlstr_withfeats_dict[0] is a <Code.signal_objects.signal_xml object>
         #    so we set it to the srcid int:
         return [(src_id, srcid_xmlstr_withfeats_tup[1][src_id])]
-
+                                                          
 
     def get_src_obj_list(self, ra_numpy64, dec_numpy64, box_range_numpy64,\
                          feat_db, only_sources_wo_features=0, \
@@ -5032,20 +5020,20 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         dec = float(dec_numpy64) # REDUNDANT, but floats are expected by xmlrpc
         box_range = float(box_range_numpy64) # REDUNDANT, but floats are expect
 
-        if ((ra < 0) or (ra >= 360) or (dec <= -90) or (dec >= 90) or
+        if ((ra < 0) or (ra >= 360) or (dec <= -90) or (dec >= 90) or 
             (box_range < 0.00001) or (box_range > 0.5)):
             #20080225# (box_range < 0.00001) or (box_range > 0.166666)):
-            print("Warning: given out of range input:", ra, dec, box_range)
+            print "Warning: given out of range input:", ra, dec, box_range
             return {}
 
         import db_importer
         #import generators_importers
 
         #######################
-        #pe = db_importer.PositionExtractor(pos=(ra, dec),radius=box_range, host="192.168.1.45",port=8000, doplot=False, write_xml=False)
+	#pe = db_importer.PositionExtractor(pos=(ra, dec),radius=box_range, host="192.168.1.45",port=8000, doplot=False, write_xml=False)
 
-        #pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps')
-        #pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps', \
+	#pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps')
+	#pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps', \
         #              get_sources_for_radec_method=\
         #              self.get_sources_for_radec, \
         #              skip_construct_sources=True)
@@ -5057,12 +5045,12 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
                      self.pars['plot_fpath_for_source_object_spatial_summary'],\
                           skip_remote_sdss_retrieval=skip_remote_sdss_retrieval,skip_check_sdss_objs=skip_check_sdss_objs,skip_check_ptel_objs=skip_check_ptel_objs, do_logging=do_logging)
         if do_logging:
-            print("before: feat_db.get_rez_for_featureless_sources(rez)")
+            print "before: feat_db.get_rez_for_featureless_sources(rez)"
 
         (featureless_srcids, reduced_rez) = \
                                    feat_db.get_rez_for_featureless_sources(rez)
         if do_logging:
-            print("after: feat_db.get_rez_for_featureless_sources(rez)")
+            print "after: feat_db.get_rez_for_featureless_sources(rez)"
 
         if only_sources_wo_features:
             new_rez = reduced_rez
@@ -5071,7 +5059,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         pe = db_importer.PositionExtractor(pos=(ra, dec), radius=box_range, doplot=False, write_xml=False, do_remote_connection=0)
         pe.construct_sources(new_rez) #, out_xml_fpath='/tmp/out.xml')
         if do_logging:
-            print("after: pe.construct_sources(new_rez)")
+            print "after: pe.construct_sources(new_rez)"
 
         if only_sources_wo_features:
             out_sources_list = []
@@ -5092,19 +5080,19 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         dec = float(dec_numpy64) # REDUNDANT, but floats are expected by xmlrpc
         box_range = float(box_range_numpy64) # REDUNDANT, but floats are expect
 
-        if ((ra < 0) or (ra >= 360) or (dec <= -90) or (dec >= 90) or
+        if ((ra < 0) or (ra >= 360) or (dec <= -90) or (dec >= 90) or 
             (box_range < 0.00001) or (box_range > 0.5)):
             #20080225# (box_range < 0.00001) or (box_range > 0.166666)):
-            print("Warning: given out of range input:", ra, dec, box_range)
+            print "Warning: given out of range input:", ra, dec, box_range
             return {}
 
         import db_importer
         #import generators_importers
 
-        pe = db_importer.PositionExtractor(pos=(ra, dec),radius=box_range, host="192.168.1.45",port=8000, doplot=False, write_xml=False)
+	pe = db_importer.PositionExtractor(pos=(ra, dec),radius=box_range, host="192.168.1.45",port=8000, doplot=False, write_xml=False)
 
-        #pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps')
-        pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps', \
+	#pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps')
+	pe.search_pos(summary_ps_fpath='/tmp/sources_summary.ps', \
                       get_sources_for_radec_method=\
                       self.get_sources_for_radec, \
                       skip_construct_sources=True)
@@ -5151,11 +5139,11 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         """
         if feat_db == None:
             #import generators_importers # NEEDED BY: get_features_using_srcid_xml_tuple_list()
-            import feature_extraction_interface# NEEDED BY: self.get_src_obj_list()
-            #                                               Feature_database()...
+            import feature_extraction_interface# NEEDED BY: self.get_src_obj_list() 
+	    #                                               Feature_database()...
 
-            feat_db = feature_extraction_interface.Feature_database()
-            feat_db.initialize_mysql_connection(\
+	    feat_db = feature_extraction_interface.Feature_database()
+	    feat_db.initialize_mysql_connection(\
                                     rdb_host_ip=self.pars['rdb_features_host_ip'],\
                                     rdb_user=self.pars['rdb_features_user'], \
                                     rdb_name=self.pars['rdb_features_db_name'], \
@@ -5176,8 +5164,8 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         sort_source_tuplist = []
         for source_obj in src_obj_list:
             len_list = []
-            for filt in list(source_obj.d['ts'].keys()):
-                if 'm' in source_obj.d['ts'][filt]:
+            for filt in source_obj.d['ts'].keys():
+                if source_obj.d['ts'][filt].has_key('m'):
                     len_list.append(len(source_obj.d['ts'][filt]['m']))
             max_len = max(len_list)
             # 20090717: dstarr comments this:
@@ -5188,40 +5176,40 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
                 sort_source_tuplist.append( (max_len,source_obj) )
         sort_source_tuplist.sort()
         sort_source_tuplist.reverse()
-
+        
         srcid_xml_tuple_list = []
         # TODO: Have a nobjs > [thresh], to limit to only well sampled sources:
         #for i in xrange(3):  # This just limited feature generate to 3 srcids
         #    if (len(sort_source_tuplist) >= i+1):
-        for i in range(len(sort_source_tuplist)):
+        for i in xrange(len(sort_source_tuplist)):
             (length,source_obj) = sort_source_tuplist[i]
             src_id = source_obj.d['src_id']
-            print('N Samples:', length, 'src_id:', src_id)
+            print 'N Samples:', length, 'src_id:', src_id
             srcid_xml_tuple_list.append((src_id, source_obj.xml_string))
 
         # NOTE: in get_sources_for_radec_with_feature_extraction() we assume
         #       that all given sources do not have features generated.
         if do_logging:
-            print("before: get_features_using_srcid_xml_tuple_list()")
+            print "before: get_features_using_srcid_xml_tuple_list()"
 
         # 20090717: dstarr disables write_ps=1:
         #(signals_list, srcid_dict) = get_features_using_srcid_xml_tuple_list(\
         #                                      srcid_xml_tuple_list, write_ps=1)
         # # # # # #
         if do_features_gen_insert:
-            (signals_list, srcid_dict) = get_features_using_srcid_xml_tuple_list(\
+    	    (signals_list, srcid_dict) = get_features_using_srcid_xml_tuple_list(\
                                                   srcid_xml_tuple_list, write_ps=0) #, return_gendict=True)
             if do_logging:
-                print("before: self.srcdbt.update_featsgen_in_srcid_lookup_table()")
+                print "before: self.srcdbt.update_featsgen_in_srcid_lookup_table()"
 
-            self.srcdbt.update_featsgen_in_srcid_lookup_table(list(srcid_dict.keys()))
+            self.srcdbt.update_featsgen_in_srcid_lookup_table(srcid_dict.keys())
             if do_logging:
-                print("before: feat_db.insert_srclist_features_into_rdb_tables()")
-            feat_db.insert_srclist_features_into_rdb_tables(signals_list,\
-                                                            list(srcid_dict.keys()))
+                print "before: feat_db.insert_srclist_features_into_rdb_tables()"
+    	    feat_db.insert_srclist_features_into_rdb_tables(signals_list,\
+                                                            srcid_dict.keys())
             if do_logging:
-                print("after: feat_db.insert_srclist_features_into_rdb_tables()")
-            #return signals_list # This contains feature data
+                print "after: feat_db.insert_srclist_features_into_rdb_tables()"
+    	    #return signals_list # This contains feature data
             #NOTE: I think we really just want all sources returned:
         return src_obj_list
 
@@ -5238,8 +5226,8 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         clients.  (obj_id_socket.py)
         """
         import db_importer
-        feat_db = feature_extraction_interface.Feature_database()
-        feat_db.initialize_mysql_connection(\
+	feat_db = feature_extraction_interface.Feature_database()
+	feat_db.initialize_mysql_connection(\
                                 rdb_host_ip=self.pars['rdb_features_host_ip'],\
                                 rdb_user=self.pars['rdb_features_user'], \
                                 rdb_name=self.pars['rdb_features_db_name'], \
@@ -5251,7 +5239,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         if len(srcid_list) > 0:
             unfeated_srcid_list = srcid_list
         else:
-            print("ERROR: No sources returned from socket-server")
+            print "ERROR: No sources returned from socket-server"
             raise "ERROR: No sources returned from socket-server"
         # TODO/DEBUG: For now I want to only retrieve sources from socket server
         #else:
@@ -5287,7 +5275,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
 
             mp = Make_Plots(self.pars)
             source_dict = mp.form_source_dict_using_obj_epoch_list(obj_epoch_list)
-            rez = list(source_dict.values())# each value-dict corresponds toa a srcid.
+            rez = source_dict.values()# each value-dict corresponds toa a srcid.
 
             #    ??? I think 'pos' flag can be empty:
             pe = db_importer.PositionExtractor(doplot=False, write_xml=False, do_remote_connection=0)
@@ -5301,8 +5289,8 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
             srcid_xml_tuple_list = []
             for source_obj in src_obj_list:
                 src_id = source_obj.d['src_id']
-                print('src_id:', src_id)
-
+                print 'src_id:', src_id
+                
                 srcid_xml_tuple_list.append((src_id, source_obj.xml_string))
                 #(signals_list, srcid_dict) = \
                 #                      get_features_using_srcid_xml_tuple_list(\
@@ -5316,13 +5304,13 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
             (signals_list, srcid_dict) = \
                                       get_features_using_srcid_xml_tuple_list(\
                                               srcid_xml_tuple_list, write_ps=0)
-
+            
             # Here we add the features to each source's xml-string
             #    and re-store it so we can parse it later.
             for source_obj in src_obj_list:
                 source_obj.x_sdict = source_obj.d # I think this works
                 source_obj.add_features_to_xml_string(signals_list)
-            for i in range(len(srcid_xml_tuple_list)):
+            for i in xrange(len(srcid_xml_tuple_list)):
                 src_id = srcid_xml_tuple_list[i][0]
                 for source_obj in src_obj_list:
                     if source_obj.d['src_id'] == src_id:
@@ -5334,11 +5322,11 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
             #   here because srcid_xml_tuple_list[] has been updated with
             #   feature included xml_strings
 
-            for src_id in list(srcid_dict.keys()):
+            for src_id in srcid_dict.keys():
                 srcid_table_update_str += "UPDATE %s SET feat_gen_date=NOW() WHERE src_id=%d; " % (self.pars['srcid_table_name'], src_id)
             #self.srcdbt.update_featsgen_in_srcid_lookup_table(\
             #                                             srcid_dict.keys())
-            (individ_feats_insert_list, used_filters_list) = feat_db.insert_srclist_features_into_rdb_tables(signals_list,list(srcid_dict.keys()), do_rdb_insert=False)
+            (individ_feats_insert_list, used_filters_list) = feat_db.insert_srclist_features_into_rdb_tables(signals_list,srcid_dict.keys(), do_rdb_insert=False)
             total_feats_insert_list.extend(individ_feats_insert_list)
 
         total_feats_insert_list.insert(0,"INSERT INTO %s (src_id, feat_id, feat_val, feat_weight) VALUES " % (feat_db.feat_values_tablename))
@@ -5356,8 +5344,8 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         """ XML-file adaptation of (above)
                                 get_sources_for_radec_with_feature_extraction()
         """
-        feat_db = feature_extraction_interface.Feature_database()
-        feat_db.initialize_mysql_connection(\
+	feat_db = feature_extraction_interface.Feature_database()
+	feat_db.initialize_mysql_connection(\
                                 rdb_host_ip=self.pars['rdb_features_host_ip'],\
                                 rdb_user=self.pars['rdb_features_user'], \
                                 rdb_name=self.pars['rdb_features_db_name'], \
@@ -5374,10 +5362,10 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
             summary_img_fpath = "/tmp/%s_feat_summary.png" % (random_str)
 
             # 20100706 older: #wget_str = "wget -t 30 -T 5 -O %s %s" % (wget_fpath, xml_fpath)
-            fp_xml = urllib.request.urlopen(xml_fpath)
+            fp_xml = urllib.urlopen(xml_fpath)
             use_fpath = fp_xml.read()
             fp_xml.close()
-
+            
             """ # 20100706 older:
             os.system(wget_str)
             if os.path.exists(wget_fpath):
@@ -5401,7 +5389,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         srcid_xmlstring_dict = {}
         # NOTE: in get_sources_for_radec_with_feature_extraction() we assume
         #       that all given sources do not have features generated.
-        (signals_list, srcid_dict) = get_features_using_srcid_xml_tuple_list( \
+	(signals_list, srcid_dict) = get_features_using_srcid_xml_tuple_list( \
                              srcid_xml_tuple_list, ps_fpath=summary_img_fpath,\
                              return_gendict=True, \
                              xmlstring_dict_tofill=srcid_xmlstring_dict)
@@ -5409,7 +5397,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         os.system("rm " + use_fpath) # remove temporary wget'd xml file
 
         # Write xml_strings to file, for later use by ARFFify code:
-        for src_id,xml_string in srcid_xmlstring_dict.items():
+        for src_id,xml_string in srcid_xmlstring_dict.iteritems():
             #fpath = "/home/pteluser/scratch/TUTOR_vosources/%d.xml" % (src_id)
             #20090319#fpath = os.path.expandvars("$TCP_DATA_DIR/%d.xml" % (src_id))
             fpath = "%s/%d.xml" % (self.pars['local_vosource_xml_write_dir'],src_id)
@@ -5418,16 +5406,16 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
             fp = open(fpath, 'w').write(xml_string)
 
         insert_str = "INSERT INTO %s (src_id, ra, decl, ra_rms, dec_rms, nobjs, feat_gen_date) VALUES (%d, %lf, %lf, %lf, %lf, %d, NOW())" % \
-                     (self.pars['srcid_table_name'], srcid_num, srcid_dict[srcid_num]['ra'], srcid_dict[srcid_num]['dec'], srcid_dict[srcid_num]['ra_rms'], srcid_dict[srcid_num]['dec_rms'], len(srcid_dict[srcid_num]['ts'][list(srcid_dict[srcid_num]['ts'].keys())[0]]['t']))
-
+                     (self.pars['srcid_table_name'], srcid_num, srcid_dict[srcid_num]['ra'], srcid_dict[srcid_num]['dec'], srcid_dict[srcid_num]['ra_rms'], srcid_dict[srcid_num]['dec_rms'], len(srcid_dict[srcid_num]['ts'][srcid_dict[srcid_num]['ts'].keys()[0]]['t']))
+        
         try:
             self.srcdbt.cursor.execute(insert_str)
         except:
-            print("ERROR: source", srcid_num, "already exists in", self.pars['srcid_table_name'], "Continuing...")
+            print "ERROR: source", srcid_num, "already exists in", self.pars['srcid_table_name'], "Continuing..."
 
 
-        srcid_list = list(srcid_dict.keys())
-        (insert_list, used_filters_list) = feat_db.insert_srclist_features_into_rdb_tables( \
+        srcid_list = srcid_dict.keys()
+	(insert_list, used_filters_list) = feat_db.insert_srclist_features_into_rdb_tables( \
                                                       signals_list, srcid_list, \
                                                       do_delete_existing_featvals=do_delete_existing_featvals)
         self.srcdbt.update_featsgen_in_srcid_lookup_table(srcid_list, used_filters_list=used_filters_list)
@@ -5456,11 +5444,11 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
                                   port=self.pars['classdb_port'])
         classdb_cursor = classdb_db.cursor()
 
-        #insert_str = "INSERT INTO src_class_probs (schema_id, class_id, src_id, gen_dtime) VALUES (%s, %d, %d, NOW())" % (self.pars['sci_class_schema_id'], class_id, srcid_num)
+        #insert_str = "INSERT INTO src_class_probs (schema_id, class_id, src_id, gen_dtime) VALUES (%s, %d, %d, NOW())" % (self.pars['sci_class_schema_id'], class_id, srcid_num) 
 
         #insert_list = ["INSERT INTO src_class_probs (schema_id, class_id, src_id, is_primary_class, gen_dtime) VALUES "]
         insert_list = ["INSERT INTO src_class_probs (schema_id, class_id, src_id, class_rank, gen_dtime) VALUES "]
-        for source_id,source_dict in srcid_dict.items():
+        for source_id,source_dict in srcid_dict.iteritems():
             ## ## ##first_class = 1
             ### KLUDGE 20100702 dstarr comments out and makes modified insert 2 lines below:
             #insert_list.append("(%s, (SELECT DISTINCT class_id FROM classid_lookup WHERE class_short_name='%s'), %d, %d, NOW()), " % (self.pars['sci_class_schema_id'], source_dict['class'], srcid_num, first_class))
@@ -5475,18 +5463,18 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         #except:
         #    print ''.join(insert_list)[:-2]
         #    print "MySQL src_class_probs table INSERT error.  Probably classid_lookup table unknown class: ", source_dict['class']
+        
 
-
-
+        
         #############
-        #return signals_list # This contains feature data
+	#return signals_list # This contains feature data
         #NOTE: I think we really just want all sources returned:
 
         # # # # # # # #
         # TODO: scp image to web server/directory
         # print to stdio: URL of image
         # print to stdio: feature Database id
-        # print to stdio: feature values???
+        # print to stdio: feature values???  
         # return:
         #  - formatted table with image-link
         #  - srcid info.
@@ -5533,7 +5521,7 @@ if __name__ == '__main__':
                 rdb_port=pars['rdb_port_4'])
     slfits_repo = SDSS_Local_Fits_Repository(pars)
 
-    # DEBUG PRINT:
+    # DEBUG PRINT: 
     #show_create_commands(rcd, srcdbt)
     tcp_runs = TCP_Runtime_Methods(cur_pid=cur_pid)
 
@@ -5561,7 +5549,7 @@ if __name__ == '__main__':
         xrsio = XRPC_RDB_Server_Interface_Object(pars, tcp_runs, rdbt, htm_tools, srcdbt, sdss_fcr_iso, slfits_repo)
         src_list =xrsio.get_sources_for_radec(ra, dec, box_degree_range, \
                                               '/tmp/out.ps')
-        print("Num sources found:", len(src_list))
+        print "Num sources found:", len(src_list)
         # USING the following routines is obsolete, since no source generation:
         #mp = Make_Plots(pars)
         #mp.query_plot_ra_dec(pars, rdbt, htm_tools, ra, dec, \
@@ -5573,7 +5561,7 @@ if __name__ == '__main__':
         xrsio = XRPC_RDB_Server_Interface_Object(pars, tcp_runs, rdbt, htm_tools, srcdbt, sdss_fcr_iso, slfits_repo)
         src_list =xrsio.get_sources_for_radec(ra, dec, box_degree_range, '', skip_check_ptf_objs=True, \
                                               only_plot=0) #only_plot=0: means sources will be found for objects in field.  # ??? Also, I seem to recall that flags can't be used with XMLRPC ???
-        print("Num sources found:", len(src_list))
+        print "Num sources found:", len(src_list)
     elif pars['do_get_source_features_radec'] == '1':
         # XMLRPC Source population with feature generation:
         xrsio = XRPC_RDB_Server_Interface_Object(pars, tcp_runs, rdbt, \
@@ -5581,7 +5569,7 @@ if __name__ == '__main__':
         src_list = xrsio.get_sources_for_radec_with_feature_extraction(ra,dec,\
                                                  box_degree_range, write_ps=1,\
                                                  only_sources_wo_features=0)
-        print("Num sources found:", len(src_list))
+        print "Num sources found:", len(src_list)
     elif pars['do_get_sources_using_xml_file_with_feature_extraction'] == '1':
         xrsio = XRPC_RDB_Server_Interface_Object(pars, tcp_runs, rdbt, \
                                   htm_tools, srcdbt, sdss_fcr_iso, slfits_repo)
@@ -5607,9 +5595,9 @@ if __name__ == '__main__':
         (signals_list, srcid_dict) = get_features_using_srcid_xml_tuple_list(srcid_xml_tuple_list, write_ps=1)
 
     elif pars['do_rpc_server'] == '1':
-        print("XMLRPC Server Mode...")
-        import xmlrpc.server
-        server = xmlrpc.server.SimpleXMLRPCServer(\
+        print "XMLRPC Server Mode..."
+        import SimpleXMLRPCServer
+        server = SimpleXMLRPCServer.SimpleXMLRPCServer(\
                               (pars['xmlrpc_server_name'], \
                                int(pars['xmlrpc_server_port'])),\
                                allow_none=True)
@@ -5633,7 +5621,7 @@ if __name__ == '__main__':
         os.system("rm -Rf " + tcp_runs.tcp_data_dir)
 
     t_finish = datetime.datetime.now()
-    print("Run Time:", str(t_finish - t_start))
+    print "Run Time:", str(t_finish - t_start)
 
     ################################
     # NOTES:
@@ -5756,7 +5744,7 @@ if __name__ == '__main__':
             },
 
 
-
+    
     """
     """ Pre 200906:
         '20090417_50noisy_10epoch_100needed_004metric_thinned5':{ \

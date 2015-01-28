@@ -6,14 +6,6 @@ lyra.berkeley.edu/allstars/asascat.php
 
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import int
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import sys, os
 
@@ -39,10 +31,10 @@ Queries:
               WHERE catalog_id=1 AND class_id=234
 ### To show all 1st probs for a class:
   SELECT prob FROM asascat_probs
-              WHERE catalog_id=1 AND class_id=234 AND classifier_rank=1
+              WHERE catalog_id=1 AND class_id=234 AND classifier_rank=1     
 ### To show 1st class prob for a source:
   SELECT prob FROM asascat_probs
-              WHERE catalog_id=1 AND tutor_srcid=123456 AND classifier_rank=1
+              WHERE catalog_id=1 AND tutor_srcid=123456 AND classifier_rank=1  
 ### Show rank=1 prob, is_acvs, is_trainset info for all sources:
   SELECT tutor_srcid, asascat_probs.class_id, prob, asascat_train_sources.class_id
               FROM asascat_probs
@@ -51,7 +43,7 @@ Queries:
               LEFT JOIN asascat_acvs_sources ON asascat_acvs_sources.catalog_id=asascat_probs.catalog_id
                                              ON asascat_acvs_sources.tutor_srcid=asascat_probs.tutor_srcid
               WHERE catalog_id=1 AND asascat_probs.classifier_rank=1
-
+              
 
 # TABLE: asascat_names
 Columns:
@@ -126,8 +118,8 @@ Columns:
 tutor_simbad_classes
 | src_id | simbad_class | simbad_dist | simbad_sptype |
 +--------+--------------+-------------+---------------+
-| 229376 | PulsV*       |        0.04 | M0            |
-| 262145 | Star         |       21.94 | M             |
+| 229376 | PulsV*       |        0.04 | M0            | 
+| 262145 | Star         |       21.94 | M             | 
 
 
 NOTE:
@@ -144,7 +136,7 @@ alter table asascat_source_attribs add column delta_t DOUBLE;
                 try:
                     self.tcp_cursor.execute("DROP TABLE %s" % (table_name))
                 except:
-                    print("Table doesn't exist for DELETE:", table_name)
+                    print "Table doesn't exist for DELETE:", table_name
 
 
         create_str = """
@@ -311,7 +303,7 @@ PRIMARY KEY (catalog_id, tutor_srcid))
         Should have these already:
         print src_dict.keys()
             ['decl', 'm_avg', 'delta_t', 'srcid', 'n_points', 'm_std', 'ra']
-
+        
         """
 
         src_dict.update({'freq1_harmonics_freq_0':[],
@@ -375,7 +367,7 @@ PRIMARY KEY (catalog_id, tutor_srcid))
 
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
         # TODO: retrieve all info from tranx tables & fill mondo_dict for all sources
@@ -388,16 +380,16 @@ PRIMARY KEY (catalog_id, tutor_srcid))
         """ Adam Miller requires the avg mags for some wtts sources for vanderbilt U followup
         """
         import numpy
-
+        
         srcids = numpy.loadtxt('/home/pteluser/scratch/wtts_dotid', unpack=True)
 
         for srcidflt in srcids:
             srcid = int(srcidflt)
             try:
                 i_src = src_dict['srcid'].index(srcid)
-                print(srcid, src_dict['m_avg'][i_src], src_dict['m_std'][i_src])
+                print srcid, src_dict['m_avg'][i_src], src_dict['m_std'][i_src]
             except:
-                print(srcid)
+                print srcid
 
 
 
@@ -411,7 +403,7 @@ if __name__ == '__main__':
         'tutor_port':3306, #33306,
         'tcp_hostname':'192.168.1.25',
         'tcp_username':'pteluser',
-        'tcp_port':     3306, #23306,
+        'tcp_port':     3306, #23306, 
         'tcp_database':'source_test_db',
         'catalog_id':0,
         }
@@ -419,26 +411,26 @@ if __name__ == '__main__':
     AsasCatalog = Asas_Catalog(pars=pars)
     #AsasCatalog.create_tables()
     #sys.exit()
-
-    import pickle, gzip
+    
+    import cPickle, gzip
     srcdict_pkl_fpath = '/home/pteluser/scratch/asas_catalog_srcdict.pkl.gz'
     if os.path.exists(srcdict_pkl_fpath):
         fp = gzip.open(srcdict_pkl_fpath,'rb')
-        src_dict = pickle.load(fp)
+        src_dict = cPickle.load(fp)
         fp.close()
     else:
         src_dict = AsasCatalog.retrieve_tutor_source_info(catalog_id=pars['catalog_id'])
         fp = gzip.open(srcdict_pkl_fpath,'wb')
-        pickle.dump(src_dict,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(src_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
     #ONETIMEUSE# AsasCatalog.temp_find_avgmags_for_miller_wtts(src_dict=src_dict)
-
+    
     #AsasCatalog.fill_asascat_source_attribs_using_tutor_results(catalog_id=pars['catalog_id'],
     #                                                            src_dict=src_dict)
 
     import pdb; pdb.set_trace()
-    print()
+    print
     AsasCatalog.retrieve_tranx_asascat_info(catalog_id=pars['catalog_id'],
                                             src_dict=src_dict) # retrieve_tutor_source_info() must have been called
 

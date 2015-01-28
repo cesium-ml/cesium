@@ -1,17 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 Make an HTML heatmap table of a Weka classify confusion matrix.
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import int
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 
 __old__input_table_str = """
@@ -85,7 +75,7 @@ if __name__ == '__main__':
     output_html_fpath = "/tmp/heatmap.html"
 
     input_line_list = input_table_str.split('\n')
-    for i_header_row in range(len(input_line_list)):
+    for i_header_row in xrange(len(input_line_list)):
         if "classified as" in input_line_list[i_header_row]:
             break # i_header_row is the correct value.
 
@@ -111,7 +101,7 @@ if __name__ == '__main__':
         total_per_class_list.append(sum(val_list))
         val_listoflists.append(val_list)
 
-
+    
     out_str = """
     <HTML><head></head>
     <body>
@@ -119,14 +109,14 @@ if __name__ == '__main__':
     """
     #<table color="#%ffffff">
 
-    out_str += "<tr>"
+    out_str += "<tr>"            
     for col_name in col_name_list:
         out_str += '<td bgcolor="#2a2a2a">%s</td>' % (col_name)
     out_str += '</tr>\n'
 
-    for i_class in range(len(val_listoflists)):
+    for i_class in xrange(len(val_listoflists)):
         val_list = val_listoflists[i_class]
-        out_str += "<tr>"
+        out_str += "<tr>"            
         for val in val_list:
             try:
                 percent = val / float(total_per_class_list[i_class])
@@ -150,8 +140,8 @@ if __name__ == '__main__':
     fp.write(out_str)
     fp.close()
 
-    for i in range(len(total_per_class_list)):
-        print(total_per_class_list[i], '\t', class_name_list[i])
+    for i in xrange(len(total_per_class_list)):
+        print total_per_class_list[i], '\t', class_name_list[i]
 
     # TODO: make a cost matrix which is all normalized.
     n_avg = sum(total_per_class_list) / float(len(total_per_class_list))
@@ -162,10 +152,10 @@ if __name__ == '__main__':
     #header_str = "\% Rows \tColumns\n%d \t%d\n\% Matrix elements\n" % (len(total_per_class_list), len(total_per_class_list))
     header_str = "%% Rows \tColumns\n%d \t%d\n%%Matrix elements\n" % (len(total_per_class_list), len(total_per_class_list))
     fp.write(header_str)
-    for i in range(len(total_per_class_list)):
+    for i in xrange(len(total_per_class_list)):
         percent = n_avg / total_per_class_list[i]
         line_str = ""
-        for j in range(len(total_per_class_list)):
+        for j in xrange(len(total_per_class_list)):
             if i == j:
                 line_str += "0.0\t"
             else:

@@ -6,19 +6,8 @@
 - Using distance cut when querying simbad votable.
      - distance cuts come from nomad / color distance code:  get_colors_for_tutor_sources.py
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from builtins import open
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
-import pickle
+import cPickle
 import MySQLdb
 
 try:
@@ -34,7 +23,7 @@ try:
 except:
     pass
 
-class TCPDb(object):
+class TCPDb():
     def connect_to_db(self):
         self.db = MySQLdb.connect(host=self.pars['mysql_hostname'],
                                   user=self.pars['mysql_username'],
@@ -57,14 +46,14 @@ class Determine_Simbad_Class(TCPDb):
         """
 
         fp = open(self.pars['source_nomad_pkl_fpath'],'rb')
-        nomad_sources = pickle.load(fp)
+        nomad_sources = cPickle.load(fp)
         fp.close()
 
         srcid_class_match_dict = {}
-        for src_id, src_dict in nomad_sources.items():
-
+        for src_id, src_dict in nomad_sources.iteritems():
+            
             votable_fpath = "%s/%d.votable" % (self.pars['simbad_votable_dirpath'], src_id)
-
+            
             votable_str = open(votable_fpath).read()
             if len(votable_str) < 310:
                 #print "NO SIMBAD match:", src_id
@@ -103,7 +92,7 @@ class Determine_Simbad_Class(TCPDb):
                 if sp_type == "None":
                     sptype_list.append('')
                 else:
-                    sptype_list.append(sp_type)
+                    sptype_list.append(sp_type)                    
                 mainid = str(xmld_data['VOTABLE']['RESOURCE']['TABLE']['DATA']['TABLEDATA']['TR']['TD'][i_col_mainid])
                 if mainid == "None":
                     mainid_list.append('')
@@ -125,22 +114,22 @@ class Determine_Simbad_Class(TCPDb):
                         mainid_list.append(mainid)
 
             if abs(dist_list[0] - nomad_sources[src_id]['dist']) <= 0.5:
-                print("[0] matches: %d nomad=%lf deldist=%lf simbad=%s mainid=%s %s %s" % (src_id, nomad_sources[src_id]['dist'], abs(dist_list[0] - nomad_sources[src_id]['dist']), class_list[0], mainid_list[0], str(dist_list), str(class_list)))
+                print "[0] matches: %d nomad=%lf deldist=%lf simbad=%s mainid=%s %s %s" % (src_id, nomad_sources[src_id]['dist'], abs(dist_list[0] - nomad_sources[src_id]['dist']), class_list[0], mainid_list[0], str(dist_list), str(class_list))
                 srcid_class_match_dict[src_id] = {'class':class_list[0], 'simbad_dist':dist_list[0], 'simbad_sptype':sptype_list[0], 'main_id':mainid_list[0]}
                 srcid_class_match_dict[src_id].update(nomad_sources[src_id])
             else:
                 match_found = False
                 for i in range(len(dist_list)):
                     if abs(dist_list[i] - nomad_sources[src_id]['dist']) <= 0.5:
-                        print("[%d] matches: %d nomad=%lf simbad=%lf simbad=%s mainid=%s %s %s" % (i, src_id, nomad_sources[src_id]['dist'], dist_list[i], class_list[i], mainid_list[i], str(dist_list), str(class_list)))
+                        print "[%d] matches: %d nomad=%lf simbad=%lf simbad=%s mainid=%s %s %s" % (i, src_id, nomad_sources[src_id]['dist'], dist_list[i], class_list[i], mainid_list[i], str(dist_list), str(class_list))
                         srcid_class_match_dict[src_id] = {'class':class_list[i], 'simbad_dist':dist_list[i], 'simbad_sptype':sptype_list[i], 'main_id':mainid_list[i]}
                         srcid_class_match_dict[src_id].update(nomad_sources[src_id])
 
                         match_found = True
                         break
                 if not match_found:
-                    print("NO dist match: %d nomad=%lf simbad=%s simbad=%s" % (src_id, nomad_sources[src_id]['dist'], str(dist_list), str(class_list)))
-
+                    print "NO dist match: %d nomad=%lf simbad=%s simbad=%s" % (src_id, nomad_sources[src_id]['dist'], str(dist_list), str(class_list))
+                    
         return srcid_class_match_dict
 
 
@@ -158,22 +147,22 @@ class Determine_Simbad_Class(TCPDb):
         """
         insert_list = ["INSERT INTO tutor_simbad_classes (src_id, simbad_class, simbad_dist, simbad_sptype, main_id) VALUES "]
 
-        for srcid, src_dict in srcid_class_match_dict.items():
+        for srcid, src_dict in srcid_class_match_dict.iteritems():
             insert_list.append("(%d, '%s', %f, '%s', '%s'), " % (srcid, src_dict['class'], src_dict['simbad_dist'], src_dict['simbad_sptype'], src_dict['main_id']))
 
         self.cursor.execute(''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE simbad_class=VALUES(simbad_class), simbad_dist=VALUES(simbad_dist), simbad_sptype=VALUES(simbad_sptype), main_id=VALUES(main_id)")
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
     def get_simbad_abstracts(self, srcid_class_match_dict):
         """ Query and retrieve SIMBAD abstracts, using previously retrieved literature references for Simbad matched ASAS sources.
         """
-        import urllib.request, urllib.parse, urllib.error
+        import urllib
         from BeautifulSoup import BeautifulSoup, Comment
         fp = open('/tmp/src_litrefs.pkl','rb')
-        src_litrefs = pickle.load(fp)
+        src_litrefs = cPickle.load(fp)
         fp.close()
 
         abs_bibcodes_dirpath = '/home/obs/scratch/determine_simbad'
@@ -182,23 +171,23 @@ class Determine_Simbad_Class(TCPDb):
         abstracts_pkl_dirpath = '/home/obs/scratch/determine_simbad_abstracts.pkl'
         if os.path.exists(abstracts_pkl_dirpath):
             fp = open(abstracts_pkl_dirpath,'rb')
-            abstracts_dict = pickle.load(fp)
+            abstracts_dict = cPickle.load(fp)
             fp.close()
         else:
             abstracts_dict = {}
 
-        srcid_list = list(src_litrefs.keys())
+        srcid_list = src_litrefs.keys()
         srcid_list.sort()
         for i, src_id in enumerate(srcid_list):
             src_bib_dict = src_litrefs[src_id]
-            for bibcode, abstract_url in src_bib_dict.items():
-                if bibcode in abstracts_dict:
+            for bibcode, abstract_url in src_bib_dict.iteritems():
+                if abstracts_dict.has_key(bibcode):
                     continue # skip since we parsed this already
                 fpath = "%s/%s" % (abs_bibcodes_dirpath, bibcode.replace('/','___'))
 
                 # TODO: need to check that we have not parsed and place in dict
                 if not bibcode in abs_bibcodes:
-                    f_url = urllib.request.urlopen(abstract_url)
+                    f_url = urllib.urlopen(abstract_url)
                     webpage_str = f_url.read()
                     f_url.close()
                     fp = open(fpath, 'w')
@@ -208,19 +197,19 @@ class Determine_Simbad_Class(TCPDb):
                     fp = open(fpath)
                     webpage_str = fp.read()
                     fp.close()
-
-
+                    
+                
                 soup = BeautifulSoup(webpage_str)
                 comments = soup.findAll(text=lambda text:isinstance(text, Comment))
                 [comment.extract() for comment in comments]
-
+                
                 #print soup.html.body('p', limit=2)[1]('table', limit=2)[1].prettify()
                 #import pdb; pdb.set_trace()
                 #print
                 try:
                     abstract_rows = soup.html.body('p', limit=2)[1]('table', limit=2)[1]('tr')
                 except:
-                    print("skipping:", bibcode)
+                    print "skipping:", bibcode
                     continue
 
                 for r in abstract_rows:
@@ -235,7 +224,7 @@ class Determine_Simbad_Class(TCPDb):
                     elif 'Keywords:' in str(r('td')[0].getText()):
                         keywords = r('td')[2].getText() # in UNICODE
                 #print "title:%s \nauthors:%s \npub:%s \ndate:%s \nkeywords:%s\n" % (title, authors, publication, publication_date, keywords)
-                print(i, src_id, bibcode, title[:60])
+                print i, src_id, bibcode, title[:60]
                 abstracts_dict[bibcode] = {'title':title,
                                            'authors':authors,
                                            'publication':publication,
@@ -245,30 +234,30 @@ class Determine_Simbad_Class(TCPDb):
         if os.path.exists(abstracts_pkl_dirpath):
             os.system('rm ' + abstracts_pkl_dirpath)
         fp = open(abstracts_pkl_dirpath,'wb')
-        pickle.dump(abstracts_dict, fp ,1)
+        cPickle.dump(abstracts_dict, fp ,1)
         fp.close()
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
     # OBSOLETE:
     def get_simbad_literature_refs__asabsharvard(self, srcid_class_match_dict):
         """ Query and retrieve SIMBAD literature references for Simbad matched ASAS sources.
         """
-        import urllib.request, urllib.parse, urllib.error
+        import urllib
         from BeautifulSoup import BeautifulSoup, Comment
         src_litrefs = {}
-        srcid_list = list(srcid_class_match_dict.keys())
+        srcid_list = srcid_class_match_dict.keys()
         srcid_list.sort()
         n_srcid = len(srcid_list)
         for i, src_id in enumerate(srcid_list):
             src_dict = srcid_class_match_dict[src_id]
             src_litrefs[src_id] = {}
             url_str = "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?db_key=AST&db_key=PRE&qform=AST&arxiv_sel=astro-ph&arxiv_sel=cond-mat&arxiv_sel=cs&arxiv_sel=gr-qc&arxiv_sel=hep-ex&arxiv_sel=hep-lat&arxiv_sel=hep-ph&arxiv_sel=hep-th&arxiv_sel=math&arxiv_sel=math-ph&arxiv_sel=nlin&arxiv_sel=nucl-ex&arxiv_sel=nucl-th&arxiv_sel=physics&arxiv_sel=quant-ph&arxiv_sel=q-bio&sim_query=YES&ned_query=YES&adsobj_query=YES&obj_req=YES&aut_logic=OR&obj_logic=OR&author=&object=%s&start_mon=&start_year=&end_mon=&end_year=&ttl_logic=OR&title=&txt_logic=OR&text=&nr_to_return=200&start_nr=1&jou_pick=ALL&ref_stems=&data_and=ALL&group_and=ALL&start_entry_day=&start_entry_mon=&start_entry_year=&end_entry_day=&end_entry_mon=&end_entry_year=&min_score=&sort=SCORE&data_type=SHORT&aut_syn=YES&ttl_syn=YES&txt_syn=YES&aut_wt=1.0&obj_wt=1.0&ttl_wt=0.3&txt_wt=3.0&aut_wgt=YES&obj_wgt=YES&ttl_wgt=YES&txt_wgt=YES&ttl_sco=YES&txt_sco=YES&version=1" % (src_dict['main_id'])
-            f_url = urllib.request.urlopen(url_str)
+            f_url = urllib.urlopen(url_str)
             webpage_str = f_url.read()
             f_url.close()
-
+            
             soup = BeautifulSoup(webpage_str)
             comments = soup.findAll(text=lambda text:isinstance(text, Comment))
             [comment.extract() for comment in comments]
@@ -280,11 +269,11 @@ class Determine_Simbad_Class(TCPDb):
             #print soup
             try:
                 bib_rows = soup.html.body.form('table', limit=2)[1]('tr')
-                print('parsed:', i, n_srcid, src_id)
+                print 'parsed:', i, n_srcid, src_id
             except:
                 # likely no results returned
                 #print 'len(soup.html.body.form.table):', len(soup.html.body.form.table)
-                print('skip:  ', i, n_srcid, src_id)
+                print 'skip:  ', i, n_srcid, src_id
                 continue
             for r in bib_rows:
                 for td in r('td'):
@@ -308,31 +297,31 @@ class Determine_Simbad_Class(TCPDb):
             #b = xmld_data['HTML']['body']['form']
             if (i % 500) == 0:
                 fp = open('/tmp/src_litrefs_%d.pkl' % (i),'wb')
-                pickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
+                cPickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
                 fp.close()
 
 
         import pdb; pdb.set_trace()
-        print()
+        print
         fp = open('/tmp/src_litrefs.pkl','wb')
-        pickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
 
     def get_simbad_literature_refs(self, srcid_class_match_dict):
         """ Query and retrieve SIMBAD literature references for Simbad matched ASAS sources.
         """
-        import urllib.request, urllib.parse, urllib.error
+        import urllib
         from BeautifulSoup import BeautifulSoup, Comment
 
         litrefs_init_fpath = '/home/dstarr/scratch/determine_simbad__orig/src_litrefs.pkl'
         if os.path.exists(litrefs_init_fpath):
             fp = open(litrefs_init_fpath,'rb')
-            src_litrefs = pickle.load(fp)
+            src_litrefs = cPickle.load(fp)
             fp.close()
         else:
             src_litrefs = {}
-        srcid_list = list(srcid_class_match_dict.keys())
+        srcid_list = srcid_class_match_dict.keys()
         srcid_list.sort()
         n_srcid = len(srcid_list)
         for i, src_id in enumerate(srcid_list):
@@ -347,10 +336,10 @@ class Determine_Simbad_Class(TCPDb):
             #url_str_new = "http://simbad.u-strasbg.fr/simbad/sim-id?Ident=%s&NbIdent=1&Radius=2&Radius.unit=arcmin&submit=submit+id" % (src_name)
 
             url_str = "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?db_key=AST&db_key=PRE&qform=AST&arxiv_sel=astro-ph&arxiv_sel=cond-mat&arxiv_sel=cs&arxiv_sel=gr-qc&arxiv_sel=hep-ex&arxiv_sel=hep-lat&arxiv_sel=hep-ph&arxiv_sel=hep-th&arxiv_sel=math&arxiv_sel=math-ph&arxiv_sel=nlin&arxiv_sel=nucl-ex&arxiv_sel=nucl-th&arxiv_sel=physics&arxiv_sel=quant-ph&arxiv_sel=q-bio&sim_query=YES&ned_query=YES&adsobj_query=YES&obj_req=YES&aut_logic=OR&obj_logic=OR&author=&object=%s&start_mon=&start_year=&end_mon=&end_year=&ttl_logic=OR&title=&txt_logic=OR&text=&nr_to_return=200&start_nr=1&jou_pick=ALL&ref_stems=&data_and=ALL&group_and=ALL&start_entry_day=&start_entry_mon=&start_entry_year=&end_entry_day=&end_entry_mon=&end_entry_year=&min_score=&sort=SCORE&data_type=SHORT&aut_syn=YES&ttl_syn=YES&txt_syn=YES&aut_wt=1.0&obj_wt=1.0&ttl_wt=0.3&txt_wt=3.0&aut_wgt=YES&obj_wgt=YES&ttl_wgt=YES&txt_wgt=YES&ttl_sco=YES&txt_sco=YES&version=1" % (src_name) #(src_dict['main_id'])
-            f_url = urllib.request.urlopen(url_str)
+            f_url = urllib.urlopen(url_str)
             webpage_str = f_url.read()
             f_url.close()
-
+            
             soup = BeautifulSoup(webpage_str)
             comments = soup.findAll(text=lambda text:isinstance(text, Comment))
             [comment.extract() for comment in comments]
@@ -362,11 +351,11 @@ class Determine_Simbad_Class(TCPDb):
             #print soup
             try:
                 bib_rows = soup.html.body.form('table', limit=2)[1]('tr')
-                print('parsed:', i, n_srcid, src_id, src_dict['main_id'])
+                print 'parsed:', i, n_srcid, src_id, src_dict['main_id']
             except:
                 # likely no results returned
                 #print 'len(soup.html.body.form.table):', len(soup.html.body.form.table)
-                print('skip:  ', i, n_srcid, src_id, src_dict['main_id'])
+                print 'skip:  ', i, n_srcid, src_id, src_dict['main_id']
                 continue
             for r in bib_rows:
                 for td in r('td'):
@@ -390,14 +379,14 @@ class Determine_Simbad_Class(TCPDb):
             #b = xmld_data['HTML']['body']['form']
             if (i % 500) == 0:
                 fp = open('/tmp/src_litrefs_%d.pkl' % (i),'wb')
-                pickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
+                cPickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
                 fp.close()
 
 
         import pdb; pdb.set_trace()
-        print()
+        print
         fp = open('/tmp/src_litrefs.pkl','wb')
-        pickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(src_litrefs,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
 
@@ -410,7 +399,7 @@ class Determine_Simbad_Class(TCPDb):
          Also changed to this:
         Cepheid             Cepheid variable Star
           deltaCep          Classical Cepheid (delta Cep type)
-          MultiMode_Ceph    Multi Mode Cepheid
+          MultiMode_Ceph    Multi Mode Cepheid          
       SG*                   Evolved supergiant star
         RedSG*                Red supergiant star
         YellowSG*             Yellow supergiant star
@@ -423,7 +412,7 @@ class Determine_Simbad_Class(TCPDb):
         C*                  Carbon Star
         S*                  S Star
         RCB                 R Cor Bor
-
+         
         """
         import re
         ### left whitespace matcher:
@@ -462,7 +451,7 @@ class Determine_Simbad_Class(TCPDb):
             #print class_name, n_left_space, parent_dict[class_name]#, parents#, class_descript
             parents.append(class_name)
             class_descriptions[class_name] = class_descript
-            if parent_dict[class_name] not in child_dict:
+            if not child_dict.has_key(parent_dict[class_name]):
                 child_dict[parent_dict[class_name]] = [class_name]
             else:
                 child_dict[parent_dict[class_name]].append(class_name)
@@ -649,22 +638,22 @@ class Determine_Simbad_Class(TCPDb):
         #lines.append(str(cat_probs['Class'][i_cat]))
         #lines.append(str(cat_probs['P_Class'][i_cat]))
 
-        bibcode_list = list(src_litrefs[src_id].keys())
+        bibcode_list = src_litrefs[src_id].keys()
         bibcode_list.sort(reverse=True)
         for bibcode in bibcode_list:
-            if bibcode not in abstracts_dict:
+            if not abstracts_dict.has_key(bibcode):
                 continue # there are 82 of 38000 abstracts entries which were not correctly downloaded (in HTML: Please try your query again")
             lines.append(' '*4 + str(bibcode))# + ' '*4 + str(abstracts_dict[bibcode]['title']))
             #lines.append(' '*12 + str(abstracts_dict[bibcode]['title']))
-
+            
 
         out_str = '\n'.join(lines) + '\n'
-
+        
         #print out_str
         #import pdb; pdb.set_trace()
         #print
         return out_str
-
+    
     def write_summary_files(self, srcid_class_match_dict):
         """ Write summary files of literature / abstracts for ASAS sources.
         """
@@ -703,12 +692,12 @@ class Determine_Simbad_Class(TCPDb):
 
 
         fp = open(litrefs_init_fpath,'rb')
-        src_litrefs = pickle.load(fp)
+        src_litrefs = cPickle.load(fp)
         fp.close()
         #src_litrefs[src_id][bibcode] = abstract_url
 
         fp = open(abstracts_pkl_dirpath,'rb')
-        abstracts_dict = pickle.load(fp)
+        abstracts_dict = cPickle.load(fp)
         fp.close()
         #abstracts_dict[bibcode] = {'title':title,
         #                           'authors':authors,
@@ -741,13 +730,13 @@ class Determine_Simbad_Class(TCPDb):
         #        'child_dict':child_dict,
         #        'class_descriptions':class_descriptions}
 
-
+        
         if 0:
             ### This is just to ensure that all of the abstract files in a dir are relevant
             for i, src_id in enumerate(cat_probs['dotAstro_ID']):
-                if src_id not in src_litrefs:
+                if not src_litrefs.has_key(src_id):
                     continue
-                bibcode_list = list(src_litrefs[src_id].keys())
+                bibcode_list = src_litrefs[src_id].keys()
                 for bibcode in bibcode_list:
                     all_fpath = '"/home/dstarr/scratch/determine_simbad__all/' + bibcode + '"'
                     final_fpath = '"/home/dstarr/scratch/determine_simbad/' + bibcode + '"'
@@ -756,10 +745,10 @@ class Determine_Simbad_Class(TCPDb):
                         #import pdb; pdb.set_trace()
                         #print
                         os.system(cp_str)
-
+                
         fp = open('/home/dstarr/scratch/determine_simbad.source_data', 'w')
         for i, src_id in enumerate(cat_probs['dotAstro_ID']):
-            if src_id not in srcid_class_match_dict:
+            if not srcid_class_match_dict.has_key(src_id):
                 continue # we skip this source since there is no simbad equivalent
             out_str = self.write_source_summary_file(src_id=src_id,
                                            i_cat=i,
@@ -770,7 +759,7 @@ class Determine_Simbad_Class(TCPDb):
                                            srcid_class_match_dict=srcid_class_match_dict,
                                            jclass_simbadclass=jclass_simbadclass)
             fp.write(out_str)
-
+                                           
         fp.close()
         #abstracts_dict[bibcode] = {'title':title,
         #                           'authors':authors,
@@ -780,7 +769,7 @@ class Determine_Simbad_Class(TCPDb):
 
         fp = open('/home/dstarr/scratch/abstract_ids_and_info', 'w')
 
-        bib_list = list(abstracts_dict.keys())
+        bib_list = abstracts_dict.keys()
         bib_list.sort()
         for bibcode in bib_list:
             bib_dict = abstracts_dict[bibcode]
@@ -791,19 +780,19 @@ class Determine_Simbad_Class(TCPDb):
             lines.append("    %s" % (bib_dict['authors']))
             lines.append("    %s" % (bib_dict['pub_date']))
             lines.append("    %s" % (bib_dict['publication']))
-
+            
             out_str = '\n'.join(lines) + '\n'
-
+        
             fp.write(out_str)
-
+                                           
         fp.close()
         import pdb; pdb.set_trace()
-        print()
+        print
 
         if 0:
             ### This just prints the unique simbad classes used in literature for ASAS sources
             simbad_srcid_list = []
-            for srcid, sdict in srcid_class_match_dict.items():
+            for srcid, sdict in srcid_class_match_dict.iteritems():
                 if not sdict['class'] in simbad_srcid_list:
                     simbad_srcid_list.append(sdict['class'])
 
@@ -815,16 +804,16 @@ class Determine_Simbad_Class(TCPDb):
         if not os.path.exists(self.pars['srcid_simbad_nomad_match_pkl_fpath']):
             srcid_class_match_dict = self.make_nomad_simbad_source_match_dict()
             fp = open(self.pars['srcid_simbad_nomad_match_pkl_fpath'],'wb')
-            pickle.dump(srcid_class_match_dict,fp,1) # ,1) means a binary pkl is used.
+            cPickle.dump(srcid_class_match_dict,fp,1) # ,1) means a binary pkl is used.
             fp.close()
         else:
             fp = open(self.pars['srcid_simbad_nomad_match_pkl_fpath'],'rb')
-            srcid_class_match_dict = pickle.load(fp)
+            srcid_class_match_dict = cPickle.load(fp)
             fp.close()
-
+            
         if do_insert:
             self.insert_src_class_match_in_table(srcid_class_match_dict)
-
+        
         ### currently run on anathem:
         #self.get_simbad_literature_refs(srcid_class_match_dict)
         ### Im running this on a seperate IP (pted):
@@ -834,15 +823,15 @@ class Determine_Simbad_Class(TCPDb):
         self.write_summary_files(srcid_class_match_dict)
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
-
+    
 if __name__ == '__main__':
 
     pars = { \
-        'mysql_username':"pteluser",
-        'mysql_hostname':"192.168.1.25",
-        'mysql_database':'source_test_db',
+        'mysql_username':"pteluser", 
+        'mysql_hostname':"192.168.1.25", 
+        'mysql_database':'source_test_db', 
         'mysql_port':3306,
         'source_nomad_pkl_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src.pkl126'), #'/Data/best_nomad_src.pkl'), # generated by get_colors_for_tutor_sources.py
         'simbad_votable_dirpath':os.path.abspath(os.environ.get("HOME") + '/scratch/simbad_votables'),

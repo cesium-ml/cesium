@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    v0.1 Scipt used with PDB, to simulate what the ptf_master.py ipython tasks
         do, when given a new diff-object.
@@ -16,14 +16,6 @@
         delete from obj_srcid_lookup where obj_id=1 and survey_id=3;
         Query OK, 1 row affected (0.00 sec)
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 import sys
 import os
 import MySQLdb
@@ -41,7 +33,7 @@ db = MySQLdb.connect(host=pars['mysql_hostname'], \
                          port=pars['mysql_port'])
 cursor = db.cursor()
 DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator(use_postgre_ptf=True)
-print("DONE: DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator()")
+print "DONE: DiffObjSourcePopulator = ptf_master.Diff_Obj_Source_Populator()"
 
 # NOTE: the list order corresponds to order of INSERT into MySQL RDB:
 #"""
@@ -61,9 +53,9 @@ for dict_elem in test_objs:
     realbogus = dict_elem['realbogus']
     t_val = dict_elem['t_val']
     flux = dict_elem['flux']
-
-    diff_obj = {'decl': dec, 'ub1_zp_new': 27.5, 'flux_aper_err': 100.331, 'filt': 9, 'obj_ids': [obj_id], 'unclear': 0.0050000000000000001, 'lmt_mg_new': 20.608000000000001, 'mag_ref': 14.8698, 'sub_m': 19.296199999999999, 'id': [obj_id], 'sub_m_err': 0.0717, 'src_id': 0, 'f_aper_err': 85.051199999999994, 'flags2': 0, 'mag_ref_err': 0.0063, 'objc_type': 10, 'flux_err': 119.136, 'ub1_zp_ref': 25.600000000000001, 'suspect': 0.002, 'ra': ra, 'b_image': [1.0069999999999999], 'a_image': [1.2529999999999999], 'filts': [9], 'mag_err': [0.0717], 'dec_rms': 1.0, 'mag': [19.296199999999999], 'f_aper': 3228.6500000000001, 'lmt_mag_ref': 21.876899999999999, 'dec': dec, 'ra_rms': 1.0, 'sub_id': [13695], 'maybe': 0.0, 'bogus': 0.0, 'm': 14.894467501872207, 'flux_aper': 15923.299999999999, 'filter': ['R'], 'm_err': 0.0717, 'lmt_mg_ref': [21.876899999999999], 'flags': 0, 't': t_val, 'flux': flux, 'ujd': [t_val], 'realish': 0.0, 'realbogus':realbogus}
-    k_list = list(diff_obj.keys())
+    
+    diff_obj = {'decl': dec, 'ub1_zp_new': 27.5, 'flux_aper_err': 100.331, 'filt': 9, 'obj_ids': [obj_id], 'unclear': 0.0050000000000000001, 'lmt_mg_new': 20.608000000000001, 'mag_ref': 14.8698, 'sub_m': 19.296199999999999, 'id': [obj_id], 'sub_m_err': 0.0717, 'src_id': 0, 'f_aper_err': 85.051199999999994, 'flags2': 0, 'mag_ref_err': 0.0063, 'objc_type': 10, 'flux_err': 119.136, 'ub1_zp_ref': 25.600000000000001, 'suspect': 0.002, 'ra': ra, 'b_image': [1.0069999999999999], 'a_image': [1.2529999999999999], 'filts': [9], 'mag_err': [0.0717], 'dec_rms': 1.0, 'mag': [19.296199999999999], 'f_aper': 3228.6500000000001, 'lmt_mag_ref': 21.876899999999999, 'dec': dec, 'ra_rms': 1.0, 'sub_id': [13695L], 'maybe': 0.0, 'bogus': 0.0, 'm': 14.894467501872207, 'flux_aper': 15923.299999999999, 'filter': ['R'], 'm_err': 0.0717, 'lmt_mg_ref': [21.876899999999999], 'flags': 0, 't': t_val, 'flux': flux, 'ujd': [t_val], 'realish': 0.0, 'realbogus':realbogus}
+    k_list = diff_obj.keys()
     k_list.remove('filt')
     k_list.remove('filts')
     k_list.remove('obj_ids')
@@ -96,14 +88,14 @@ for dict_elem in test_objs:
                              v_str[:-2])
         # # #cursor.execute(insert_str)
 
-        print(" (new) INSERT id=",  obj_id)
+        print " (new) INSERT id=",  obj_id
         insert_str_2 = "INSERT INTO obj_srcid_lookup (src_id, obj_id, survey_id) VALUES (0, %d, 3)" % (obj_id)
         # # #cursor.execute(insert_str_2)
-        print()
+        print
     (srcid_xml_tuple_list, n_objs) = DiffObjSourcePopulator.ingest_diffobj(diff_obj, feat_db=DiffObjSourcePopulator.feat_db)
     # NOTE: enable the fillowing if you want te TEST / DEBUG the classification code:
     DiffObjSourcePopulator.class_interface.classify_and_insert_using_vosource_list(srcid_xml_tuple_list)
-print('done')
+print 'done'
 
 """
 test_objs = [ \

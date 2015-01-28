@@ -11,19 +11,9 @@ alter table asas_fullcatalog add column retrieved BOOLEAN DEFAULT FALSE;
 #alter table asas_fullcatalog add index (nobs, retrieved)  # this would require CPU on update of retrieved
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import numpy
-import urllib.request, urllib.parse, urllib.error
+import urllib
 import time
 try:
     import MySQLdb
@@ -33,10 +23,10 @@ except:
 def url_query(catalog_url_str, pars):
     db = Database_Utils(pars)
     db.connect_to_db()
-
+    
     try:
         insert_list = ["INSERT INTO asas_fullcatalog (name, nobs) VALUES "]
-        f_url = urllib.request.urlopen(catalog_url_str)
+        f_url = urllib.urlopen(catalog_url_str)
         catalog_result_str = f_url.read()
         f_url.close()
         i_pre = catalog_result_str.find("Nobs") + len("Nobs") + 1
@@ -54,16 +44,16 @@ def url_query(catalog_url_str, pars):
             #srcname_nobs_tups.append((src_name, nobs))
             if nobs >= 5:
                 insert_list.append('("%s", %d), ' % (src_name, nobs))
-
+            
         insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE nobs=VALUES(nobs)"
         db.tcp_cursor.execute(insert_str)
     except:
         db.tcp_cursor.close()
         db.tutor_cursor.close()
+    
 
 
-
-class Database_Utils(object):
+class Database_Utils:
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):
@@ -96,7 +86,7 @@ class Database_Utils(object):
         try:
             self.tcp_cursor.execute(exec_str)
         except:
-            print("Lost database connection... re-establising after 30s sleep", len(exec_str), exec_str[:100], exec_str[-100:])
+            print "Lost database connection... re-establising after 30s sleep", len(exec_str), exec_str[:100], exec_str[-100:]
             time.sleep(30)
             self.tcp_cursor.close()
             self.tcp_db = MySQLdb.connect(host=self.pars['tcp_hostname'], \
@@ -113,7 +103,7 @@ class Database_Utils(object):
         try:
             self.tutor_cursor.execute(exec_str)
         except:
-            print("Lost database connection... re-establising after 30s sleep", len(exec_str), exec_str[:100], exec_str[-100:])
+            print "Lost database connection... re-establising after 30s sleep", len(exec_str), exec_str[:100], exec_str[-100:]
             time.sleep(30)
             self.tutor_cursor.close()
             self.tutor_db = MySQLdb.connect(host=self.pars['tutor_hostname'], \
@@ -142,10 +132,10 @@ class Asas_Full_Catalog_Import(Database_Utils):
         the same as the ASAS Sky Atlas spacing.
         return a list of these ACVS sources near grid points, which are contained in tutor.sources (proj=126)
         """
-        import pickle, gzip
+        import cPickle, gzip
         if os.path.exists(pars['acvs_src_name_dist_dict_fpath']):
             fp = gzip.open(pars['acvs_src_name_dist_dict_fpath'],'rb')
-            acvs_grid_name_dist_dict = pickle.load(fp)
+            acvs_grid_name_dist_dict = cPickle.load(fp)
             fp.close()
             return acvs_grid_name_dist_dict
 
@@ -181,11 +171,11 @@ class Asas_Full_Catalog_Import(Database_Utils):
                 ### NOTE: having the distance information is really only for the order/limit1 but can be used
                 #         as a sanity check as well.
                 acvs_grid_name_dist_dict[source_name] = float(dist)
-                print(ra, dec)
+                print ra, dec
                 # todo now query urllib using the source_name to get all sources
-
+        
         fp = gzip.open(pars['acvs_src_name_dist_dict_fpath'],'wb')
-        pickle.dump(acvs_grid_name_dist_dict,fp,1) # ,1) means a binary pkl is used.
+        cPickle.dump(acvs_grid_name_dist_dict,fp,1) # ,1) means a binary pkl is used.
         fp.close()
 
         return acvs_grid_name_dist_dict
@@ -217,18 +207,18 @@ class Asas_Full_Catalog_Import(Database_Utils):
         import time
 
         threads = []
-        acvs_source_names = list(acvs_src_name_dist_dict.keys())
+        acvs_source_names = acvs_src_name_dist_dict.keys()
         acvs_source_names.sort()
         for i, acvs_source_name in enumerate(acvs_source_names):
             if i <= 8417:
                 continue
             #srcname_nobs_dict = {}
             catalog_url_str = "http://www.astrouw.edu.pl/cgi-asas/asas_map_query/%s,4,0.00,13.00,0.00,9.90,10,0,0,asas3?151,151" % (acvs_source_name)
-
+            
             #url_query(catalog_url_str, pars)
             #import pdb; pdb.set_trace()
-            #print
-
+            #print 
+            
             t = threading.Thread(target=url_query, args=[catalog_url_str, self.pars])
             t.start()
 
@@ -250,14 +240,14 @@ class Asas_Full_Catalog_Import(Database_Utils):
 
 
 
-            #### isNOTE: the reason I use a dict is to ensure that no duplicate
+            #### isNOTE: the reason I use a dict is to ensure that no duplicate 
             #insert_list = []
             #for k,v in srcname_nobs_dict.iteritems():
             #    insert_list
 
-            print(i, acvs_source_name, catalog_url_str)
+            print i, acvs_source_name, catalog_url_str
             #import pdb; pdb.set_trace()
-            #print
+            #print 
 
     def get_tutor_asas_acvs_sourcenames(self):
         """ Retrieve a list of source-names from the TUTOR ASAS AVCS (proj=126) sources.
@@ -272,7 +262,7 @@ class Asas_Full_Catalog_Import(Database_Utils):
             acvs_sourcnames.append(row[0])
         return acvs_sourcnames
 
-
+            
     def get_unretrieved_asas_catalog_sourcename_list(self, sourcename_list_fpath='', nobs_min=0, nobs_max=0):
         """ If given a sourcename_list_fpath, then parse and return the list of source_names.
         Otherwise, query RDB and get a list of source_names using constraints:
@@ -286,23 +276,23 @@ class Asas_Full_Catalog_Import(Database_Utils):
         self.tcp_execute(select_str)
         results = self.tcp_cursor.fetchall()
         if len(results) == 0:
-            print("NO un-retrieved sources in TABLE asas_fullcatalog in range:", nobs_max, nobs_min)
+            print "NO un-retrieved sources in TABLE asas_fullcatalog in range:", nobs_max, nobs_min
             import pdb; pdb.set_trace()
-            print()
+            print 
 
-        print("Range: %d - %d; Num results=%d" % (nobs_min, nobs_max, len(results)))
+        print "Range: %d - %d; Num results=%d" % (nobs_min, nobs_max, len(results))
 
         sourcename_list = []
         outfile_lines = []
         for row in results:
             source_name, nobs = row
             if source_name in tutor_acvs_sourcenames:
-                print('This source already exists in TUTOR proj=126.  Skipping:', source_name)
+                print 'This source already exists in TUTOR proj=126.  Skipping:', source_name
                 continue
 
             sourcename_list.append(source_name)
             outfile_lines.append("%s\n" % (source_name))
-
+            
         sourcename_fpath = "%s_%d_%d.list" % (self.pars['sourcename_fpath_root'],
                                               nobs_min, nobs_max)
         fp = open(sourcename_fpath, 'w')
@@ -325,24 +315,24 @@ class Asas_Full_Catalog_Import(Database_Utils):
         """
         import socket
         socket.setdefaulttimeout(20) # for urllib2 timeout of urlopen()
-        import urllib.request, urllib.error, urllib.parse
+        import urllib2
 
         if not os.path.exists(self.pars['lightcurve_download_dirpath']):
             os.system("mkdir -p %s" % (self.pars['lightcurve_download_dirpath']))
 
         for i, source_name in enumerate(sourcename_list):
             fname = "%s/%s.dat" % (self.pars['lightcurve_download_dirpath'], source_name)
-
+            
             if 1:
                 ### slows things down a little bit, might not be nessiccary:
                 if os.path.exists(fname):
                     continue # skip since already downloaded
-
+            
             i_try = 0
             while i_try < 3:
                 try:
                     url_str = "http://www.astrouw.edu.pl/cgi-asas/asas_cgi_get_data?%s,asas3" % (source_name)
-                    fp = urllib.request.urlopen(url_str)
+                    fp = urllib2.urlopen(url_str)
                     out_str = fp.read()
                     fp.close()
 
@@ -353,11 +343,11 @@ class Asas_Full_Catalog_Import(Database_Utils):
                 except:
                     i_try += 1
 
-            print(i, len(sourcename_list), source_name)
+            print i, len(sourcename_list), source_name
 
 
     def update_table_retrieved(self, sourcename_list=[]):
-        """ Update the RDB table that sources have been retrieved.
+        """ Update the RDB table that sources have been retrieved. 
         """
         insert_list = ["INSERT INTO asas_fullcatalog (name, retrieved) VALUES "]
 
@@ -397,8 +387,8 @@ class Asas_Frame_Mag_Percentile(Database_Utils):
             source_id = results[0][0]
             if source_id in [215304, 218130]:
                 continue # skip
-            print("source_id:")
-            print(source_id)
+            print "source_id:"
+            print source_id
 
             ### TODO: scp /home/pteluser/scratch/asas_fullcat_lcs/183259-3502.7.dat 192.168.1.25:/tmp/
             exec_str = "scp /home/dstarr/Data/asas_ACVS_50k_data/timeseries/%s tranx:/tmp/asas_source.dat" % (obj_name)
@@ -422,7 +412,7 @@ DROP TABLE temp_asas_ts;
 
             sql_str = """
 
-CREATE TABLE temp_asas_ts_raw
+CREATE TABLE temp_asas_ts_raw 
    (hjd DOUBLE,
     mag_0 FLOAT,
     mag_1 FLOAT,
@@ -441,7 +431,7 @@ CREATE TABLE temp_asas_ts_raw
 
             sql_str = """
 
-LOAD DATA INFILE '/tmp/asas_source.dat' INTO TABLE temp_asas_ts_raw
+LOAD DATA INFILE '/tmp/asas_source.dat' INTO TABLE temp_asas_ts_raw 
 LINES STARTING BY '   '
       TERMINATED BY '\n'
 
@@ -493,9 +483,9 @@ SELECT temp_asas_ts.hjd,
             self.tcp_execute(sql_str)
             results = self.tcp_cursor.fetchall()
             for row in results[:2]:
-                print(row)
+                print row
             import pdb; pdb.set_trace()
-            print()
+            print 
             sql_str = """
 DROP TABLE temp_asas_ts_raw;
             """
@@ -552,7 +542,7 @@ DROP TABLE temp_asas_ts_raw;
             insert_str = ''.join(insert_list)[:-2] + " ON DUPLICATE KEY UPDATE m_p98=VALUES(m_p98), m_p95=VALUES(m_p95), m_p93=VALUES(m_p93), m_p90=VALUES(m_p90), m_p80=VALUES(m_p80), m_p70=VALUES(m_p70), m_p60=VALUES(m_p60), m_p50=VALUES(m_p50), m_p40=VALUES(m_p40), m_p30=VALUES(m_p30), m_p20=VALUES(m_p20), m_p10=VALUES(m_p10)"
             self.tcp_execute(insert_str)
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
     def main(self):
@@ -562,7 +552,7 @@ DROP TABLE temp_asas_ts_raw;
         #n_frames = 350000 # a slight overestimate of the number of ASAS frames
         import monetdb.sql
         connection = monetdb.sql.connect(username="monetdb", password="monetdb", \
-                   hostname="localhost", database="my-first-db")
+        	   hostname="localhost", database="my-first-db")
         cursor = connection.cursor()
         ### increase the rows fetched to increase performance (optional)
         #cursor.arraysize = n_frames
@@ -585,7 +575,7 @@ DROP TABLE temp_asas_ts_raw;
         select_str = "SELECT frame, mag FROM asas_frame_id_mag ORDER BY frame, mag"
         cursor.execute(select_str)
         dt_2 = datetime.datetime.now()
-        print("delta_t of frame, mag select:", dt_2 - dt_1)
+        print "delta_t of frame, mag select:", dt_2 - dt_1
         out_tups = []
         for i, nobj in enumerate(nobj_arr):
             frame = frame_arr[i]
@@ -603,7 +593,7 @@ DROP TABLE temp_asas_ts_raw;
         for tup in out_tups: fp.write("%d %d %f %f %f %f %f %f %f %f %f %f %f %f\n" % tuple(tup))
         fp.close()
         import pdb; pdb.set_trace()
-        print()
+        print
         return {'fpath':'/home/dstarr/scratch/asas_fullcat_percentile_mags'}
 
 
@@ -615,7 +605,7 @@ DROP TABLE temp_asas_ts_raw;
         #n_frames = 350000 # a slight overestimate of the number of ASAS frames
         import monetdb.sql
         connection = monetdb.sql.connect(username="monetdb", password="monetdb", \
-                   hostname="localhost", database="my-first-db")
+        	   hostname="localhost", database="my-first-db")
         cursor = connection.cursor()
         ### increase the rows fetched to increase performance (optional)
         #cursor.arraysize = n_frames
@@ -637,9 +627,9 @@ DROP TABLE temp_asas_ts_raw;
                 row = cursor.fetchone()
                 perc_mag_dict[perc][i] = row[0]
         dt_2 = datetime.datetime.now()
-        print(dt_2 - dt_1, 1000, 1)
+        print dt_2 - dt_1, 1000, 1
         import pdb; pdb.set_trace()
-        print()
+        print 
         # TODO want to store these results in an altered mysql table
 
 
@@ -661,7 +651,7 @@ if __name__ == '__main__':
         'tutor_port':3306, #33306,
         'tcp_hostname':'192.168.1.25',
         'tcp_username':'pteluser',
-        'tcp_port':     3306, #23306,
+        'tcp_port':     3306, #23306, 
         'tcp_database':'source_test_db',
         'asas_map_query_min_incr':1.358, # degrees
         'ra_min':0.0,
@@ -698,8 +688,8 @@ if __name__ == '__main__':
         ### This retrieves the lightcurve data for asas-full-catalog sources mention in RDB table.
 
         # TODO: want to use nobs ranges that fit within a range
-
-
+        
+        
         nobs_min = pars['nobs_min']
         nobs_max = pars['nobs_max']
 
@@ -722,7 +712,7 @@ if __name__ == '__main__':
                     break # nobs_min cant grow anymore
             # here nobs should be <= 1000, or cannot get any smaller using nobs_min and nobs_max
 
-            print("Chosen nobs_min, nobs_max:", nobs_min, nobs_max)
+            print "Chosen nobs_min, nobs_max:", nobs_min, nobs_max
             #import pdb; pdb.set_trace()
             #print
 
@@ -749,7 +739,7 @@ scp /home/pteluser/scratch/asas_fullcat_lcs/183259-3502.7.dat 192.168.1.25:/tmp/
 DROP TABLE temp_asas_ts_raw;
 DROP TABLE temp_asas_ts;
 
-CREATE TEMPORARY TABLE temp_asas_ts_raw
+CREATE TEMPORARY TABLE temp_asas_ts_raw 
    (hjd DOUBLE,
     mag_0 FLOAT,
     mag_1 FLOAT,
@@ -764,7 +754,7 @@ CREATE TEMPORARY TABLE temp_asas_ts_raw
     grade VARCHAR(1),
     frame INT);
 
-LOAD DATA INFILE '/tmp/183259-3502.7.dat' INTO TABLE temp_asas_ts_raw
+LOAD DATA INFILE '/tmp/183259-3502.7.dat' INTO TABLE temp_asas_ts_raw 
 LINES STARTING BY '   '
       TERMINATED BY '\n'
 
@@ -815,9 +805,9 @@ SELECT temp_asas_ts.hjd,
  -----+-------+--------+-------+---------+----------+--------+--------+--------+--------+--------+
 | hjd        | grade | frame  | n     | m_avg   | m_var    | m0     | m1     | m2     | m3     | m4     |
 +------------+-------+--------+-------+---------+----------+--------+--------+--------+--------+--------+
-| 3818.81001 | D     | 183313 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
-| 2124.61804 | D     |  27642 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
-|  1948.8921 | D     |   9129 |     4 | 12.5258 | 0.554665 | 13.021 | 13.014 | 12.825 | 11.243 |      0 |
-| 1950.89155 | D     |   9476 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
-| 1978.85767 | D     |  12130 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 |
+| 3818.81001 | D     | 183313 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
+| 2124.61804 | D     |  27642 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
+|  1948.8921 | D     |   9129 |     4 | 12.5258 | 0.554665 | 13.021 | 13.014 | 12.825 | 11.243 |      0 | 
+| 1950.89155 | D     |   9476 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
+| 1978.85767 | D     |  12130 |     0 |       0 |        0 |      0 |      0 |      0 |      0 |      0 | 
     """

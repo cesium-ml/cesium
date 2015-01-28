@@ -8,18 +8,10 @@ NOTE:
      - e.g. .bashrc/execute for bash:
                 export TCP_DIR=/home/pteluser/src/TCP/
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import os, sys
 import warnings
-warnings.simplefilter("ignore",DeprecationWarning)
+warnings.simplefilter("ignore",DeprecationWarning) 
 
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                       'Software/feature_extract'))
@@ -75,9 +67,9 @@ if 0:
     ### Sigma clipping example:
     from data_cleaning import sigmaclip_sdict_ts
     sigma = 1
-    print(sigma, 'before:', len(gen.sig.x_sdict['ts']['V']['m']))
+    print sigma, 'before:', len(gen.sig.x_sdict['ts']['V']['m'])
     sigmaclip_sdict_ts(gen.sig.x_sdict['ts'], sigma_low=sigma, sigma_high=sigma)
-    print(sigma, 'after:', len(gen.sig.x_sdict['ts']['V']['m']))
+    print sigma, 'after:', len(gen.sig.x_sdict['ts']['V']['m'])
 
 gen.sig.add_features_to_xml_string(gen.signals_list)
 
@@ -85,7 +77,7 @@ gen.sig.add_features_to_xml_string(gen.signals_list)
 feature_added_VOSource_XML_fpath = '/tmp/vosource_out.xml'
 #gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
+print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
 
 #print "signals_list[0].properties['data'].keys()"
 #for f in signals_list[0].properties['data'].keys():
@@ -97,19 +89,20 @@ print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
 #print "ecp l value:", signals_list[0].properties['data']['multiband']['features']['ecpl'], signals_list[0].properties['data']['multiband']['features']['ecpl'].why
 
 for signal in signals_list:
-    #obsolete#print "firstr", signal.properties['data']['r']['features']['first_freq']
-    #obsolete#print "firstu", signal.properties['data']['u']['features']['first_freq']
-    #print "ws_variability_ru value"
-    #print signal.properties['data']['multiband']['features']['ws_variability_ru']
-    #print signal.properties['data']['multiband']['features']['ws_variability_ru'].why
-    pass
-    # NED extracted features:
-    #print 'dist_arcmin', signal.properties['data']['multiband']['features']['distance_in_arcmin_to_nearest_galaxy']
-    #print 'dist_kpc', signal.properties['data']['multiband']['features']['distance_in_kpc_to_nearest_galaxy']
+	#obsolete#print "firstr", signal.properties['data']['r']['features']['first_freq']
+	#obsolete#print "firstu", signal.properties['data']['u']['features']['first_freq']
+	#print "ws_variability_ru value"
+	#print signal.properties['data']['multiband']['features']['ws_variability_ru']
+	#print signal.properties['data']['multiband']['features']['ws_variability_ru'].why
+	pass
+	# NED extracted features:
+	#print 'dist_arcmin', signal.properties['data']['multiband']['features']['distance_in_arcmin_to_nearest_galaxy']
+	#print 'dist_kpc', signal.properties['data']['multiband']['features']['distance_in_kpc_to_nearest_galaxy']
 
 
-    # TODO: eventually use unittest module for tests:
-    #chi2_val = signal.properties['data']['r']['features']['chi2']
+	# TODO: eventually use unittest module for tests:
+	#chi2_val = signal.properties['data']['r']['features']['chi2']
 #print chi2_val
 #if str(chi2_val) == '1131154.65019':
 #    print "\n\nSimple TEST = OK\n"
+

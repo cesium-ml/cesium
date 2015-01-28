@@ -12,17 +12,9 @@ script_output = p.stdout.readlines()
 /big_data/dstarr/src/TCP/Software/ingest_tools/lcs_classif.py http://lyra.berkeley.edu:5123/get_lc_data/?filename=dotastro_215153.dat&sep=,
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
-import urllib.request, urllib.parse, urllib.error
-import io
+import urllib
+import cStringIO
 
 os.environ["TCP_DIR"] = "/big_data/dstarr/src/TCP/"
 from rpy2.robjects.packages import importr
@@ -43,7 +35,7 @@ import rpy2_classifiers
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
-        <COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
+	<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>
   <history>
     <created datetime="2009-12-02 20:56:18.880560" codebase="db_importer.pyc" codebase_version="9-Aug-2007"/>
   </history>
@@ -63,11 +55,11 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-                        <TimeType ucd="frame.time.system?">MJD</TimeType>
-                        <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-                        <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
-                        <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
-                </TIMESYS>
+			<TimeType ucd="frame.time.system?">MJD</TimeType> 
+			<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
+			<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+			<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
+		</TIMESYS>
 
     <Resource name="db photometry">
         <TABLE name="v">
@@ -97,7 +89,7 @@ def generate_feature_xml_using_raw_xml(raw_xml_str):
     gen.generate(xml_handle=raw_xml_str)
     gen.sig.add_features_to_xml_string(gen.signals_list)
 
-    fp_out = io.StringIO()
+    fp_out = cStringIO.StringIO()
     gen.sig.write_xml(out_xml_fpath=fp_out)
     xml_str = fp_out.getvalue()
     sys.stdout.close()
@@ -122,7 +114,7 @@ def generate_arff_using_raw_xml(xml_str):
     signals_list = []
     gen = generators_importers.from_xml(signals_list)
     gen.generate(xml_handle=xml_str)
-    gen.sig.add_features_to_xml_string(signals_list)
+    gen.sig.add_features_to_xml_string(signals_list)                
     gen.sig.x_sdict['src_id'] = new_srcid
     dbi_src = db_importer.Source(make_dict_if_given_xml=False)
     dbi_src.source_dict_to_xml(gen.sig.x_sdict)
@@ -141,9 +133,9 @@ def generate_arff_using_raw_xml(xml_str):
         master_features_dict[feat_tup] = 0 # just make sure there is this key in the dict.  0 is filler
 
 
-    master_features = list(master_features_dict.keys())
-    master_classes = list(master_classes_dict.keys())
-    a = arffify.Maker(search=[], skip_class=True, local_xmls=True,
+    master_features = master_features_dict.keys()
+    master_classes = master_classes_dict.keys()
+    a = arffify.Maker(search=[], skip_class=True, local_xmls=True, 
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
                       dorun=False, add_srcid_to_arff=True)
@@ -153,7 +145,7 @@ def generate_arff_using_raw_xml(xml_str):
     a.master_list = master_list
 
 
-    fp_out = io.StringIO()
+    fp_out = cStringIO.StringIO()
     a.write_arff(outfile=fp_out, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,
@@ -167,16 +159,16 @@ def main():
     """ Main function
     """
     if len(sys.argv) < 2:
-        print("lcs_classif.py - len(sys.argv) < 2. Returning...")
+	print "lcs_classif.py - len(sys.argv) < 2. Returning..."
         return {}
-    print("lcs_classif.py - sys.argv[1] =", sys.argv[1])
+    print "lcs_classif.py - sys.argv[1] =", sys.argv[1]
     timeseries_url = sys.argv[1]
 
     t_list = []
     m_list = []
     merr_list = []
     try:
-        f = urllib.request.urlopen(timeseries_url)
+        f = urllib.urlopen(timeseries_url)
         ts_str = f.read()
         f.close()
         ts_list = eval(ts_str)
@@ -270,7 +262,7 @@ def main():
     # srcid, rank, prob, class_name
     #import pdb; pdb.set_trace()
     #print
-
+    
     #out = self.retrieve_tutor_class_ids()
     #rclass_tutorid_lookup = out['rclass_tutorid_lookup']
 
@@ -288,4 +280,5 @@ if __name__ == '__main__':
     #print "blahblah"
     out_dict = main()
     #print "yoyoyo"
-    print(out_dict)
+    print out_dict
+

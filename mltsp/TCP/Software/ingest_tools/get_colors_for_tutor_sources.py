@@ -15,24 +15,12 @@ This code is partially adapted from kepler_find_simbd_public_sources.py
 And may use some elements of activelearn_utils.py
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from builtins import int
-from builtins import open
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import socket
 socket.setdefaulttimeout(20) # for urllib2 timeout of urlopen()
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-import pickle
+import urllib
+import urllib2
+import cPickle
 import gzip
 import time
 import copy
@@ -44,7 +32,7 @@ import matplotlib.pyplot as pyplot
 from numpy import loadtxt
 
 
-class Database_Utils(object):
+class Database_Utils:
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):
@@ -54,14 +42,14 @@ class Database_Utils(object):
 
     def connect_to_db(self):
         import MySQLdb
-        if 'tcp_hostname' in self.pars:
+        if self.pars.has_key('tcp_hostname'):
             self.tcp_db = MySQLdb.connect(host=self.pars['tcp_hostname'], \
                                           user=self.pars['tcp_username'], \
                                           db=self.pars['tcp_database'],\
                                           port=self.pars['tcp_port'])
             self.tcp_cursor = self.tcp_db.cursor()
 
-        if 'tutor_hostname' in self.pars:
+        if self.pars.has_key('tutor_hostname'):
             self.tutor_db = MySQLdb.connect(host=self.pars['tutor_hostname'], \
                                             user=self.pars['tutor_username'], \
                                             db=self.pars['tutor_database'], \
@@ -70,7 +58,7 @@ class Database_Utils(object):
             self.tutor_cursor = self.tutor_db.cursor()
 
 
-class VOTable_Parse(object):
+class VOTable_Parse:
     """
     A Class for parsing VOTable xmls
 
@@ -87,7 +75,7 @@ class VOTable_Parse(object):
 
         """
         from xml.etree import ElementTree # use the original implementation for ._namespace_map (although some documents say cElementTree is now an earlier implementation
-
+        
         sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
                                         'Software/feature_extract/Code/extractors'))
         import xmldict
@@ -95,9 +83,9 @@ class VOTable_Parse(object):
         #ElementTree._namespace_map["http://www.ivoa.net/xml/VOTable/v1.1"] = ''
         # KLUDGE: (as of 20110725 it seems simbad votables now have the following namespace,  which fouls up the xmldict dictionary dependent code.  Tried a couple other ways of removing the namespace reference via xml.etree configs, but with no success.
         votable_str = votable_str.replace("""<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.1" ID="http://www.ivoa.net/xml/VOTable/v1.1 http://www.ivoa.net/xml/VOTable/v1.1">""","<VOTABLE>")
-
+        
         elemtree = ElementTree.fromstring(votable_str)
-        ###only available in v2.7: ElementTree.register_namespace('{http://www.ivoa.net/xml/VOTable/v1.1}')
+        ###only available in v2.7: ElementTree.register_namespace('{http://www.ivoa.net/xml/VOTable/v1.1}')  
         #blah = ElementTree.QName('{http://www.ivoa.net/xml/VOTable/v1.1}')
         #elemtree = blah.fromstring(votable_str)
 
@@ -154,13 +142,13 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         #alt_html_pre = "http://simbad.u-strasbg.fr/simbad/sim-coo?"
         #html = "http://simbad.harvard.edu/simbad/sim-coo?"
 
-        params = urllib.parse.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
+        params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
                                        'Radius': rad, 'Radius.unit': "arcsec"})
-
+        
         #html = "http://simbad.harvard.edu/simbad/sim-id?"
         #params = urllib.urlencode({'output.format':"VOTABLE","Ident":"HD 27290","NbIdent":1,\
         #                           'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
-        f = urllib.request.urlopen("%s%s" % (html_prefix,params))
+        f = urllib.urlopen("%s%s" % (html_prefix,params))
         s = f.read()
         f.close()
         #print s
@@ -178,12 +166,12 @@ class Get_Colors(Database_Utils, VOTable_Parse):
 
         #params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
         #                               'Radius': rad, 'Radius.unit': "arcsec"})
-        params = urllib.parse.urlencode({'output.format': "VOTABLE", "Ident": source_name})
+        params = urllib.urlencode({'output.format': "VOTABLE", "Ident": source_name})
 
         #html = "http://simbad.harvard.edu/simbad/sim-id?"
         #params = urllib.urlencode({'output.format':"VOTABLE","Ident":"HD 27290","NbIdent":1,\
         #                           'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
-        f = urllib.request.urlopen("%s%s" % (html_prefix,params))
+        f = urllib.urlopen("%s%s" % (html_prefix,params))
         s = f.read()
         f.close()
         #print s
@@ -199,7 +187,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
           - get source_id, project_id, ra, dec...
 
         Do this for ASAS and Debosscher projects
-
+    
         """
         source_dict = {'deboss':{'proj_id':123,
                                  'srcid_list':[],
@@ -231,8 +219,8 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                                  },
                        }
 
-
-        for proj, proj_dict in source_dict.items():
+        
+        for proj, proj_dict in source_dict.iteritems():
             select_str = "SELECT source_id, source_ra, source_dec, source_name, class_id FROM sources WHERE project_id=%d" % (proj_dict['proj_id'])
             self.tutor_cursor.execute(select_str)
             results = self.tutor_cursor.fetchall()
@@ -245,7 +233,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                 proj_dict['dec_list'].append(float(source_dec))
                 proj_dict['source_name_list'].append(source_name)
                 proj_dict['class_id'].append(class_id)
-
+              
         return source_dict
 
 
@@ -281,12 +269,12 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         if do_remove_file:
             os.system("rm " + fpath)
         html_prefix = self.pars['html_prefix_list'][i%2]
-
+        
         votable_str = self.query_votable_radec(ra=ra,
                                                dec=dec,
                                                rad=60.0,   # arcseconds
                                                html_prefix=html_prefix)
-        print("%s %d/%d srcid=%d len=%d %s" % (proj_name, i, len_srcid_list, src_id, len(votable_str), html_prefix))
+        print "%s %d/%d srcid=%d len=%d %s" % (proj_name, i, len_srcid_list, src_id, len(votable_str), html_prefix)
         fp = open(fpath, 'w')
         fp.write(votable_str)
         fp.close()
@@ -301,7 +289,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         if do_remove_file:
             os.system("rm " + fpath)
         html_prefix = self.pars['html_srcname_prefix_list'][i%2]
-
+        
         votable_str = self.query_votable_srcname(rad=60.0,   # arcseconds
                                                  source_name=source_name,
                                                  html_prefix=html_prefix)
@@ -329,7 +317,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         """
         id_list = list(asas_ndarray['ID'])
 
-        for proj_name, proj_dict in tutor_source_dict.items():
+        for proj_name, proj_dict in tutor_source_dict.iteritems():
             if proj_name == 'asas':
                 continue # DEBUG / TESTING ONLY
             for i, src_id in enumerate(proj_dict['srcid_list']):
@@ -382,29 +370,29 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                             dist =  float(self.parse_attrib(xml_dict, attrib_name="DISTANCE", i_row=j_row))
                         except:
                             ### This is not a useful row, since there is no J, K info
-                            print('           %d This is not a useful row, since there is no J, K info' % (j_row))
+                            print '           %d This is not a useful row, since there is no J, K info' % (j_row)
                             continue
 
                         if (dist < 70):
                             ### I chose these mag cuts due to a couple sources which have <0.25 mag differences between ACVS table and matching simbad source (225975, 227503)
                             votable_i_row = j_row
-                            print("  JK MATCH: %d dist=%f" % (j_row, dist))
+                            print "  JK MATCH: %d dist=%f" % (j_row, dist)
                             break # we found the matching source.  get out of loop
                         else:
-                            print("- NO MATCH: %d dist=%f" % (j_row, dist))
+                            print "- NO MATCH: %d dist=%f" % (j_row, dist)
 
                     if votable_i_row == None:
                         #print "  JK None", src_id
                         ### if no simbad match, then we can't do much with Debosscher sources
                         self.append_none_jhk(proj_dict=proj_dict)
                         continue # We cannot get any useful info from Simbad since no sources match/have J,K, so only use ASAS ACVS info
-
+                        
                 try:
                     dist =  float(self.parse_attrib(xml_dict, attrib_name="DISTANCE", i_row=votable_i_row))
                 except:
                     # We get here when no J info can be retrieved from Simbad VOTable.
                     #    - this means we have to use whatever existed in the ACVS table for JHK
-                    #       - since we require a close J-band match of simbad source and ACVS source
+                    #       - since we require a close J-band match of simbad source and ACVS source 
                     ### if no simbad match, then we can't do much with Debosscher sources
                     self.append_none_jhk(proj_dict=proj_dict)
                     continue # We cannot get any useful info from Simbad since no sources match/have J, so only use ASAS ACVS info
@@ -445,9 +433,9 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                 #print "%d i=%d J=%d B=%d" % (src_id, i, len(proj_dict['J']), len(proj_dict['B']))
                 #import pdb; pdb.set_trace()
                 #print
+                    
 
-
-
+        
 
     def add_SIMBAD_or_ACVS_mags(self, asas_ndarray=None, tutor_source_dict={}):
         """
@@ -462,7 +450,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         """
         id_list = list(asas_ndarray['ID'])
 
-        for proj_name, proj_dict in tutor_source_dict.items():
+        for proj_name, proj_dict in tutor_source_dict.iteritems():
             if proj_name == 'deboss':
                 continue # DEBUG / TESTING ONLY
             for i, src_id in enumerate(proj_dict['srcid_list']):
@@ -516,23 +504,23 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                             dist =  float(self.parse_attrib(xml_dict, attrib_name="DISTANCE", i_row=j_row))
                         except:
                             ### This is not a useful row, since there is no J, K info
-                            print('           %d This is not a useful row, since there is no J, K info' % (j_row))
+                            print '           %d This is not a useful row, since there is no J, K info' % (j_row)
                             continue
 
                         #if ((abs(j_diff) <= 0.25) and (abs(k_diff) <= 0.25)):
                         if ((abs(j_diff) <= 0.24) and (JK_diff <= 0.34)):
                             ### I chose these mag cuts due to a couple sources which have <0.25 mag differences between ACVS table and matching simbad source (225975, 227503)
                             votable_i_row = j_row
-                            print("  JK MATCH: %d dJ=%f  dK=%f  dJK=%f  dist=%f" % (j_row, j_diff, k_diff, JK_diff, dist))
+                            print "  JK MATCH: %d dJ=%f  dK=%f  dJK=%f  dist=%f" % (j_row, j_diff, k_diff, JK_diff, dist)
                             break # we found the matching source.  get out of loop
                         else:
-                            print("- NO MATCH: %d dJ=%f  dK=%f  dJK=%f  dist=%f" % (j_row, j_diff, k_diff, JK_diff, dist))
+                            print "- NO MATCH: %d dJ=%f  dK=%f  dJK=%f  dist=%f" % (j_row, j_diff, k_diff, JK_diff, dist)
 
                     if votable_i_row == None:
                         #print "  JK None", src_id
                         self.append_acvs_jhk(proj_dict=proj_dict, asas_ndarray=asas_ndarray, i_ndarray=i_ndarray)
                         continue # We cannot get any useful info from Simbad since no sources match/have J,K, so only use ASAS ACVS info
-
+                        
                 try:
                     j_diff = float(self.parse_attrib(xml_dict, attrib_name="J", i_row=votable_i_row)) - asas_ndarray['J'][i_ndarray]
                     k_diff = float(self.parse_attrib(xml_dict, attrib_name="K", i_row=votable_i_row)) - asas_ndarray['K'][i_ndarray]
@@ -544,7 +532,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                 except:
                     # We get here when no J info can be retrieved from Simbad VOTable.
                     #    - this means we have to use whatever existed in the ACVS table for JHK
-                    #       - since we require a close J-band match of simbad source and ACVS source
+                    #       - since we require a close J-band match of simbad source and ACVS source 
                     self.append_acvs_jhk(proj_dict=proj_dict, asas_ndarray=asas_ndarray, i_ndarray=i_ndarray)
                     continue # We cannot get any useful info from Simbad since no sources match/have J, so only use ASAS ACVS info
 
@@ -592,7 +580,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
 
                 proj_dict['ref'].append('asas_simbad')
 
-                print("%d i=%d J=%d B=%d" % (src_id, i, len(proj_dict['J']), len(proj_dict['B'])))
+                print "%d i=%d J=%d B=%d" % (src_id, i, len(proj_dict['J']), len(proj_dict['B']))
                 #import pdb; pdb.set_trace()
                 #print
 
@@ -620,7 +608,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         #i_ndarray = id_list.index(proj_dict['source_name_list'][i])
 
         if len(votable_str) < 310:
-            print("NO SIMBAD srcname=%s len=%d" % (query_source_name, len(votable_str)))
+            print "NO SIMBAD srcname=%s len=%d" % (query_source_name, len(votable_str))
             #self.append_acvs_jhk(proj_dict=proj_dict, asas_ndarray=asas_ndarray, i_ndarray=i_ndarray)
             # ?????   continue
             return {}
@@ -633,25 +621,25 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                     raise
 
                 if len(votable_str) < 310:
-                    print("NO SIMBAD srcname=%s len=%d" % (query_source_name, len(votable_str)))
+                    print "NO SIMBAD srcname=%s len=%d" % (query_source_name, len(votable_str))
                     #self.append_acvs_jhk(proj_dict=proj_dict, asas_ndarray=asas_ndarray, i_ndarray=i_ndarray)
                     # ???? continue
                     return {}
             if 'dentifier has an incorrect format' in votable_str:
-                print("NO SIMBAD (INCORRECT FORMAT) srcname=%s len=%d" % (query_source_name, len(votable_str)))
+                print "NO SIMBAD (INCORRECT FORMAT) srcname=%s len=%d" % (query_source_name, len(votable_str))
                 return {}
             elif 'dentifier not found in the database' in votable_str:
-                print("NO SIMBAD (not in database) srcname=%s len=%d" % (query_source_name, len(votable_str)))
+                print "NO SIMBAD (not in database) srcname=%s len=%d" % (query_source_name, len(votable_str))
                 return {}
             else:
-                print("NO SIMBAD (raise) srcname=%s len=%d" % (query_source_name, len(votable_str)))
+                print "NO SIMBAD (raise) srcname=%s len=%d" % (query_source_name, len(votable_str))
                 raise
 
         xml_dict = self.load_votable_str(votable_str)
 
         if type([]) == type(xml_dict['VOTABLE']['RESOURCE']['TABLE']['DATA']['TABLEDATA']['TR']):
-            print("TABLEDATA is a list, not expected. source_name=", source_name)
-            raise
+            print "TABLEDATA is a list, not expected. source_name=", source_name
+            raise 
         out_dict = {'ra':float(self.parse_attrib(xml_dict, attrib_name="RA", i_row=None)),
                     'dec':float(self.parse_attrib(xml_dict, attrib_name="DEC", i_row=None)),
                     }
@@ -670,19 +658,19 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         #    pass
 
         return out_dict
-
+ 
 
     def insert_mags_into_db(self, tutor_source_dict={}):
         """
         Table: (to be created in tranx:source_test_db)
 
         ENUM('asas_simbad', 'asas_acvs', 'debos_simbad', 'none_simbad')
-
+        
         CREATE TABLE activelearn_filter_mags (source_id INTEGER, ref VARCHAR(12), class_id INTEGER, b FLOAT, v FLOAT, r FLOAT, j FLOAT, h FLOAT, k FLOAT, jh FLOAT, hk FLOAT, jk FLOAT, vj FLOAT, bj FLOAT, bv FLOAT, vr FLOAT, extinct_bv FLOAT, PRIMARY KEY (source_id));
 
         # TODO: maybe make sure that only sources with enough color information are added
         #   - initially add everything
-
+        
         """
         sources_insert_list = ["INSERT INTO activelearn_filter_mags (source_id, ref, class_id, b, v, r, j, h, k, jh, hk, jk, vj, bj, bv, vr, extinct_bv) VALUES "]
 
@@ -705,7 +693,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                     HK = proj_dict['H'][i] - proj_dict['K'][i]
                 except:
                     HK = 'NULL'
-
+                    
                 try:
                     JK = proj_dict['J'][i] - proj_dict['K'][i]
                 except:
@@ -725,13 +713,13 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                     BV = proj_dict['B'][i] - proj_dict['V'][i]
                 except:
                     BV = 'NULL'
-
+                
                 try:
                     VR = proj_dict['V'][i] - proj_dict['R'][i]
                 except:
                     VR = 'NULL'
 
-
+                
                 insert_tup = (proj_dict['srcid_list'][i],
                               proj_dict['ref'][i],
                               class_id,
@@ -743,7 +731,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                               str(proj_dict['K'][i]),
                               str(JH),
                               str(HK),
-                              str(JK),
+                              str(JK), 
                               str(VJ),
                               str(BJ),
                               str(BV),
@@ -754,14 +742,14 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                 #sources_insert_list.append("""(%d, '%s', %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f), """ %  insert_tup)
                 sources_insert_list.append("""(%d, '%s', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %f), """ %  insert_tup)
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
         sources_insert_str = ''.join(sources_insert_list)[:-2]
         self.tcp_cursor.execute(sources_insert_str)
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
     def fill_webplot_data_files(self):
@@ -886,7 +874,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
 
         fp = open(self.pars['peramp_fpath'], 'w')
 
-        for src_id, class_id in all_srcid_classid.items():
+        for src_id, class_id in all_srcid_classid.iteritems():
             select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (src_id + 100000000)
             self.tcp_cursor.execute(select_str)
             results = self.tcp_cursor.fetchall()
@@ -901,7 +889,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         fp.close()
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
     def add_tutor_classids(self, tutor_source_dict={}, proj_id=None, srcid_index={}):
@@ -916,7 +904,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         all_srcid_classid = {}
         for (src_id, class_id) in results:
             all_srcid_classid[src_id] = class_id
-            if src_id in srcid_index:
+            if srcid_index.has_key(src_id):
                 ### Only a subset of the sources have NOMAD source matches
                 tutor_source_dict['class_id'][srcid_index[src_id]] = class_id
         return all_srcid_classid
@@ -941,12 +929,12 @@ class Get_Colors(Database_Utils, VOTable_Parse):
         }
 
         all_srcid_classid = {}
-        for n, fpath in user_classifs_fpaths.items():
+        for n, fpath in user_classifs_fpaths.iteritems():
             data = loadtxt(fpath, dtype={'names': ('src_id', 'class_id'),
                                          'formats': ('i4', 'i4')})
             for i, src_id in enumerate(data['src_id']):
                 all_srcid_classid[src_id] = data['class_id'][i]
-                if src_id in srcid_index:
+                if srcid_index.has_key(src_id):
                     ### Only a subset of the sources have NOMAD source matches
                     tutor_source_dict['class_id'][srcid_index[src_id]] = data['class_id'][i]
         return all_srcid_classid
@@ -983,11 +971,11 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                                                     proj_id=123)
 
         all_srcid_classid_2 = self.add_AL_addToTrain_classids(tutor_source_dict=tutor_source_dict,
-                                        srcid_index=srcid_index)
+                                        srcid_index=srcid_index)                                    
         all_srcid_classid.update(all_srcid_classid_2)
         return {'tutor_source_dict':tutor_source_dict,
                 'all_srcid_classid':all_srcid_classid}
-
+                
 
 
 class Get_Colors_Using_Nomad(Database_Utils):
@@ -1014,8 +1002,8 @@ class Get_Colors_Using_Nomad(Database_Utils):
         from rpy2.robjects.packages import importr
         from rpy2 import robjects
         self.robjects = robjects
-
-        if 'classifier_filepath' in self.pars:
+        
+        if self.pars.has_key('classifier_filepath'):
             r_classifier = self.pars['classifier_filepath']
         else:
             r_classifier = '/home/dstarr/scratch/nomad_asas_acvs_classifier/rf_trained_classifier.robj' # from citris33
@@ -1032,7 +1020,7 @@ class Get_Colors_Using_Nomad(Database_Utils):
                        'srcid_list':[],
                        'ra_list':[],
                        'dec_list':[],}
-
+        
         for proj_id in projid_list:
             #select_str = "SELECT source_id, source_ra, source_dec, source_name, class_id FROM sources WHERE project_id=%d" % (proj_dict['proj_id'])
             select_str = "SELECT source_id, source_ra, source_dec FROM sources WHERE project_id=%d ORDER BY source_id" % (proj_id)
@@ -1051,7 +1039,7 @@ class Get_Colors_Using_Nomad(Database_Utils):
 
     def get_linear_source_dict_from_tcpdb(self, projid_list=[]):
         """ Initialize tables on tranx:mysqldb:database=source_test_db:
-
+        
 CREATE TABLE linear_objects (id INT UNSIGNED, ra DOUBLE, decl DOUBLE, n_good_obj SMALLINT UNSIGNED, mag FLOAT, retrieved BOOLEAN DEFAULT FALSE, PRIMARY KEY (id), INDEX(n_good_obj, retrieved));
 
 LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_objects FIELDS TERMINATED BY ' ';
@@ -1101,12 +1089,12 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
                 source_dict['dec_list'].append(float(source_dec))
                 source_dict['nobj_list'].append(int(nobj))
                 source_dict['mag_list'].append(float(mag))
-        print('USED:', len(source_dict['srcid_list']))
+        print 'USED:', len(source_dict['srcid_list'])
         return source_dict
 
 
     def update_table_retrieved(self, sourcename_list=[]):
-        """ Update the RDB table that sources have been retrieved.
+        """ Update the RDB table that sources have been retrieved. 
         """
         insert_list = ["INSERT INTO linear_objects (id, retrieved) VALUES "]
 
@@ -1131,11 +1119,11 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
            findnomad1 304.1868910 -0.7529220 -E 1998.1 -rs 60 -m 30 -lmJ 15.-16.
            -m num results to retrieve
            -rs arcsec radius query
-
+           
         """
         self.pars.update({'nomad_radius':120, # 60
                           'nomad_n_results':30})
-
+        
         flags  =[]
         if avg_epoch != None:
             flags.append("-E %d" % (avg_epoch))
@@ -1184,7 +1172,7 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
                 dec_nomad_src = float(radec_tup[1])
             else:
                 raise # there should be a ra, dec in the nomad string
-
+            
             color_str_list = []
             corr_str = elems[5].replace(' T ', '  ').replace(' Y ', '  ')
             for m_str in corr_str.split():
@@ -1193,7 +1181,7 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
             #print line
             if len(color_str_list) != 6:
                 import pdb; pdb.set_trace()
-                print() # DEBUG ONLY
+                print # DEBUG ONLY
                 continue
 
             mag_dict = {}
@@ -1202,7 +1190,7 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
                     mag_dict[band_name] = None
                 else:
                     mag_dict[band_name] = float(color_str_list[i_band])
-
+    
             dist_str = elems[8][elems[8].find(';')+1:]
             dist = float(dist_str.strip())
 
@@ -1210,8 +1198,8 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
             if require_jhk:
                 if ((mag_dict['J'] == None) or (mag_dict['H'] == None) or (mag_dict['K'] == None)):
                     continue # skip this source
-
-
+                
+            
             out_dict['ra'].append(ra_nomad_src)
             out_dict['dec'].append(dec_nomad_src)
             out_dict['dist'].append(dist)
@@ -1221,7 +1209,7 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
             out_dict['J'].append(mag_dict['J'])
             out_dict['H'].append(mag_dict['H'])
             out_dict['K'].append(mag_dict['K'])
-
+                        
         return out_dict  # NOTE: the order should be by distance from given source
 
 
@@ -1261,7 +1249,7 @@ Constraints:
                     color_diff_nomad = nomad_sources['J'][i] - nomad_sources['K'][i]
                     if abs(color_diff_tutor - color_diff_nomad) < 0.34:
                         i_chosen = i
-                        print("match: %d dist <= 10.0 & abs(color_diff_tutor(%f) - color_diff_nomad(%f)) < 0.34 dist=%f tutor_J=%f nomad_J=%f" % (i, color_diff_tutor, color_diff_nomad, dist, tutor_mags['J'], nomad_sources['J'][i]))
+                        print "match: %d dist <= 10.0 & abs(color_diff_tutor(%f) - color_diff_nomad(%f)) < 0.34 dist=%f tutor_J=%f nomad_J=%f" % (i, color_diff_tutor, color_diff_nomad, dist, tutor_mags['J'], nomad_sources['J'][i])
                         return i_chosen # Found matching source
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= 10.0:
@@ -1272,7 +1260,7 @@ Constraints:
                     color_diff_nomad = nomad_sources['J'][i] - nomad_sources['K'][i]
                     if abs(color_diff_other - color_diff_nomad) < 0.34:
                         i_chosen = i
-                        print("match: %d dist <= 10.0 & abs(color_diff_other(%f) - color_diff_nomad(%f)) < 0.34 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V'])))
+                        print "match: %d dist <= 10.0 & abs(color_diff_other(%f) - color_diff_nomad(%f)) < 0.34 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V']))
                         return i_chosen # Found matching source
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= 10.0:
@@ -1287,11 +1275,11 @@ Constraints:
                             band_match_count += 1
                     if len(color_intersection) == band_match_count:
                         i_chosen = i
-                        print("match: %d dist <= 10.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 0.5; dist=%f nomad_V=%s tutor_V=%s %s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags),  pprint.pformat([(k, nomad_sources[k][i]) for k in list(nomad_sources.keys())])))
+                        print "match: %d dist <= 10.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 0.5; dist=%f nomad_V=%s tutor_V=%s %s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags),  pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
                         return i_chosen # Found matching source
-
+                        
         if nomad_sources['dist'][0] <= 2.0:
-            print("match: nomad_sources['dist'][0] <= 2.0", nomad_sources['dist'][0], str(tutor_mags), '\n', pprint.pformat([(k, nomad_sources[k][0]) for k in list(nomad_sources.keys())]))
+            print "match: nomad_sources['dist'][0] <= 2.0", nomad_sources['dist'][0], str(tutor_mags), '\n', pprint.pformat([(k, nomad_sources[k][0]) for k in nomad_sources.keys()])
             return 0 # Found matching source
 
         for i, dist in enumerate(nomad_sources['dist']):
@@ -1303,7 +1291,7 @@ Constraints:
                     color_diff_nomad = nomad_sources['J'][i] - nomad_sources['K'][i]
                     if abs(color_diff_tutor - color_diff_nomad) < 0.34:
                         i_chosen = i
-                        print("match: %d dist <= 30.0 & abs(color_diff_tutor(%f) - color_diff_nomad(%f)) < 0.34 dist=%f tutor_J=%f nomad_J=%f" % (i, color_diff_tutor, color_diff_nomad, dist, tutor_mags['J'], nomad_sources['J'][i]))
+                        print "match: %d dist <= 30.0 & abs(color_diff_tutor(%f) - color_diff_nomad(%f)) < 0.34 dist=%f tutor_J=%f nomad_J=%f" % (i, color_diff_tutor, color_diff_nomad, dist, tutor_mags['J'], nomad_sources['J'][i])
                         return i_chosen # Found matching source
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= 30.0:
@@ -1314,7 +1302,7 @@ Constraints:
                     color_diff_nomad = nomad_sources['J'][i] - nomad_sources['K'][i]
                     if abs(color_diff_other - color_diff_nomad) < 0.34:
                         i_chosen = i
-                        print("match: %d dist <= 30.0 & abs(color_diff_other(%f) - color_diff_nomad(%f)) < 0.34 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V'])))
+                        print "match: %d dist <= 30.0 & abs(color_diff_other(%f) - color_diff_nomad(%f)) < 0.34 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V']))
                         return i_chosen # Found matching source
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= 30.0:
@@ -1329,10 +1317,10 @@ Constraints:
                             band_match_count += 1
                     if len(color_intersection) == band_match_count:
                         i_chosen = i
-                        print("match: %d dist <= 30.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 0.5; dist=%f nomad_V=%s tutor_V=%s %s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags), pprint.pformat([(k, nomad_sources[k][i]) for k in list(nomad_sources.keys())])))
+                        print "match: %d dist <= 30.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 0.5; dist=%f nomad_V=%s tutor_V=%s %s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags), pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
                         return i_chosen # Found matching source
         return i_chosen
-
+    
 
 
 
@@ -1350,7 +1338,7 @@ Constraints:
 
         Some of this is adapted from nomad_colors_assoc_activelearn.py
             -> actlearn_randomforest__load_test_train_data_into_R()
-
+        
         """
         i_chosen = None
         ### Not applicable to current ASAS sources (no tutor J, K)
@@ -1369,7 +1357,7 @@ Constraints:
                                                 tutor_mags=tutor_mags,
                                                 acvs_mags=other_mags,
                                                 add_to_filepointers=False)
-
+        
 
 
         header_str = """@RELATION ts
@@ -1390,7 +1378,7 @@ Constraints:
             return None
 
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in test_featname_longfeatval_dict.items():
+        for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
             test_featname_longfeatval_dict[feat_name] = self.robjects.FloatVector(feat_longlist)
         testdata_dict['features'] = self.robjects.r['data.frame'](**test_featname_longfeatval_dict)
         testdata_dict['classes'] = self.robjects.StrVector(testdata_dict['class_list'])
@@ -1462,7 +1450,7 @@ dist <= 30.0
                         if debug and (set(['J', 'K']) <= color_intersection):
                             color_diff_other = other_mags['J'] - other_mags['K']
                             color_diff_nomad = nomad_sources['J'][i] - nomad_sources['K'][i]
-                            print("match: %d dist <= 5.0 & Jother-Jnomad < 0.1 : JK_color_diff_other(%f) JK_color_diff_nomad(%f)) dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V'])))
+                            print "match: %d dist <= 5.0 & Jother-Jnomad < 0.1 : JK_color_diff_other(%f) JK_color_diff_nomad(%f)) dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V']))
                         return i_chosen # Found matching source
         ### JK diff of other and Nomad is not useful, as seen in T/F overlapping histograms:
         for i, dist in enumerate(nomad_sources['dist']):
@@ -1475,7 +1463,7 @@ dist <= 30.0
                     if abs(color_diff_other - color_diff_nomad) < cuts['1st_dJK']:
                         i_chosen = i
                         if debug:
-                            print("match: %d dist <= 5.0 & abs(JK_color_diff_other(%f) - JK_color_diff_nomad(%f)) < 0.1 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V'])))
+                            print "match: %d dist <= 5.0 & abs(JK_color_diff_other(%f) - JK_color_diff_nomad(%f)) < 0.1 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V']))
                         return i_chosen # Found matching source
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= cuts['1st_dist']:
@@ -1491,9 +1479,9 @@ dist <= 30.0
                     if len(color_intersection) == band_match_count:
                         i_chosen = i
                         if debug:
-                            print("match: %d dist <= 5.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 1.2; dist=%f nomad_V=%s tutor_V=%s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags)))#,  pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
+                            print "match: %d dist <= 5.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 1.2; dist=%f nomad_V=%s tutor_V=%s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags))#,  pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
                         return i_chosen # Found matching source
-
+                        
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= cuts['2nd_dist']:
                 color_intersection = set_tutor_mags & set_nomad_sources # intersection
@@ -1508,7 +1496,7 @@ dist <= 30.0
                     if len(color_intersection) == band_match_count:
                         i_chosen = i
                         if debug:
-                            print("match: %d dist <= 0.75 & abs(tutor_mags[band] - nomad_sources[band]) <= 3.0; dist=%f nomad_V=%s tutor_V=%s %s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags),  pprint.pformat([(k, nomad_sources[k][i]) for k in list(nomad_sources.keys())])))
+                            print "match: %d dist <= 0.75 & abs(tutor_mags[band] - nomad_sources[band]) <= 3.0; dist=%f nomad_V=%s tutor_V=%s %s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags),  pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
                         return i_chosen # Found matching source
 
         finalcase_i_matches = {} # {i:count}, we require >= 2 cases to match for the larger distance radius
@@ -1524,7 +1512,7 @@ dist <= 30.0
                     if abs(color_diff_other - color_diff_nomad) < cuts['3rd_dJK']:
                         i_chosen = i
                         if debug:
-                            print("match: %d dist <= 30.0 & abs(color_diff_other(%f) - color_diff_nomad(%f)) < 0.1 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V'])))
+                            print "match: %d dist <= 30.0 & abs(color_diff_other(%f) - color_diff_nomad(%f)) < 0.1 dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V']))
                         finalcase_i_matches[i_chosen] += 1 # Found matching source
         for i, dist in enumerate(nomad_sources['dist']):
             if dist <= cuts['3rd_dist']:
@@ -1536,7 +1524,7 @@ dist <= 30.0
                         if debug and (set(['J', 'K']) <= color_intersection):
                             color_diff_other = other_mags['J'] - other_mags['K']
                             color_diff_nomad = nomad_sources['J'][i] - nomad_sources['K'][i]
-                            print("match: %d dist <= 30.0 & Jother-Jnomad < 0.1 : JK_color_diff_other(%f) JK_color_diff_nomad(%f)) dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V'])))
+                            print "match: %d dist <= 30.0 & Jother-Jnomad < 0.1 : JK_color_diff_other(%f) JK_color_diff_nomad(%f)) dist=%f other_J=%f nomad_J=%f nomad_V=%s tutor_V=%s" % (i, color_diff_other, color_diff_nomad, dist, other_mags['J'], nomad_sources['J'][i], str(nomad_sources['V'][i]), str(tutor_mags['V']))
                         finalcase_i_matches[i_chosen] += 1 # Found matching source
 
         for i, dist in enumerate(nomad_sources['dist']):
@@ -1552,17 +1540,17 @@ dist <= 30.0
                             band_match_count += 1
                     if len(color_intersection) == band_match_count:
                         i_chosen = i
-                        print("match: %d dist <= 30.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 1.2; dist=%f nomad_V=%s tutor_V=%s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags)))#,  pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
+                        print "match: %d dist <= 30.0 & abs(tutor_mags[band] - nomad_sources[band]) <= 1.2; dist=%f nomad_V=%s tutor_V=%s %s" % (i, dist, str(nomad_sources['V'][i]), str(tutor_mags['V']), str(tutor_mags))#,  pprint.pformat([(k, nomad_sources[k][i]) for k in nomad_sources.keys()]))
                         finalcase_i_matches[i_chosen] += 1 # Found matching source
 
         ### we require >= 2 cases to match for the larger distance radius, start at the closest distance:
         for i, dist in enumerate(nomad_sources['dist']):
             if finalcase_i_matches[i] >= 2:
                 if debug:
-                    print("        >= 2 matches, so matching source i=", i)
+                    print "        >= 2 matches, so matching source i=", i
                 return i # Found matching source
         if debug:
-            print("         < 2 matches, so NO MATCH, possib dists:", nomad_sources['dist'])
+            print "         < 2 matches, so NO MATCH, possib dists:", nomad_sources['dist']
         return i_chosen
 
 
@@ -1590,7 +1578,7 @@ elif abs(j_diff) <= 0.24:
 elif ((abs(j_diff) <= 3.54) and (dist <= 34.3)):
                          #prefix = "ok" #"BAD <34"
          -> then use
-else:
+else: 
          -> then skip
 
 ##### Debosscher case:
@@ -1621,17 +1609,17 @@ TODO: Eventually want to store all avg mags possible, including TUTOR (no ACVS J
         """
         if 0:
             # DEBUG
-            print('other_mags')
+            print        'other_mags'
             pprint.pprint(other_mags)
 
-            print('nomad_sources')
+            print        'nomad_sources'
             pprint.pprint(nomad_sources)
 
-            print('tutor_mags')
+            print        'tutor_mags'
             pprint.pprint(tutor_mags)
 
             import pdb; pdb.set_trace()
-            print()
+            print
 
         set_nomad_sources = set(nomad_sources.keys()) - set(('ra', 'dec', 'dist'))
         set_tutor_mags = set(tutor_mags.keys()) - set(('ra', 'dec', 'dist'))
@@ -1666,13 +1654,13 @@ TODO: Eventually want to store all avg mags possible, including TUTOR (no ACVS J
                                                set_nomad_sources=set_nomad_sources,
                                                set_tutor_mags=set_tutor_mags,
                                                set_other_mags=set_other_mags)
-
+            
         if i_chosen == None:
-            print("No Match", end=' ')
+            print "No Match",
             out_dict = {}
         else:
             out_dict = {}
-            for k,vlist in nomad_sources.items():
+            for k,vlist in nomad_sources.iteritems():
                 if type(vlist) == type([]):
                     out_dict[k] = vlist[i_chosen]
                 else:
@@ -1685,7 +1673,7 @@ TODO: Eventually want to store all avg mags possible, including TUTOR (no ACVS J
         #print
 
         return (out_dict, i_chosen)
-
+        
 
     def get_tutor_avg_mags_for_srcid(self, srcid=None):
         """ Retrieve average color mags from TUTOR database for a source_id.
@@ -1708,7 +1696,7 @@ GROUP BY filter_name""" % (srcid)
         for (source_name, filt, m_min, m_avg, m_max, count) in results:
 
             filt_caps = filt.upper()
-            out_dict['tutor_mags'][filt_caps] = m_avg # we only return the avg_mag for now.
+            out_dict['tutor_mags'][filt_caps] = m_avg # we only return the avg_mag for now. 
             out_dict['source_name'] = source_name
         return out_dict
 
@@ -1720,7 +1708,7 @@ GROUP BY filter_name""" % (srcid)
         id_list = list(asas_ndarray['ID'])
         i_ndarray = id_list.index(source_name)
 
-
+        
         try:
             acvs_mags = {'J':asas_ndarray['J'][i_ndarray],
                      'H':asas_ndarray['H'][i_ndarray],
@@ -1758,13 +1746,13 @@ GROUP BY filter_name""" % (srcid)
             nomad_sources = self.get_nomad_sources_for_ra_dec(ra=ra, dec=dec,
                                                               avg_epoch=None,
                                                               require_jhk=True)
-            print(i, len(all_source_dict['srcid_list']), srcid)
+            print i, len(all_source_dict['srcid_list']), srcid
             if len(nomad_sources['dist']) == 0:
                 continue # skip this source since no NOMAD sources
             nomad_sources_dict[srcid] = nomad_sources
 
         fp = open(pkl_fpath, 'w')
-        pickle.dump(nomad_sources_dict, fp, 1)
+        cPickle.dump(nomad_sources_dict, fp, 1)
         fp.close()
         #import pdb; pdb.set_trace()
         #print
@@ -1785,14 +1773,14 @@ GROUP BY filter_name""" % (srcid)
                                                               avg_epoch=None,
                                                               require_jhk=True)
             import pdb; pdb.set_trace()
-            print()
+            print
 
             if len(nomad_sources['dist']) == 0:
                 continue # skip this source since no NOMAD sources
 
             tutor_source_dict = self.get_tutor_avg_mags_for_srcid(srcid=srcid)
 
-
+            
             if 126 in projid_list:
                 # Only for project_id=126:
                 acvs_mags = self.get_ACVS_mags(source_name=tutor_source_dict['source_name'], asas_ndarray=asas_ndarray)
@@ -1800,7 +1788,7 @@ GROUP BY filter_name""" % (srcid)
             else:
                 acvs_mags = {}
 
-            print(srcid, end=' ')
+            print srcid,
             final_source_dict, i_chosen = self.choose_nomad_source(nomad_sources=nomad_sources,
                                                          tutor_mags=tutor_source_dict['tutor_mags'],
                                                          other_mags=acvs_mags,
@@ -1810,9 +1798,9 @@ GROUP BY filter_name""" % (srcid)
 
 
             # TODO: we want to ensure that these source JHK match the existing know ASAS ACV JHK we chose using simbad (of delta color mags)
-
+            
         import pdb; pdb.set_trace()
-        print()
+        print
 
         # TODO: we want to write these mags & srcid to some simple file which will be used by features
         # TODO: we want to store these mags & srcid to some MySQL table.
@@ -1829,7 +1817,7 @@ GROUP BY filter_name""" % (srcid)
         instead of different aperture classes
           - have true source match, or source mismatch
           - true sources would be: close match of 2 / 3 params?
-                  - wich have very tight abs(difference) matches for 2
+                  - wich have very tight abs(difference) matches for 2 
               - cant do 3/3 match since this will constrain the parameters to
                 the small constraints
               - this will give a good idea of what the cut for each param
@@ -1850,7 +1838,7 @@ GROUP BY filter_name""" % (srcid)
             dist
         """
         fp = open(pkl_fpath,'rb')
-        nomad_sources = pickle.load(fp)
+        nomad_sources = cPickle.load(fp)
         fp.close()
 
         """
@@ -1879,8 +1867,8 @@ GROUP BY filter_name""" % (srcid)
                     'R':[],
                     'V':[]}
         # [:100]
-        for srcid in list(nomad_sources.keys()):
-            print(srcid, end=' ')
+        for srcid in nomad_sources.keys():
+            print srcid,
             nomad_dict = nomad_sources[srcid]
             tutor_source_dict = self.get_tutor_avg_mags_for_srcid(srcid=srcid)
 
@@ -1899,7 +1887,7 @@ GROUP BY filter_name""" % (srcid)
                                                    cuts=cuts)
 
             if len(nomad_match) == 0:
-                print()
+                print
                 continue # skip this source from being used in the analysis
             out_dict['srcid'].append(srcid)
             out_dict['dist'].append(nomad_match['dist'])
@@ -1911,7 +1899,7 @@ GROUP BY filter_name""" % (srcid)
             out_dict['V'].append(nomad_match['V'])
         return out_dict
 
-
+        
     def get_best_nomad_lists_for_histogram_plots(self, pkl_fpath='/home/pteluser/scratch/get_colors_for_tutor_sources.pkl',
                                           projid_list=[],
                                           asas_ndarray=None):
@@ -1923,7 +1911,7 @@ GROUP BY filter_name""" % (srcid)
         instead of different aperture classes
           - have true source match, or source mismatch
           - true sources would be: close match of 2 / 3 params?
-                  - wich have very tight abs(difference) matches for 2
+                  - wich have very tight abs(difference) matches for 2 
               - cant do 3/3 match since this will constrain the parameters to
                 the small constraints
               - this will give a good idea of what the cut for each param
@@ -1944,7 +1932,7 @@ GROUP BY filter_name""" % (srcid)
             dist
         """
         fp = open(pkl_fpath,'rb')
-        nomad_sources = pickle.load(fp)
+        nomad_sources = cPickle.load(fp)
         fp.close()
 
         srcid_list = []
@@ -1967,7 +1955,7 @@ GROUP BY filter_name""" % (srcid)
         #print
 
         # [:100]
-        for srcid in list(nomad_sources.keys()):
+        for srcid in nomad_sources.keys():
             nomad_dict = nomad_sources[srcid]
             tutor_source_dict = self.get_tutor_avg_mags_for_srcid(srcid=srcid)
 
@@ -2066,7 +2054,7 @@ GROUP BY filter_name""" % (srcid)
                 tutor_database_project_insert.py:plot_aperture_mag_relation()
 
         """
-        param_name_list = list(best_nomad_lists.keys())
+        param_name_list = best_nomad_lists.keys()
         try:
             param_name_list.remove('other_dicts') # KLUDGEY: not a parameter
         except:
@@ -2143,7 +2131,7 @@ GROUP BY filter_name""" % (srcid)
                 probs.append(dist.pdf(m)[0]) # * len(param_list)/float(len(mag)))
             pyplot.hist(mags, bins=50, normed=True, facecolor='b', alpha=0.3, range=x_range)
             #pyplot.plot(mags, probs, 'bo', ms=3)
-
+            
             #pyplot.xlim(-1, 5)
             #pyplot.ylim(9, 14)
             title_str = '%s' % (param_name)
@@ -2153,7 +2141,7 @@ GROUP BY filter_name""" % (srcid)
             #os.system('eog %s &' % (fpath))
             #pyplot.show()
 
-            print(param_name)
+            print param_name
             pyplot.clf()
 
         os.system('eog /tmp/tutor_nomad*png &')
@@ -2236,7 +2224,7 @@ GROUP BY filter_name""" % (srcid)
 
 
 
-
+        
     def analyze_nomad_tutor_source_param_relations(self, projid=None,
                                                  pkl_fpath='/home/pteluser/scratch/get_colors_for_tutor_sources.pkl'):
         """ Analyze likelyhoods using param lists.  Generate plots
@@ -2251,8 +2239,8 @@ GROUP BY filter_name""" % (srcid)
                                                    asas_ndarray=asas_ndarray)
 
             self.determine_color_param_likelyhoods(best_nomad_lists=best_nomad_lists)
-
-
+        
+        
         """
         all_source_dict = self.get_source_dict(projid_list=[projid])
 
@@ -2262,7 +2250,7 @@ GROUP BY filter_name""" % (srcid)
             nomad_sources = self.query_store_nomad_sources(all_source_dict=all_source_dict, pkl_fpath=pkl_fpath)
         else:
             fp = open(pkl_fpath,'rb')
-            nomad_sources = pickle.load(fp)
+            nomad_sources = cPickle.load(fp)
             fp.close()
 
         # # # For analysis:
@@ -2284,10 +2272,10 @@ GROUP BY filter_name""" % (srcid)
         # # # ^^^^^^^^^^^^^^^^^
 
         for i, srcid in enumerate(nomad_sources.keys()):
-            print(srcid)
+            print srcid
             nomad_dict = nomad_sources[srcid]
             tutor_source_dict = self.get_tutor_avg_mags_for_srcid(srcid=srcid)
-
+    
             if projid == 126:
                 # ASAS ACVS
                 mags_dict = self.get_ACVS_mags(source_name=tutor_source_dict['source_name'], asas_ndarray=asas_ndarray)
@@ -2303,7 +2291,7 @@ GROUP BY filter_name""" % (srcid)
                 else:
                     # HIPPARCOS:
                     cuts = self.pars['nomad_assoc_cuts']['HIPPARCOS']
-
+                
                 mags_dict = GetColors.get_SIMBAD_mags_for_srcname(source_name=tutor_source_dict['source_name'],
                                                                   query_source_name=query_source_name, i=i)
                 if len(mags_dict) > 0:
@@ -2399,9 +2387,9 @@ GROUP BY filter_name""" % (srcid)
         #return out_dict
         self.determine_color_param_likelyhoods(best_nomad_lists=out_dict)
         import pdb; pdb.set_trace()
-        print()
+        print
         # # # # NOTE: the above is just like generate_nomad_tutor_source_associations()
-
+        
         # # # # The rest should look like get_best_nomad_lists_for_histogram_plots()
         # # # #                           determine_color_param_likelyhoods(best_nomad_lists=best_nomad_lists)
 
@@ -2412,7 +2400,7 @@ GROUP BY filter_name""" % (srcid)
 
         Example URL:
         http://ned.ipac.caltech.edu/cgi-bin/nph-calc?in_csys=Equatorial&in_equinox=J2000.0&obs_epoch=2000.0&lon=123.267567d&lat=-34.578527d&pa=0.0&out_csys=Equatorial&out_equinox=J2000.0
-
+        
         """
         if  nomad_match['dec'] >= 0.0:
             dec_str = '+' + str(nomad_match['dec'])
@@ -2420,7 +2408,7 @@ GROUP BY filter_name""" % (srcid)
             dec_str = str(nomad_match['dec'])
         url_str = "http://ned.ipac.caltech.edu/cgi-bin/nph-calc?in_csys=Equatorial&in_equinox=J2000.0&obs_epoch=2000.0&lon=%lfd&lat=%sd&pa=0.0&out_csys=Equatorial&out_equinox=J2000.0" % (nomad_match['ra'], dec_str)
 
-        html_str = urllib.request.urlopen(url_str).read()
+        html_str = urllib.urlopen(url_str).read()
 
         i_begin = html_str.rfind("Landolt B")
         sub_str = html_str[i_begin:i_begin+25]
@@ -2447,7 +2435,7 @@ GROUP BY filter_name""" % (srcid)
 
         Example URL:
         http://ned.ipac.caltech.edu/cgi-bin/nph-calc?in_csys=Equatorial&in_equinox=J2000.0&obs_epoch=2000.0&lon=123.267567d&lat=-34.578527d&pa=0.0&out_csys=Equatorial&out_equinox=J2000.0
-
+        
         """
         if  nomad_match['dec'] >= 0.0:
             dec_str = '+' + str(nomad_match['dec'])
@@ -2455,7 +2443,7 @@ GROUP BY filter_name""" % (srcid)
             dec_str = str(nomad_match['dec'])
         url_str = "http://ned.ipac.caltech.edu/cgi-bin/nph-calc?in_csys=Equatorial&in_equinox=J2000.0&obs_epoch=2000.0&lon=%lfd&lat=%sd&pa=0.0&out_csys=Equatorial&out_equinox=J2000.0" % (nomad_match['ra'], dec_str)
 
-        html_str = urllib.request.urlopen(url_str).read()
+        html_str = urllib.urlopen(url_str).read()
         i_begin = html_str.find("E(B-V)") + 8
         i_end = html_str.find("mag.", i_begin, len(html_str)-1)
 
@@ -2499,17 +2487,17 @@ GROUP BY filter_name""" % (srcid)
         # TODO: write to a file for classification
         #   - want to write missing attribute values
         if 0:
-            print('acvs_mags (SIMBAD BVRJHK which is found in ACVS catalog)')
+            print        'acvs_mags (SIMBAD BVRJHK which is found in ACVS catalog)'
             pprint.pprint(acvs_mags)
 
-            print('nomad_dict')
+            print        'nomad_dict'
             pprint.pprint(nomad_dict)
 
-            print('tutor_mags')
+            print        'tutor_mags'
             pprint.pprint(tutor_mags)
 
-            print('srcid', srcid)
-        print('i_chosen', i_chosen)
+            print 'srcid', srcid
+        print 'i_chosen', i_chosen
 
         for i in range(len(nomad_dict['J'])):
 
@@ -2519,7 +2507,7 @@ GROUP BY filter_name""" % (srcid)
                 class_str = "'match'"
             else:
                 class_str = "'not'"
-
+                
 
             dist = nomad_dict['dist'][i]
 
@@ -2578,14 +2566,14 @@ GROUP BY filter_name""" % (srcid)
                 out_list.append("%d,%s,%s\n" % (srcid, root_str, class_str))
             except:
                 out_list.append("%s,%s,%s\n" % (srcid, root_str, class_str))
-
+                
 
             if add_to_filepointers:
                 if class_str == "?":
                     try:
                         self.fp_test_withsrcid.write("%d,%s,%s\n" % (srcid, root_str, class_str))
                     except:
-                        self.fp_test_withsrcid.write("%s,%s,%s\n" % (srcid, root_str, class_str))
+                        self.fp_test_withsrcid.write("%s,%s,%s\n" % (srcid, root_str, class_str))                        
                     self.fp_test_no_srcid.write("%s,%s\n" % (root_str, class_str))
                 else:
                     try:
@@ -2599,7 +2587,7 @@ GROUP BY filter_name""" % (srcid)
         #print
 
 
-
+        
 
 
 
@@ -2611,7 +2599,7 @@ GROUP BY filter_name""" % (srcid)
         """ A more general for of Get_Colors_Using_Nomad.main() (which was ASAS specific).
 
         This version should allow any TUTOR project_id to have NOMAD source associations.
-
+        
         """
         all_source_dict = self.get_source_dict(projid_list=[projid])
 
@@ -2619,7 +2607,7 @@ GROUP BY filter_name""" % (srcid)
             nomad_sources = self.query_store_nomad_sources(all_source_dict=all_source_dict, pkl_fpath=pkl_fpath)
         else:
             fp = open(pkl_fpath,'rb')
-            nomad_sources = pickle.load(fp)
+            nomad_sources = cPickle.load(fp)
             fp.close()
 
         out_dict = {'srcid':[],
@@ -2641,8 +2629,8 @@ GROUP BY filter_name""" % (srcid)
             self.nomad_sources_for_classifier__addheader()
 
         # [:100]
-        for srcid in list(nomad_sources.keys()):
-            print(srcid, end=' ')
+        for srcid in nomad_sources.keys():
+            print srcid,
             nomad_dict = nomad_sources[srcid]
             tutor_source_dict = self.get_tutor_avg_mags_for_srcid(srcid=srcid)
 
@@ -2676,28 +2664,28 @@ GROUP BY filter_name""" % (srcid)
                                                    other_mags=mags_dict,
                                                    conservative_cuts=True,
                                                    cuts=cuts)
-            print("SIMBAD: B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f" % (mags_dict.get('B',0),
+            print "SIMBAD: B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f" % (mags_dict.get('B',0),
                                                                                          mags_dict.get('V',0),
                                                                                          mags_dict.get('R',0),
                                                                                          mags_dict.get('J',0),
                                                                                          mags_dict.get('H',0),
-                                                                                         mags_dict.get('K',0)))
+                                                                                         mags_dict.get('K',0))
             try:
-                print("       NOMAD:  B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f dist:%2.3f" % (nomad_match.get('B',0),
+                print "       NOMAD:  B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f dist:%2.3f" % (nomad_match.get('B',0),
                                                                                         nomad_match.get('V',0),
                                                                                         nomad_match.get('R',0),
                                                                                         nomad_match.get('J',0),
                                                                                         nomad_match.get('H',0),
                                                                                         nomad_match.get('K',0),
-                                                                                        nomad_match.get('dist',0)))
+                                                                                        nomad_match.get('dist',0))
             except:
-                print("  !    NOMAD:  B:%6s V:%2.3s R:%6s J:%6s H:%2.3f K:%2.3f dist:%2.3f" % (str(nomad_match.get('B',0)),
+                print "  !    NOMAD:  B:%6s V:%2.3s R:%6s J:%6s H:%2.3f K:%2.3f dist:%2.3f" % (str(nomad_match.get('B',0)),
                                                                                         str(nomad_match.get('V',0)),
                                                                                         str(nomad_match.get('R',0)),
                                                                                         nomad_match.get('J',0),
                                                                                         nomad_match.get('H',0),
                                                                                         nomad_match.get('K',0),
-                                                                                        nomad_match.get('dist',0)))
+                                                                                        nomad_match.get('dist',0))
 
             if do_store_nomad_sources_for_classifier:
                 self.store_nomad_sources_for_classifier(srcid=srcid,
@@ -2706,10 +2694,10 @@ GROUP BY filter_name""" % (srcid)
                                                         tutor_mags=tutor_source_dict['tutor_mags'],
                                                         acvs_mags=mags_dict,
                                                         )
-
+                
 
             if len(nomad_match) == 0:
-                print()
+                print
                 continue # skip this source from being used in the analysis
 
             # # # # #
@@ -2738,7 +2726,7 @@ GROUP BY filter_name""" % (srcid)
             self.fp_test_withsrcid.close()
             self.fp_test_no_srcid.close()
             import pdb; pdb.set_trace()
-            print()
+            print
 
         return out_dict
 
@@ -2758,7 +2746,7 @@ GROUP BY filter_name""" % (srcid)
 
         A more general for of Get_Colors_Using_Nomad.main() (which was ASAS specific).
 
-
+        
         """
         #all_source_dict = self.get_source_dict(projid_list=[projid])
         #if not os.path.exists(pkl_fpath):
@@ -2787,12 +2775,12 @@ GROUP BY filter_name""" % (srcid)
             self.nomad_sources_for_classifier__addheader()
 
         # [:100]
-        for srcid in list(nomad_sources.keys()):
+        for srcid in nomad_sources.keys():
             #if ((srcid == '191956+4052.6') or (srcid == '191955+4052.6')):
             #    import pdb; pdb.set_trace()
             #    print
 
-            print(srcid, end=' ')
+            print srcid,
             nomad_dict = nomad_sources[srcid]
             #tutor_source_dict = self.get_tutor_avg_mags_for_srcid(srcid=srcid)
             try:
@@ -2835,28 +2823,28 @@ GROUP BY filter_name""" % (srcid)
                                                    other_mags=mags_dict,
                                                    conservative_cuts=True,
                                                    cuts={})
-            print("SIMBAD: B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f" % (mags_dict.get('B',0),
+            print "SIMBAD: B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f" % (mags_dict.get('B',0),
                                                                                          mags_dict.get('V',0),
                                                                                          mags_dict.get('R',0),
                                                                                          mags_dict.get('J',0),
                                                                                          mags_dict.get('H',0),
-                                                                                         mags_dict.get('K',0)))
+                                                                                         mags_dict.get('K',0))
             try:
-                print("       NOMAD:  B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f dist:%2.3f" % (nomad_match.get('B',0),
+                print "       NOMAD:  B:%2.3f V:%2.3f R:%2.3f J:%2.3f H:%2.3f K:%2.3f dist:%2.3f" % (nomad_match.get('B',0),
                                                                                         nomad_match.get('V',0),
                                                                                         nomad_match.get('R',0),
                                                                                         nomad_match.get('J',0),
                                                                                         nomad_match.get('H',0),
                                                                                         nomad_match.get('K',0),
-                                                                                        nomad_match.get('dist',0)))
+                                                                                        nomad_match.get('dist',0))
             except:
-                print("  !    NOMAD:  B:%6s V:%2.3s R:%6s J:%6s H:%2.3f K:%2.3f dist:%2.3f" % (str(nomad_match.get('B',0)),
+                print "  !    NOMAD:  B:%6s V:%2.3s R:%6s J:%6s H:%2.3f K:%2.3f dist:%2.3f" % (str(nomad_match.get('B',0)),
                                                                                         str(nomad_match.get('V',0)),
                                                                                         str(nomad_match.get('R',0)),
                                                                                         nomad_match.get('J',0),
                                                                                         nomad_match.get('H',0),
                                                                                         nomad_match.get('K',0),
-                                                                                        nomad_match.get('dist',0)))
+                                                                                        nomad_match.get('dist',0))
 
             if do_store_nomad_sources_for_classifier:
                 self.store_nomad_sources_for_classifier(srcid=srcid,
@@ -2865,10 +2853,10 @@ GROUP BY filter_name""" % (srcid)
                                                         tutor_mags=tutor_mags, #tutor_source_dict['tutor_mags'],
                                                         acvs_mags=mags_dict,
                                                         )
-
+                
 
             if len(nomad_match) == 0:
-                print()
+                print
                 continue # skip this source from being used in the analysis
 
             # # # # #
@@ -2916,7 +2904,7 @@ GROUP BY filter_name""" % (srcid)
         else:
             existing_srcids = []
             fp = open(self.pars['best_nomad_src_list_fpath'], 'w')
-
+            
 
         #fp = open(self.pars['best_nomad_src_list_fpath'], 'w')
         pkl_source_dict = {}
@@ -2959,11 +2947,11 @@ GROUP BY filter_name""" % (srcid)
                                                              'extinct_bv':''}#best_nomad_lists['extinct_bv'][i]}
 
 
-
+            
         fp.close()
 
         fp_pkl = open(self.pars['best_nomad_src_pickle_fpath'] + str(projid), 'w')
-        pickle.dump(pkl_source_dict, fp_pkl, 1)
+        cPickle.dump(pkl_source_dict, fp_pkl, 1)
         fp_pkl.close()
 
 
@@ -2980,7 +2968,7 @@ GROUP BY filter_name""" % (srcid)
             self.query_store_nomad_sources(all_source_dict=all_source_dict, projid_list=projid_list,
                                              asas_ndarray=asas_ndarray)
             import pdb; pdb.set_trace()
-            print()
+            print
 
 
         if 1:
@@ -3019,28 +3007,28 @@ GROUP BY filter_name""" % (srcid)
                                                                  'dist':best_nomad_lists['dist'][i]}
 
 
-
+                
             fp.close()
 
             fp_pkl = open(self.pars['best_nomad_src_pickle_fpath'], 'w')
-            pickle.dump(pkl_source_dict, fp_pkl, 1)
+            cPickle.dump(pkl_source_dict, fp_pkl, 1)
             fp_pkl.close()
 
             import pdb; pdb.set_trace()
-            print()
+            print
 
         if 0:
             ### For analysis of liklihood of various color parameters (for ASAS):
             ###  - This generates png histograms of liklihoods of color, dist param values for matches and mismatch sources
 
             #pkl_fpath_100src='/home/pteluser/scratch/get_colors_for_tutor_sources_temp.pkl',
-
+                        
             best_nomad_lists = self.get_best_nomad_lists_for_histogram_plots(pkl_fpath='/home/pteluser/scratch/get_colors_for_tutor_sources.pkl',
                                                    projid_list=projid_list,
                                                    asas_ndarray=asas_ndarray)
 
             self.determine_color_param_likelyhoods(best_nomad_lists=best_nomad_lists)
-
+            
 
         # OBSOLETE ???:
         self.lookup_nomad_colors_for_sources(all_source_dict=all_source_dict, projid_list=projid_list,
@@ -3051,13 +3039,13 @@ GROUP BY filter_name""" % (srcid)
 
         # FOR TESTING ONLY: get the xml filepaths for each srcid
         #  - dont need to do since we are just filling a file with this info, which will later be used
-
+        
 
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
-class Parse_Nomad_Colors_List(object):
+class Parse_Nomad_Colors_List:
     """ Using a list of (tutor_srcid, jhkbvr_colors)
     which was retrieved from nomad for each source using
     get_colors_for_tutor_sources.py: Get_Colors_Using_Nomad.main()
@@ -3082,7 +3070,7 @@ class Parse_Nomad_Colors_List(object):
             # Case when srcid is an ASAS source name with quotes:   '195853+4054.2'
             self.data = loadtxt(fpath, dtype={'names': ('srcid', 'B', 'V', 'R', 'J', 'H', 'K', 'extinct_bv'),
                                               'formats': ('S15',  'f4','f4','f4','f4','f4','f4', 'f4')})
-
+            
         self.srcid_list = list(self.data['srcid'])
 
 
@@ -3144,7 +3132,7 @@ if __name__ == '__main__':
     'tutor_port':3306,
     'tcp_hostname':'192.168.1.25',
     'tcp_username':'pteluser',
-    'tcp_port':     3306,
+    'tcp_port':     3306, 
     'tcp_database':'source_test_db',
     'best_nomad_src_list_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src_list'),
     'best_nomad_src_pickle_fpath':os.path.abspath(os.environ.get("TCP_DIR") + '/Data/best_nomad_src.pkl'),
@@ -3241,9 +3229,9 @@ if __name__ == '__main__':
         ### For plotting an existing  best_nomad_src.pkl file:
         pkl_fpath = '/home/dstarr/src/TCP/Data/best_nomad_src.pkl126' # contains final classified srcs
         color_arff_fpath = '/home/dstarr/scratch/nomad_asas_acvs_classifier/notchosen_withclass_withsrcid.arff'
-        import pickle
+        import cPickle
         fp = open(pkl_fpath)
-        best_nomad_src = pickle.load(fp)
+        best_nomad_src = cPickle.load(fp)
 
         #print best_nomad_src[262144]
         #{'B': '12.722', 'dist': 1.85, 'H': '6.146', 'K': '5.816', 'J': '7.041', 'extinct_bv': '', 'R': '10.31', 'V': '11.189'}
@@ -3258,11 +3246,11 @@ if __name__ == '__main__':
         arff_str = open(color_arff_fpath).read()
         data_dict = rc.parse_full_arff(arff_str=arff_str, skip_missingval_lines=True, fill_arff_rows=True)
 
-
+        
         #ncaa = Nomad_Colors_Assoc_AL()
         #ncaa.parse_arff_files()
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
 
@@ -3279,7 +3267,7 @@ if __name__ == '__main__':
         #   Store in list file and .pkl
         ### NOTE: the do_store_nomad_sources_for_classifier=True flag is only needed to generate .arff
         #         for seperate WEKA classifier training with existing hardcoded decision tree.
-
+        
         best_nomad_sources = GetColorsUsingNomad.generate_nomad_tutor_source_associations(projid=projid,
                                                                                           pkl_fpath=pkl_fpath,
                                                                                           do_store_nomad_sources_for_classifier=True,
@@ -3308,8 +3296,9 @@ if __name__ == '__main__':
         all_srcid_classid = adict['all_srcid_classid']
 
         GetColors.fill_per_amp_webdat_file(all_srcid_classid=all_srcid_classid)
-
+        
         GetColors.insert_mags_into_db(tutor_source_dict=tutor_source_dict)
-
+        
         ### This is for filling the file referenced by ALLStars for tutor source colors:
         GetColors.fill_webplot_data_files() # Assuming activelearn_filter_mags TABLE is already populated
+

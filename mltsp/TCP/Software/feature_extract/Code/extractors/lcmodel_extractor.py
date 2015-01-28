@@ -1,12 +1,3 @@
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import range
-from builtins import zip
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from ..FeatureExtractor import FeatureExtractor, InterExtractor
 
 import numpy
@@ -59,23 +50,23 @@ class lcmodel_extractor(InterExtractor):
         rcParams.update({'legend.fontsize':8})
         ms = 4
         fig = pl.figure()
-        pl.plot(x, [numpy.median(y)]*len(x), 'c', label='median')
+        pl.plot(x, [numpy.median(y)]*len(x), 'c', label=u'median')
         #pl.plot(x, [numpy.mean(y)]*len(x), 'm', label=u'mean')
         #pl.plot(X, y, 'r:', label=u'orig $m(t)$')
-        pl.errorbar(X.ravel(), y, dy, fmt='ro', ms=5, label='Observations')
-        pl.plot(X, shivv_model, 'g', ms=ms, label='Shivvers model')
+        pl.errorbar(X.ravel(), y, dy, fmt='ro', ms=5, label=u'Observations')
+        pl.plot(X, shivv_model, 'g', ms=ms, label=u'Shivvers model')
         pl.plot(X, shivv_model, 'go', ms=ms)
-        pl.plot(x, y_pred, 'b-', ms=ms, label='exp corr prediction')
+        pl.plot(x, y_pred, 'b-', ms=ms, label=u'exp corr prediction')
         pl.fill(np.concatenate([x, x[::-1]]), \
                 np.concatenate([y_pred - 1.9600 * sigma,
                                (y_pred + 1.9600 * sigma)[::-1]]), \
                 alpha=.5, fc='b', ec='None', label='95% confidence interval')
         if len(debug_x) > 0:
-            pl.plot(debug_x, debug_y, 'y*', ms=10, label='cross threshhold')
+            pl.plot(debug_x, debug_y, 'y*', ms=10, label=u'cross threshhold')
         if pos_delta_mag != None:
-            pl.plot(x, [pos_delta_mag]*len(x), 'y', label='median delta thresh')
-            pl.plot(x, [neg_delta_mag]*len(x), 'y', label='median delta thresh')
-
+            pl.plot(x, [pos_delta_mag]*len(x), 'y', label=u'median delta thresh')
+            pl.plot(x, [neg_delta_mag]*len(x), 'y', label=u'median delta thresh')
+            
 
         pl.xlabel('$t$')
         pl.ylabel('$m(t)$')
@@ -86,10 +77,10 @@ class lcmodel_extractor(InterExtractor):
         pl.savefig(img_fpath)
         #import os
         #os.system("eog %s" % (img_fpath))
-        #pl.show()
+        #pl.show()   
         #import pdb; pdb.set_trace()
         #print
-
+        
 
     def get_dmag_at_median_threshold(self, sign, normalized_model_mags):
         """
@@ -132,13 +123,13 @@ class lcmodel_extractor(InterExtractor):
         pl.title("Source ID=%d" % (srcid))
         img_fpath = '/home/dstarr/scratch/lcmodel_feature_asas_examples/%d_%s_thresh.png' % (srcid, sign)
         pl.savefig(img_fpath)
-        #pl.show()
+        #pl.show()   
         pl.clf()
         """
 
         return {'delta_mag_median':delta_mag_median,
                 'n_thresh_median':n}
-
+                
 
     def get_n_passing_median(self, normalized_model_mags):
         """ Get number of positive slope intersections of delta_mag=0.0 median
@@ -186,8 +177,8 @@ class lcmodel_extractor(InterExtractor):
                 j_prev = j
         if len(t_segment) >= 2:
             total_area += scipy.integrate.trapz(m_segment, t_segment)
-        return total_area
-
+        return total_area    
+            
 
     def extract(self):
         """ Base, initial internal extractor for the unfolded lightcurve model features.
@@ -216,7 +207,7 @@ class lcmodel_extractor(InterExtractor):
             #                                       pos_delta_mag=pos_dict['delta_mag_median'] + m_median,
             #                                       neg_delta_mag=neg_dict['delta_mag_median'] + m_median)
 
-
+            
             delta_t = numpy.max(t) - numpy.min(t)
 
             self.lc_feats = {'pos_mag_ratio': pos_dict['delta_mag_median']/(pos_dict['delta_mag_median'] + abs(neg_dict['delta_mag_median'])),
@@ -247,7 +238,7 @@ class lcmodel_extractor(InterExtractor):
 
     def GCV(self, window, X,Y):
         # put in proper order
-        zpm = list(zip(X,Y))
+        zpm = zip(X,Y)
         zpm.sort()
         zpm_arr = numpy.array(zpm)
         phs = zpm_arr[:,0]

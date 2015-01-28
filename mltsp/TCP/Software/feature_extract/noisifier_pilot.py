@@ -10,14 +10,6 @@ NOTE:
      - e.g. .bashrc/execute for bash:
                 export TCP_DIR=/home/pteluser/src/TCP/
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import os, sys
 
@@ -38,23 +30,24 @@ interface = feature_interfaces.feature_interface
 noisify_extr = interface.request_extractor('noisify') # grab the noisifying extractor from the interface
 
 for i in range(len(signals_list)):
-    signal = signals_list[i]
-    signal.register_signal(initialize=False)
-
+	signal = signals_list[i]
+	signal.register_signal(initialize=False)
+	
 interface.notify(noisify_extr)
 
 def fetch_noisified(signal, band):
-    noisified = signal.properties['data'][band]['inter']['noisify'].result
-    return noisified
+	noisified = signal.properties['data'][band]['inter']['noisify'].result
+	return noisified
 
 feature_added_VOSource_XML_fpath = '/tmp/test_feature_algorithms.VOSource.xml'
 gen.sig.write_xml(out_xml_fpath=feature_added_VOSource_XML_fpath)
-print("Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath)
+print "Wrote VOSource XML (with features) to:", feature_added_VOSource_XML_fpath
 
 
 def main():
-    pass
+	pass
 
 
 if __name__ == '__main__':
-    main()
+	main()
+

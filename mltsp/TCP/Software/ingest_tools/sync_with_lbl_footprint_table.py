@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """ This code mirror's the LBL PTF proc_image footprint table
 which has time, limitng magnitude for candidate images.
 
@@ -9,14 +9,6 @@ the LBL PGSQL gootprint server.
 This code is intended to be ruin continously on tranx, under a seperate "screen".
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import ingest_tools
 import MySQLdb
@@ -24,7 +16,7 @@ import psycopg2
 import time
 import datetime
 
-class Poll_LBL_PTF_Footprint_Server(object):
+class Poll_LBL_PTF_Footprint_Server:
     """ Main singleton which does the polling
 
     NOTE: local mysql footprint table of form (in object_test_db database):
@@ -36,7 +28,7 @@ class Poll_LBL_PTF_Footprint_Server(object):
     def __init__(self, pars):
         self.pars = pars
 
-        self.mysql_db = MySQLdb.connect(host=self.pars['rdb_host_ip_2'],
+        self.mysql_db = MySQLdb.connect(host=self.pars['rdb_host_ip_2'], 
                                   user=self.pars['rdb_user'],
                                   db=self.pars['rdb_name_2'],
                                   port=self.pars['rdb_port_2'])
@@ -104,7 +96,7 @@ class Poll_LBL_PTF_Footprint_Server(object):
                 self.max_id_ingested = current_max_id
                 insert_str = ''.join(insert_list)[:-2] + ' ON DUPLICATE KEY UPDATE ujd=VALUES(ujd), lmt_mg=VALUES(lmt_mg)'
                 self.mysql_cursor.execute(insert_str)
-                print("self.max_id_ingested:", self.max_id_ingested)
+                print "self.max_id_ingested:", self.max_id_ingested
 
 
     def main(self):
@@ -112,7 +104,7 @@ class Poll_LBL_PTF_Footprint_Server(object):
         """
         while True:
             self.query_add_new_footprint_row()
-            print(datetime.datetime.utcnow(), "sleep(60)...")
+            print datetime.datetime.utcnow(), "sleep(60)..."
             time.sleep(60) # give LBL PTF server a break
 
 if __name__ == '__main__':

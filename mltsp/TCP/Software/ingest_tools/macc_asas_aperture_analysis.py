@@ -1,25 +1,16 @@
 #!/usr/bin/env python
 """ MACC catalog paper aperture analysis script
- - Analyze feature changes for all 50k ASAS ACVS sources,
+ - Analyze feature changes for all 50k ASAS ACVS sources, 
    when slightly larger and smaller apertures are used instead.
 
-This parses arff files which have been generated from ASAS .dat files
+This parses arff files which have been generated from ASAS .dat files 
      using starvars_feature_generation.py:IPython_Parallel_processing.main()
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import numpy
 
-class Macc_Asas_Aperture_Analysis(object):
+class Macc_Asas_Aperture_Analysis:
     """
     """
     def __init__(self, pars={}):
@@ -34,12 +25,12 @@ class Macc_Asas_Aperture_Analysis(object):
         small_aper_dict = perturb_dict
 
         orig_small_delta = {}
-        for feat_name in list(orig_aper_dict['featname_longfeatval_dict'].keys()):
+        for feat_name in orig_aper_dict['featname_longfeatval_dict'].keys():
             if feat_name in self.pars['feature_skip_list']:
                 continue
             orig_small_delta[feat_name] = []
 
-        for feat_name in list(orig_small_delta.keys()):
+        for feat_name in orig_small_delta.keys():
             for i, srcid in enumerate(orig_aper_dict['srcid_list']):
                 #if orig_aper_dict['featname_longfeatval_dict'][feat_name][i] == None:
                 #    print feat_name
@@ -67,18 +58,18 @@ class Macc_Asas_Aperture_Analysis(object):
         #                    feat_name)
 
         tups_list = []
-        for feat_name in list(orig_small_delta.keys()):
+        for feat_name in orig_small_delta.keys():
             tups_list.append((numpy.mean(numpy.abs(numpy.array(orig_small_delta[feat_name]))),
                               numpy.mean(numpy.abs(numpy.array(orig_small_delta[feat_name]))),
                               numpy.std(numpy.abs(numpy.array(orig_small_delta[feat_name]))),
                               feat_name))
         tups_list.sort(reverse=True)
         for (i_sort, a, b, name) in tups_list:
-            print("ABS: mean=%0.3lf std=%0.3lf\t%s" % (a, b, name))
+            print "ABS: mean=%0.3lf std=%0.3lf\t%s" % (a, b, name)
 
     def subselect_1000_sources(self):
         """ Just for taking aperture perturbed sources and subselecting 1000 random sources.
-
+        
         """
 
         smalleraper_fpath = "/home/dstarr/scratch/macc_aperture_analysis/combined_acvs_smalleraper.arff"
@@ -99,7 +90,7 @@ class Macc_Asas_Aperture_Analysis(object):
             source_dict[source_name] = i
 
         import numpy
-        src_shuff = numpy.array(list(source_dict.keys()))
+        src_shuff = numpy.array(source_dict.keys())
         numpy.random.shuffle(src_shuff)
         src_subset = src_shuff[:1000]
 
@@ -110,7 +101,7 @@ class Macc_Asas_Aperture_Analysis(object):
         fp = open(smalleraper_subset_fpath,'w')
         fp.write(out_str)
         fp.close()
-
+        
         ###
         source_dict = {}
         lines = open(largeraper_fpath).readlines()
@@ -123,7 +114,7 @@ class Macc_Asas_Aperture_Analysis(object):
                 continue
             source_name = l.split(',')[0]
             source_dict[source_name] = i
-
+        
         new_lines = lines[0:i_data]
         for src_name in src_subset:
             new_lines.append(lines[source_dict[src_name]])
@@ -132,8 +123,8 @@ class Macc_Asas_Aperture_Analysis(object):
         fp.write(out_str)
         fp.close()
         import pdb; pdb.set_trace()
-        print()
-
+        print
+        
 
     def main(self):
 
@@ -143,7 +134,7 @@ class Macc_Asas_Aperture_Analysis(object):
 
         self.rc = rpy2_classifiers.Rpy2Classifier(algorithms_dirpath=algo_code_dirpath)
 
-
+        
         arff_str = open(self.pars['orig_aper_arff']).read()
         orig_aper_dict = self.rc.parse_full_arff(arff_str=arff_str,
                                                  skip_missingval_lines=False)
@@ -176,7 +167,7 @@ class Macc_Asas_Aperture_Analysis(object):
                              perturb_srcid_dict=large_srcid_dict)
 
         import pdb; pdb.set_trace()
-        print()
+        print
         # TODO: do for large aper
         # TODO: visualize deltas somehow for large and small delta apertures
 

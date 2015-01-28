@@ -23,14 +23,6 @@ preds / sum(alphas)  :: normalized predictions, range: [-1..1]
 
 
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import int
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 
 
@@ -50,14 +42,14 @@ if __name__ == '__main__':
     # NOTE: the training function requires the feature vectors to be columns of the matrix.  Each row is the entire dataset wrt to a single feeature.  X is M by N where M=number of features and N=number of training examples.
 
     # NOTE: The 3rd argument (100 in this example) is the number of rounds of boosting to run.  If the labels are in the set {-1, 1}, then this is a traditional AdaBoost.  If the labels are in the interval [-1, 1] then it uses an adaption of AdaBoost which Eads came up with.
-
+    
     (k, alphas, thresholds, directions) = tiny_boost.adaboost_train(X.T, Y, 100)
 
     ##### Generate predictions using the trained classifier and the training set:
     preds = tiny_boost.adaboost_apply(X.T,k, alphas, thresholds, directions)
 
     alphas_sum = numpy.sum(alphas)
-
+    
     normalized_preds = preds / alphas_sum
 
     for i, pred in enumerate(normalized_preds):
@@ -67,6 +59,6 @@ if __name__ == '__main__':
         note = 'match'
         if prediction != orig_int_classif:
             note = 'misclassified'
-        print("i=%4d  conf=%lf  pred=%2d  orig=%2d %s" % (i, confidence, prediction, orig_int_classif, note))
+        print "i=%4d  conf=%lf  pred=%2d  orig=%2d %s" % (i, confidence, prediction, orig_int_classif, note)
 
-    print()
+    print

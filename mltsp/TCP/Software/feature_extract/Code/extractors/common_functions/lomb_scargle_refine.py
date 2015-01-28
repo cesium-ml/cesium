@@ -1,37 +1,11 @@
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from builtins import round
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from numpy import (empty, pi, sqrt, sin, cos, dot, arange, arctan2, array,
-                   diag, ix_, outer, hstack, log, round, zeros)
-
-import cython
+from numpy import empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
+from scipy import weave
+from lomb_scargle import lprob2sigma
 from scipy.stats import f as fdist
-from ._lomb_scargle import lomb_scargle
+from ls_support import lomb_code,lomb_scargle_support
+from numc_eigs import scode as eigs_code
 
-
-def lprob2sigma(lprob):
-    """ translates a log_e(probability) to units of Gaussian sigmas
-    """
-
-    if (lprob>-36.):
-        sigma = norm.ppf(1.-0.5*exp(1.*lprob))
-    else:
-        # this is good to 5.e-2; just to be crazy, get to 5.e-5
-        sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
-        f = 0.5*log(2./pi) - 0.5*sigma**2 - log(sigma) - lprob
-        df = - sigma - 1./sigma
-        sigma = sigma - f/df
-
-    return float(sigma)
-
-
-def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
+def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
     """
     C version of lomb_scargle:
     Simultaneous fit of a sum of sinusoids by weighted, linear least squares.
@@ -39,7 +13,7 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
            [t0 defined such that ph11=0]
 
     Inputs:
-        t: time vector
+        time: time vector
         signal: data vector
         error: data uncertainty vector
         df: frequency step
@@ -58,7 +32,7 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
         out_dict: dictionary describing various parameters of the multiharmonic fit at
             the best-fit frequency
     """
-    numt = len(t)
+    numt = len(time)
 
     freq_zoom = round(freq_zoom/2.)*2.
 
@@ -83,7 +57,7 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
     vcn = 1.
 
     # sin's and cosin's for later
-    tt = 2*pi*t.astype('float64')
+    tt = 2*pi*time.astype('float64')
     sinx,cosx = sin(tt*f1)*wth0,cos(tt*f1)*wth0
     sinx_step,cosx_step = sin(tt*df),cos(tt*df)
     sinx_back,cosx_back = -sin(tt*df/2.),cos(tt*df/2)
@@ -103,9 +77,9 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
     else:
         wth = wth0
 
-    for i in range(detrend_order):
+    for i in xrange(detrend_order):
         f = wth[i,:]*tt/(2*pi)
-        for j in range(i+1):
+        for j in xrange(i+1):
             f -= dot(f,wth[j,:])*wth[j,:]
         norm[i+1] = sqrt(dot(f,f)); f /= norm[i+1]
         coef[i+1] = dot(cn,f)
@@ -123,33 +97,15 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
     lambda0 = array(lambda0/s0,dtype='float64')
     lambda0_range = 10**array(lambda0_range,dtype='float64')/s0
 
-
     vars=['numt','numf','nharm','detrend_order','psd','cn','wth','sinx','cosx','sinx_step','cosx_step','sinx_back','cosx_back','sinx_smallstep','cosx_smallstep','hat_matr','hat_hat','hat0','soln','chi0','freq_zoom','psdmin','tone_control','lambda0','lambda0_range','Tr','ifreq']
+    weave.inline(lomb_code, vars, support_code = eigs_code + lomb_scargle_support,force=0)
 
-    ## for p, v in zip((numt, numf, nharm, detrend_order, psd, cn, wth, sinx,
-    ##           cosx, sinx_step, cosx_step, sinx_back, cosx_back,
-    ##           sinx_smallstep, cosx_smallstep, hat_matr, hat_hat, hat0,
-    ##           soln, chi0, freq_zoom, psdmin, tone_control, lambda0,
-    ##           lambda0_range, Tr, ifreq), vars):
-    ##     try:
-    ##         print(v, p.dtype, p.shape)
-    ##     except:
-    ##         print(v, "--")
-
-    import time
-    tic = time.time()
-    lomb_scargle(numt, numf, nharm, detrend_order, psd, cn, wth, sinx,
-                 cosx, sinx_step, cosx_step, sinx_back, cosx_back,
-                 sinx_smallstep, cosx_smallstep, hat_matr, hat_hat, hat0,
-                 soln, chi0, freq_zoom, psdmin, tone_control, lambda0,
-                 lambda0_range, Tr, ifreq)
-    print("[%s] Extracted in %.2f" % ("LOMB_SCARGLE (Cython)", time.time() - tic))
     hat_hat /= s0
     ii = arange(nharm,dtype='int32')
     soln[0:nharm] /= (1.+ii)**2; soln[nharm:] /= (1.+ii)**2
     if (detrend_order>=0):
         hat_matr0 = outer(hat0[:,0],wth0)
-    for i in range(detrend_order):
+    for i in xrange(detrend_order):
         hat_matr0 += outer(hat0[:,i+1],wth[i+1,:])
 
 
@@ -170,7 +126,7 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
 
     j = psd.argmax()
     freq = f1+df*j + (ifreq/freq_zoom - 1/2.)*df
-    tt = (t*freq) % 1. ; s =tt.argsort()
+    tt = (time*freq) % 1. ; s =tt.argsort()
     out_dict['freq'] = freq
     out_dict['s0'] = s0
     out_dict['chi2'] = (chi0 - psd[j])*s0
@@ -201,7 +157,7 @@ def lomb(t, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,fre
     rel_phase = phase - phase[0]*(1.+ii)
     rel_phase = arctan2( sin(rel_phase),cos(rel_phase) )
     dphase = 0.*rel_phase
-    for i in range(nharm-1):
+    for i in xrange(nharm-1):
         j=i+1
         v = array([-A0[0]*(1.+j)/amp[0]**2,B0[0]*(1.+j)/amp[0]**2,A0[j]/amp[j]**2,-B0[j]/amp[j]**2])
         jj=array([0,nharm,j,j+nharm])

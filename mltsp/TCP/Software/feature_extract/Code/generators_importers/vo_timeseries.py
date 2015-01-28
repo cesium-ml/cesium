@@ -1,10 +1,3 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 
 vo_table_preamble = """
 <?xml version="1.0"?>
@@ -15,12 +8,13 @@ vo_table_preamble = """
 
 vo_timeseries_preamble = """<VOTIMESERIES version="0.01">\n"""
 vo_timeseries_mjd = """<TIMESYS>
-\t\t<TimeType ucd="frame.time.system?">MJD</TimeType>
+\t\t<TimeType ucd="frame.time.system?">MJD</TimeType> 
 \t\t<TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-\t\t<TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
+\t\t<TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
 \t\t<TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
 </TIMESYS>
 
 """
 
 vo_source_preamble = """<?xml version="1.0"?>\n<VOSOURCE version="0.01">\n\t<COOSYS ID="J2000" equinox="J2000." epoch="J2000." system="eq_FK5"/>\n"""
+

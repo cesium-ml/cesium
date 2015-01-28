@@ -1,11 +1,3 @@
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import zip
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 try:
     from ..FeatureExtractor import FeatureExtractor
 except:
@@ -69,7 +61,7 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
 
     def GCV(self, window, X,Y):
         # put in proper order
-        zpm = list(zip(X,Y))
+        zpm = zip(X,Y)
         zpm.sort()
         zpm_arr = numpy.array(zpm)
         phs = zpm_arr[:,0]
@@ -93,7 +85,7 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
         best_GCV = numpy.min(GCVs)
         optimal_window = windows[ numpy.argmin(GCVs) ]
         return best_GCV, optimal_window
-
+   
     def preSelect_periods(self, numpeaks=5):
         """ use LS to select trial periods for use in find_period
                returns top <numpeaks> most-likely periods """
@@ -105,7 +97,7 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
         frequencies = numpy.linspace( f0, f0+df*numf, numf )
         periods = 1./frequencies
         peaks_ind = self.find_peaks(psd)
-        zpp = list(zip(psd[peaks_ind], periods[peaks_ind]))
+        zpp = zip(psd[peaks_ind], periods[peaks_ind])
         zpp.sort(reverse=True)
         test_periods = numpy.array([zed[1] for zed in zpp[:numpeaks]])
         # return periods and a few harmonics
@@ -130,11 +122,11 @@ class phase_dispersion_freq0_extractor(FeatureExtractor):
         return numpy.concatenate( [test_periods, test_periods*2, test_periods*3, test_periods/2., test_periods/3. ] )
     '''
     def find_peaks(self, x):
-        """ find peaks in x """
-        xmid = x[1:-1] # orig array with ends removed
-        xm1 = x[2:] # orig array shifted one up
-        xp1 = x[:-2] # orig array shifted one back
-        return numpy.where(numpy.logical_and(xmid > xm1, xmid > xp1))[0] + 1
+       """ find peaks in x """
+       xmid = x[1:-1] # orig array with ends removed
+       xm1 = x[2:] # orig array shifted one up
+       xp1 = x[:-2] # orig array shifted one back
+       return numpy.where(numpy.logical_and(xmid > xm1, xmid > xp1))[0] + 1
 
 
 class ratio_PDM_LS_freq0_extractor(FeatureExtractor):
@@ -149,3 +141,4 @@ class ratio_PDM_LS_freq0_extractor(FeatureExtractor):
             return pdm_freq/LS_freq
         except:
             return 0.0
+

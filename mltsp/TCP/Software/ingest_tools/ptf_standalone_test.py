@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
    NOTE: This is OBSOLETE?
 
@@ -7,15 +7,6 @@
    v0.1 Initial version: Simulate recieving a PTF transient diff-mag object.
         - NOW see ptf_master.py for this functionality.
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import int
-from builtins import str
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 
 ptf_diff_source = {\
@@ -129,8 +120,8 @@ if __name__ == '__main__':
                                                 0.000277778*5.0, write_ps=0, \
                                                 only_sources_wo_features=0,\
                                                 skip_remote_sdss_retrieval=True)
-    print("Num sources found:", len(src_list))
-    print(objids_list, src_list)
+    print "Num sources found:", len(src_list)
+    print objids_list, src_list
 
     # ASSERT that len(src_list)==1 AND (src_list[0].d['src_id'] contains all
     #                                   unique src_ids in objids_list[]
@@ -148,7 +139,7 @@ if __name__ == '__main__':
     all_found_sources_in_lookup_table = True
     for source_obj in src_list:
         if source_obj.d['src_id'] not in result_srcid_list:
-            print("WARNING: >0 clustered sources were not in obj_srcid_lookup table", result_srcid_list, source_obj.d['src_id'])
+            print "WARNING: >0 clustered sources were not in obj_srcid_lookup table", result_srcid_list, source_obj.d['src_id']
             all_found_sources_in_lookup_table = False
             break
 
@@ -164,10 +155,10 @@ if __name__ == '__main__':
                                        get_features_using_srcid_xml_tuple_list(\
                                        srcid_xml_tuple_list, write_ps=0)
 
-    srcdbt.update_featsgen_in_srcid_lookup_table(list(srcid_dict.keys()))
+    srcdbt.update_featsgen_in_srcid_lookup_table(srcid_dict.keys())
     feat_db.insert_srclist_features_into_rdb_tables(signals_list,\
-                                                    list(srcid_dict.keys()))
-
+                                                    srcid_dict.keys())
+    
     # TODO: classify PTF source.
 
     # ??? what happens if ptf source existed, but has new points added to it?

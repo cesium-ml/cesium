@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 """ Generate a summary of metacost.results Weka output in Noisification/* dirs
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import sys, os
 import glob
@@ -18,7 +10,7 @@ if __name__ == '__main__':
 
 
     os.chdir('/home/pteluser/scratch/Noisification')
-
+    
     glob_paths = glob.glob("/home/pteluser/scratch/Noisification/*/metacost.results")
     for fpath in glob_paths:
         lines = open(fpath).readlines()
@@ -34,4 +26,4 @@ if __name__ == '__main__':
                   "Correctly Classified Instances" in line):
                 percent = float(line[52:line.rfind('%')-1])
                 break
-        print("%0.2f %s" % (percent, case_name))
+        print "%0.2f %s" % (percent, case_name)

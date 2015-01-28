@@ -1,21 +1,15 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from ..FeatureExtractor import ContextFeatureExtractor
 
-class gall_extractor(ContextFeatureExtractor):
-    """the Galactic coordinate l (longitude) in degrees"""
-    active = True
-    extname = 'gall' #extractor's name
+class gall_extractor(ContextFeatureExtractor): 
+	"""the Galactic coordinate l (longitude) in degrees"""
+	active = True
+	extname = 'gall' #extractor's name
 
-    def extract(self):
-        posdict = self.fetch_extr('position_intermediate')
+	def extract(self):
+		posdict = self.fetch_extr('position_intermediate')
 
-        if 'gall' not in posdict or posdict['gall'] is None:
-            self.ex_error("bad gal-l in the intermediate extractor. check install of pyephem and input coordinates")
+		if not posdict.has_key('gall') or posdict['gall'] is None:
+			self.ex_error("bad gal-l in the intermediate extractor. check install of pyephem and input coordinates")
+			
+		return posdict['gall']
 
-        return posdict['gall']

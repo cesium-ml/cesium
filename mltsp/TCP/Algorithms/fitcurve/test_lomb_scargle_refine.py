@@ -39,17 +39,6 @@ I suspect we might get more mileage out of leaving nharm=8, but only
 using stats on the first 4 as features.
 
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import int
-from builtins import open
-from builtins import range
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 
 import sys, os
@@ -57,7 +46,7 @@ import random
 from numpy import *
 
 
-class Database_Utils(object):
+class Database_Utils:
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):
@@ -125,9 +114,9 @@ if __name__ == '__main__':
     'tutor_port':3306,
     'tcp_hostname':'192.168.1.25',
     'tcp_username':'pteluser',
-    'tcp_port':     3306,
+    'tcp_port':     3306, 
     'tcp_database':'source_test_db',
-    'high_conf_srcids':list(range(22)), #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
+    'high_conf_srcids':range(22), #[241682, 238040, 221547, 225633, 227203, 250761, 219325, 252782, 245584, 236706, 216173, 225396, 233750, 232693, 263653, 216768, 225919, 264626, 230520, 229680, 231266, 221448, 226872, 261712], # Used for session=0, iter=1 (1st)
     }
 
 
@@ -161,8 +150,8 @@ if __name__ == '__main__':
         x = array(x)
         y = array(y)
         dy = array(dy)
-
-
+        
+        
     else:
         data = dbutil.get_timeseries_for_source(source_id=241682)
         x = data['t']
@@ -185,7 +174,7 @@ if __name__ == '__main__':
     #psd,res = lombr(x,y,dy0,f0,df,numf)
     psd,res = lombr(x,y,dy0,f0,df,numf, detrend_order=1)
     import pdb; pdb.set_trace()
-    print()
+    print
     psd1,res1 = lombr(x,y-res['model'],dy0,f0,df,numf, detrend_order=0)
     plot (freqin,psd)
 
@@ -208,4 +197,4 @@ if __name__ == '__main__':
     would have detrend_order=1 set, and we would use nharm=4 throughout.
     I suspect we might get more mileage out of leaving nharm=8, but only
     using stats on the first 4 as features.
-    """
+    """ 

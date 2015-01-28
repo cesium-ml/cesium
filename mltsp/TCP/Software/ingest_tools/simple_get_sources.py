@@ -33,29 +33,18 @@ OUTPUT FORMAT:
   Source2 Block
     ...
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
-import xmlrpc.client
+import xmlrpclib
 import random
 
 import MySQLdb
-class Mysql_Server_Query(object):
+class Mysql_Server_Query:
     def __init__(self, ra, dec, box_size):
         self.db = MySQLdb.connect(host="192.168.1.25", user="pteluser", db="object_test_db")
         self.cursor = self.db.cursor()
 
     def main(self):
-        select_str = """SELECT src_id,
+        select_str = """SELECT src_id, 
        object_test_db.sdss_events_a.obj_id,
        object_test_db.sdss_events_a.filt,
        object_test_db.sdss_events_a.t,
@@ -65,9 +54,9 @@ class Mysql_Server_Query(object):
        object_test_db.sdss_events_a.decl,
        object_test_db.sdss_events_a.ra_rms,
        object_test_db.sdss_events_a.dec_rms
-  FROM source_test_db.srcid_lookup_htm
-  JOIN object_test_db.obj_srcid_lookup USING (src_id)
-  JOIN object_test_db.sdss_events_a USING (obj_id)
+  FROM source_test_db.srcid_lookup_htm 
+  JOIN object_test_db.obj_srcid_lookup USING (src_id) 
+  JOIN object_test_db.sdss_events_a USING (obj_id) 
   WHERE DIF_HTMCircle(%lf,%lf,%lf)
   ORDER BY src_id,filt,t;
         """ % (ra, dec, box_size)
@@ -75,8 +64,8 @@ class Mysql_Server_Query(object):
         results = self.cursor.fetchall()
         for result in results:
             for elem in result:
-                print(elem, end=' ')
-            print()
+                print elem,
+            print
 
 
 
@@ -93,7 +82,7 @@ class Mysql_Server_Query(object):
         results = self.cursor.fetchall()
         random_srcid = results[0][0]
 
-        select_str = """SELECT src_id,
+        select_str = """SELECT src_id, 
        object_test_db.sdss_events_a.obj_id,
        object_test_db.sdss_events_a.filt,
        object_test_db.sdss_events_a.t,
@@ -104,8 +93,8 @@ class Mysql_Server_Query(object):
        object_test_db.sdss_events_a.ra_rms,
        object_test_db.sdss_events_a.dec_rms
   FROM source_test_db.srcid_lookup
-  JOIN object_test_db.obj_srcid_lookup USING (src_id)
-  JOIN object_test_db.sdss_events_a USING (obj_id)
+  JOIN object_test_db.obj_srcid_lookup USING (src_id) 
+  JOIN object_test_db.sdss_events_a USING (obj_id) 
   WHERE src_id=%d
   ORDER BY src_id,filt,t;
         """ % (random_srcid)
@@ -113,8 +102,8 @@ class Mysql_Server_Query(object):
         results = self.cursor.fetchall()
         for result in results:
             for elem in result:
-                print(elem, end=' ')
-            print()
+                print elem,
+            print
 
 
 
@@ -130,7 +119,7 @@ if len(sys.argv) == 4:
     ra = float(sys.argv[1])
     dec = float(sys.argv[2])
     box_size = float(sys.argv[3])
-    print("#INPUT: ra=%lf dec=%lf box_size=%lf\n" % (ra, dec, box_size))
+    print "#INPUT: ra=%lf dec=%lf box_size=%lf\n" % (ra, dec, box_size)
 
 if ((ra < 0) or
     (ra > 360) or
@@ -138,7 +127,7 @@ if ((ra < 0) or
     (dec > 90) or
     (box_size < 0.008888) or
     (box_size > 30.0)):
-    print("Input values out of range!")
+    print "Input values out of range!"
     sys.exit()
 
 
@@ -153,25 +142,25 @@ if ((ra < 0) or
 # # # sys.exit() # Exit!
 ##########
 
-server = xmlrpc.client.ServerProxy(xmlrpc_server_url, allow_none=True)
+server = xmlrpclib.ServerProxy(xmlrpc_server_url, allow_none=True)
 
 src_list = server.get_sources_for_radec(ra, dec, box_size, '')
 
 os.system("rm " + out_filepath)
 
 fp = open(out_filepath, 'w')
-for s_i in range(len(src_list)):
-    for filter_name in list(src_list[s_i].keys()):
-        print("\n##### source_id=%d filter=%s" % (\
-                              src_list[s_i][filter_name]['src_id'], filter_name))
-        print("# ra=%lf ra_rms=%lf" % (src_list[s_i][filter_name]['ra'],\
-                                       src_list[s_i][filter_name]['ra_rms']))
-        print("# dec=%lf dec_rms=%lf"%(src_list[s_i][filter_name]['dec'],\
-                                       src_list[s_i][filter_name]['dec_rms']))
-        for epoch_i in range(len(src_list[s_i][filter_name]['t'])):
-            print("%lf %lf %lf" % (src_list[s_i][filter_name]['t'][epoch_i],\
+for s_i in xrange(len(src_list)):
+    for filter_name in src_list[s_i].keys():
+        print "\n##### source_id=%d filter=%s" % (\
+                              src_list[s_i][filter_name]['src_id'], filter_name)
+        print "# ra=%lf ra_rms=%lf" % (src_list[s_i][filter_name]['ra'],\
+                                       src_list[s_i][filter_name]['ra_rms'])
+        print "# dec=%lf dec_rms=%lf"%(src_list[s_i][filter_name]['dec'],\
+                                       src_list[s_i][filter_name]['dec_rms'])
+        for epoch_i in xrange(len(src_list[s_i][filter_name]['t'])):
+            print "%lf %lf %lf" % (src_list[s_i][filter_name]['t'][epoch_i],\
                                    src_list[s_i][filter_name]['m'][epoch_i],\
-                                   src_list[s_i][filter_name]['m_err'][epoch_i]))
+                                   src_list[s_i][filter_name]['m_err'][epoch_i])
             fp.write(\
                   "%lf %lf %lf\n" % (src_list[s_i][filter_name]['t'][epoch_i],\
                                    src_list[s_i][filter_name]['m'][epoch_i],\

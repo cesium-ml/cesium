@@ -1,18 +1,10 @@
 #!/usr/bin/env python
 """ Adapted from josh's simbad.py
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import os, sys
 
-import urllib.request, urllib.parse, urllib.error
+import urllib
 
 
 def query_votable(src_name="HD 27290"):
@@ -24,10 +16,10 @@ def query_votable(src_name="HD 27290"):
 
     #params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
     #                               'Radius': rad, 'Radius.unit': "arcsec"})
-
-    params = urllib.parse.urlencode({'output.format': "VOTABLE", "Ident":src_name, "NbIdent":1, \
+    
+    params = urllib.urlencode({'output.format': "VOTABLE", "Ident":src_name, "NbIdent":1, \
                                'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
-    f = urllib.request.urlopen("%s%s" % (html,params))
+    f = urllib.urlopen("%s%s" % (html,params))
     s = f.read()
     f.close()
     return s
@@ -35,7 +27,7 @@ def query_votable(src_name="HD 27290"):
 
 def parse_class(votable_str):
     import amara
-
+    
     a = amara.parse(votable_str)
     #b = a.xml_select("/VOTABLE/RESOURCE/TABLE/FIELD")
     #b = a.xml_xpath("/VOTABLE/RESOURCE/TABLE/FIELD[@name='OTYPE']")
@@ -62,10 +54,10 @@ def query_html(src_name = "HD 27290"):
 
     #params = urllib.urlencode({'output.format': "VOTABLE", "Coord": "%fd%f" % (ra, dec),\
     #                               'Radius': rad, 'Radius.unit': "arcsec"})
-
-    params = urllib.parse.urlencode({'output.format': "html", "Ident":src_name, "NbIdent":1, \
+    
+    params = urllib.urlencode({'output.format': "html", "Ident":src_name, "NbIdent":1, \
                                'Radius': 2, 'Radius.unit': "arcsec", 'submit':'submit id'})
-    f = urllib.request.urlopen("%s%s" % (html,params))
+    f = urllib.urlopen("%s%s" % (html,params))
     s = f.read()
     f.close()
     #print s
@@ -94,11 +86,11 @@ if __name__ == '__main__':
     #a_str = query_html(src_name = "HIP 8")
     a_str = query_votable(src_name = "HIP 8")
     sci_class = parse_class(a_str)
-    print(sci_class)
+    print sci_class
 
     sys.exit()
 
     html_str = query_html(src_name = "HD 27290")
 
     hip_ids = parse_html_for_ids(html_str, instr_identifier='HIP')
-    print(hip_ids)
+    print hip_ids

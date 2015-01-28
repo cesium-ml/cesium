@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 """ Nat wrote 20100930, dstarr to adapt as a TCP feature.
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from numpy import median,loadtxt
 from qso_fit import qso_fit
 import glob
@@ -28,6 +21,6 @@ if __name__ == '__main__':
         # QSO-like:  res[0]<~2
         # non-QSO: res[1]/res[0]<~2
 
-        print(("%s %f %f") % (id,res[0],res[1]/res[0]))
+        print ("%s %f %f") % (id,res[0],res[1]/res[0])
         import pprint
         pprint.pprint(od)

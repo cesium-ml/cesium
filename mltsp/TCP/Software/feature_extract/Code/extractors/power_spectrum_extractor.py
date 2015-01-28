@@ -1,19 +1,12 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from ..FeatureExtractor import InterExtractor
-from .common_functions.plot_methods import plot_vs_frequencies
+from common_functions.plot_methods import plot_vs_frequencies
 
 class power_spectrum_extractor(plot_vs_frequencies,InterExtractor):
-    active = False
-    extname = 'power_spectrum' #extractor's name
-    def extract(self):
-        fourier = self.fetch_extr('fourier')
-        if not isinstance(fourier,numpy.ndarray):
-            self.ex_error("Did not receive the correct type as input")
-        power_spec = abs(fourier)**2
-        return power_spec
+	active = False
+	extname = 'power_spectrum' #extractor's name
+	def extract(self):
+		fourier = self.fetch_extr('fourier')
+		if not isinstance(fourier,numpy.ndarray):
+			self.ex_error("Did not receive the correct type as input")
+		power_spec = abs(fourier)**2
+		return power_spec

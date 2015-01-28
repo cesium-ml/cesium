@@ -1,13 +1,6 @@
 #!/usr/bin/env python
 """ scps noise trained weka .model files neede for classification
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 
 import sys, os
 import glob
@@ -101,16 +94,16 @@ def retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict):
     for dirname in dirnames:
         exec_str = "mkdir -p ~/scratch/Noisification/%s" % (dirname)
         os.system(exec_str)
-
+        
         exec_str = "scp -CP %d %s@%s:scratch/Noisification/%s/{*arff,*model} ~/scratch/Noisification/%s/" % ( \
             retrieve_host_dict['ssh_port'],
             retrieve_host_dict['username'],
             retrieve_host_dict['hostname'],
             dirname,
             dirname)
-        print(exec_str)
+        print exec_str
         os.system(exec_str)
-
+    
 
 
 if __name__ == '__main__':
@@ -144,5 +137,5 @@ if __name__ == '__main__':
                 '20nois_09epch_040need_0.050mtrc_j48_17.9',
                 '20nois_10epch_040need_0.050mtrc_j48_17.9',
                 '20nois_33epch_040need_0.050mtrc_j48_17.9']
-
+    
     retrieve_from_other_node(glob_mask, dirnames, retrieve_host_dict)

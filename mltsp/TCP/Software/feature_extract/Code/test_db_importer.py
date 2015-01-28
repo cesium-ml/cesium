@@ -21,21 +21,11 @@
   - ? Can I parse some of Johns Dotastro.org examples?
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import dict
-from builtins import open
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 import os, sys
 import pprint
 
-from . import db_importer
+import db_importer
 
 
 
@@ -60,7 +50,7 @@ def IntersectDicts( d1, d2 ) :
     """
     Reference: http://stackoverflow.com/questions/314583/comparing-multiple-dictionaries-in-python
     """
-    return dict([k_v for k_v in list(d1.items()) if k_v[0] in d2 and d2[k_v[0]] == k_v[1]])
+    return dict(filter(lambda (k,v) : k in d2 and d2[k] == v, d1.items()))
 
 def nonIntersectDicts( d1, d2 ) :
     """ Given 2 dicts, find the keys where there are discrepancies or mis-matches.
@@ -72,19 +62,19 @@ def nonIntersectDicts( d1, d2 ) :
     Reference: http://stackoverflow.com/questions/314583/comparing-multiple-dictionaries-in-python
     """
 
-    mismatch = dict([k_v1 for k_v1 in list(d1.items()) if k_v1[0] in d2 and d2[k_v1[0]] != k_v1[1]])
+    mismatch = dict(filter(lambda (k,v) : k in d2 and d2[k] != v, d1.items()))
     if len(mismatch) > 0:
         return mismatch
-
+    
     mismatch = {}
-    for k in list(d1.keys()):
-        if k not in list(d2.keys()):
+    for k in d1.keys():
+        if k not in d2.keys():
             mismatch[k] = d1[k]
 
     return mismatch
 
 
-class Test_Methods(object):
+class Test_Methods:
     """ Various testing cases
     """
 
@@ -103,11 +93,11 @@ class Test_Methods(object):
             #print s.x_sdict
             non_intersect_dict = nonIntersectDicts(test_dict['expected_xsdict'], s.x_sdict)
             if len(non_intersect_dict) > 0:
-                print("(MISMATCH) x_sdict dictionary keys():", fpath, list(non_intersect_dict.keys()))
+                print "(MISMATCH) x_sdict dictionary keys():", fpath, non_intersect_dict.keys()
             else:
-                print("(PASS):   ", fpath)
+                print "(PASS):   ", fpath
 
-
+                
     def test_rw_oldxml_files_compare_xsdict(self):
         """
         ##### Read an old-xml, write it as old-xml, compare results:
@@ -119,18 +109,18 @@ class Test_Methods(object):
         if os.path.exists(temp_fpath):
             os.system("rm " + temp_fpath)
         s.write_xml(out_xml_fpath=temp_fpath)
-
+                
         s_orig = db_importer.Source(xml_handle=orig_fpath)
         s_temp = db_importer.Source(xml_handle=temp_fpath)
         non_intersect_dict = nonIntersectDicts(s_orig.x_sdict, s_temp.x_sdict)
-        non_intersect_dict_keys = list(non_intersect_dict.keys())
+        non_intersect_dict_keys = non_intersect_dict.keys()
         non_intersect_dict_keys.remove('ts') # this just shows some float point accuracy errors
         if len(non_intersect_dict_keys) > 0:
-            print("(MISMATCH) old-xml read/write and comparison. x_sdict dictionary keys():", fpath, list(non_intersect_dict.keys()))
+            print "(MISMATCH) old-xml read/write and comparison. x_sdict dictionary keys():", fpath, non_intersect_dict.keys()
             pprint.pprint(s_orig.x_sdict['ts'])
             pprint.pprint(s_temp.x_sdict['ts'])
         else:
-            print("(PASS):   old-xml read/write and comparison.")
+            print "(PASS):   old-xml read/write and comparison."
 
 
     def test_write_simpletimeseries_xml(self):
@@ -149,9 +139,9 @@ class Test_Methods(object):
         fp.close()
 
 
-        print() #                    self.simpletimeseriesxml_to_source_dict(self.xml_handle)
-        print()
-        print()
+        print #                    self.simpletimeseriesxml_to_source_dict(self.xml_handle)
+        print
+        print
         os.system("scp %s pteluser@lyra.berkeley.edu:public_html/tcp_xmls/" % (temp_xml_fpath))
         #os.system("cat %s" % (temp_xml_fpath))
 
@@ -165,8 +155,8 @@ class Test_Methods(object):
         fp.close()
 
         # TODO: do some test related to reading this simpletimeseries xml file.
-
-
+        
+        
 
     def main(self):
         """ Call all testing methods here.
@@ -175,11 +165,11 @@ class Test_Methods(object):
         self.test_rw_oldxml_files_compare_xsdict()
         self.test_write_simpletimeseries_xml()
 
-
+        
 if __name__ == "__main__":
 
     # TODO: generate a simpletimeseries xml when given an old vosource.xml
-    #  -
+    #  - 
 
     #fpath = os.path.expandvars("$TCP_DIR/Data/vosource_9026.xml")
     #s = db_importer.Source(xml_handle=fpath)
@@ -187,3 +177,4 @@ if __name__ == "__main__":
 
     TestMethods = Test_Methods(pars)
     TestMethods.main()
+

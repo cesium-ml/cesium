@@ -1,21 +1,15 @@
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from ..FeatureExtractor import ContextFeatureExtractor
 
-class ecpl_extractor(ContextFeatureExtractor):
-    """the Ecliptic coordinate l (longitude) in degrees"""
-    active = True
-    extname = 'ecpl' #extractor's name
+class ecpl_extractor(ContextFeatureExtractor): 
+	"""the Ecliptic coordinate l (longitude) in degrees"""
+	active = True
+	extname = 'ecpl' #extractor's name
 
-    def extract(self):
-        posdict = self.fetch_extr('position_intermediate')
+	def extract(self):
+		posdict = self.fetch_extr('position_intermediate')
 
-        if 'ecl' not in posdict or posdict['ecl'] is None:
-            self.ex_error("bad ecl in the intermediate extractor. check install of pyephem and input coordiantes")
+		if not posdict.has_key('ecl') or posdict['ecl'] is None:
+			self.ex_error("bad ecl in the intermediate extractor. check install of pyephem and input coordiantes")
+			
+		return posdict['ecl']
 
-        return posdict['ecl']

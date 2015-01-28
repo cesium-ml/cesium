@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """ Given a PTF-ID, generate Josh RB & TCP classifications, summarize results.
 
 TODO:
@@ -21,7 +21,7 @@ TODO: condense classifiers into 4 classes:
 if is_rock_epoch_count > 0
        return (is_rock)
 
-if is_variable and
+if is_variable and 
    n_epochs  > 8
        ==> determine most probable science_class
        ==> return is_variable, science_class, probability
@@ -43,16 +43,6 @@ if is_junk
 return (is_undetermined)
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import str
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import copy
 import math
@@ -85,11 +75,11 @@ def parse_options():
                       help="Use Ipython Parallel nodes with weka classifications of PTF VarStar sources.")
 
     (options, args) = parser.parse_args()
-    print("For help use flag:  --help") # KLUDGE since always: len(args) == 0
+    print "For help use flag:  --help" # KLUDGE since always: len(args) == 0
     return options
 
 
-class LBLDB(object):
+class LBLDB:
     """  Everythoing related to LBL database.
     """
 
@@ -99,7 +89,7 @@ class LBLDB(object):
         pass
 
 
-class CaltechDB(object):
+class CaltechDB:
     """ Everything related to connections with caltech pgsql db
     """
 
@@ -115,8 +105,8 @@ class CaltechDB(object):
 
         #(a lbl objid), ptf_shortname, ra, dec, <mag> <type <scanner> <type2> <class> <isspec> <rundate>
 
-        #
-
+        # 
+        
         select_str = 'SELECT object_test_db.obj_srcid_lookup.obj_id, caltech_candidate_shortname, tcp_source_id, source_test_db.srcid_lookup.ra, source_test_db.srcid_lookup.decl FROM source_test_db.caltech_classif_summary JOIN source_test_db.srcid_lookup ON (source_test_db.caltech_classif_summary.tcp_source_id=source_test_db.srcid_lookup.src_id) JOIN object_test_db.obj_srcid_lookup ON (source_test_db.srcid_lookup.src_id=object_test_db.obj_srcid_lookup.src_id AND object_test_db.obj_srcid_lookup.survey_id=3) WHERE caltech_candidate_shortname="%s" LIMIT 1' % (cand_shortname)
 
         self.mysql_cursor.execute(select_str)
@@ -144,7 +134,7 @@ class CaltechDB(object):
         try:
             import psycopg2
         except:
-            print("UNABLE to import psycopg2")
+            print "UNABLE to import psycopg2"
             return {}
         conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
         pg_cursor = conn.cursor()
@@ -169,7 +159,7 @@ class CaltechDB(object):
         try:
             import psycopg2
         except:
-            print("UNABLE to import psycopg2")
+            print "UNABLE to import psycopg2"
             return []
 
         conn = psycopg2.connect("dbname='ptfcands' user='tcp' host='navtara.caltech.edu' password='classify'");
@@ -190,7 +180,7 @@ class CaltechDB(object):
         return shortname_list
 
 
-class GetClassificationsForPtfid(object):
+class GetClassificationsForPtfid:
     """ Main Class
     """
     def __init__(self, rdbt=None, PTFPostgreServer=None, DiffObjSourcePopulator=None):
@@ -255,13 +245,13 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         """
         """
         distance_dict = {}
-        for src_id,src_dict in srcid_summary_dict.items():
+        for src_id,src_dict in srcid_summary_dict.iteritems():
             d_ra = src_dict['ra'] - ptf_cand_dict['ra']
             d_dec = src_dict['dec'] - ptf_cand_dict['dec']
             distance = math.sqrt((d_ra*d_ra) + (d_dec*d_dec))
             distance_dict[distance] = src_dict
 
-        dist_list = list(distance_dict.keys())
+        dist_list = distance_dict.keys()
         dist_list.sort()
         min_dist = dist_list[0]
         return distance_dict[min_dist]
@@ -270,7 +260,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
     def get_srcid_containing_candidate(self, srcid_summary_dict, ptf_cand_dict):
         """
         """
-        for src_id,src_dict in srcid_summary_dict.items():
+        for src_id,src_dict in srcid_summary_dict.iteritems():
             if ptf_cand_dict['id'] in src_dict['obj_id']:
                 return src_dict
         return {}
@@ -284,7 +274,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
 
         # TODO: check for candidate_id in dict
         matching_source_dict = {}
-        if 'id' in ptf_cand_dict:
+        if ptf_cand_dict.has_key('id'):
             matching_source_dict = self.get_srcid_containing_candidate( \
                                               srcid_summary_dict, ptf_cand_dict)
         if len(matching_source_dict) == 0:
@@ -293,7 +283,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
             except:
                 # For caltech sources where candidate.id's realbogus <0.1 and only 1 epoch source,  then there will be no source created at this point.  So, abre excepts.
                 return {}
-
+        
         return matching_source_dict
 
 
@@ -318,7 +308,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
  'url': 'http://dotastro.org/mpc_data/ascii_tables/17h18m42.88s_59d13m43.63s_39982.876319_30.00.txt'}
         """
         rock_dist = 30
-
+        
         ra = matching_source_dict['ra']
         dec = matching_source_dict['dec']
 
@@ -327,7 +317,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         for i, ujd in enumerate(matching_source_dict['ujd']):
             # we just do this single epoch case to make things run faster:
             do_pymp = False
-            if 'id' not in ptf_cand_dict:
+            if not ptf_cand_dict.has_key('id'):
                 do_pymp = True
             elif matching_source_dict['obj_id'][i] == ptf_cand_dict['id']:
                 do_pymp = True
@@ -336,7 +326,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
                 obj_ids_matched = True
                 pym = cand.pymp(pos=(ptf_cand_dict['ra'],ptf_cand_dict['dec']), time_obs=ujd,
                        radius=rock_dist)
-                print(ra, dec, pym.pos)
+                print ra, dec, pym.pos
                 try:
                     rez = pym.isrock()
                     if rez['isrock']:
@@ -371,7 +361,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
  'url': 'http://dotastro.org/mpc_data/ascii_tables/17h18m42.88s_59d13m43.63s_39982.876319_30.00.txt'}
         """
         rock_dist = 30
-
+        
         ra = matching_source_dict['ra']
         dec = matching_source_dict['dec']
 
@@ -379,7 +369,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         for ujd in matching_source_dict['ujd']:
             pym = cand.pymp(pos=(ra,dec), time_obs=ujd,
                        radius=rock_dist)
-            print(ra, dec, pym.pos)
+            print ra, dec, pym.pos
             rez = pym.isrock()
             if rez['isrock']:
                 is_rock_count += 1
@@ -437,7 +427,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
                 is_interesting_cand_dict[candidate_id] = copy.copy(nearby_class)
 
             ellip_list.append(self.cand_lblq.get_candidates_ellip(candidate_id))
-            if 'id' in ptf_cand_dict:
+            if ptf_cand_dict.has_key('id'):
                 if candidate_id == ptf_cand_dict['id']:
                     ptf_cand_summarize_dict = copy.deepcopy(nearby_class)
 
@@ -450,7 +440,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
         if str(out_dict['nearby_sqrt_rbscales_avg']) == 'nan':
             out_dict['nearby_sqrt_rbscales_avg'] = 'Null'
 
-        if 'id' in ptf_cand_dict:
+        if ptf_cand_dict.has_key('id'):
             rb_slope_val = self.get_rb_slope(candidate_id=ptf_cand_dict['id'])
             out_dict['rb_slope_val'] = rb_slope_val
 
@@ -459,8 +449,8 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
             rb_slope_val = self.get_rb_slope(candidate_id=c_id)
             slope_val_list.append(rb_slope_val)
         out_dict['rb_slope_val_avg'] = sum(slope_val_list)/float(len(slope_val_list))
-
-        if 'id' in ptf_cand_dict:
+        
+        if ptf_cand_dict.has_key('id'):
             out_dict['ellip'] = self.cand_lblq.get_candidates_ellip(ptf_cand_dict['id'])
         out_dict['ellip_avg'] = sum(ellip_list) / float(len(ellip_list))
 
@@ -497,7 +487,7 @@ WHERE obj_srcid_lookup.survey_id=3 AND src_id=%d """ % (src_id)
                     for srcid,xmllines in srcid_xml_tuple_list:
                         ingested_srcids.append(srcid)
                         ingested_src_xmltuple_dict[srcid] = xmllines
-                    is_done = True
+                    is_done = True    
                     break
             if is_done:
                 break
@@ -607,7 +597,7 @@ WHERE src_id = %d AND schema_id >= %d
 
         prob_key_classdict = {}
         weighted_prob_list = []
-        for (schema_comment, class_name),class_dict in all_classif_dict.items():
+        for (schema_comment, class_name),class_dict in all_classif_dict.iteritems():
             class_def_dict = ingest_tools.pars['class_schema_definition_dicts'].get(schema_comment,{})
             class_weight = class_def_dict.get('specific_class_weight_dict',{}).get(class_name,None)
             if class_weight == None:
@@ -615,12 +605,12 @@ WHERE src_id = %d AND schema_id >= %d
 
             # So, if the schema has general_class_weight > (some number) then
             #     it is a class to consider for is_variable calculation
-            if class_weight >= self.pars['overall_cuts']['general_class_weight_cut']:
+            if class_weight >= self.pars['overall_cuts']['general_class_weight_cut']:                
                 prob_weighted = class_weight * class_dict['prob']
                 weighted_prob_list.append(prob_weighted)
                 class_dict['prob_weighted'] = prob_weighted
                 prob = class_dict['prob']
-                if prob in prob_key_classdict:
+                if prob_key_classdict.has_key(prob):
                     prob += 0.0001 # KLUDGE, just to make unique and get in dict
                 prob_key_classdict[prob] = class_dict
 
@@ -666,7 +656,7 @@ WHERE src_id = %d AND schema_id >= %d
 
         #if is_variable:
         if 1:
-            prob_list = list(prob_key_classdict.keys())
+            prob_list = prob_key_classdict.keys()
             prob_list.sort(reverse=True)
             if len(prob_list) > 0:
                 out_dict['1st_class_dict'] = prob_key_classdict[prob_list[0]]
@@ -677,8 +667,8 @@ WHERE src_id = %d AND schema_id >= %d
 
         # TODO: do some sort of count of classes, and prob weights
 
-        final_science_class_name = out_dict.get('1st_class_dict',{}).get('class_name',' ')
-        final_science_class_prob = out_dict.get('1st_class_dict',{}).get('prob',-1)
+        final_science_class_name = out_dict.get('1st_class_dict',{}).get('class_name',' ')   
+        final_science_class_prob = out_dict.get('1st_class_dict',{}).get('prob',-1)          
 
         out_dict['period'] = -1
         if out_dict['freq'] != 'Null':
@@ -698,10 +688,10 @@ WHERE src_id = %d AND schema_id >= %d
             out_dict['final_science_class_prob'] = final_science_class_prob
         else:
             out_dict['final_science_class_name'] = ' '
-            out_dict['final_science_class_prob'] = -1
+            out_dict['final_science_class_prob'] = -1          
 
         #out_dict['final_science_class_name'] = out_dict.get('1st_class_dict',{}).get('class_name',' ')
-        #out_dict['final_science_class_prob'] = out_dict.get('1st_class_dict',{}).get('prob',-1)
+        #out_dict['final_science_class_prob'] = out_dict.get('1st_class_dict',{}).get('prob',-1)          
         return out_dict
 
 
@@ -710,11 +700,11 @@ WHERE src_id = %d AND schema_id >= %d
         self.cond_class_dict[col_name] = col_val
 
 
-    def generate_overall_classification(self, matching_source_dict,
-                                        tcp_classif,
-                                        rock_classif,
-                                        nearby_classif,
-                                        jdac_class,
+    def generate_overall_classification(self, matching_source_dict, 
+                                        tcp_classif, 
+                                        rock_classif, 
+                                        nearby_classif, 
+                                        jdac_class, 
                                         ptf_cand_dict):
         """ Generate the final classification of roughly: rock/variable/transient/junk.
         """
@@ -725,13 +715,13 @@ WHERE src_id = %d AND schema_id >= %d
         else:
             rock_classif['is_rock_count'] = 'Null' # so the webpage looks nice
 
-        if ((tcp_classif['n_epochs'] >= pars['variable_n_epoch_cut']) and
+        if ((tcp_classif['n_epochs'] >= pars['variable_n_epoch_cut']) and 
             (tcp_classif['realbogus_ratio'] > pars['realbogus_ratio_cut']) and
             (tcp_classif['final_science_class_prob'] > -1)):
                 # TODO: also check for a primary period / frequence found, and that it is in some freq range.
-            return {'overall_type':'periodic_variable',
-                    'science_class':tcp_classif['final_science_class_name'],
-                    'class_prob':tcp_classif['final_science_class_prob']}
+                return {'overall_type':'periodic_variable', 
+                        'science_class':tcp_classif['final_science_class_name'],  
+                        'class_prob':tcp_classif['final_science_class_prob']}
 
 
         if ((nearby_classif['nearby_sqrt_rbscales_avg'] >= pars['rbscale_combined_avg_cut']) and
@@ -743,7 +733,7 @@ WHERE src_id = %d AND schema_id >= %d
                 (tcp_classif['n_epochs'] <= pars['fewsample_nepoch_cut'])):
                 if ((jdac_class['jdac_class_name'] == '"SN"') or
                     (jdac_class['jdac_class_name'] == '"AGN"')):
-                    return {'overall_type':jdac_class['jdac_class_name'].strip('"') + "_short_candid",
+                    return {'overall_type':jdac_class['jdac_class_name'].strip('"') + "_short_candid", 
                             'class_prob':jdac_class['jdac_class_prob']}
                 else:
                     return {'overall_type':'short_candid'}
@@ -751,7 +741,7 @@ WHERE src_id = %d AND schema_id >= %d
                 #x
                 if ((jdac_class['jdac_class_name'] == '"SN"') or
                     (jdac_class['jdac_class_name'] == '"AGN"')):
-                    return {'overall_type':jdac_class['jdac_class_name'].strip('"') + "_long_candid",
+                    return {'overall_type':jdac_class['jdac_class_name'].strip('"') + "_long_candid", 
                             'class_prob':jdac_class['jdac_class_prob']}
                 if (tcp_classif['realbogus_ratio'] > pars['realbogus_ratio_cut']):
                     if ((tcp_classif['period'] >= pars['bad_period_short_cut']) and
@@ -764,7 +754,7 @@ WHERE src_id = %d AND schema_id >= %d
                     return {'overall_type':'nonRBRatio_long_candid'}
         if ((jdac_class['jdac_class_name'] == '"SN"') or
             (jdac_class['jdac_class_name'] == '"AGN"')):
-            return {'overall_type':jdac_class['jdac_class_name'].strip('"') + "_junk",
+            return {'overall_type':jdac_class['jdac_class_name'].strip('"') + "_junk", 
                     'class_prob':jdac_class['jdac_class_prob']}
         if ((tcp_classif['realbogus_ratio'] > pars['realbogus_ratio_cut']) and
             (tcp_classif['n_epochs'] > pars['fewsample_nepoch_cut'])):
@@ -796,7 +786,7 @@ WHERE src_id = %d AND schema_id >= %d
         self.add_to_condensed_dict('rb_slope', nearby_classif.get('rb_slope_val','Null'))
 
         if len(nearby_classif['is_interesting_cand_dict']) > 0:
-            nearby_rb = nearby_classif['is_interesting_cand_dict'][list(nearby_classif['is_interesting_cand_dict'].keys())[0]]
+            nearby_rb = nearby_classif['is_interesting_cand_dict'][nearby_classif['is_interesting_cand_dict'].keys()[0]]
         else:
             nearby_rb = {'rb_scale':-1, 'sym_scale':-1}
         if str(nearby_rb['sym_scale']) == 'nan':
@@ -849,9 +839,9 @@ WHERE src_id = %d AND schema_id >= %d
         on_duplicate_update_str = ' ON DUPLICATE KEY UPDATE '
         for col_name in self.ordered_colname_list:
             on_duplicate_update_str += "%s=VALUES(%s), " % (col_name, col_name)
-
+            
         insert_str = ''.join(insert_list)[:-2] + on_duplicate_update_str[:-2]
-        print(insert_str)
+        print insert_str
         self.rdbt.cursor.execute(insert_str)
 
 
@@ -873,11 +863,11 @@ WHERE src_id = %d AND schema_id >= %d
             #     This makes some JDAC dictionary formatting assumptions:
             jdac_class['jdac_class_prob'] = -1
         else:
-            jdac_class['jdac_class_name'] =  '"' + list(jdac_class.get('prob',{"":-1}).keys())[0] + '"'
+            jdac_class['jdac_class_name'] =  '"' + jdac_class.get('prob',{"":-1}).keys()[0] + '"'
             try:
-                jdac_class_prob = list(jdac_class['prob'][list(jdac_class['prob'].keys())[0]].values())[0]
+                jdac_class_prob = jdac_class['prob'][jdac_class['prob'].keys()[0]].values()[0]
             except:
-                jdac_class_prob = list(jdac_class.get('prob',{-1:-1}).values())[0]
+                jdac_class_prob = jdac_class.get('prob',{-1:-1}).values()[0]
             if jdac_class_prob == {}:
                 jdac_class_prob = -1
             jdac_class['jdac_class_prob'] = jdac_class_prob
@@ -942,7 +932,7 @@ def table_insert_ptf_cand(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifi
     # # # # #ptf_cand_dict = Caltech_DB.get_ptf_candid_info(cand_shortname=ptf_cand_shortname)
     ptf_cand_dict = Caltech_DB.get_ptf_candid_info___non_caltech_db_hack(cand_shortname=ptf_cand_shortname)
 
-    print(ptf_cand_dict)
+    print ptf_cand_dict
 
     #if ptf_cand_dict['id'] == 12035841:
     #    # This is a case where ingested_srcids is not filled:
@@ -956,30 +946,30 @@ def table_insert_ptf_cand(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifi
                                                      ptf_cand_dict, ingested_srcids)
 
     if len(matching_source_dict) == 0:
-        print("no associate / generated / matching source found for:")
-        print("ptf_cand_dict=", ptf_cand_dict)
-        print("ingested_srcids=",  ingested_srcids)
-        return
-
+        print "no associate / generated / matching source found for:"
+        print "ptf_cand_dict=", ptf_cand_dict
+        print "ingested_srcids=",  ingested_srcids
+        return 
+    
     ##### TCP classifications:
     tcp_classif = Get_Classifications_For_Ptfid.get_TCP_classifications(matching_source_dict)
-    print(tcp_classif)
+    print tcp_classif
 
     ##### IsRock / PyMPChecker Classifier:
     rock_classif = Get_Classifications_For_Ptfid.get_is_rock_info(matching_source_dict, ptf_cand_dict)
-    print("rock_classif['is_rock_count']", rock_classif['is_rock_count'])
+    print "rock_classif['is_rock_count']", rock_classif['is_rock_count']
 
     ##### Josh's D.A. Classifier:
     # # # # This should do all of the following in a function and the L689 - 704 stuff, just returning/adding to jdac_dict:
     #        extracted_prob(float,'Null'), extracted_name(string,'Null'), extracted_confid(float, 'Null')
     jdac_class = Get_Classifications_For_Ptfid.extract_jdac_classifs(ptf_cand_dict)
-    print("JDAC:", jdac_class)
+    print "JDAC:", jdac_class
 
 
     # TODO: I should actually do a count for all epochs in source...
     ##### Nearby candidate classifier:
     nearby_classif = Get_Classifications_For_Ptfid.get_nearby_classifier_info(matching_source_dict, ptf_cand_dict)
-    print("nearby_classif['is_interesting_count']", nearby_classif['is_interesting_count'])
+    print "nearby_classif['is_interesting_count']", nearby_classif['is_interesting_count']
 
     #tcp_classif['is_junk'] = False
     #if nearby_classif['is_interesting_count'] <= 1:
@@ -989,7 +979,7 @@ def table_insert_ptf_cand(DiffObjSourcePopulator, PTFPostgreServer, Get_Classifi
 
 
     (ordered_colname_list, cond_class_dict) = Get_Classifications_For_Ptfid.make_condensed_classif_dict(matching_source_dict, tcp_classif, rock_classif, nearby_classif, jdac_class, ptf_cand_dict, overall_classification)
-
+    
     Get_Classifications_For_Ptfid.insert_into_table(ordered_colname_list, cond_class_dict, tablename="source_test_db.caltech_classif_summary")
     Get_Classifications_For_Ptfid.ordered_colname_list = []
     Get_Classifications_For_Ptfid.cond_class_dict = {}
@@ -1026,11 +1016,11 @@ Caltech_DB = get_classifications_for_caltechid.CaltechDB()
 """
         #exec(exec_str) # DEBUG
         mec.execute(exec_str)
-        time.sleep(2) # This may be needed.
+	time.sleep(2) # This may be needed.
         shortname_list = Caltech_DB.get_caltech_shortnames( \
                             conditional_str="shortname > 0 AND type = 'VarStar'")
         for short_name in shortname_list:
-            exec_str = """
+	    exec_str = """
 ptf_cand_dict = Caltech_DB.get_ptf_candid_info(cand_shortname=short_name)
 (ingested_srcids,ingested_src_xmltuple_dict) = Get_Classifications_For_Ptfid.populate_TCP_sources_for_ptf_radec( \
                                        ra=ptf_cand_dict['ra'], \
@@ -1043,7 +1033,7 @@ if len(matching_source_dict) == 0:
 else:
     tcp_classif = Get_Classifications_For_Ptfid.get_TCP_classifications(matching_source_dict)
 """
-            #       exec_str = """
+            #	    exec_str = """
             #tmp_stdout = sys.stdout
             #sys.stdout = open('/tmp/999', 'a')
             #print '#################################################################################'
@@ -1055,14 +1045,14 @@ else:
             #                                       ra=ptf_cand_dict['ra'], \
             #                                       dec=ptf_cand_dict['dec'], \
             #                                       ptf_cand_dict=ptf_cand_dict)
-            #"""
+            #"""         
             #exec(exec_str) # DEBUG
             try:
                 taskid = tc.run(client.StringTask(exec_str, \
                                             push={'short_name':short_name}))#, retries=3))
                 task_id_list.append(taskid)
             except:
-                print("EXCEPT!: taskid=", taskid, exec_str)
+                print "EXCEPT!: taskid=", taskid, exec_str
 
 
 
@@ -1091,16 +1081,16 @@ else:
                 matching_source_dict = Get_Classifications_For_Ptfid.get_closest_matching_tcp_source( \
                                                                  ptf_cand_dict, ingested_srcids)
                 if len(matching_source_dict) == 0:
-                    print("no associate / generated / matching source found for:")
-                    print("ptf_cand_dict=", ptf_cand_dict)
-                    print("ingested_srcids=",  ingested_srcids)
+                    print "no associate / generated / matching source found for:"
+                    print "ptf_cand_dict=", ptf_cand_dict
+                    print "ingested_srcids=",  ingested_srcids
                     continue
                 tcp_classif = Get_Classifications_For_Ptfid.get_TCP_classifications(matching_source_dict)
                 #print tcp_classif
                 #fp = open("/home/pteluser/scratch/caltech_srcid.dat","a")
                 #fp.write("%s %d\n" % (short_name, matching_source_dict['src_id']))
                 #fp.close()
-
+                
 
 
         elif options.do_general_classifier:
@@ -1141,3 +1131,4 @@ else:
             # todo want a simple PHP page for now which just queries TABLE and displays in an html table.
 
             # TODO: RB ratio > 0.5?
+

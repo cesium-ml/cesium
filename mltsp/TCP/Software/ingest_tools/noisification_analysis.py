@@ -41,30 +41,19 @@ NOTE: to look at values in the dotastro_feat_valies TABLE:
      SELECT src_id, feat_name, feat_val from dotastro_feat_values join feat_lookup ON (dotastro_feat_values.feat_id=feat_lookup.feat_id AND feat_lookup.filter_id=8);
 | src_id | feat_name                            | feat_val        |
 +--------+--------------------------------------+-----------------+
-|  13318 | ratio32                              |            NULL |
-|  13318 | ratio31                              |            NULL |
+|  13318 | ratio32                              |            NULL | 
+|  13318 | ratio31                              |            NULL | 
 
 
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import int
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 import os, sys
 import MySQLdb
 import glob
 import time
-
-class Ipython_Controller(object):
+    
+class Ipython_Controller:
     """ This class controlls initialiation and task queuing of ipython-parallel
     TaskClient tasks.
 
@@ -98,15 +87,15 @@ class Ipython_Controller(object):
     def wait_for_tasks_to_finish(self):
         """ Wait for task client / ipengine tasks to finish.
         """
-        while ((self.tc.queue_status()['scheduled'] > 0) or
-               (self.tc.queue_status()['pending'] > 0)):
-            print(self.tc.queue_status())
-            print('Sleep... 3 in regenerate_vosource_xmls.py')
+	while ((self.tc.queue_status()['scheduled'] > 0) or
+ 	       (self.tc.queue_status()['pending'] > 0)):
+            print self.tc.queue_status()
+            print 'Sleep... 3 in regenerate_vosource_xmls.py'
             time.sleep(3)
-        print('done with while loop')
+        print 'done with while loop'
 
 
-class DB_Connector(object):
+class DB_Connector:
     """ Estableshes connection to mysql RDB.
     To be inherited by another class.
     """
@@ -116,7 +105,7 @@ class DB_Connector(object):
     def establish_db_connection(self, cursor=None, host='', user='', db='', port=0):
         """ connect to the rdb database, or use given cursor.
         """
-
+    
         if cursor == None:
             db = MySQLdb.connect(host=host, \
                                  user=user, \
@@ -144,22 +133,22 @@ class Noisification_Task_Populator(DB_Connector):
         #       filt_keys.remove('combo_band')
 
         npoint_tup_list = []
-        for filt,filt_dict in gen.signals_list[0].properties['data'].items():
+        for filt,filt_dict in gen.signals_list[0].properties['data'].iteritems():
             npoint_tup_list.append((filt_dict['features'].get('n_points',0),filt))
 
         npoint_tup_list.sort(reverse=True)
-
+        
         if len(npoint_tup_list) == 0:
-            print("No filters found for source:", srcid)
+            print "No filters found for source:", srcid
             return
 
         filter_best = npoint_tup_list[0][1]
 
         filt_dict = gen.signals_list[0].properties['data'][filter_best]
         out_feat_dict = {}
-        for feat_name, feat_obj in filt_dict['features'].items():
+        for feat_name, feat_obj in filt_dict['features'].iteritems():
             try:
-                print(feat_obj, '\t', feat_name)
+                print feat_obj, '\t', feat_name
                 out_feat_dict[feat_name] = str(float(str(feat_obj)))
                 if ((out_feat_dict[feat_name] == 'Fail') or (out_feat_dict[feat_name] == 'nan') or
                     (out_feat_dict[feat_name] == 'inf')  or (out_feat_dict[feat_name] == 'None')):
@@ -169,7 +158,7 @@ class Noisification_Task_Populator(DB_Connector):
 
         insert_list = ["INSERT INTO %s (src_id, feat_id, feat_val) VALUES " % \
                        (tablename_dotastro_feat_values)]
-        for feat_name,feat_val in out_feat_dict.items():
+        for feat_name,feat_val in out_feat_dict.iteritems():
             feat_id = self.featname_featid_lookup[feat_name]
             str_tup = "(%d, %d, %s), " % (srcid, feat_id, feat_val)
             insert_list.append(str_tup)
@@ -203,29 +192,29 @@ class Noisification_Task_Populator(DB_Connector):
         and returns a dictionary containing the features-values which are type==float.
         """
         npoint_tup_list = []
-        for filt,filt_dict in gen.signals_list[0].properties['data'].items():
+        for filt,filt_dict in gen.signals_list[0].properties['data'].iteritems():
             npoint_tup_list.append((filt_dict['features'].get('n_points',0),filt))
 
         npoint_tup_list.sort(reverse=True)
-
+        
         if len(npoint_tup_list) == 0:
-            print("No filters found for source:", srcid)
+            print "No filters found for source:", srcid
             return
 
         filter_best = npoint_tup_list[0][1]
 
         filt_dict = gen.signals_list[0].properties['data'][filter_best]
         out_feat_dict = {}
-        for feat_name, feat_obj in filt_dict['features'].items():
+        for feat_name, feat_obj in filt_dict['features'].iteritems():
             try:
-                print(feat_obj, '\t', feat_name)
+                print feat_obj, '\t', feat_name
                 out_feat_dict[feat_name] = str(float(str(feat_obj)))
             except:
                 out_feat_dict[feat_name] = 'NULL'
 
         return out_feat_dict
-
-
+        
+        
 
     def add_noisified_xmls_to_rdb(self, dotastro_srcid=0, xml_glob_mask="", schema_name="", class_name="", table_name="", from_xml=None):
         """ Given a glob mask string, get list matching xmls.
@@ -252,12 +241,12 @@ class Noisification_Task_Populator(DB_Connector):
 
             feat_dict = self.generate_featdict_using_gen_with_feats(gen=gen)
 
-            for feat_name,feat_val_str in feat_dict.items():
+            for feat_name,feat_val_str in feat_dict.iteritems():
                 feat_id = self.featname_featid_lookup[feat_name]
                 if feat_val_str == "NULL":
                     continue # skip from entering NULL data.
                 str_tup = '("%s", "%s", %0.12lf, %d, %d, %s), ' % ( \
-                                     schema_name,
+                                     schema_name, 
                                      class_name,
                                      noise_float_id,
                                      dotastro_srcid,
@@ -295,14 +284,14 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
 
 
     def drop_tables(self):
-        #
+        # 
         drop_str_list = ["DROP TABLE %s" % (self.pars['tablename_dotastro_feat_values']),  \
                          "DROP TABLE %s" % (self.pars['tablename_noise_gen_sources'])]
         for drop_str in drop_str_list:
             try:
                 self.cursor.execute(drop_str)
             except:
-                print("Table already exists?:", drop_str)
+                print "Table already exists?:", drop_str
 
 
     def create_tables(self):
@@ -318,10 +307,10 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
         self.cursor.execute(create_str)
 
 
-        create_str = """CREATE TABLE %s (noise_id INT UNSIGNED AUTO_INCREMENT,
-                                         schema_name VARCHAR(80),
-                                         class_name VARCHAR(80),
-                                         noise_float_id DOUBLE,
+        create_str = """CREATE TABLE %s (noise_id INT UNSIGNED AUTO_INCREMENT, 
+                                         schema_name VARCHAR(80), 
+                                         class_name VARCHAR(80), 
+                                         noise_float_id DOUBLE, 
                                          dotastro_srcid INT,
                                          feat_id SMALLINT UNSIGNED,
                                          feat_val DOUBLE,
@@ -358,8 +347,8 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
         """
         class_dotastro_lookup = {}
 
-        for src_id, src_dict in progen_srcdict.items():
-            if src_dict['class'] not in class_dotastro_lookup:
+        for src_id, src_dict in progen_srcdict.iteritems():
+            if not class_dotastro_lookup.has_key(src_dict['class']):
                 class_dotastro_lookup[src_dict['class']] = []
             class_dotastro_lookup[src_dict['class']].append(src_id)
         return class_dotastro_lookup
@@ -372,7 +361,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
         """
         out_srcid_list = []
         for src_id in all_srcid_list:
-
+            
             select_str = "SELECT src_id from %s WHERE src_id=%d" % ( \
                 self.pars['tablename_dotastro_feat_values'],
                 src_id)
@@ -401,9 +390,9 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
 
         ##### This stuff is do be done in the Ipython mec()
         #"""
-        task_pars = {'host':self.pars['mysql_hostname'],
-                     'user':self.pars['mysql_user'],
-                     'db':self.pars['mysql_database'],
+        task_pars = {'host':self.pars['mysql_hostname'], 
+                     'user':self.pars['mysql_user'], 
+                     'db':self.pars['mysql_database'], 
                      'port':self.pars['mysql_port']}
         import os,sys
         import noisification_analysis
@@ -418,7 +407,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
                                              db=task_pars['db'],
                                              port=task_pars['port'])
         NoiseTaskPop.fill_featname_featid_lookup_dict( \
-                                        tablename_featlookup=self.pars['tablename_featlookup'],
+                                        tablename_featlookup=self.pars['tablename_featlookup'], 
                                         filterid_featlookup_table=self.pars['filterid_featlookup_table'])
         #"""
         #####
@@ -432,7 +421,7 @@ class Generate_Store_Dotastro_Source_Features(DB_Connector):
             gen = generators_importers.from_xml(signals_list)
             NoiseTaskPop.add_dotastro_vosource_to_rdb(srcid, xml_fpath, gen, \
                                                       self.pars['tablename_dotastro_feat_values'])
-            #####
+            ##### 
 
             if 0:
                 # Normal:
@@ -455,21 +444,21 @@ time.sleep(3)
 """ % (srcid, xml_fpath, self.pars['tablename_dotastro_feat_values'])
                 IpythonController.add_task(task_str=task_str)
 
-
+            
     def populate_update_dotastro_feat_values_table(self):
         """ This is called to populate or update the dotastro_feat_values TABLE.
         This is done occasionally, as new features are added or updated.
         """
         progen_srcdict = self.get_progen_srcdict()
 
-        to_do_srcid_list = self.determine_srcids_not_in_table(list(progen_srcdict.keys()))
-
+        to_do_srcid_list = self.determine_srcids_not_in_table(progen_srcdict.keys())
+        
         # TODO: Generate features for these sources which are not in table (using some flag)
         self.parse_source_features_insert_into_table(srcid_list=to_do_srcid_list, src_dict=progen_srcdict)
 
 
     def populate_noise_tables_using_noisified_vosource(self, progen_srcdict={}, schema_name="", table_name=""):
-        """
+        """ 
         # (adding noised data to database)
         # -->> iterate over all srcids found in /featured_vosource/ directory
         #  - given science-class name
@@ -481,7 +470,7 @@ time.sleep(3)
         ##### (when not testing): This stuff is done in the Ipython mec()
         if 0:
             ##### For non-parallel testing:
-
+        
             import os,sys
             import noisification_analysis
             sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract'))
@@ -490,9 +479,9 @@ time.sleep(3)
             from Code.generators_importers import from_xml
             import db_importer
 
-            task_pars = {'host':self.pars['mysql_hostname'],
-                         'user':self.pars['mysql_user'],
-                         'db':self.pars['mysql_database'],
+            task_pars = {'host':self.pars['mysql_hostname'], 
+                         'user':self.pars['mysql_user'], 
+                         'db':self.pars['mysql_database'], 
                          'port':self.pars['mysql_port']}
             NoiseTaskPop = noisification_analysis.Noisification_Task_Populator()
             NoiseTaskPop.establish_db_connection(host=task_pars['host'],
@@ -500,10 +489,10 @@ time.sleep(3)
                                                  db=task_pars['db'],
                                                  port=task_pars['port'])
             NoiseTaskPop.fill_featname_featid_lookup_dict( \
-                                            tablename_featlookup=self.pars['tablename_featlookup'],
+                                            tablename_featlookup=self.pars['tablename_featlookup'], 
                                             filterid_featlookup_table=self.pars['filterid_featlookup_table'])
         #####
-        for src_id, src_dict in progen_srcdict.items():
+        for src_id, src_dict in progen_srcdict.iteritems():
             # form the true fpath name:
             xml_glob_mask = "%s/%s/featured_vosource/%d_*.xml" % (self.pars['noisified_rootdir'],
                                                 schema_name,
@@ -539,7 +528,7 @@ time.sleep(3)
         self.populate_noise_tables_using_noisified_vosource(progen_srcdict=progen_srcdict,
                                                             schema_name=schema_name,
                                                             table_name=self.pars['tablename_noise_gen_sources'])
-
+        
     def get_featname_featid_lookup(self):
         """Retrieve from RDB the (feat_name
         """
@@ -553,7 +542,7 @@ time.sleep(3)
             featname_lookup[feat_name] = feat_id
 
         return featname_lookup
-
+        
 
     def get_tcpsrc_feat_prob(self, schema_name='', original_class_name='', feat_name='', \
                              feat_id=-1, all_related_classes=[]):
@@ -561,22 +550,22 @@ time.sleep(3)
 
         NOTE: iterating all potential associated/similar class_names may bot be neccissary since it looks like
         just the canonical class names are used in the query below:
-
+        
         | class_name     (these seem to be canonical classes)
         +--------------------------------+
-        | W Ursae Majoris                |
-        | Symmetrical                    |
-        | Mira                           |
-        | Binary                         |
-        | Delta Scuti                    |
-        | Algol (Beta Persei)            |
-        | Beta Lyrae                     |
-        | RR Lyrae, Fundamental Mode     |
-        | Pulsating Variable             |
-        | Multiple Mode Cepheid          |
-        | Beta Cephei                    |
-        | Be Star                        |
-        | Semiregular Pulsating Variable |
+        | W Ursae Majoris                | 
+        | Symmetrical                    | 
+        | Mira                           | 
+        | Binary                         | 
+        | Delta Scuti                    | 
+        | Algol (Beta Persei)            | 
+        | Beta Lyrae                     | 
+        | RR Lyrae, Fundamental Mode     | 
+        | Pulsating Variable             | 
+        | Multiple Mode Cepheid          | 
+        | Beta Cephei                    | 
+        | Be Star                        | 
+        | Semiregular Pulsating Variable | 
         """
 
         #import pdb; pdb.set_trace()
@@ -586,10 +575,10 @@ time.sleep(3)
         # I dont think it hurts to do this (although takes longer), although it may be redundant:
         for class_name in all_related_classes:
             select_str = 'SELECT %s.src_id, prob, feat_val FROM %s JOIN %s ON (%s.src_id=%s.src_id AND feat_id=%d) WHERE schema_comment="%s" AND class_name="%s"' % ( \
-                self.pars['tablename_one_src_model_class_probs'],
-                self.pars['tablename_one_src_model_class_probs'],
+                self.pars['tablename_one_src_model_class_probs'], 
+                self.pars['tablename_one_src_model_class_probs'], 
                 self.pars['tablename_featvalues'],
-                self.pars['tablename_one_src_model_class_probs'],
+                self.pars['tablename_one_src_model_class_probs'], 
                 self.pars['tablename_featvalues'],
                 feat_id,
                 schema_name, class_name)
@@ -598,7 +587,7 @@ time.sleep(3)
             for (src_id, prob, feat_val) in results:
                 #if tcpsrc_feat_prob_dict.has_key(src_id):
                 #    # For DEBUG only
-                #    print '!!! ASSERTION ERROR', src_id
+                #    print '!!! ASSERTION ERROR', src_id  
                 #    raise
                 tcpsrc_feat_prob_dict[src_id] = {'feat_val':feat_val,
                                                  'prob':prob}
@@ -633,7 +622,7 @@ time.sleep(3)
 
         #for class_name in [original_class_name]:
         for class_name in all_related_classes:
-            if not class_name in list(self.class_dotastro_lookup.keys()):
+            if not class_name in self.class_dotastro_lookup.keys():
                 continue # skip this class
             for src_id in self.class_dotastro_lookup[class_name]:
                 select_str = 'SELECT feat_val FROM %s WHERE src_id=%d AND feat_id=%d' % ( \
@@ -655,7 +644,7 @@ time.sleep(3)
 
         jsbvar_classnames = []
         for tcp_classname in all_related_classes:
-            if tcp_classname in list(self.pars['tcp_to_jsbvar_classname'].keys()):
+            if tcp_classname in self.pars['tcp_to_jsbvar_classname'].keys():
                 jsbvar_classnames.extend(self.pars['tcp_to_jsbvar_classname'][tcp_classname])
 
         condition_list = []
@@ -713,8 +702,8 @@ time.sleep(3)
 
         ##### KLUDGE: Duplicated elsewhere:
         data_name_list = ['all_noisesrc_featval_array', 'tcpsrc_featval_array', 'all_dotastro_featval_array']
-        all_min = min(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
-        all_max = max(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
+        all_min = min(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
+        all_max = max(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
         for class_dict in classname_list:
             for array_name in data_name_list:
                 try:
@@ -735,7 +724,7 @@ time.sleep(3)
             all_max = max_val
         ######
 
-
+                
         for class_dict in classname_list:
             ax = self.fig.add_subplot(class_dict['subplot_config_int'])
             ##### Noisified sources: #####
@@ -763,7 +752,7 @@ time.sleep(3)
             #                                rwidth=0.2)
             #except:
             #    ax.plot([all_min], [1], color='y', label='JSBvar matching PTF')
-
+            
             ##### Original DotAstro sources: #####
             try:
                 n2, bins, patches = ax.hist(self.hist_data_dict[schema_name][feat_name][class_dict['class_name']]['all_dotastro_featval_array'],
@@ -820,8 +809,8 @@ time.sleep(3)
         """
         ##### KLUDGE: Duplicated elsewhere:
         data_name_list = ['all_noisesrc_featval_array', 'all_dotastro_featval_array'] # 'tcpsrc_featval_array'
-        all_min = min(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
-        all_max = max(list(self.hist_data_dict[schema_name][feat_name].values())[0]['all_noisesrc_featval_array'])
+        all_min = min(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
+        all_max = max(self.hist_data_dict[schema_name][feat_name].values()[0]['all_noisesrc_featval_array'])
         for class_dict in classname_list:
             for array_name in data_name_list:
                 try:
@@ -854,7 +843,7 @@ time.sleep(3)
             unmatched_noisified_featvals_list = []
 
             for src_id, src_dict in self.hist_data_dict[schema_name][feat_name] \
-                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].items():
+                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].iteritems():
 
                 if len(src_dict['dotastro_featvals']) > 0:
                     dotastro_featvals_list.extend(src_dict['dotastro_featvals'] * len(src_dict['noisified_featvals']))
@@ -901,7 +890,7 @@ time.sleep(3)
         all_max = 0
         for class_dict in classname_list:
             for src_id, src_dict in self.hist_data_dict[schema_name][feat_name] \
-                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].items():
+                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].iteritems():
 
                 if len(src_dict['dotastro_featvals']) > 0:
                     val_array = numpy.array(src_dict['noisified_featvals']) - src_dict['dotastro_featvals'][0]
@@ -935,7 +924,7 @@ time.sleep(3)
 
             plot_data_list = []
             for src_id, src_dict in self.hist_data_dict[schema_name][feat_name] \
-                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].items():
+                                        [class_dict['class_name']]['dotastro_noise_relation_dicts'].iteritems():
 
                 if len(src_dict['dotastro_featvals']) > 0:
                     plot_data_list.append(numpy.array(src_dict['noisified_featvals']) - src_dict['dotastro_featvals'][0])
@@ -946,13 +935,13 @@ time.sleep(3)
                                             normed=0, alpha=0.75, label='DotAstro source matched',
                                             rwidth=1.0, histtype='barstacked') #THIS DOESNT WORK FOR .hist(): , colors=range(len(plot_data_list)), cmap=pyplot.cm.spectral
             except:
-                print('EXCEPT: noisification_analysis.py:885, class_dict=', class_dict)
+                print 'EXCEPT: noisification_analysis.py:885, class_dict=', class_dict
                 #n2, bins, patches = ax.hist(plot_data_list[0],
                 #                            50, log=0,
                 #                            normed=0, facecolor='r', alpha=0.75, label='DotAstro source matched',
                 #                            rwidth=1.0, histtype='barstacked')
 
-
+                
             plot_title = '\n'.join(self.related_classes_dict[schema_name][feat_name][class_dict['class_name']])
             ax.annotate(plot_title, xy=(.5, 0.98), xycoords='axes fraction',
                         horizontalalignment='center',
@@ -993,19 +982,19 @@ time.sleep(3)
         # dotastro_src_feat_dict :: [src_id]:<feat_val>
 
         """
-        if schema_name not in self.hist_data_dict:
+        if not self.hist_data_dict.has_key(schema_name):
             self.hist_data_dict[schema_name] = {}
-        if feat_name not in self.hist_data_dict[schema_name]:
+        if not self.hist_data_dict[schema_name].has_key(feat_name):
             self.hist_data_dict[schema_name][feat_name] = {}
-        if class_name not in self.hist_data_dict[schema_name][feat_name]:
+        if not self.hist_data_dict[schema_name][feat_name].has_key(class_name):
             self.hist_data_dict[schema_name][feat_name][class_name] = {}
 
 
-        if 'dotastro_noise_relation_dicts' not in self.hist_data_dict[schema_name][feat_name][class_name]:
-            self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'] = {}
+        if not self.hist_data_dict[schema_name][feat_name][class_name].has_key('dotastro_noise_relation_dicts'):
+            self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'] = {} 
 
-        if 'jsbvar_noise_relation_dicts' not in self.hist_data_dict[schema_name][feat_name][class_name]:
-            self.hist_data_dict[schema_name][feat_name][class_name]['jsbvar_featval_lists'] = {'all_featvals':[]}
+        if not self.hist_data_dict[schema_name][feat_name][class_name].has_key('jsbvar_noise_relation_dicts'):
+            self.hist_data_dict[schema_name][feat_name][class_name]['jsbvar_featval_lists'] = {'all_featvals':[]} 
 
         # Debug:
         #if (("RR Lyrae, Fundamental Mode" in all_related_classes)):
@@ -1013,23 +1002,23 @@ time.sleep(3)
 
         ##### Noisified sources: #####
         all_noisesrc_featval_list = []
-        for ((dotastro_srcid, noise_float_id),feat_dict) in noisesrc_feat_dict.items():
+        for ((dotastro_srcid, noise_float_id),feat_dict) in noisesrc_feat_dict.iteritems():
             #if not dotastrosrcid_featvals.has_key(dotastro_srcid):
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
             all_noisesrc_featval_list.append(feat_dict['feat_val'])
-            if dotastro_srcid not in self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts']:
+            if not self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'].has_key(dotastro_srcid):
                 self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'][dotastro_srcid] = {\
                             'dotastro_featvals':[],
                             'noisified_featvals':[]}
-
+                    
             self.hist_data_dict[schema_name][feat_name][class_name] \
                      ['dotastro_noise_relation_dicts'][dotastro_srcid]['noisified_featvals'].append(feat_dict['feat_val'])
         self.hist_data_dict[schema_name][feat_name][class_name]['all_noisesrc_featval_array'] = numpy.array(all_noisesrc_featval_list)
 
         ##### TCP / PTF sources which are classified as this schema:class with probability >= 90% #####
         tcpsrc_featval_list = []
-        for tcp_srcid, tcp_src_dict in tcpsrc_feat_prob_dict.items():
+        for tcp_srcid, tcp_src_dict in tcpsrc_feat_prob_dict.iteritems():
             if ((tcp_src_dict['prob'] >= self.pars['prob_cut_for_plotting_of_tcpsrc']) and
                 (tcp_src_dict['feat_val'] != None)):
                 tcpsrc_featval_list.append(tcp_src_dict['feat_val'])
@@ -1037,23 +1026,23 @@ time.sleep(3)
 
         ##### Original DotAstro sources: #####
         all_dotastro_featval_list = []
-        for (dotastro_srcid,feat_val) in dotastro_src_feat_dict.items():
+        for (dotastro_srcid,feat_val) in dotastro_src_feat_dict.iteritems():
             #if not dotastrosrcid_featvals.has_key(dotastro_srcid):
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
             if feat_val != None:
                 all_dotastro_featval_list.append(feat_val)
                 #ax.plot([feat_val], [3], 'o', color='r')
-                if dotastro_srcid in self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts']:
+                if self.hist_data_dict[schema_name][feat_name][class_name]['dotastro_noise_relation_dicts'].has_key(dotastro_srcid):
                     self.hist_data_dict[schema_name][feat_name][class_name] \
                           ['dotastro_noise_relation_dicts'][dotastro_srcid]['dotastro_featvals'].append(feat_val)
 
         self.hist_data_dict[schema_name][feat_name][class_name]['all_dotastro_featval_array'] = numpy.array(all_dotastro_featval_list)
 
-        #####
+        ##### 
         ##### JSB-var astronomer classified sources (simbad...): #####
         jsbvar_featval_list = []
-        for (tcp_srcid,feat_val) in jsbvar_src_feat_dict.items():
+        for (tcp_srcid,feat_val) in jsbvar_src_feat_dict.iteritems():
             #if not dotastrosrcid_featvals.has_key(dotastro_srcid):
             #    dotastrosrcid_featvals[dotastro_srcid] = []
             #dotastrosrcid_featvals[dotastro_srcid].append(feat_dict['feat_val'])
@@ -1065,7 +1054,7 @@ time.sleep(3)
 
         self.hist_data_dict[schema_name][feat_name][class_name]['jsbvar_featval_lists']['all_featvals'] = \
                                                                               numpy.array(jsbvar_featval_list)
-
+        
 
         #####
 
@@ -1074,7 +1063,7 @@ time.sleep(3)
         #   -> probably have some table which correlates
         #         user-classification with TCP srcid (and maybe confidences)
 
-
+        
         ######
         # TODO:
         # For a noisification-scheme && a science-class && a feature
@@ -1083,7 +1072,7 @@ time.sleep(3)
         #     - use progen_srcidict to find corresponding DotAstro sources.
         #  - overplot resulting classified sources feature value
         #  - overplot known sources found features values
-
+        
 
         #############################
         ##### EXAMPLE plotting code:
@@ -1113,28 +1102,28 @@ time.sleep(3)
 
         all_related_classes = []
         all_related_classes.append(class_name)
-        if class_name in disambiguate_sci_class_dict:
+        if disambiguate_sci_class_dict.has_key(class_name):
             canonical_classname = disambiguate_sci_class_dict[class_name]
             if not canonical_classname in all_related_classes:
                 all_related_classes.append(canonical_classname)
-            for ambig_classname, associated_classname in disambiguate_sci_class_dict.items():
+            for ambig_classname, associated_classname in disambiguate_sci_class_dict.iteritems():
                 if associated_classname == canonical_classname:
                     if not ambig_classname in all_related_classes:
                         all_related_classes.append(ambig_classname)
-        elif class_name in list(disambiguate_sci_class_dict.values()):
+        elif class_name in disambiguate_sci_class_dict.values():
             # kludgy:
-            for k,v in disambiguate_sci_class_dict.items():
+            for k,v in disambiguate_sci_class_dict.iteritems():
                 if class_name == v:
                     canonical_classname = k
                     if not canonical_classname in all_related_classes:
                         all_related_classes.append(canonical_classname)
                     #all_related_classes.append(class_name)
 
-        if schema_name not in self.related_classes_dict:
+        if not self.related_classes_dict.has_key(schema_name):
             self.related_classes_dict[schema_name] = {}
-        if feat_name not in self.related_classes_dict[schema_name]:
+        if not self.related_classes_dict[schema_name].has_key(feat_name):
             self.related_classes_dict[schema_name][feat_name] = {}
-        if class_name not in self.related_classes_dict[schema_name][feat_name]:
+        if not self.related_classes_dict[schema_name][feat_name].has_key(class_name):
             self.related_classes_dict[schema_name][feat_name][class_name] = {}
 
         self.related_classes_dict[schema_name][feat_name][class_name] = all_related_classes
@@ -1174,7 +1163,7 @@ time.sleep(3)
                                                                  feat_name=feat_name,
                                                                  feat_id=feat_id,
                                                                  all_related_classes=all_related_classes)
-
+                                                            
         # TODO: pass in & make use of jsbvar_src_feat_dict below:
 
         self.generate_distribution_plot_data(schema_name=schema_name,
@@ -1220,7 +1209,7 @@ if __name__ == '__main__':
 
     pars = { \
         'show_plots':True,
-        'all_progenitor_cutval':0.1,
+        'all_progenitor_cutval':0.1, 
         'noisif_all_progenitor_list_fpath': \
                     '/home/pteluser/src/TCP/Software/Noisification/all_progenitor_class_list.txt',
         'dotastro_xmls_rootdir':'/home/pteluser/scratch/vosource_xml_writedir',
@@ -1236,10 +1225,10 @@ if __name__ == '__main__':
         'font_size':7,
         'dpi':600,
         'figsize_tup':(6,3.5),
-        'mysql_user':"pteluser",
-        'mysql_hostname':"192.168.1.25",
-        'mysql_database':'object_test_db',
-        'mysql_port':3306,
+        'mysql_user':"pteluser", 
+        'mysql_hostname':"192.168.1.25", 
+        'mysql_database':'object_test_db', 
+        'mysql_port':3306, 
         'tcp_to_jsbvar_classname':{'Classical Cepheid':['Cepheid'],
                                    'RR Lyrae, Fundamental Mode':['rrlyrae_ab','rrlyrae_c'],
                                    'Binary':['EB*','EB*WUMa']},
@@ -1269,7 +1258,7 @@ NoiseTaskPop.fill_featname_featid_lookup_dict(tablename_featlookup="%s", filteri
     IpythonController = Ipython_Controller(pars=pars)
 
     if 0:
-        # DO THIS if running  in ipython parallel  mode:
+        # DO THIS if running  in ipython parallel  mode:        
         IpythonController.initialize_mec(mec_str=mec_str)
 
 
@@ -1295,7 +1284,7 @@ NoiseTaskPop.fill_featname_featid_lookup_dict(tablename_featlookup="%s", filteri
     #schema_name = "50nois_20epch_010need_0.100mtrc_surveynoise_linearlombfreq"
     schema_name = "50nois_00epch_010need_0.100mtrc_per900ep10day_linearlombfreq_expnoisefreq"
 
-    ##### This fills a table with the features of noisified sources
+    ##### This fills a table with the features of noisified sources 
     #     for a schema_id.
     #NOTE: this assumes Ipython-parallel is being used:
     #GSDotastroSourceFeatures.add_noisified_sources_to_tables(scheam_name=schema_name)
@@ -1304,7 +1293,7 @@ NoiseTaskPop.fill_featname_featid_lookup_dict(tablename_featlookup="%s", filteri
 
     #NOTE: There are no classes in all_progenitor_class_list.txt for classes:
     #         "RR Lyrae, Fundamental Mode"
-    #science_class = "Double mode RR-Lyrae stars"  # "Classical Cepheids" #
+    #science_class = "Double mode RR-Lyrae stars"  # "Classical Cepheids" # 
 
     #featname_list = [{'feat_name':'skew',
     #                  'reln_max_val':None,
@@ -1436,35 +1425,35 @@ SELECT count(*) AS n_noised, avg(1./feat_val) AS per_avg, std(1./feat_val) AS pe
 +----------+---------+----------+----------------------------------------------------------+
 | n_noised | per_avg | per_std  | class_name                                               |
 +----------+---------+----------+----------------------------------------------------------+
-| g     96 |  0.1492 |   0.0180 | W Ursae Majoris                                          |
-| g     49 |   3.246 |    0.993 | Classical Cepheids, Symmetrical                          |
-| X     38 |  0.7927 |      1.4 | Mira Variables                                           |
-|       29 |   2.699 |     1.17 | Eclipsing binaries, subtypes EB                          |
-|       28 |  0.6865 |    0.631 | Beta Persei                                              |
-|       21 |   3.323 |     2.00 | Eclipsing binaries, subtypes EA                          |
-|       20 |   3.817 |    0.844 | Eclipsing binaries, subtypes EW                          |
-|       13 |  0.2117 |   0.0697 | Delta-Scuti stars                                        |
-|       13 |   2.759 |    0.992 | Eclipsing Binary Systems                                 |
-|       11 | 0.04597 |   0.0529 | Contact Systems                                          |
-|       10 |  0.6002 |    0.417 | Beta Lyrae                                               |
-| g     10 |   2.694 |     0.42 | Multiple Mode Cepheid                                    |
-|        8 |  0.4850 |    0.806 | Beta Cephei, massive, rapidly rotating, multiperiodicity |
-| g      7 |    3.69 |    0.534 | Cepheid Variable                                         |
-|        6 |  0.7370 |    0.247 | Ellipsoidal variables                                    |
-|        6 |  0.0602 | 1.919334 | HADS                                                     |
-|        5 |  0.1812 |   0.0301 | Beta-Cephei stars                                        |
-| g      5 |   4.421 |   0.0531 | Double-mode Cepheids                                     |
-|        5 |   1.698 |    0.449 | Gamma-Doradus stars                                      |
-| g      4 |  0.3266 | 6.009242 | RR Lyrae - Near Symmetric                                |
-|        3 |  0.4112 | 0.000168 | Algol, semidetached, pulsating component                 |
-| g      3 |  0.3173 |   0.0303 | RR Lyrae - First Overtone                                |
-|        3 |  0.1473 |   0.0695 | Wolf-Rayet stars                                         |
-| g      2 |   4.160 |   0.0255 | Classical Cepheid Multiple Modes Symmetrical             |
-|        2 |   3.757 |     3.73 | Be Star                                                  |
-| g      2 |   0.552 | 0.000458 | RR-Lyrae stars, subtype ab                               |
-|        1 | 0.03337 |          | Semi-regular variables                                   |
-|        1 |   0.104 |          | Pulsating Subdwarf                                       |
-|        1 |   4.564 |          | Classical Cepheids                                       |
+| g     96 |  0.1492 |   0.0180 | W Ursae Majoris                                          | 
+| g     49 |   3.246 |    0.993 | Classical Cepheids, Symmetrical                          | 
+| X     38 |  0.7927 |      1.4 | Mira Variables                                           | 
+|       29 |   2.699 |     1.17 | Eclipsing binaries, subtypes EB                          | 
+|       28 |  0.6865 |    0.631 | Beta Persei                                              | 
+|       21 |   3.323 |     2.00 | Eclipsing binaries, subtypes EA                          | 
+|       20 |   3.817 |    0.844 | Eclipsing binaries, subtypes EW                          | 
+|       13 |  0.2117 |   0.0697 | Delta-Scuti stars                                        | 
+|       13 |   2.759 |    0.992 | Eclipsing Binary Systems                                 | 
+|       11 | 0.04597 |   0.0529 | Contact Systems                                          | 
+|       10 |  0.6002 |    0.417 | Beta Lyrae                                               | 
+| g     10 |   2.694 |     0.42 | Multiple Mode Cepheid                                    | 
+|        8 |  0.4850 |    0.806 | Beta Cephei, massive, rapidly rotating, multiperiodicity | 
+| g      7 |    3.69 |    0.534 | Cepheid Variable                                         | 
+|        6 |  0.7370 |    0.247 | Ellipsoidal variables                                    | 
+|        6 |  0.0602 | 1.919334 | HADS                                                     | 
+|        5 |  0.1812 |   0.0301 | Beta-Cephei stars                                        | 
+| g      5 |   4.421 |   0.0531 | Double-mode Cepheids                                     | 
+|        5 |   1.698 |    0.449 | Gamma-Doradus stars                                      | 
+| g      4 |  0.3266 | 6.009242 | RR Lyrae - Near Symmetric                                | 
+|        3 |  0.4112 | 0.000168 | Algol, semidetached, pulsating component                 | 
+| g      3 |  0.3173 |   0.0303 | RR Lyrae - First Overtone                                | 
+|        3 |  0.1473 |   0.0695 | Wolf-Rayet stars                                         | 
+| g      2 |   4.160 |   0.0255 | Classical Cepheid Multiple Modes Symmetrical             | 
+|        2 |   3.757 |     3.73 | Be Star                                                  | 
+| g      2 |   0.552 | 0.000458 | RR-Lyrae stars, subtype ab                               | 
+|        1 | 0.03337 |          | Semi-regular variables                                   | 
+|        1 |   0.104 |          | Pulsating Subdwarf                                       | 
+|        1 |   4.564 |          | Classical Cepheids                                       | 
 +----------+---------+----------+----------------------------------------------------------+
 29 rows in set (0.07 sec)
 
@@ -1472,14 +1461,14 @@ SELECT count(src_id) AS n_srcs, class_name FROM source_test_db.one_src_model_cla
 +--------+----------------------------+
 | n_srcs | class_name                 |
 +--------+----------------------------+
-|     93 | Algol (Beta Persei)        |
-|     66 | Binary                     |
-|     49 | W Ursae Majoris            |
-|     30 | Beta Lyrae                 |
-|     27 | RR Lyrae, Fundamental Mode |
-|     12 | Delta Scuti                |
-|      8 | Symmetrical                |
-|      1 | Mira                       |
+|     93 | Algol (Beta Persei)        | 
+|     66 | Binary                     | 
+|     49 | W Ursae Majoris            | 
+|     30 | Beta Lyrae                 | 
+|     27 | RR Lyrae, Fundamental Mode | 
+|     12 | Delta Scuti                | 
+|      8 | Symmetrical                | 
+|      1 | Mira                       | 
 +--------+----------------------------+
 8 rows in set (0.02 sec)
 

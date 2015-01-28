@@ -6,18 +6,6 @@ Using JSB's fiteb.py, found at:
 This code fits eclipsing models in order to determine which type of eclipsing class a TUTOR source is.
 
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import dict
-from builtins import open
-from builtins import int
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 import sys, os
 import MySQLdb
@@ -34,14 +22,14 @@ import fiteb
 
 import pprint
 import copy
-import pickle
+import cPickle
 import datetime
 import time
 
-class IPython_Task_Administrator(object):
+class IPython_Task_Administrator:
     """ Send of Imputation tasks
 
-    Adapted from activelearn_utils.py which was
+    Adapted from activelearn_utils.py which was 
             adapted from generate_weka_classifiers.py:Parallel_Arff_Maker()
 
     """
@@ -58,7 +46,7 @@ class IPython_Task_Administrator(object):
         self.mec = client.MultiEngineClient()
         #self.mec.reset(targets=self.mec.get_ids()) # Reset the namespaces of all engines
         self.tc = client.TaskClient()
-        self.task_id_list = []
+	self.task_id_list = []
 
         #### 2011-01-21 added:
         self.mec.reset(targets=self.mec.get_ids())
@@ -70,26 +58,26 @@ class IPython_Task_Administrator(object):
     def initialize_clients(self, mec_str):
         """ Instantiate ipython1 clients, import all module dependencies.
         """
-        #task_str = """cat = os.getpid()"""
-        #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-        #time.sleep(2)
-        #print self.tc.get_task_result(taskid, block=False).results
+	#task_str = """cat = os.getpid()"""
+	#taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+	#time.sleep(2)
+	#print self.tc.get_task_result(taskid, block=False).results
 
         # 20090815(before): a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=True, dorun=False)
         import time
 
         self.mec.execute(mec_str)
-        time.sleep(2) # This may be needed.
+	time.sleep(2) # This may be needed.
 
-        ### testing:
-        #task_str = """cat = os.getpid()"""
-        #taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
-        #time.sleep(1)
-        #print self.tc.get_task_result(taskid, block=False).results
+	### testing:
+	#task_str = """cat = os.getpid()"""
+	#taskid = self.tc.run(client.StringTask(task_str, pull="cat"))
+	#time.sleep(1)
+	#print self.tc.get_task_result(taskid, block=False).results
 
 
 
-class Run_FitEB_Parallel(object):
+class Run_FitEB_Parallel:
     """ Do the equivalent of run_fiteb_generate_html_pkl() in parallel.
     """
 
@@ -101,7 +89,7 @@ class Run_FitEB_Parallel(object):
                 'tutor_port':3306, #33306,
                 'tcp_hostname':'192.168.1.25',
                 'tcp_username':'pteluser',
-                'tcp_port':     3306, #23306,
+                'tcp_port':     3306, #23306, 
                 'tcp_database':'source_test_db',
                 'pkl_fpath':os.path.abspath(os.environ.get("HOME") + '/scratch/evaluate_eclipsing_classifs_using_fiteb__dict.pkl'),
                 'fiteb_class_lookup':{'contact':'y. W Ursae Maj.',
@@ -129,7 +117,7 @@ class Run_FitEB_Parallel(object):
         if len(class_id_name) == 0:
             self.DatabaseUtils = Database_Utils(pars=self.pars)
             rclass_tutorid_lookup = self.DatabaseUtils.retrieve_tutor_class_ids()
-            self.class_id_name = dict([[v,k] for k,v in list(rclass_tutorid_lookup.items())])
+            self.class_id_name = dict([[v,k] for k,v in rclass_tutorid_lookup.items()])
         else:
             self.class_id_name = class_id_name
 
@@ -173,7 +161,7 @@ out_dict = {'alt_rez':fiteb.__author__}
                                                      'filename':filename,
                                                      'classid':classid,
                                                      },
-                                      pull='out_dict',
+                                      pull='out_dict', 
                                       retries=3))
         #print self.ipy_tasks.tc.get_task_result(task_id, block=False)
         #import pdb; pdb.set_trace()
@@ -233,14 +221,14 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                                    unpack=False)
                 srcid_list = tup_list['src_id']
                 classid_list = tup_list['class_id']
-                for i, classid in enumerate(classid_list):
+                for i, classid in enumerate(classid_list):            
                     ### NOTE: i corresponds to classid and srcid_list[i]
                     if classid not in self.pars['classids_of_interest']:
                         continue
                     srcid = srcid_list[i]
                     if int(srcid) in self.pars['skip_list']:
                         continue
-                    print("srcid:", srcid)
+                    print "srcid:", srcid
                     select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (srcid + 100000000)
                     self.DatabaseUtils.tcp_cursor.execute(select_str)
                     results = self.DatabaseUtils.tcp_cursor.fetchall()
@@ -261,7 +249,7 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                                                              show=False,
                                                              fittype=self.pars['fittype']) #) #True,#verbose=False)
                         import pdb; pdb.set_trace()
-                        print()
+                        print
 
                     self.add_task(srcid=srcid,
                                   period=period,
@@ -278,22 +266,22 @@ RunFitEBParallel.client_setup(class_id_name=%s)
         for row in results:
             (srcid, classid) = row
             if classid in self.pars['classids_of_interest']:
-                if int(srcid) in self.pars['skip_list']:
-                    continue
-                print("22222222", srcid)
+                    if int(srcid) in self.pars['skip_list']:
+                        continue
+                    print "22222222", srcid
 
-                select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (srcid + 100000000)
-                self.DatabaseUtils.tcp_cursor.execute(select_str)
-                results = self.DatabaseUtils.tcp_cursor.fetchall()
-                if len(results) == 0:
-                    raise "Error"
-                period = 1. / results[0][0]
+                    select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (srcid + 100000000)
+                    self.DatabaseUtils.tcp_cursor.execute(select_str)
+                    results = self.DatabaseUtils.tcp_cursor.fetchall()
+                    if len(results) == 0:
+                        raise "Error"
+                    period = 1. / results[0][0]
 
-                self.add_task(srcid=srcid,
-                              period=period,
-                              fittype=self.pars['fittype'],
-                              filename="Debosscher",
-                              classid=classid)
+                    self.add_task(srcid=srcid,
+                                  period=period,
+                                  fittype=self.pars['fittype'],
+                                  filename="Debosscher",
+                                  classid=classid)
 
         #########
         #import pdb; pdb.set_trace()
@@ -301,7 +289,7 @@ RunFitEBParallel.client_setup(class_id_name=%s)
 
         task_id_list = self.ipy_tasks.task_id_list
         tc = self.ipy_tasks.tc
-
+        
         dtime_pending_1 = None
         while ((tc.queue_status()['scheduled'] > 0) or
                (tc.queue_status()['pending'] > 0)):
@@ -315,7 +303,7 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                     continue
                 results = temp['out_dict']
                 if len(results.get('traceback',"")) > 0:
-                    print("Task Traceback:", results.get('srcid',""), results.get('traceback',""))
+                    print "Task Traceback:", results.get('srcid',""), results.get('traceback',"")
                     continue
                 tasks_to_pop.append(task_id)
                 srcid = results['srcid']
@@ -373,23 +361,23 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                                            'reflect2':rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999,
                                            })
                 #import pdb; pdb.set_trace()
-                #print
+                #print   
             for task_id in tasks_to_pop:
                 task_id_list.remove(task_id)
                 # # #
-            if ((tc.queue_status()['scheduled'] == 0) and
+            if ((tc.queue_status()['scheduled'] == 0) and 
                 (tc.queue_status()['pending'] <= 2)):
-                if dtime_pending_1 == None:
-                    dtime_pending_1 = datetime.datetime.now()
-                else:
-                    now = datetime.datetime.now()
-                    if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
-                        print("dtime_pending=1 timeout break!")
-                        break
-            print(tc.queue_status())
-            print('Sleep... 20', datetime.datetime.utcnow())
+               if dtime_pending_1 == None:
+                   dtime_pending_1 = datetime.datetime.now()
+               else:
+                   now = datetime.datetime.now()
+                   if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
+                       print "dtime_pending=1 timeout break!"
+                       break
+            print tc.queue_status()
+            print 'Sleep... 20', datetime.datetime.utcnow()
             time.sleep(20)
-        print('> > > > tc.queue_status():', tc.queue_status())
+        print '> > > > tc.queue_status():', tc.queue_status()
 
         ### IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in self.ipy_tasks.task_id_list:
@@ -401,7 +389,7 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                 continue
             results = temp['out_dict']
             if len(results.get('traceback',"")) > 0:
-                print("Task Traceback:", results.get('srcid',""), results.get('traceback',""))
+                print "Task Traceback:", results.get('srcid',""), results.get('traceback',"")
                 continue
             tasks_to_pop.append(task_id)
             srcid = results['srcid']
@@ -459,18 +447,18 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                                        'reflect2':rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999,
                                        })
 
-
+        
 
         fp.write("""</table></body></html>
         """)
         fp.close()
 
         fp_pickle = open(pars['pkl_fpath'], 'wb')
-        pickle.dump(pickle_dict, fp_pickle, 1)
+        cPickle.dump(pickle_dict, fp_pickle, 1)
         fp_pickle.close()
-
+        
         import pdb; pdb.set_trace()
-        print()
+        print   
 
 
 
@@ -494,12 +482,12 @@ def run_fiteb_generate_html_pkl(pars={}):
         })
 
     #period_select(args.did[0],args.per[0],plot=args.plot,use_xml=True,try_alt=args.alt,dosave=args.savefig,show=args.showfig)
-    orig_cwd = os.getcwdu()
+    orig_cwd = os.getcwd()
     os.chdir(os.path.abspath(os.environ.get("HOME") + '/src/install/jsb_eb_fit'))
 
     DatabaseUtils = Database_Utils(pars=pars)
     rclass_tutorid_lookup = DatabaseUtils.retrieve_tutor_class_ids()
-    class_id_name = dict([[v,k] for k,v in list(rclass_tutorid_lookup.items())])
+    class_id_name = dict([[v,k] for k,v in rclass_tutorid_lookup.items()])
 
     fpaths = glob.glob("%s/%s" % (pars['al_dirpath'], pars['al_glob_str']))
 
@@ -518,14 +506,14 @@ def run_fiteb_generate_html_pkl(pars={}):
                                unpack=False)
             srcid_list = tup_list['src_id']
             classid_list = tup_list['class_id']
-            for i, classid in enumerate(classid_list):
+            for i, classid in enumerate(classid_list):            
                 if int(srcid_list[i]) != 164594:
                     continue
                 if classid in pars['classids_of_interest']:
                     srcid = srcid_list[i]
                     if int(srcid) in pars['skip_list']:
                         continue
-                    print("11111111", srcid)
+                    print "11111111", srcid
                     select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (srcid + 100000000)
                     DatabaseUtils.tcp_cursor.execute(select_str)
                     results = DatabaseUtils.tcp_cursor.fetchall()
@@ -581,7 +569,7 @@ def run_fiteb_generate_html_pkl(pars={}):
                                                'reflect2':rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999,
                                                })
                     #import pdb; pdb.set_trace()
-                    #print
+                    #print   
 
     select_str = "select source_id, class_id from sources where project_id = 123"
     DatabaseUtils.tutor_cursor.execute(select_str)
@@ -591,68 +579,68 @@ def run_fiteb_generate_html_pkl(pars={}):
     for row in results:
         (srcid, classid) = row
         if classid in pars['classids_of_interest']:
-            if int(srcid) in pars['skip_list']:
-                continue
-            if int(srcid) != 164594:
-                continue
-            print("22222222", srcid)
+                if int(srcid) in pars['skip_list']:
+                    continue
+                if int(srcid) != 164594:
+                    continue
+                print "22222222", srcid
 
-            select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (srcid + 100000000)
-            DatabaseUtils.tcp_cursor.execute(select_str)
-            results = DatabaseUtils.tcp_cursor.fetchall()
-            if len(results) == 0:
-                raise "Error"
-            period = 1. / results[0][0]
+                select_str = "SELECT feat_val FROM source_test_db.feat_values JOIN feat_lookup USING (feat_id) WHERE filter_id=8 AND feat_name='freq1_harmonics_freq_0' AND src_id=%d" % (srcid + 100000000)
+                DatabaseUtils.tcp_cursor.execute(select_str)
+                results = DatabaseUtils.tcp_cursor.fetchall()
+                if len(results) == 0:
+                    raise "Error"
+                period = 1. / results[0][0]
 
-            (alt_rez, rez) = fiteb.period_select(idd=int(srcid),
-                                             per=period,
-                                             plot=True,
-                                             use_xml=True,
-                                             try_alt=True,
-                                             dosave=True,
-                                             show=False,
-                                             fittype=pars['fittype'])#, #True,verbose=False)
+                (alt_rez, rez) = fiteb.period_select(idd=int(srcid),
+                                                 per=period,
+                                                 plot=True,
+                                                 use_xml=True,
+                                                 try_alt=True,
+                                                 dosave=True,
+                                                 show=False,
+                                                 fittype=pars['fittype'])#, #True,verbose=False)
 
-            #pprint.pprint(rez)
-            fp.write('<tr><td><A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d">%d</A></td><td><A href="http://lyra.berkeley.edu/~pteluser/fiteb_plots/plot%d.png" target="_blank">plot</A></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%4.2f</td><td>%4.4f</td><td>%4.2f +- %4.2f</td><td>%4.2f +- %4.2f</td><td>%4.2f +- %4.2f</td><td>%s</td><td>%s</td></tr>\n' % \
-                     (srcid, srcid, srcid, "Debosscher", class_id_name[classid], pars['fiteb_class_lookup'].get(rez.get('class',None),'unknown'), str(rez.get('okfit',False)),
-                          rez.get('chisq',False),
-                          rez.get('e',False),
-                          rez.get('i',0),
-                          rez.get('i_err',99999) if rez.get('i_err',99999) is not None else 99999,
-                          rez.get('q',0),
-                          rez.get('q_err',0) if rez.get('q_err',0) is not None else 99999,
-                          rez.get('l1/l2',0),
-                          rez.get('l1/l2_err',0) if rez.get('l1/l2_err',0) is not None else 99999,
-                          str(rez.get('reflect1',99999) if rez.get('reflect1',99999) is not None else 99999),
-                          str(rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999),
-                          ))
-
-            fp.flush()
-            pickle_dict[srcid] = rez
-            pickle_dict[srcid].update({'file':"Debosscher",
-                                       'tutor_class':class_id_name[classid],
-                                       'fiteb_class':pars['fiteb_class_lookup'].get(rez.get('class',None),'unknown'),
-                                       'okfit':rez.get('okfit',False),
-                                       'chisq':rez.get('chisq',False),
-                                       'e':rez.get('e',False),
-                                       'i':rez.get('i',99999),
-                                       'i_err':rez.get('i_err',99999),
-                                       'q':rez.get('q',99999),
-                                       'q_err':rez.get('q_err',99999) if rez.get('q_err',99999) is not None else 99999,
-                                       'l1/l2':rez.get('l1/l2',99999),
-                                       'l1/l2_err':rez.get('l1/l2_err',99999) if rez.get('l1/l2_err',99999) is not None else 99999,
-                                       'reflect1':rez.get('reflect1',99999) if rez.get('reflect1',99999) is not None else 99999,
-                                       'reflect2':rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999,
-                                       })
-            #break
+                #pprint.pprint(rez)
+                fp.write('<tr><td><A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d">%d</A></td><td><A href="http://lyra.berkeley.edu/~pteluser/fiteb_plots/plot%d.png" target="_blank">plot</A></td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%4.2f</td><td>%4.4f</td><td>%4.2f +- %4.2f</td><td>%4.2f +- %4.2f</td><td>%4.2f +- %4.2f</td><td>%s</td><td>%s</td></tr>\n' % \
+                         (srcid, srcid, srcid, "Debosscher", class_id_name[classid], pars['fiteb_class_lookup'].get(rez.get('class',None),'unknown'), str(rez.get('okfit',False)),
+                              rez.get('chisq',False),
+                              rez.get('e',False),
+                              rez.get('i',0),
+                              rez.get('i_err',99999) if rez.get('i_err',99999) is not None else 99999,
+                              rez.get('q',0),
+                              rez.get('q_err',0) if rez.get('q_err',0) is not None else 99999,
+                              rez.get('l1/l2',0),
+                              rez.get('l1/l2_err',0) if rez.get('l1/l2_err',0) is not None else 99999,
+                              str(rez.get('reflect1',99999) if rez.get('reflect1',99999) is not None else 99999),
+                              str(rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999),
+                              ))
+                          
+                fp.flush()
+                pickle_dict[srcid] = rez
+                pickle_dict[srcid].update({'file':"Debosscher",
+                                           'tutor_class':class_id_name[classid],
+                                           'fiteb_class':pars['fiteb_class_lookup'].get(rez.get('class',None),'unknown'),
+                                           'okfit':rez.get('okfit',False),
+                                           'chisq':rez.get('chisq',False),
+                                           'e':rez.get('e',False),
+                                           'i':rez.get('i',99999),
+                                           'i_err':rez.get('i_err',99999),
+                                           'q':rez.get('q',99999),
+                                           'q_err':rez.get('q_err',99999) if rez.get('q_err',99999) is not None else 99999,
+                                           'l1/l2':rez.get('l1/l2',99999),
+                                           'l1/l2_err':rez.get('l1/l2_err',99999) if rez.get('l1/l2_err',99999) is not None else 99999,
+                                           'reflect1':rez.get('reflect1',99999) if rez.get('reflect1',99999) is not None else 99999,
+                                           'reflect2':rez.get('reflect2',99999) if rez.get('reflect2',99999) is not None else 99999,
+                                           })
+                #break
 
     fp.write("""</table></body></html>
     """)
     fp.close()
 
     fp_pickle = open(pars['pkl_fpath'], 'wb')
-    pickle.dump(pickle_dict, fp_pickle, 1)
+    cPickle.dump(pickle_dict, fp_pickle, 1)
     fp_pickle.close()
 
 
@@ -663,7 +651,7 @@ class FitEB_Param_Analysis(Database_Utils):
     def __init__(self, pars={}):
         self.pars = pars
         self.pars['fiteb_class_lookup_rev'] = {}
-        for k, v in self.pars['fiteb_class_lookup'].items():
+        for k, v in self.pars['fiteb_class_lookup'].iteritems():
             self.pars['fiteb_class_lookup_rev'][v] = k
         self.connect_to_db()
 
@@ -673,8 +661,8 @@ class FitEB_Param_Analysis(Database_Utils):
         Return; a reduced  arff_attrib_list
 
 * want to parse SVM_ranker file and construct ordered lists for each attribute
-      - storing merit, rank :
-** This code runs at:
+      - storing merit, rank : 
+** This code runs at: 
 ** then store attribs in final allowed list which:
    - have a merit above a certain value
    - OR, that attribute has not been stored yet.
@@ -697,7 +685,7 @@ average merit      average rank  attribute
                 in_header = False
                 continue # skip this line
             if in_header:
-                continue
+               continue
             line_rep = line.replace("+-", "")
             elems = line_rep.split()
             merit = float(elems[0])
@@ -707,9 +695,9 @@ average merit      average rank  attribute
             attrib_root = attrib[:i_split]
             if merit < self.pars['SVMrank_allow_cut']:
                 #import pdb; pdb.set_trace()
-                #print
+                #print   
                 pass # we do not use this percentile attribute
-            elif attrib_root not in attrib_added_dict:
+            elif not attrib_added_dict.has_key(attrib_root):
                 attrib_added_dict[attrib_root] = [attrib]
                 arff_attrib_list_out.append(attrib)
             elif len(attrib_added_dict[attrib_root]) < self.pars['n_attrib_percentiles_cut']:
@@ -720,7 +708,7 @@ average merit      average rank  attribute
         arff_attrib_list_out.sort()
         return arff_attrib_list_out
 
-
+        
     def parse_trainset_srcid_list(self):
         """ Parse a list file of srcids, classified as one of 3 eclipsing classes.
         These are to be used as the training set for the WEKA classifier, and are
@@ -759,7 +747,7 @@ average merit      average rank  attribute
             trainset_srcid_class_dict = self.parse_trainset_srcid_list()
 
         fp_pickle = open(self.pars['pkl_fpath'])
-        data_dict = pickle.load(fp_pickle)
+        data_dict = cPickle.load(fp_pickle)
         fp_pickle.close()
 
         fp_html = open(os.path.abspath(os.environ.get("HOME") + '/scratch/evaluate_eclipsing_classifs.html'),'w')
@@ -770,7 +758,7 @@ average merit      average rank  attribute
         attribs_for_percentiles = ['chisq', 'i_err', 'q_err', 'l1/l2_err', 'l1/l2', 'q', 'r1', 'r2', 'reflect1', 'reflect2', 'primary_eclipse_phase', 'period', 'omega_deg', 'l1', 'l2', 'e'] # 'primary_eclipse_phase', 'period', 'omega_deg', 'l1', 'l2', 'e']
         arff_attrib_list_orig = copy.copy(self.pars['analysis_params'])
         for a_name in attribs_for_percentiles:
-            for c_name in list(self.pars['fiteb_class_lookup'].keys()):
+            for c_name in self.pars['fiteb_class_lookup'].keys():
                 for temp_type in ['perc', 'npass']:
                     for perc in [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90]:
                         temp_param_name = "%s_%s_%s_%d" % (c_name, a_name, temp_type, perc)
@@ -810,11 +798,11 @@ average merit      average rank  attribute
                      'r2':       [0.0, 2],
                      'i_err':    [0.0, 100]}
 
-        for class_name in list(self.pars['fiteb_class_lookup'].values()):
+        for class_name in self.pars['fiteb_class_lookup'].values():
             for i_param, param_name in enumerate(self.pars['analysis_params']):
                 match_vals = []
                 mismatch_vals = []
-                for srcid, src_dict in data_dict.items():
+                for srcid, src_dict in data_dict.iteritems():
                     ### NOTE: cannot apply these constraints:
                     ##  i : even for detached, i spread for matches is >= mismatch i value spread
                     ##  e : doesnt seem to be related to match / mismatch
@@ -894,7 +882,7 @@ average merit      average rank  attribute
                     """
 
                     if use_trainset_srcid_list:
-                        if not srcid in list(trainset_srcid_class_dict.keys()):
+                        if not srcid in trainset_srcid_class_dict.keys():
                             continue # skip this source
                         source_class = trainset_srcid_class_dict[srcid]
                         #import pdb; pdb.set_trace()
@@ -927,7 +915,7 @@ average merit      average rank  attribute
                             for param_name2 in arff_attrib_list:
                                 #if ((srcid == 264245) and (param_name2 == 'semi-detached_chisq_perc_5')):
                                 #import pdb; pdb.set_trace()
-                                #print
+                                #print   
                                 if '_perc_' in param_name2:
                                     perc_num = int(param_name2[param_name2.rfind('_')+1:])
                                     cls_name = param_name2[:param_name2.find('_')]
@@ -953,26 +941,26 @@ average merit      average rank  attribute
                                     if numpy.isnan(v):
                                         v = "?" # KLUDGE
                                 if v == 999999:
-                                    print('INT 999999')
+                                    print 'INT 999999'
                                     v = "?" # KLUDGE: catches this N/A value which is generated in fiteb.py::period_select() when EB.run().outrez{} is missing some physical parameters
                                 elif v == 99999:
-                                    print('INT 99999')
+                                    print 'INT 99999'
                                     v = "?" # KLUDGE: catches this N/A value which is generated in fiteb.py::period_select() when EB.run().outrez{} is missing some physical parameters
                                 val_strs.append(str(v))
                             a_str = "%d,%s,'%s'\n" % (srcid, ",".join(val_strs), self.pars['fiteb_class_lookup_rev'][class_name])
                             fp_arff.write(a_str)
-
+                            
                         if 'chi2_perc' in param_name:
                             perc_num = int(param_name[param_name.rfind('_')+1:])
                             cls_name = self.pars['fiteb_class_lookup_rev'][class_name]
-                            if cls_name in src_dict['chisq_percentiles']:
+                            if src_dict['chisq_percentiles'].has_key(cls_name):
                                 v = src_dict['chisq_percentiles'][cls_name][perc_num]['val_at_perc']
                             else:
                                 v = None
                         elif 'chi2_npass' in param_name:
                             perc_num = int(param_name[param_name.rfind('_')+1:])
                             cls_name = self.pars['fiteb_class_lookup_rev'][class_name]
-                            if cls_name in src_dict['chisq_percentiles']:
+                            if src_dict['chisq_percentiles'].has_key(cls_name):
                                 v = src_dict['chisq_percentiles'][cls_name][perc_num]['n_pass']
                             else:
                                 v = None
@@ -980,7 +968,7 @@ average merit      average rank  attribute
                             v = src_dict[param_name]
                         if v != None:
                             match_vals.append(v)
-                            print("   MATCH plot:%s TUTOR:%s fiteb:%s chi2:%f" % (class_name, source_class, src_dict['fiteb_class'], src_dict['chisq']))
+                            print "   MATCH plot:%s TUTOR:%s fiteb:%s chi2:%f" % (class_name, source_class, src_dict['fiteb_class'], src_dict['chisq'])                        
                     elif ((class_name == source_class) and
                           (source_class != src_dict['fiteb_class']) and
                           (srcid in [260456, 220490, 217279, 222948, 219432, 216954, 251878, 226123, 247767, 237081, 235730, 250580, 231228, 222870, 246079, 164512, 164525, 164531, 164533, 164541, 164542, 164543, 164544, 164558, 164556, 164562, 164577, 164579, 164583, 164588, 164596, 164592, 164603, 164611, 164613, 164625, 164628, 164643, 164651, 164667, 164669, 164674, 164683, 164685, 164684, 164690, 164697, 164704, 164703, 164701, 164712, 164707, 164710, 164725, 164744, 164766, 164771, 164778, 164797, 164833, 164867, 164876, 164881])
@@ -988,14 +976,14 @@ average merit      average rank  attribute
                         if 'chi2_perc' in param_name:
                             perc_num = int(param_name[param_name.rfind('_')+1:])
                             cls_name = self.pars['fiteb_class_lookup_rev'][class_name]
-                            if cls_name in src_dict['chisq_percentiles']:
+                            if src_dict['chisq_percentiles'].has_key(cls_name):
                                 v = src_dict['chisq_percentiles'][cls_name][perc_num]['val_at_perc']
                             else:
                                 v = None
                         elif 'chi2_npass' in param_name:
                             perc_num = int(param_name[param_name.rfind('_')+1:])
                             cls_name = self.pars['fiteb_class_lookup_rev'][class_name]
-                            if cls_name in src_dict['chisq_percentiles']:
+                            if src_dict['chisq_percentiles'].has_key(cls_name):
                                 v = src_dict['chisq_percentiles'][cls_name][perc_num]['n_pass']
                             else:
                                 v = None
@@ -1003,7 +991,7 @@ average merit      average rank  attribute
                             v = src_dict.get(param_name,88888)
                         if v != None:
                             mismatch_vals.append(v)
-                            print("MISMATCH plot:%s TUTOR:%s fiteb:%s chi2:%f" % (class_name, source_class, src_dict['fiteb_class'], src_dict['chisq'] if src_dict.get('chisq',99999) is not None else 99999))
+                            print "MISMATCH plot:%s TUTOR:%s fiteb:%s chi2:%f" % (class_name, source_class, src_dict['fiteb_class'], src_dict['chisq'] if src_dict.get('chisq',99999) is not None else 99999)
 
                 #mags = vals
                 #fits = norm.fit(mags)
@@ -1035,7 +1023,7 @@ average merit      average rank  attribute
                 #os.system('eog %s ' % (fpath))
                 #pyplot.show()
 
-                print(param_name)
+                print param_name
                 pyplot.clf()
 
 
@@ -1046,10 +1034,10 @@ average merit      average rank  attribute
         os.system('eog /tmp/evaluate_eclipsing_classifs*png &')
         #import pdb; pdb.set_trace()
         #print
-
-class Classify_And_Summarize(object):
+        
+class Classify_And_Summarize:
     """ Classify and generate summary html, as well as classification distribution summary file.
-    """
+    """ 
     def __init__(self, pars={}):
         self.DatabaseUtils = Database_Utils(pars=pars)
 
@@ -1159,17 +1147,17 @@ class Classify_And_Summarize(object):
             if found_data:
                 srcid = int(line[:line.find(',')])
                 testing_srcid_list.append(srcid)
-                # NOTE: I dont think we need to parse the class, snce this is contained in the class distrib output
+                # NOTE: I dont think we need to parse the class, snce this is contained in the class distrib output        
             elif "@DATA" in line:
                 found_data = True
-
+            
         training_srcid_list = []
         found_data = False
         for line in open(p['train_arff_withsrcid']).readlines():
             if found_data:
                 srcid = int(line[:line.find(',')])
                 training_srcid_list.append(srcid)
-                # NOTE: I dont think we need to parse the class, snce this is contained in the class distrib output
+                # NOTE: I dont think we need to parse the class, snce this is contained in the class distrib output        
             elif "@DATA" in line:
                 found_data = True
 
@@ -1177,7 +1165,7 @@ class Classify_And_Summarize(object):
         sys_str = "java weka.classifiers.trees.RandomForest -T %s -l %s -p 1 -distribution > %s" % (p['test_arff_nosrcid'], p['train_model'], p['classif_distrib_fpath'])
         os.system(sys_str)
         time.sleep(2)
-
+            
         #training_srcid_list = []
         found_header = False
         test_srcid_classifs = {}
@@ -1237,9 +1225,9 @@ class Classify_And_Summarize(object):
             in_trainingset_str = ""
             if srcid in training_srcid_list:
                 in_trainingset_str = "train"
-
+                
             comment_str = ""
-            if srcid in list(srcid_comment.keys()):
+            if srcid in srcid_comment.keys():
                 comment_str = srcid_comment[srcid]
 
             a_str = """<tr><td><A href="http://lyra.berkeley.edu/allstars/?mode=inspect&srcid=%d" target="_blank">%d</A></td>
@@ -1279,13 +1267,13 @@ class Classify_And_Summarize(object):
                 raise "Error"
             ra = results[0][0]
             decl = results[0][1]
-            source_name = results[0][2]
+            source_name = results[0][2]            
             # ASAS only:   if srcid >= 215153:
             if ((test_srcid_classifs[srcid]['tutor_class'] != p['classes'][test_srcid_classifs[srcid]['primary_class_i']]) and
                 ((test_srcid_classifs[srcid]['class_probs'][0] >= 0.8) or
                  (test_srcid_classifs[srcid]['class_probs'][1] >= 0.8) or
                  (test_srcid_classifs[srcid]['class_probs'][2] >= 0.8))):
-                print("%d %s %12.6lf %12.6lf %s %0.7s %0.7s %0.2f %0.2f %0.2f %s" % ( \
+                print "%d %s %12.6lf %12.6lf %s %0.7s %0.7s %0.2f %0.2f %0.2f %s" % ( \
                     srcid,
                     source_name,
                     ra,
@@ -1297,7 +1285,7 @@ class Classify_And_Summarize(object):
                     test_srcid_classifs[srcid]['class_probs'][1],
                     test_srcid_classifs[srcid]['class_probs'][2],
                     comment_str,
-                    ))
+                    )
                 #import pdb; pdb.set_trace()
                 #print
 
@@ -1334,7 +1322,7 @@ def generate_jktebop_templates(pars={}):
                                 },
                 }
     lines = open(pars['reference_template_fpath']).readlines()
-
+            
     i_template = pars['fname_i_start']
 
     pname_1 = 'Orbital inclination'
@@ -1346,7 +1334,7 @@ def generate_jktebop_templates(pars={}):
             if pname_1 in line:
                 val_1_str = "%0.1f" % (val_1)
                 new_line = "%s%s%s" % (line[:pdict_1["i_low"]], val_1_str, line[pdict_1["i_low"] + len(val_1_str):])
-                print(new_line)
+                print new_line
                 new_lines.append(new_line)
             else:
                 new_lines.append(line)
@@ -1362,7 +1350,7 @@ def generate_jktebop_templates(pars={}):
                 if pname_2 in line:
                     val_2_str = "%0.1f" % (val_2)
                     new_line = "%s%s%s" % (line[:pdict_2["i_low"]], val_2_str, line[pdict_2["i_low"] + len(val_2_str):])
-                    print(new_line)
+                    print new_line
                     new_lines.append(new_line)
                 else:
                     new_lines.append(line)
@@ -1378,7 +1366,7 @@ def generate_jktebop_templates(pars={}):
                     if pname_3 in line:
                         val_3_str = "%0.1f" % (val_3)
                         new_line = "%s%s%s" % (line[:pdict_3["i_low"]], val_3_str, line[pdict_3["i_low"] + len(val_3_str):])
-                        print(new_line)
+                        print new_line
                         new_lines.append(new_line)
                     else:
                         new_lines.append(line)
@@ -1433,7 +1421,7 @@ if __name__ == '__main__':
             'tutor_port':3306, #33306,
             'tcp_hostname':'192.168.1.25',
             'tcp_username':'pteluser',
-            'tcp_port':     3306, #23306,
+            'tcp_port':     3306, #23306, 
             'tcp_database':'source_test_db',
             'pkl_fpath':os.path.abspath(os.environ.get("HOME") + '/scratch/evaluate_eclipsing_classifs_using_fiteb__dict.pkl'),
             'class_short_lookup':{'EW':'y. W Ursae Maj.',
@@ -1469,7 +1457,7 @@ if __name__ == '__main__':
         ### Single mode (for only for debugging a srcid now):
         #run_fiteb_generate_html_pkl(pars=pars)
         import pdb; pdb.set_trace()
-        print()
+        print
 
     if 0:
         ### For generating parameter liklihood plots in order to choose param cuts.

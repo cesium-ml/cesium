@@ -4,16 +4,6 @@
 
 PDB: /scisoft/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4/pdb.py dbxml_test.py
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 import datetime
 import traceback
@@ -40,12 +30,12 @@ pars = {\
 def make_wwwable(messy_str, replace_dict):
     """ Make a messy string www printable.
     """
-    for bad_str,new_str in replace_dict.items():
+    for bad_str,new_str in replace_dict.iteritems():
         messy_str = messy_str.replace(bad_str,new_str)
     return messy_str
 
 
-class DBXML_Container_Instance(object):
+class DBXML_Container_Instance:
     """ This object class wraps methods for single dbxml container use.
 
     REQUIRES:
@@ -61,13 +51,13 @@ class DBXML_Container_Instance(object):
 
     def create(self, db_fpath):
         """ Create new dbxml container
-        """
+        """ 
         self.db_fpath = db_fpath
         self.dirname = os.path.dirname(self.db_fpath)
         self.fname = os.path.basename(self.db_fpath)
         if os.path.exists(self.db_fpath):
             os.system('rm ' + self.db_fpath)
-        self.oldcwd = os.getcwdu()
+        self.oldcwd = os.getcwd()
         os.chdir(self.dirname)
         self.container = self.mgr.createContainer(self.fname)
 
@@ -83,17 +73,17 @@ class DBXML_Container_Instance(object):
 
     def open(self, db_fpath):
         """ Open existing dbxml container
-        """
+        """ 
         self.db_fpath = db_fpath
         self.dirname = os.path.dirname(self.db_fpath)
         self.fname = os.path.basename(self.db_fpath)
-        self.oldcwd = os.getcwdu()
+        self.oldcwd = os.getcwd()
         os.chdir(self.dirname)
         self.container = self.mgr.openContainer(self.fname)
 
 
     def conform_xml_str(self, xml_string):
-        for bad_str,new_str in self.xml_replace_dict.items():
+        for bad_str,new_str in self.xml_replace_dict.iteritems():
             xml_string = xml_string.replace(bad_str,new_str)
         return xml_string
 
@@ -144,7 +134,7 @@ class DBXML_Container_Instance(object):
             result_list.append(value.asString())
         if verbose == 'yes':
             for result in result_list:
-                print(result)
+                print result
         return result_list
 
 
@@ -167,7 +157,7 @@ if __name__ == '__main__':
         ao = amara.parse(xml_fpath) # = open(xml_fpath).read()
         xml_str = ao.xml()
         try:
-            voevent_id_raw = str(ao.VOEvent.xml_properties['id'])
+            voevent_id_raw = str(ao.VOEvent.xml_properties[u'id'])
         except:
             voevent_id_raw = str(xml_fpath) #OR some kind of somewhat useful id
         voevent_id = voevent_id_raw # make_wwwable(voevent_id_raw, pars['wwwable_replace_dict'])
@@ -193,7 +183,7 @@ if __name__ == '__main__':
 
     sys.exit()
 
-
+          
 
 
     ##########

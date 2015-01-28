@@ -1,14 +1,7 @@
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import absolute_import
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from ..FeatureExtractor import FeatureExtractor
 
 class median_buffer_range_percentage_extractor(FeatureExtractor):
-    """ extracts the percentage of points that fall within the buffer reang of
+    """ extracts the percentage of points that fall within the buffer reang of 
     the median """
     active = True
     extname = 'median_buffer_range_percentage' #extractor's name

@@ -1,17 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """ pairitel_pkl_ingest.py
 
 Used to ingest all pairitel pkl files.
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import threading
 import time
@@ -30,7 +21,7 @@ pars = {\
         '/home/pteluser/scratch/TCP_tests/pkl_path_list.sem2005a'],
         }
 
-class Pairitel_Pickle_ingest(object):
+class Pairitel_Pickle_ingest:
     def __init__(self, pars):
         self.pars = pars
 
@@ -68,7 +59,7 @@ class Pairitel_Pickle_ingest(object):
                 if len(line_elems) != 2:
                     continue
                 pkl_fpath = line_elems[1]
-                print(pkl_fpath)
+                print pkl_fpath
                 scratch_dirpath = "%s/pkl_ingest_%s" % (self.pars['scratch_dirpath'], scratch_dir_count)
 
                 for thr in running_threads:
@@ -89,7 +80,7 @@ class Pairitel_Pickle_ingest(object):
                 t.start()
                 running_threads.append(t)
                 scratch_dir_count += 1
-
+                
 
 # TODO: write ingested pickle fpaths to log file.
 

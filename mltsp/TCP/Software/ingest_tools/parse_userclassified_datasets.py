@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
 TODO: parse out rrlyrae and other variables
 
@@ -13,18 +13,6 @@ ipython --pylab
 import pl        # this has way of making use of these files
 
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import str
-from builtins import int
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import copy
 import numpy
@@ -38,7 +26,7 @@ import ingest_tools
 sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/MLData')
 import arffify
 
-class DB_Connector(object):
+class DB_Connector:
     """ Estableshes connection to mysql RDB.
     To be inherited by another class.
     """
@@ -48,7 +36,7 @@ class DB_Connector(object):
     def establish_db_connection(self, cursor=None, host='', user='', db='', port=0):
         """ connect to the rdb database, or use given cursor.
         """
-
+    
         if cursor == None:
             db = MySQLdb.connect(host=host, \
                                  user=user, \
@@ -103,7 +91,7 @@ class Data_Parse(DB_Connector):
                 else:
                     data_dict[col_names[i]] = str(val)
             src_id = data_dict['jsb_source_id'] # ['main_id']
-            if src_id not in all_data_dict:
+            if not all_data_dict.has_key(src_id):
                 all_data_dict[src_id] = {'src_id':src_id,
                                          'class_type':data_dict['otype'],
                                          'ra':data_dict['ra'],
@@ -113,17 +101,17 @@ class Data_Parse(DB_Connector):
                                                'merr':[],
                                                'lbl_id':[],
                                                'filt':[]}}
-
+            
             all_data_dict[src_id]['ts']['ujd'].append(data_dict['ujd'])
             all_data_dict[src_id]['ts']['mtotal'].append(data_dict['mtotal'])
             all_data_dict[src_id]['ts']['merr'].append(data_dict['merr'])
             all_data_dict[src_id]['ts']['lbl_id'].append(data_dict['lbl_id'])
             all_data_dict[src_id]['ts']['filt'].append(data_dict['filter'])
 
-        for src_id,src_dict in all_data_dict.items():
-            for a_name, a_list in src_dict['ts'].items():
+        for src_id,src_dict in all_data_dict.iteritems():
+            for a_name, a_list in src_dict['ts'].iteritems():
                 src_dict['ts'][a_name] = numpy.array(a_list)
-
+        
         return all_data_dict
 
 
@@ -159,11 +147,11 @@ class Data_Parse(DB_Connector):
                         data_dict[col_names[i]] = float(val)
                 else:
                     data_dict[col_names[i]] = str(val)
-            if data_dict['simbad_name'] not in srcid_lookup:
+            if not srcid_lookup.has_key(data_dict['simbad_name']):
                 max_srcid += 1
                 srcid_lookup[data_dict['simbad_name']] = copy.copy(max_srcid) # data_dict['simbad_name'] # ['main_id']
             src_id = srcid_lookup[data_dict['simbad_name']]
-            if src_id not in all_data_dict:
+            if not all_data_dict.has_key(src_id):
                 all_data_dict[src_id] = {'src_id':src_id,
                                          'class_type':data_dict['simbad_type'],
                                          'ra':data_dict['ra'],
@@ -173,17 +161,17 @@ class Data_Parse(DB_Connector):
                                                'merr':[],
                                                'lbl_id':[],
                                                'filt':[]}}
-
+            
             all_data_dict[src_id]['ts']['ujd'].append(data_dict['ujd'])
             all_data_dict[src_id]['ts']['mtotal'].append(data_dict['mtotal'])
             all_data_dict[src_id]['ts']['merr'].append(data_dict['merr'])
             all_data_dict[src_id]['ts']['lbl_id'].append(data_dict['lbl_id'])
             all_data_dict[src_id]['ts']['filt'].append(data_dict['filter'])
 
-        for src_id,src_dict in all_data_dict.items():
-            for a_name, a_list in src_dict['ts'].items():
+        for src_id,src_dict in all_data_dict.iteritems():
+            for a_name, a_list in src_dict['ts'].iteritems():
                 src_dict['ts'][a_name] = numpy.array(a_list)
-
+        
         return all_data_dict
 
 
@@ -211,7 +199,7 @@ class Data_Parse(DB_Connector):
                                   'mag_r':mag_r,
                                   'ptfname':ptfname,
                                   'ts':{}}
-
+            
             # need to do an os.listdir() and iterate over all of these and store into a dict.
 
             fpath = "%s/rrl%d.dat" % (self.pars['rrlyra_data_dirpath'], sesar_id)
@@ -244,7 +232,7 @@ class Data_Parse(DB_Connector):
         """ A Hack for temporoary table fix.
         """
 
-        for src_id, src_dict in data_dict.items():
+        for src_id, src_dict in data_dict.iteritems():
             #tcp_srcid = "Null"
             #if jsb_tcp_srcid_lookup[src_dict['src_id']] != None:
             #    tcp_srcid = str(jsb_tcp_srcid_lookup[src_dict['src_id']]['tcp_srcid'])
@@ -263,7 +251,7 @@ class Data_Parse(DB_Connector):
 
         insert_list = ["INSERT INTO %s (jsb_srcid, lbl_id, ujd, mag_err, mag_total, filt) VALUES " % (self.pars['data_tablename'])]
 
-        for src_id, src_dict in data_dict.items():
+        for src_id, src_dict in data_dict.iteritems():
             if src_dict['ts']['ujd'].size == 1:
                 insert_list.append('(%d, %d, %lf, %lf, %lf, "%s"), ' % ( \
                                    src_dict['src_id'],
@@ -273,7 +261,7 @@ class Data_Parse(DB_Connector):
                                    src_dict['ts']['mtotal'],
                                    src_dict['ts']['filt']))
             else:
-                for i in range(src_dict['ts']['ujd'].size):
+                for i in xrange(src_dict['ts']['ujd'].size):
                     insert_list.append('(%d, %d, %lf, %lf, %lf, "%s"), ' % ( \
                                    src_dict['src_id'],
                                    src_dict['ts']['lbl_id'][i],
@@ -287,7 +275,7 @@ class Data_Parse(DB_Connector):
         ### Lookup table:
         insert_list = ["INSERT INTO %s (jsb_srcid, tcp_srcid, class_type, ra, decl, jsb_period, jsb_amp) VALUES " % (self.pars['lookup_tablename'])]
 
-        for src_id, src_dict in data_dict.items():
+        for src_id, src_dict in data_dict.iteritems():
             tcp_srcid = "Null"
             if jsb_tcp_srcid_lookup[src_dict['src_id']] != None:
                 tcp_srcid = str(jsb_tcp_srcid_lookup[src_dict['src_id']]['tcp_srcid'])
@@ -301,7 +289,7 @@ class Data_Parse(DB_Connector):
                                    src_dict['amp']))
         if len(insert_list) > 1:
             self.cursor.execute(''.join(insert_list)[:-2])
-
+        
 
     def match_jsb_sources_with_tcp_sources(self, data_dict={}):
         """  This queries the srcid_lookup table an finds the best matching source
@@ -309,7 +297,7 @@ class Data_Parse(DB_Connector):
         """
         jsb_tcp_srcid_lookup = {}
 
-        for src_dict in list(data_dict.values()):
+        for src_dict in data_dict.values():
             src_id = src_dict['src_id']
 
             if self.pars['do_lbl_check']:
@@ -323,7 +311,7 @@ class Data_Parse(DB_Connector):
             ra_high = src_dict['ra'] + (self.pars['spatial_query_box_length'] / 2.)
             dec_low = src_dict['dec'] - (self.pars['spatial_query_box_length'] / 2.)
             dec_high = src_dict['dec'] + (self.pars['spatial_query_box_length'] / 2.)
-
+            
             select_str = "SELECT count(%s.obj_id), src_id FROM %s JOIN %s USING (src_id) WHERE DIF_HTMRectV(%lf, %lf, %lf, %lf) GROUP BY src_id" % ( \
                                self.pars['obj_srcid_lookup_tablename'],
                                self.pars['srcid_lookup_htm_tablename'],
@@ -388,7 +376,7 @@ class Data_Parse(DB_Connector):
 
         Ideally this is run in parallel.
         """
-        # Now I want to take the tcp_srcids & insert into
+        # Now I want to take the tcp_srcids & insert into 
         #  - so, given a tcp src_id, I want to generate the features
         #  - and with features in an XML file/string, I want to add to a .arff file
         ReevaluateFeatClass = reevaluate_feat_class.Reevaluate_Feat_Class(cursor=self.cursor)
@@ -403,12 +391,12 @@ class Data_Parse(DB_Connector):
         for row in rows:
             srcid_list.append(row[0])
             class_list.append(row[1])
-
+            
         for i, tcp_srcid in enumerate(srcid_list):
             xml_out_fpath = "%s/%d.xml" % (self.pars['intermed_xmls_dirpath'], tcp_srcid)
             if os.path.exists(xml_out_fpath):
                 continue # skip this since the xml file already exists and thus its features were generated
-
+            
             (srcid_xml_tuple_list, n_objs) = ReevaluateFeatClass.reeval_get_xml_tuplelist(src_id=tcp_srcid)
 
             xml_str = srcid_xml_tuple_list[0][1]
@@ -440,10 +428,10 @@ class Data_Parse(DB_Connector):
             #   - need to disable the use fo existing class-name schema in arffify.py
             #a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_abrvs_to_names=False, flag_retrieve_class_abrvs_from_TUTOR=False, dorun=False)
             #out_dict = a.generate_arff_line_for_vosourcexml(num=str(tcp_srcid), xml_fpath=new_xml_str)
-            #print
+            #print 
             #print out_dict['class']
             #rrlyrae_ab
-
+        
         ############# TODO: I need to mark / fill in the <classification>
         # Maybe just pass the classifcations into function - vosource_class_obj.add_classif_prob()
         #   - so that db_importer.py:1012   "class" is inserted into sdict.
@@ -474,7 +462,7 @@ class Data_Parse(DB_Connector):
         ##### ingest_tools.py : get_vosourcelist_for_ptf_using_srcid()
 
 
-        print()
+        print
 
         # TODO: ? What will arff generation code want?
         #    - want to generate arff with PTF/TCP data but user-classifications.
@@ -486,7 +474,7 @@ class Data_Parse(DB_Connector):
         # - store tcp_srcid, other_srcid lookup in another table
         #    jsb_srcid (sesar_id or candidate_id), ptf_candidate_id, tcp_srcid
         #        ra, dec, class_name, period
-
+        
 
     def generate_classifications(self, schema_str=""):
         """
@@ -508,7 +496,7 @@ class Data_Parse(DB_Connector):
             srcid_list.append(row[0])
 
         list_incr = 5
-        for i_low in range(0, len(srcid_list), list_incr):
+        for i_low in xrange(0, len(srcid_list), list_incr):
             short_srcid_list = srcid_list[i_low:i_low + list_incr]
             if 0:
                 ### For debugging only:
@@ -628,7 +616,7 @@ order by feat_val"""
                              'freq2':{'feat_id':1520},
                              'freq3':{'feat_id':89}}
         all_freq_dict = {}
-        for freq_name, freq_dict in freq_feat_id_dict.items():
+        for freq_name, freq_dict in freq_feat_id_dict.iteritems():
             select_str = """select source_test_db.feat_values.feat_val, count(object_test_db.obj_srcid_lookup.obj_id) AS n_epochs, object_test_db.obj_srcid_lookup.src_id, source_test_db.jsbvars_lookup.jsb_period, source_test_db.one_src_model_class_probs.class_name
 FROM source_test_db.jsbvars_lookup
 JOIN source_test_db.feat_values ON (feat_values.src_id=source_test_db.jsbvars_lookup.tcp_srcid)
@@ -650,7 +638,7 @@ order by src_id"""
                 tcp_freqs.append(row[0])
                 nepochs.append(row[1])
                 jsb_freqs.append(1.0 / row[3])
-                if srcid not in all_freq_dict:
+                if not all_freq_dict.has_key(srcid):
                     all_freq_dict[srcid] = {}
                 all_freq_dict[srcid][freq_name] = row[0]
                 all_freq_dict[srcid]['jsb_freq'] = 1.0 / row[3]
@@ -665,7 +653,7 @@ order by src_id"""
         best_freq_num_list = []
         jsb_freqs = []
         nepochs = []
-        for srcid,src_dict in all_freq_dict.items():
+        for srcid,src_dict in all_freq_dict.iteritems():
             jsb_freqs.append(src_dict.get('jsb_freq',1000))
             nepochs.append(src_dict['nepochs'])
             best_freq = src_dict.get('freq1',100)
@@ -716,7 +704,7 @@ order by src_id"""
                              'freq2':{'feat_id':1520},
                              'freq3':{'feat_id':89}}
         all_freq_dict = {}
-        for freq_name, freq_dict in freq_feat_id_dict.items():
+        for freq_name, freq_dict in freq_feat_id_dict.iteritems():
             select_str = """select source_test_db.feat_values.feat_val, count(object_test_db.obj_srcid_lookup.obj_id) AS n_epochs, object_test_db.obj_srcid_lookup.src_id, source_test_db.jsbvars_lookup.jsb_period from source_test_db.jsbvars_lookup
 JOIN source_test_db.feat_values ON (feat_values.src_id=source_test_db.jsbvars_lookup.tcp_srcid)
 JOIN object_test_db.obj_srcid_lookup ON (object_test_db.obj_srcid_lookup.src_id=feat_values.src_id)
@@ -734,7 +722,7 @@ order by src_id"""
                 tcp_freqs.append(row[0])
                 nepochs.append(row[1])
                 jsb_freqs.append(1.0 / row[3])
-                if srcid not in all_freq_dict:
+                if not all_freq_dict.has_key(srcid):
                     all_freq_dict[srcid] = {}
                 all_freq_dict[srcid][freq_name] = row[0]
                 all_freq_dict[srcid]['jsb_freq'] = 1.0 / row[3]
@@ -749,7 +737,7 @@ order by src_id"""
         best_freq_num_list = []
         jsb_freqs = []
         nepochs = []
-        for srcid,src_dict in all_freq_dict.items():
+        for srcid,src_dict in all_freq_dict.iteritems():
             jsb_freqs.append(src_dict.get('jsb_freq',1000))
             nepochs.append(src_dict['nepochs'])
             best_freq = src_dict.get('freq1',100)
@@ -801,10 +789,10 @@ if __name__ == '__main__':
         'obj_srcid_lookup_tablename':'object_test_db.obj_srcid_lookup',
         'data_tablename':'source_test_db.jsbvars_data',
         'lookup_tablename':'source_test_db.jsbvars_lookup',
-        'mysql_user':"pteluser",
-        'mysql_hostname':"192.168.1.25",
-        'mysql_database':'object_test_db',
-        'mysql_port':3306,
+        'mysql_user':"pteluser", 
+        'mysql_hostname':"192.168.1.25", 
+        'mysql_database':'object_test_db', 
+        'mysql_port':3306, 
         'do_lbl_check':True,
         'tcp_to_jsbvar_classname':{'Classical Cepheid':['Cepheid'],
                                    'RR Lyrae, Fundamental Mode':['rrlyrae_ab','rrlyrae_c'],
@@ -852,3 +840,4 @@ if __name__ == '__main__':
         # NOTE: uses a lot of memory for ipython1 asks, so
         #       set n_nodes <= 4
         DataParse.generate_classifications(schema_str="50nois_00epch_010need_0.100mtrc_per900ep10day_linearlombfreq_expnoisefreq")
+        

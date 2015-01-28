@@ -5,21 +5,14 @@
      - deboss arff fpath
      - asas arff fpath
      - features to exclude
-** output:
+** output: 
      - asas_randomForest.Rdat fpath
      - classifier effeciency metrics
-** I want to call the full AL R script, but be able to
+** I want to call the full AL R script, but be able to 
     modify some bits.
 *** wrapping the R code in a python string is less ideal
      - but it could just be for a specific version of the AL/MACC code
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 from rpy2.robjects.packages import importr
 from rpy2 import robjects
@@ -37,7 +30,7 @@ if __name__ == '__main__':
         'asas_test_arff_fpath':"/Data/dstarr/src/ASASCatalog/data/test_20120327_10ntree_5mtry.arff",
         'rf_clfr_fpath':"/home/dstarr/scratch/macc_wrapper_rfclfr.rdat",
             }
-
+    
     ### Initialize:
     r_str = '''
 set.seed(1)
@@ -51,7 +44,7 @@ library(nnet)
 library(foreign)
     '''.format(root_dirpath=pars['root_dirpath'])
     robjects.r(r_str)
-
+    
     r_str = '''
 path = "{root_dirpath}"
 asas_test_arff_fpath = "{asas_test_arff_fpath}"
@@ -78,7 +71,7 @@ debdat$class[debdat$source_id {isin} ttau.wl] = 202
 class.deb = class.debos(debdat$class)
 
 # re-label the source that Nat found to be wrong
-class.deb[ID==164154] = "y. W Ursae Maj."
+class.deb[ID==164154] = "y. W Ursae Maj." 
 
 p = dim(debdat)[2]
 feat.debos = data.frame(debdat)[,-c(1,p)] # Deb features

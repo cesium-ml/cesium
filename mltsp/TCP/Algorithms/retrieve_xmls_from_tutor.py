@@ -1,21 +1,12 @@
 #!/usr/bin/env python
 """ retrieve xmls for a particular tutor/dotastro class_id
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import pprint
 import MySQLdb
 import datetime
 
-class tutor_db(object):
+class tutor_db:
     """
     """
     def __init__(self):
@@ -35,7 +26,7 @@ class tutor_db(object):
 
 
 
-class Retrieve_XMLs(object):
+class Retrieve_XMLs:
     """
     """
     def __init__(self, pars={}):
@@ -53,9 +44,9 @@ class Retrieve_XMLs(object):
             results = self.db.tutor_cursor.fetchall()
 
             if len(results)== 0:
-                print(datetime.datetime.now(), "No sources for project_id=%d" % (proj_id))
+                print datetime.datetime.now(), "No sources for project_id=%d" % (proj_id)
             else:
-                print(datetime.datetime.now(), "Project_id=", proj_id, "N sources=", len(results))
+                print datetime.datetime.now(), "Project_id=", proj_id, "N sources=", len(results)
 
             srcid_list = []
             for row in results:
@@ -77,7 +68,7 @@ class Retrieve_XMLs(object):
                     b.close()
 
                     #print "  Retrieved: %d" % (src_id)
-
+    
 
 
 if __name__ == '__main__':
@@ -91,7 +82,7 @@ if __name__ == '__main__':
 
     RetrieveXMLs = Retrieve_XMLs(pars=pars)
 
-    proj_id_list = list(range(1,126 + 1)) # 126 is currently the largest tutor project_id
+    proj_id_list = range(1,126 + 1) # 126 is currently the largest tutor project_id
 
     skip_projids = [121, 123, 126,
                     120, 122] # already done, obsolete/old
@@ -99,6 +90,8 @@ if __name__ == '__main__':
     for projid in skip_projids:
         proj_id_list.remove(projid)
 
-    print()
+    print
     RetrieveXMLs.retrieve_xmls_for_proj_list(base_dirpath="/media/raid_0/all_tutor_xmls",
                                              proj_id_list=proj_id_list)
+
+

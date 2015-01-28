@@ -1,13 +1,3 @@
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import int
-from builtins import *
-from future import standard_library
-standard_library.install_aliases()
 #!/usr/bin/env python
 # utils.py
 #   v0.1 : initial version
@@ -67,7 +57,7 @@ def calc_last_day_of_month(year, month):
 
 #   '2006-07-09 05:39:35.498801'
 # datetime(year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]])
-#
+# 
 def convert_str_to_datetime(raw_str_date):
     """ converts a string datetime into a datetime
     """
@@ -79,7 +69,7 @@ def convert_str_to_datetime(raw_str_date):
     minute = int(str_date[14:16])
     sec = int(str_date[17:19])
     usec = int(str_date[20:])
-
+    
     return datetime.datetime(year,month,day,hour,minute,sec,usec)
 
 
@@ -178,7 +168,7 @@ def convert_datetime_to_float(dtime):
     total_days = days_upto_2003
 
     # iterate over all year past 2003
-    year_list = list(range(2003,cur_year+1))
+    year_list = range(2003,cur_year+1)
     for i_year in year_list:
         if not i_year == cur_year:
             last_mon = 12

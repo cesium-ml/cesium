@@ -1,12 +1,3 @@
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import absolute_import
-from builtins import range
-from builtins import zip
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 try:
     from ..FeatureExtractor import FeatureExtractor
 except:
@@ -28,7 +19,7 @@ class delta_phase_2minima_extractor(FeatureExtractor):
     returns a best guess of the phase difference between the two
     lowest minima of a lightcurve.
 
-    only relevant for eclipsing sources, and best used
+    only relevant for eclipsing sources, and best used 
     to identify orbital eccentricity
 
     author: I.Shivvers, June 2012
@@ -42,7 +33,7 @@ class delta_phase_2minima_extractor(FeatureExtractor):
             m = self.flux_data
             pdm_period = 1./self.fetch_extr('phase_dispersion_freq0')
             p = self.fold(t, pdm_period)
-
+            
             # find the proper window for the model
             best_GCV, optimal_window = self.minimize_GCV(p, m)
             mins = self.findMins(p,m, optimal_window)
@@ -64,14 +55,14 @@ class delta_phase_2minima_extractor(FeatureExtractor):
             bandwidth = float(optimal_window)/len(p)
             model = self.kernelSmooth(p, m, bandwidth)
             # resort into proper order
-            zpm = list(zip(p, model))
+            zpm = zip(p, model)
             zpm.sort()
             zpm_arr = numpy.array(zpm)
             phs = zpm_arr[:,0]
             model = zpm_arr[:,1]
             # identify and rank the peaks
             peaks_ind = self.find_peaks(model)
-            zppi = list(zip(model[peaks_ind], phs[peaks_ind], peaks_ind))
+            zppi = zip(model[peaks_ind], phs[peaks_ind], peaks_ind)
             zppi.sort(reverse=True)
             # only report a minima as seperate if the model goes back past the mean and returns in between them
             threshold = numpy.mean(model)
@@ -102,7 +93,7 @@ class delta_phase_2minima_extractor(FeatureExtractor):
 
     def GCV(self, window, X,Y):
         # put in proper order
-        zpm = list(zip(X,Y))
+        zpm = zip(X,Y)
         zpm.sort()
         zpm_arr = numpy.array(zpm)
         phs = zpm_arr[:,0]

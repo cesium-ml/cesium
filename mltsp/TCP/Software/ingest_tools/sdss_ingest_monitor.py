@@ -2,14 +2,6 @@
 """
    v0.1 Initial version: thread off ingest_tools.py instances to muli nodes.
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 #TODO: Test before threading, that the ssh method exists until finished
 #       (wait for bug to occur)
@@ -46,13 +38,13 @@ pars = {\
         },
     }
 
-class Sdss_Ingest_Monitor(object):
+class Sdss_Ingest_Monitor:
     """ Threads off multiple ingest_tools.py instances to various nodes.
     """
     def __init__(self, pars):
         self.pars = pars
         self.running_tasks = {}
-        for hostname in list(self.pars['host_defs'].keys()):
+        for hostname in self.pars['host_defs'].keys():
             self.running_tasks.update({hostname:{'running_threads':[]}})
 
     def ingest_thread(self, node_dict):
@@ -75,22 +67,22 @@ class Sdss_Ingest_Monitor(object):
         #print 'os.system(ssh) DONE!'
         #sys.exit()
 
-
+        
     def check_finished_threads(self):
         """ Check whether any of the threads are done.
         Remove them from the threads[]
         """
-        for hostname,run_dict in self.running_tasks.items():
+        for hostname,run_dict in self.running_tasks.iteritems():
             for t in run_dict['running_threads']:
                 if not t.isAlive():
                     run_dict['running_threads'].remove(t)
-                    print('removed from:', hostname)
+                    print 'removed from:', hostname
 
 
     def start_new_threads(self):
         """ Start new tasks on available nodes.
         """
-        for hostname,run_dict in self.running_tasks.items():
+        for hostname,run_dict in self.running_tasks.iteritems():
             n_tasks_to_spawn = self.pars['host_defs'][hostname]['n_instances'] - len(run_dict['running_threads'])
             while (n_tasks_to_spawn > 0):
                 #self.ingest_thread(self.pars['host_defs'][hostname])

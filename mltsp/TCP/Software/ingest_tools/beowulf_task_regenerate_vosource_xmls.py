@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This is a very KLUDGY beowulf beorun'able task which unfortunately loads a lot of modules,
+This is a very KLUDGY beowulf beorun'able task which unfortunately loads a lot of modules, 
 thus being inefficient when compared with the preferred parallel-IPython method.
 
 Called using:
@@ -9,15 +9,6 @@ beorun /home/dstarr/src/TCP/Software/ingest_tools/beowulf_task_regenerate_vosour
 
 
 """
-from __future__ import unicode_literals
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os,sys
 os.environ['TCP_SEX_BIN']=os.path.expandvars('$HOME/bin/sex')
 os.environ['TCP_WCSTOOLS_DIR']=os.path.expandvars('$HOME/src/install/wcstools-3.6.4/bin/')
@@ -31,7 +22,7 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
 from Code import *
 import db_importer
 
-class QueueTasks(object):
+class QueueTasks:
     """ Queue the tasks.
     Called by regenerate_vosource_xmls.py instead of IPython parallel code.
     """
@@ -40,11 +31,11 @@ class QueueTasks(object):
         """
         Input: list of xml_files for processing.
         """
-        # TODO: for each set of (10) xmls, write to random-filepath
+        # TODO: for each set of (10) xmls, write to random-filepath 
         #    and store in a list for beorun
 
 
-class ProcessTasks(object):
+class ProcessTasks:
     """ Process the given xmls (task) described in given filepath.
     """
     def __init__(self, pars={}):
@@ -95,7 +86,7 @@ class ProcessTasks(object):
         n_tasks_to_thread = 1
         running_threads = []
 
-        while ((len(lines) > 0) or
+        while ((len(lines) > 0) or 
                ((len(lines) == 0) and (len(running_threads) > 0))):
             while (len(lines) > 0) and ((len(running_threads) < n_tasks_to_thread)):
                 # add some running threads

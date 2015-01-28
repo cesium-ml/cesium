@@ -4,23 +4,12 @@
 """
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import int
-from builtins import open
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 # 566  export PGPASSWORD="classify"
 #  567  psql -d ptfcands -h navtara.caltech.edu -U tcp
 #  568  echo "\dt" | psql -d ptfcands -h navtara.caltech.edu -U tcp
 
-class ShowRecentPtfSources(object):
+class ShowRecentPtfSources:
     """ Class which is called by XMLRpcServer and which queries LBL
     PostgreSQl server.
     """
@@ -40,7 +29,7 @@ class ShowRecentPtfSources(object):
         try:
             import lightcurve
         except:
-            print("!!! Probably running tcp_html_show_recent_ptf_sources.py get_period_fold   in TESTING mode.")
+            print "!!! Probably running tcp_html_show_recent_ptf_sources.py get_period_fold   in TESTING mode."
 
         GetPeriodFoldForWeb = lightcurve.GetPeriodFoldForWeb()
         json_out_string = GetPeriodFoldForWeb.main(source_id)
@@ -83,7 +72,7 @@ class ShowRecentPtfSources(object):
         WHERE candidate.id=%d
         """% (candidate_id)
         pg_cursor.execute(select_str)
-        print(select_str)
+        print select_str
         rdb_rows = pg_cursor.fetchall()
         pg_cursor.close()
         pg_conn.rollback()
@@ -99,8 +88,8 @@ class ShowRecentPtfSources(object):
                   date_yyyymmdd, ptffield, ccdid, x_sub, y_sub)
             for url_type in ['new', 'ref', 'sub']:
                 url_str = url_prefix + url_type + url_suffix
-                print(url_str)
-        print('yo')
+                print url_str
+        print 'yo'
 
         """
         http://portal.nersc.gov/project/deepsky/ptfvet/scan.cgi?candid=352403
@@ -120,7 +109,7 @@ http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=ref&mode=cand&grow
 http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=sub&mode=cand&grow=2&width=100&rundate=2009417&visit=8&field=100056&chip=11&cross=yes&x=1736.230000&y=1544.000000
 
         """
-
+        
 
     def get_it(self):
         """ Testing method
@@ -145,9 +134,9 @@ http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=sub&mode=cand&grow
         out_str += '</TR>'
         for row in pg_cursor.fetchall():
             out_str += '<TR>'
-            out_str += "<TD><input type=\"button\" onClick=\"javascript:query_using_ptf_ra_dec(%lf, %lf);\"  value=\"%s\"/></TD>" % (row[1], row[2], str(row[0]))
+            out_str += "<TD><input type=\"button\" onClick=\"javascript:query_using_ptf_ra_dec(%lf, %lf);\"  value=\"%s\"/></TD>" % (row[1], row[2], str(row[0])) 
             for elem in row[1:]:
-                out_str += "<TD><FONT SIZE=\"2\">%s</FONT></TD>" % (str(elem))
+               out_str += "<TD><FONT SIZE=\"2\">%s</FONT></TD>" % (str(elem)) 
             out_str += '</TR>'
         out_str += '</TABLE>'
 
@@ -156,7 +145,7 @@ http://portal.nersc.gov/project/deepsky/ptfvet/thumb.cgi?type=sub&mode=cand&grow
 
 
 if __name__ == '__main__':
-
+    
     pars = { \
         'xmlrpc_server_ip':'192.168.1.25',
         'xmlrpc_server_port':45361, #justin on tranx uses: 45333, dstarr old uses: 45361
@@ -171,11 +160,11 @@ if __name__ == '__main__':
             ### Testing only:
             Show_Recent_Ptf_Sources = ShowRecentPtfSources()
             json_out_string = Show_Recent_Ptf_Sources.get_period_fold(src_id)
-            print(json_out_string)
+            print json_out_string
         else:
             # Normal mode:
-            import xmlrpc.client
-            server = xmlrpc.client.ServerProxy("http://%s:%d" % ( \
+            import xmlrpclib
+            server = xmlrpclib.ServerProxy("http://%s:%d" % ( \
                                            pars['xmlrpc_server_ip'], \
                                            pars['xmlrpc_server_port']))
             #json_out_string = server.get_period_fold(src_id)
@@ -183,8 +172,8 @@ if __name__ == '__main__':
                 json_out_string = server.get_period_fold(src_id)
             except:
                 json_out_string = """[{"label":"No Fit Found", "color":"#36477b", "data":[[0,0]]}]"""
-            print(json_out_string)
-
+            print json_out_string
+        
 
     elif sys.argv[1] == 'gen_id_imgsrc':
         # obsolete / not implemented:
@@ -195,23 +184,23 @@ if __name__ == '__main__':
             Show_Recent_Ptf_Sources.generate_imgsrc_for_id(candidate_id)
         else:
             # Normal mode:
-            import xmlrpc.client
-            server = xmlrpc.client.ServerProxy("http://%s:%d" % ( \
+            import xmlrpclib
+            server = xmlrpclib.ServerProxy("http://%s:%d" % ( \
                                            pars['xmlrpc_server_ip'], \
                                            pars['xmlrpc_server_port']))
-            print(server.generate_imgsrc_for_id(candidate_id))
+            print server.generate_imgsrc_for_id(candidate_id)
 
     elif sys.argv[1] == 'client':
-        import xmlrpc.client
-        server = xmlrpc.client.ServerProxy("http://%s:%d" % ( \
+        import xmlrpclib
+        server = xmlrpclib.ServerProxy("http://%s:%d" % ( \
                                        pars['xmlrpc_server_ip'], \
                                        pars['xmlrpc_server_port']))
-        print(server.get_it())
+        print server.get_it()
 
     elif sys.argv[1] == 'server':
-        print('XMLRPC server mode...')
-        import xmlrpc.server
-        server = xmlrpc.server.SimpleXMLRPCServer(\
+        print 'XMLRPC server mode...'
+        import SimpleXMLRPCServer
+        server = SimpleXMLRPCServer.SimpleXMLRPCServer(\
                               (pars['xmlrpc_server_ip'], \
                                pars['xmlrpc_server_port']))
         server.register_instance(ShowRecentPtfSources())
@@ -222,8 +211,8 @@ if __name__ == '__main__':
     elif sys.argv[1] == 'get_table_data':
         sys.stderr = open('/dev/null','w')
         src_id = int(sys.argv[2])
-        import xmlrpc.client
-        server = xmlrpc.client.ServerProxy("http://%s:%d" % ( \
+        import xmlrpclib
+        server = xmlrpclib.ServerProxy("http://%s:%d" % ( \
                                         pars['xmlrpc_server_ip'], \
                                         pars['xmlrpc_server_port']))
 
@@ -238,5 +227,5 @@ if __name__ == '__main__':
             html_table_str = show.get_html_data(src_id)
         except:
             html_table_str = "Check lightcurve.py"
-
-        print(html_table_str)
+            
+        print html_table_str

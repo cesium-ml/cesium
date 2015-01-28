@@ -7,18 +7,6 @@
  - lookup file describes:
  - proj_id src_id survey_name orig_class algo_class_1 algo_prob_1 . . .
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import range
-from builtins import int
-from builtins import open
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 
 import sys, os
 
@@ -30,7 +18,7 @@ from Code import *
 import db_importer
 
 
-class Database_Utils(object):
+class Database_Utils:
     """ Establish database connections, contains methods related to database tables.
     """
     def __init__(self, pars={}):
@@ -41,16 +29,16 @@ class Database_Utils(object):
 
     def connect_to_tcp_db(self):
         import MySQLdb
-        self.tcp_db = MySQLdb.connect(host=pars['tcp_hostname'],
-                                      user=pars['tcp_username'],
+        self.tcp_db = MySQLdb.connect(host=pars['tcp_hostname'], 
+                                      user=pars['tcp_username'], 
                                       db=pars['tcp_database'],
                                       port=pars['tcp_port'])
         self.tcp_cursor = self.tcp_db.cursor()
 
     def connect_to_tutor_db(self):
         import MySQLdb
-        self.tutor_db = MySQLdb.connect(host=pars['tutor_hostname'],
-                                        user=pars['tutor_username'],
+        self.tutor_db = MySQLdb.connect(host=pars['tutor_hostname'], 
+                                        user=pars['tutor_username'], 
                                         db=pars['tutor_database'],
                                         port=pars['tutor_port'],
                                         passwd=pars['tutor_password'])
@@ -78,7 +66,7 @@ TODO:
         """
         import glob
         srcid_list = []
-        for proj_id, dirpath in self.pars['xml_dirs'].items():
+        for proj_id, dirpath in self.pars['xml_dirs'].iteritems():
             xml_fpaths = glob.glob("%s/*xml" % (dirpath))
             for xml_fpath in xml_fpaths:
                 src_id = int(xml_fpath[xml_fpath.rfind('/')+1:xml_fpath.rfind('.')]) - 100000000
@@ -92,15 +80,15 @@ TODO:
                     gen.signalgen = {}
                     gen.sig = db_importer.Source(xml_handle=xml_fpath,doplot=False, make_xml_if_given_dict=False)
                     ### Here we assume only one filter (true for proj_id=[123,126]):
-                    t = list(gen.sig.x_sdict['ts'].values())[0]['t']
-                    m = list(gen.sig.x_sdict['ts'].values())[0]['m']
-                    m_err = list(gen.sig.x_sdict['ts'].values())[0]['m_err']
+                    t = gen.sig.x_sdict['ts'].values()[0]['t']
+                    m = gen.sig.x_sdict['ts'].values()[0]['m']
+                    m_err = gen.sig.x_sdict['ts'].values()[0]['m_err']
 
 
                     dat_fpath = "%s/%d.dat" % (self.pars['dat_dirpath'], src_id)
 
                     fp = open(dat_fpath, 'w')
-                    for i in range(len(t)):
+                    for i in xrange(len(t)):
                         fp.write("%lf %lf %lf\n" % (t[i], m[i], m_err[i]))
 
                     fp.close()
@@ -135,7 +123,7 @@ TODO:
                     survey_name = 'OGLE'
                 else:
                     raise
-
+                
             select_str = "select class_short_name, rank, prob from activelearn_algo_class left outer join activelearn_tutorclasses_copy ON (activelearn_algo_class.tutor_class_id=activelearn_tutorclasses_copy.class_id) where act_id=%d and source_id=%d order by rank" % (self.pars['actlearn_actid'], src_id)
             self.tcp_cursor.execute(select_str)
             results = self.tcp_cursor.fetchall()
@@ -152,7 +140,7 @@ TODO:
             write_str = "%d %d %s %s %s\n" % ( \
                             src_id, proj_id, survey_name, tutor_class_name,
                             algo_class_str)
-            print(write_str, end=' ')
+            print write_str,
             #import pdb; pdb.set_trace()
             #print
             fp.write(write_str)
@@ -197,7 +185,7 @@ TODO:
 
         from numpy import loadtxt
         all_srcid_classid = {}
-        for n, fpath in user_classifs_fpaths.items():
+        for n, fpath in user_classifs_fpaths.iteritems():
             data = loadtxt(fpath, dtype={'names': ('src_id', 'class_id'),
                                          'formats': ('i4', 'i4')})
             for i, src_id in enumerate(data['src_id']):
@@ -219,9 +207,9 @@ TODO:
         ### tar -czf damian_ts_dats.tar.gz damian_ts_dats/
         srcid_classname = self.parse_actlearn_classifs()
         self.make_summary_file(srcid_list=srcid_list, srcid_classname=srcid_classname)
-
+        
         import pdb; pdb.set_trace()
-        print()
+        print
 
 
 if __name__ == '__main__':
@@ -234,7 +222,7 @@ if __name__ == '__main__':
     'tutor_port':3306,
     'tcp_hostname':'192.168.1.25',
     'tcp_username':'pteluser',
-    'tcp_port':     3306,
+    'tcp_port':     3306, 
     'tcp_database':'source_test_db',
     'xml_dirs':{123:'/media/raid_0/debosscher_xmls/xmls',
                 126:'/media/raid_0/historical_archive_featurexmls_arffs/tutor_126/2011-02-06_00:03:02.699641/xmls'},

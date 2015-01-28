@@ -1,30 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 """
 Compile the python module using fortran code using:
 
 f2py -c flaplace.f -m flaplace
 
 """
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import range
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import os, sys
 import numpy
 
 
-class Simple_Fortran_Test(object):
+class Simple_Fortran_Test:
     """
     Compile the python module using fortran code using:
 
     f2py -c flaplace.f -m flaplace
 
-    """
+    """ 
 
     def fortranTimeStep(self, u, dx, dy):
         """Takes a time step using a simple fortran module that
@@ -42,9 +33,9 @@ class Simple_Fortran_Test(object):
         dy = 1
         for i in range(10):
             u = self.fortranTimeStep(u, dx, dy)
-            print(u)
-
-class RF_Fortran_Test(object):
+            print u
+        
+class RF_Fortran_Test:
     """ Wrapping PARF missing-value Fortran re-implementation of RandomForest.
 
     """
@@ -62,10 +53,12 @@ if __name__ == '__main__':
 
     RFFortranTest = RF_Fortran_Test()
     RFFortranTest.main()
-
+    
 
     ### For just testing that fortran module compiling works:
     if 1:
         import flaplace
         SimpleFortranTest = Simple_Fortran_Test()
         SimpleFortranTest.main()
+
+        

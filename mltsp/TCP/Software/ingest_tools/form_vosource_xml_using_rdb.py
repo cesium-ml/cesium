@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 ###!/Library/Frameworks/Python.framework/Versions/Current/bin/python
 """
    v0.1 Given a local RDB valid source-id, this code forms a VOSouce.xml
@@ -14,16 +14,6 @@ NOTE: debug using:
 /Library/Frameworks/Python.framework/Versions/Current/lib/python2.5/pdb.py form_vosource_xml_using_rdb.py 402126
 
 """
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import int
-from builtins import str
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
 import sys, os
 #os.system("whoami")
 #os.environ["PYTHON_EGG_CACHE"] = "/Library/Frameworks/Python.framework/Versions/4.1.30101/lib/python2.5/site-packages/"
@@ -47,7 +37,7 @@ ingest_tools_pars = ingest_tools.pars
 
 
 
-class MakeVosourceUsingRdb(object):
+class MakeVosourceUsingRdb:
     """ This clss primarily does:
     Given a local RDB valid source-id, this code forms a VOSouce.xml
         which will then be written to file (for export).
@@ -86,7 +76,7 @@ class MakeVosourceUsingRdb(object):
         sdict['dec'] = results[0][1]
         sdict['ra_rms'] = results[0][2]
         sdict['dec_rms'] = results[0][3]
-
+        
 
     def fill_sdict_with_limiting_mag_data(self, srcid, s_dict):
         """  query limiting magnitudes table, store results
@@ -97,21 +87,21 @@ class MakeVosourceUsingRdb(object):
         filter_conv_dict = {'g':'ptf_g', 'R':'ptf_r'}
         #for srcid in source_dict.keys():
         if 1:
-            if 'ra' in s_dict:
+            if s_dict.has_key('ra'):
                 ra = s_dict['ra']
                 dec = s_dict['dec']
-
-            for filt_name in list(filter_conv_dict.values()):
-                if filt_name not in s_dict['ts']:
+            
+            for filt_name in filter_conv_dict.values():
+                if not s_dict['ts'].has_key(filt_name):
                     s_dict['ts'][filt_name] = {}
-                if 'limitmags' not in s_dict['ts'][filt_name]:
+                if not s_dict['ts'][filt_name].has_key('limitmags'):
                     s_dict['ts'][filt_name]['limitmags'] = {'t':[], 'lmt_mg':[]}
             select_str = "SELECT filter, ujd, lmt_mg from %s WHERE (MBRContains(radec_region, GeomFromText('POINT(%lf %lf)'))) ORDER BY filter, ujd" % (self.pars['ptf_mysql_candidate_footprint'], ra, dec)
             self.obj_cursor.execute(select_str)
             rdb_rows = self.obj_cursor.fetchall()
 
-            for filt_name,filt_dict in s_dict['ts'].items():
-                for row in rdb_rows:
+            for filt_name,filt_dict in s_dict['ts'].iteritems():
+                for row in rdb_rows: 
                     (filt, ujd, lmt_mg) = row
                     filt_name = filter_conv_dict[filt]
                     s_dict['ts'][filt_name]['limitmags']['t'].append(float(ujd))
@@ -138,7 +128,7 @@ class MakeVosourceUsingRdb(object):
         data_dict = {}
         for result in results:
             filt_name = self.pars['filter_conv_dict'][result[3]] # this translates to: ptf_g or ptf_r
-            if filt_name not in data_dict:
+            if not data_dict.has_key(filt_name):
                 data_dict[filt_name] = {'t_list':[],
                                         'm_list':[],
                                         'm_err_list':[]}
@@ -146,7 +136,7 @@ class MakeVosourceUsingRdb(object):
             data_dict[filt_name]['m_list'].append(result[1])
             data_dict[filt_name]['m_err_list'].append(result[2])
 
-        for filt_name,filt_dict in data_dict.items():
+        for filt_name,filt_dict in data_dict.iteritems():
             sdict['ts'] = {filt_name:{'IDs': ['col1', 'col2', 'col3'],
                                       'ordered_column_names': ['t', 'm', 'm_err'],
                                       'units': ['day', 'mag', 'mag'],
@@ -159,7 +149,7 @@ class MakeVosourceUsingRdb(object):
                                       }
                            }
         return filt_name
-
+    
 
     # obsolete: pre 20091102:
     def fill_sdict_with_objectdb_data__old(self, src_id, sdict):
@@ -220,7 +210,7 @@ class MakeVosourceUsingRdb(object):
 
         self.src_cursor.execute(select_str)
         results = self.src_cursor.fetchall()
-
+        
         #classname_list = []
         #prob_list = []
         #schema_comment_list = []
@@ -241,7 +231,7 @@ class MakeVosourceUsingRdb(object):
 
     def fill_sdict_with_features_data(self, src_id, sdict, filt_name):
         """ Retrieve features from source-db, and insert them into sdict
-
+        
         sdict["features"][filt_name][feat_name] = feat_str_val
 
         """
@@ -284,28 +274,28 @@ class MakeVosourceUsingRdb(object):
         self.generate_classification_xmlstring(src_id, vosource_class_obj)
 
         return sdict
-
+    
 
     def generate_vsrc_xml_using_srcid(self, src_id=-1, out_xml_fpath=""):
         """ Given a source-id which is in local RDB,
         This forms and writes a vosource.xml to given filepath.
         """
         vosource_class_obj = db_importer.vosource_classification_obj()
-
+        
         sdict = self.retrieve_sdict_for_srcid(src_id, vosource_class_obj)
 
         source = db_importer.Source(make_dict_if_given_xml=False,
-                                 make_xml_if_given_dict=False,
-                                 doplot=False)
+	                         make_xml_if_given_dict=False,
+	                         doplot=False)
 
         source.source_dict_to_xml(sdict)
         xmlstr_with_classes = vosource_class_obj.add_class_xml_to_existing_vosource_xml(\
                                                                       source.xml_string)
         source.xml_string = xmlstr_with_classes
         if len(out_xml_fpath) > 3:
-            source.write_xml(out_xml_fpath=out_xml_fpath)
-        else:
-            print(source.xml_string)
+	        source.write_xml(out_xml_fpath=out_xml_fpath)
+	else:
+		print source.xml_string
 
 
 if __name__ == '__main__':
