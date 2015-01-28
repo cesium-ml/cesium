@@ -3,6 +3,7 @@ def configuration(parent_package='', top_path=None):
 
     config = Configuration('TCP', parent_package, top_path)
     config.add_subpackage('Software.feature_extract.Code.extractors.common_functions')
+    config.add_data_dir('tests/data')
     return config
 
 if __name__ == "__main__":

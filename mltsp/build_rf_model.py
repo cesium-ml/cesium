@@ -171,7 +171,6 @@ def build_model(
     line_lens = []
     indices_for_deletion = []
     line_no = 0
-    print(type(data_dict['features']), len(data_dict['features']))
     for i in range(len(data_dict['features'])):
         line = data_dict['features'][i]
         if len(line) not in line_lens:
@@ -180,7 +179,6 @@ def build_model(
                 indices_for_deletion.append(i)
         line_no += 1
     print(line_no, "total lines in features csv.")
-    print("line_lens:", line_lens)
     print(len(data_dict['features']))
     if len(indices_for_deletion) == 1:
         del data_dict['features'][indices_for_deletion[0]]
@@ -425,8 +423,6 @@ def featurize(
                             path_to_csv=path_to_csv)
 
 
-                        ### Added 1/13/15: Just for testing purposes:
-                        print(science_features)
                         features_successful = []
                         features_failed = []
 
@@ -521,7 +517,6 @@ def featurize(
     cv_objs = []
     # count up total num of objects per class
     print("Starting class count...")
-    shuffle(objects)
     for obj in objects:
         if str(obj['class']) not in class_list:
             class_list.append(str(obj['class']))
