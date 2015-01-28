@@ -19,4 +19,3 @@ from . import FeatureExtractor
 from . import generators_importers
 from . import plotters
 from . import signal_objects
-from . import internal_generated_extractors_holder
