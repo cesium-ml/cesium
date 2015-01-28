@@ -16,6 +16,7 @@ py> a = arffify.Maker(search=["Cepheids","RR Lyrae - Asymmetric","Mira","W Ursae
  
 """
 from __future__ import print_function
+from __future__ import unicode_literals
 import os,sys
 #try:
 #	import amara
@@ -603,7 +604,7 @@ class Maker:
 			# This is a file pointer, rather than a filepath string
 			f = outfile
 		if include_header:
-			f.write('%% date = %s\n' % str(datetime.datetime.now()))
+			f.write('%% date = %s\n' % unicode(datetime.datetime.now()))
 			f.write('%% \n')
 			f.write(class_lookup_dict_str)
 			f.write('%% \n')
