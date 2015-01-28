@@ -1,6 +1,6 @@
 import numpy, sys
-import db_importer
-from storage import storage
+from .. import db_importer
+from .storage import storage
 from numpy import log, exp, arange, median, ceil, pi
 
 from gen_or_imp import gen_or_imp

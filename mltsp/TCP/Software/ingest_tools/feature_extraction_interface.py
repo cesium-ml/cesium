@@ -15,10 +15,6 @@ except:
     pass
 import numpy
 
-import glob
-
-ext1 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/'
-#ext2 = os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors/common_function/'
 
 class GetFeatIdLookupDicts:
     """ This class retrieves a couple lookup dicts from disk, and
@@ -81,82 +77,9 @@ class GetFeatIdLookupDicts:
         (feature_lookup_dict, filt_lookup_dict) = \
                                 self.form_dicts_from_rdb_query()
             #self.write_dicts_to_disk(feature_lookup_dict, filt_lookup_dict)
-            
+
         self.feature_lookup_dict = feature_lookup_dict
         self.filt_lookup_dict = filt_lookup_dict
-
-
-class Internal_Feature_Extractors:
-    """ Class which contains "internal feature" definition lists & dictionaries
-    """
-    
-    ## modules (instead of classes) will break the test suite. Put these here as appropriate.
-    ignores = ["min_extractor","max_extractor","third_extractor"] 
-    
-    def __init__(self):
-        # This needs to retain list ordering, but I figure it'd be useful
-        #    to have potential dictionary attributes associated with
-        #    each internal-feature extractor.
-        
-        ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
-        init = ext1 + "__init__.py"
-        f = open(init)
-        ff = f.readlines()
-        f.close()
-        features = []
-        for l in ff:
-            if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
-                tmp = l.split("import")[-1].strip().split(",")
-                #print (tmp,len(tmp))
-                features.extend(tmp)
-        
-        #tmp = glob.glob(ext1 + "*extract*.py")
-        #features = []
-        #for i in range(len(tmp)):
-        #    ug = open(tmp[i],"r")
-        #    ff = ug.readlines()
-        #    ug.close()
-        #    for l in ff:
-        #        if l[:15].find("class ") != -1 and l.find("#class") == -1:
-        #            addit = True
-        #            for i in self.ignores:
-        #                if l.find(i) != -1:
-        #                    addit = False
-        #                    print (l,i)
-        #            if addit:
-        #                features.append(l.split("class ")[1].split("(")[0])
-        tmp = "self.features_tup_list = [" + ", ".join(["('" + x + "',{})" for x in features]) + "]"
-        #print tmp
-        exec tmp
-
-        # Get doc strings (KLUDGY! but works.):
-        for (feat_name,feat_dict) in self.features_tup_list:
-            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % (feat_name)
-            #print x
-            if x == None:
-                x = ''
-            feat_dict['doc'] = x
-            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name)
-            feat_dict['internal'] = 'false'
-            for member_name,member_val in x:
-                if member_name == 'internal_use_only':
-                    if member_val == True:
-                        feat_dict['internal'] = 'true'
-                    break
-
-        #TODO: I need to store this info to feat_values table.
-        
-        ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
-
-        #print self.features_tup_list
-
-        # TODO: I'm sure there is an efficient way to form a dictionary
-        #       from the above tuple list, using map(), filter(), etc...
-        self.feature_dict = {}
-        self.feature_ordered_keys = []
-        for (feat_name,feat_dict) in self.features_tup_list:
-            self.feature_ordered_keys.append(feat_name)
-            self.feature_dict[feat_name] = feat_dict
 
 
 class Final_Features:
@@ -348,61 +271,41 @@ class Internal_Feature_Extractors:
     ignores = ["min_extractor","max_extractor","third_extractor"] 
     
     def __init__(self):
+        # XXX ORDER OF FEATURES IS IMPORTANT XXX
+
         # This needs to retain list ordering, but I figure it'd be useful
         #    to have potential dictionary attributes associated with
         #    each internal-feature extractor.
-        
-        ## JSB changed ... so you dont need to edit this file anymore when you make new extractors.
-        init = ext1 + "__init__.py"
-        f = open(init)
-        ff = f.readlines()
-        f.close()
-        features = []
-        for l in ff:
-            if l.find("from ") != -1 and l.find(" import ") != -1 and l[0].find("#") == -1:
-                tmp = l.split("import")[-1].strip().split(",")
-                #print (tmp,len(tmp))
-                features.extend(tmp)
-        
-        #tmp = glob.glob(ext1 + "*extract*.py")
-        #features = []
-        #for i in range(len(tmp)):
-        #    ug = open(tmp[i],"r")
-        #    ff = ug.readlines()
-        #    ug.close()
-        #    for l in ff:
-        #        if l[:15].find("class ") != -1 and l.find("#class") == -1:
-        #            addit = True
-        #            for i in self.ignores:
-        #                if l.find(i) != -1:
-        #                    addit = False
-        #                    print (l,i)
-        #            if addit:
-        #                features.append(l.split("class ")[1].split("(")[0])
-        tmp = "self.features_tup_list = [" + ", ".join(["('" + x + "',{})" for x in features]) + "]"
-        #print tmp
-        exec tmp
 
-        # Get doc strings (KLUDGY! but works.):
-        for (feat_name,feat_dict) in self.features_tup_list:
-            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.%s.__doc__" % (feat_name)
-            #print x
-            if x == None:
-                x = ''
-            feat_dict['doc'] = x
-            exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; import inspect; x = inspect.getmembers(Code.extractors.%s)" % (feat_name)
+        import ast
+        with open(os.path.join(
+            os.path.dirname(__file__),
+            '../feature_extract/Code/extractors/__init__.py'), 'r') as f:
+
+            init_ast = ast.parse(f.read())
+
+        features = []
+        for a in init_ast.body:
+            if isinstance(a, ast.ImportFrom):
+                features.extend([f.name for f in a.names])
+
+        self.features_tup_list = [(f, {}) for f in features]
+
+        for (feat_name, feat_dict) in self.features_tup_list:
+            d = {}
+            from ..feature_extract.Code import extractors
+            feature = getattr(extractors, feat_name)
+            doc = getattr(feature, '__doc__', '')
+            feat_dict['doc'] = doc
+
+            import inspect
+
             feat_dict['internal'] = 'false'
-            for member_name,member_val in x:
+            for member_name, member_val in inspect.getmembers(feature):
                 if member_name == 'internal_use_only':
                     if member_val == True:
                         feat_dict['internal'] = 'true'
                     break
-
-        #TODO: I need to store this info to feat_values table.
-        
-        ###THIS SEEMS TO FILL x WITH CORRECT STRING:# exec "sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract')); import Code; from Code import * ; from Code.extractors import * ; x = Code.extractors.gall_extractor.__doc__"
-
-        #print self.features_tup_list
 
         # TODO: I'm sure there is an efficient way to form a dictionary
         #       from the above tuple list, using map(), filter(), etc...
@@ -1251,66 +1154,4 @@ class AddNewFeatures:
                                    i_feat, filt_id, feat_name, feat_name))
                 i_feat += 1
         self.cursor.execute(''.join(insert_list)[:-2])
-
-
-if __name__ == '__main__':
-    # NOTE: __main__ run is only for testing/debugging
-
-
-    if 1:
-        Add_New_Features = AddNewFeatures()
-        Add_New_Features.initialize_mysql_connection(rdb_host_ip='192.168.1.25',
-                                                 rdb_user='',
-                                                 rdb_name='source_test_db',
-                                                 feat_lookup_tablename='feat_lookup',
-                                                 feat_values_tablename='feat_values')
-        ### NOTE: Do not want the "_extractor" suffix:
-        Add_New_Features.add_new_features_to_featlookup_table(new_feat_names=['freq1_lambda'])
-        #Add_New_Features.add_new_features_to_featlookup_table(new_feat_names=['p2p_ssqr_diff_over_var', 'fold2P_slope_10percentile', 'fold2P_slope_90percentile'])
-        #Add_New_Features.add_new_features_to_featlookup_table(new_feat_names=['qso_log_chi2_qsonu', 'qso_log_chi2nuNULL_chi2nu', 'stetson_mean', 'stetson_j', 'stetson_k'])
-        #Add_New_Features.add_new_features_to_featlookup_table(new_feat_names=['freq_varrat', 'kurtosis', 'linear_trend', 'mean_absolute_deviation', 'small_kurtosis', 'freq_signif_ratio_21', 'freq_signif_ratio_31', 'freq_frequency_ratio_21', 'freq_frequency_ratio_31', 'freq_amplitude_ratio_21', 'freq_amplitude_ratio_31'])
-        #Add_New_Features.add_new_features_to_featlookup_table(new_feat_names=['flux_percentile_ratio_mid20', 'flux_percentile_ratio_mid35', 'flux_percentile_ratio_mid50', 'flux_percentile_ratio_mid65', 'flux_percentile_ratio_mid80'])
-
-        #                                                                'freq_nharm',
-        #                                                                'freq_signif'])
-        #                                                                'freq_harmonics_offset',
-        #                                                                'freq_y_offset'])
-        sys.exit()
-
-
-    if 0:
-        sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-                                          'Software/feature_extract'))
-        sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-                  'Software/feature_extract/Code')) # 20071226 dstarr hacks this in
-
-        from Code import *
-
-        feat_db = Feature_database()
-        feat_db.initialize_mysql_connection(rdb_host_ip='192.168.1.25',rdb_user='', rdb_name='source_test_db', feat_lookup_tablename='feat_lookup', feat_values_tablename='feat_values')
-        feat_db.create_feature_tables()
-
-    sys.exit()
-
-
-    signals_list = []
-    gen = generators_importers.from_xml(signals_list) # see Software/feature_extract/Code/main.py
-    gen.generate(xml_handle="/home/dstarr/src/TCP/Software/feature_extract/Code/source_5.xml")
-    try:
-        print signals_list[0].properties['data']['i']['inter'].keys()
-        print signals_list[0].properties['data']['i']['inter']['power']
-        print signals_list[0].properties['data']['i']['features']
-    except:
-        print 'except'
-    
-    #import pylab
-    #pylab.plot(signals_list[0].properties['data']['i']['input']['time_data'], signals_list[0].properties['data']['i']['input']['flux_data'], 'ro')
-    #pylab.title('M vs. t')
-    #pylab.show()
-
-    #signals_list[0].properties['data']['i']['inter']['90pct significant power'].plots()
-    #signals_list[0].properties['data']['i']['inter']['lomb'].plots()
-
-    ps = Plot_Signals(signals_list, gen)
-    ps.write_multi_filter_ps_files()
 

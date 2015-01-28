@@ -74,8 +74,8 @@ sys.path.append(os.path.abspath(os.environ.get("TCP_DIR","") + \
               '/Software/feature_extract/Code')) # 20090309 dstarr adds this for nosetests use only
 sys.path.append(os.path.abspath(os.environ.get("TCP_DIR","") + \
               '/Software/feature_extract/Code/extractors')) # 20090309 dstarr adds this for xmldict load only
-import xmldict
-import vo_timeseries
+from .extractors import xmldict
+from . import vo_timeseries
 import numpy
 try:
     import numarray

@@ -1,8 +1,7 @@
 import os,sys
 from ..FeatureExtractor import FeatureExtractor
 
-sys.path.append(os.path.abspath(os.environ.get("TCP_DIR")+'/Algorithms'))
-from stetson_stats import stetson_mean, stetson_j, stetson_k
+from .....Algorithms.stetson_stats import stetson_mean, stetson_j, stetson_k
 
 
 class stetson_mean_extractor(FeatureExtractor):

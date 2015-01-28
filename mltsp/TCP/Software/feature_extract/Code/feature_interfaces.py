@@ -138,9 +138,7 @@ feature_interface = FeatureInterface()
 
 
 def initialize(list_of_extractors):
-	sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + \
-                                                       'Software/ingest_tools'))
-	import feature_extraction_interface
+	from ...ingest_tools import feature_extraction_interface
 	fs = feature_extraction_interface.Internal_Feature_Extractors()
 	for key_name in fs.feature_ordered_keys:
 		list_of_extractors.append(key_name)
@@ -161,7 +159,7 @@ def initialize(list_of_extractors):
 				pass
 		else:
 			pass
-        return list_of_extractor_objects
+	return list_of_extractor_objects
 
 
 def fetch_extract(extractor_name,properties,band=None):

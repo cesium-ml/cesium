@@ -2,8 +2,7 @@ import os,sys
 from numpy import median
 from ..FeatureExtractor import FeatureExtractor, InterExtractor
 
-sys.path.append(os.path.abspath(os.environ.get("TCP_DIR")+'/Algorithms'))
-from qso_fit import qso_fit
+from .....Algorithms.qso_fit import qso_fit
 
 
 #class qso_extractor(FeatureExtractor):  # Using this will add a 'qso' feature in vosource xml whose value is a string representation of the returned od dict.  (using internal_use_only=False, active=False)

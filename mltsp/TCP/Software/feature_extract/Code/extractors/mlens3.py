@@ -55,12 +55,9 @@ import vosource_parse, xmldict
 
 __version__ = "1.0.2"
 
-try:
-	import db_importer
-except:
-	sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + "/Software/Noisification/"))
-	import db_importer
-	
+
+from .. import db_importer
+
 class Mlens:
 
 	## basic lens equations

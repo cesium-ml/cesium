@@ -25,29 +25,13 @@ def currently_running_in_docker_container():
 
 
 import sys, os
-home_str = os.path.expanduser("~")
 import urllib
 import cStringIO
-if currently_running_in_docker_container()==True:
-    os.environ["TCP_DIR"] = "/home/mltsp/TCP/"
-else:
-    import cfg
-    os.environ["TCP_DIR"] = os.path.join(cfg.TCP_INGEST_TOOLS_PATH, '../../')
 
-#from rpy2.robjects.packages import importr
-#from rpy2 import robjects
-TCP_DIR = os.environ["TCP_DIR"]
-sys.path.append(os.path.join(TCP_DIR, 'Software/feature_extract'))
-sys.path.append(os.path.join(TCP_DIR, 'Software/feature_extract/Code'))
-from Code import *
-import db_importer
+from ..feature_extract.Code import *
+from ..feature_extract.Code import db_importer
+from ..feature_extract.MLData import arffify
 
-sys.path.append(os.path.join(TCP_DIR, 'Software/feature_extract/MLData'))
-import arffify
-
-algo_code_dirpath = os.path.abspath(os.path.join(TCP_DIR, 'Algorithms'))
-sys.path.append(algo_code_dirpath)
-#import rpy2_classifiers
 
 head_str = """<?xml version="1.0"?>
 <VOSOURCE version="0.04">
@@ -71,9 +55,9 @@ head_str = """<?xml version="1.0"?>
   </WhereWhen>
   <VOTimeseries version="0.04">
     <TIMESYS>
-            <TimeType ucd="frame.time.system?">MJD</TimeType> 
+            <TimeType ucd="frame.time.system?">MJD</TimeType>
             <TimeZero ucd="frame.time.zero">0.0 </TimeZero>
-            <TimeSystem ucd="frame.time.scale">UTC</TimeSystem> 
+            <TimeSystem ucd="frame.time.scale">UTC</TimeSystem>
             <TimeRefPos ucd="pos;frame.time">TOPOCENTER</TimeRefPos>
         </TIMESYS>
 
@@ -130,7 +114,7 @@ def generate_arff_using_raw_xml(xml_str):
     signals_list = []
     gen = generators_importers.from_xml(signals_list)
     gen.generate(xml_handle=xml_str)
-    gen.sig.add_features_to_xml_string(signals_list)                
+    gen.sig.add_features_to_xml_string(signals_list)
     gen.sig.x_sdict['src_id'] = new_srcid
     dbi_src = db_importer.Source(make_dict_if_given_xml=False)
     dbi_src.source_dict_to_xml(gen.sig.x_sdict)
@@ -151,7 +135,7 @@ def generate_arff_using_raw_xml(xml_str):
 
     master_features = master_features_dict.keys()
     master_classes = master_classes_dict.keys()
-    a = arffify.Maker(search=[], skip_class=True, local_xmls=True, 
+    a = arffify.Maker(search=[], skip_class=True, local_xmls=True,
                       convert_class_abrvs_to_names=False,
                       flag_retrieve_class_abrvs_from_TUTOR=False,
                       dorun=False, add_srcid_to_arff=True)
@@ -196,8 +180,8 @@ def arff_to_dict(arff_str):
                     out_dict[attributes_list[i]] = float(all_vals[i])
                 except ValueError:
                     out_dict[attributes_list[i]] = str(all_vals[i])
-            
-    
+
+
         line_num += 1
     return out_dict
 
@@ -205,11 +189,11 @@ def arff_to_dict(arff_str):
 def generate(timeseries_url="",path_to_csv=False,ts_data=None):
     """ Main function
     """
-    
+
     t_list = []
     m_list = []
     merr_list = []
-    
+
     if path_to_csv: # read csv from local machine:
         try:
             with open(path_to_csv) as f:
@@ -225,12 +209,12 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
                             t_list.append(float(t))
                             m_list.append(float(m))
                             merr_list.append(1.0)
-                        
+
         except Exception as theError:
             print "generate_science_features::generate():", theError, "... Returning {}..."
             return {}
     elif timeseries_url != "": # a url is provided to return the ts data
-        
+
         if timeseries_url not in ["","5125"]:
             print timeseries_url
         else:
@@ -239,8 +223,8 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
                 return {}
             print "lcs_classif.py - sys.argv[1] =", sys.argv[1]
         timeseries_url = sys.argv[1]
-    
-    
+
+
         try:
             f = urllib.urlopen(timeseries_url)
             ts_str = f.read()
@@ -281,15 +265,14 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
 
     #print test_arff_str
     #print type(test_arff_str)
-    
+
     out_dict = arff_to_dict(test_arff_str)
-    
+
     return out_dict
 
 
 if __name__ == '__main__':
-    
-    outdict = generate()
-    
-    print outdict
 
+    outdict = generate()
+
+    print outdict
