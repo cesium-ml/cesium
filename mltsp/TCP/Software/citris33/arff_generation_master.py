@@ -1944,7 +1944,7 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', in
     """
     import copy
     import random
-    import cStringIO
+    import io
     sys.path.append(os.environ.get('TCP_DIR') + '/Software/feature_extract/MLData')
     #sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + '/Software/feature_extract/Code/extractors'))
     #print os.environ.get("TCP_DIR")
@@ -2069,7 +2069,7 @@ def get_perc_subset(srcid_list=[], percent_list=[], niters=1, xml_dirpath='', in
     a.master_list = master_list
     # # # TODO: ideally just the arff lines / strings will be used
     #        - although it might be nice to have a disk copy of the arff rows for record, passing to others.
-    fp_strio = cStringIO.StringIO()
+    fp_strio = io.StringIO()
     a.write_arff(outfile=fp_strio, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,

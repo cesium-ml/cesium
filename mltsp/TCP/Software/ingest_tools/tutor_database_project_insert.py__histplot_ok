@@ -1485,7 +1485,7 @@ class ASAS_Data_Tools:
         """
         """
         from numpy import loadtxt
-        from cStringIO import StringIO
+        from io import StringIO
         dtype_lookup = { \
             'HJD'  :'f8',  
             'MAG_3':'f8',

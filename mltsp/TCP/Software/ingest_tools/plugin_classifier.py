@@ -243,7 +243,7 @@ class PluginClassifier:
         ##### Microlensing classification:
         #class_probs_dict__mlens = {}
         for src_id,vosource_xml_str in vosource_list:
-            ##########s_fp = cStringIO.StringIO(vosource_xml_str)
+            ##########s_fp = io.StringIO(vosource_xml_str)
             # TODO: I need to create google-pseudo-fp for this string:
             if do_logging:
                 print("before: mlens3.EventData(vosource_xml_str)")

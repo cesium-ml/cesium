@@ -1944,7 +1944,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
     """
     import copy
     import random
-    import cStringIO
+    import io
     sys.path.append(os.environ.get('TCP_DIR') + '/Software/feature_extract/MLData')
     #sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + '/Software/feature_extract/Code/extractors'))
     #print os.environ.get("TCP_DIR")
@@ -2051,7 +2051,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
     a.master_list = master_list
     # # # TODO: ideally just the arff lines / strings will be used
     #        - although it might be nice to have a disk copy of the arff rows for record, passing to others.
-    fp_strio = cStringIO.StringIO()
+    fp_strio = io.StringIO()
     a.write_arff(outfile=fp_strio, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,

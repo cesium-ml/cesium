@@ -41,7 +41,7 @@ try:
     import MySQLdb
 except:
     pass
-#import cStringIO  # for passing vosource xml strings to mlens3 code as fp's
+#import io  # for passing vosource xml strings to mlens3 code as fp's
 from numpy import random, zeros
 
 #sys.path.append(os.environ.get("TCP_DIR") + '/Software/feature_extract/MLData')

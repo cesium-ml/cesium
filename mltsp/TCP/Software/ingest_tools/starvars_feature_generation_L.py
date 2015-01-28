@@ -684,8 +684,8 @@ if __name__ == '__main__':
 
 #     if 1:
 #         ### Example: generate arff feature string, do not write to file:
-#         import cStringIO
-#         arff_output_fp = cStringIO.StringIO()
+#         import io
+#         arff_output_fp = io.StringIO()
 # 
 #         sv_asas.generate_arff_using_asasdat(data_fpaths=data_fpaths,
 #                                             include_arff_header=False,

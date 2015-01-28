@@ -15,7 +15,7 @@ script_output = p.stdout.readlines()
 from __future__ import print_function
 import sys, os
 import urllib
-import cStringIO
+import io
 
 os.environ["TCP_DIR"] = "/big_data/dstarr/src/TCP/"
 from rpy2.robjects.packages import importr
@@ -90,7 +90,7 @@ def generate_feature_xml_using_raw_xml(raw_xml_str):
     gen.generate(xml_handle=raw_xml_str)
     gen.sig.add_features_to_xml_string(gen.signals_list)
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     gen.sig.write_xml(out_xml_fpath=fp_out)
     xml_str = fp_out.getvalue()
     sys.stdout.close()
@@ -146,7 +146,7 @@ def generate_arff_using_raw_xml(xml_str):
     a.master_list = master_list
 
 
-    fp_out = cStringIO.StringIO()
+    fp_out = io.StringIO()
     a.write_arff(outfile=fp_out, \
                  remove_sparse_classes=True, \
                  n_sources_needed_for_class_inclusion=1,

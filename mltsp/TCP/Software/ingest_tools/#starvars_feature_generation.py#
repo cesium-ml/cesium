@@ -60,7 +60,7 @@ class IPython_Parallel_Processing:
         mec_exec_str = """
 import sys, os
 import copy
-import cStringIO
+import io
 import cPickle
 import gzip
 import matplotlib
@@ -130,7 +130,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
 
             import sys, os
             import copy 
-            import cStringIO
+            import io
             import matplotlib
             matplotlib.use('agg')
             sys.path.append(os.path.abspath('/global/home/users/dstarr/src/TCP/Software/ingest_tools'))
@@ -139,7 +139,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
             sv_asas = StarVars_ASAS_Feature_Generation(pars=self.pars) # # # IMPORTANT
             tmp_stdout = sys.stdout
             sys.stdout = open(os.devnull, 'w')
-            arff_output_fp = cStringIO.StringIO()
+            arff_output_fp = io.StringIO()
             sv_asas.generate_arff_using_asasdat(data_fpaths=sublist,
                                                 include_arff_header=True,
                                                 arff_output_fp=arff_output_fp)
@@ -160,7 +160,7 @@ sv_asas = StarVars_ASAS_Feature_Generation(pars=%s)
 tmp_stdout = sys.stdout
 sys.stdout = open(os.devnull, 'w')
 os.system('touch /global/home/groups/dstarr/debug_started/start')
-arff_output_fp = cStringIO.StringIO()
+arff_output_fp = io.StringIO()
 out_dict = {}
 sv_asas.generate_arff_using_asasdat(data_fpaths=sublist,
                                     include_arff_header=False,
@@ -291,7 +291,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             sublist = acvs_fpaths[:1]
             import sys, os
             import copy
-            import cStringIO
+            import io
             import cPickle
             import gzip
             import matplotlib
@@ -304,7 +304,7 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
             
             #tmp_stdout = sys.stdout
             #sys.stdout = open(os.devnull, 'w')
-            arff_output_fp = cStringIO.StringIO()
+            arff_output_fp = io.StringIO()
             sv_asas.generate_arff_using_asasdat(data_fpaths=sublist,
                                                 include_arff_header=True,
                                                 arff_output_fp=arff_output_fp)
@@ -328,8 +328,8 @@ sys.path.append(os.path.abspath('/home/dstarr/src/TCP/Software/citris33'))
         @lview.parallel()
         def do_stuff(in_tup):
             (sublist, pars) = in_tup
-            import cStringIO
-            arff_output_fp = cStringIO.StringIO()
+            import io
+            arff_output_fp = io.StringIO()
             out_dict = {}
             from get_colors_for_tutor_sources import Parse_Nomad_Colors_List
             from starvars_feature_generation import StarVars_ASAS_Feature_Generation #path already defined
@@ -618,8 +618,8 @@ if __name__ == '__main__':
                    '/project/projectdirs/m1583/ASAS_scratch/183007-1351.0.dat']
     if 0:
         ### Example: generate arff feature string, do not write to file:
-        import cStringIO
-        arff_output_fp = cStringIO.StringIO()
+        import io
+        arff_output_fp = io.StringIO()
         sv_asas = StarVars_ASAS_Feature_Generation(pars=pars)
         #sv_asas.example_dat_parse()
         sv_asas.generate_arff_using_asasdat(data_fpaths=data_fpaths,
