@@ -12,7 +12,7 @@ try:
 except:
     pass
 from numpy import log, exp, arange, median, ceil
-from . import common_functions.lightcurve as lightcurve
+from .common_functions import lightcurve
 import copy # 20100902 added
 
 class lomb_scargle_extractor(InterExtractor):
