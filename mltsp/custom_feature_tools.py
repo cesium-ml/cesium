@@ -432,9 +432,7 @@ def docker_extract_features(
     return results_list_of_dict
 
 
-def test_new_script(
-        script_fpath,
-        docker_container=False):
+def verify_new_script(script_fpath, docker_container=False):
     """Test custom features script and return generated features.
 
     Performs test run on custom feature def script with trial time
@@ -655,7 +653,7 @@ if __name__ == "__main__":
     import sys
     encoding = sys.stdout.encoding or 'utf-8'
     docker_container = is_running_in_docker_container()
-    x = test_new_script(docker_container=docker_container)
+    x = verify_new_script(docker_container=docker_container)
     print((str(x).encode(encoding)))
     sys.stdout.write( str(x).encode(encoding) )
     if docker_container:

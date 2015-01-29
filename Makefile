@@ -7,5 +7,5 @@ clean:
 	find . -name "*.so" | xargs rm
 
 test:
-	PYTHONPATH=. python mltsp/TCP/tests/test_feature_generation.py
+	nosetests --exclude-dir=mltsp/Flask/src
 

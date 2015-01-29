@@ -1290,12 +1290,12 @@ function form_validations(){
 
 function test_custom_feature_script(){
         /*
-        $('body').append('<div style="display:none;"><form id="test_new_script_form" name="test_new_script_form" action="/testNewScript" enctype="multipart/form-data" method="post"></form></div>');
-        $("#custom_feat_script_file").appendTo($('#test_new_script_form'));
+        $('body').append('<div style="display:none;"><form id="verify_new_script_form" name="verify_new_script_form" action="/verifyNewScript" enctype="multipart/form-data" method="post"></form></div>');
+        $("#custom_feat_script_file").appendTo($('#verify_new_script_form'));
         console.log($("#custom_feat_script_file").val());
         */
-        $("#featurizeForm").attr('action', '/testNewScript');
-        fileUpload(document.getElementById('featurizeForm'), "/testNewScript", "file_upload_message_div");
+        $("#featurizeForm").attr('action', '/verifyNewScript');
+        fileUpload(document.getElementById('featurizeForm'), "/verifyNewScript", "file_upload_message_div");
 
 
         console.log("Done");
@@ -1304,7 +1304,7 @@ function test_custom_feature_script(){
         /*
 
 
-        $("#test_new_script_form").ajaxForm(function(){
+        $("#verify_new_script_form").ajaxForm(function(){
                         alert("Success!");
                 }
         );
@@ -1317,7 +1317,7 @@ function test_custom_feature_script(){
 
 
 
-        $.post("/testNewScript",{custom_feat_script_file:document.getElementById("custom_feat_script_file").files[0]}, function(data){
+        $.post("/verifyNewScript",{custom_feat_script_file:document.getElementById("custom_feat_script_file").files[0]}, function(data){
                 alert(data);
         });
         */

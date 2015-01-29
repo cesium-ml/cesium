@@ -19,3 +19,5 @@ tables
 colorlog
 future>=0.13
 matplotlib
+nose
+nose-exclude

@@ -1612,8 +1612,8 @@ def MainPage():
         PROJECT_NAME=info_dict['PROJECT_NAME'])
 
 
-@app.route('/testNewScript', methods=['POST','GET'])
-def testNewScript():
+@app.route('/verifyNewScript', methods=['POST','GET'])
+def verifyNewScript():
     """Test POSTed custom features script file.
 
     Handles POSTing of form that uploads a .py script. Script is
@@ -1638,7 +1638,7 @@ def testNewScript():
             str(uuid.uuid4())+"_"+str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
-            test_results = cft.test_new_script(script_fpath=scriptfile_path)
+            test_results = cft.verify_new_script(script_fpath=scriptfile_path)
             ks=[]
             for thisone in test_results:
                 for k,v in thisone.items():
@@ -1652,7 +1652,7 @@ def testNewScript():
                     %(str(k),str(k)))
         except Exception as theErr:
             print(theErr)
-            logging.exception("testNewScript error.")
+            logging.exception("verifyNewScript error.")
             return str(theErr)
         os.remove(scriptfile_path)
         return str(
