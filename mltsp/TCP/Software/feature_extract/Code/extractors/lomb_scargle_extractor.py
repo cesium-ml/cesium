@@ -1,18 +1,18 @@
-""" This module is a low-tech implementation of lomb_scargle_extractor using regular expressions """
-from __future__ import print_function
-from __future__ import absolute_import
+"""This module is a low-tech implementation of lomb_scargle_extractor using
+regular expressions
+"""
 
 from ..FeatureExtractor import FeatureExtractor
 from ..FeatureExtractor import InterExtractor
-from .common_functions.lomb_scargle import lomb
-from .common_functions.pre_whiten import pre_whiten
+from common_functions.lomb_scargle import lomb
+from common_functions.pre_whiten import pre_whiten
 
 try:
     from pylab import *
 except:
     pass
 from numpy import log, exp, arange, median, ceil
-from .common_functions import lightcurve
+import common_functions.lightcurve as lightcurve
 import copy # 20100902 added
 
 class lomb_scargle_extractor(InterExtractor):
@@ -20,29 +20,30 @@ class lomb_scargle_extractor(InterExtractor):
     """
     internal_use_only = False
     active = True
-    extname = 'lomb_scargle' 
-    def extract(self):
+    extname = 'lomb_scargle'
 
+    def extract(self):
         src_dict = {}
-        src_dict['t'] = copy.copy(self.time_data) # 20100902 added the copy()
-        src_dict['m'] = copy.copy(self.flux_data) # 20100902 addde the copy()
+        src_dict['t'] = copy.copy(self.time_data)  # 20100902 added the copy()
+        src_dict['m'] = copy.copy(self.flux_data)  # 20100902 addde the copy()
         src_dict['m_err'] = copy.copy(self.rms_data) # 20100902 added the copy()
         
         
-        print("m_err:", src_dict['m_err'])
+        print "m_err:", src_dict['m_err']
         
         if len(self.time_data) == 0:
             self.ex_error(text="self.time_data of len()==0")
-        try:
-            obs = lightcurve.observatory_source_interface()
-            db_dictionary, cn_output = obs.lomb_code(src_dict['m'],
-                                           src_dict['m_err'],
-                                           src_dict['t'],
-                                 srcid=self.dic['input'].get('srcid',0))# 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
-        except Exception as theErr:
-            print(theErr, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!") 
-            self.ex_error(text="lomb_scargle_extractor::obs.lomb_code() except")
-            db_dictionary = {} # I think we dont get here since the above line excepts
+#        try:
+        obs = lightcurve.observatory_source_interface()
+        db_dictionary, cn_output = obs.lomb_code(src_dict['m'],
+                                       src_dict['m_err'],
+                                       src_dict['t'],
+                             srcid=self.dic['input'].get('srcid',0))# 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
+#        except Exception as theErr:
+#            raise(theErr)
+#            print theErr, "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" 
+#            self.ex_error(text="lomb_scargle_extractor::obs.lomb_code() except")
+#            db_dictionary = {} # I think we dont get here since the above line excepts
 
         #import pdb; pdb.set_trace()
         #print
@@ -173,7 +174,7 @@ class lomb_generic(FeatureExtractor):
     def extract(self):
         lomb_dict = self.fetch_extr('lomb_scargle') # fetches the dictionary from lomb_scargle_extractor with the useful lomb scargle results in it
         # If lomb_dict is partially filled, most likely lomb couldn't compute completely due to FALSE condition: (dof>0 and harm_dict['nharm']>0 and harm_dict['signif']>0)
-        if self.lomb_key in lomb_dict:
+        if lomb_dict.has_key(self.lomb_key):
             return lomb_dict[self.lomb_key] # finds the correct keyword that this class is assigned to, this could be replaced by self.extname if it wasn't for the _alt
         else:
             self.ex_error('Lomb Scargle Dictionary does not have key %s' % (self.lomb_key))

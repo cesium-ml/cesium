@@ -1,10 +1,18 @@
-from __future__ import absolute_import
-from numpy import empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
+from numpy import exp,empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
 from scipy import weave
-from .lomb_scargle import lprob2sigma
-from scipy.stats import f as fdist
-from .ls_support import lomb_code,lomb_scargle_support
-from .numc_eigs import scode as eigs_code
+from scipy.stats import f as fdist, norm
+from numc_eigs import scode as eigs_code
+from _lomb_scargle import lomb_scargle
+
+
+def lprob2sigma(lprob):
+    """ translates a log_e(probability) to units of Gaussian sigmas """
+    if (lprob>-36.):
+      sigma = norm.ppf(1.-0.5*exp(1.*lprob))
+    else:
+      sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
+    return float(sigma)
+
 
 def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
     """
@@ -98,8 +106,14 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     lambda0 = array(lambda0/s0,dtype='float64')
     lambda0_range = 10**array(lambda0_range,dtype='float64')/s0
 
+
     vars=['numt','numf','nharm','detrend_order','psd','cn','wth','sinx','cosx','sinx_step','cosx_step','sinx_back','cosx_back','sinx_smallstep','cosx_smallstep','hat_matr','hat_hat','hat0','soln','chi0','freq_zoom','psdmin','tone_control','lambda0','lambda0_range','Tr','ifreq']
-    weave.inline(lomb_code, vars, support_code = eigs_code + lomb_scargle_support,force=0)
+
+    lomb_scargle(numt, numf, nharm, detrend_order, psd, cn, wth, sinx,
+                 cosx, sinx_step, cosx_step, sinx_back, cosx_back,
+                 sinx_smallstep, cosx_smallstep, hat_matr, hat_hat, hat0,
+                 soln, chi0, freq_zoom, psdmin, tone_control, lambda0,
+                 lambda0_range, Tr, ifreq)
 
     hat_hat /= s0
     ii = arange(nharm,dtype='int32')
