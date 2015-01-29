@@ -5,7 +5,8 @@ from __future__ import division
 from __future__ import absolute_import
 from numpy import *
 
-from .lomb_scargle import lprob2sigma
+from .lomb_scargle_refine import lprob2sigma
+
 
 def chi2sigma(chi0,chi1,nu0,nharm):
     from scipy.stats import betai

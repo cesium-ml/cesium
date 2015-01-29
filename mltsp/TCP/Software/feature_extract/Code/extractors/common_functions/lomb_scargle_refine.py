@@ -1,5 +1,4 @@
 from numpy import exp,empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
-from scipy import weave
 from scipy.stats import f as fdist, norm
 from numc_eigs import scode as eigs_code
 from _lomb_scargle import lomb_scargle

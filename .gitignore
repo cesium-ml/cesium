@@ -10,3 +10,4 @@ test_tcp_featgen.py
 *.gch
 *.so
 mltsp/version.py
+*.c
