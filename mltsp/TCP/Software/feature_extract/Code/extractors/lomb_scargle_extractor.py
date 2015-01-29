@@ -1,17 +1,19 @@
 """This module is a low-tech implementation of lomb_scargle_extractor using
 regular expressions
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 from ..FeatureExtractor import FeatureExtractor
 from ..FeatureExtractor import InterExtractor
-from common_functions.pre_whiten import pre_whiten
+from .common_functions.pre_whiten import pre_whiten
 
 try:
     from pylab import *
 except:
     pass
 from numpy import log, exp, arange, median, ceil
-import common_functions.lightcurve as lightcurve
+from .common_functions import lightcurve
 import copy # 20100902 added
 
 class lomb_scargle_extractor(InterExtractor):
@@ -28,7 +30,7 @@ class lomb_scargle_extractor(InterExtractor):
         src_dict['m_err'] = copy.copy(self.rms_data) # 20100902 added the copy()
 
 
-        print "m_err:", src_dict['m_err']
+        print("m_err:", src_dict['m_err'])
 
         if len(self.time_data) == 0:
             self.ex_error(text="self.time_data of len()==0")
@@ -165,7 +167,7 @@ class lomb_generic(FeatureExtractor):
     def extract(self):
         lomb_dict = self.fetch_extr('lomb_scargle') # fetches the dictionary from lomb_scargle_extractor with the useful lomb scargle results in it
         # If lomb_dict is partially filled, most likely lomb couldn't compute completely due to FALSE condition: (dof>0 and harm_dict['nharm']>0 and harm_dict['signif']>0)
-        if lomb_dict.has_key(self.lomb_key):
+        if self.lomb_key in lomb_dict:
             return lomb_dict[self.lomb_key] # finds the correct keyword that this class is assigned to, this could be replaced by self.extname if it wasn't for the _alt
         else:
             self.ex_error('Lomb Scargle Dictionary does not have key %s' % (self.lomb_key))
