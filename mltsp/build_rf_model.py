@@ -208,13 +208,13 @@ def build_model(
             "start using it.")
 
 
-def parse_prefeaturized_csv_data(headerfile_path):
+def parse_prefeaturized_csv_data(features_file_path):
     """Parse CSV file containing features.
 
     Parameters
     ----------
-    headerfile_path : str
-        Path to file containing features.
+    features_file_path : str
+        Path to CSV file containing features.
 
     Returns
     -------
@@ -224,7 +224,7 @@ def parse_prefeaturized_csv_data(headerfile_path):
 
     """
     objects = []
-    with open(headerfile_path) as f:
+    with open(features_file_path) as f:
         # First line contains column titles
         keys = f.readline().strip().split(',')
         for line in f:
@@ -239,14 +239,27 @@ def parse_prefeaturized_csv_data(headerfile_path):
 
 
 def parse_headerfile(headerfile_path, features_to_use):
-    """
+    """Parse header file.
+
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to header file.
+
+    features_to_use : list of str
+        List of feature names to be generated. Defaults to an empty
+        list, which results in all available features being used.
+
+    Returns
+    -------
+    tuple
 
     """
     with open(headerfile_path, 'r') as headerfile:
         fname_class_dict = {}
         fname_class_science_features_dict = {}
         fname_metadata_dict = {}
-        # write ids and classnames to dict
+        # Write IDs and classnames to dict
         line_no = 0
         other_metadata_labels = []
         for line in headerfile:
@@ -266,7 +279,7 @@ def parse_headerfile(headerfile_path, features_to_use):
                         els = line.strip().split(',')
                         fname, class_name = els[:2]
                         other_metadata = els[2:]
-                        # convert to floats, if applicable:
+                        # Convert to floats, if applicable:
                         for i in range(len(other_metadata)):
                             try:
                                 other_metadata[i] = float(
@@ -276,12 +289,10 @@ def parse_headerfile(headerfile_path, features_to_use):
                         fname_class_dict[fname] = class_name
                         fname_class_science_features_dict[fname] = {
                             'class': class_name}
-
                         fname_metadata_dict[fname] = dict(
                             list(zip(other_metadata_labels,
                                      other_metadata)))
             line_no += 1
-
     return (features_to_use, fname_class_dict,
             fname_class_science_features_dict,
             fname_metadata_dict)
@@ -347,7 +358,7 @@ def generate_features(zipfile_path, fname_class_dict, features_to_use,
                       features_successful, "\n")
                 print(len(features_failed), "features failed: \n",
                       features_failed, "\n\n", "#" * 80)
-                # end testing block
+                # End testing block
 
             else:
                 science_features = {}
@@ -407,7 +418,7 @@ def featurize(
     zipfile_path : str
         Path to the tarball of individual time series files to be used
         for feature generation.
-    features_to_use : list, optional
+    features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty
         list, which results in all available features being used.
     featureset_id : str, optional
@@ -477,7 +488,6 @@ def featurize(
         else:
             # Featurize serially
             print("FEATURIZING - NOT USING DISCO")
-
             objects, fname_class_science_features_dict, all_fnames = \
                 generate_features(
                     zipfile_path, fname_class_dict, features_to_use,

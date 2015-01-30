@@ -14,7 +14,10 @@ standard_library.install_aliases()
 
 from .. import custom_feature_tools as cft
 
-import pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 def extract_custom_feats():
     """Load pickled parameters and generate custom features.

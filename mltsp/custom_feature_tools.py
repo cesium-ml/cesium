@@ -18,7 +18,10 @@ from subprocess import call, Popen, PIPE
 import sys
 import os
 import inspect
-import pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import uuid
 import shutil
 from . import cfg
