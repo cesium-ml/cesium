@@ -29,7 +29,7 @@ try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
     DISCO_INSTALLED = True
-except Exception as theError:
+except ImportError as theError:
     DISCO_INSTALLED = False
 if DISCO_INSTALLED:
     from . import parallel_processing
@@ -37,7 +37,6 @@ if DISCO_INSTALLED:
 from . import cfg
 from . import lc_tools
 from . import custom_feature_tools as cft
-from .TCP.Software.ingest_tools import generate_science_features
 
 
 def read_data_from_csv_file(fname, sep=',', skip_lines=0):
@@ -119,33 +118,35 @@ def build_model(
         Human-readable message indicating successful completion.
 
     """
+    # Determine which directory paths to use
     if in_docker_container:
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
-        uploads_folder = "/Data/flask_uploads/"
     else:
         features_folder = cfg.FEATURES_FOLDER
         models_folder = cfg.MODELS_FOLDER
-        uploads_folder = cfg.UPLOAD_FOLDER
 
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     features_to_use = all_features_list
     features_filename = os.path.join(
         features_folder, "%s_features.csv" % featureset_key)
 
+    # Read in feature data and class list
     features_extracted, all_data = read_data_from_csv_file(features_filename)
     classes = joblib.load(
         features_filename.replace("_features.csv", "_classes.pkl"))
+
+    # Put data and class list into dictionary
     data_dict = {}
     data_dict['features'] = all_data
     data_dict['classes'] = classes
     del all_data
 
+    # Count up total num of objects per class
     class_count = {}
     numobjs = 0
     class_list = []
     cv_objs = []
-    # count up total num of objects per class
     print("Starting class count...")
     for classname in classes:
         if classname not in class_list:
@@ -159,7 +160,7 @@ def build_model(
     sorted_class_list = sorted(class_list)
     del classes
 
-    # remove any empty lines from data:
+    # Remove any empty lines from data:
     print("\n\n")
     line_lens = []
     indices_for_deletion = []
@@ -179,21 +180,21 @@ def build_model(
     print(len(data_dict['features']))
     print("\n\n")
 
+
+    # Build the model:
+    # Initialize
     ntrees = 1000
     njobs = -1
-
-    # build the model:
-    # initialize:
     rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
     print("Model initialized.")
 
-    # fit the model:
+    # Fit the model to training data:
     print("Fitting the model...")
     rf_fit.fit(data_dict['features'], data_dict['classes'])
     print("Done.")
     del data_dict
 
-    # store the model:
+    # Store the model:
     print("Pickling model...")
     foutname = os.path.join(
         ("/tmp" if in_docker_container else models_folder),
@@ -201,49 +202,187 @@ def build_model(
     joblib.dump(rf_fit, foutname, compress=3)
     print(foutname, "created.")
 
-    if 0: # cross validation
-        # ########### CROSS-VALIDATION ##################
-        cv_results_dict = {}
-        for class_name in class_list:
-            cv_results_dict[class_name] = {'correct': 0, 'incorrect': 0}
-        for obj in cv_objs:
-            try:
-                newFeatures = []
-                for feat in cfg.features_list:
-                    if feat in features_to_use and feat in features_extracted:
-                        newFeatures.append(obj[feat])
-
-                classifier_preds = rf_fit.predict_proba(newFeatures)
-                class_probs = classifier_preds[0]
-            except ValueError as the_error:
-                print(the_error)
-                continue
-            results_arr = []
-
-            for i in range(len(class_probs)):
-                results_arr.append(
-                    [sorted_class_list[i], float(class_probs[i])])
-            results_arr.sort(key=itemgetter(1), reverse=True)
-            top_class = results_arr[0][0]
-            print(results_arr)
-            print(obj['class'])
-            if top_class == obj['class']:
-                cv_results_dict[obj['class']]['correct'] += 1
-                print("Correct.")
-            else:
-                cv_results_dict[obj['class']]['incorrect'] += 1
-                print("Incorrect.")
-        print(cv_results_dict)
-
-        for class_name in class_list:
-            print(class_name, "percent correct:",
-                  float(cv_results_dict[class_name]['correct']) / float(
-                      cv_results_dict[class_name]['correct']
-                      + cv_results_dict[class_name]['incorrect']))
     del rf_fit
     print("DONE!")
     return ("New model successfully created. Click the Predict tab to "
             "start using it.")
+
+
+def parse_prefeaturized_csv_data(headerfile_path):
+    """Parse CSV file containing features.
+
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to file containing features.
+
+    Returns
+    -------
+    list of dict
+        Returns list of dictionaries containing features - feature
+        names as keys, corresponding values as dict values.
+
+    """
+    objects = []
+    with open(headerfile_path) as f:
+        # First line contains column titles
+        keys = f.readline().strip().split(',')
+        for line in f:
+            vals = line.strip().split(",")
+            if len(vals) != len(keys):
+                continue
+            else:
+                objects.append({})
+                for i in range(len(keys)):
+                    objects[-1][keys[i]] = vals[i]
+    return objects
+
+
+def parse_headerfile(headerfile_path, features_to_use):
+    """
+
+    """
+    with open(headerfile_path, 'r') as headerfile:
+        fname_class_dict = {}
+        fname_class_science_features_dict = {}
+        fname_metadata_dict = {}
+        # write ids and classnames to dict
+        line_no = 0
+        other_metadata_labels = []
+        for line in headerfile:
+            if line_no == 0:
+                els = line.strip().split(',')
+                fname, class_name = els[:2]
+                other_metadata_labels = els[2:]
+                features_to_use += other_metadata_labels
+            else:
+                if len(line) > 1 and line[0] not in ["#", "\n"]:
+                    if len(line.split(',')) == 2:
+                        fname, class_name = line.strip('\n').split(',')
+                        fname_class_dict[fname] = class_name
+                        fname_class_science_features_dict[fname] = {
+                            'class': class_name}
+                    elif len(line.split(',')) > 2:
+                        els = line.strip().split(',')
+                        fname, class_name = els[:2]
+                        other_metadata = els[2:]
+                        # convert to floats, if applicable:
+                        for i in range(len(other_metadata)):
+                            try:
+                                other_metadata[i] = float(
+                                    other_metadata[i])
+                            except ValueError:
+                                pass
+                        fname_class_dict[fname] = class_name
+                        fname_class_science_features_dict[fname] = {
+                            'class': class_name}
+
+                        fname_metadata_dict[fname] = dict(
+                            list(zip(other_metadata_labels,
+                                     other_metadata)))
+            line_no += 1
+
+    return (features_to_use, fname_class_dict,
+            fname_class_science_features_dict,
+            fname_metadata_dict)
+
+
+def generate_features(zipfile_path, fname_class_dict, features_to_use,
+                      custom_script_path, fname_class_science_features_dict,
+                      fname_metadata_dict, is_test, uploads_folder):
+    """Generate features serially for provided time-series data.
+
+    """
+    objects = []
+    zipfile = tarfile.open(zipfile_path)
+    zipfile.extractall(path=os.path.join(uploads_folder, "unzipped"))
+    all_fnames = zipfile.getnames()
+    num_objs = len(fname_class_dict)
+    zipfile_name = zipfile_path.split("/")[-1]
+    count = 0
+    print("Generating science features...")
+    # Loop through time-series files and featurize each
+    for fname in sorted(all_fnames):
+        short_fname = (
+            fname.split("/")[-1]
+            .replace((
+                "." + fname.split(".")[-1] if "." in
+                fname.split("/")[-1] else ""), ""))
+        path_to_csv = os.path.join(
+            uploads_folder, os.path.join("unzipped", fname))
+        if os.path.isfile(path_to_csv):
+            print("Extracting features for", fname, "-", count,
+                  "of", num_objs)
+            print("path_to_csv =", path_to_csv)
+            # Generate features:
+            if len(set(features_to_use) & set(cfg.features_list)) > 0:
+                timeseries_features = (
+                    lc_tools.generate_timeseries_features(
+                        path_to_csv,
+                        classname=fname_class_dict[short_fname],
+                        sep=','))
+            else:
+                timeseries_features = {}
+            if len(
+                    set(features_to_use) &
+                    set(cfg.features_list_science)) > 0:
+                from .TCP.Software.ingest_tools import \
+                    generate_science_features
+                science_features = generate_science_features.generate(
+                    path_to_csv=path_to_csv)
+
+                # #TEMP# Begin testing block:
+                features_successful = []
+                features_failed = []
+
+                for k, v in science_features.items():
+                    if v == "?":
+                        features_failed.append(k)
+                    else:
+                        features_successful.append(k)
+
+                print("\n\n", "#" * 80, "\n\n",
+                      len(features_successful),
+                      "features successfully generated: \n",
+                      features_successful, "\n")
+                print(len(features_failed), "features failed: \n",
+                      features_failed, "\n\n", "#" * 80)
+                # end testing block
+
+            else:
+                science_features = {}
+            if custom_script_path not in (None, "None",
+                                          False, "False"):
+                custom_features = cft.generate_custom_features(
+                    custom_script_path=custom_script_path,
+                    path_to_csv=path_to_csv,
+                    features_already_known=dict(
+                        list(timeseries_features.items()) +
+                        list(science_features.items())))[0]
+            else:
+                custom_features = {}
+            all_features = dict(
+                list(timeseries_features.items()) +
+                list(science_features.items()) +
+                list(custom_features.items()))
+            if short_fname in fname_metadata_dict:
+                all_features = dict(
+                    list(all_features.items()) +
+                    list(fname_metadata_dict[short_fname].items()))
+            fname_class_science_features_dict[
+                short_fname]['features'] = all_features
+
+            objects.append(
+                fname_class_science_features_dict[
+                    short_fname]['features'])
+            objects[-1]['class'] = fname_class_dict[short_fname]
+            count += 1
+            if is_test and count > 2:
+                break
+        else:
+            pass
+    print("Done.")
+    return (objects, fname_class_science_features_dict, all_fnames)
 
 
 def featurize(
@@ -251,7 +390,7 @@ def featurize(
         featureset_id="unknown", is_test=False, USE_DISCO=True,
         already_featurized=False, custom_script_path=None,
         in_docker_container=False):
-    """Generates features for labeled time series data.
+    """Generate features for labeled time series data.
 
     Features are saved to the file given by
     ``"%s_features.csv" % featureset_id``
@@ -299,175 +438,51 @@ def featurize(
     """
     if in_docker_container:
         features_folder = "/Data/features/"
-        models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
     else:
         features_folder = cfg.FEATURES_FOLDER
-        models_folder = cfg.MODELS_FOLDER
         uploads_folder = cfg.UPLOAD_FOLDER
 
-    if "/" not in headerfile_path:
+    if "/" not in headerfile_path: # Not Windows-friendly...
         headerfile_path = os.path.join(uploads_folder, headerfile_path)
     if zipfile_path is not None and "/" not in zipfile_path:
         zipfile_path = os.path.join(uploads_folder, zipfile_path)
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
+    if len(features_to_use) == 0:
+        features_to_use = all_features_list
     if already_featurized:
-        objects = []
-        with open(headerfile_path) as f:
-            keys = f.readline().strip().split(',')
-            for line in f:
-                vals = line.strip().split(",")
-                if len(vals) != len(keys):
-                    continue
-                else:
-                    objects.append({})
-                    for i in range(len(keys)):
-                        objects[-1][keys[i]] = vals[i]
-    else: # EXTRACT FEATURES::
-        if len(features_to_use) == 0:
-            features_to_use = all_features_list
-        with open(headerfile_path, 'r') as headerfile:
-            fname_class_dict = {}
-            fname_class_science_features_dict = {}
-            fname_metadata_dict = {}
-            objects = []
-            # write ids and classnames to dict
-            line_no = 0
-            other_metadata_labels = []
-            for line in headerfile:
-                if line_no == 0:
-                    els = line.strip().split(',')
-                    fname, class_name = els[:2]
-                    other_metadata_labels = els[2:]
-                    features_to_use += other_metadata_labels
-                else:
-                    if len(line) > 1 and line[0] not in ["#", "\n"]:
-                        if len(line.split(',')) == 2:
-                            fname, class_name = line.strip('\n').split(',')
-                            fname_class_dict[fname] = class_name
-                            fname_class_science_features_dict[fname] = {
-                                'class': class_name}
-                        elif len(line.split(',')) > 2:
-                            els = line.strip().split(',')
-                            fname, class_name = els[:2]
-                            other_metadata = els[2:]
-                            # convert to floats, if applicable:
-                            for i in range(len(other_metadata)):
-                                try:
-                                    other_metadata[i] = float(
-                                        other_metadata[i])
-                                except ValueError:
-                                    pass
-                            fname_class_dict[fname] = class_name
-                            fname_class_science_features_dict[fname] = {
-                                'class': class_name}
-
-                            fname_metadata_dict[fname] = dict(
-                                list(zip(other_metadata_labels,
-                                         other_metadata)))
-                line_no += 1
-        # disco may be installed in docker container, but
-        # it is not working yet, thus the " and not in_docker_container"
-        if DISCO_INSTALLED and USE_DISCO:# and not in_docker_container:
-            print("FEATURIZE - USING DISCO")
+        # Read in features from CSV file
+        objects = parse_prefeaturized_csv_data(headerfile_path)
+    else:
+        # Parse header file
+        (features_to_use, fname_class_dict, fname_class_science_features_dict,
+         fname_metadata_dict) = parse_headerfile(headerfile_path,
+                                                 features_to_use)
+        # Generate the features
+        if DISCO_INSTALLED and USE_DISCO:
+            # Featurize in parallel
+            print("FEATURIZING - USING DISCO")
             fname_features_data_dict = (
                 parallel_processing.featurize_in_parallel(
                     headerfile_path=headerfile_path, zipfile_path=zipfile_path,
                     features_to_use=features_to_use, is_test=is_test,
                     custom_script_path=custom_script_path,
                     meta_features=fname_metadata_dict))
+            objects = []
             for k, v in fname_features_data_dict.items():
                 if k in fname_metadata_dict:
                     v = dict(list(v.items()) +
                              list(fname_metadata_dict[k].items()))
                 objects.append(v)
         else:
-            print("FEATURIZE - NOT USING DISCO")
-            zipfile = tarfile.open(zipfile_path)
-            zipfile.extractall(path=os.path.join(uploads_folder, "unzipped"))
-            all_fnames = zipfile.getnames()
-            num_objs = len(fname_class_dict)
-            zipfile_name = zipfile_path.split("/")[-1]
-            count = 0
-            print("Generating science features...")
-            for fname in sorted(all_fnames):
-                short_fname = (
-                    fname.split("/")[-1]
-                    .replace((
-                        "." + fname.split(".")[-1] if "." in
-                        fname.split("/")[-1] else ""), ""))
-                path_to_csv = os.path.join(
-                    uploads_folder, os.path.join("unzipped", fname))
-                if os.path.isfile(path_to_csv):
-                    print("Extracting features for", fname, "-", count,
-                          "of", num_objs)
-                    print("path_to_csv =", path_to_csv)
-                    # Generate features:
-                    if len(set(features_to_use) & set(cfg.features_list)) > 0:
-                        timeseries_features = (
-                            lc_tools.generate_timeseries_features(
-                                path_to_csv,
-                                classname=fname_class_dict[short_fname],
-                                sep=','))
-                    else:
-                        timeseries_features = {}
-                    if len(
-                            set(features_to_use) &
-                            set(cfg.features_list_science)) > 0:
-                        science_features = generate_science_features.generate(
-                            path_to_csv=path_to_csv)
+            # Featurize serially
+            print("FEATURIZING - NOT USING DISCO")
 
-                        # #TEMP# Begin testing block:
-                        features_successful = []
-                        features_failed = []
-
-                        for k, v in science_features.items():
-                            if v == "?":
-                                features_failed.append(k)
-                            else:
-                                features_successful.append(k)
-
-                        print("\n\n", "#" * 80, "\n\n",
-                              len(features_successful),
-                              "features successfully generated: \n",
-                              features_successful, "\n")
-                        print(len(features_failed), "features failed: \n",
-                              features_failed, "\n\n", "#" * 80)
-                        # end testing block
-
-                    else:
-                        science_features = {}
-                    if custom_script_path not in (None, "None",
-                                                  False, "False"):
-                        custom_features = cft.generate_custom_features(
-                            custom_script_path=custom_script_path,
-                            path_to_csv=path_to_csv,
-                            features_already_known=dict(
-                                list(timeseries_features.items()) +
-                                list(science_features.items())))[0]
-                    else:
-                        custom_features = {}
-                    all_features = dict(
-                        list(timeseries_features.items()) +
-                        list(science_features.items()) +
-                        list(custom_features.items()))
-                    if short_fname in fname_metadata_dict:
-                        all_features = dict(
-                            list(all_features.items()) +
-                            list(fname_metadata_dict[short_fname].items()))
-                    fname_class_science_features_dict[
-                        short_fname]['features'] = all_features
-
-                    objects.append(
-                        fname_class_science_features_dict[
-                            short_fname]['features'])
-                    objects[-1]['class'] = fname_class_dict[short_fname]
-                    count += 1
-                    if is_test and count > 2:
-                        break
-                else:
-                    pass
-            print("Done.")
+            objects, fname_class_science_features_dict, all_fnames = \
+                generate_features(
+                    zipfile_path, fname_class_dict, features_to_use,
+                    custom_script_path, fname_class_science_features_dict,
+                    fname_metadata_dict, is_test, uploads_folder)
         try:
             all_fnames
         except:
