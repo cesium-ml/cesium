@@ -44,8 +44,6 @@ try:
 except Exception as theError:
     DISCO_INSTALLED = False
 
-from .TCP.Software.ingest_tools import generate_science_features
-
 
 def map(fname_and_class, params):
     """Map procedure for use in Disco's map-reduce implementation.
@@ -550,6 +548,7 @@ def featurize_in_parallel(
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 
+    from .TCP.Software.ingest_tools import generate_science_features
     if generate_science_features.currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
@@ -668,6 +667,7 @@ def featurize_in_parallel_newtest(
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 
+    from .TCP.Software.ingest_tools import generate_science_features
     if generate_science_features.currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"

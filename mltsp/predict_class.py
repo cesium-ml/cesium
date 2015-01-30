@@ -34,7 +34,6 @@ from . import cfg
 from . import custom_exceptions
 from . import lc_tools
 
-from .TCP.Software.ingest_tools import generate_science_features
 from . import custom_feature_tools as cft
 
 try:
@@ -229,6 +228,7 @@ def predict(
                     timeseries_features = {}
                 if len(list(set(features_to_use) &
                             set(cfg.features_list_science))) > 0:
+                    from .TCP.Software.ingest_tools import generate_science_features
                     science_features = generate_science_features.generate(
                         ts_data=deepcopy(ts_data))
                 else:
@@ -314,6 +314,7 @@ def predict(
             timeseries_features = {}
         if len(list(set(features_to_use) &
                 set(cfg.features_list_science))) > 0:
+            from .TCP.Software.ingest_tools import generate_science_features
             science_features = generate_science_features.generate(
                 ts_data=deepcopy(ts_data))
         else:
