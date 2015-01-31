@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from subprocess import call
 
+
 def setup():
     print("Copying data files")
     # copy data files to proper directory:
@@ -70,7 +71,7 @@ def test_featurize():
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
                                   "asas_training_subset.tar.gz"),
-        features_to_use=["std_err"],
+        features_to_use=["std_err"],# #TEMP# TCP still broken under py3
         featureset_id="test", is_test=True,
         custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                         "testfeature1.py"),

@@ -208,6 +208,15 @@ def build_model(
             "start using it.")
 
 
+def shorten_fname(fname):
+    """Return shortened file name without full path and suffix.
+
+    """
+    return fname.split("/")[-1].replace(
+        ("." + fname.split(".")[-1] if "." in fname.split("/")[-1] else ""),
+        "")
+
+
 def parse_prefeaturized_csv_data(features_file_path):
     """Parse CSV file containing features.
 
@@ -298,10 +307,64 @@ def parse_headerfile(headerfile_path, features_to_use):
             fname_metadata_dict)
 
 
-def generate_features(zipfile_path, fname_class_dict, features_to_use,
-                      custom_script_path, fname_class_science_features_dict,
-                      fname_metadata_dict, is_test, uploads_folder):
-    """Generate features serially for provided time-series data.
+def generate_features(headerfile_path, zipfile_path, features_to_use,
+                      custom_script_path, is_test, USE_DISCO,
+                      already_featurized, in_docker_container, uploads_folder):
+    """Generate features for provided time-series data.
+
+    """
+    all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
+    if len(features_to_use) == 0:
+        features_to_use = all_features_list
+
+    if already_featurized:
+        # Read in features from CSV file
+        objects = parse_prefeaturized_csv_data(headerfile_path)
+        features_extracted = list(objects[-1].keys())
+        if "class" in features_extracted: features_extracted.remove("class")
+        return (objects, features_extracted)
+    else:
+        # Parse header file
+        (features_to_use, fname_class_dict, fname_class_science_features_dict,
+         fname_metadata_dict) = parse_headerfile(headerfile_path,
+                                                 features_to_use)
+        # Generate the features
+        if DISCO_INSTALLED and USE_DISCO:
+            # Featurize in parallel
+            print("FEATURIZING - USING DISCO")
+            fname_features_data_dict = (
+                parallel_processing.featurize_in_parallel(
+                    headerfile_path=headerfile_path, zipfile_path=zipfile_path,
+                    features_to_use=features_to_use, is_test=is_test,
+                    custom_script_path=custom_script_path,
+                    meta_features=fname_metadata_dict))
+            objects = []
+            for k, v in fname_features_data_dict.items():
+                if k in fname_metadata_dict:
+                    v = dict(list(v.items()) +
+                             list(fname_metadata_dict[k].items()))
+                objects.append(v)
+            features_extracted = list(objects[-1].keys())
+            if "class" in features_extracted: features_extracted.remove("class")
+            return (objects, features_extracted)
+        else:
+            # Featurize serially
+            print("FEATURIZING - NOT USING DISCO")
+    objects, features_extracted = extract_serial(
+        headerfile_path, zipfile_path, features_to_use,
+        custom_script_path, is_test, USE_DISCO,
+        already_featurized, in_docker_container, uploads_folder,
+        fname_class_dict, fname_class_science_features_dict,
+        fname_metadata_dict)
+    return (objects, features_extracted)
+
+
+def extract_serial(headerfile_path, zipfile_path, features_to_use,
+                   custom_script_path, is_test, USE_DISCO,
+                   already_featurized, in_docker_container, uploads_folder,
+                   fname_class_dict, fname_class_science_features_dict,
+                   fname_metadata_dict):
+    """Generate TS features serially.
 
     """
     objects = []
@@ -314,18 +377,14 @@ def generate_features(zipfile_path, fname_class_dict, features_to_use,
     print("Generating science features...")
     # Loop through time-series files and featurize each
     for fname in sorted(all_fnames):
-        short_fname = (
-            fname.split("/")[-1]
-            .replace((
-                "." + fname.split(".")[-1] if "." in
-                fname.split("/")[-1] else ""), ""))
+        short_fname = shorten_fname(fname)
         path_to_csv = os.path.join(
             uploads_folder, os.path.join("unzipped", fname))
         if os.path.isfile(path_to_csv):
             print("Extracting features for", fname, "-", count,
                   "of", num_objs)
-            print("path_to_csv =", path_to_csv)
-            # Generate features:
+
+            # Generate general/cadence-related TS features, if to be used
             if len(set(features_to_use) & set(cfg.features_list)) > 0:
                 timeseries_features = (
                     lc_tools.generate_timeseries_features(
@@ -334,6 +393,7 @@ def generate_features(zipfile_path, fname_class_dict, features_to_use,
                         sep=','))
             else:
                 timeseries_features = {}
+            # Generate TCP TS features, if to be used
             if len(
                     set(features_to_use) &
                     set(cfg.features_list_science)) > 0:
@@ -341,29 +401,11 @@ def generate_features(zipfile_path, fname_class_dict, features_to_use,
                     generate_science_features
                 science_features = generate_science_features.generate(
                     path_to_csv=path_to_csv)
-
-                # #TEMP# Begin testing block:
-                features_successful = []
-                features_failed = []
-
-                for k, v in science_features.items():
-                    if v == "?":
-                        features_failed.append(k)
-                    else:
-                        features_successful.append(k)
-
-                print("\n\n", "#" * 80, "\n\n",
-                      len(features_successful),
-                      "features successfully generated: \n",
-                      features_successful, "\n")
-                print(len(features_failed), "features failed: \n",
-                      features_failed, "\n\n", "#" * 80)
-                # End testing block
-
             else:
                 science_features = {}
             if custom_script_path not in (None, "None",
                                           False, "False"):
+                # Generate custom features
                 custom_features = cft.generate_custom_features(
                     custom_script_path=custom_script_path,
                     path_to_csv=path_to_csv,
@@ -372,10 +414,12 @@ def generate_features(zipfile_path, fname_class_dict, features_to_use,
                         list(science_features.items())))[0]
             else:
                 custom_features = {}
+            # Combine all features into single dict
             all_features = dict(
                 list(timeseries_features.items()) +
                 list(science_features.items()) +
                 list(custom_features.items()))
+            # Add any meta features from header file
             if short_fname in fname_metadata_dict:
                 all_features = dict(
                     list(all_features.items()) +
@@ -393,7 +437,20 @@ def generate_features(zipfile_path, fname_class_dict, features_to_use,
         else:
             pass
     print("Done.")
-    return (objects, fname_class_science_features_dict, all_fnames)
+    try:
+        all_fnames
+    except:
+        zipfile = tarfile.open(zipfile_path)
+        all_fnames = zipfile.getnames()
+    finally:
+        for fname in all_fnames:
+            path_to_csv = os.path.join(
+                uploads_folder, os.path.join("unzipped", fname))
+            if os.path.isfile(path_to_csv):
+                os.remove(path_to_csv)
+    features_extracted = list(objects[-1].keys())
+    if "class" in features_extracted: features_extracted.remove("class")
+    return (objects, features_extracted)
 
 
 def featurize(
@@ -447,6 +504,7 @@ def featurize(
         Human-readable message indicating successful completion.
 
     """
+    # Set appropriate directory paths
     if in_docker_container:
         features_folder = "/Data/features/"
         uploads_folder = "/Data/flask_uploads/"
@@ -454,66 +512,19 @@ def featurize(
         features_folder = cfg.FEATURES_FOLDER
         uploads_folder = cfg.UPLOAD_FOLDER
 
-    if "/" not in headerfile_path: # Not Windows-friendly...
-        headerfile_path = os.path.join(uploads_folder, headerfile_path)
-    if zipfile_path is not None and "/" not in zipfile_path:
-        zipfile_path = os.path.join(uploads_folder, zipfile_path)
-    all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
-    if len(features_to_use) == 0:
-        features_to_use = all_features_list
-    if already_featurized:
-        # Read in features from CSV file
-        objects = parse_prefeaturized_csv_data(headerfile_path)
-    else:
-        # Parse header file
-        (features_to_use, fname_class_dict, fname_class_science_features_dict,
-         fname_metadata_dict) = parse_headerfile(headerfile_path,
-                                                 features_to_use)
-        # Generate the features
-        if DISCO_INSTALLED and USE_DISCO:
-            # Featurize in parallel
-            print("FEATURIZING - USING DISCO")
-            fname_features_data_dict = (
-                parallel_processing.featurize_in_parallel(
-                    headerfile_path=headerfile_path, zipfile_path=zipfile_path,
-                    features_to_use=features_to_use, is_test=is_test,
-                    custom_script_path=custom_script_path,
-                    meta_features=fname_metadata_dict))
-            objects = []
-            for k, v in fname_features_data_dict.items():
-                if k in fname_metadata_dict:
-                    v = dict(list(v.items()) +
-                             list(fname_metadata_dict[k].items()))
-                objects.append(v)
-        else:
-            # Featurize serially
-            print("FEATURIZING - NOT USING DISCO")
-            objects, fname_class_science_features_dict, all_fnames = \
-                generate_features(
-                    zipfile_path, fname_class_dict, features_to_use,
-                    custom_script_path, fname_class_science_features_dict,
-                    fname_metadata_dict, is_test, uploads_folder)
-        try:
-            all_fnames
-        except:
-            zipfile = tarfile.open(zipfile_path)
-            all_fnames = zipfile.getnames()
-        finally:
-            for fname in all_fnames:
-                path_to_csv = os.path.join(
-                    uploads_folder, os.path.join("unzipped", fname))
-                if os.path.isfile(path_to_csv):
-                    os.remove(path_to_csv)
-    features_extracted = list(objects[-1].keys())
-    if "class" in features_extracted:
-        features_extracted.remove("class")
-    if len(set(cfg.features_to_plot) & set(features_extracted)) < 2:
+    # Generate features for each TS object
+    objects, features_extracted = generate_features(
+        headerfile_path, zipfile_path, features_to_use,
+        custom_script_path, is_test, USE_DISCO, already_featurized,
+        in_docker_container, uploads_folder)
+
+    if len(set(cfg.features_to_plot) & set(features_extracted)) < 4:
         features_extracted_copy = features_extracted[:]
         shuffle(features_extracted_copy)
         features_to_plot = features_extracted_copy[:5]
     else:
         features_to_plot = cfg.features_to_plot
-    foutname = os.path.join(features_folder, "%s.pkl" % featureset_id)
+
     f = open(os.path.join(
         ("/tmp" if in_docker_container else features_folder),
         "%s_features.csv" % featureset_id), 'w')
@@ -602,9 +613,10 @@ def featurize(
     if not in_docker_container:
         os.remove(os.path.join(
             features_folder, "%s_features_with_classes.csv" % featureset_id))
-    joblib.dump(classes,os.path.join(
+    joblib.dump(classes, os.path.join(
         ("/tmp" if in_docker_container else features_folder),
         "%s_classes.pkl" % featureset_id), compress=3)
+    foutname = os.path.join(features_folder, "%s.pkl" % featureset_id)
     print(foutname.replace(".pkl","_features.csv"), "and",
           foutname.replace(".pkl","_features_with_classes.csv"), "and",
           foutname.replace(".pkl","_classes.pkl"), "created.")
