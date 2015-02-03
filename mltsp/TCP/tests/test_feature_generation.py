@@ -1,4 +1,4 @@
-from mltsp import build_rf_model
+from mltsp import featurize
 from mltsp import cfg
 
 import numpy as np
@@ -33,7 +33,7 @@ def test_feature_generation():
     tic = time.time()
     this_dir = os.path.join(os.path.dirname(__file__))
 
-    build_rf_model.featurize(
+    featurize.featurize(
         os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset_classes.dat"),
         os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
         featureset_id="testfeatset", is_test=True, USE_DISCO=False,

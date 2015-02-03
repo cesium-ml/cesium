@@ -13,14 +13,14 @@ from builtins import *
 import subprocess
 import sys
 import os
-from .. import build_rf_model
+from .. import build_model as BM
 
 from subprocess import Popen, PIPE, call
 import pickle
 
 
 def build_model():
-    """Load pickled parameters and call `build_rf_model.build_model`.
+    """Load pickled parameters and call `build_model.build_model`.
 
     To be called from inside a Docker container. Pickles model which
     will later be copied to host machine.
@@ -35,7 +35,7 @@ def build_model():
     with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
         function_args = pickle.load(f)
 
-    results_str = build_rf_model.build_model(
+    results_str = BM.build_model(
         featureset_name=function_args["featureset_name"],
         featureset_key=function_args["featureset_key"],
         model_type=function_args["model_type"],

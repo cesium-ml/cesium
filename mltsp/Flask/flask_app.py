@@ -80,7 +80,8 @@ except:
     pass
 
 from .. import predict_class as predict
-from .. import build_rf_model
+from .. import build_model
+from .. import featurize
 from .. import lc_tools
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
@@ -2373,7 +2374,7 @@ def featurize_proc(
         results_str = run_in_docker_container.featurize_in_docker_container(
             headerfile_path, zipfile_path, features_to_use, featureset_key,
             is_test, already_featurized, custom_script_path)
-        #results_str = build_rf_model.featurize(
+        #results_str = featurize.featurize(
         #    headerfile_path, zipfile_path, features_to_use=features_to_use,
         #    featureset_id=featureset_key, is_test=is_test,
         #    already_featurized=already_featurized,
@@ -2386,7 +2387,7 @@ def featurize_proc(
             "data files conform to the formatting requirements.")
         print(("   #########      Error:    flask_app.featurize_proc: %s" %
             str(theErr)))
-        logging.exception(("Error occurred during build_rf_model.featurize() "
+        logging.exception(("Error occurred during featurize.featurize() "
             "call."))
         try:
             os.remove(headerfile_path)
@@ -3170,7 +3171,7 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
     """Build a model based on given features.
 
     Begins the model building process by calling
-    build_rf_model.build_model with provided parameters. To be executed
+    build_model.build_model with provided parameters. To be executed
     as a separate process using the multiprocessing module's Process
     routine.
 
@@ -3207,7 +3208,7 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
             " <a href='mailto:MLTimeseriesPlatform+Support@gmail.com' "
             "target='_blank'>contact the support team</a>.")
         logging.exception(
-            "Error occurred during build_rf_model.build_model() call.")
+            "Error occurred during build_model.build_model() call.")
     update_model_entry_with_results_msg(model_key,model_built_msg)
     return True
 

@@ -416,6 +416,7 @@ def predict(
         try:
             classifier_preds = rfc_model.predict_proba(xNew)
         except ValueError as theError:
+            raise(theError)
             results_str = str("ValueError:" +
                 str(theError).split("ValueError:")[-1])
             results_str += ("<BR><BR><i>Note: This is likely an indication "
@@ -467,13 +468,3 @@ def predict(
         del sorted_class_list
     #os.remove(newpred_file_path)
     return results_dict
-
-
-if __name__ == "__main__":
-    f = open('swasp.dat')
-    lines = f.readlines()
-    f.close()
-    for i in range(len(lines)):
-        lines[i] = lines[i].replace('\n','')
-    lines = '\n'.join(lines)
-    print(predict(lines,','))

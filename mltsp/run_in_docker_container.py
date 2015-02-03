@@ -26,7 +26,7 @@ def featurize_in_docker_container(
     """Generate TS data features inside a Docker container.
 
     Spins up a Docker container in which the
-    build_rf_model.featurize() method is called, and the resulting
+    featurize.featurize() method is called, and the resulting
     files are then copied to the host machine.
 
     Parameters
@@ -158,7 +158,7 @@ def build_model_in_docker_container(
     """Build classification model inside a Docker container.
 
     Spins up a Docker container in which the
-    build_rf_model.build_model() routine is called, and the resulting
+    build_model.build_model() routine is called, and the resulting
     model is then copied to the host machine.
 
     Parameters

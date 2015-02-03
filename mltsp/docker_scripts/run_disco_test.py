@@ -17,7 +17,7 @@ import subprocess
 import sys
 import os
 sys.path.append("/home/mltsp/mltsp")
-#import build_rf_model
+#import featurize
 from subprocess import Popen, PIPE, call
 import time
 
@@ -62,7 +62,7 @@ def disco_test():
     elif "running" in str(stdout):
         disco_word_count()
         results_str = 'OK'
-        ## results_str = build_rf_model.featurize(
+        ## results_str = featurize.featurize(
         ##     "/Data/sample_lcs/asas_training_set_classes.dat",
         ##     "/Data/sample_lcs/asas_training_set.tar.gz",
         ##     features_to_use=[],

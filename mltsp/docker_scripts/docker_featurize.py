@@ -14,15 +14,15 @@ from builtins import *
 import subprocess
 import sys
 import os
-from .. import build_rf_model
+from .. import featurize
 import time
 
 from subprocess import Popen, PIPE, call
 import pickle
 
 
-def featurize():
-    """Load pickled parameters and call `build_rf_model.featurize`.
+def do_featurization():
+    """Load pickled parameters and call `featurize.featurize`.
 
     To be run from inside a Docker container.
 
@@ -90,19 +90,19 @@ def featurize():
     elif ("already_featurized" in function_args and
           function_args["already_featurized"] == True):
         pass
-    results_str = build_rf_model.featurize(
-        function_args["headerfile_path"], 
-        function_args["zipfile_path"], 
-        features_to_use=function_args["features_to_use"], 
-        featureset_id=function_args["featureset_key"], 
+    results_str = featurize.featurize(
+        function_args["headerfile_path"],
+        function_args["zipfile_path"],
+        features_to_use=function_args["features_to_use"],
+        featureset_id=function_args["featureset_key"],
         is_test=function_args["is_test"],
-        USE_DISCO=disco_running, 
-        already_featurized=function_args["already_featurized"], 
-        custom_script_path=function_args["custom_script_path"], 
+        USE_DISCO=disco_running,
+        already_featurized=function_args["already_featurized"],
+        custom_script_path=function_args["custom_script_path"],
         in_docker_container=True)
     return results_str
 
 
 if __name__=="__main__":
-    results_str = featurize()
+    results_str = do_featurization()
     print(results_str)
