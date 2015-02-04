@@ -71,6 +71,8 @@ def test_predict():
                                         "Data/215153_metadata.dat"))
     assert(isinstance(results_dict, dict))
     assert("dotastro_215153.dat" in results_dict)
+    assert(isinstance(
+        results_dict["dotastro_215153.dat"]["features_dict"]["std_err"], float))
 
 
 def remove_created_files():
