@@ -39,7 +39,7 @@ class DB_Connector:
         """ connect to the rdb database, or use given cursor.
         """
     
-        if cursor == None:
+        if cursor is None:
             db = MySQLdb.connect(host=host, \
                                  user=user, \
                                  db=db, \

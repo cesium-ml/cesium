@@ -33,7 +33,7 @@ class Macc_Asas_Aperture_Analysis:
 
         for feat_name in orig_small_delta.keys():
             for i, srcid in enumerate(orig_aper_dict['srcid_list']):
-                #if orig_aper_dict['featname_longfeatval_dict'][feat_name][i] == None:
+                #if orig_aper_dict['featname_longfeatval_dict'][feat_name][i] is None:
                 #    print feat_name
                 #    break
                 delta = orig_aper_dict['featname_longfeatval_dict'][feat_name][i] - \

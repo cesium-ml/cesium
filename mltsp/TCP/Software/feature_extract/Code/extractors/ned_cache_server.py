@@ -338,7 +338,7 @@ class Ned_Cache_Server:
                 for ch_name,ch_val in sdss_dict.iteritems():
                     if (1,ch_name) not in self.chname_chid_lookup:
                         continue # skip this ch_name since its not a charac.
-                    if ch_val == None:
+                    if ch_val is None:
                         ch_val_dbl = 'NULL'
                         ch_val_str = 'NULL'                        
                     elif self.chname_type_lookup[(1,ch_name)] == 1:
@@ -396,7 +396,7 @@ class Ned_Cache_Server:
             rdb_rows = pgsql_cursor.fetchall()
             
             for (ujd, lmt_mg) in rdb_rows:
-                if ujd == None:
+                if ujd is None:
                     continue # this happens occasionally
                 footprint_insert_list.append("(%d, %lf, %lf), " % (spatial_id, ujd, lmt_mg))
 

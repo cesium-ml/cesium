@@ -217,7 +217,7 @@ class Feature_database:
         """ Create connection to feature mysql server.
         """
         import MySQLdb
-        if db == None:
+        if db is None:
             self.db = MySQLdb.connect(host=rdb_host_ip, user=rdb_user, \
                                   db=rdb_name, port=rdb_port, compress=1)
         else:
@@ -451,7 +451,7 @@ class Feature_database:
         """ Create connection to feature mysql server.
         """
         import MySQLdb
-        if db == None:
+        if db is None:
             self.db = MySQLdb.connect(host=rdb_host_ip, user=rdb_user, \
                                   db=rdb_name, port=rdb_port, compress=1)
         else:
@@ -1127,7 +1127,7 @@ class AddNewFeatures:
 
         """
         import MySQLdb
-        if db == None:
+        if db is None:
             self.db = MySQLdb.connect(host=rdb_host_ip, user=rdb_user, \
                                   db=rdb_name, port=rdb_port, compress=1)
         else:

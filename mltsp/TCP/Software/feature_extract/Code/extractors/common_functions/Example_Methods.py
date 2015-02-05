@@ -15,9 +15,9 @@ class Example_Methods(object): # Extractors which inherit this object can make u
 		[rms] noise (array)
 		"""
 		# Always initialize these in-case they aren't defined:
-		if rms == None:
+		if rms is None:
 			rms = ones(len(y))
-		if x == None:
+		if x is None:
 			x = range(len(y))
 
 		# Do work here.  Call inherited methods if needed.

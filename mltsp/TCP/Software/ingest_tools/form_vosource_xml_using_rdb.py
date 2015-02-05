@@ -254,7 +254,7 @@ class MakeVosourceUsingRdb:
         for result in results:
             feat_name = result[0]
             doc_str = result[1]
-            if result[2] == None:
+            if result[2] is None:
                 feat_val = "None"
             else:
                 feat_val = str(result[2])

@@ -1864,7 +1864,7 @@ def get_list_of_featuresets_by_project(project_name=None):
 
     """
     if request.method == 'GET':
-        if project_name == None:
+        if project_name is None:
             try:
                 project_name = str(request.form["project_name"]).strip()
             except:
@@ -1898,7 +1898,7 @@ def get_list_of_models_by_project(project_name=None):
 
     """
     if request.method == 'GET':
-        if project_name == None:
+        if project_name is None:
             try:
                 project_name = str(request.form["project_name"]).strip()
             except:
@@ -2497,7 +2497,7 @@ def featurizationPage(
 
     """
     projkey = project_name_to_key(project_name)
-    if already_featurized == True and zipfile_name == None:
+    if already_featurized == True and zipfile_name is None:
         # user is uploading pre-featurized data, without timeseries data
         features_filename = headerfile_name
         features_filepath = os.path.join(

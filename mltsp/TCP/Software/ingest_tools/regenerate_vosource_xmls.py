@@ -265,7 +265,7 @@ if 1:
         # # # # # For DEBUGGING:
         #self.run_debug_task()
 
-        if self.pars['multiprocessing'] == None:
+        if self.pars['multiprocessing'] is None:
             self.initialize_ipengines()
             self.spawn_tasks_for_xmlfile()
             self.wait_for_tasks_to_finish()

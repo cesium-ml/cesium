@@ -681,7 +681,7 @@ class Maker:
 						elif obj['features'][fea] != None:
 							val = str(obj['features'][fea])
 					else:
-						if obj['features'][fea] == None:
+						if obj['features'][fea] is None:
 							val = "?"
 						else:
 							val = """'%s'""" % str(obj['features'][fea])
@@ -1022,7 +1022,7 @@ class XMLgrabber:
 			return None
 			
 	def _connect(self):
-		if self.server == None:
+		if self.server is None:
 			self.server = xmlrpclib.ServerProxy(self.server_url)
 		return
 	

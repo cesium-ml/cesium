@@ -298,10 +298,10 @@ RunFitEBParallel.client_setup(class_id_name=%s)
             tasks_to_pop = []
             for task_id in self.ipy_tasks.task_id_list:
                 temp = self.ipy_tasks.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp['out_dict']
                 if len(results.get('traceback',"")) > 0:
@@ -369,7 +369,7 @@ RunFitEBParallel.client_setup(class_id_name=%s)
                 # # #
             if ((tc.queue_status()['scheduled'] == 0) and 
                 (tc.queue_status()['pending'] <= 2)):
-               if dtime_pending_1 == None:
+               if dtime_pending_1 is None:
                    dtime_pending_1 = datetime.datetime.now()
                else:
                    now = datetime.datetime.now()
@@ -384,10 +384,10 @@ RunFitEBParallel.client_setup(class_id_name=%s)
         ### IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in self.ipy_tasks.task_id_list:
             temp = self.ipy_tasks.tc.get_task_result(task_id, block=False)
-            if temp == None:
+            if temp is None:
                 continue
             temp2 = temp.results
-            if temp2 == None:
+            if temp2 is None:
                 continue
             results = temp['out_dict']
             if len(results.get('traceback',"")) > 0:

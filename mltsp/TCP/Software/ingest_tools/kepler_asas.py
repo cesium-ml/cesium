@@ -171,7 +171,7 @@ def remove_sources_with_many_missing_attribs(data_dict, exclude_feats=['freq_sig
     exclude_src_i_list = []
     for exclude_feat in exclude_feats:
         for i, val in enumerate(data_dict['featname_longfeatval_dict'][exclude_feat]):
-            if ((val == None) or (val == numpy.nan)):
+            if ((val is None) or (val == numpy.nan)):
                 exclude_src_i_list.append(i)
     exclude_src_i_set = set(exclude_src_i_list)
 
@@ -316,7 +316,7 @@ if __name__ == '__main__':
             if feat_name in ignore_feats_list:
                 continue # skip the features in the Ignore_feats_list for use in imputation and classification
             for val in feat_longlist:
-                if val == None:
+                if val is None:
                     new_list.append(numpy.nan)
                 else:
                     new_list.append(val)

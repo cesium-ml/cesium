@@ -14,9 +14,9 @@ class ChiSquare(object): #gives extractors the ability to calculate chi squares
 		return chi2_sum
 	def chi_square(self,y,f,x=None,rms=None):
 		""" inputs: [y]-data (array) [f]unction (function), [x]-axis [rms] noise (array)"""
-		if rms == None:
+		if rms is None:
 			rms = ones(len(y))
-		if x == None:
+		if x is None:
 			x = range(len(y))
 		chi2_total = 0.0
 		fx = f(x)
