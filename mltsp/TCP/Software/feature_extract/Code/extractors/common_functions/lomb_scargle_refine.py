@@ -4,15 +4,24 @@ from ._lomb_scargle import lomb_scargle
 
 
 def lprob2sigma(lprob):
-    """ translates a log_e(probability) to units of Gaussian sigmas """
+    """ translates a log_e(probability) to units of Gaussian sigmas
+    """
+
     if (lprob>-36.):
-      sigma = norm.ppf(1.-0.5*exp(1.*lprob))
+        sigma = norm.ppf(1.-0.5*exp(1.*lprob))
     else:
-      sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
+        # this is good to 5.e-2; just to be crazy, get to 5.e-5
+        sigma = sqrt( log(2./pi) - 2.*log(8.2) - 2.*lprob )
+        f = 0.5*log(2./pi) - 0.5*sigma**2 - log(sigma) - lprob
+        df = - sigma - 1./sigma
+        sigma = sigma - f/df
+
     return float(sigma)
 
 
-def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,freq_zoom=10.,tone_control=1.,return_model=True,lambda0=1.,lambda0_range=[-8,6]):
+def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
+         freq_zoom=10., tone_control=1., return_model=True,
+         lambda0=1., lambda0_range=[-8,6]):
     """
     C version of lomb_scargle:
     Simultaneous fit of a sum of sinusoids by weighted, linear least squares.
