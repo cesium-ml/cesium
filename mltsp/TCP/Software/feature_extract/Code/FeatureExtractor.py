@@ -1,11 +1,9 @@
 from __future__ import print_function
-from __future__ import absolute_import
+
 import numpy
 from numpy import random
 from scipy import fftpack, stats, optimize
 
-
-from pylab import *
 from .extractors import *
 
 import time
@@ -46,13 +44,12 @@ class GeneralExtractor(object):
         self.properties = properties
         self.finddatadic(properties,band=band) # find the dictionary of the signal properties that contains the actual data
         if not self.checkalready(): # if it doesn't exist already
-            print(self.extname, "extracting right now")
             try:
                 self.set_names(self.dic['input'])
                 self.longenough() # check that there is enough data to run this
                 result = self.extract()
                 self.why_fail = False # I didn't fail so far
-            except ExtractException:
+            except ExtractException as e:
                 result = False
                 #self.why_fail = "I don't know why it failed"
             self.prepare_obj(result)
@@ -61,7 +58,6 @@ class GeneralExtractor(object):
         #if self.counter > 1:
             #dstarr com out# print "I just did this thing twice, that's ridiculous", self.extname, self.counter, "times"
         ###
-        print("[%s] Extracted in %.2f" % (self.extname, time.time() - tic))
         return self.output
     def finddatadic(self,properties,band=None):
         """ find the dictionary of the signal properties that contains the actual data """
@@ -77,9 +73,7 @@ class GeneralExtractor(object):
         for subdic in ['input','features','inter']:
             if self.extname in self.dic[subdic]: # test to see if this feature has already been extracted
                 output = self.dic[subdic][self.extname]
-                #print "SKIP", self.extname, subdic
                 self.output = output
-                print("skipping", self.extname)
                 return True # yes it already exists
             else: pass
         return False # no it doesn't exist yet
@@ -223,7 +217,6 @@ class GeneralExtractor(object):
     def ex_error(self,text="I don't know why"):
         """ a feature extractor's way of raising an error cleanly """
         self.why_fail = text
-        print(self.why_fail, self.extname)
         raise ExtractException(text)
     def longenough(self):
         """ will not perform extraction if there aren't enough data points, minpoints set at extractor level """
