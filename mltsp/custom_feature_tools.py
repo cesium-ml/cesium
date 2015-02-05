@@ -41,7 +41,6 @@ class MissingRequiredReturnKeyError(Exception):
     """Required return value is not provided in feature definition."""
 
     def __init__(self, value):
-        """In"""
         self.value = value
 
     def __str__(self):
@@ -118,6 +117,103 @@ class DummyFile(object):
         pass
 
 
+def parse_for_req_prov_params(script_fpath):
+    """
+    """
+    with open(script_fpath) as f:
+        all_lines = f.readlines()
+    fnames_req_prov_dict = {}
+    all_required_params = []
+    all_provided_params = []
+    for i in range(len(all_lines)-1):
+        if "@myFeature" in all_lines[i] and "def " in all_lines[i+1]:
+            reqs_provs_1 = parse(
+                "@myFeature(requires={requires}, provides={provides})",
+                all_lines[i].strip())
+            func_name = parse(
+                "def {funcname}({args}):", all_lines[i+1].strip())
+            fnames_req_prov_dict[func_name.named['funcname']] = {
+                "requires": eval(reqs_provs_1.named["requires"]),
+                "provides": eval(reqs_provs_1.named["provides"])}
+            all_required_params = list(set(
+                all_required_params +
+                list(set(eval(reqs_provs_1.named["requires"])))))
+            all_provided_params = list(set(
+                all_provided_params +
+                list(set(eval(reqs_provs_1.named["provides"])))))
+    return (fnames_req_prov_dict, all_required_params, all_provided_params)
+
+
+def listify_feats_known_dict(features_already_known):
+    """
+    """
+    if isinstance(features_already_known, dict):
+        return [features_already_known]
+    elif isinstance(features_already_known, list):
+        return features_already_known
+    else:
+        raise ValueError("custom_feature_tools.py - features_already_known"
+                         " is of an invalid type (%s)." %\
+                         str(type(features_already_known)))
+
+
+def call_custom_functions(features_already_known_list, all_required_params,
+                          all_provided_params, fnames_req_prov_dict):
+    """
+    """
+    # import the custom feature defs
+    from .custom_feature_scripts import custom_feature_defs
+
+    # temporarily redirect stdout:
+    save_stdout = sys.stdout
+    sys.stdout = DummyFile()
+
+    all_extracted_features_list = []
+    for features_already_known in features_already_known_list:
+        all_required_params_copy = [x for x in all_required_params
+                                    if x not in features_already_known]
+        for reqd_param in all_required_params_copy:
+            if reqd_param not in all_provided_params:
+                raise Exception((
+                    "Not all of the required parameters are provided by the "
+                    "functions in this script (required parameter '%s').") %
+                    str(reqd_param))
+        funcs_round_1 = []
+        func_queue = []
+        funcnames = list(fnames_req_prov_dict.keys())
+        i = 0
+        func_rounds = {}
+        all_extracted_features = {}
+        while len(funcnames) > 0:
+            func_rounds[str(i)] = []
+            for funcname in funcnames:
+                reqs_provs_dict = fnames_req_prov_dict[funcname]
+                reqs = reqs_provs_dict['requires']
+                provs = reqs_provs_dict['provides']
+                if len(set(all_required_params_copy) & set(reqs)) > 0:
+                    func_queue.append(funcname)
+                else:
+                    func_rounds[str(i)].append(funcname)
+                    all_required_params_copy = [x for x in all_required_params_copy
+                                           if x not in provs]
+                    arguments = {}
+                    for req in reqs:
+                        if req in features_already_known:
+                            arguments[req] = features_already_known[req]
+                        elif req in all_extracted_features:
+                            arguments[req] = all_extracted_features[req]
+                    func_result = getattr(custom_feature_defs, funcname)(**arguments)
+                    all_extracted_features = dict(
+                        list(all_extracted_features.items()) + \
+                        list(func_result.items()))
+                    funcnames.remove(funcname)
+            i += 1
+        all_extracted_features_list.append(all_extracted_features)
+    # revert to original stdout
+    sys.stdout = save_stdout
+    return all_extracted_features_list
+
+
 def execute_functions_in_order(
         script_fpath,
         features_already_known={
@@ -151,92 +247,21 @@ def execute_functions_in_order(
 
     """
     # For when run inside Docker container:
-    import sys
-    import os
     try:
-        with open(script_fpath) as f:
-            all_lines = f.readlines()
-    except IOError as e:
-        raise(e)
+        sys, os
+    except NameError:
+        import sys
+        import os
 
-    # import the custom feature defs
-    from .custom_feature_scripts import custom_feature_defs
+    fnames_req_prov_dict, all_required_params, all_provided_params = \
+        parse_for_req_prov_params(script_fpath)
+    features_already_known_list = listify_feats_known_dict(
+        features_already_known)
 
-    fnames_req_prov_dict = {}
-    all_required_params = []
-    all_provided_params = []
-    for i in range(len(all_lines)-1):
-        if "@myFeature" in all_lines[i] and "def " in all_lines[i+1]:
-            reqs_provs_1 = parse(
-                "@myFeature(requires={requires}, provides={provides})",
-                all_lines[i].strip())
-            func_name = parse(
-                "def {funcname}({args}):", all_lines[i+1].strip())
-            fnames_req_prov_dict[func_name.named['funcname']] = {
-                "requires": eval(reqs_provs_1.named["requires"]),
-                "provides": eval(reqs_provs_1.named["provides"])}
-            all_required_params = list(set(
-                all_required_params +
-                list(set(eval(reqs_provs_1.named["requires"])))))
-            all_provided_params = list(set(
-                all_provided_params +
-                list(set(eval(reqs_provs_1.named["provides"])))))
-    if isinstance(features_already_known, dict):
-        features_already_known_list = [features_already_known]
-    elif isinstance(features_already_known, list):
-        features_already_known_list = features_already_known
-    else:
-        raise ValueError("custom_feature_tools.py - features_already_known"
-                         " is of an invalid type (%s)." %\
-                         str(type(features_already_known)))
+    all_extracted_features_list = call_custom_functions(
+        features_already_known_list, all_required_params, all_required_params,
+        fnames_req_prov_dict)
 
-    # temporarily redirect stdout:
-    save_stdout = sys.stdout
-    sys.stdout = DummyFile()
-    all_extracted_features_list = []
-
-    for features_already_known in features_already_known_list:
-        all_required_params_copy = [x for x in all_required_params
-                                    if x not in features_already_known]
-        for reqd_param in all_required_params_copy:
-            if reqd_param not in all_provided_params:
-                raise Exception((
-                    "Not all of the required parameters are provided by the "
-                    "functions in this script (required parameter '%s').") %
-                    str(reqd_param))
-        funcs_round_1 = []
-        func_queue = []
-        funcnames = list(fnames_req_prov_dict.keys())
-        i = 0
-        func_rounds = {}
-        all_extracted_features = {}
-
-        while len(funcnames) > 0:
-            func_rounds[str(i)] = []
-            for funcname in funcnames:
-                reqs_provs_dict = fnames_req_prov_dict[funcname]
-                reqs = reqs_provs_dict['requires']
-                provs = reqs_provs_dict['provides']
-                if len(set(all_required_params_copy) & set(reqs)) > 0:
-                    func_queue.append(funcname)
-                else:
-                    func_rounds[str(i)].append(funcname)
-                    all_required_params_copy = [x for x in all_required_params_copy
-                                           if x not in provs]
-                    arguments = {}
-                    for req in reqs:
-                        if req in features_already_known:
-                            arguments[req] = features_already_known[req]
-                        elif req in all_extracted_features:
-                            arguments[req] = all_extracted_features[req]
-                    func_result = getattr(custom_feature_defs, funcname)(**arguments)
-                    all_extracted_features = dict(
-                        list(all_extracted_features.items()) + list(func_result.items()))
-                    funcnames.remove(funcname)
-            i += 1
-        all_extracted_features_list.append(all_extracted_features)
-    # revert to original stdout
-    sys.stdout = save_stdout
     return all_extracted_features_list
 
 
@@ -244,10 +269,91 @@ def docker_installed():
     """Return boolean indicating whether Docker is installed."""
     from subprocess import call, PIPE
     try:
-        x=call(["docker"], stdout=PIPE,stderr=PIPE)
+        x = call(["docker"], stdout=PIPE, stderr=PIPE)
         return True
     except OSError:
         return False
+
+
+def parse_tsdata_to_lists(ts_data):
+    """
+    """
+    tme = []
+    if isinstance(ts_data, list):
+        if len(ts_data) > 0:
+            if isinstance(ts_data[0], (list, tuple)):
+                # ts_data already in desired format
+                tme = ts_data
+            elif isinstance(ts_data[0], str) and \
+                 "," in ts_data[0]:
+                for el in ts_data:
+                    if el not in ["\n",""]:
+                        tme.append(el.split(","))
+        else:
+            raise ValueError("ts_data is an empty list")
+    elif isinstance(ts_data, str):
+        all_lines = ts_data.strip().split("\n")
+        for i in range(len(all_lines)):
+            if all_lines[i].strip() == "":
+                continue
+            else:
+                tme.append([x.strip() for x in all_lines[i].strip().split(",")])
+    return tme
+
+
+def parse_tsdata_from_file(ts_datafile_path):
+    """
+    """
+    tme = []
+    with open(ts_datafile_path) as f:
+        all_lines = f.readlines()
+    for i in range(len(all_lines)):
+        if all_lines[i].strip() == "":
+            continue
+        else:
+            tme.append([x.strip() for x in all_lines[i].strip().split(",")])
+    return tme
+
+
+def add_tsdata_to_feats_known_dict(features_already_known_list,
+                                   ts_datafile_paths, ts_data_list):
+    """
+    """
+    if ts_datafile_paths is None:
+        ts_datafile_paths = [None] * len(features_already_known_list)
+    elif ts_data_list is None:
+        ts_data_list = [None] * len(features_already_known_list)
+    for i in range(len(features_already_known_list)):
+        if "t" not in features_already_known_list[i] or \
+           "m" not in features_already_known_list[i]:
+            # Get TS data and put into features_already_known_list
+            if ts_datafile_paths[i] is None and ts_data_list[i] is None:
+                raise ValueError("No time series data provided! ts_datafile_paths "
+                                 "is None and ts_data_list is None  !!")
+            if ts_datafile_paths[i] is not None: # path to ts data file
+                # parse ts data and put t,m(,e) into features_already_known
+                tme = parse_tsdata_from_file(ts_datafile_paths[i])
+            else: # ts_data passed directly
+                tme = parse_tsdata_to_lists(ts_data_list[i])
+            if len(tme) > 0:
+                if all(len(this_tme) == 3 for this_tme in tme):
+                    T, M, E = list(zip(*tme))
+                    T = [float(el) for el in T]
+                    M = [float(el) for el in M]
+                    E = [float(el) for el in E]
+                    features_already_known_list[i]["t"] = T
+                    features_already_known_list[i]["m"] = M
+                    features_already_known_list[i]["e"] = E
+                elif all(len(this_tme) == 2 for this_tme in tme):
+                    T, M = list(zip(*tme))
+                    T = [float(el) for el in T]
+                    M = [float(el) for el in M]
+                    features_already_known_list[i]["t"] = T
+                    features_already_known_list[i]["m"] = M
+                else:
+                    raise Exception("custom_feature_tools.py - "
+                                    "docker_extract_features() - not all elements "
+                                    "of tme are the same length.")
 
 
 def docker_extract_features(
@@ -295,62 +401,8 @@ def docker_extract_features(
     """
     if isinstance(features_already_known_list, dict):
         features_already_known_list = [features_already_known_list]
-    for features_already_known in features_already_known_list:
-        if "t" not in features_already_known or "m" not in features_already_known:
-            ## get ts data and put into features_already_known
-            if ts_datafile_path is None and ts_data is None:
-                raise ValueError("No time series data provided! ts_datafile_path "
-                                 "is None and ts_data is None  !!")
-            tme = []
-            if ts_datafile_path: # path to ts data file
-                # parse ts data and put t,m(,e) into features_already_known
-                with open(ts_datafile_path) as f:
-                    all_lines = f.readlines()
-                for i in range(len(all_lines)):
-                    if all_lines[i].strip() == "":
-                        continue
-                    else:
-                        tme.append(all_lines[i].strip().split(","))
-            else: # ts_data passed directly
-                # parse ts data and put t,m(,e) into features_already_known
-                if type(ts_data) == list:
-                    if len(ts_data) > 0:
-                        if (type(ts_data[0]) in [list, tuple]
-                                and type(ts_data[0][0]) == float):
-                            # ts_data already in desired format
-                            tme = ts_data
-                        elif type(ts_data[0]) == str and "," in ts_data[0]:
-                            for el in ts_data:
-                                if el not in ["\n",""]:
-                                    tme.append(el.split(","))
-                    else:
-                        raise ValueError("ts_data is an empty list")
-                elif type(ts_data) == str:
-                    all_lines = ts_data.strip().split("\n")
-                    for i in range(len(all_lines)):
-                        if all_lines[i].strip() == "":
-                            continue
-                        else:
-                            tme.append(all_lines[i].strip().split(","))
-            if len(tme) > 0:
-                if all(len(this_tme) == 3 for this_tme in tme):
-                    T,M,E = list(zip(*tme))
-                    T = [float(el) for el in T]
-                    M = [float(el) for el in M]
-                    E = [float(el) for el in E]
-                    features_already_known["t"] = T
-                    features_already_known["m"] = M
-                    features_already_known["e"] = E
-                elif all(len(this_tme) == 2 for this_tme in tme):
-                    T,M = list(zip(*tme))
-                    T = [float(el) for el in T]
-                    M = [float(el) for el in M]
-                    features_already_known["t"] = T
-                    features_already_known["m"] = M
-                else:
-                    raise Exception("custom_feature_tools.py - "
-                                    "docker_extract_features() - not all elements "
-                                    "of tme are the same length.")
+    add_tsdata_to_feats_known_dict(features_already_known_list,
+                                   ts_datafile_paths, ts_data_list)
     container_name = str(uuid.uuid4())[:10]
     path_to_tmp_dir = os.path.join("/tmp", container_name)
     os.mkdir(path_to_tmp_dir)
@@ -358,17 +410,12 @@ def docker_extract_features(
     # tsdata file into docker temp directory
     status_code = call([
         "cp", script_fpath,
-        os.path.join(
-            os.path.join(
-                cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
-            "custom_feature_defs.py")])
-    with open(
-            os.path.join(
-                os.path.join(
-                    cfg.PROJECT_PATH, "copied_data_files"),
-                "features_already_known_list.pkl"),
-            "wb"
-        ) as f:
+        os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                  "custom_feature_scripts"),
+                     "custom_feature_defs.py")])
+    with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
+                           "features_already_known_list.pkl"),
+              "wb") as f:
         pickle.dump(features_already_known_list, f, protocol=2)
     try:
         # the command to run our docker container which
@@ -384,10 +431,9 @@ def docker_extract_features(
         print("\n\ndocker container stdout:\n\n", stdout, \
               "\n\ndocker container stderr:\n\n", stderr, "\n\n")
         # copy all necessary files produced in docker container to host
-        cmd = [
-            "docker", "cp",
-            "%s:/tmp/results_list_of_dict.pkl" % container_name,
-            path_to_tmp_dir]
+        cmd = ["docker", "cp",
+               "%s:/tmp/results_list_of_dict.pkl" % container_name,
+               path_to_tmp_dir]
         status_code = call(cmd, stdout=PIPE, stderr=PIPE)
         print("/tmp/results_list_of_dict.pkl", \
               "copied to host machine - status code %s" % str(status_code))
@@ -406,32 +452,23 @@ def docker_extract_features(
         # Remove tmp dir
         shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
         try:
-            os.remove(
-                os.path.join(
-                    os.path.join(
-                        cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
-                    "custom_feature_defs.py"))
-            os.remove(
-                os.path.join(
-                    os.path.join(
-                        cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
-                    "custom_feature_defs.pyc"))
-            os.remove(
-                os.path.join(
-                    os.path.join(
-                        cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
-                    "__init__.pyc"))
+            os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                                 "custom_feature_scripts"),
+                                   "custom_feature_defs.py"))
+            os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                                "custom_feature_scripts"),
+                                   "custom_feature_defs.pyc"))
+            os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                                "custom_feature_scripts"),
+                                   "__init__.pyc"))
         except Exception as e:
             print(e)
         try:
-            os.remove(
-                os.path.join(
-                    os.path.join(
-                        cfg.PROJECT_PATH, "copied_data_files"),
-                    "features_already_known_list.pkl"))
+            os.remove(os.path.join(os.path.join(cfg.PROJECT_PATH,
+                                                "copied_data_files"),
+                                   "features_already_known_list.pkl"))
         except Exception as e:
             print(e)
-
     return results_list_of_dict
 
 

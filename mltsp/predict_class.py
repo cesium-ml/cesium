@@ -319,11 +319,10 @@ def do_model_predictions(big_features_and_tsdata_dict, models_folder,
     return results_dict
 
 
-def predict(
-        newpred_file_path, model_name, model_type, featset_key,
-        sepr=',', n_cols_html_table=5, features_already_extracted=False,
-        custom_features_script=None, metadata_file_path=None,
-        in_docker_container=False):
+def predict(newpred_file_path, model_name, model_type, featset_key,
+            sepr=',', n_cols_html_table=5, features_already_extracted=False,
+            custom_features_script=None, metadata_file_path=None,
+            in_docker_container=False):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved

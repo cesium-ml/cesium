@@ -44,7 +44,7 @@ def test_feature6(e):
     return {'q': 0, 'n':0, 'o':0}
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     #from . import lc_tools
     #tmestr = lc_tools.dotAstro_to_csv(215156)
     #all_lines = tmestr[0].strip().split("\n")
