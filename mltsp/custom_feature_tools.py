@@ -356,6 +356,31 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
                                     "of tme are the same length.")
 
 
+def make_tmp_dir():
+    """
+    """
+    container_name = str(uuid.uuid4())[:10]
+    path_to_tmp_dir = os.path.join("/tmp", container_name)
+    os.mkdir(path_to_tmp_dir)
+    return (container_name, path_to_tmp_dir)
+
+
+def copy_data_to_tmp_dir(script_fpath, features_already_known_list):
+    """
+    """
+    status_code = call([
+        "cp", script_fpath,
+        os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                  "custom_feature_scripts"),
+                     "custom_feature_defs.py")])
+    with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
+                           "features_already_known_list.pkl"),
+              "wb") as f:
+        pickle.dump(features_already_known_list, f, protocol=2)
+
+    return
+
+
 def docker_extract_features(
         script_fpath, features_already_known_list=[],
         ts_datafile_paths=None, ts_data_list=None):
@@ -403,20 +428,11 @@ def docker_extract_features(
         features_already_known_list = [features_already_known_list]
     add_tsdata_to_feats_known_dict(features_already_known_list,
                                    ts_datafile_paths, ts_data_list)
-    container_name = str(uuid.uuid4())[:10]
-    path_to_tmp_dir = os.path.join("/tmp", container_name)
-    os.mkdir(path_to_tmp_dir)
-    # copy custom features defs script and pickle the relevant
-    # tsdata file into docker temp directory
-    status_code = call([
-        "cp", script_fpath,
-        os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                  "custom_feature_scripts"),
-                     "custom_feature_defs.py")])
-    with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
-                           "features_already_known_list.pkl"),
-              "wb") as f:
-        pickle.dump(features_already_known_list, f, protocol=2)
+
+    container_name, path_to_tmp_dir = make_tmp_dir()
+
+    copy_data_to_tmp_dir(script_fpath, features_already_known_list)
+
     try:
         # the command to run our docker container which
         # will automatically generate features:
@@ -450,7 +466,7 @@ def docker_extract_features(
         status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
         print("Docker container deleted.")
         # Remove tmp dir
-        shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
+        shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
         try:
             os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                                  "custom_feature_scripts"),

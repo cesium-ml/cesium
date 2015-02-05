@@ -5,7 +5,7 @@ import numpy as np
 import os
 import pandas as pd
 from subprocess import call, PIPE
-
+import shutil
 
 def setup():
     call(["cp",
@@ -111,7 +111,31 @@ def test_add_tsdata_to_feats_known_dict():
     assert(isinstance(feats_known_dict_list[0]["e"][0], float))
 
 
+def test_make_tmp_dir():
+    """Test creation of temp directory"""
+    container_name, tmp_dir_path = cft.make_tmp_dir()
+    assert(isinstance(container_name, str))
+    assert(isinstance(tmp_dir_path, str))
+    assert(os.path.exists(tmp_dir_path))
+    npt.assert_equal(len(container_name), 10)
+
+
+def test_copy_data_to_tmp_dir():
+    """Test copy data to temp dir"""
+    cft.copy_data_to_tmp_dir(os.path.join(os.path.dirname(__file__),
+                                          "Data/testfeature1.py"),
+                             [{"feat1": 0.215, "feat2": 0.311},
+                              {"feat1": 1, "feat2": 2}])
+    #assert(os.path.exists(
+
+
 def teardown():
-    for fname in [os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                       "custom_feature_scripts/custom_feature_defs.py")]:
-        os.remove(fname)
+    """Tear-down - remove tmp files"""
+    if os.path.exists(tmp_dir_path):
+        shutil.rmtree(tmp_dir_path, ignore_errors=True)
+    assert(not os.path.exists(tmp_dir_path))
+
+    for f in [os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                           "custom_feature_scripts/custom_feature_defs.py")]:
+        if os.path.isfile(f):
+            os.remove(f)
