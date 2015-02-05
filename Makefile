@@ -7,5 +7,5 @@ clean:
 	find . -name "*.so" | xargs rm
 
 test:
-	nosetests --exclude-dir=mltsp/Flask/src
+	nosetests --exclude-dir=mltsp/Flask/src --nologcapture
 
