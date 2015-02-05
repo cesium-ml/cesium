@@ -560,13 +560,13 @@ os.system(os.path.expandvars("rm $HOME/scratch/xmls_deboss_percentage_exclude_2/
             tasks_to_pop = []
 	    for task_id in self.task_id_list:
 	        temp = self.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('out',None)
-                if results == None:
+                if results is None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 out_dict = results
                 if out_dict == True:

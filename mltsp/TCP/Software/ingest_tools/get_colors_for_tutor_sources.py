@@ -383,7 +383,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                         else:
                             print("- NO MATCH: %d dist=%f" % (j_row, dist))
 
-                    if votable_i_row == None:
+                    if votable_i_row is None:
                         #print "  JK None", src_id
                         ### if no simbad match, then we can't do much with Debosscher sources
                         self.append_none_jhk(proj_dict=proj_dict)
@@ -518,7 +518,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
                         else:
                             print("- NO MATCH: %d dJ=%f  dK=%f  dJK=%f  dist=%f" % (j_row, j_diff, k_diff, JK_diff, dist))
 
-                    if votable_i_row == None:
+                    if votable_i_row is None:
                         #print "  JK None", src_id
                         self.append_acvs_jhk(proj_dict=proj_dict, asas_ndarray=asas_ndarray, i_ndarray=i_ndarray)
                         continue # We cannot get any useful info from Simbad since no sources match/have J,K, so only use ASAS ACVS info
@@ -681,7 +681,7 @@ class Get_Colors(Database_Utils, VOTable_Parse):
             proj_dict = tutor_source_dict
             for i, src_id in enumerate(proj_dict['srcid_list']):
 
-                if proj_dict['class_id'][i] == None:
+                if proj_dict['class_id'][i] is None:
                     class_id = 'NULL'
                 else:
                     class_id = str(proj_dict['class_id'][i])
@@ -1198,7 +1198,7 @@ LOAD DATA INFILE '/media/raid_0/object_pg_copy.dat__5cols' INTO TABLE linear_obj
 
 
             if require_jhk:
-                if ((mag_dict['J'] == None) or (mag_dict['H'] == None) or (mag_dict['K'] == None)):
+                if ((mag_dict['J'] is None) or (mag_dict['H'] is None) or (mag_dict['K'] is None)):
                     continue # skip this source
                 
             
@@ -1270,7 +1270,7 @@ Constraints:
                 if (len(color_intersection) >= 1):
                     band_match_count = 0
                     for band in list(color_intersection):
-                        if nomad_sources[band][i] == None:
+                        if nomad_sources[band][i] is None:
                             continue
                         # KLUDGE:  untested number 0.5:
                         if abs(tutor_mags[band] - nomad_sources[band][i]) <= 0.5:
@@ -1312,7 +1312,7 @@ Constraints:
                 if (len(color_intersection) >= 1):
                     band_match_count = 0
                     for band in list(color_intersection):
-                        if nomad_sources[band][i] == None:
+                        if nomad_sources[band][i] is None:
                             continue
                         # KLUDGE:  untested number 0.5:
                         if abs(tutor_mags[band] - nomad_sources[band][i]) <= 0.5:
@@ -1473,7 +1473,7 @@ dist <= 30.0
                 if (len(color_intersection) >= 1):
                     band_match_count = 0
                     for band in list(color_intersection):
-                        if nomad_sources[band][i] == None:
+                        if nomad_sources[band][i] is None:
                             continue
                         # KLUDGE:  originally tried <= 0.5, after looking at histogram: choose 1.0
                         if abs(tutor_mags[band] - nomad_sources[band][i]) <= cuts['1st_tut-nom']:
@@ -1490,7 +1490,7 @@ dist <= 30.0
                 if (len(color_intersection) >= 1):
                     band_match_count = 0
                     for band in list(color_intersection):
-                        if nomad_sources[band][i] == None:
+                        if nomad_sources[band][i] is None:
                             continue
                         # KLUDGE:  originally tried <= 0.5, after looking at histogram: choose 1.0
                         if abs(tutor_mags[band] - nomad_sources[band][i]) <= cuts['2nd_tut-nom']:
@@ -1535,7 +1535,7 @@ dist <= 30.0
                 if (len(color_intersection) >= 1):
                     band_match_count = 0
                     for band in list(color_intersection):
-                        if nomad_sources[band][i] == None:
+                        if nomad_sources[band][i] is None:
                             continue
                         # KLUDGE:  originally tried <= 0.5, after looking at histogram: choose 1.0
                         if abs(tutor_mags[band] - nomad_sources[band][i]) <= cuts['3rd_tut-nom']:
@@ -1657,7 +1657,7 @@ TODO: Eventually want to store all avg mags possible, including TUTOR (no ACVS J
                                                set_tutor_mags=set_tutor_mags,
                                                set_other_mags=set_other_mags)
             
-        if i_chosen == None:
+        if i_chosen is None:
             print("No Match", end=' ')
             out_dict = {}
         else:
@@ -2503,7 +2503,7 @@ GROUP BY filter_name""" % (srcid)
 
         for i in range(len(nomad_dict['J'])):
 
-            if i_chosen == None:
+            if i_chosen is None:
                 class_str = "?"
             elif i == i_chosen:
                 class_str = "'match'"

@@ -602,7 +602,7 @@ WHERE src_id = %d AND schema_id >= %d
         for (schema_comment, class_name),class_dict in all_classif_dict.iteritems():
             class_def_dict = ingest_tools.pars['class_schema_definition_dicts'].get(schema_comment,{})
             class_weight = class_def_dict.get('specific_class_weight_dict',{}).get(class_name,None)
-            if class_weight == None:
+            if class_weight is None:
                 class_weight = class_def_dict.get('general_class_weight',0.0)
 
             # So, if the schema has general_class_weight > (some number) then
@@ -653,7 +653,7 @@ WHERE src_id = %d AND schema_id >= %d
 
         if len(rows) > 0:
             out_dict['freq'] = rows[0][0]
-        if out_dict.get('freq', None) == None:
+        if out_dict.get('freq', None) is None:
             out_dict['freq'] = 'Null'
 
         #if is_variable:

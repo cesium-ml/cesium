@@ -279,7 +279,7 @@ class Determine_Simbad_Class(TCPDb):
             for r in bib_rows:
                 for td in r('td'):
                     x = td.input
-                    if x == None:
+                    if x is None:
                         continue
                     bibcode = x['value']
                     abstract_url = td.a['href']
@@ -361,7 +361,7 @@ class Determine_Simbad_Class(TCPDb):
             for r in bib_rows:
                 for td in r('td'):
                     x = td.input
-                    if x == None:
+                    if x is None:
                         continue
                     bibcode = x['value']
                     abstract_url = td.a['href']

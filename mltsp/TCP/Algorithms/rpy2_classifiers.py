@@ -1361,7 +1361,7 @@ class GenerateFoldedClassifiers:
         """
         import random
 
-        if n_folds == None:
+        if n_folds is None:
             min_n_srcs = min(full_data_dict['srcid_list'])
             if min_n_srcs > 10:
                 n_folds = 10
@@ -1403,7 +1403,7 @@ class GenerateFoldedClassifiers:
         else:
             for class_name, ind_list in class_indlist.iteritems():
                 src_count = len(ind_list)
-                if classify_percent == None:
+                if classify_percent is None:
                     n_to_classify = src_count / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
                 else:
                     n_to_classify = int(src_count * (classify_percent / 100.))

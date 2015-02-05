@@ -123,7 +123,7 @@ class obs:
         self.assumed_err = assumed_err
         self.t = t
         self.associated_sources = []
-        if self.t == None:
+        if self.t is None:
             ## assign a time
             self.t = time.time() - start_time ## this is in seconds
         self.pos = []

@@ -217,7 +217,7 @@ class Populate_Feat_DB_Using_Tcptutor_sources:
         select_str ="SELECT max(schema_id) FROM classid_lookup"
         self.classdb_cursor.execute(select_str)
         results = self.classdb_cursor.fetchall()
-        if results[0][0] == None:
+        if results[0][0] is None:
             i_schema = 0
         else:
             print(results)

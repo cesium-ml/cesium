@@ -29,9 +29,6 @@ class lomb_scargle_extractor(InterExtractor):
         src_dict['m'] = copy.copy(self.flux_data)  # 20100902 addde the copy()
         src_dict['m_err'] = copy.copy(self.rms_data) # 20100902 added the copy()
 
-
-        print("m_err:", src_dict['m_err'])
-
         if len(self.time_data) == 0:
             self.ex_error(text="self.time_data of len()==0")
 
@@ -49,7 +46,7 @@ class lomb_scargle_extractor(InterExtractor):
                 n_harm_iters = len(lomb_dict['harmonics_amplitude'])
             else:
                 n_harm_iters = 1 + 3 # includes primary component
-                
+
             out_dict["%s_harmonics_freq_0" % (dstr)] = lomb_dict['frequency']
             for i in xrange(n_harm_iters):
                 out_dict["%s_harmonics_amplitude_%d" % (dstr, i)] = \

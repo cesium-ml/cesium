@@ -2535,7 +2535,7 @@ except:
             still_pending_dict = {}
             for engine_id, pending_result in pending_result_dict.iteritems():
                 result_val = pending_result.get_result(block=False)
-                if result_val == None:
+                if result_val is None:
                     print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
@@ -2582,13 +2582,13 @@ except:
             tasks_to_pop = []
             for task_id in task_id_list:
                 temp = tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('perc_niter_classif_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 if len(results) > 0:
                     tasks_to_pop.append(task_id)
@@ -2611,13 +2611,13 @@ except:
         for task_id in task_id_list:
             for task_id in task_id_list:
                 temp = tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('perc_niter_classif_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 if len(results) > 0:
                     perc_niter_classif_dict = results
@@ -2908,7 +2908,7 @@ RTaskControllers = test_pairwise_on_citris33_ipython.R_Task_Controllers()"""
                 print("get_result() Except. Still pending on engine: %d" % (engine_id))
                 still_pending_dict[engine_id] = pending_result
                 result_val = None # 20110105 added
-            if result_val == None:
+            if result_val is None:
                 print("Still pending on engine: %d" % (engine_id))
                 still_pending_dict[engine_id] = pending_result
         if i_count > 10:
@@ -3023,13 +3023,13 @@ del rdata_fpath
         tasks_to_pop = []
         for task_id in task_id_list:
             temp = tc.get_task_result(task_id, block=False)
-            if temp == None:
+            if temp is None:
                 continue
             temp2 = temp.results
-            if temp2 == None:
+            if temp2 is None:
                 continue
             results = temp2.get('ipython_return_dict',None)
-            if results == None:
+            if results is None:
                 continue # skip some kind of NULL result
             if len(results) > 0:
                 tasks_to_pop.append(task_id)
@@ -3045,13 +3045,13 @@ del rdata_fpath
     for task_id in task_id_list:
         for task_id in task_id_list:
             temp = tc.get_task_result(task_id, block=False)
-            if temp == None:
+            if temp is None:
                 continue
             temp2 = temp.results
-            if temp2 == None:
+            if temp2 is None:
                 continue
             results = temp2.get('ipython_return_dict',None)
-            if results == None:
+            if results is None:
                 continue #skip some kind of NULL result
             if len(results) > 0:
                 tasks_to_pop.append(task_id)

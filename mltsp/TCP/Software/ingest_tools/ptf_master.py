@@ -1469,7 +1469,7 @@ class Task_Master:
         self.DiffObjSourcePopulator.rdbt.cursor.execute(select_str)
         rdb_rows = self.DiffObjSourcePopulator.rdbt.cursor.fetchall()
         if len(rdb_rows) > 0:
-            if rdb_rows[0][0] == None:
+            if rdb_rows[0][0] is None:
                 return 0
             return int(rdb_rows[0][0])
         else:
@@ -1576,7 +1576,7 @@ class Task_Master:
                 ingest_specific_range_id = range_id
             # NOTE: if the specific_range_id no longer exists in DB,
             #       then range_id returned above is None, and below is done:
-            if (ingest_specific_range_id == None):
+            if (ingest_specific_range_id is None):
                 if ingest_greatest_ids:
                     (range_id,id_low,id_high) = self.get_lbl_id_range_for_ingestion(n_rows_in_lbl_ingest_acct, max_rangeid)
                 else:
@@ -1584,7 +1584,7 @@ class Task_Master:
 
             #is_really_first_time = False
 
-            if range_id == None:
+            if range_id is None:
                 # This is when everything has been done in lbl_ingest_acct table,
                 #    and there are no new rows in the LBL pgsql ptf candidates table.
                 print("Nothing in lbl_ingest_acct, PTF ingestion up-to-date.  Sleep(60)...")

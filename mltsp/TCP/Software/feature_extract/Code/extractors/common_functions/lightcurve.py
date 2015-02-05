@@ -345,12 +345,7 @@ class observatory_source_interface(object):
             else:
                 psd,res = lombr(x,ytest,dy0,f0,df,numf, tone_control=tone_control,
                                 lambda0_range=lambda0_range, nharm=nharm, detrend_order=0)
-            
-            
-            print "*"*80, "  RES:\n\n", res, "\n\n"
-            print "*"*80, "  lombr parameters:\n\n", x,ytest,dy0,f0,df,numf, tone_control, lambda0_range, nharm, "\n\n"
-            
-            
+
             ytest -= res['model']
             if (i==0):
                 out_dict['varrat'] = dot(ytest**2,wt) / chi0

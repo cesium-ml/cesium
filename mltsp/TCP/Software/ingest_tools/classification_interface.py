@@ -60,7 +60,7 @@ class Classification_Tables_Interface:
     """
     def __init__(self, pars, db=None):
         self.pars = pars
-        if db == None:
+        if db is None:
             self.db = MySQLdb.connect(host=self.pars['classdb_hostname'], \
                                   user=self.pars['classdb_username'], \
                                   db=self.pars['classdb_database'], \
@@ -343,7 +343,7 @@ class ClassificationHandler:
                                (self.pars['classid_lookup_tablename'])
             self.class_interface.cursor.execute(select_str)
             results = self.class_interface.cursor.fetchall()
-            if results[0][0] == None:
+            if results[0][0] is None:
                 class_schema_definition['schema_id'] = 0
             else:
                 class_schema_definition['schema_id'] = results[0][0] + 1

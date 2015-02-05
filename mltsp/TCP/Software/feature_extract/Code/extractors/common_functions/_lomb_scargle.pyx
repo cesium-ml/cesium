@@ -19,8 +19,6 @@ def lomb_scargle(int numt, int numf, int nharm, int detrend_order,
 
     assert wth.dtype == np.double
 
-    print("--LOMB SCARGLE--")
-
     _lomb_scargle(numt, numf, nharm, detrend_order, &psd[0], &cn[0],
                   <double*>(wth.data), &sinx[0], &cosx[0], &sinx_step[0],
                   &cosx_step[0], &sinx_back[0], &cosx_back[0],

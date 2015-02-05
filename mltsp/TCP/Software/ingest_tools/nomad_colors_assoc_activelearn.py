@@ -125,7 +125,7 @@ ncaa.load_data_on_task_engine(classifier_filepath="%s", train_fpath="%s", test_f
                     print("get_result() Except. Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
                     result_val = None # 20110105 added
-                if result_val == None:
+                if result_val is None:
                     print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
@@ -958,13 +958,13 @@ class Nomad_Colors_Assoc_AL:
             tasks_to_pop = []
             for task_id in self.ipy_tasks.task_id_list:
                 temp = self.ipy_tasks.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('out_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip some kind of NULL result
                 if len(results) > 0:
                     tasks_to_pop.append(task_id)
@@ -989,7 +989,7 @@ class Nomad_Colors_Assoc_AL:
             #       if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
             if ((self.ipy_tasks.tc.queue_status()['scheduled'] == 0) and 
                 (self.ipy_tasks.tc.queue_status()['pending'] <= 7)):
-               if dtime_pending_1 == None:
+               if dtime_pending_1 is None:
                    dtime_pending_1 = datetime.datetime.now()
                else:
                    now = datetime.datetime.now()
@@ -1002,13 +1002,13 @@ class Nomad_Colors_Assoc_AL:
         # IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in self.ipy_tasks.task_id_list:
             temp = self.ipy_tasks.tc.get_task_result(task_id, block=False)
-            if temp == None:
+            if temp is None:
                 continue
             temp2 = temp.results
-            if temp2 == None:
+            if temp2 is None:
                 continue
             results = temp2.get('out_dict',None)
-            if results == None:
+            if results is None:
                 continue #skip some kind of NULL result
             if len(results) > 0:
                 tasks_to_pop.append(task_id)
@@ -1760,7 +1760,7 @@ class Analyze_Nomad_Features:
 
 
             if require_jhk:
-                if ((mag_dict['J'] == None) or (mag_dict['H'] == None) or (mag_dict['K'] == None)):
+                if ((mag_dict['J'] is None) or (mag_dict['H'] is None) or (mag_dict['K'] is None)):
                     continue # skip this source
                 
             

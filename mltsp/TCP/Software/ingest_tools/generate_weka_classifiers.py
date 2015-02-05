@@ -336,13 +336,13 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
             tasks_to_pop = []
 	    for task_id in self.task_id_list:
 	        temp = self.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('out_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 out_dict = results
 		if len(out_dict) > 0:
@@ -366,14 +366,14 @@ a = arffify.Maker(search=[], skip_class=False, local_xmls=True, convert_class_ab
 	    for task_id in self.task_id_list:
 	        # TODO: try/except this: ???
 	        temp = self.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('out_dict',None)
                 #results = temp.results.get('out_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 out_dict = results
 		if len(out_dict) > 0:

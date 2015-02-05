@@ -256,7 +256,7 @@ class JDAC:
         
         ## if the source is too faint, then it's hard to trust the classification
         if 'dered_r' in self.ss:
-            if self.ss['dered_r'] > 21.5 and self.ss["spec_z"] == None:
+            if self.ss['dered_r'] > 21.5 and self.ss["spec_z"] is None:
                 ## really hard to trust what's happening here.
                 if self.ss['type'] == 'galaxy':
                     self.val_add.update({'nearest_type': "galaxy", "nearest_type_confidence": 0.55})

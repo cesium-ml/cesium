@@ -55,6 +55,7 @@ def test_feature_generation():
     features_expected, values_expected = features_from_csv(
         os.path.join(this_dir, "data/expected_features.csv"))
 
+    npt.assert_equal(len(features_extracted), 81)
     npt.assert_equal(features_extracted, features_expected)
     npt.assert_array_almost_equal(values_computed, values_expected)
 

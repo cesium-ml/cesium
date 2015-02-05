@@ -1239,7 +1239,7 @@ class TimeseriesInsert(TutorDb):
         self.cursor.execute(select_str)
         results = self.cursor.fetchall()
         src_oid_max = results[0][0]
-        if src_oid_max == None:
+        if src_oid_max is None:
             cur_src_oid = 0
         else:
             cur_src_oid = int(src_oid_max) + 1

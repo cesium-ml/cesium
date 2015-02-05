@@ -2211,7 +2211,7 @@ ArffEngineTasks = arff_generation_master.Arff_Generation_Engine_Tasks()"""
                 print("get_result() Except. Still pending on engine: %d" % (engine_id))
                 still_pending_dict[engine_id] = pending_result
                 result_val = None # 20110105 added
-            if result_val == None:
+            if result_val is None:
                 print("Still pending on engine: %d" % (engine_id))
                 still_pending_dict[engine_id] = pending_result
         if i_count > 10:
@@ -2327,13 +2327,13 @@ sys.stdout = tmp_stdout
         tasks_to_pop = []
         for task_id in task_id_list:
             temp = tc.get_task_result(task_id, block=False)
-            if temp == None:
+            if temp is None:
                 continue
             temp2 = temp.results
-            if temp2 == None:
+            if temp2 is None:
                 continue
             results = temp2.get('out_dict',None)
-            if results == None:
+            if results is None:
                 continue # skip some kind of NULL result
             if len(results) > 0:
                 tasks_to_pop.append(task_id)
@@ -2352,7 +2352,7 @@ sys.stdout = tmp_stdout
         #       if ((now - dtime_pending_1) >= datetime.timedelta(seconds=300)):
         if ((tc.queue_status()['scheduled'] == 0) and 
             (tc.queue_status()['pending'] <= 7)):
-           if dtime_pending_1 == None:
+           if dtime_pending_1 is None:
                dtime_pending_1 = datetime.datetime.now()
            else:
                now = datetime.datetime.now()
@@ -2365,13 +2365,13 @@ sys.stdout = tmp_stdout
     # IN CASE THERE are still tasks which have not been pulled/retrieved:
     for task_id in task_id_list:
         temp = tc.get_task_result(task_id, block=False)
-        if temp == None:
+        if temp is None:
             continue
         temp2 = temp.results
-        if temp2 == None:
+        if temp2 is None:
             continue
         results = temp2.get('out_dict',None)
-        if results == None:
+        if results is None:
             continue #skip some kind of NULL result
         if len(results) > 0:
             tasks_to_pop.append(task_id)

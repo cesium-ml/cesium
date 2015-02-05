@@ -96,27 +96,27 @@ This code saves XMLs into a seperate directory.
             if '#' in id_num:
                 id_num = id_num[id_num.rfind('#')+1:]
             weka_line_list = [id_num]
-            if closest_in_light == None:
+            if closest_in_light is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(closest_in_light))
-            if closest_in_light_ttype == None:
+            if closest_in_light_ttype is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(closest_in_light_ttype))
-            if closest_in_light_dm == None:
+            if closest_in_light_dm is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(closest_in_light_dm))
-            if sdss_best_offset_in_petro_g == None:
+            if sdss_best_offset_in_petro_g is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_best_offset_in_petro_g))
-            if sdss_best_z == None:
+            if sdss_best_z is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_best_z))
-            if sdss_best_dz == None:
+            if sdss_best_dz is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_best_dz))
@@ -125,19 +125,19 @@ This code saves XMLs into a seperate directory.
                 weka_line_list.append("'" + str(sdss_nearest_obj_type) + "'")
             else:
                 weka_line_list.append('?')
-            if sdss_photo_rest_ug == None:
+            if sdss_photo_rest_ug is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_photo_rest_ug))
-            if sdss_photo_rest_gr == None:
+            if sdss_photo_rest_gr is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_photo_rest_gr))
-            if sdss_photo_rest_ri == None:
+            if sdss_photo_rest_ri is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_photo_rest_ri))
-            if sdss_photo_rest_iz == None:
+            if sdss_photo_rest_iz is None:
                 weka_line_list.append(misval_chr)
             else:
                 weka_line_list.append(str(sdss_photo_rest_iz))

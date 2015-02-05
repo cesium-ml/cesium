@@ -45,7 +45,7 @@ class DataSet:
 		self.dict = {"id": self.outname, "version": __version__, "lower_limit_code": -99, "upper_limit_code": -999, 'data': self.data}
 	
 	def get_dict(self):
-		if self.dict == None:
+		if self.dict is None:
 			self.make_dict()
 		return self.dict
 	

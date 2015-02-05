@@ -186,7 +186,7 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
                     print("get_result() Except. Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
                     result_val = None # 20110105 added
-                if result_val == None:
+                if result_val is None:
                     print("Still pending on engine: %d" % (engine_id))
                     still_pending_dict[engine_id] = pending_result
             if i_count > 10:
@@ -224,13 +224,13 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
             tasks_to_pop = []
             for task_id in task_id_list:
                 temp = tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('new_orig_feat_tups',None)
-                if results == None:
+                if results is None:
                     continue # skip some kind of NULL result
                 if len(results) > 0:
                     tasks_to_pop.append(task_id)
@@ -243,13 +243,13 @@ DebugFeatureClassDependence = debug_feature_classifier_dependence.Debug_Feature_
         # IN CASE THERE are still tasks which have not been pulled/retrieved:
         for task_id in task_id_list:
             temp = tc.get_task_result(task_id, block=False)
-            if temp == None:
+            if temp is None:
                 continue
             temp2 = temp.results
-            if temp2 == None:
+            if temp2 is None:
                 continue
             results = temp2.get('new_orig_feat_tups',None)
-            if results == None:
+            if results is None:
                 continue #skip some kind of NULL result
             if len(results) > 0:
                 tasks_to_pop.append(task_id)

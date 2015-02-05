@@ -456,7 +456,7 @@ class Weka_Pairwise_Classification:
         """
         from . import weka_classifier
         for pair_name, pair_dict in classifier_dict.iteritems():
-            if pair_path_replace_tup == None:
+            if pair_path_replace_tup is None:
                 self.wc[pair_name] = weka_classifier.WekaClassifier( \
                                                            pair_dict['model_fpath'], 
                                                            pair_dict['arff_fpath'])
@@ -472,7 +472,7 @@ class Weka_Pairwise_Classification:
         """ Load the JPype classifiers for each pairwise case using weka .model files.
         """
         for pair_name, pair_dict in classifier_dict.iteritems():
-            if pair_path_replace_tup == None:
+            if pair_path_replace_tup is None:
                 self.wc[pair_name].reload_model_for_same_classes( \
                                                            pair_dict['model_fpath'])
             else:
@@ -645,7 +645,7 @@ use aprse_dcisiontree_lines_into_tuplist
                 if type(srcid_dotastro) == type(''):
                     if srcid_dotastro.count('_') > 0:
                         srcid_dotastro = int(orig_class_dict['srcid_list'][i_src].split('_')[0])
-                        if set_num == None:
+                        if set_num is None:
                             set_source = int(orig_class_dict['srcid_list'][i_src].split('_')[2])
                         else:
                             set_source = int(orig_class_dict['srcid_list'][i_src].split('_')[2])
@@ -1256,7 +1256,7 @@ use aprse_dcisiontree_lines_into_tuplist
         """ Divide a sciclass_dict into n_fold partitions, for use as
         crossvalidation trainingset and classification dataset.
 
-        if n_folds == None:   then use the minimum n_sources any sci-class has. (if this is > 10, then n_folds = 10
+        if n_folds is None:   then use the minimum n_sources any sci-class has. (if this is > 10, then n_folds = 10
         """
         crossval_data_dict = []
         n_sources_list = []
@@ -1264,7 +1264,7 @@ use aprse_dcisiontree_lines_into_tuplist
             if class_dict['count'] > 0:
                 n_sources_list.append(class_dict['count'])
 
-        if n_folds== None:
+        if n_foldsis None:
             min_n_srcs = min(n_sources_list)
             if min_n_srcs > 10:
                 n_folds = 10
@@ -1310,7 +1310,7 @@ use aprse_dcisiontree_lines_into_tuplist
         else:
             # The non cross-validation using stratified folds:
             for class_name, class_dict in sciclass_dict.iteritems():
-                if crossvalid_fold_percent == None:
+                if crossvalid_fold_percent is None:
                     n_to_classify = class_dict['count'] / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
                 else:
                     n_to_classify = int(class_dict['count'] * (crossvalid_fold_percent / 100.))
@@ -1347,7 +1347,7 @@ use aprse_dcisiontree_lines_into_tuplist
         """ Divide a sciclass_dict into n_fold partitions, for use as
         crossvalidation trainingset and classification dataset.
 
-        if n_folds == None:   then use the minimum n_sources any sci-class has.
+        if n_folds is None:   then use the minimum n_sources any sci-class has.
         
         """
         crossval_data_dict = []
@@ -1483,13 +1483,13 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
             tasks_to_pop = []
 	    for task_id in self.task_id_list:
 	        temp = self.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('classif_summary_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip these 
                 if len(results) > 0:
 		    tasks_to_pop.append(task_id)
@@ -1591,7 +1591,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                 ### Only do this if there are sources for this science_class
                 samp_perc_list = percent_tally_summary_dict[class_name][pw_classifier_name][set_num]['sampling_percent_list']
                 ### This 'index' is the ordering-index of the sampling_percent, which can be determined with any of the science-classes
-                if index == None:
+                if index is None:
                     ### Determine which index to place values, depending upon sampling-percent value:
                     if len(samp_perc_list) == 0:
                         index = 0
@@ -1600,7 +1600,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                             if (float(samp_perc_list[j]) >= float(percent)):
                                 index = j
                                 break
-                        if index == None:
+                        if index is None:
                             index = len(samp_perc_list) # percent is > all perc in samp_perc_list
                 count_true = confusion_row[i]
                 percent_false = (count_total - count_true) / float(count_total)
@@ -1609,7 +1609,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                 # TODO: want to take one set of sources for percent & class, get the percent_false
                 #        - then do the same for the next complete set of sources
 
-                #if index == None:
+                #if index is None:
                 #    import pdb; pdb.set_trace()
                 percent_tally_summary_dict[class_name][pw_classifier_name][set_num]['percent_false_list'].insert(index, percent_false)
                 percent_tally_summary_dict[class_name][pw_classifier_name][set_num]['sampling_percent_list'].insert(index, percent)
@@ -1639,7 +1639,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
             count_total = sum(confusion_row)
             if count_total > 0:
                 samp_perc_list = percent_tally_summary_dict[class_name][set_num]['sampling_percent_list']
-                if index == None:
+                if index is None:
                     ### Determine which index to place values, depending upon percent value:
                     if len(samp_perc_list) == 0:
                         index = 0
@@ -1648,7 +1648,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                             if (float(samp_perc_list[j]) >= float(percent)):
                                 index = j
                                 break
-                        if index == None:
+                        if index is None:
                             index = len(samp_perc_list) # percent is > all perc in samp_perc_list
                 count_true = confusion_row[i]
                 percent_false = (count_total - count_true) / float(count_total)
@@ -1657,7 +1657,7 @@ classif_summary_dict = PCVPWorker.do_cross_validation_element(cross_valid_datase
                 # TODO: want to take one set of sources for percent & class, get the percent_false
                 #        - then do the same for the next complete set of sources
 
-                #if index == None:
+                #if index is None:
                 #    import pdb; pdb.set_trace()
                 percent_tally_summary_dict[class_name][set_num]['percent_false_list'].insert(index, percent_false)
                 percent_tally_summary_dict[class_name][set_num]['sampling_percent_list'].insert(index, percent)
@@ -2157,13 +2157,13 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
                 tasks_to_pop = []
 	        for task_id in self.task_id_list:
 	            temp = self.tc.get_task_result(task_id, block=False)
-                    if temp == None:
+                    if temp is None:
                         continue
                     temp2 = temp.results
-                    if temp2 == None:
+                    if temp2 is None:
                         continue
                     results = temp2.get('out_dict',None)
-                    if results == None:
+                    if results is None:
                         continue # skip these sources (I think generally UNKNOWN ... science classes)
                     out_dict = results
                     if len(out_dict) > 0:
@@ -2183,13 +2183,13 @@ WekaPairwiseClassification.initialize_temp_cyto_files()
             # IN CASE THERE are still tasks which have not been pulled/retrieved:
             for task_id in self.task_id_list:
 	        temp = self.tc.get_task_result(task_id, block=False)
-                if temp == None:
+                if temp is None:
                     continue
                 temp2 = temp.results
-                if temp2 == None:
+                if temp2 is None:
                     continue
                 results = temp2.get('out_dict',None)
-                if results == None:
+                if results is None:
                     continue # skip these sources (I think generally UNKNOWN ... science classes)
                 out_dict = results
                 if len(out_dict) > 0:
@@ -2775,7 +2775,7 @@ class Pairwise_Classification:
                         replacement_classname = a_longclassname
                         #print 'MATCH:', replacement_classname
                         break
-                if replacement_classname == None:
+                if replacement_classname is None:
                     print('pairwise_classifications.parse_arff(): No match found:', class_name, class_elems)
                 class_name = replacement_classname
             ### Now we use this known longclassname to get the equivalent shortname,

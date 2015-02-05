@@ -3566,7 +3566,7 @@ class Rdb_Tools:
         mag_time_id_dict = {}
         for row in rdb_rows: 
             obj_epoch = extract_obj_epoch_from_ptf_query_row(row)
-            if obj_epoch['pos_sub'][0] == None:
+            if obj_epoch['pos_sub'][0] is None:
                 # This case occurs when the mysql ptf_events table has not
                 #     has not been updated with new values from lbl pgsql database.
                 # This should only be the case for epochs not associated with the source
@@ -4617,7 +4617,7 @@ class SDSS_FCR_Ingest_Status_Object:
         self.table_name = table_name
         self.hostname = hostname
         self.sdss_fields_doc_fpath_list = sdss_fields_doc_fpath_list
-        if db == None:
+        if db is None:
             self.db = MySQLdb.connect(host=self.rdb_host_ip, user=self.rdb_user, db=self.rdb_name, port=self.rdb_port)
         else:
             self.db = db
@@ -5066,7 +5066,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         if only_sources_wo_features:
             out_sources_list = []
             for source_dict in pe.sources:
-                if source_dict.d['feat_gen_date'] == None:
+                if source_dict.d['feat_gen_date'] is None:
                     out_sources_list.append(source_dict)
             return (featureless_srcids, out_sources_list)
         else:
@@ -5103,7 +5103,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         if only_sources_wo_features == 1:
             out_sources_list = []
             for source_dict in pe.sources:
-                if source_dict.d['feat_gen_date'] == None:
+                if source_dict.d['feat_gen_date'] is None:
                     out_sources_list.append(source_dict)
             return out_sources_list
         else:
@@ -5139,7 +5139,7 @@ src_list = server.get_sources_for_radec(49.599497, -1.0050998, 0.0166666, '')
         Output list: [{<source dict>}, {<source dict>}, ...]
            where <source dict> = {<filter>:{<dict of source characteristics>}}
         """
-        if feat_db == None:
+        if feat_db is None:
             #import generators_importers # NEEDED BY: get_features_using_srcid_xml_tuple_list()
             from . import feature_extraction_interface# NEEDED BY: self.get_src_obj_list() 
 	    #                                               Feature_database()...
