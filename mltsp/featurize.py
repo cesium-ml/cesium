@@ -22,6 +22,7 @@ from random import shuffle
 import sys
 import os
 import tarfile
+import ntpath
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
@@ -40,8 +41,7 @@ def shorten_fname(fname):
     """Return shortened file name without full path and suffix.
 
     """
-    return fname.split("/")[-1].replace(
-        ("." + fname.split(".")[-1] if "." in fname.split("/")[-1] else ""), "")
+    return os.path.splitext(ntpath.basename(fname))[0]
 
 
 def parse_prefeaturized_csv_data(features_file_path):
@@ -182,8 +182,7 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
 
 
 def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
-                            fname_class_dict, fname_metadata_dict,
-                            features_to_use):
+                            fname_class_dict, features_to_use):
     """
 
     """
@@ -225,13 +224,13 @@ def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
     return all_features
 
 
-def remove_unzipped_files(all_fnames, directory):
+def remove_unzipped_files(all_fnames, parent_dir):
     """
 
     """
     for fname in all_fnames:
         path_to_csv = os.path.join(
-            directory, os.path.join("unzipped", fname))
+            parent_dir, os.path.join("unzipped", fname))
         if os.path.isfile(path_to_csv):
             os.remove(path_to_csv)
 
@@ -249,7 +248,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
     zipfile.extractall(path=os.path.join(uploads_folder, "unzipped"))
     all_fnames = zipfile.getnames()
     num_objs = len(fname_class_dict)
-    zipfile_name = zipfile_path.split("/")[-1]
+    zipfile_name = ntpath.basename(zipfile_path)
     count = 0
     print("Generating science features...")
     # Loop through time-series files and generate features for each
@@ -262,7 +261,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
                   "of", num_objs)
             all_features = featurize_tsdata_object(
                 path_to_csv, short_fname, custom_script_path, fname_class_dict,
-                fname_metadata_dict,  features_to_use)
+                features_to_use)
             # Add any meta features from header file
             if short_fname in fname_metadata_dict:
                 all_features = dict(

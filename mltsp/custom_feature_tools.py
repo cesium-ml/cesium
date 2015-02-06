@@ -18,6 +18,7 @@ from subprocess import call, Popen, PIPE
 import sys
 import os
 import inspect
+import tempfile
 try:
     import cPickle as pickle
 except:
@@ -115,6 +116,57 @@ class DummyFile(object):
     """Used as a file object to temporarily redirect/suppress output."""
     def write(self, x):
         pass
+
+
+def is_running_in_docker_container():
+    """Return bool indicating whether running in a Docker container."""
+    import subprocess
+    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    output = proc.stdout.read()
+    print(output)
+    if "/docker/" in str(output):
+        in_docker_container=True
+    else:
+        in_docker_container=False
+    return in_docker_container
+
+
+def parse_csv_file(fname,sep=',',skip_lines=0):
+    """Parse 2- or 3-column CSV file and return a list of its columns.
+
+    Parameters
+    ----------
+    fname : str
+        Absolute path to the CSV file.
+    sep : str, optional
+        Delimiter in TS data file, defaults to ",".
+    skip_lines : int, optional
+        Number of leading lines to skip in file, defaults to 0.
+
+    Returns
+    -------
+    list of list
+        Two- or three-element list of lists of each of the columns. If
+        `fname` is not a 2- or 3-column CSV file, returns list of three
+        empty lists.
+
+    """
+    linecount = 0
+    t, m, e = [[], [], []]
+    with open(fname) as f:
+        for line in f:
+            line = line.strip()
+            if linecount >= skip_lines:
+                if len(line.split(sep)) == 3:
+                    ti, mi, ei = line.split(sep)
+                    t.append(float(ti)); m.append(float(mi)); e.append(float(ei))
+                elif len(line.split(sep)) == 2:
+                    ti, mi = line.split(sep)
+                    t.append(float(ti)); m.append(float(mi))
+                else:
+                    linecount -= 1
+            linecount += 1
+    return [t, m, e]
 
 
 def parse_for_req_prov_params(script_fpath):
@@ -359,19 +411,23 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
 def make_tmp_dir():
     """
     """
-    container_name = str(uuid.uuid4())[:10]
-    path_to_tmp_dir = os.path.join("/tmp", container_name)
-    os.mkdir(path_to_tmp_dir)
-    return (container_name, path_to_tmp_dir)
+    path_to_tmp_dir = tempfile.mkdtemp()
+    return path_to_tmp_dir
 
 
-def copy_data_to_tmp_dir(script_fpath, features_already_known_list):
+def generate_random_str():
+    """Generate random 10-character string using uuid.uuid4.
+    """
+    return str(uuid.uuid4())[:10]
+
+
+def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
+                         features_already_known_list):
     """
     """
     status_code = call([
         "cp", script_fpath,
-        os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                  "custom_feature_scripts"),
+        os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                      "custom_feature_defs.py")])
     with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
                            "features_already_known_list.pkl"),
@@ -381,8 +437,62 @@ def copy_data_to_tmp_dir(script_fpath, features_already_known_list):
     return
 
 
+def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
+    """
+    """
+    # Spin up Docker contain and extract custom feats
+    cmd = ["docker", "run",
+            "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
+            "--name=%s" % container_name,
+            "mltsp/extract_custom_feats"]
+    process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    # Grab outputs
+    stdout, stderr = process.communicate()
+    if str(stderr).strip() != "" and stderr != b'':
+        print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
+    # Copy pickled results data from Docker container to host
+    cmd = ["docker", "cp",
+           "%s:/tmp/results_list_of_dict.pkl" % container_name,
+           path_to_tmp_dir]
+    status_code = call(cmd, stdout=PIPE, stderr=PIPE)
+    print("/tmp/results_list_of_dict.pkl", \
+          "copied to host machine - status code %s" % str(status_code))
+    # Load pickled results data
+    with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
+              "rb") as f:
+        results_list_of_dict = pickle.load(f)
+
+    return results_list_of_dict
+
+
+def remove_tmp_files_and_container(container_name, path_to_tmp_dir):
+    """
+    """
+    # Delete used container
+    cmd = ["docker", "rm", "-f", container_name]
+    status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
+    print("Docker container deleted.")
+    # Remove tmp dir
+    shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
+    for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                                  "custom_feature_defs.py"),
+                     os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                                  "custom_feature_defs.pyc"),
+                     os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                                  "__init__.pyc"),
+                     os.path.join(os.path.join(cfg.PROJECT_PATH,
+                                               "copied_data_files"),
+                                  "features_already_known_list.pkl")]:
+        try:
+            os.remove(tmp_file)
+        except Exception as e:
+            print(e)
+
+    return
+
+
 def docker_extract_features(
-        script_fpath, features_already_known_list=[],
+        script_fpath, features_already_known_list=[{}],
         ts_datafile_paths=None, ts_data_list=None):
     """Extract custom features in a Docker container.
 
@@ -428,64 +538,36 @@ def docker_extract_features(
         features_already_known_list = [features_already_known_list]
     add_tsdata_to_feats_known_dict(features_already_known_list,
                                    ts_datafile_paths, ts_data_list)
+    container_name = generate_random_str()
+    path_to_tmp_dir = make_tmp_dir()
 
-    container_name, path_to_tmp_dir = make_tmp_dir()
-
-    copy_data_to_tmp_dir(script_fpath, features_already_known_list)
+    copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
+                         features_already_known_list)
 
     try:
-        # the command to run our docker container which
-        # will automatically generate features:
-        cmd = ["docker", "run",
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-                "--name=%s" % container_name,
-                "mltsp/extract_custom_feats"]
-        # execute command
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        # grab outputs
-        stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
-        # copy all necessary files produced in docker container to host
-        cmd = ["docker", "cp",
-               "%s:/tmp/results_list_of_dict.pkl" % container_name,
-               path_to_tmp_dir]
-        status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-        print("/tmp/results_list_of_dict.pkl", \
-              "copied to host machine - status code %s" % str(status_code))
-        # load results from copied .pkl file
-        with open(os.path.join(
-                    path_to_tmp_dir, "results_list_of_dict.pkl"),
-                "rb") as f:
-            results_list_of_dict = pickle.load(f)
+        results_list_of_dict = extract_feats_in_docker_container(
+            container_name, path_to_tmp_dir)
     except:
         raise
     finally:
-        # Delete used container
-        cmd = ["docker", "rm", "-f", container_name]
-        status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-        print("Docker container deleted.")
-        # Remove tmp dir
-        shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-        try:
-            os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                                 "custom_feature_scripts"),
-                                   "custom_feature_defs.py"))
-            os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                                "custom_feature_scripts"),
-                                   "custom_feature_defs.pyc"))
-            os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                                "custom_feature_scripts"),
-                                   "__init__.pyc"))
-        except Exception as e:
-            print(e)
-        try:
-            os.remove(os.path.join(os.path.join(cfg.PROJECT_PATH,
-                                                "copied_data_files"),
-                                   "features_already_known_list.pkl"))
-        except Exception as e:
-            print(e)
+        remove_tmp_files_and_container(container_name, path_to_tmp_dir)
     return results_list_of_dict
+
+
+def assemble_test_data():
+    """
+    """
+    features_already_known_list = []
+    fname = os.path.join(cfg.SAMPLE_DATA_PATH, "dotastro_215153.dat")
+    t, m, e = parse_csv_file(fname)
+    features_already_known_list.append(
+        {"t": t, "m": m, "e": e, "coords": [0, 0]})
+    features_already_known_list.append(
+        {"t": [1, 2, 3], "m": [50, 51, 52], "e": [0.3, 0.2, 0.4],
+         "coords": [-11, -55]})
+    features_already_known_list.append(
+        {"t": [1], "m": [50], "e": [0.3], "coords": 2})
+    return features_already_known_list
 
 
 def verify_new_script(script_fpath, docker_container=False):
@@ -510,31 +592,8 @@ def verify_new_script(script_fpath, docker_container=False):
         time-series data sets.
 
     """
-    features_already_known_list = []
-    all_fnames = False
-    try:
-        all_fnames = glob.glob(
-            os.path.join(cfg.PROJECT_PATH, ".sample_lcs/dotastro_*.dat"))[:1]
-    except:
-        pass
-    if (is_running_in_docker_container() and
-            (not all_fnames or len(all_fnames) == 0) and False):
-        try:
-            all_fnames = glob.glob("/home/mltsp/.sample_lcs/dotastro_*.dat")[:1]
-        except:
-            all_fnames = False
-    if not all_fnames or len(all_fnames) == 0:
-        print("all_fnames:", all_fnames)
-        raise Exception("No test lc files read in...")
-    else:
-        for fname in all_fnames:
-            t,m,e = parse_csv_file(fname)
-            features_already_known_list.append(
-                {"t":t,"m":m,"e":e,"coords":[0,0]})
-    features_already_known_list.append(
-        {"t":[1,2,3],"m":[50,51,52],"e":[0.3,0.2,0.4],"coords":[-11,-55]})
-    features_already_known_list.append(
-        {"t":[1],"m":[50],"e":[0.3],"coords":2})
+    features_already_known_list = assemble_test_data()
+
     all_extracted_features_list = []
     if docker_installed():
         print("Extracting features inside docker container...")
@@ -544,6 +603,7 @@ def verify_new_script(script_fpath, docker_container=False):
     else:
         print("Docker not installed - running custom features script could be "
               "unsafe. Skipping generation of custom features.")
+        return []
     return all_extracted_features_list
 
 
@@ -589,48 +649,8 @@ def list_features_provided(script_fpath):
     return all_provided_params
 
 
-def parse_csv_file(fname,sep=',',skip_lines=0):
-    """Parse 2- or 3-column CSV file and return a list of its columns.
-
-    Parameters
-    ----------
-    fname : str
-        Absolute path to the CSV file.
-    sep : str, optional
-        Delimiter in TS data file, defaults to ",".
-    skip_lines : int, optional
-        Number of leading lines to skip in file, defaults to 0.
-
-    Returns
-    -------
-    list of list
-        Two- or three-element list of lists of each of the columns. If
-        `fname` is not a 2- or 3-column CSV file, returns list of three
-        empty lists.
-
-    """
-    f = open(fname)
-    linecount = 0
-    t,m,e = [[],[],[]]
-    for line in f:
-        line = line.strip()
-        if linecount >= skip_lines:
-            if len(line.split(sep)) == 3:
-                ti,mi,ei = line.split(sep)
-                t.append(float(ti)); m.append(float(mi)); e.append(float(ei))
-            elif len(line.split(sep)) == 2:
-                ti,mi = line.split(sep)
-                t.append(float(ti)); m.append(float(mi))
-            else:
-                linecount -= 1
-        linecount += 1
-    #print linecount-1, "lines of data successfully read."
-    f.close()
-    return [t,m,e]
-
-
 def generate_custom_features(
-        custom_script_path, path_to_csv=None, features_already_known=[],
+        custom_script_path, path_to_csv=None, features_already_known={},
         ts_data=None):
     """Generate custom features for provided TS data and script.
 
@@ -642,7 +662,7 @@ def generate_custom_features(
         Path to CSV file containing time-series data. Defaults to None.
         If None, ts_data (see below) must not be None, otherwise
         raises an Exception.
-    features_already_known : list of dict, optional
+    features_already_known : dict, optional
         List of dicts containing any meta-features associated with
         provided time-series data. Defaults to [].
     ts_data : list OR tuple, optional
@@ -657,21 +677,21 @@ def generate_custom_features(
         List of dictionaries containing newly-generated features.
 
     """
-    if path_to_csv not in [None,False]:
-        t,m,e = parse_csv_file(path_to_csv)
-    elif ts_data not in [None,False]:
+    if path_to_csv not in [None, False]:
+        t, m, e = parse_csv_file(path_to_csv)
+    elif ts_data not in [None, False]:
         if len(ts_data[0]) == 3:
-            t,m,e = list(zip(*ts_data))
+            t, m, e = list(zip(*ts_data))
         if len(ts_data[0]) == 2:
-            t,m = list(zip(*ts_data))
-    else:
+            t, m = list(zip(*ts_data))
+    elif "t" not in features_already_known or "m" not in features_already_known:
         print("predict_class.predict:")
         print("path_to_csv:", path_to_csv)
         print("ts_data:", ts_data)
         raise Exception("Neither path_to_csv nor ts_data provided...")
-    features_already_known['t'] = t
-    features_already_known['m'] = m
-    if e and len(e) == len(m):
+    if "t" not in features_already_known: features_already_known['t'] = t
+    if "m" not in features_already_known: features_already_known['m'] = m
+    if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
     if is_running_in_docker_container():
         all_new_features = execute_functions_in_order(
@@ -689,28 +709,3 @@ def generate_custom_features(
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
     return all_new_features
-
-
-def is_running_in_docker_container():
-    """Return bool indicating whether running in a Docker container."""
-    import subprocess
-    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    print(output)
-    if "/docker/" in str(output):
-        in_docker_container=True
-    else:
-        in_docker_container=False
-    return in_docker_container
-
-
-if __name__ == "__main__":
-    import subprocess
-    import sys
-    encoding = sys.stdout.encoding or 'utf-8'
-    docker_container = is_running_in_docker_container()
-    x = verify_new_script(docker_container=docker_container)
-    print((str(x).encode(encoding)))
-    sys.stdout.write( str(x).encode(encoding) )
-    if docker_container:
-        pass

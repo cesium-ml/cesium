@@ -1,6 +1,6 @@
 # cfg.py
 #
-# Config file for MLTSP flask app.
+# Config file for MLTSP app.
 #
 
 from __future__ import print_function
@@ -17,6 +17,7 @@ import os, sys
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PROJECT_PATH, "Data")
+SAMPLE_DATA_PATH = os.path.join(DATA_PATH, "sample_data")
 
 # Specify path to uploads, models, and feature folders:
 UPLOAD_FOLDER = os.path.join(DATA_PATH, "flask_uploads")
@@ -25,6 +26,8 @@ FEATURES_FOLDER = os.path.join(DATA_PATH, "extracted_features")
 CUSTOM_FEATURE_SCRIPT_FOLDER = os.path.join(
     UPLOAD_FOLDER,
     "custom_feature_scripts")
+TMP_CUSTOM_FEATS_FOLDER = os.path.join(MLTSP_PACKAGE_PATH,
+                                       "custom_feature_scripts")
 ERR_LOG_PATH = os.path.join(
     DATA_PATH, "logs/errors_and_warnings.txt")
 
