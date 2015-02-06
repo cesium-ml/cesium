@@ -3,7 +3,6 @@ from mltsp import cfg
 import numpy.testing as npt
 import os
 import pandas as pd
-from subprocess import call
 import ntpath
 import tarfile
 try:
@@ -11,6 +10,7 @@ try:
 except:
     import pickle
 from sklearn.externals import joblib
+import shutil
 
 def setup():
     fpaths = []
@@ -20,8 +20,7 @@ def setup():
         fpaths.append(os.path.join(os.path.dirname(__file__),
                                    os.path.join("Data", fname)))
     for fpath in fpaths:
-        call(["cp", fpath, os.path.join(cfg.UPLOAD_FOLDER,
-                                        ntpath.basename(fpath))])
+        shutil.copy(fpath, cfg.UPLOAD_FOLDER)
 
 
 def test_features_file_parser():
@@ -198,6 +197,35 @@ def test_write_features_to_disk():
                            "test_featset_features_with_classes.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
     npt.assert_equal(feat_class_cont, "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
+
+
+def test_main_featurize_function():
+    """Test main featurize function"""
+    results_msg = featurize.featurize(
+        headerfile_path=os.path.join(
+            cfg.UPLOAD_FOLDER,
+            "asas_training_subset_classes_with_metadata.dat"),
+        zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
+                                  "asas_training_subset.tar.gz"),
+        features_to_use=["std_err"],# #TEMP# TCP still broken under py3
+        featureset_id="test", is_test=True,
+        custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                        "testfeature1.py"),
+        USE_DISCO=False)
+    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                       "test_features.csv")))
+    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                       "test_classes.pkl")))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.pkl"))
+    df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
+                                       "test_features.csv"))
+    cols = df.columns
+    values = df.values
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                        "Flask/static/data"),
+                           "test_features_with_classes.csv"))
+    assert("std_err" in cols)
 
 
 def teardown():
