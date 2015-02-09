@@ -16,6 +16,7 @@ import uuid
 import sys
 import os
 import rethinkdb as r
+import ntpath
 
 from . import cfg
 
@@ -71,26 +72,25 @@ def featurize_in_docker_container(
     # into container:
     if os.path.isfile(str(headerfile_path)):
         copied_headerfile_path = os.path.join(
-            copied_data_dir, headerfile_path.split("/")[-1])
+            copied_data_dir, ntpath.basename(headerfile_path))
         tmp_files.append(copied_headerfile_path)
-        status_code = call(["cp", headerfile_path, copied_headerfile_path])
+        shutil.copy(headerfile_path, copied_headerfile_path)
         arguments["headerfile_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", headerfile_path.split("/")[-1])
+            "/home/mltsp/copied_data_files", ntpath.basename(headerfile_path))
     if os.path.isfile(str(zipfile_path)):
         copied_zipfile_path = os.path.join(copied_data_dir,
-                                           zipfile_path.split("/")[-1])
+                                           ntpath.basename(zipfile_path))
         tmp_files.append(copied_zipfile_path)
-        status_code = call(["cp", zipfile_path, copied_zipfile_path])
+        shutil.copy(zipfile_path, copied_zipfile_path)
         arguments["zipfile_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", zipfile_path.split("/")[-1])
+            "/home/mltsp/copied_data_files", ntpath.basename(zipfile_path))
     if os.path.isfile(str(custom_script_path)):
         copied_custom_script_path = os.path.join(
             os.path.join(
                 cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
             "custom_feature_defs.py")
         tmp_files.append(copied_custom_script_path)
-        status_code = call(["cp", custom_script_path,
-                            copied_custom_script_path])
+        shutil.copy(custom_script_path, copied_custom_script_path)
         arguments["custom_script_path"] = ("/home/mltsp/mltsp/"
                                            "custom_feature_scripts/"
                                            "custom_feature_defs.py")
@@ -290,30 +290,27 @@ def predict_in_docker_container(
     # copy relevant data files into docker temp directory
     if os.path.isfile(str(newpred_file_path)):
         copied_newpred_file_path = os.path.join(
-            copied_data_dir, newpred_file_path.split("/")[-1])
+            copied_data_dir, ntpath.basename(newpred_file_path))
         tmp_files.append(copied_newpred_file_path)
-        status_code = call(
-            ["cp", newpred_file_path, copied_newpred_file_path])
+        shutil.copy(newpred_file_path, copied_newpred_file_path)
         arguments["newpred_file_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", newpred_file_path.split("/")[-1])
+            "/home/mltsp/copied_data_files", ntpath.basename(newpred_file_path))
     if os.path.isfile(str(custom_features_script)):
         copied_custom_script_path = os.path.join(
             os.path.join(cfg.MLTSP_PACKAGE_PATH,"custom_feature_scripts"),
             "custom_feature_defs.py")
         tmp_files.append(copied_custom_script_path)
-        status_code = call(
-            ["cp", custom_features_script, copied_custom_script_path])
+        shutil.copy(custom_features_script, copied_custom_script_path)
         arguments["custom_features_script"] = ("/home/mltsp/mltsp/"
                                                "custom_feature_scripts/"
                                                "custom_feature_defs.py")
     if os.path.isfile(str(metadata_file)):
         copied_metadata_file_path = os.path.join(
-            copied_data_dir, metadata_file.split("/")[-1])
+            copied_data_dir, ntpath.basename(metadata_file))
         tmp_files.append(copied_metadata_file_path)
-        status_code = call(
-            ["cp", metadata_file, copied_metadata_file_path])
+        shutil.copy(metadata_file, copied_metadata_file_path)
         arguments["metadata_file"] = os.path.join(
-            "/home/mltsp/copied_data_files", metadata_file.split("/")[-1])
+            "/home/mltsp/copied_data_files", ntpath.basename(metadata_file))
 
     arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")

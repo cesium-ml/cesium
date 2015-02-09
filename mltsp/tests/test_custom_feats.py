@@ -13,11 +13,9 @@ except:
 
 
 def setup():
-    call(["cp",
-          os.path.join(os.path.dirname(__file__),
-                       "Data/testfeature1.py"),
-          os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                       "custom_feature_scripts/custom_feature_defs.py")])
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/testfeature1.py"),
+                os.path.join(cfg.MLTSP_PACKAGE_PATH)
 
 
 def test_parse_csv_file():

@@ -425,10 +425,9 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
                          features_already_known_list):
     """
     """
-    status_code = call([
-        "cp", script_fpath,
-        os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                     "custom_feature_defs.py")])
+    shutil.copy(script_fpath,
+                os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                             "custom_feature_defs.py"))
     with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
                            "features_already_known_list.pkl"),
               "wb") as f:

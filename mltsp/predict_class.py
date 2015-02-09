@@ -29,6 +29,7 @@ import pytz
 import tarfile
 import glob
 from copy import deepcopy
+import ntpath
 
 from . import cfg
 from . import custom_exceptions
@@ -132,15 +133,19 @@ def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
 
 
 def featurize_single(newpred_file_path, features_to_use, uploads_folder,
-                     custom_features_script, meta_features, sep=","):
+                     custom_features_script, meta_features, tmp_dir_path="/tmp",
+                     sep=","):
     """
     """
     big_features_and_tsdata_dict = {}
     fname = newpred_file_path
-    short_fname = fname.split("/")[-1]
+    short_fname = ntpath.basename(fname)
     if os.path.isfile(fname):
         filepath = fname
-    elif os.path.isfile(os.path.join(uploads_folder, fname)):
+    elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
+        filepath = os.path.join(tmp_dir_path, fname)
+    elif os.path.isfile(os.path.join(os.path.join(uploads_folder, "unzipped"),
+                                     fname)):
         filepath = os.path.join(uploads_folder, fname)
     else:
         print(fname + " is not a file...")
@@ -167,7 +172,7 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
                 list(timeseries_features.items()) + list(science_features.items()) +
                 (
                     list(meta_features[short_fname].items()) if short_fname in
-                    meta_features else list({}.items()))),ts_data=ts_data)
+                    meta_features else list({}.items()))), ts_data=ts_data)
         if (type(custom_features) == list and
             len(custom_features) == 1):
                 custom_features = custom_features[0]
@@ -179,7 +184,7 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
         (list(meta_features[short_fname].items()) if short_fname
          in meta_features else list({}.items())))
     big_features_and_tsdata_dict[fname] = {
-        "features_dict":features_dict, "ts_data":ts_data}
+        "features_dict": features_dict, "ts_data": ts_data}
     return big_features_and_tsdata_dict
 
 

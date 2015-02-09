@@ -5,28 +5,26 @@ from mltsp import cfg
 import numpy.testing as npt
 import os
 import pandas as pd
-from subprocess import call
+import shutil
 
 
 def setup():
     print("Copying data files")
     # copy data files to proper directory:
-    call(["cp",
-          os.path.join(os.path.dirname(__file__),
-                       "Data/asas_training_subset_classes_with_metadata.dat"),
-          os.path.join(cfg.UPLOAD_FOLDER,
-                       "asas_training_subset_classes_with_metadata.dat")])
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/asas_training_subset_classes_with_metadata.dat"),
+        cfg.UPLOAD_FOLDER)
 
-    call(["cp",
-          os.path.join(os.path.dirname(__file__),
-                       "Data/asas_training_subset.tar.gz"),
-          os.path.join(cfg.UPLOAD_FOLDER,
-                       "asas_training_subset.tar.gz")])
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/asas_training_subset.tar.gz"),
+        cfg.UPLOAD_FOLDER)
 
-    call(["cp",
-          os.path.join(os.path.dirname(__file__),
-                       "Data/testfeature1.py"),
-          os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "testfeature1.py")])
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/testfeature1.py"),
+        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
 
 
 def test_featurize():

@@ -4,26 +4,22 @@ from mltsp import cfg
 import numpy as np
 import numpy.testing as npt
 
-from subprocess import call
 import time
 import os
+import shutil
 import glob
 
 
 def setup():
     print("Copying data files")
     # copy data files to proper directory:
-    call(["cp",
-          os.path.join(os.path.dirname(__file__),
-                       "data/asas_training_subset_classes.dat"),
-          os.path.join(cfg.UPLOAD_FOLDER,
-                       "asas_training_subset_classes.dat")])
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "data/asas_training_subset_classes.dat"),
+                os.path.join(cfg.UPLOAD_FOLDER)
 
-    call(["cp",
-          os.path.join(os.path.dirname(__file__),
-                       "data/asas_training_subset.tar.gz"),
-          os.path.join(cfg.UPLOAD_FOLDER,
-                       "asas_training_subset.tar.gz")])
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "data/asas_training_subset.tar.gz"),
+                os.path.join(cfg.UPLOAD_FOLDER)
 
 
 def test_feature_generation():
