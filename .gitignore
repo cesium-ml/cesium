@@ -1,5 +1,12 @@
-flask/rethinkdb_data/
-flask/static/data/*classes.csv
+mltsp/Flask/rethinkdb_data/
+mltsp/Flask/static/data/*classes.csv
+**/__pycache__
+Data/*
 *~
 *.pyc
 *.bak
+**/build
+*.gch
+*.so
+mltsp/version.py
+*.c

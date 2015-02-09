@@ -1,5 +1,4 @@
+#TEMP# FROM mltsp/base_disco # not working, temporarily using base:
 FROM mltsp/base
 
-RUN cat /proc/1/cgroup
-
-ENTRYPOINT ["python3", "/home/mltsp/docker_scripts/docker_extract_custom_feats.py"]
+ENTRYPOINT ["python3", "/home/mltsp/run_script_in_container.py", "--extract_custom_feats"]

@@ -1,5 +1,3 @@
 FROM mltsp/base
 
-RUN cat /proc/1/cgroup
-
-ENTRYPOINT ["python3", "/home/mltsp/docker_scripts/docker_build_model.py"]
+ENTRYPOINT ["python3", "/home/mltsp/run_script_in_container.py", "--build_model"]

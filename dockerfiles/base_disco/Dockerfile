@@ -1,6 +1,7 @@
 FROM mltsp/base
 
 ## install requirements
+RUN apt-get update
 RUN apt-get install -y wget curl erlang git make
 
 ## add user for disco

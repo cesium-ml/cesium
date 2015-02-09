@@ -1,0 +1,4 @@
+class,all_times_nhist_peak_val,cad_probs_100,cad_probs_5000,cad_probs_5000000,meta1
+RR_Lyrae_FM,0.00114782425236,0.0,0.59067357513,1.0,<built-in method random of Random object at 0x97effb4>
+RR_Lyrae_FM,0.00118923017397,0.00857142857143,0.611428571429,1.0,<built-in method random of Random object at 0x97effb4>
+Mira,0.00194781837646,0.0236686390533,0.473372781065,1.0,<built-in method random of Random object at 0x97effb4>

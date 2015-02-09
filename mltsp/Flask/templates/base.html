@@ -1,0 +1,87 @@
+<!doctype html>
+<head><title>{% block title %}ML Time-Series Platform {% block subtitle %} {% endblock %} {% endblock %}</title>
+
+
+{% block script_links %}
+<link rel="stylesheet" type='text/css' href="/static/bootstrap/css/bootstrap.less">
+
+
+
+<script type="text/javascript" src="/static/js/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="/static/js/jquery.form.js"></script>
+<script type="text/javascript" src="/static/js/jquery.validate.js"></script>
+<script type="text/javascript" src="/static/js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/static/jquery-ui-1.10.4/ui/jquery-ui.js"></script>
+<script type="text/javascript" src="/static/js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="/static/js/d3.v3.min.js"></script>
+<script type="text/javascript" src="/static/js/nv.d3.js"></script>
+<script type="text/javascript" src="/static/js/jquery.ba-outside-events.js"></script>
+<script type="text/javascript" src="/static/js/flot/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/js/flot/jquery.flot.errorbars.js"></script>
+<script type="text/javascript" src="/static/js/flot/jquery.flot.selection.js"></script>
+<script type="text/javascript" src="/static/js/json2.js"></script>
+<script type="text/javascript" src="/static/js/jcanvas.min.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript" src="/static/js/bokeh-0.4.2.js"></script>
+<script type="text/javascript" src="/static/js/scripts.js"></script>
+
+<LINK href="/static/jquery-ui-1.10.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css">
+<LINK href="/static/jquery-ui-1.10.4/themes/base/jquery.ui.tooltip.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/bokeh-0.4.2.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/styles.css" rel="stylesheet" type="text/css">
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+        
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+        
+        $(function() {
+                $( "#tabs" ).tabs({
+                        collapsible: true
+                });
+        });
+        
+        {% block script %}
+        
+        {% endblock %}
+</script>
+</head>
+
+<body>
+
+        {% block content %}
+
+                {% block tabs %}
+
+                {% endblock %}
+
+
+                {% block results %}
+
+                {% endblock %}
+
+                {% block footer %}
+                
+                {% endblock %}
+
+        {% endblock %}
+
+        {% block bodyscript %}
+
+        {% endblock %}
+
+
+</body>
+</html>
