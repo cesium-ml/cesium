@@ -432,7 +432,6 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
                            "features_already_known_list.pkl"),
               "wb") as f:
         pickle.dump(features_already_known_list, f, protocol=2)
-
     return
 
 
