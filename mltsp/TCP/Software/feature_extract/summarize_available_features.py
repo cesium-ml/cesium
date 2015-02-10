@@ -66,9 +66,9 @@ class Summarize_Available_Features:
         gen.generate(xml_handle="../../Data/vosource_9026.xml")
         gen.sig.add_features_to_xml_string(gen.signals_list)
 
-	for filter_name,filt_dict in signals_list[0].properties['data'].iteritems():
+	for filter_name,filt_dict in signals_list[0].properties['data'].items():
 		for feat_name,value_object in signals_list[0].properties['data']\
-		                                [filter_name]['features'].iteritems():
+		                                [filter_name]['features'].items():
                     # KLUDGE: some inconsistancy in feature naming for closest_in_light...
                     #    - these seem to be due to various users creating extractors with non conforming names / defintions
                     #        - if everyone named their extractors with a '_extractor' suffix, this would work!!!
@@ -107,7 +107,7 @@ if __name__ == '__main__':
         sys.path.append(os.path.abspath(os.environ.get("TCP_DIR") + 'Software/feature_extract/Code/extractors'))
         from Code import *
 
-        for extractor_name,extr_dict in import_dict.iteritems():
+        for extractor_name,extr_dict in import_dict.items():
             exec("sys.path.append(os.path.abspath(os.environ.get('TCP_DIR') + 'Software/feature_extract/Code/extractors'));" + extr_dict['init_line'])
             for extr_name in extr_dict['extractor_list']:
                 print extr_name # TODO: see if __doc__ exists : do an eval()
