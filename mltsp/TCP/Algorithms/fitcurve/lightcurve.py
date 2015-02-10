@@ -339,7 +339,7 @@ class observatory_source_interface(object):
 
         lambda0_range=[-log10(n0),8] # these numbers "fix" the strange-amplitude effect
 
-        for i in xrange(num_freq_comps):
+        for i in range(num_freq_comps):
             if (i==0):
                 psd,res = lombr(x,ytest,dy0,f0,df,numf, tone_control=tone_control,
                                 lambda0_range=lambda0_range, nharm=nharm, detrend_order=1)                    
@@ -501,7 +501,7 @@ class observatory_source_interface(object):
         #all_model_vals += res['model']
 
         ytest_2p -= res['model']
-        for i in xrange(1,num_freq_comps):
+        for i in range(1,num_freq_comps):
             psd,res = lombr(x,ytest_2p,dy0,f0,df,numf, tone_control=tone_control,
                             lambda0_range=lambda0_range, nharm=nharm, detrend_order=0)
 
@@ -899,13 +899,13 @@ class GetPeriodFoldForWeb:
         """
         json_list = []
         data_list1 = []
-        for i in xrange(len(combo_dict['Actual Mags folded']['t'])):
+        for i in range(len(combo_dict['Actual Mags folded']['t'])):
             data_list1.append([combo_dict['Actual Mags folded']['t'][i],combo_dict['Actual Mags folded']['m'][i]])
         data_list2 = []
-        for i in xrange(len(combo_dict['Folded Model']['t'])):
+        for i in range(len(combo_dict['Folded Model']['t'])):
             data_list2.append([combo_dict['Folded Model']['t'][i],combo_dict['Folded Model']['m'][i]])
         data_list3 = []
-        for i in xrange(len(combo_dict['Model with dictionary values']['t'])):
+        for i in range(len(combo_dict['Model with dictionary values']['t'])):
             data_list3.append([combo_dict['Model with dictionary values']['t'][i],combo_dict['Model with dictionary values']['m'][i]])
         json_list.append({'label':'Model with dictionary values', 
                           'color':'#F2BABB',

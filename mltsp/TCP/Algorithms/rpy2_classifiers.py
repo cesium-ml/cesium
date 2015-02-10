@@ -124,7 +124,7 @@ class Rpy2Classifier:
                     out_list.append(float(feat_val))
                     feat_val_dict[feat_names[i_f]].append(float(feat_val))
 
-        for feat_name, feat_list in feat_val_dict.iteritems():
+        for feat_name, feat_list in feat_val_dict.items():
             feat_val_dict[feat_name] = robjects.FloatVector(feat_list)
             
         return {'feat_list':out_list,
@@ -243,7 +243,7 @@ class Rpy2Classifier:
                             val = elem
                     featname_longfeatval_dict[feat_name].append(val)
 
-        #for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        #for feat_name, feat_longlist in featname_longfeatval_dict.items():
         #    featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         #features = robjects.r['data.frame'](**featname_longfeatval_dict)
         #classes = robjects.StrVector(class_list)
@@ -256,7 +256,7 @@ class Rpy2Classifier:
 
 
         ### NOTE: We dont do this here anymore.  We do it closer to the R classifier building code:
-        #for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        #for feat_name, feat_longlist in featname_longfeatval_dict.items():
         #    featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         #features = robjects.r['data.frame'](**featname_longfeatval_dict)
         #classes = robjects.StrVector(class_list)
@@ -319,7 +319,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         data_dict['features'] = robjects.r['data.frame'](**featname_longfeatval_dict)
         data_dict['classes'] = robjects.StrVector(data_dict['class_list'])
@@ -373,7 +373,7 @@ class Rpy2Classifier:
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in train_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in train_featname_longfeatval_dict.items():
             train_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         traindata_dict['features'] = robjects.r['data.frame'](**train_featname_longfeatval_dict)
         traindata_dict['classes'] = robjects.StrVector(traindata_dict['class_list'])
@@ -382,7 +382,7 @@ class Rpy2Classifier:
         robjects.globalenv['ytr'] = traindata_dict['classes']
         
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in test_featname_longfeatval_dict.items():
             test_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         testdata_dict['features'] = robjects.r['data.frame'](**test_featname_longfeatval_dict)
         testdata_dict['classes'] = robjects.StrVector(testdata_dict['class_list'])
@@ -504,7 +504,7 @@ class Rpy2Classifier:
         """
         import datetime
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
         features_r_data = robjects.r['data.frame'](**r_data_dict)
 
@@ -595,7 +595,7 @@ class Rpy2Classifier:
         """
         #import numpy
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             try:
                 r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
             except:
@@ -638,7 +638,7 @@ class Rpy2Classifier:
             raise
 
         train_featname_longfeatval_dict = traindata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in train_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in train_featname_longfeatval_dict.items():
             train_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         traindata_dict['features'] = robjects.r['data.frame'](**train_featname_longfeatval_dict)
         traindata_dict['classes'] = robjects.StrVector(traindata_dict['class_list'])
@@ -647,7 +647,7 @@ class Rpy2Classifier:
         robjects.globalenv['ytr'] = traindata_dict['classes']
         
         test_featname_longfeatval_dict = testdata_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in test_featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in test_featname_longfeatval_dict.items():
             test_featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         testdata_dict['features'] = robjects.r['data.frame'](**test_featname_longfeatval_dict)
         testdata_dict['classes'] = robjects.StrVector(testdata_dict['class_list'])
@@ -774,7 +774,7 @@ class Rpy2Classifier:
         for i, srcid in enumerate(testdata_dict['srcid_list']):
             tups_list = zip(list(robjects.r("rf_clfr$test$votes[%d,]" % (i+1))),  possible_classes)
             tups_list.sort(reverse=True)
-            for j in xrange(len(tups_list)):
+            for j in range(len(tups_list)):
                 if j < 3:
                     allsrc_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
                 everyclass_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
@@ -783,7 +783,7 @@ class Rpy2Classifier:
         for i, srcid in enumerate(traindata_dict['srcid_list']):
             tups_list = zip(list(robjects.r("rf_applied_to_train$test$votes[%d,]" % (i+1))),  possible_classes)
             tups_list.sort(reverse=True)
-            for j in xrange(len(tups_list)):
+            for j in range(len(tups_list)):
                 trainset_everyclass_tups.append((int(srcid), j, tups_list[j][0], tups_list[j][1]))
         # # #
 
@@ -879,7 +879,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L40)
         """
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         data_dict['features'] = robjects.r['data.frame'](**featname_longfeatval_dict)
         data_dict['classes'] = robjects.StrVector(data_dict['class_list'])
@@ -931,7 +931,7 @@ class Rpy2Classifier:
         # TODO: just remove features here:
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
         new_featname_longfeatval_dict = {}
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             if feat_name in ignore_feats:
                 continue # skip these
             #print feat_name
@@ -1085,7 +1085,7 @@ class Rpy2Classifier:
         # TODO: just remove features here:
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
         new_featname_longfeatval_dict = {}
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             if feat_name in ignore_feats:
                 continue # skip these
             #print feat_name
@@ -1142,7 +1142,7 @@ class Rpy2Classifier:
         Taken from class_cv.R : rf.cv (L85)
         """
         featname_longfeatval_dict = data_dict['featname_longfeatval_dict']
-        for feat_name, feat_longlist in featname_longfeatval_dict.iteritems():
+        for feat_name, feat_longlist in featname_longfeatval_dict.items():
             featname_longfeatval_dict[feat_name] = robjects.FloatVector(feat_longlist)
         data_dict['features'] = robjects.r['data.frame'](**featname_longfeatval_dict)
         data_dict['classes'] = robjects.StrVector(data_dict['class_list'])
@@ -1284,7 +1284,7 @@ class Rpy2Classifier:
 
         """
         r_data_dict = {}
-        for feat_name, feat_longlist in feature_data_dict.iteritems():
+        for feat_name, feat_longlist in feature_data_dict.items():
             r_data_dict[feat_name] = robjects.FloatVector(feat_longlist)
         features_r_data = robjects.r['data.frame'](**r_data_dict)
         robjects.globalenv['features'] = features_r_data
@@ -1401,14 +1401,14 @@ class GenerateFoldedClassifiers:
             
             raise
         else:
-            for class_name, ind_list in class_indlist.iteritems():
+            for class_name, ind_list in class_indlist.items():
                 src_count = len(ind_list)
                 if classify_percent is None:
                     n_to_classify = src_count / n_folds # we exclude only 1 point if n_srcs < (n_folds * 2)
                 else:
                     n_to_classify = int(src_count * (classify_percent / 100.))
 
-                for i_fold, fold_dict in all_fold_dict.iteritems():
+                for i_fold, fold_dict in all_fold_dict.items():
                     random.shuffle(ind_list)
                     sub_range = ind_list[:n_to_classify]
                     for i in sub_range:
@@ -1500,7 +1500,7 @@ if __name__ == '__main__':
                                                                    do_stratified=False,
                                                                    classify_percent=40.)
 
-        for i_fold, fold_data in all_fold_data.iteritems():
+        for i_fold, fold_data in all_fold_data.items():
             classifier_fpath =    os.path.expandvars("$HOME/scratch/classifier_deboss_RF_%d.rdata" % ( \
                                                                                       i_fold))
             src_data_pkl_fpath =  os.path.expandvars("$HOME/scratch/classifier_deboss_RF_%d.srcs.pkl" % ( \

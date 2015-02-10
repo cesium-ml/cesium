@@ -96,8 +96,8 @@ def conf_interval(x1,x2,prob,conf=0.68):
   
   x10=min(x1); x20=max(x2);
   delta0=x20-x10
-  for i in xrange(lx-2):
-    for j0 in xrange(lx-i):
+  for i in range(lx-2):
+    for j0 in range(lx-i):
       j = j0 + i
       delta = x2[j] - x1[i]
       if (cprob[j+1]-cprob[i]>=conf*mcprob and delta<delta0):

@@ -452,7 +452,7 @@ def period_select(idd=243641,per=2.20770441,use_xml=True,rec_array=None,plot=Tru
 				a.run(fittype=fittype,try_alt=False,altnum=alt)
 			else:
 				a.run(fittype=fittype,try_alt=True,altnum=alt)
-			for result_k, result_list in results.iteritems():
+			for result_k, result_list in results.items():
 				#result_list.append(a.outrez.get(result_k, 999999)) # 999999 is a KLUDGE
 				result_list.append(a.outrez.get(result_k, numpy.nan)) # 999999 is a KLUDGE
 				### doesnt work:

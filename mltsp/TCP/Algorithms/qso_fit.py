@@ -25,7 +25,7 @@ def chol_inverse_diag(t):
     B = zeros((uu,nrows),dtype='float64')
     B[1,nrows-1] = 1.0/t[1,nrows-1]**2
     B[0,nrows-1] = -t[0,nrows-1]*B[1,nrows-1]/t[1,nrows-2]
-    for j in reversed(xrange(nrows-1)):
+    for j in reversed(range(nrows-1)):
       tjj = t[1,j]
       B[1,j] = (1.0/tjj-t[0,j+1]*B[0,j+1])/tjj
       B[0,j] = -t[0,j]*B[1,j]/t[1,j-1]

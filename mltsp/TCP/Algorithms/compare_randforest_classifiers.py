@@ -193,7 +193,7 @@ if __name__ == '__main__':
     for k in range(50):
         parf_fpath_dict = {}
         results_dict = {}
-        for i_fold, fold_dict in all_fold_data.iteritems():
+        for i_fold, fold_dict in all_fold_data.items():
             parf_fpath_dict[i_fold] = {}
             results_dict[i_fold] = {}
             for data_case in fold_dict.keys():
@@ -241,7 +241,7 @@ if __name__ == '__main__':
         if not use_missing_values:
             ### Do the R randomForest here:
             do_ignore_NA_features = False
-            for i_fold, fold_data in all_fold_data.iteritems():
+            for i_fold, fold_data in all_fold_data.items():
                 classifier_fpath = os.path.expandvars("$HOME/scratch/classifier_RF_%d.rdata" % (i_fold))
                 Gen_Fold_Classif.generate_R_randomforest_classifier_rdata(train_data=fold_data['train_data'],
                                                                  classifier_fpath=classifier_fpath,
@@ -268,7 +268,7 @@ if __name__ == '__main__':
         # # # # # #
         ### Do the R cforest here:
         do_ignore_NA_features = False
-        for i_fold, fold_data in all_fold_data.iteritems():
+        for i_fold, fold_data in all_fold_data.items():
             classifier_fpath = os.path.expandvars("$HOME/scratch/classifier_RF_%d.rdata" % (i_fold))
             print('generating cforest...')
             Gen_Fold_Classif.generate_R_randomforest_classifier_rdata(train_data=fold_data['train_data'],

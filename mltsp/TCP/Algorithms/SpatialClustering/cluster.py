@@ -315,7 +315,7 @@ class testreal:
         # dstarr adds this to convert the objects into the format expected by: is_object_associated_with_source_algorithm_jbloom()
         # # # # # # # #
         self.obj_dict = {}
-        for obj_key,obj_elem in obj_dict.iteritems():
+        for obj_key,obj_elem in obj_dict.items():
             obj_ra = obj_dict[obj_key]['ra'] * 3600.0
             obj_dec = obj_dict[obj_key]['decl'] * 3600.0
             new_key = (obj_ra, obj_dec, obj_key[2], obj_key[3])
