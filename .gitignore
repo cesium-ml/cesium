@@ -1,7 +1,4 @@
-mltsp/Flask/rethinkdb_data/
-mltsp/Flask/static/data/
 **/__pycache__
-Data/*
 *~
 *.pyc
 *.bak

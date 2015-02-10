@@ -192,9 +192,9 @@ def test_write_features_to_disk():
     os.remove("test_featset_features.csv")
     os.remove("test_featset_features_with_classes.csv")
     os.remove("test_featset_classes.pkl")
-    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                        "Flask/static/data"),
-                           "test_featset_features_with_classes.csv"))
+    os.remove(os.path.join(
+        os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
+        "test_featset_features_with_classes.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
     npt.assert_equal(feat_class_cont, "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
 
