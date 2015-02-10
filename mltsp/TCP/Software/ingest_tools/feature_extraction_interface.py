@@ -115,7 +115,7 @@ class Final_Features:
         for (extractor_name,notso_empty_dict) in self.ife.features_tup_list:
             #print extractor_name
             ext_name_mysql_safe = copy.copy(extractor_name)
-            for old_str,new_str in self.string_replace_dict.iteritems():
+            for old_str,new_str in self.string_replace_dict.items():
                 ext_name_mysql_safe = ext_name_mysql_safe.replace(old_str,new_str)
 
             self.features_dict[extractor_name] = {\
@@ -252,7 +252,7 @@ class Feature_database:
         Tables of form:
         src_id (INT UNSIGNED), feat <some-format, FLOAT?>
         """
-        for feat_name,feat_dict in self.final_features.features_dict.iteritems():
+        for feat_name,feat_dict in self.final_features.features_dict.items():
             for filt_name in self.final_features.filter_list:
                 #create_str = "CREATE TABLE %s_%s (INDEX(src_id), %s(%s))" % (filt_name, feat_name, feat_dict['index_type'], feat_dict['out_type'])
                 create_str = "DROP TABLE %s_%s" % (filt_name, feat_dict['table_name'])
@@ -349,7 +349,7 @@ class Final_Features:
         for (extractor_name,notso_empty_dict) in self.ife.features_tup_list:
             #print extractor_name
             ext_name_mysql_safe = copy.copy(extractor_name)
-            for old_str,new_str in self.string_replace_dict.iteritems():
+            for old_str,new_str in self.string_replace_dict.items():
                 ext_name_mysql_safe = ext_name_mysql_safe.replace(old_str,new_str)
 
             self.features_dict[extractor_name] = {\
@@ -486,7 +486,7 @@ class Feature_database:
         Tables of form:
         src_id (INT UNSIGNED), feat <some-format, FLOAT?>
         """
-        for feat_name,feat_dict in self.final_features.features_dict.iteritems():
+        for feat_name,feat_dict in self.final_features.features_dict.items():
             for filt_name in self.final_features.filter_list:
                 #create_str = "CREATE TABLE %s_%s (INDEX(src_id), %s(%s))" % (filt_name, feat_name, feat_dict['index_type'], feat_dict['out_type'])
                 create_str = "DROP TABLE %s_%s" % (filt_name, feat_dict['table_name'])
@@ -513,14 +513,14 @@ class Feature_database:
         """
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
-        for filt_num in xrange(len(self.final_features.filter_list)):
+        for filt_num in range(len(self.final_features.filter_list)):
             self.filt_lookup_dict[filt_num] = {}
         i = 0
         #feat_id_partition_groups = []
-        for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
+        for feat_name_internal,feat_dict in self.final_features.features_dict.items():
             feat_name = feat_dict['table_name']
             #feat_id_list = []
-            for filt_num in xrange(len(self.final_features.filter_list)):
+            for filt_num in range(len(self.final_features.filter_list)):
                 self.feature_lookup_dict[(filt_num, feat_name)] = i
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 #feat_id_list.append(str(i))
@@ -554,18 +554,18 @@ class Feature_database:
         #   Then this section can be removed.
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
-        for filt_num in xrange(len(self.final_features.filter_list)):
+        for filt_num in range(len(self.final_features.filter_list)):
             self.filt_lookup_dict[filt_num] = {}
         i = 0
         feat_id_partition_groups = []
         inter_partition_list = []
         in_partition_count = 0
 
-        for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
+        for feat_name_internal,feat_dict in self.final_features.features_dict.items():
             feat_name = feat_dict['table_name']
 
             feat_id_list = []
-            for filt_num in xrange(len(self.final_features.filter_list)):
+            for filt_num in range(len(self.final_features.filter_list)):
                 self.feature_lookup_dict[(filt_num, feat_name)] = i
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 feat_id_list.append(str(i))
@@ -587,9 +587,9 @@ class Feature_database:
         inter_partition_list = []
         in_partition_count = 0
         # NOTE: it seems we need at leas 50 * (9 filters) extra added at the moment
-        for i_future_feature in xrange(1000):
+        for i_future_feature in range(1000):
             feat_id_list = []
-            for filt_num in xrange(len(self.final_features.filter_list)):
+            for filt_num in range(len(self.final_features.filter_list)):
                 feat_id_list.append(str(i))
                 i += 1
             in_partition_count += 1
@@ -608,13 +608,13 @@ class Feature_database:
             self.cursor.execute(create_str)
 
             insert_list = ["INSERT INTO %s (feat_id, filter_id, feat_name, doc_str, is_internal) VALUES " % (self.feat_lookup_tablename)]
-            for (filt_num,feat_name),i_feat in self.feature_lookup_dict.iteritems():
+            for (filt_num,feat_name),i_feat in self.feature_lookup_dict.items():
                 # KLUDGY: list structure is not ideal here:
                 doc_str = ''
                 #for temp_feat_name,temp_dict in self.final_features.ife.\
                 #                                                 features_tup_list:
                 for temp_feat_name,temp_dict in self.final_features.features_dict.\
-                                                                        iteritems():
+                                                                        items():
                     if feat_name == temp_dict['table_name']:
                         doc_str = temp_dict['doc'][:2000].replace("'","_").replace('"',"_")#.replace("","_")
                         internal = temp_dict['internal']
@@ -658,15 +658,15 @@ class Feature_database:
         #   Then this section can be removed.
         self.feature_lookup_dict = {} # New dict, even if exists already
         self.filt_lookup_dict = {}
-        for filt_num in xrange(len(self.final_features.filter_list)):
+        for filt_num in range(len(self.final_features.filter_list)):
             self.filt_lookup_dict[filt_num] = {}
         i = 0
         feat_id_partition_groups = []
-        for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
+        for feat_name_internal,feat_dict in self.final_features.features_dict.items():
             feat_name = feat_dict['table_name']
 
             feat_id_list = []
-            for filt_num in xrange(len(self.final_features.filter_list)):
+            for filt_num in range(len(self.final_features.filter_list)):
                 self.feature_lookup_dict[(filt_num, feat_name)] = i
                 self.filt_lookup_dict[filt_num][feat_name] = i
                 feat_id_list.append(str(i))
@@ -676,7 +676,7 @@ class Feature_database:
         self.cursor.execute(create_str)
 
         insert_list = ["INSERT INTO %s (feat_id, filter_id, feat_name) VALUES " % (self.feat_lookup_tablename)]
-        for (filt_num,feat_name),i_feat in self.feature_lookup_dict.iteritems():
+        for (filt_num,feat_name),i_feat in self.feature_lookup_dict.items():
             insert_list.append('(%d,%d,"%s"), '% (i_feat, filt_num, feat_name))
         self.cursor.execute(''.join(insert_list)[:-2])
 
@@ -719,9 +719,9 @@ class Feature_database:
         insert each src_id & feature-list into their cooresponding table.
         """
         insert_dict = {}
-        for filt_num in xrange(len(self.final_features.filter_list)):
+        for filt_num in range(len(self.final_features.filter_list)):
             insert_dict[filt_num] = {}
-            for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
+            for feat_name_internal,feat_dict in self.final_features.features_dict.items():
                 feat_name = feat_dict['table_name']
                 insert_dict[filt_num][feat_name] = []
 
@@ -754,7 +754,7 @@ class Feature_database:
                     filt_num = self.final_features.filter_list.index(filt_name)
                 else:
                     filt_num = len(self.final_features.filter_list) - 1 # Given dummy filter
-                for feat_name_internal,feat_dict in self.final_features.features_dict.iteritems():
+                for feat_name_internal,feat_dict in self.final_features.features_dict.items():
                     feat_name = feat_dict['table_name']
                     # NOTE: if a certain feature was not generated, we don't INSERT 
                     #       it into the RDB.  This alleviates lots of NULL feat values.
@@ -794,8 +794,8 @@ class Feature_database:
         else:
             insert_list = []
         # THIS is pretty KLUDGY since it iterates over all know filters (multiple surveys):  And, all ptf is in filter_id=8, even though that includes 2 filter + combo_band:
-        for filt_num,filt_dict in insert_dict.iteritems():
-            for feat_name,val_list in filt_dict.iteritems():
+        for filt_num,filt_dict in insert_dict.items():
+            for feat_name,val_list in filt_dict.items():
                 #if 'flux_percentile_ratio' in feat_name:
                 #if len(val_list) == 0:
                 #    print 'len()==0', feat_name, filt_num, val_list
@@ -838,7 +838,7 @@ class Feature_database:
         table_names = []
         for filt_name in self.final_features.filter_list:
             for feat_name,feat_dict in self.final_features.features_dict.\
-                                                                    iteritems():
+                                                                    items():
                 table_names.append("%s_%s" %(filt_name,feat_dict['table_name']))
         table_names.sort()
 
