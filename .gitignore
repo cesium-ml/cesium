@@ -1,5 +1,5 @@
 mltsp/Flask/rethinkdb_data/
-mltsp/Flask/static/data/*classes.csv
+mltsp/Flask/static/data/
 **/__pycache__
 Data/*
 *~
