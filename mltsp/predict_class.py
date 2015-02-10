@@ -1,17 +1,3 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import str
-from builtins import dict
-from builtins import zip
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-# predict_class.py
-
 import sklearn as skl
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
