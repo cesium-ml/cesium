@@ -54,7 +54,7 @@ class lomb_scargle_extractor(InterExtractor):
 				
 				# 20080508: dstarr modifies harm_dict so it is a shallow dict which we can out_dict.update()
 				if (dof>0 and harm_dict['nharm']>0 and harm_dict['signif']>0):
-					for elem_k, elem_v in harm_dict.iteritems():
+					for elem_k, elem_v in harm_dict.items():
 						out_dict[dstr + "_harmonics_" + elem_k] = elem_v
 						# Do we even want to include this case as empty dict??? :
 						#else:

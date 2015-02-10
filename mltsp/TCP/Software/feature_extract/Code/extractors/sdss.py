@@ -248,7 +248,7 @@ class sdssq:
 			while line:
 				tmp = {}
 				vvv = line.strip().split(",")
-				for k,v in dict(zip(kkk,vvv)).iteritems():
+				for k,v in dict(zip(kkk,vvv)).items():
 					#print "***" + k + "****" + str(v) + "****"
 					if v == "0" or v == "null":
 						v = None
@@ -435,7 +435,7 @@ class sdssq:
 		while line:
 			tmp = {}
 			vvv = line.strip().split(",")
-			for k,v in dict(zip(kkk,vvv)).iteritems():
+			for k,v in dict(zip(kkk,vvv)).items():
 				if k == 'objid':
 					v1 = long(v)
 				elif k == 'zStatus':
@@ -506,7 +506,7 @@ class sdssq:
 		while line:
 			tmp = {}
 			vvv = line.strip().split(",")
-			for k,v in dict(zip(kkk,vvv)).iteritems():
+			for k,v in dict(zip(kkk,vvv)).items():
 				if k == 'objid':
 					v1 = long(v)
 				elif k == 'zStatus':

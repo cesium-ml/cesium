@@ -17,7 +17,8 @@ it's up to the user to decide how to use those columns...there's almost no refor
 
 """
 from scipy import *
-import xmldict, os, sys
+from . import xmldict
+import os, sys
 from xml.etree import cElementTree as ElementTree # this is a nicer implementation
 from pprint import pprint
 

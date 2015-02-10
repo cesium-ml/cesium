@@ -302,7 +302,7 @@ class Ned_Cache_Server:
                 print('ERROR: odd nn_dict:', nn_dict)
             else:
                 nice_name = nn_dict['source_info']['name']
-                for old,new in self.pars['char_replace'].iteritems():
+                for old,new in self.pars['char_replace'].items():
                     nice_name = nice_name.replace(old,new)
                 if nn_dict['source_info']['dm'] == '':
                     float_dm = -1
@@ -312,7 +312,7 @@ class Ned_Cache_Server:
                 ################
                 # Here we parse the feature-extractor structures for INSERT:
                 nn_dict['source_info']['distance'] = nn_dict['distance']
-                for ch_name,ch_val in nn_dict['source_info'].iteritems():
+                for ch_name,ch_val in nn_dict['source_info'].items():
                     if (0,ch_name) not in self.chname_chid_lookup:
                         continue # skip this ch_name since its not a charac.
                     if self.chname_type_lookup[(0,ch_name)]:
@@ -335,7 +335,7 @@ class Ned_Cache_Server:
             else:
                 ################
                 # Here we parse the feature-extractor structures for INSERT:
-                for ch_name,ch_val in sdss_dict.iteritems():
+                for ch_name,ch_val in sdss_dict.items():
                     if (1,ch_name) not in self.chname_chid_lookup:
                         continue # skip this ch_name since its not a charac.
                     if ch_val is None:
