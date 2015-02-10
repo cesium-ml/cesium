@@ -288,7 +288,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname,
             """ % (results_arr[i][0], str(results_arr[i][1]))
 
     results_str += "</tr>"
-    results_dict[str(fname.split("/")[-1])] = {
+    results_dict[ntpath.basename(fname)] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results_list": results_arr}
     return
