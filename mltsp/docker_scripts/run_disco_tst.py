@@ -1,28 +1,20 @@
 #!/usr/bin/env python
 
-# docker_featurize.py
-
 # to be run from INSIDE a docker container
 
-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import str
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-import subprocess
 import sys
-import os
 sys.path.append("/home/mltsp/mltsp")
 #import featurize
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE
 import time
 
-# ----
-from disco.core import Job, result_iterator
+# TODO: This script should not be loaded when not inside a docker container
+#       E.g., disco needn't be installed on the server.  For now, we simply
+#       ignore the import error.
+try:
+    from disco.core import Job, result_iterator
+except:
+    pass
 
 def map(line, params):
     for word in line.split():
