@@ -93,9 +93,9 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     else:
         wth = wth0
 
-    for i in xrange(detrend_order):
+    for i in range(detrend_order):
         f = wth[i,:]*tt/(2*pi)
-        for j in xrange(i+1):
+        for j in range(i+1):
             f -= dot(f,wth[j,:])*wth[j,:]
         norm[i+1] = sqrt(dot(f,f)); f /= norm[i+1]
         coef[i+1] = dot(cn,f)
@@ -127,7 +127,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     soln[0:nharm] /= (1.+ii)**2; soln[nharm:] /= (1.+ii)**2
     if (detrend_order>=0):
         hat_matr0 = outer(hat0[:,0],wth0)
-    for i in xrange(detrend_order):
+    for i in range(detrend_order):
         hat_matr0 += outer(hat0[:,i+1],wth[i+1,:])
 
 
@@ -179,7 +179,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     rel_phase = phase - phase[0]*(1.+ii)
     rel_phase = arctan2( sin(rel_phase),cos(rel_phase) )
     dphase = 0.*rel_phase
-    for i in xrange(nharm-1):
+    for i in range(nharm-1):
         j=i+1
         v = array([-A0[0]*(1.+j)/amp[0]**2,B0[0]*(1.+j)/amp[0]**2,A0[j]/amp[j]**2,-B0[j]/amp[j]**2])
         jj=array([0,nharm,j,j+nharm])
