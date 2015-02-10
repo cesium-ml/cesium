@@ -8,7 +8,8 @@ import pandas as pd
 import shutil
 
 
-def setup():
+def test_setup():
+    """Setup"""
     print("Copying data files")
     # copy data files to proper directory:
     shutil.copy(
@@ -36,16 +37,21 @@ def test_featurize():
         zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
                                   "asas_training_subset.tar.gz"),
         features_to_use=["std_err"],# #TEMP# TCP still broken under py3
-        featureset_id="test", is_test=True,
+        featureset_id="TESTRUN", is_test=True,
         custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                         "testfeature1.py"),
         USE_DISCO=False)
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv")))
+                                       "TESTRUN_features.csv")))
+    assert(not os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                           "TESTRUN_features_with_classes.csv")))
+    assert(os.path.exists(os.path.join(
+        os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
+        "TESTRUN_features_with_classes.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.pkl")))
+                                       "TESTRUN_classes.pkl")))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv"))
+                                       "TESTRUN_features.csv"))
     cols = df.columns
     values = df.values
     assert("std_err" in cols)
@@ -53,16 +59,16 @@ def test_featurize():
 
 def test_build_model():
     """Test model build function."""
-    results_msg = build_model.build_model(featureset_name="test",
-                                          featureset_key="test")
-    assert(os.path.exists(os.path.join(cfg.MODELS_FOLDER, "test_RF.pkl")))
+    results_msg = build_model.build_model(featureset_name="TESTRUN",
+                                          featureset_key="TESTRUN")
+    assert(os.path.exists(os.path.join(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl")))
 
 
 def test_predict():
     """Test class prediction."""
     results_dict = predict_class.predict(
         os.path.join(os.path.dirname(__file__), "Data/dotastro_215153.dat"),
-        "test", "RF", "test",
+        "TESTRUN", "RF", "TESTRUN",
         custom_features_script=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                               "testfeature1.py"),
         metadata_file_path=os.path.join(os.path.dirname(__file__),
@@ -73,12 +79,14 @@ def test_predict():
         results_dict["dotastro_215153.dat"]["features_dict"]["std_err"], float))
 
 
-def remove_created_files():
+def test_remove_created_files():
     """Remove files created by test suite."""
-
-    for fname in [os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"),
-                  os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"),
+    for fname in [os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"),
+                  os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.pkl"),
+                  os.path.join(
+                      os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
+                      "TESTRUN_features_with_classes.csv"),
                   os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                "testfeature1.py"),
-                  os.path.join(cfg.MODELS_FOLDER, "test_RF.pkl")]:
+                  os.path.join(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl")]:
         os.remove(fname)

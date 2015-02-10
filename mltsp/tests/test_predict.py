@@ -4,7 +4,7 @@ from mltsp import cfg
 import numpy.testing as npt
 import os
 import pandas as pd
-from subprocess import call
+import shutil
 
 def test_parse_metadata_file():
     """Test parse metadata file."""
@@ -121,3 +121,45 @@ def test_do_model_predictions():
                                                   model_type, features_to_use, 5)
     assert("dotastro_215153.dat" in pred_results_dict)
     assert("std_err" in pred_results_dict["dotastro_215153.dat"]["features_dict"])
+
+
+def test_main_predict():
+    """Test main predict function"""
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/TESTRUN_features.csv"),
+                cfg.FEATURES_FOLDER)
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/TESTRUN_classes.pkl"),
+                cfg.FEATURES_FOLDER)
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/TESTRUN_RF.pkl"),
+                cfg.MODELS_FOLDER)
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/dotastro_215153.dat"),
+                os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/TESTRUN_215153_metadata.dat"),
+                cfg.UPLOAD_FOLDER)
+    shutil.copy(os.path.join(os.path.dirname(__file__),
+                             "Data/testfeature1.py"),
+                os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                             "TESTRUN_CF.py"))
+
+    pred_results_dict = pred.predict(
+        os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
+        "TESTRUN", "RF", "TESTRUN",
+        metadata_file_path=os.path.join(cfg.UPLOAD_FOLDER,
+                                        "TESTRUN_215153_metadata.dat"),
+        custom_features_script=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                            "TESTRUN_CF.py"))
+
+    npt.assert_equal(
+        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
+        3)
+
+    os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
+    os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.pkl"))
+    os.remove(os.path.join(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"))
+    os.remove(os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))

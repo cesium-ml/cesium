@@ -201,6 +201,10 @@ def test_write_features_to_disk():
 
 def test_main_featurize_function():
     """Test main featurize function"""
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/testfeature1.py"),
+        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     results_msg = featurize.featurize(
         headerfile_path=os.path.join(
             cfg.UPLOAD_FOLDER,
