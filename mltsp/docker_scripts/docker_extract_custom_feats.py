@@ -1,15 +1,3 @@
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-from __future__ import absolute_import
-from builtins import open
-from builtins import *
-import sys
-print(sys.version)
-from future import standard_library
-standard_library.install_aliases()
-# docker_extract_custom_feats.py
-
 # to be run from INSIDE a docker container
 
 from .. import custom_feature_tools as cft
