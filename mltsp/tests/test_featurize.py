@@ -215,7 +215,7 @@ def test_main_featurize_function():
         featureset_id="test", is_test=True,
         custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                         "testfeature1.py"),
-        USE_DISCO=True)
+        USE_DISCO=False)
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,

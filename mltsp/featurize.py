@@ -364,18 +364,20 @@ def write_features_to_disk(objects, featureset_id, features_folder,
                 for feat in sorted(features_extracted):
                     if feat in features_to_use:
                         try:
-                            if type(obj[feat]) == str and obj[feat] != "None":
-                                line.append(obj[feat])
-                            elif (type(obj[feat]) == type(None)
-                                  or obj[feat] == "None"):
+                            if isinstance(obj[feat], (str, type(u''))) and \
+                               obj[feat] not in ["None", u"None"]:
+                                line.append(str(obj[feat]))
+                            elif obj[feat] is None or obj[feat] in ["None",
+                                                                    u"None"]:
                                 line.append(str(0.0))
                             else:
                                 line.append(str(obj[feat]))
                             if feat in features_to_plot and numobjs < 300:
-                                if type(obj[feat]) == str and obj[feat] != "None":
-                                    line2.append(obj[feat])
-                                elif (type(obj[feat]) == type(None)
-                                      or obj[feat] == "None"):
+                                if isinstance(obj[feat], (str, type(u''))) and \
+                                   obj[feat] not in ["None", u"None"]:
+                                    line2.append(str(obj[feat]))
+                                elif (obj[feat] is None
+                                      or obj[feat] in ["None", u"None"]):
                                     line2.append(str(0.0))
                                 else:
                                     line2.append(str(obj[feat]))

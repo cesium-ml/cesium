@@ -336,20 +336,30 @@ def parse_tsdata_to_lists(ts_data):
             if isinstance(ts_data[0], (list, tuple)):
                 # ts_data already in desired format
                 tme = ts_data
-            elif isinstance(ts_data[0], str) and \
+            elif isinstance(ts_data[0], (str, type(u''))) and \
                  "," in ts_data[0]:
                 for el in ts_data:
-                    if el not in ["\n",""]:
+                    if str(el) not in ["\n", ""]:
                         tme.append(el.split(","))
         else:
             raise ValueError("ts_data is an empty list")
-    elif isinstance(ts_data, str):
-        all_lines = ts_data.strip().split("\n")
+    elif isinstance(ts_data, (str, unicode)):
+        all_lines = str(ts_data).strip().split("\n")
         for i in range(len(all_lines)):
             if all_lines[i].strip() == "":
                 continue
             else:
                 tme.append([x.strip() for x in all_lines[i].strip().split(",")])
+    else:
+        try:
+            all_lines = str(ts_data).strip().split("\n")
+            for i in range(len(all_lines)):
+                if all_lines[i].strip() == "":
+                    continue
+                else:
+                    tme.append([x.strip() for x in all_lines[i].strip().split(",")])
+        except:
+            pass
     return tme
 
 

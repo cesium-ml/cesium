@@ -173,9 +173,17 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
                 (
                     list(meta_features[short_fname].items()) if short_fname in
                     meta_features else list({}.items()))), ts_data=ts_data)
-        if (type(custom_features) == list and
+        if (isinstance(custom_features, list) and
             len(custom_features) == 1):
                 custom_features = custom_features[0]
+        elif (isinstance(custom_features, list) and
+              len(custom_features) == 0):
+            custom_features = {}
+        elif (isinstance(custom_features, list) and
+              len(custom_features) > 1):
+            raise("len(custom_features) > 1 for single TS data obj")
+        elif not isinstance(custom_features, (list, dict)):
+            raise("custom_features ret by cft module is of an invalid type")
     else:
         custom_features = {}
     features_dict = dict(
