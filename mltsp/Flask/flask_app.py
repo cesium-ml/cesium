@@ -167,7 +167,7 @@ def num_lines(filename):
     linecount = 0
     with open(filename) as f:
         for line in f:
-            if (len(line)>0 and line[0] not in ["#","\n"]
+            if (len(line) > 0 and line[0] not in ["#", "\n"]
                     and not line.isspace()):
                 linecount += 1
     return linecount
@@ -197,7 +197,7 @@ def check_job_status(PID=False):
     if PID:
         PID = str(PID).strip()
     else:
-        PID = str(request.args.get('PID',''))
+        PID = str(request.args.get('PID', ''))
     if PID == "undefined":
         PID = str(session['PID'])
     start_time = is_running(PID)
@@ -2049,7 +2049,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
 
                 file_name_variants = [
                     file_name, ntpath.basename(file_name),
-                    os.path.splitext(file_name)[0]
+                    os.path.splitext(file_name)[0],
                     os.path.splitext(ntpath.basename(file_name))[0]]
                 all_fname_variants.extend(file_name_variants)
                 all_fname_variants_list_of_lists.append(file_name_variants)
