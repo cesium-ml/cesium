@@ -11,6 +11,7 @@ from builtins import *
 # disco_tools.py
 
 from disco.ddfs import DDFS
+import ntpath
 
 
 def push_by_tag(file_paths,tag=None):
@@ -19,7 +20,7 @@ def push_by_tag(file_paths,tag=None):
     ddfs = DDFS()
     if tag is None:
         for file_path in file_paths:
-            tag = file_path.split("/")[-1].split(".")[0]
+            tag = os.path.splitext(ntpath.basename(file_path))[0]
             ddfs.push(tag,[file_path])
     else:
         ddfs.push(tag,file_paths)

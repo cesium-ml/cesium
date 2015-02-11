@@ -272,7 +272,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname,
 
     results_str = ("<tr class='pred_results'>"
         "<td class='pred_results pred_results_fname_cell'>"
-        "<a href='#'>%s</a></td>") % str(fname.split("/")[-1])
+        "<a href='#'>%s</a></td>") % ntpath.basename(fname)
     results_arr = []
 
     for i in range(len(class_probs)):
