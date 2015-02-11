@@ -46,6 +46,17 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 
+def currently_running_in_docker_container():
+    import subprocess
+    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    output = proc.stdout.read()
+    if "/docker/" in str(output):
+        in_docker_container=True
+    else:
+        in_docker_container=False
+    return in_docker_container
+
+
 def map(fname_and_class, params):
     """Map procedure for use in Disco's map-reduce implementation.
 
@@ -143,9 +154,8 @@ def pred_featurize_reduce(iter, params):
     from . import cfg
     from . import custom_exceptions
     from . import predict_class as pred
-    from .TCP.Software.ingest_tools import generate_science_features
 
-    if generate_science_features.currently_running_in_docker_container():
+    if currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"
@@ -233,9 +243,8 @@ def featurize_reduce(iter, params):
         import sys
         from . import cfg
         from . import featurize
-        from .TCP.Software.ingest_tools import generate_science_features
 
-        if generate_science_features.currently_running_in_docker_container():
+        if currently_running_in_docker_container():
             features_folder = "/Data/features/"
             models_folder = "/Data/models/"
             uploads_folder = "/Data/flask_uploads/"
@@ -261,7 +270,7 @@ def featurize_reduce(iter, params):
         yield short_fname, all_features
 
 
-def process_featurization_with_disco(input_list,params,partitions=4):
+def process_featurization_with_disco(input_list, params, partitions=4):
     """Featurize time-series data in parallel as a Disco job.
 
     Called from within the `featurize_in_parallel` function.
@@ -450,8 +459,7 @@ def featurize_in_parallel(
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 
-    from .TCP.Software.ingest_tools import generate_science_features
-    if generate_science_features.currently_running_in_docker_container():
+    if currently_running_in_docker_container():
         features_folder = "/Data/features/"
         models_folder = "/Data/models/"
         uploads_folder = "/Data/flask_uploads/"

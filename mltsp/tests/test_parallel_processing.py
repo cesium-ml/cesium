@@ -6,5 +6,5 @@ import pandas as pd
 import shutil
 
 
-def test_featurize_in_docker_container():
-    """Test main featurize in docker container function"""
+def test_featurize_in_parallel():
+    """Test main parallelized featurization function"""
