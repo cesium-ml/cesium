@@ -19,3 +19,13 @@ def test_check_job_status():
     """Test check job status"""
     assert("finished" in fa.check_job_status(999999))
     assert("currently running" in fa.check_job_status(1))
+
+
+def test_is_running():
+    """Test is_running()"""
+    npt.assert_equal(fa.is_running(999999), "False")
+    assert(fa.is_running(1) != "False")
+
+
+def test_db_init():
+    """Test RethinkDB init"""

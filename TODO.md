@@ -1,3 +1,4 @@
 - Address 2/3 pickle incompatibility issues (Docker containers run Python 3)
 - Port TCP code to Python 3
+- Use docker-py instead of subprocess.call to manage Docker containers
 - Fix feature data location and plotting
