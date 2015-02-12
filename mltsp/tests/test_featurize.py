@@ -192,15 +192,19 @@ def test_write_features_to_disk():
     os.remove("test_featset_features.csv")
     os.remove("test_featset_features_with_classes.csv")
     os.remove("test_featset_classes.pkl")
-    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                        "Flask/static/data"),
-                           "test_featset_features_with_classes.csv"))
+    os.remove(os.path.join(
+        os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
+        "test_featset_features_with_classes.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
     npt.assert_equal(feat_class_cont, "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
 
 
 def test_main_featurize_function():
     """Test main featurize function"""
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/testfeature1.py"),
+        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     results_msg = featurize.featurize(
         headerfile_path=os.path.join(
             cfg.UPLOAD_FOLDER,

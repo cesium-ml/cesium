@@ -48,6 +48,7 @@ from ..ext.flask_googleauth import GoogleAuth, GoogleFederated
 from werkzeug import secure_filename
 from functools import wraps
 import uuid
+import ntpath
 
 from operator import itemgetter
 import sklearn as skl
@@ -166,7 +167,7 @@ def num_lines(filename):
     linecount = 0
     with open(filename) as f:
         for line in f:
-            if (len(line)>0 and line[0] not in ["#","\n"]
+            if (len(line) > 0 and line[0] not in ["#", "\n"]
                     and not line.isspace()):
                 linecount += 1
     return linecount
@@ -196,7 +197,7 @@ def check_job_status(PID=False):
     if PID:
         PID = str(PID).strip()
     else:
-        PID = str(request.args.get('PID',''))
+        PID = str(request.args.get('PID', ''))
     if PID == "undefined":
         PID = str(session['PID'])
     start_time = is_running(PID)
@@ -1963,9 +1964,9 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
         this_file = the_zipfile.getmember(file_name)
         if this_file.isfile():
             file_name_variants = [
-                file_name, file_name.split("/")[-1],
-                (file_name.split("/")[-1].replace("."+file_name
-                    .split("/")[-1].split(".")[-1],""))]
+                file_name, ntpath.basename(file_name),
+                os.path.splitext(file_name)[0],
+                os.path.splitext(ntpath.basename(file_name))[0]]
             all_fname_variants.extend(file_name_variants)
             if (len(list(set(file_name_variants) &
                     set(all_header_fnames))) == 0):
@@ -2047,10 +2048,9 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
             if this_file.isfile():
 
                 file_name_variants = [
-                    file_name, file_name.split("/")[-1],
-                    (file_name.split("/")[-1]
-                        .replace("."+file_name.split("/")[-1]
-                        .split(".")[-1],""))]
+                    file_name, ntpath.basename(file_name),
+                    os.path.splitext(file_name)[0],
+                    os.path.splitext(ntpath.basename(file_name))[0]]
                 all_fname_variants.extend(file_name_variants)
                 all_fname_variants_list_of_lists.append(file_name_variants)
 
@@ -2078,16 +2078,16 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                                 "while the first line has %s columns.")
                                 % (
                                     file_name, str(line_no),
-                                    str(len(line.split(","))),str(num_labels)))
+                                    str(len(line.split(","))), str(num_labels)))
                     line_no += 1
     else:
         with open(newpred_file_path) as f:
             all_lines = [str(line).strip() for line in
                          f.readlines() if str(line).strip() != '']
         file_name_variants = [
-            f.name, f.name.split("/")[-1],
-            (f.name.split("/")[-1].replace("."+f.name.split("/")[-1].
-                split(".")[-1],""))]
+            f.name, ntpath.basename(f.name),
+            os.path.splitext(f.name)[0],
+            os.path.splitext(ntpath.basename(f.name))[0]]
         all_fname_variants.extend(file_name_variants)
         all_fname_variants_list_of_lists.append(file_name_variants)
 
@@ -2101,7 +2101,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                         "file improperly formatted; at least two "
                         "comma-separated columns (time,measurement) are "
                         "required. Error occurred processing file %s.") %
-                        newpred_file_path.split("/")[-1]))
+                        ntpath.basename(newpred_file_path)))
             else:
                 if len(line.split(',')) != num_labels:
                     raise custom_exceptions.DataFormatError(((
@@ -2109,7 +2109,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
                         "%s line number %s has %s columns while the first "
                         "line has %s columns.") %
                         (
-                            newpred_file_path.split("/")[-1],
+                            ntpath.basename(newpred_file_path),
                             str(line_no), str(len(line.split(","))),
                             str(num_labels))))
             line_no += 1
@@ -2986,12 +2986,12 @@ def predictionPage(
         project_name=project_name,
         model_name=model_name,
         model_type=model_type,
-        pred_filename=newpred_file_path.split("/")[-1],
+        pred_filename=ntpath.basename(newpred_file_path),
         pid="None",
-        metadata_file=(metadata_file_path.split("/")[-1] if
+        metadata_file=(ntpath.basename(metadata_file_path) if
             metadata_file_path is not None else None))
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
-    pred_file_name = newpred_file_path.split("/")[-1]
+    pred_file_name = ntpath.basename(newpred_file_path)
     print("starting prediction_proc...")
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
@@ -3011,15 +3011,15 @@ def predictionPage(
     session["PID"] = PID
     update_prediction_entry_with_pid(new_prediction_key,PID)
     return jsonify({
-        "message":("New prediction files saved successfully, and "
+        "message": ("New prediction files saved successfully, and "
             "featurization/model prediction has begun (with process ID = %s)."
             )%str(PID),
-        "PID":PID,
-        "project_name":project_name,
-        "prediction_entry_key":new_prediction_key,
-        "model_name":model_name,
-        "model_type":model_type,
-        "pred_file_name":pred_file_name})
+        "PID": PID,
+        "project_name": project_name,
+        "prediction_entry_key": new_prediction_key,
+        "model_name": model_name,
+        "model_type": model_type,
+        "pred_file_name": pred_file_name})
 
 
 @app.route('/uploadPredictionData', methods=['POST','GET'])

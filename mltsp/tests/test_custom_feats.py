@@ -132,7 +132,7 @@ def test_add_tsdata_to_feats_known_dict():
 def test_generate_random_str():
     """Test generate random string"""
     rs = cft.generate_random_str()
-    assert(isinstance(rs, str))
+    assert(isinstance(rs, (str, unicode)))
     npt.assert_equal(len(rs), 10)
 
 

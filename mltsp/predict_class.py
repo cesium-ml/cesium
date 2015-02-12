@@ -173,9 +173,17 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
                 (
                     list(meta_features[short_fname].items()) if short_fname in
                     meta_features else list({}.items()))), ts_data=ts_data)
-        if (type(custom_features) == list and
+        if (isinstance(custom_features, list) and
             len(custom_features) == 1):
                 custom_features = custom_features[0]
+        elif (isinstance(custom_features, list) and
+              len(custom_features) == 0):
+            custom_features = {}
+        elif (isinstance(custom_features, list) and
+              len(custom_features) > 1):
+            raise("len(custom_features) > 1 for single TS data obj")
+        elif not isinstance(custom_features, (list, dict)):
+            raise("custom_features ret by cft module is of an invalid type")
     else:
         custom_features = {}
     features_dict = dict(
@@ -272,7 +280,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname,
 
     results_str = ("<tr class='pred_results'>"
         "<td class='pred_results pred_results_fname_cell'>"
-        "<a href='#'>%s</a></td>") % str(fname.split("/")[-1])
+        "<a href='#'>%s</a></td>") % ntpath.basename(fname)
     results_arr = []
 
     for i in range(len(class_probs)):
@@ -288,7 +296,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname,
             """ % (results_arr[i][0], str(results_arr[i][1]))
 
     results_str += "</tr>"
-    results_dict[str(fname.split("/")[-1])] = {
+    results_dict[ntpath.basename(fname)] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results_list": results_arr}
     return
