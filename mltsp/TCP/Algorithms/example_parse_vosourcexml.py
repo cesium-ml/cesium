@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
 
     ts_dict = {}
-    for filter_name, elem_list in d.data['ts'].iteritems():
+    for filter_name, elem_list in d.data['ts'].items():
         ts_dict[filter_name] = {}
         for xml_elem in elem_list:
             ts_dict[filter_name][xml_elem['name']] = xml_elem['val']

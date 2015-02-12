@@ -6,6 +6,7 @@ flask-mail
 flask-login
 flask-restful
 numpy
+numexpr>=2.0
 scipy
 mpld3
 pandas

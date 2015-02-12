@@ -7,3 +7,5 @@
 *.so
 mltsp/version.py
 *.c
+*#
+.#*

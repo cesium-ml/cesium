@@ -653,7 +653,7 @@ class FitEB_Param_Analysis(Database_Utils):
     def __init__(self, pars={}):
         self.pars = pars
         self.pars['fiteb_class_lookup_rev'] = {}
-        for k, v in self.pars['fiteb_class_lookup'].iteritems():
+        for k, v in self.pars['fiteb_class_lookup'].items():
             self.pars['fiteb_class_lookup_rev'][v] = k
         self.connect_to_db()
 
@@ -804,7 +804,7 @@ average merit      average rank  attribute
             for i_param, param_name in enumerate(self.pars['analysis_params']):
                 match_vals = []
                 mismatch_vals = []
-                for srcid, src_dict in data_dict.iteritems():
+                for srcid, src_dict in data_dict.items():
                     ### NOTE: cannot apply these constraints:
                     ##  i : even for detached, i spread for matches is >= mismatch i value spread
                     ##  e : doesnt seem to be related to match / mismatch
@@ -1388,7 +1388,7 @@ def generate_jktebop_templates(pars={}):
     """
     # KLUDGEY: doesnt iterate perfectly over MxN combinations
     i_template = pars['fname_i_start']
-    for param_str, p_dict in pars['tweak_params'].iteritems():
+    for param_str, p_dict in pars['tweak_params'].items():
         val_arr = numpy.linspace(p_dict['min'], p_dict['max'], p_dict['n_samples'])
         for val in list(val_arr):
             new_lines = []

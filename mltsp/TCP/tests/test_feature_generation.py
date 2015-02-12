@@ -15,11 +15,11 @@ def setup():
     # copy data files to proper directory:
     shutil.copy(os.path.join(os.path.dirname(__file__),
                              "data/asas_training_subset_classes.dat"),
-                os.path.join(cfg.UPLOAD_FOLDER)
+                cfg.UPLOAD_FOLDER)
 
     shutil.copy(os.path.join(os.path.dirname(__file__),
                              "data/asas_training_subset.tar.gz"),
-                os.path.join(cfg.UPLOAD_FOLDER)
+                cfg.UPLOAD_FOLDER)
 
 
 def test_feature_generation():

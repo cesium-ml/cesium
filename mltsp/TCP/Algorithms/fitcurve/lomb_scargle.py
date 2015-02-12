@@ -437,7 +437,7 @@ def lomb__numpy20100913efficent(time,signal,wt=[],freqin=[]):
     s2 = zeros(numf,'float64'); c2 = zeros(numf,'float64')
     sh = zeros(numf,'float64'); ch = zeros(numf,'float64')
 
-    for i in xrange(numt):
+    for i in range(numt):
       x = freqin * tt[i]
       sinx, cosx = sin(x), cos(x)
       tmp = wt[i]*sinx;

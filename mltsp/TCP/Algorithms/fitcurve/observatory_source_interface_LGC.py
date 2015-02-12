@@ -257,7 +257,7 @@ class observatory_source_interface(object):
                 freq_dict = out_dict[dstr]
                 freq_dict["signif"] = signi
                 freq_dict["frequency"] = freq_max
-                for elem_k, elem_v in harm_dict.iteritems():
+                for elem_k, elem_v in harm_dict.items():
                     freq_dict["harmonics_" + elem_k] = elem_v
                     dof = dof - harm_dict['nharm']*2.
         return out_dict
@@ -425,7 +425,7 @@ def main():
         my_obs = observatory_PTF.PTF
         # make up an object:
         vega = my_obs.create_target(ephem.hours('18:36:56.20'), ephem.degrees('38:46:59.0'), "cepheid") # coordinates of vega
-        for i in xrange(10):
+        for i in range(10):
             mindiff_multiplier = i - 5
             if mindiff_multiplier < 1: 
                 mindiff_multiplier = 1

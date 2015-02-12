@@ -190,11 +190,5 @@ class flux_percentile_ratio_mid80_extractor(FeatureExtractor):
                 return None
 
 
-class TestSequenceFunctions(unittest.TestCase):
-
-    def setUp(self):
-        self.seq = list(range(10))
-    
-    
 if __name__ == '__main__':
     unittest.main()

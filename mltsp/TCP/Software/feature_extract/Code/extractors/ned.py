@@ -394,7 +394,7 @@ class NED(object):
         for i in range(len(fields)):
             f = fields[i]
             if f.ucd in vals:
-                for k,v in self.ucd_lookup.iteritems():
+                for k,v in self.ucd_lookup.items():
                     if v == f.ucd:
                         table_lookup[k] = i
                         break
@@ -404,7 +404,7 @@ class NED(object):
         for o in objs:
         	ug = o.xml_xpath(u'TD')
         	tmp = {}
-        	for k, i in table_lookup.iteritems():
+        	for k, i in table_lookup.items():
         		tmp1 = unicode(ug[i])
         		try:
         			ug1 = float(tmp1)

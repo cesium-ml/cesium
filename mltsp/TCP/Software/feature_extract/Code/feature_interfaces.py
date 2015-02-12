@@ -1,68 +1,62 @@
 from __future__ import print_function
-from __future__ import absolute_import
-import os, sys
-import numpy
-from numpy import *
+
+import numpy as np
 from . import extractors
-from .extractors import *
 from . import FeatureExtractor
-#from fetchers import *
 from . import internal_generated_extractors_holder
 
-avtype = [('extname','S100') , ('extractor',object_), ('active',bool_)] # format of available_extractors
+
+avtype = [('extname', 'S100'),
+          ('extractor', np.object_),
+          ('active', np.bool_)]  # format of available_extractors
+
 
 class FeatureInterface(object):
     """This serves as an interface between signals and extractors.
     An instance of this object is generated when the module is imported
     """
     def __init__(self):
-        igea = internal_generated_extractors_holder.\
-                                    Internal_Gen_Extractors_Accessor()
+        igea = internal_generated_extractors_holder.Internal_Gen_Extractors_Accessor()
         # obsolete:
         self.glob_internally_generated_extractors = \
-                       igea.glob_internally_generated_extractors
+            igea.glob_internally_generated_extractors
 
         # 20081216: dstarr sees that we keep on appending signals here (and growing memory) when he thinks only one signal is needed in self.subscribing_signals[] to do the feature extractions for a source. : (original function == True):
         self.debug__original_do_append_signals_to_subscribing_signals = False
         self.subscribing_signals = []
-        self.available_extractors = empty(0,avtype) # declare the recipient numpy array for extractors
-        
+        self.available_extractors = np.empty(0, avtype)  # declare the recipient numpy array for extractors
+
     #def register_signal(self,signal):
     #   self.subscribing_signals.append(signal)
     #   for ext_name,extractor in self.available_extractors.\
-    #                                          iteritems():
+    #                                          items():
     #       signal.update(extractor())
     # 20071215: dstarr modifies this since he thinks order of load matters
-    #       and a dictionary .iteritems() or .values() is not applicable:
+    #       and a dictionary .items() or .values() is not applicable:
 
-    def register_signal(self,signal, list_of_extractors, initialize = True):
+    def register_signal(self, signal, list_of_extractors, initialize=True):
         """ initialize determines whether all the active extractors are immediately applied to the signal """
         if self.debug__original_do_append_signals_to_subscribing_signals:
             self.subscribing_signals.append(signal)
         else:
             # 20081216: dstarr sees that we keep on appending signals here (and growing memory) when he thinks only one signal is needed in self.subscribing_signals[] to do the feature extractions for a source.
             self.subscribing_signals = [signal]
-        if initialize: # check that we want to initialize the signal
-            for an_extractor in self.available_extractors[self.available_extractors['active']]: # loop through all active extractors
-                #print "Now I'm doing " + str(an_extractor['extname'])
-                #if str(an_extractor['extname']) == 'lomb_scargle':
-                #   print 'yo'
-                extractor_obj = an_extractor['extractor']() # instantiate
+        if initialize:  # check that we want to initialize the signal
+            for an_extractor in  self.available_extractors[self.available_extractors['active']]:  # loop through all active extractors
+                extractor_obj = an_extractor['extractor']()  # instantiate
                 signal.update(extractor_obj)
 
-        
-    def register_extractor(self,extractor):
-        self.available_extractors = append(self.available_extractors, \
-                             array((extractor.extname, extractor, \
-                        extractor.active),avtype)) # append a tuple of format avtype containing (extname, extractor object, active)
+    def register_extractor(self, extractor):
+        self.available_extractors = np.append(self.available_extractors,
+                                              np.array((extractor.extname,
+                                                        extractor,
+                                                        extractor.active), avtype)) # append a tuple of format avtype containing (extname, extractor object, active)
         if extractor.active: self.notify(extractor)
 
-
-    def notify(self,extractor):
+    def notify(self, extractor):
         #print "New active extractor available!"
         for signal in self.subscribing_signals:
             signal.update(extractor())
-
 
     def remove_signal(self,signal):
         self.subscribing_signals.remove(signal)
@@ -116,13 +110,14 @@ class FeatureInterface(object):
 
 
     def find_extname(self,extractor_name, index = False): # linked if want to modify the array directly
-        extractor_index = where(self.available_extractors['extname'] ==\
-                    extractor_name)[0]
-        if size(extractor_index) is 0: 
+        extractor_index = np.where(self.available_extractors['extname'] ==\
+                    np.compat.asbytes(extractor_name))[0]
+
+        if np.size(extractor_index) is 0: 
             print("find_extname couldn't find extractor %s" % \
                                                     (extractor_name))
             return False # if we didn't find the object
-        if index: 
+        if index:
             return extractor_index[0]
         extractor_row = self.available_extractors[extractor_index][0] # return the corresponding extractor row (extname, extractor and active)
         return extractor_row
@@ -151,8 +146,9 @@ def initialize(list_of_extractors):
     #for extractor in list_of_extractors:
     list_of_extractor_objects = []
     for extractor_name in list_of_extractors:
-        exec("extractor = %s" % (extractor_name)) #KLUDGY
+        extractor = getattr(extractors, extractor_name)
         list_of_extractor_objects.append(extractor)
+
         if isinstance(extractor,type):
             instance = extractor()
             if isinstance(instance,FeatureExtractor.GeneralExtractor):
@@ -161,6 +157,7 @@ def initialize(list_of_extractors):
                 pass
         else:
             pass
+
     return list_of_extractor_objects
 
 

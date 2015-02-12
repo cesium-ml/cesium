@@ -1,18 +1,6 @@
 #!/usr/bin/python
 # featurize.py
 
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import dict
-from builtins import str
-from builtins import zip
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
 from operator import itemgetter
 import shutil
 from sklearn.externals import joblib

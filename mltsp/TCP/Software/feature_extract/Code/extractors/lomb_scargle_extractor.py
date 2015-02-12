@@ -48,7 +48,7 @@ class lomb_scargle_extractor(InterExtractor):
                 n_harm_iters = 1 + 3 # includes primary component
 
             out_dict["%s_harmonics_freq_0" % (dstr)] = lomb_dict['frequency']
-            for i in xrange(n_harm_iters):
+            for i in range(n_harm_iters):
                 out_dict["%s_harmonics_amplitude_%d" % (dstr, i)] = \
                   lomb_dict['harmonics_amplitude'][i]
                 out_dict["%s_harmonics_amplitude_error_%d" % (dstr, i)] = \

@@ -1996,7 +1996,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
             ### We generate several random, percent-subsampled vosource in order to include error info:
             #if 1:
             #    i = niters # this should just be a single (integer) subset number/iteration index
-            #for i in xrange(niters):
+            #for i in range(niters):
             for i in niters:
                 if write_multiinfo_srcids:
                     new_srcid = "%d_%2.2f_%d" % (src_id, perc, i)
@@ -2006,7 +2006,7 @@ def get_dat_arffstrs(dat_fpaths=[], percent_list=[], niters=1, include_header=Tr
 
                 dbi_src = db_importer.Source(make_dict_if_given_xml=False)
                 
-                for band, band_dict in gen_orig.sig.x_sdict['ts'].iteritems():
+                for band, band_dict in gen_orig.sig.x_sdict['ts'].items():
                     if ":NOMAD" in band:
                         i_start = 0
                         i_end = len(band_dict['m'])
@@ -2175,7 +2175,7 @@ ArffEngineTasks = arff_generation_master_using_generic_ts_data.Arff_Generation_E
     i_count = 0
     while n_pending > 0:
         still_pending_dict = {}
-        for engine_id, pending_result in pending_result_dict.iteritems():
+        for engine_id, pending_result in pending_result_dict.items():
             try:
                 result_val = pending_result.get_result(block=False)
             except:

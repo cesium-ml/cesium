@@ -1,19 +1,8 @@
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from builtins import open
-from builtins import range
-from builtins import str
-from builtins import int
-from builtins import round
-from builtins import *
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
-
 import re
-import urllib.request, urllib.error, urllib.parse
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib import urlopen
 try:
     from bs4 import BeautifulSoup
 except:

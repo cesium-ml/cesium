@@ -170,6 +170,7 @@ class GeneralExtractor(object):
         error (boolean): True to proagate the error of fetched extractors """
         if not band: band = self.band
         if not properties: properties = self.properties
+
         if not isinstance(extractor_name, str):
             print("Method %s is still using old fetch procedure, calling %s" % (self.extname, extractor_name.extname))
             return self.fetch_extr_old(extractor_name,properties,error, band, returnall, return_object)
@@ -185,7 +186,7 @@ class GeneralExtractor(object):
         elif returnall: # return the entire object
             ret_object = fetched_instance.extr(properties,band=band)
             returner = ret_object
-        else: 
+        else:
             ret_object = fetched_instance.extr(properties,band=band)
             returner = ret_object.result
         if ret_object.result is False and error: # if the result is an error
