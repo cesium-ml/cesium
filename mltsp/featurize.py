@@ -131,11 +131,9 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     if len(features_to_use) == 0:
         features_to_use = all_features_list
-
     if already_featurized:
         # Read in features from CSV file
         objects = parse_prefeaturized_csv_data(headerfile_path)
-        return objects
     else:
         # Parse header file
         (features_to_use, fname_class_dict, fname_class_science_features_dict,
@@ -166,7 +164,7 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
                 already_featurized, in_docker_container, uploads_folder,
                 fname_class_dict, fname_class_science_features_dict,
                 fname_metadata_dict)
-            return objects
+    return objects
 
 
 def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
@@ -323,6 +321,8 @@ def write_features_to_disk(objects, featureset_id, features_folder,
     """
 
     """
+    if objects is None:
+        raise Exception("featurize.write_features_to_disk - `objects` is None")
     features_extracted = list(objects[-1].keys())
     if "class" in features_extracted: features_extracted.remove("class")
     features_to_plot = determine_feats_to_plot(features_extracted)

@@ -234,6 +234,38 @@ def test_main_featurize_function():
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
 
+    test_setup()
+
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/testfeature1.py"),
+        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
+    results_msg = featurize.featurize(
+        headerfile_path=os.path.join(
+            cfg.UPLOAD_FOLDER,
+            "asas_training_subset_classes_with_metadata.dat"),
+        zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
+                                  "asas_training_subset.tar.gz"),
+        features_to_use=["std_err", "freq1_harmonics_freq_0"],
+        featureset_id="test", is_test=True,
+        custom_script_path=None,# TODO: Doesn't work when using Disco!!!
+        USE_DISCO=True)
+    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                       "test_features.csv")))
+    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                       "test_classes.pkl")))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.pkl"))
+    df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
+                                       "test_features.csv"))
+    cols = df.columns
+    values = df.values
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                        "Flask/static/data"),
+                           "test_features_with_classes.csv"))
+    assert("std_err" in cols)
+    assert("freq1_harmonics_freq_0" in cols)
+
 
 def test_teardown():
     fpaths = []
