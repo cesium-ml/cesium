@@ -12,7 +12,7 @@ except:
 from sklearn.externals import joblib
 import shutil
 
-def setup():
+def test_setup():
     fpaths = []
     fnames = ["asas_training_subset_classes_with_metadata.dat",
               "asas_training_subset.tar.gz", "testfeature1.py"]
@@ -45,7 +45,8 @@ def test_headerfile_parser():
     npt.assert_equal(fname_class_dict["237022"], "W_Ursae_Maj")
     npt.assert_equal(fname_class_science_features_dict["215153"]["class"],
                      "Mira")
-    npt.assert_equal(fname_metadata_dict["230395"]["meta1"], 0.270056761691)
+    npt.assert_almost_equal(fname_metadata_dict["230395"]["meta1"],
+                            0.270056761691)
 
 
 def test_shorten_fname():
@@ -105,12 +106,13 @@ def test_featurize_tsdata_object():
     short_fname = featurize.shorten_fname(path_to_csv)
     custom_script_path = os.path.join(cfg.UPLOAD_FOLDER, "testfeature1.py")
     fname_class_dict = {"dotastro_215153": "Mira"}
-    features_to_use = ["std_err"]
+    features_to_use = ["std_err", "freq1_harmonics_freq_0"]
     all_feats = featurize.featurize_tsdata_object(
         path_to_csv, short_fname, custom_script_path, fname_class_dict,
         features_to_use)
     assert(isinstance(all_feats, dict))
     assert("std_err" in all_feats)
+    assert("freq1_harmonics_freq_0" in all_feats)
 
 
 def test_remove_unzipped_files():
@@ -211,7 +213,7 @@ def test_main_featurize_function():
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
                                   "asas_training_subset.tar.gz"),
-        features_to_use=["std_err"],# #TEMP# TCP still broken under py3
+        features_to_use=["std_err", "freq1_harmonics_freq_0"],
         featureset_id="test", is_test=True,
         custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                         "testfeature1.py"),
@@ -230,9 +232,10 @@ def test_main_featurize_function():
                                         "Flask/static/data"),
                            "test_features_with_classes.csv"))
     assert("std_err" in cols)
+    assert("freq1_harmonics_freq_0" in cols)
 
 
-def teardown():
+def test_teardown():
     fpaths = []
     for fname in ["asas_training_subset_classes_with_metadata.dat",
                   "asas_training_subset.tar.gz", "testfeature1.py"]:

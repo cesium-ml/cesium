@@ -13,7 +13,7 @@ def test_parse_metadata_file():
                      "Data/215153_215176_218272_218934_metadata.dat"))
     assert("dotastro_215153.dat" in meta_feats)
     assert("meta1" in meta_feats["dotastro_215153.dat"])
-    npt.assert_equal(meta_feats["dotastro_215153.dat"]["meta1"], 0.23423)
+    npt.assert_almost_equal(meta_feats["dotastro_215153.dat"]["meta1"], 0.23423)
 
 
 def test_determine_feats_used():
@@ -27,8 +27,8 @@ def test_parse_ts_data():
     """Test parsing of TS data"""
     ts_data = pred.parse_ts_data(os.path.join(os.path.dirname(__file__),
                                               "Data/dotastro_215153.dat"), ",")
-    npt.assert_array_equal(ts_data[0], [2629.52836, 9.511, 0.042])
-    npt.assert_array_equal(ts_data[-1], [5145.57672, 9.755, 0.06])
+    npt.assert_array_almost_equal(ts_data[0], [2629.52836, 9.511, 0.042])
+    npt.assert_array_almost_equal(ts_data[-1], [5145.57672, 9.755, 0.06])
     npt.assert_equal(len(ts_data), 170)
 
 
@@ -82,13 +82,13 @@ def test_create_feat_dict_and_list():
     feat_val_list, feat_dict = pred.create_feat_dict_and_list(
         {"f1": 21.1, "f2": 3.1, "f3": 101.0},
         ["f1", "f2", "f3"], ["f1", "f2", "f3"])
-    npt.assert_array_equal(feat_val_list, [21.1, 3.1, 101.0])
-    npt.assert_equal(feat_dict['f1'], 21.1)
+    npt.assert_array_almost_equal(feat_val_list, [21.1, 3.1, 101.0])
+    npt.assert_almost_equal(feat_dict['f1'], 21.1)
     feat_val_list, feat_dict = pred.create_feat_dict_and_list(
         {"f1": 21.1, "f2": 3.1, "f3": 101.0},
         ["f1", "f3"], ["f1", "f2", "f3"])
-    npt.assert_array_equal(feat_val_list, [21.1, 101.0])
-    npt.assert_equal(feat_dict['f1'], 21.1)
+    npt.assert_array_almost_equal(feat_val_list, [21.1, 101.0])
+    npt.assert_almost_equal(feat_dict['f1'], 21.1)
     assert "f2" not in feat_dict
 
 
