@@ -26,8 +26,11 @@ Example usage for Google Federated Login:
 
 import functools
 import logging
-import urllib.request, urllib.parse, urllib.error
-import urllib.parse
+try:
+    from urllib.parse import urljoin, urlencode
+except ImportError:
+    from urlparse import urljoin
+    from urllib import urlencode
 
 import blinker
 import requests
@@ -83,7 +86,7 @@ class OpenIdMixin(object):
         args = self._openid_args(callback_uri, ax_attrs=ask_for)
         return redirect(self._OPENID_ENDPOINT +
                         ("&" if "?" in self._OPENID_ENDPOINT else "?") +
-                        urllib.parse.urlencode(args))
+                        urlencode(args))
 
     def get_authenticated_user(self, callback):
         """Fetches the authenticated user data upon redirect.
@@ -100,13 +103,13 @@ class OpenIdMixin(object):
         return self._on_authentication_verified(callback, r)
 
     def _openid_args(self, callback_uri, ax_attrs=[]):
-        url = urllib.parse.urljoin(request.url, callback_uri)
+        url = urljoin(request.url, callback_uri)
         args = {
             "openid.ns": "http://specs.openid.net/auth/2.0",
             "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
             "openid.return_to": url,
-            "openid.realm": urllib.parse.urljoin(url, "/"),
+            "openid.realm": urljoin(url, "/"),
             "openid.mode": "checkid_setup",
         }
         if ax_attrs:
