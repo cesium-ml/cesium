@@ -1077,7 +1077,7 @@ def add_prediction(
     return new_prediction_key
 
 
-def delete_project(project_name):
+def delete_project(project_name):# TODO - Refactor; delete custom feat scripts
     """Delete project entry and associated data.
 
     Deletes RethinkDB project entry whose 'name' attribute is
@@ -1391,6 +1391,7 @@ def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
 def update_project_info(
     orig_name, new_name, new_desc, new_addl_authed_users,
     delete_features_keys=[], delete_model_keys=[], delete_prediction_keys=[]):
+    # TODO - Refactor; delete custom feat scripts
     """Modify/update project entry with new information.
 
     If `delete_feature_keys`, `delete_model_keys` or

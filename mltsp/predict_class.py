@@ -71,35 +71,14 @@ def determine_feats_used(featset_key, features_folder):
 def parse_ts_data(filepath, sep):
     """
     """
-    ts_data = []
     with open(filepath) as f:
-        lines = f.readlines()
-    for i in range(len(lines)):
-        if lines[i].strip() != "":
-            ts_data.append(lines[i].strip().split(sep))
-            if len(ts_data[i]) < len(lines[i]
-                    .strip("\n").strip().split(",")):
-                ts_data[i] = (lines[i].strip("\n")
-                    .strip().split(","))
-            if len(ts_data[i]) < len(lines[i].strip("\n")
-                    .strip().split(" ")):
-                ts_data[i] = (lines[i].strip("\n")
-                    .strip().split(" "))
-            if len(ts_data[i]) < len(lines[i]
-                    .strip("\n").strip().split("\t")):
-                ts_data[i] = (lines[i].strip("\n")
-                    .strip().split("\t"))
-            # Convert to float
-            for j in range(len(ts_data[i])):
-                ts_data[i][j] = float(ts_data[i][j])
-            if len(ts_data[i]) == 2: # no error column
-                ts_data[i].append(1.0) # make all errors 1.0
-            elif len(ts_data[i]) in [0,1]:
-                raise custom_exceptions.DataFormatError(
-                    "Incomplete or improperly formatted time "
-                    "series data file provided.")
-            elif len(ts_data[i]) > 3:
-                ts_data[i] = ts_data[i][:3]
+        ts_data = np.loadtxt(f, delimiter=",")
+    ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
+    for row in ts_data:
+        if len(row) < 2:
+            raise custom_exceptions.DataFormatError(
+                "Incomplete or improperly formatted time "
+                "series data file provided.")
     return ts_data
 
 
