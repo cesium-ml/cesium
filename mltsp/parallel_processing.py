@@ -154,9 +154,10 @@ def pred_featurize_reduce(iter, params):
             meta_features)
 
         os.remove(fpath)
-        all_features = big_feats_and_tsdata_dict[fpath]["features_dict"]
-        ts_data = big_feats_and_tsdata_dict[fpath]["ts_data"]
-        yield fname, [all_features, ts_data]
+        short_fname = ntpath.basename(fpath)
+        all_features = big_feats_and_tsdata_dict[short_fname]["features_dict"]
+        ts_data = big_feats_and_tsdata_dict[short_fname]["ts_data"]
+        yield short_fname, [all_features, ts_data]
 
 
 def process_prediction_data_featurization_with_disco(
