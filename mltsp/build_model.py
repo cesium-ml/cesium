@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # build_model.py
 
+from __future__ import print_function
 from operator import itemgetter
 import shutil
 from sklearn.ensemble import RandomForestClassifier as RFC

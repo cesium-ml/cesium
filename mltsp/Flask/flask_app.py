@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Machine Learning Timeseries Platform flask application
-
+from __future__ import print_function
 import sys
 import os
 

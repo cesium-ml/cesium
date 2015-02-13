@@ -1,3 +1,4 @@
+from __future__ import print_function
 from subprocess import Popen, PIPE, call, check_call
 import uuid
 import pickle
@@ -102,8 +103,8 @@ def featurize_in_docker_container(
                 "mltsp/featurize"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-            "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        print("\n\ndocker container stdout:\n\n", str(stdout),
+              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
 
         # copy all necessary files produced in docker container to host
         for file_suffix in [
@@ -194,8 +195,8 @@ def build_model_in_docker_container(
                 "mltsp/build_model"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        print("\n\ndocker container stdout:\n\n", str(stdout),
+              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
 
         # copy all necessary files produced in Docker container to host
         cmd = [
@@ -318,8 +319,8 @@ def predict_in_docker_container(
                 "mltsp/predict"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        print("\n\ndocker container stdout:\n\n", str(stdout),
+              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
 
         # copy all necessary files produced in docker container to host
         cmd = [
@@ -329,7 +330,7 @@ def predict_in_docker_container(
                 (container_name, prediction_entry_key)),
             "/tmp"]
         status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-        print("/tmp/%s_pred_results.pkl"%prediction_entry_key, \
+        print("/tmp/%s_pred_results.pkl" % prediction_entry_key,
               "copied to host machine - status code %s" % str(status_code))
         with open("/tmp/%s_pred_results.pkl"%prediction_entry_key, "rb") as f:
             pred_results_dict = pickle.load(f)
@@ -374,7 +375,8 @@ def disco_test():
                 "disco_test"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        print("\n\ndocker container stdout:\n\n", str(stdout),
+              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
         print("Process complete.")
     except:
         raise

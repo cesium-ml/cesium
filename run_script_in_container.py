@@ -20,7 +20,7 @@ if __name__ == "__main__":
         docker_extract_custom_feats.extract_custom_feats()
     elif args.featurize:
         from mltsp.docker_scripts import docker_featurize
-        docker_featurize.featurize()
+        docker_featurize.do_featurization()
     elif args.build_model:
         from mltsp.docker_scripts import docker_build_model
         docker_build_model.build_model()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sklearn as skl
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
@@ -112,9 +113,11 @@ def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
     the_tarfile.extractall(path=tmp_dir_path)
     big_features_and_tsdata_dict = {}
     for fname in all_fnames:
-        big_features_and_tsdata_dict[fname] = featurize_single(
+        short_fname = ntpath.basename(fname)
+        big_features_and_tsdata_dict[short_fname] = featurize_single(
             fname, features_to_use, uploads_folder,
-            custom_features_script, meta_features, sep=sep)[fname]
+            custom_features_script, meta_features, tmp_dir_path=tmp_dir_path,
+            sep=sep)[short_fname]
     return big_features_and_tsdata_dict
 
 
@@ -177,7 +180,7 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
         list(custom_features.items()) +
         (list(meta_features[short_fname].items()) if short_fname
          in meta_features else list({}.items())))
-    big_features_and_tsdata_dict[fname] = {
+    big_features_and_tsdata_dict[short_fname] = {
         "features_dict": features_dict, "ts_data": ts_data}
     return big_features_and_tsdata_dict
 
