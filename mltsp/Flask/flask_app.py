@@ -2377,17 +2377,22 @@ def featurize_proc(
         logging.exception(("Error occurred during featurize.featurize() "
             "call."))
         try:
-            os.remove(headerfile_path)
-            os.remove(zipfile_path)
             if custom_script_path not in ("None", None, False, "False"):
                 os.remove(custom_script_path)
         except Exception as err:
             print ("An error occurred while attempting to remove files "
-                "associated with failed featurization attempt.")
+                   "associated with failed featurization attempt.")
             print(err)
-            logging.exception(("An error occurred while attempting to remove "
-                "files associated with failed featurization attempt."))
-    update_featset_entry_with_results_msg(featureset_key,results_str)
+            logging.exception("An error occurred while attempting to remove "
+                              "files associated with failed featurization "
+                              "attempt.")
+    finally:
+        for fpath in (headerfile_path, zipfile_path):
+            try:
+                os.remove(fpath)
+            except Exception as e:
+                print(e)
+    update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
 @app.route('/featurizing')
@@ -2721,7 +2726,7 @@ def load_featurization_results(new_featset_key):
                     os.remove(results_dict["headerfile_path"])
                     print("Deleted", results_dict["headerfile_path"])
                 except Exception as err:
-                    pass
+                    print(err)
             else:
                 print("headerfile_path not in asdfasdf or is None")
             if ("zipfile_path" in results_dict and
@@ -2730,7 +2735,7 @@ def load_featurization_results(new_featset_key):
                     os.remove(results_dict["zipfile_path"])
                     print("Deleted", results_dict["zipfile_path"])
                 except Exception as err:
-                    pass
+                    print(err)
             if ("custom_features_script" in results_dict and
                     results_dict["custom_features_script"]):
                 try:
@@ -2740,12 +2745,12 @@ def load_featurization_results(new_featset_key):
                         (str(results_dict["custom_features_script"])
                         .replace(".py",".pyc"))))
                 except Exception as err:
-                    pass
+                    print(err)
                 try:
                     os.remove(results_dict["custom_features_script"])
                     print("Deleted", results_dict["custom_features_script"])
                 except Exception as err:
-                    pass
+                    print(err)
             r.table("features").get(new_featset_key).delete().run(g.rdb_conn)
             print("Deleted feature set entry with key", new_featset_key)
 

@@ -114,10 +114,10 @@ def featurize_in_docker_container(
                     (container_name, featureset_key, file_suffix),
                 cfg.FEATURES_FOLDER]
             status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-            print((
+            print(
                 os.path.join(
                     cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)),
-                "copied to host machine - status code %s" % str(status_code)))
+                "copied to host machine - status code %s" % str(status_code))
 
         shutil.copy2(
             os.path.join(
