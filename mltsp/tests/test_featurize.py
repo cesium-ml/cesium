@@ -56,15 +56,6 @@ def test_shorten_fname():
     npt.assert_equal(featurize.shorten_fname("/home/path/abc.dat"), "abc")
 
 
-def test_featurize_tsdata_object():
-    """Test featurize TS data object."""
-    feats = featurize.featurize_tsdata_object(
-        os.path.join(os.path.dirname(__file__), "Data/dotastro_215153.dat"),
-        "dotastro_215153", None, {"dotastro_215153": "Mira"}, {}, ["std_err"])
-    assert("std_err" in feats)
-    assert(isinstance(feats["std_err"], float))
-
-
 def test_determine_feats_to_plot():
     """Test determine feats to plot"""
     ftp = featurize.determine_feats_to_plot(["abc", "221a", "22d"])
@@ -83,8 +74,8 @@ def test_count_classes():
     npt.assert_equal(class_count["class2"], 1)
 
 
-def test_generate_features():
-    """Test generate_features"""
+def test_generate_features_serial():
+    """Test generate_features - serial extraction"""
     objs = featurize.generate_features(
         os.path.join(cfg.UPLOAD_FOLDER,
                      "asas_training_subset_classes_with_metadata.dat"),
@@ -94,6 +85,21 @@ def test_generate_features():
         os.path.join(cfg.UPLOAD_FOLDER,
                      "testfeature1.py"),
         True, False, False, False, cfg.UPLOAD_FOLDER)
+    npt.assert_equal(len(objs), 3)
+    assert(all("std_err" in d for d in objs))
+    assert(all("class" in d for d in objs))
+
+
+def test_generate_features_parallel():
+    """Test generate_features - parallelized extraction"""
+    objs = featurize.generate_features(
+        os.path.join(cfg.UPLOAD_FOLDER,
+                     "asas_training_subset_classes_with_metadata.dat"),
+        os.path.join(cfg.UPLOAD_FOLDER,
+                     "asas_training_subset.tar.gz"),
+        ["std_err"],
+        None, # Custom feats not working with Disco yet
+        True, True, False, False, cfg.UPLOAD_FOLDER)
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
     assert(all("class" in d for d in objs))
@@ -202,7 +208,7 @@ def test_write_features_to_disk():
 
 
 def test_main_featurize_function():
-    """Test main featurize function"""
+    """Test main featurize function - serial extraction"""
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
                      "Data/testfeature1.py"),
@@ -234,6 +240,9 @@ def test_main_featurize_function():
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
 
+
+def test_main_featurize_function_disco():
+    """Test main featurize function - using Disco"""
     test_setup()
 
     shutil.copy(

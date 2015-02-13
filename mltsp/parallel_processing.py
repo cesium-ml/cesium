@@ -492,7 +492,7 @@ def featurize_in_parallel(
     input_fname_list = all_fnames
     longfname_class_list = []
     if is_test:
-        all_fnames = all_fnames[:4]
+        all_fnames = all_fnames[:3]
     for i in range(len(all_fnames)):
         short_fname = os.path.splitext(ntpath.basename(all_fnames[i]))[0]
         if short_fname in fname_class_dict:
