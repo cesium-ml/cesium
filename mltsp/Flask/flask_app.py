@@ -99,7 +99,7 @@ logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 # RethinkDB config:
 RDB_HOST =  os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
-MLWS_DB = "mltsp_app"
+MLTSP_DB = "mltsp_app"
 
 ALLOWED_EXTENSIONS = set([
     'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml',
@@ -111,7 +111,7 @@ ALLOWED_EXTENSIONS = set([
 def before_request():
     """Establish connection to RethinkDB DB before each request."""
     try:
-        g.rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLWS_DB)
+        g.rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
     except RqlDriverError:
         print("No database connection could be established.")
         abort(503, "No database connection could be established.")
@@ -124,6 +124,13 @@ def teardown_request(exception):
         g.rdb_conn.close()
     except AttributeError:
         pass
+
+
+def establish_rdb_connection():
+    """Return RDB connection to MLTSP database.
+    """
+    connection = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
+    return connection
 
 
 #sys.excepthook = excepthook_replacement
@@ -237,7 +244,7 @@ def db_init(force=False):
     """Initialize RethinkDB tables.
 
     Create a RethinkDB database whose name is the value of the global
-    `MLWS_DB` defined above, and creates tables within the new DB
+    `MLTSP_DB` defined above, and creates tables within the new DB
     with the names 'projects', 'users', 'features', 'models',
     'userauth' and 'predictions', respectively.
 
@@ -258,20 +265,20 @@ def db_init(force=False):
         return
     if force:
         try:
-            r.db_drop(MLWS_DB).run(connection)
+            r.db_drop(MLTSP_DB).run(connection)
         except:
             pass
     try:
-        r.db_create(MLWS_DB).run(connection)
+        r.db_create(MLTSP_DB).run(connection)
     except RqlRuntimeError as e:
         print('db_init:', e.message)
-        print ('The table may already exist.  Specify the --force flag '
+        print('The table may already exist.  Specify the --force flag '
               'to clear existing data.')
         return
     table_names = ['projects', 'users', 'features',
                    'models', 'userauth', 'predictions']
 
-    db = r.db(MLWS_DB)
+    db = r.db(MLTSP_DB)
 
     for table_name in table_names:
         print('Creating table', table_name)
@@ -281,7 +288,7 @@ def db_init(force=False):
     print('Database setup completed.')
 
 
-@app.route('/add_user',methods=['POST'])
+@app.route('/add_user', methods=['POST'])
 def add_user():
     """Add current user to the RethnkDB 'users' table.
 
@@ -291,24 +298,23 @@ def add_user():
 
     """
     r.table('users').insert({
-        "name":g.user['name'],
-        "email":g.user['email'],
-        "id":g.user['email'],
-        "created":str(r.now().in_timezone("-08:00").run(g.rdb_conn))
+        "name": g.user['name'],
+        "email": g.user['email'],
+        "id": g.user['email'],
+        "created": str(r.now().in_timezone("-08:00").run(g.rdb_conn))
     }).run(g.rdb_conn)
-
 
 
 #@app.before_first_request
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
-    if (r.table("users").filter({'email':g.user['email']})
+    if (r.table("users").filter({'email': g.user['email']})
         .count().run(g.rdb_conn)) == 0:
         r.table('users').insert({
-            "name":g.user['name'],
-            "email":g.user['email'],
-            "id":g.user['email'],
-            "created":str(r.now().in_timezone("-08:00").run(g.rdb_conn))
+            "name": g.user['name'],
+            "email": g.user['email'],
+            "id": g.user['email'],
+            "created": str(r.now().in_timezone("-08:00").run(g.rdb_conn))
         }).run(g.rdb_conn)
         print("User", g.user['name'], "with email", \
             g.user['email'], "added to users db.")
@@ -983,8 +989,8 @@ def add_featureset(
         "pid": pid,
         "custom_features_script": custom_features_script,
         "meta_feats": meta_feats,
-        "headerfile_path":headerfile_path,
-        "zipfile_path":zipfile_path
+        "headerfile_path": headerfile_path,
+        "zipfile_path": zipfile_path
     }).run(g.rdb_conn)['generated_keys'][0]
     print("Feature set %s entry added to mltsp_app db." % name)
     return new_featset_key
@@ -1023,9 +1029,9 @@ def add_model(
     if 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
     new_model_key = r.table("models").insert({
-        "name":featureset_name,
-        "featset_key":featureset_key,
-        "type":model_type,
+        "name": featureset_name,
+        "featset_key": featureset_key,
+        "type": model_type,
         "projkey": projkey,
         "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
         "pid": pid,
@@ -1064,11 +1070,11 @@ def add_prediction(
     """
     project_key = project_name_to_key(project_name)
     new_prediction_key = r.table("predictions").insert({
-        "project_name":project_name,
-        "filename":pred_filename,
-        "projkey":project_key,
-        "model_name":model_name,
-        "model_type":model_type,
+        "project_name": project_name,
+        "filename": pred_filename,
+        "projkey": project_key,
+        "model_name": model_name,
+        "model_type": model_type,
         "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
         "pid": pid,
         "metadata_file": metadata_file
@@ -1077,7 +1083,109 @@ def add_prediction(
     return new_prediction_key
 
 
-def delete_project(project_name):# TODO - Refactor; delete custom feat scripts
+def project_associated_files(proj_key):
+    """Return list of saved files associated with specified project.
+    """
+    conn = establish_rdb_connection()
+    fpaths = []
+
+    prediction_keys = []
+    features_keys = []
+    model_keys = []
+    cursor = (r.table("predictions").filter({"projkey": proj_key})
+    .pluck("id").run(conn))
+    for entry in cursor:
+        prediction_keys.append(entry["id"])
+    cursor = (r.table("features").filter({"projkey": proj_key})
+        .pluck("id").run(conn))
+    for entry in cursor:
+        features_keys.append(entry["id"])
+    cursor = (r.table("models").filter({"projkey": proj_key})
+        .pluck("id").run(conn))
+    for entry in cursor:
+        model_keys.append(entry["id"])
+
+    for featset_key in features_keys:
+        fpaths += featset_associated_files(featset_key)
+    for model_key in model_keys:
+        for newpath in model_associated_files(model_key):
+            if newpath not in fpaths:
+                fpaths.append(newpath)
+    conn.close()
+    return fpaths
+
+
+def model_associated_files(model_key):
+    """Return list of saved files associated with specified model.
+    """
+    conn = establish_rdb_connection()
+    entry_dict = r.table("models").get(model_key).run(conn)
+    featset_key = entry_dict["featset_key"]
+    model_type = entry_dict["type"]
+    conn.close()
+    fpaths = [os.path.join(cfg.MODELS_FOLDER,
+                           "%s_%s.pkl" % (featset_key, model_type))]
+    fpaths += featset_associated_files(featset_key)
+    return fpaths
+
+
+def featset_associated_files(featset_key):
+    """Return list of saved files associated with specified feature set.
+    """
+    conn = establish_rdb_connection()
+    fpaths = []
+    fpaths.extend(
+        [os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
+         os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl" % featset_key),
+         os.path.join(os.path.join(os.path.join(
+             os.path.dirname(__file__), "static"),
+                                   "data"),
+                      "%s_features_with_classes.csv" % featset_key)])
+    entry_dict = r.table("features").get(featset_key).run(conn)
+    for key in ("headerfile_path", "zipfile_path", "custom_features_script"):
+        if entry_dict and key in entry_dict:
+            if entry_dict[key]:
+                fpaths.append(entry_dict[key])
+    conn.close()
+    return fpaths
+
+
+def prediction_associated_files(pred_key):
+    """Return list of saved files associated with specified prediction entry.
+    """
+    return []
+
+
+def delete_associated_project_data(table_name, proj_key):
+    """Delete all feature sets and associated files, filtered by project."""
+    get_files_func_dict = {"features": featset_associated_files,
+                           "models": model_associated_files,
+                           "predictions": prediction_associated_files}
+    conn = establish_rdb_connection()
+    delete_keys = []
+    cursor = r.table(table_name).filter({"projkey": proj_key})\
+                                .pluck("id").run(conn)
+    for entry in cursor:
+        delete_keys.append(entry["id"])
+    for feat_key in delete_keys:
+        fpaths = get_files_func_dict[table_name](feat_key)
+        for fpath in fpaths:
+            if os.path.exists(fpath):
+                try:
+                    os.remove(fpath)
+                    print("Deleted", fpath)
+                except Exception as e:
+                    print(e)
+    if len(delete_keys) > 0:
+        n_deleted = r.table(table_name).get_all(*delete_keys)\
+                                       .delete().run(conn)["deleted"]
+    else:
+        n_deleted = 0
+    conn.close()
+    return n_deleted
+
+
+def delete_project(project_name):
     """Delete project entry and associated data.
 
     Deletes RethinkDB project entry whose 'name' attribute is
@@ -1098,12 +1206,12 @@ def delete_project(project_name):# TODO - Refactor; delete custom feat scripts
 
     """
     proj_keys = []
-    cursor = (
-        r.table("projects").filter({"name":project_name})
-        .pluck("id").run(g.rdb_conn))
+    cursor = r.table("projects").filter({"name": project_name})\
+                                .pluck("id").run(g.rdb_conn)
     for entry in cursor:
         proj_keys.append(entry["id"])
-    if len(proj_keys)>1:
+
+    if len(proj_keys) > 1:
         print((
             "#######  WARNING: DELETING MORE THAN ONE PROJECT WITH NAME %s. "
             "DELETING PROJECTS WITH KEYS %s  ########") % (
@@ -1113,102 +1221,18 @@ def delete_project(project_name):# TODO - Refactor; delete custom feat scripts
             "####### WARNING: flask_app.delete_project() - NO PROJECT "
             "WITH NAME %s.") % project_name)
         return 0
-    msg = r.table("projects").get_all(*proj_keys).delete().run(g.rdb_conn)
-    print(msg)
     for proj_key in proj_keys:
-        delete_prediction_keys = []
-        delete_features_keys = []
-        delete_model_keys = []
-        cursor = (r.table("predictions").filter({"projkey":proj_key})
-        .pluck("id").run(g.rdb_conn))
-        for entry in cursor:
-            delete_prediction_keys.append(entry["id"])
-        cursor = (r.table("features").filter({"projkey":proj_key})
-            .pluck("id").run(g.rdb_conn))
-        for entry in cursor:
-            delete_features_keys.append(entry["id"])
-        cursor = (r.table("models").filter({"projkey":proj_key})
-            .pluck("id").run(g.rdb_conn))
-        for entry in cursor:
-            delete_model_keys.append(entry["id"])
-        if len(delete_prediction_keys) > 0:
-            (
-                r.table("predictions").get_all(*delete_prediction_keys)
-                .delete().run(g.rdb_conn))
-        if len(delete_features_keys) > 0:
-            (
-                r.table("features").get_all(*delete_features_keys)
-                .delete().run(g.rdb_conn))
-            for features_key in delete_features_keys:
-                try:
-                    os.remove(
-                        os.path.join(
-                            cfg.FEATURES_FOLDER,
-                            "%s_features.csv"%features_key))
-                except Exception as err:
-                    print("delete_project() - " + str(err))
-                    logging.exception(
-                        "Tried to delete a file that does not exist.")
-                try:
-                    os.remove(
-                        os.path.join(
-                            cfg.FEATURES_FOLDER,
-                            "%s_features_with_classes.csv"%features_key))
-                except Exception as err:
-                    print("delete_project() - " + str(err))
-                    logging.exception(
-                        "Tried to delete a file that does not exist.")
-                try:
-                    os.remove(
-                        os.path.join(
-                            cfg.FEATURES_FOLDER,
-                            "%s_classes.pkl"%features_key))
-                except Exception as err:
-                    print("delete_project() - " + str(err))
-                    logging.exception(
-                        "Tried to delete a file that does not exist.")
-                try:
-                    os.remove(
-                        os.path.join(
-                            cfg.MLTSP_PACKAGE_PATH,
-                            ("Flask/static/data/%s_features_with_classes.csv"
-                                %features_key)))
-                except Exception as err:
-                    print("delete_project() - " + str(err))
-                    logging.exception(
-                        "Tried to delete a file that does not exist.")
-        else:
-            print("No feature sets matching this project key")
-        if len(delete_model_keys) > 0:
-            for model_key in delete_model_keys:
-                cursor = (
-                    r.table("models").filter({"id":model_key})
-                    .pluck("projkey","name","type","featset_key")
-                    .run(g.rdb_conn))
-                for model_entry in cursor:
-                    try:
-                        os.remove(
-                            os.path.join(
-                                cfg.MODELS_FOLDER,
-                                "%s_%s.pkl"%(
-                                    str(model_entry["featset_key"]),
-                                    str(model_entry["type"]))))
-                        print("Removed", os.path.join(
-                        cfg.MODELS_FOLDER,
-                        "%s_%s.pkl"%(
-                            model_entry["featset_key"],
-                            model_entry["type"])))
-                    except Exception as err:
-                        print("delete_project() - " + str(err))
-                        logging.exception(
-                            "Tried to delete a file that does not exist.")
-
-            (r.table("models").get_all(*delete_model_keys)
-                .delete().run(g.rdb_conn))
-        else:
-            print("No models matching this project key")
-        (r.table("userauth").filter({"projkey":proj_key})
-            .delete().run(g.rdb_conn))
+        # Delete associated data (features, models, predictions)
+        for table_name in ("features", "models", "predictions"):
+            n_deleted = delete_associated_project_data(table_name, proj_key)
+            print("Deleted", n_deleted, table_name,
+                  "entries and associated data.")
+        # Delete relevant 'userauth' table entries
+        r.table("userauth").filter({"projkey": proj_key})\
+                           .delete().run(g.rdb_conn)
+    # Delete project entries
+    msg = r.table("projects").get_all(*proj_keys).delete().run(g.rdb_conn)
+    print("Deleted", msg['deleted'], "projects.")
     return msg['deleted']
 
 
