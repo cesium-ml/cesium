@@ -100,6 +100,7 @@ logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 RDB_HOST =  os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
 MLTSP_DB = "mltsp_app"
+rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
 
 ALLOWED_EXTENSIONS = set([
     'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml',
@@ -301,21 +302,21 @@ def add_user():
         "name": g.user['name'],
         "email": g.user['email'],
         "id": g.user['email'],
-        "created": str(r.now().in_timezone("-08:00").run(g.rdb_conn))
-    }).run(g.rdb_conn)
+        "created": str(r.now().in_timezone("-08:00").run(rdb_conn))
+    }).run(rdb_conn)
 
 
 #@app.before_first_request
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
     if (r.table("users").filter({'email': g.user['email']})
-        .count().run(g.rdb_conn)) == 0:
+        .count().run(rdb_conn)) == 0:
         r.table('users').insert({
             "name": g.user['name'],
             "email": g.user['email'],
             "id": g.user['email'],
-            "created": str(r.now().in_timezone("-08:00").run(g.rdb_conn))
-        }).run(g.rdb_conn)
+            "created": str(r.now().in_timezone("-08:00").run(rdb_conn))
+        }).run(rdb_conn)
         print("User", g.user['name'], "with email", \
             g.user['email'], "added to users db.")
     else:
@@ -342,7 +343,7 @@ def update_model_entry_with_pid(new_model_key,pid):
 
     """
     (r.table('models').get(str(new_model_key).strip())
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid":str(pid)}).run(rdb_conn))
     return new_model_key
 
 
@@ -367,7 +368,7 @@ def update_featset_entry_with_pid(featset_key,pid):
 
     """
     (r.table('features').get(featset_key)
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid":str(pid)}).run(rdb_conn))
     return featset_key
 
 
@@ -393,7 +394,7 @@ def update_prediction_entry_with_pid(prediction_key,pid):
 
     """
     (r.table('predictions').get(prediction_key)
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid":str(pid)}).run(rdb_conn))
     return prediction_key
 
 
@@ -438,7 +439,7 @@ def update_prediction_entry_with_results(
         "pred_results_list_dict":pred_results_list_dict }
     if err is not None: info_dict["err_msg"] = err
     (r.table("predictions").get(prediction_entry_key)
-        .update(info_dict).run(g.rdb_conn))
+        .update(info_dict).run(rdb_conn))
     return True
 
 
@@ -466,7 +467,7 @@ def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
     """
     info_dict = {"results_msg":model_built_msg}
     if err is not None: info_dict["err_msg"] = err
-    r.table('models').get(model_key).update(info_dict).run(g.rdb_conn)
+    r.table('models').get(model_key).update(info_dict).run(rdb_conn)
     return model_key
 
 
@@ -494,7 +495,7 @@ def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
     """
     info_dict = {"results_msg":results_str}
     if err is not None: info_dict["err_msg"] = err
-    r.table('features').get(featureset_key).update(info_dict).run(g.rdb_conn)
+    r.table('features').get(featureset_key).update(info_dict).run(rdb_conn)
     return featureset_key
 
 
@@ -510,7 +511,7 @@ def get_current_userkey():
         User key/ID.
 
     """
-    cursor = r.table("users").filter({"email":g.user['email']}).run(g.rdb_conn)
+    cursor = r.table("users").filter({"email":g.user['email']}).run(rdb_conn)
     n_entries = 0
     entries = []
     for entry in cursor:
@@ -538,7 +539,7 @@ def get_all_projkeys():
 
     """
     cursor = (r.table('userauth').map(lambda entry: entry['projkey'])
-        .run(g.rdb_conn))
+        .run(rdb_conn))
     proj_keys = []
     for entry in cursor:
         proj_keys.append(entry)
@@ -558,7 +559,7 @@ def get_authed_projkeys():
     cursor = r.table('userauth').filter({
         "userkey":this_userkey,
         "active":"y"
-    }).map(lambda entry: entry['projkey']).run(g.rdb_conn)
+    }).map(lambda entry: entry['projkey']).run(rdb_conn)
     proj_keys = []
     for entry in cursor:
         proj_keys.append(entry)
@@ -596,7 +597,7 @@ def list_featuresets(
         this_projkey = project_name_to_key(by_project)
         cursor = (
             r.table("features").filter({"projkey":this_projkey})
-            .pluck("name","created","id","featlist").run(g.rdb_conn))
+            .pluck("name","created","id","featlist").run(rdb_conn))
         if as_html_table_string:
             authed_featuresets = (
                 "<table id='features_table' style='display:none;'>" +
@@ -643,7 +644,7 @@ def list_featuresets(
         for this_projkey in authed_proj_keys:
             cursor = (
                 r.table("features").filter({"projkey":this_projkey})
-                .pluck("name","created").run(g.rdb_conn))
+                .pluck("name","created").run(rdb_conn))
             authed_featuresets = []
             for entry in cursor:
                 authed_featuresets.append(
@@ -690,7 +691,7 @@ def list_models(
 
         cursor = (
             r.table("models").filter({"projkey":this_projkey})
-            .pluck("name","created","type","id","meta_feats").run(g.rdb_conn))
+            .pluck("name","created","type","id","meta_feats").run(rdb_conn))
 
         if as_html_table_string:
             authed_models = (
@@ -736,7 +737,7 @@ def list_models(
         for this_projkey in authed_proj_keys:
             cursor = (
                 r.table("models").filter({"projkey":this_projkey})
-                .pluck("name","created","type","meta_feats").run(g.rdb_conn))
+                .pluck("name","created","type","meta_feats").run(rdb_conn))
             authed_models = []
             for entry in cursor:
                 authed_models.append(
@@ -784,7 +785,7 @@ def list_predictions(
             .pluck(
                 "model_name", "model_type", "filename",
                 "created", "id","results_str_html")
-            .run(g.rdb_conn))
+            .run(rdb_conn))
         if as_html_table_string:
             predictions = (
                 "<table id='predictions_table' style='display:none;'>"
@@ -839,7 +840,7 @@ def list_predictions(
             cursor = (
                 r.table("predictions").filter({"projkey":this_projkey})
                 .pluck("model_name","model_type","filename","created")
-                .run(g.rdb_conn))
+                .run(rdb_conn))
             predictions = []
             for entry in cursor:
                 predictions.append(
@@ -894,7 +895,7 @@ def list_projects(auth_only=True,name_only=False):
     proj_names = []
     for entry in (
             r.table('projects').get_all(*proj_keys)
-            .pluck('name','created').run(g.rdb_conn)):
+            .pluck('name','created').run(rdb_conn)):
         proj_names.append(
             entry['name']
             + (
@@ -933,15 +934,15 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
     new_projkey = r.table("projects").insert({
         "name": name,
         "description":desc,
-        "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn))
-    }).run(g.rdb_conn)['generated_keys'][0]
+        "created": str(r.now().in_timezone('-08:00').run(rdb_conn))
+    }).run(rdb_conn)['generated_keys'][0]
     new_entries = []
     for authed_user in [user_email] + addl_authed_users:
         new_entries.append({
             "userkey":authed_user,
             "projkey":new_projkey,
             "active":"y" })
-    r.table("userauth").insert(new_entries).run(g.rdb_conn)
+    r.table("userauth").insert(new_entries).run(rdb_conn)
     print("Project", name, "created and added to db; users", \
         [user_email] + addl_authed_users, \
         "added to userauth db for this project.")
@@ -985,13 +986,13 @@ def add_featureset(
         "projkey": projkey,
         "name": name,
         "featlist": featlist,
-        "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
+        "created": str(r.now().in_timezone('-08:00').run(rdb_conn)),
         "pid": pid,
         "custom_features_script": custom_features_script,
         "meta_feats": meta_feats,
         "headerfile_path": headerfile_path,
         "zipfile_path": zipfile_path
-    }).run(g.rdb_conn)['generated_keys'][0]
+    }).run(rdb_conn)['generated_keys'][0]
     print("Feature set %s entry added to mltsp_app db." % name)
     return new_featset_key
 
@@ -1025,7 +1026,7 @@ def add_model(
     """
     entry = (
         r.table("features").get(featureset_key)
-        .pluck('meta_feats').run(g.rdb_conn))
+        .pluck('meta_feats').run(rdb_conn))
     if 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
     new_model_key = r.table("models").insert({
@@ -1033,10 +1034,10 @@ def add_model(
         "featset_key": featureset_key,
         "type": model_type,
         "projkey": projkey,
-        "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
+        "created": str(r.now().in_timezone('-08:00').run(rdb_conn)),
         "pid": pid,
         "meta_feats":meta_feats
-    }).run(g.rdb_conn)['generated_keys'][0]
+    }).run(rdb_conn)['generated_keys'][0]
     print("New model entry %s added to mltsp_app db." % featureset_name)
     return new_model_key
 
@@ -1075,10 +1076,10 @@ def add_prediction(
         "projkey": project_key,
         "model_name": model_name,
         "model_type": model_type,
-        "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
+        "created": str(r.now().in_timezone('-08:00').run(rdb_conn)),
         "pid": pid,
         "metadata_file": metadata_file
-    }).run(g.rdb_conn)['generated_keys'][0]
+    }).run(rdb_conn)['generated_keys'][0]
     print("New prediction entry added to mltsp_app db.")
     return new_prediction_key
 
@@ -1207,7 +1208,7 @@ def delete_project(project_name):
     """
     proj_keys = []
     cursor = r.table("projects").filter({"name": project_name})\
-                                .pluck("id").run(g.rdb_conn)
+                                .pluck("id").run(rdb_conn)
     for entry in cursor:
         proj_keys.append(entry["id"])
 
@@ -1229,9 +1230,9 @@ def delete_project(project_name):
                   "entries and associated data.")
         # Delete relevant 'userauth' table entries
         r.table("userauth").filter({"projkey": proj_key})\
-                           .delete().run(g.rdb_conn)
+                           .delete().run(rdb_conn)
     # Delete project entries
-    msg = r.table("projects").get_all(*proj_keys).delete().run(g.rdb_conn)
+    msg = r.table("projects").get_all(*proj_keys).delete().run(rdb_conn)
     print("Deleted", msg['deleted'], "projects.")
     return msg['deleted']
 
@@ -1261,7 +1262,7 @@ def get_project_details(project_name):
     """
     # TODO: add following info: associated featuresets, models
     entries = []
-    cursor = r.table("projects").filter({"name":project_name}).run(g.rdb_conn)
+    cursor = r.table("projects").filter({"name":project_name}).run(rdb_conn)
     for entry in cursor:
         entries.append(entry)
     if len(entries) == 1:
@@ -1269,7 +1270,7 @@ def get_project_details(project_name):
         cursor = (
             r.table("userauth")
             .filter({"projkey":proj_info["id"],"active":"y"})
-            .pluck("userkey").run(g.rdb_conn))
+            .pluck("userkey").run(rdb_conn))
         authed_users = []
         for entry in cursor:
             authed_users.append(entry["userkey"])
@@ -1334,7 +1335,7 @@ def get_authed_users(project_key):
     """
     authed_users = []
     cursor = (r.table("userauth").filter({"projkey":project_key})
-              .pluck("userkey").run(g.rdb_conn))
+              .pluck("userkey").run(rdb_conn))
     for entry in cursor:
         authed_users.append(entry["userkey"])
     return authed_users + sys_admin_emails
@@ -1357,7 +1358,7 @@ def project_name_to_key(projname):
     """
     projname = projname.strip().split(" (created")[0]
     cursor = (r.table("projects").filter({"name":projname})
-              .pluck("id").run(g.rdb_conn))
+              .pluck("id").run(rdb_conn))
     projkeys = []
     for entry in cursor:
         projkeys.append(entry['id'])
@@ -1401,7 +1402,7 @@ def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
         cursor = (
             r.table("features")
             .filter({"projkey":project_id, "name":featureset_name})
-            .pluck("id").run(g.rdb_conn))
+            .pluck("id").run(rdb_conn))
         for entry in cursor:
             featureset_key.append(entry["id"])
         try:
@@ -1452,24 +1453,24 @@ def update_project_info(
         .update({
             "name": new_name,
             "description": new_desc})
-        .run(g.rdb_conn))
+        .run(rdb_conn))
     already_authed_users = get_authed_users(projkey)
     for prev_auth in already_authed_users:
         if prev_auth not in new_addl_authed_users + [userkey]:
             (r.table("userauth")
                 .filter({"userkey":prev_auth,"projkey":projkey})
-                .delete().run(g.rdb_conn))
+                .delete().run(rdb_conn))
     for new_auth in new_addl_authed_users + [userkey]:
         if new_auth not in already_authed_users + [""]:
             (r.table("userauth")
                 .insert({"userkey":new_auth,"projkey":projkey,"active":"y"})
-                .run(g.rdb_conn))
+                .run(rdb_conn))
     if len(delete_prediction_keys) > 0:
         (r.table("predictions").get_all(*delete_prediction_keys)
-            .delete().run(g.rdb_conn))
+            .delete().run(rdb_conn))
     if len(delete_features_keys) > 0:
         (r.table("features").get_all(*delete_features_keys)
-            .delete().run(g.rdb_conn))
+            .delete().run(rdb_conn))
         for features_key in delete_features_keys:
             try:
                 os.remove(
@@ -1511,14 +1512,14 @@ def update_project_info(
         for model_key in delete_model_keys:
             cursor = (
                 r.table("models").filter({"id":model_key})
-                .pluck("projkey","name","type").run(g.rdb_conn))
+                .pluck("projkey","name","type").run(rdb_conn))
             for model_entry in cursor:
                 cursor2 = (
                     r.table("features")
                     .filter({
                         "projkey": model_entry["projkey"],
                         "name": model_entry["name"]})
-                    .pluck("id").run(g.rdb_conn))
+                    .pluck("id").run(rdb_conn))
                 for featset_entry in cursor2:
                     try:
                         os.remove(
@@ -1534,7 +1535,7 @@ def update_project_info(
                     print("Removed", os.path.join(
                         cfg.MODELS_FOLDER,
                         "%s_%s.pkl"%(featset_entry["id"],model_entry["type"])))
-        r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
+        r.table("models").get_all(*delete_model_keys).delete().run(rdb_conn)
     new_proj_details = get_project_details(new_name)
     return new_proj_details
 
@@ -1847,7 +1848,7 @@ def get_featureset_id_by_projname_and_featsetname(
     cursor = (
         r.table("features")
         .filter({"name":featureset_name,"projkey":projkey})
-        .pluck("id").run(g.rdb_conn))
+        .pluck("id").run(rdb_conn))
     featureset_id = []
     for entry in cursor:
         print(entry)
@@ -2637,7 +2638,7 @@ def load_source_data(prediction_entry_key,source_fname):
     """
     entries = []
     cursor = (r.table("predictions").filter({"id":prediction_entry_key})
-        .run(g.rdb_conn))
+        .run(rdb_conn))
     for entry in cursor:
         entries.append(entry)
     if len(entries) >= 1:
@@ -2674,11 +2675,11 @@ def load_prediction_results(prediction_key):
         results in HTML markup.
 
     """
-    results_dict = r.table("predictions").get(prediction_key).run(g.rdb_conn)
+    results_dict = r.table("predictions").get(prediction_key).run(rdb_conn)
     if results_dict is not None and "results_str_html" in results_dict:
         if ("An error occurred" in results_dict["results_str_html"] or
                 "Error occurred" in results_dict["results_str_html"]):
-            r.table("predictions").get(prediction_key).delete().run(g.rdb_conn)
+            r.table("predictions").get(prediction_key).delete().run(rdb_conn)
             print("Deleted prediction entry with key", prediction_key)
 
         return jsonify(results_dict)
@@ -2707,11 +2708,11 @@ def load_model_build_results(model_key):
         details.
 
     """
-    results_dict = r.table("models").get(model_key).run(g.rdb_conn)
+    results_dict = r.table("models").get(model_key).run(rdb_conn)
     if results_dict is not None and "results_msg" in results_dict:
         if ("Error occurred" in results_dict["results_msg"] or
                 "An error occurred" in results_dict["results_msg"]):
-            r.table("models").get(model_key).delete().run(g.rdb_conn)
+            r.table("models").get(model_key).delete().run(rdb_conn)
             print("Deleted model entry with key", model_key)
         return jsonify(results_dict)
     else:
@@ -2740,7 +2741,7 @@ def load_featurization_results(new_featset_key):
         set status message.
 
     """
-    results_dict = r.table("features").get(new_featset_key).run(g.rdb_conn)
+    results_dict = r.table("features").get(new_featset_key).run(rdb_conn)
     if (results_dict is not None and "results_msg" in results_dict and
             results_dict["results_msg"] is not None):
         if ("Error occurred" in str(results_dict["results_msg"]) or
@@ -2776,7 +2777,7 @@ def load_featurization_results(new_featset_key):
                     print("Deleted", results_dict["custom_features_script"])
                 except Exception as err:
                     print(err)
-            r.table("features").get(new_featset_key).delete().run(g.rdb_conn)
+            r.table("features").get(new_featset_key).delete().run(rdb_conn)
             print("Deleted feature set entry with key", new_featset_key)
 
         return jsonify(results_dict)
@@ -2823,7 +2824,7 @@ def prediction_proc(
         featureset_name = model_name, project_name = project_name)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script=None
-    cursor = r.table("features").get(featset_key).run(g.rdb_conn)
+    cursor = r.table("features").get(featset_key).run(rdb_conn)
     entry=cursor
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
