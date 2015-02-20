@@ -324,7 +324,7 @@ def check_user_table():
             g.user['email'], "already in users db.")
 
 
-def update_model_entry_with_pid(new_model_key,pid):
+def update_model_entry_with_pid(new_model_key, pid):
     """Update RethinkDB model entry with process ID.
 
     Add process ID to model entry with key `new_model_key` in
@@ -343,12 +343,12 @@ def update_model_entry_with_pid(new_model_key,pid):
 
     """
     (r.table('models').get(str(new_model_key).strip())
-        .update({"pid":str(pid)}).run(rdb_conn))
+        .update({"pid": str(pid)}).run(rdb_conn))
     return new_model_key
 
 
 
-def update_featset_entry_with_pid(featset_key,pid):
+def update_featset_entry_with_pid(featset_key, pid):
     """Update RethinkDB feature set entry with process ID.
 
     Add process ID to feature set entry with key `featset_key` in
@@ -373,7 +373,7 @@ def update_featset_entry_with_pid(featset_key,pid):
 
 
 
-def update_prediction_entry_with_pid(prediction_key,pid):
+def update_prediction_entry_with_pid(prediction_key, pid):
     """Update RethinkDB prediction entry with process ID.
 
     Add process ID to prediction entry with key `prediction_key` in
@@ -399,9 +399,9 @@ def update_prediction_entry_with_pid(prediction_key,pid):
 
 
 
-def update_prediction_entry_with_results(
-    prediction_entry_key, html_str, features_dict, ts_data_dict,
-    pred_results_list_dict, err=None):
+def update_prediction_entry_with_results(prediction_entry_key, html_str,
+                                         features_dict, ts_data_dict,
+                                         pred_results_list_dict, err=None):
     """Update RethinkDB prediction entry with results data.
 
     Add features generated, prediction results and ts data to entry in
@@ -432,18 +432,18 @@ def update_prediction_entry_with_results(
         True.
 
     """
-    info_dict = {
-        "results_str_html":html_str,
-        "features_dict":features_dict,
-        "ts_data_dict":ts_data_dict,
-        "pred_results_list_dict":pred_results_list_dict }
-    if err is not None: info_dict["err_msg"] = err
-    (r.table("predictions").get(prediction_entry_key)
-        .update(info_dict).run(rdb_conn))
+    info_dict = {"results_str_html": html_str,
+                 "features_dict": features_dict,
+                 "ts_data_dict": ts_data_dict,
+                 "pred_results_list_dict": pred_results_list_dict}
+    if err is not None:
+        info_dict["err_msg"] = err
+    r.table("predictions").get(prediction_entry_key)\
+                          .update(info_dict).run(rdb_conn)
     return True
 
 
-def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
+def update_model_entry_with_results_msg(model_key, model_built_msg, err=None):
     """Update RethinkDB model entry with results message.
 
     Add success/error message to model entry with key `model_key`
@@ -465,13 +465,15 @@ def update_model_entry_with_results_msg(model_key,model_built_msg,err=None):
         `model_key`, as provided in function call parameters.
 
     """
-    info_dict = {"results_msg":model_built_msg}
-    if err is not None: info_dict["err_msg"] = err
+    info_dict = {"results_msg": model_built_msg}
+    if err is not None:
+        info_dict["err_msg"] = err
     r.table('models').get(model_key).update(info_dict).run(rdb_conn)
     return model_key
 
 
-def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
+def update_featset_entry_with_results_msg(featureset_key, results_str,
+                                          err=None):
     """Update RethinkDB feature set entry with results message.
 
     Add success/error message to feature set entry with key
@@ -493,8 +495,9 @@ def update_featset_entry_with_results_msg(featureset_key,results_str,err=None):
         `featureset_key`, as provided in function call parameters.
 
     """
-    info_dict = {"results_msg":results_str}
-    if err is not None: info_dict["err_msg"] = err
+    info_dict = {"results_msg": results_str}
+    if err is not None:
+        info_dict["err_msg"] = err
     r.table('features').get(featureset_key).update(info_dict).run(rdb_conn)
     return featureset_key
 
@@ -511,7 +514,7 @@ def get_current_userkey():
         User key/ID.
 
     """
-    cursor = r.table("users").filter({"email":g.user['email']}).run(rdb_conn)
+    cursor = r.table("users").filter({"email": g.user['email']}).run(rdb_conn)
     n_entries = 0
     entries = []
     for entry in cursor:
@@ -538,15 +541,14 @@ def get_all_projkeys():
         A list of project keys (strings).
 
     """
-    cursor = (r.table('userauth').map(lambda entry: entry['projkey'])
-        .run(rdb_conn))
+    cursor = r.table("projects").run(rdb_conn)
     proj_keys = []
     for entry in cursor:
-        proj_keys.append(entry)
+        proj_keys.append(entry["id"])
     return proj_keys
 
 
-def get_authed_projkeys():
+def get_authed_projkeys(this_userkey=None):
     """Return all project keys that current user is authenticated for.
 
     Returns
@@ -555,10 +557,11 @@ def get_authed_projkeys():
         A list of project keys (strings).
 
     """
-    this_userkey = get_current_userkey()
+    if this_userkey is None:
+        this_userkey = get_current_userkey()
     cursor = r.table('userauth').filter({
-        "userkey":this_userkey,
-        "active":"y"
+        "userkey": this_userkey,
+        "active": "y"
     }).map(lambda entry: entry['projkey']).run(rdb_conn)
     proj_keys = []
     for entry in cursor:
@@ -596,8 +599,8 @@ def list_featuresets(
     if by_project:
         this_projkey = project_name_to_key(by_project)
         cursor = (
-            r.table("features").filter({"projkey":this_projkey})
-            .pluck("name","created","id","featlist").run(rdb_conn))
+            r.table("features").filter({"projkey": this_projkey})
+            .pluck("name", "created", "id", "featlist").run(rdb_conn))
         if as_html_table_string:
             authed_featuresets = (
                 "<table id='features_table' style='display:none;'>" +
@@ -625,7 +628,7 @@ def list_featuresets(
                                 ', '.join(entry['featlist']))) +
                                 ("</div></td><td align='center'><input "
                                 "type='checkbox' name='delete_features_key' "
-                                "value='%s'></td></tr>")%entry['id'])
+                                "value='%s'></td></tr>") % entry['id'])
                 count += 1
             authed_featuresets += "</table>"
         else:
@@ -643,7 +646,7 @@ def list_featuresets(
         authed_featuresets = []
         for this_projkey in authed_proj_keys:
             cursor = (
-                r.table("features").filter({"projkey":this_projkey})
+                r.table("features").filter({"projkey": this_projkey})
                 .pluck("name","created").run(rdb_conn))
             authed_featuresets = []
             for entry in cursor:
@@ -1087,22 +1090,21 @@ def add_prediction(
 def project_associated_files(proj_key):
     """Return list of saved files associated with specified project.
     """
-    conn = establish_rdb_connection()
     fpaths = []
 
     prediction_keys = []
     features_keys = []
     model_keys = []
-    cursor = (r.table("predictions").filter({"projkey": proj_key})
-    .pluck("id").run(conn))
+    cursor = r.table("predictions").filter({"projkey": proj_key})\
+                                   .pluck("id").run(rdb_conn)
     for entry in cursor:
         prediction_keys.append(entry["id"])
-    cursor = (r.table("features").filter({"projkey": proj_key})
-        .pluck("id").run(conn))
+    cursor = r.table("features").filter({"projkey": proj_key})\
+                                .pluck("id").run(rdb_conn)
     for entry in cursor:
         features_keys.append(entry["id"])
-    cursor = (r.table("models").filter({"projkey": proj_key})
-        .pluck("id").run(conn))
+    cursor = r.table("models").filter({"projkey": proj_key})\
+                              .pluck("id").run(rdb_conn)
     for entry in cursor:
         model_keys.append(entry["id"])
 
@@ -1112,18 +1114,15 @@ def project_associated_files(proj_key):
         for newpath in model_associated_files(model_key):
             if newpath not in fpaths:
                 fpaths.append(newpath)
-    conn.close()
     return fpaths
 
 
 def model_associated_files(model_key):
     """Return list of saved files associated with specified model.
     """
-    conn = establish_rdb_connection()
-    entry_dict = r.table("models").get(model_key).run(conn)
+    entry_dict = r.table("models").get(model_key).run(rdb_conn)
     featset_key = entry_dict["featset_key"]
     model_type = entry_dict["type"]
-    conn.close()
     fpaths = [os.path.join(cfg.MODELS_FOLDER,
                            "%s_%s.pkl" % (featset_key, model_type))]
     fpaths += featset_associated_files(featset_key)
@@ -1133,7 +1132,6 @@ def model_associated_files(model_key):
 def featset_associated_files(featset_key):
     """Return list of saved files associated with specified feature set.
     """
-    conn = establish_rdb_connection()
     fpaths = []
     fpaths.extend(
         [os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
@@ -1142,12 +1140,11 @@ def featset_associated_files(featset_key):
              os.path.dirname(__file__), "static"),
                                    "data"),
                       "%s_features_with_classes.csv" % featset_key)])
-    entry_dict = r.table("features").get(featset_key).run(conn)
+    entry_dict = r.table("features").get(featset_key).run(rdb_conn)
     for key in ("headerfile_path", "zipfile_path", "custom_features_script"):
         if entry_dict and key in entry_dict:
             if entry_dict[key]:
                 fpaths.append(entry_dict[key])
-    conn.close()
     return fpaths
 
 
@@ -1162,10 +1159,9 @@ def delete_associated_project_data(table_name, proj_key):
     get_files_func_dict = {"features": featset_associated_files,
                            "models": model_associated_files,
                            "predictions": prediction_associated_files}
-    conn = establish_rdb_connection()
     delete_keys = []
     cursor = r.table(table_name).filter({"projkey": proj_key})\
-                                .pluck("id").run(conn)
+                                .pluck("id").run(rdb_conn)
     for entry in cursor:
         delete_keys.append(entry["id"])
     for feat_key in delete_keys:
@@ -1179,10 +1175,9 @@ def delete_associated_project_data(table_name, proj_key):
                     print(e)
     if len(delete_keys) > 0:
         n_deleted = r.table(table_name).get_all(*delete_keys)\
-                                       .delete().run(conn)["deleted"]
+                                       .delete().run(rdb_conn)["deleted"]
     else:
         n_deleted = 0
-    conn.close()
     return n_deleted
 
 
