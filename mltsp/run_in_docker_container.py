@@ -116,17 +116,18 @@ def featurize_in_docker_container(
             status_code = call(cmd, stdout=PIPE, stderr=PIPE)
             print(
                 os.path.join(
-                    cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)),
+                    cfg.FEATURES_FOLDER,"%s_%s" % (featureset_key,
+                                                   file_suffix)),
                 "copied to host machine - status code %s" % str(status_code))
 
         shutil.copy2(
             os.path.join(
                 cfg.FEATURES_FOLDER,
-                "%s_features_with_classes.csv"%featureset_key),
-            os.path.join(cfg.MLTSP_PACKAGE_PATH,"Flask/static/data"))
+                "%s_features_with_classes.csv" % featureset_key),
+            os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
         os.remove(os.path.join(
             cfg.FEATURES_FOLDER,
-            "%s_features_with_classes.csv"%featureset_key))
+            "%s_features_with_classes.csv" % featureset_key))
         print("Process complete.")
     except:
         raise
@@ -231,10 +232,10 @@ def build_model_in_docker_container(
 
 
 def predict_in_docker_container(
-    newpred_file_path, project_name, model_name, model_type,
-    prediction_entry_key, featset_key, sep=",", n_cols_html_table=5,
-    features_already_extracted=None, metadata_file=None,
-    custom_features_script=None):
+        newpred_file_path, model_name, model_type, prediction_entry_key,
+        featset_key, sep=",", n_cols_html_table=5,
+        features_already_extracted=None, metadata_file=None,
+        custom_features_script=None):
     """Generate features and perform classification in Docker container.
 
     Spins up a Docker container in which the
@@ -246,8 +247,6 @@ def predict_in_docker_container(
     newpred_file_path : str
         Path to file containing time series data for featurization and
         prediction.
-    project_name : str
-        Name of the project associated with the model to be used.
     model_name : str
         Name of the model to be used.
     model_type : str
@@ -304,18 +303,18 @@ def predict_in_docker_container(
         arguments["metadata_file"] = os.path.join(
             "/home/mltsp/copied_data_files", ntpath.basename(metadata_file))
 
-    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    arguments["path_map"] = {copied_data_dir: "/home/mltsp/copied_data_files"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
         pickle.dump(arguments, f, protocol=2)
     try:
         cmd = ["docker", "run",
-                "-v", "%s:/home/mltsp"%cfg.PROJECT_PATH,
-                "-v", "%s:%s"%(cfg.FEATURES_FOLDER,"/Data/features"),
-                "-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"),
-                "-v", "%s:%s"%(cfg.MODELS_FOLDER,"/Data/models"),
-                "--name=%s"%container_name,
+                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
+                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"),
+                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"),
+                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),
+                "--name=%s" % container_name,
                 "mltsp/predict"]
         process = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = process.communicate()
@@ -332,7 +331,7 @@ def predict_in_docker_container(
         status_code = call(cmd, stdout=PIPE, stderr=PIPE)
         print("/tmp/%s_pred_results.pkl" % prediction_entry_key,
               "copied to host machine - status code %s" % str(status_code))
-        with open("/tmp/%s_pred_results.pkl"%prediction_entry_key, "rb") as f:
+        with open("/tmp/%s_pred_results.pkl" % prediction_entry_key, "rb") as f:
             pred_results_dict = pickle.load(f)
         if type(pred_results_dict) != dict:
             print(("run_in_docker_container.predict_in_docker_container() - " +
