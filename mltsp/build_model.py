@@ -112,7 +112,7 @@ def clean_up_data_dict(data_dict):
 
 
 def create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container, models_folder):
+                            in_docker_container):
     """
     """
     # Build the model:
@@ -131,17 +131,17 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
     # Store the model:
     print("Pickling model...")
     foutname = os.path.join(
-        ("/tmp" if in_docker_container else models_folder),
+        ("/tmp" if in_docker_container else cfg.MODELS_FOLDER),
         "%s_%s.pkl" % (featureset_key, model_type))
     joblib.dump(rf_fit, foutname, compress=3)
     print(foutname, "created.")
 
 
-def read_features_data_from_disk(featureset_key, features_folder):
+def read_features_data_from_disk(featureset_key):
     """
     """
     features_filename = os.path.join(
-        features_folder, "%s_features.csv" % featureset_key)
+        cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
     # Read in feature data and class list
     features_extracted, all_data = read_data_from_csv_file(features_filename)
     classes = joblib.load(
@@ -186,22 +186,14 @@ def build_model(
         Human-readable message indicating successful completion.
 
     """
-    # Determine which directory paths to use
-    if in_docker_container:
-        features_folder = "/Data/features/"
-        models_folder = "/Data/models/"
-    else:
-        features_folder = cfg.FEATURES_FOLDER
-        models_folder = cfg.MODELS_FOLDER
-
-    data_dict = read_features_data_from_disk(featureset_key, features_folder)
+    data_dict = read_features_data_from_disk(featureset_key)
 
     class_count, sorted_class_list = count_classes(data_dict["classes"])
 
     clean_up_data_dict(data_dict)
 
     create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container, models_folder)
+                            in_docker_container)
 
     print("DONE!")
     return ("New model successfully created. Click the Predict tab to "

@@ -59,11 +59,11 @@ def parse_metadata_file(metadata_file_path):
     return meta_features
 
 
-def determine_feats_used(featset_key, features_folder):
+def determine_feats_used(featset_key):
     """
     """
     with open(os.path.join(
-            features_folder,"%s_features.csv" % featset_key)) as f:
+            cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key)) as f:
         features_in_model = f.readline().strip().split(',')
     return features_in_model
 
@@ -84,7 +84,7 @@ def parse_ts_data(filepath, sep):
 
 def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
                                 features_to_use, custom_features_script,
-                                meta_features, uploads_folder, sep=","):
+                                meta_features, sep=","):
     """
     """
     the_tarfile = tarfile.open(newpred_file_path)
@@ -94,15 +94,13 @@ def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
     for fname in all_fnames:
         short_fname = ntpath.basename(fname)
         big_features_and_tsdata_dict[short_fname] = featurize_single(
-            fname, features_to_use, uploads_folder,
-            custom_features_script, meta_features, tmp_dir_path=tmp_dir_path,
-            sep=sep)[short_fname]
+            fname, features_to_use, custom_features_script, meta_features,
+            tmp_dir_path=tmp_dir_path, sep=sep)[short_fname]
     return big_features_and_tsdata_dict
 
 
-def featurize_single(newpred_file_path, features_to_use, uploads_folder,
-                     custom_features_script, meta_features, tmp_dir_path="/tmp",
-                     sep=","):
+def featurize_single(newpred_file_path, features_to_use, custom_features_script,
+                     meta_features, tmp_dir_path="/tmp", sep=","):
     """
     """
     big_features_and_tsdata_dict = {}
@@ -112,9 +110,10 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
         filepath = fname
     elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
         filepath = os.path.join(tmp_dir_path, fname)
-    elif os.path.isfile(os.path.join(os.path.join(uploads_folder, "unzipped"),
+    elif os.path.isfile(os.path.join(os.path.join(cfg.UPLOAD_FOLDER,
+                                                  "unzipped"),
                                      fname)):
-        filepath = os.path.join(uploads_folder, fname)
+        filepath = os.path.join(cfg.UPLOAD_FOLDER, fname)
     else:
         print(fname + " is not a file...")
         return {}
@@ -164,10 +163,9 @@ def featurize_single(newpred_file_path, features_to_use, uploads_folder,
     return big_features_and_tsdata_dict
 
 
-def featurize_tsdata(newpred_file_path, uploads_folder, features_folder,
-                     featset_key, custom_features_script, metadata_file_path,
-                     features_already_extracted, features_to_use,
-                     in_docker_container):
+def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
+                     metadata_file_path, features_already_extracted,
+                     features_to_use, in_docker_container):
     """
     """
     meta_features = parse_metadata_file(metadata_file_path)
@@ -177,7 +175,7 @@ def featurize_tsdata(newpred_file_path, uploads_folder, features_folder,
 
     if tarfile.is_tarfile(newpred_file_path):
         tmp_dir_path = os.path.join(os.path.join(
-            uploads_folder, "unzipped"), str(uuid.uuid4()))
+            cfg.UPLOAD_FOLDER, "unzipped"), str(uuid.uuid4()))
         os.mkdir(tmp_dir_path)
         if DISCO_INSTALLED and not in_docker_container:# #TEMP#
             big_features_and_tsdata_dict = (
@@ -196,13 +194,13 @@ def featurize_tsdata(newpred_file_path, uploads_folder, features_folder,
         else:
             big_features_and_tsdata_dict = featurize_multiple_serially(
                 newpred_file_path, tmp_dir_path, features_to_use,
-                custom_features_script, meta_features, uploads_folder)
+                custom_features_script, meta_features)
         shutil.rmtree(tmp_dir_path, ignore_errors=True)
 
     else:
         big_features_and_tsdata_dict = featurize_single(
-            newpred_file_path, features_to_use, uploads_folder,
-            custom_features_script, meta_features)
+            newpred_file_path, features_to_use, custom_features_script,
+            meta_features)
 
     return big_features_and_tsdata_dict
 
@@ -231,14 +229,13 @@ def create_feat_dict_and_list(new_obj, features_to_use, features_extracted):
     return (newFeatures, features_dict)
 
 
-def add_to_predict_results_dict(results_dict, classifier_preds, fname,
-                                ts_data, features_dict, features_folder,
-                                featset_key, n_cols_html_table):
+def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
+                                features_dict, featset_key, n_cols_html_table):
     """
     """
     # Load model class list
     all_objs_class_list = joblib.load(os.path.join(
-        features_folder,"%s_classes.pkl" % featset_key))
+        cfg.FEATURES_FOLDER, "%s_classes.pkl" % featset_key))
     sorted_class_list = []
     for i in sorted(all_objs_class_list):
         if i not in sorted_class_list:
@@ -270,8 +267,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname,
     return
 
 
-def do_model_predictions(big_features_and_tsdata_dict, models_folder,
-                         features_folder, featset_key, model_type,
+def do_model_predictions(big_features_and_tsdata_dict, featset_key, model_type,
                          features_to_use, n_cols_html_table):
     """
 
@@ -289,13 +285,13 @@ def do_model_predictions(big_features_and_tsdata_dict, models_folder,
 
         # Load model
         rfc_model = joblib.load(os.path.join(
-            models_folder, "%s_%s.pkl" % (featset_key, model_type)))
+            cfg.MODELS_FOLDER, "%s_%s.pkl" % (featset_key, model_type)))
 
         # Do probabilistic model prediction
         classifier_preds = rfc_model.predict_proba(np.array(newFeatures))
         add_to_predict_results_dict(
             results_dict, classifier_preds, fname, ts_data, features_dict,
-            features_folder, featset_key, n_cols_html_table)
+            featset_key, n_cols_html_table)
 
     return results_dict
 
@@ -359,24 +355,16 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
 
     """
     print("predict_class - predict() called.")
-    if in_docker_container:
-        features_folder = "/Data/features/"
-        models_folder = "/Data/models/"
-        uploads_folder = "/Data/flask_uploads/"
-    else:
-        features_folder = cfg.FEATURES_FOLDER
-        models_folder = cfg.MODELS_FOLDER
-        uploads_folder = cfg.UPLOAD_FOLDER
 
-    features_to_use = determine_feats_used(featset_key, features_folder)
+    features_to_use = determine_feats_used(featset_key)
 
     big_features_and_tsdata_dict = featurize_tsdata(
-        newpred_file_path, uploads_folder, features_folder, featset_key,
-        custom_features_script, metadata_file_path, features_already_extracted,
+        newpred_file_path, featset_key, custom_features_script,
+        metadata_file_path, features_already_extracted,
         features_to_use, in_docker_container)
 
     pred_results_dict = do_model_predictions(
-        big_features_and_tsdata_dict, models_folder, features_folder,
-        featset_key, model_type, features_to_use, n_cols_html_table)
+        big_features_and_tsdata_dict, featset_key, model_type, features_to_use,
+        n_cols_html_table)
 
     return pred_results_dict

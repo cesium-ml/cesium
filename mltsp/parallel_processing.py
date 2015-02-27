@@ -119,39 +119,29 @@ def pred_featurize_reduce(iter, params):
     from mltsp import custom_exceptions
     import mltsp
 
-    if mltsp.parallel_processing.currently_running_in_docker_container():
-        features_folder = "/Data/features/"
-        models_folder = "/Data/models/"
-        uploads_folder = "/Data/flask_uploads/"
-    else:
-        features_folder = cfg.FEATURES_FOLDER
-        models_folder = cfg.MODELS_FOLDER
-        uploads_folder = cfg.UPLOAD_FOLDER
-
     for fname, junk in kvgroup(sorted(iter)):
         if os.path.isfile(fname):
             fpath = fname
         elif os.path.isfile(os.path.join(params["tmp_dir_path"], fname)):
             fpath = os.path.join(params["tmp_dir_path"], fname)
         elif os.path.isfile(
-                os.path.join(os.path.join(uploads_folder, "unzipped"), fname)):
+                os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
+                             fname)):
             fpath = os.path.join(
-                os.path.join(uploads_folder, "unzipped"), fname)
+                os.path.join(cfg.UPLOAD_FOLDER, "unzipped"), fname)
         else:
-            print((fname if uploads_folder in fname else
-                os.path.join(uploads_folder, fname)) + " is not a file...")
-            if (os.path.exists(os.path.join(uploads_folder, fname)) or
+            print((fname if cfg.UPLOAD_FOLDER in fname else
+                os.path.join(cfg.UPLOAD_FOLDER, fname)) + " is not a file...")
+            if (os.path.exists(os.path.join(cfg.UPLOAD_FOLDER, fname)) or
                     os.path.exists(fname)):
                 print("But it does exist on the disk.")
             else:
                 print("and in fact it doesn't even exist.")
             continue
 
-        features_to_use = pred.determine_feats_used(featset_key,
-                                                    features_folder)
+        features_to_use = pred.determine_feats_used(featset_key)
         big_feats_and_tsdata_dict = pred.featurize_single(
-            fpath, features_to_use, uploads_folder, custom_features_script,
-            meta_features)
+            fpath, features_to_use, custom_features_script, meta_features)
 
         os.remove(fpath)
         short_fname = ntpath.basename(fpath)
@@ -352,18 +342,9 @@ def featurize_reduce(iter, params):
         from mltsp import featurize
         import mltsp
 
-        if mltsp.parallel_processing.currently_running_in_docker_container():
-            features_folder = "/Data/features/"
-            models_folder = "/Data/models/"
-            uploads_folder = "/Data/flask_uploads/"
-        else:
-            features_folder = cfg.FEATURES_FOLDER
-            models_folder = cfg.MODELS_FOLDER
-            uploads_folder = cfg.UPLOAD_FOLDER
-
         short_fname = os.path.splitext(ntpath.basename(fname))[0]
         path_to_csv = os.path.join(
-            uploads_folder, os.path.join("unzipped", fname))
+            cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
         if os.path.isfile(path_to_csv):
             print("Extracting features for " + fname)
             all_features = featurize.featurize_tsdata_object(
@@ -455,15 +436,6 @@ def featurize_in_parallel(
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 
-    if currently_running_in_docker_container():
-        features_folder = "/Data/features/"
-        models_folder = "/Data/models/"
-        uploads_folder = "/Data/flask_uploads/"
-    else:
-        features_folder = cfg.FEATURES_FOLDER
-        models_folder = cfg.MODELS_FOLDER
-        uploads_folder = cfg.UPLOAD_FOLDER
-
     if len(features_to_use) == 0:
         features_to_use = all_features_list
 
@@ -480,7 +452,7 @@ def featurize_in_parallel(
             line_no += 1
 
     zipfile = tarfile.open(zipfile_path)
-    zipfile.extractall(path=os.path.join(uploads_folder, "unzipped"))
+    zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER, "unzipped"))
     all_fnames = zipfile.getnames()
     num_objs = len(fname_class_dict)
     zipfile_name = ntpath.basename(zipfile_path)
