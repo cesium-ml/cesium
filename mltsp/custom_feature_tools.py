@@ -304,12 +304,13 @@ def execute_functions_in_order(
 
 
 def docker_installed():
-    """Return boolean indicating whether Docker is installed."""
-    from subprocess import call, PIPE
-    try:
-        x = call(["docker"], stdout=PIPE, stderr=PIPE)
+    """Return boolean indicating whether Docker images are present."""
+    from docker import Client
+    cli = Client(base_url='unix://var/run/docker.sock')
+    img_ids = cli.images(quiet=True)
+    if len(img_ids) > 0:
         return True
-    except OSError:
+    else:
         return False
 
 
@@ -434,38 +435,41 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
 def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     """
+    from docker import Client
+    from . import run_in_docker_container as ridc
     # Spin up Docker contain and extract custom feats
-    cmd = ["docker", "run",
-            "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-            "--name=%s" % container_name,
-            "mltsp/extract_custom_feats"]
-    process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    # Grab outputs
-    stdout, stderr = process.communicate()
+    # Instantiate Docker client
+    client = Client(base_url='unix://var/run/docker.sock')
+    # Create container
+    cont_id = client.create_container(
+        "mltsp/extract_custom_feats",
+        volumes={"/home/mltsp": ""})["Id"]
+    # Start container
+    client.start(cont_id,
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+    # Wait for process to complete
+    client.wait(cont_id)
+    stdout = client.logs(container=cont_id, stdout=True)
+    stderr = client.logs(container=cont_id, stderr=True)
     if str(stderr).strip() != "" and stderr != b'':
         print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
     # Copy pickled results data from Docker container to host
-    cmd = ["docker", "cp",
-           "%s:/tmp/results_list_of_dict.pkl" % container_name,
-           path_to_tmp_dir]
-    status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-    print("/tmp/results_list_of_dict.pkl", \
-          "copied to host machine - status code %s" % str(status_code))
+
+    ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
+                     target=path_to_tmp_dir)
+    print("/tmp/results_list_of_dict.pkl copied to host machine.")
     # Load pickled results data
     with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
               "rb") as f:
         results_list_of_dict = pickle.load(f)
-
+    # Kill and remove the container
+    client.remove_container(container=cont_id, force=True)
     return results_list_of_dict
 
 
-def remove_tmp_files_and_container(container_name, path_to_tmp_dir):
+def remove_tmp_files(path_to_tmp_dir):
     """
     """
-    # Delete used container
-    cmd = ["docker", "rm", "-f", container_name]
-    status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-    print("Docker container deleted.")
     # Remove tmp dir
     shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
     for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
@@ -544,7 +548,7 @@ def docker_extract_features(
     except:
         raise
     finally:
-        remove_tmp_files_and_container(container_name, path_to_tmp_dir)
+        remove_tmp_files(path_to_tmp_dir)
     return results_list_of_dict
 
 

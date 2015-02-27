@@ -188,7 +188,7 @@ def test_extract_feats_in_docker_container():
 
 
 def test_remove_tmp_files_and_container():
-    cft.remove_tmp_files_and_container("test", "/tmp/mltsp_test")
+    cft.remove_tmp_files("/tmp/mltsp_test")
     assert(not os.path.exists("/tmp/mltsp_test"))
     for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                                   "custom_feature_defs.py"),
