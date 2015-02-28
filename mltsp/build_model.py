@@ -72,6 +72,18 @@ def read_data_from_csv_file(fname, sep=',', skip_lines=0):
 def count_classes(classes):
     """Count total number of objects per class.
 
+    Parameters
+    ----------
+    classes : list of str
+        List of classes
+
+    Returns
+    ------
+    tuple
+        Two-element tuple consisting of a dict whose keys are class names
+        and values are number of occurrences, and a (sorted) list of unique
+        class names.
+
     """
     # Count up total num of objects per class
     class_count = {}
@@ -88,7 +100,12 @@ def count_classes(classes):
 
 
 def clean_up_data_dict(data_dict):
-    """Remove any empty lines from data.
+    """Remove any empty lines from data (modifies dict in place).
+
+    Parameters
+    ----------
+    data_dict : dict
+        Dictionary containing features data w/ key 'features'.
 
     """
     print("\n\n")
@@ -113,7 +130,7 @@ def clean_up_data_dict(data_dict):
 
 def create_and_pickle_model(data_dict, featureset_key, model_type,
                             in_docker_container):
-    """
+    """Create scikit-learn RFC model object and save it to disk.
     """
     # Build the model:
     # Initialize

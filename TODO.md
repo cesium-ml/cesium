@@ -1,4 +1,4 @@
+- Flask unit testing
 - Port TCP code to Python 3
-- Use docker-py instead of subprocess.call to manage Docker containers
 - Fix feature data location and plotting
-- Modules with incomplete unit tests: flask_app, run_in_docker_container, 
+- Needs refactoring: run_in_docker_container; flask_app
