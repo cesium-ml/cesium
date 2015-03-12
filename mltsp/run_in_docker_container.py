@@ -116,9 +116,12 @@ def featurize_in_docker_container(
     with open(function_args_path, "wb") as f:
         pickle.dump(arguments, f, protocol=2)
 
+
+    cont_id = None
     try:
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock')
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
         # Create container
         cont_id = container_name = client.create_container(
             "mltsp/featurize",
@@ -152,8 +155,8 @@ def featurize_in_docker_container(
             cfg.FEATURES_FOLDER,
             "%s_features_with_classes.csv" % featureset_key))
         print("Process complete.")
-    except:
-        raise
+    except Exception as e:
+        raise(e)
     finally:
         # Delete temp directory and its contents
         shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
@@ -162,8 +165,13 @@ def featurize_in_docker_container(
                 os.remove(tmp_file_path)
             except Exception as e:
                 print(e)
+
         # Kill and remove the container
-        client.remove_container(container=cont_id, force=True)
+        if cont_id is not None:
+            client.remove_container(container=cont_id, force=True)
+        else:
+            print('Docker instance never started successfully')
+
         print("Docker container deleted.")
     return "Featurization complete."
 
@@ -209,7 +217,8 @@ def build_model_in_docker_container(
         pickle.dump(arguments, f, protocol=2)
     try:
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock')
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
         # Create container
         cont_id = container_name = client.create_container(
             "mltsp/build_model",
@@ -327,7 +336,8 @@ def predict_in_docker_container(
         pickle.dump(arguments, f, protocol=2)
     try:
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock')
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
         # Create container
         cont_id = container_name = client.create_container(
             "mltsp/predict",
@@ -383,7 +393,8 @@ def disco_test():
 
     try:
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock')
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
         # Create container
         cont_id = container_name = client.create_container(
             "disco_test",

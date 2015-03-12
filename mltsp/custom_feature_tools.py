@@ -306,7 +306,8 @@ def execute_functions_in_order(
 def docker_installed():
     """Return boolean indicating whether Docker images are present."""
     from docker import Client
-    cli = Client(base_url='unix://var/run/docker.sock')
+    cli = Client(base_url='unix://var/run/docker.sock',
+                 version='1.14')
     img_ids = cli.images(quiet=True)
     if len(img_ids) > 0:
         return True
@@ -439,7 +440,8 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     from . import run_in_docker_container as ridc
     # Spin up Docker contain and extract custom feats
     # Instantiate Docker client
-    client = Client(base_url='unix://var/run/docker.sock')
+    client = Client(base_url='unix://var/run/docker.sock',
+                    version='1.14')
     # Create container
     cont_id = client.create_container(
         "mltsp/extract_custom_feats",
