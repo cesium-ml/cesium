@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 try:
     from urllib.request import urlopen
@@ -880,8 +881,7 @@ def getLocalLc(filename, classname='unknown', sep=',',
                     lcdata[i] = lcdata[i] + ["1.0"]
                 lcdata[i] = ','.join(lcdata[i])
             except TypeError:
-                for j in range(len(lcdata[i])):
-                    lcdata[i][j] = str(lcdata[i][j])
+                lcdata[i] = map(str, lcdata[i])
                 if len(lcdata[i]) == 2 and add_errors:
                     lcdata[i] = lcdata[i] + ["1.0"]
                 lcdata[i] = ','.join(lcdata[i])
@@ -891,7 +891,7 @@ def getLocalLc(filename, classname='unknown', sep=',',
         for line in f.readlines():
             if line.strip() != "":
                 if len(line.strip().split(sep)) == 2 and add_errors:
-                    line = line.strip()+sep+"1.0"
+                    line = line.strip() + sep + "1.0"
                 lcdata.append(line.strip())
         f.close()
     lcdata = '\n'.join(lcdata)

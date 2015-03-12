@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import glob
 from parse import parse
 from subprocess import call, Popen, PIPE
@@ -13,6 +14,7 @@ except:
     import pickle
 import uuid
 import shutil
+import numpy as np
 from . import cfg
 from . import lc_tools
 
@@ -119,7 +121,7 @@ def is_running_in_docker_container():
     return in_docker_container
 
 
-def parse_csv_file(fname,sep=',',skip_lines=0):
+def parse_csv_file(fname, sep=',', skip_lines=0):
     """Parse 2- or 3-column CSV file and return a list of its columns.
 
     Parameters
@@ -139,22 +141,18 @@ def parse_csv_file(fname,sep=',',skip_lines=0):
         empty lists.
 
     """
-    linecount = 0
-    t, m, e = [[], [], []]
     with open(fname) as f:
-        for line in f:
-            line = line.strip()
-            if linecount >= skip_lines:
-                if len(line.split(sep)) == 3:
-                    ti, mi, ei = line.split(sep)
-                    t.append(float(ti)); m.append(float(mi)); e.append(float(ei))
-                elif len(line.split(sep)) == 2:
-                    ti, mi = line.split(sep)
-                    t.append(float(ti)); m.append(float(mi))
-                else:
-                    linecount -= 1
-            linecount += 1
-    return [t, m, e]
+        ts_data = np.loadtxt(f, delimiter=",", skiprows=skip_lines)
+    ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
+    for row in ts_data:
+        if len(row) < 2:
+            raise custom_exceptions.DataFormatError(
+                "Incomplete or improperly formatted time "
+                "series data file provided.")
+    tme =  map(list, zip(*ts_data)) # Need t, m, and e in separate lists
+    if len(tme) == 2:
+        tme.append([]) # Add empty err col
+    return tme
 
 
 def parse_for_req_prov_params(script_fpath):
@@ -306,12 +304,14 @@ def execute_functions_in_order(
 
 
 def docker_installed():
-    """Return boolean indicating whether Docker is installed."""
-    from subprocess import call, PIPE
-    try:
-        x = call(["docker"], stdout=PIPE, stderr=PIPE)
+    """Return boolean indicating whether Docker images are present."""
+    from docker import Client
+    cli = Client(base_url='unix://var/run/docker.sock',
+                 version='1.14')
+    img_ids = cli.images(quiet=True)
+    if len(img_ids) > 0:
         return True
-    except OSError:
+    else:
         return False
 
 
@@ -354,15 +354,15 @@ def parse_tsdata_to_lists(ts_data):
 def parse_tsdata_from_file(ts_datafile_path):
     """
     """
-    tme = []
     with open(ts_datafile_path) as f:
-        all_lines = f.readlines()
-    for i in range(len(all_lines)):
-        if all_lines[i].strip() == "":
-            continue
-        else:
-            tme.append([x.strip() for x in all_lines[i].strip().split(",")])
-    return tme
+        ts_data = np.loadtxt(f, delimiter=",")
+    ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
+    for row in ts_data:
+        if len(row) < 2:
+            raise custom_exceptions.DataFormatError(
+                "Incomplete or improperly formatted time "
+                "series data file provided.")
+    return ts_data
 
 
 def add_tsdata_to_feats_known_dict(features_already_known_list,
@@ -436,38 +436,42 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
 def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     """
+    from docker import Client
+    from . import run_in_docker_container as ridc
     # Spin up Docker contain and extract custom feats
-    cmd = ["docker", "run",
-            "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-            "--name=%s" % container_name,
-            "mltsp/extract_custom_feats"]
-    process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    # Grab outputs
-    stdout, stderr = process.communicate()
+    # Instantiate Docker client
+    client = Client(base_url='unix://var/run/docker.sock',
+                    version='1.14')
+    # Create container
+    cont_id = client.create_container(
+        "mltsp/extract_custom_feats",
+        volumes={"/home/mltsp": ""})["Id"]
+    # Start container
+    client.start(cont_id,
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+    # Wait for process to complete
+    client.wait(cont_id)
+    stdout = client.logs(container=cont_id, stdout=True)
+    stderr = client.logs(container=cont_id, stderr=True)
     if str(stderr).strip() != "" and stderr != b'':
         print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
     # Copy pickled results data from Docker container to host
-    cmd = ["docker", "cp",
-           "%s:/tmp/results_list_of_dict.pkl" % container_name,
-           path_to_tmp_dir]
-    status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-    print("/tmp/results_list_of_dict.pkl", \
-          "copied to host machine - status code %s" % str(status_code))
+
+    ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
+                     target=path_to_tmp_dir)
+    print("/tmp/results_list_of_dict.pkl copied to host machine.")
     # Load pickled results data
     with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
               "rb") as f:
         results_list_of_dict = pickle.load(f)
-
+    # Kill and remove the container
+    client.remove_container(container=cont_id, force=True)
     return results_list_of_dict
 
 
-def remove_tmp_files_and_container(container_name, path_to_tmp_dir):
+def remove_tmp_files(path_to_tmp_dir):
     """
     """
-    # Delete used container
-    cmd = ["docker", "rm", "-f", container_name]
-    status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
-    print("Docker container deleted.")
     # Remove tmp dir
     shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
     for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
@@ -546,7 +550,7 @@ def docker_extract_features(
     except:
         raise
     finally:
-        remove_tmp_files_and_container(container_name, path_to_tmp_dir)
+        remove_tmp_files(path_to_tmp_dir)
     return results_list_of_dict
 
 
@@ -673,9 +677,9 @@ def generate_custom_features(
         List of dictionaries containing newly-generated features.
 
     """
-    if path_to_csv not in [None, False]:
+    if path_to_csv:
         t, m, e = parse_csv_file(path_to_csv)
-    elif ts_data not in [None, False]:
+    elif ts_data:
         if len(ts_data[0]) == 3:
             t, m, e = list(zip(*ts_data))
         if len(ts_data[0]) == 2:

@@ -2,7 +2,7 @@
 #
 # Config file for MLTSP app.
 #
-
+from __future__ import print_function
 import os, sys
 
 # Specify path to project directory:

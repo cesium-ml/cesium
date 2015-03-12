@@ -55,8 +55,8 @@ def disco_test():
         disco_word_count()
         results_str = 'OK'
         ## results_str = featurize.featurize(
-        ##     "/Data/sample_lcs/asas_training_set_classes.dat",
-        ##     "/Data/sample_lcs/asas_training_set.tar.gz",
+        ##     "/home/mltsp/Data/sample_lcs/asas_training_set_classes.dat",
+        ##     "/home/mltsp/Data/sample_lcs/asas_training_set.tar.gz",
         ##     features_to_use=[],
         ##     featureset_id="JUST_A_TEST_FEATSET",
         ##     is_test=True,

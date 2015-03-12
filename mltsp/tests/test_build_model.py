@@ -45,7 +45,7 @@ def test_create_and_pickle_model():
     build_model.create_and_pickle_model(
         {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
          "classes": ['1', '2']},
-        "test_build_model", "RF", False, cfg.MODELS_FOLDER)
+        "test_build_model", "RF", False)
     assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
                                        "test_build_model_RF.pkl"))
     model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
@@ -57,10 +57,16 @@ def test_create_and_pickle_model():
 
 
 def test_read_features_data_from_disk():
-    data_dict = build_model.read_features_data_from_disk(
-        "test", os.path.join(os.path.dirname(__file__), "Data"))
+    for suffix in ["features.csv", "classes.pkl"]:
+        shutil.copy(
+            os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+                         "test_%s" % suffix),
+            os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
+    data_dict = build_model.read_features_data_from_disk("TEST001")
     npt.assert_array_equal(data_dict["classes"], ["Mira", "Herbig_AEBE",
                                                   "Beta_Lyrae"])
+    for fname in ["TEST001_features.csv", "TEST001_classes.pkl"]:
+        os.remove(os.path.join(cfg.FEATURES_FOLDER, fname))
 
 def test_build_model():
     """Test main model building method"""

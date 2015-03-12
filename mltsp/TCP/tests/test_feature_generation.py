@@ -15,11 +15,11 @@ def setup():
     # copy data files to proper directory:
     shutil.copy(os.path.join(os.path.dirname(__file__),
                              "data/asas_training_subset_classes.dat"),
-                cfg.UPLOAD_FOLDER)
+                os.path.join(cfg.UPLOAD_FOLDER))
 
     shutil.copy(os.path.join(os.path.dirname(__file__),
                              "data/asas_training_subset.tar.gz"),
-                cfg.UPLOAD_FOLDER)
+                os.path.join(cfg.UPLOAD_FOLDER))
 
 
 def test_feature_generation():
@@ -51,6 +51,9 @@ def test_feature_generation():
     features_expected, values_expected = features_from_csv(
         os.path.join(this_dir, "data/expected_features.csv"))
 
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "testfeatset_features.csv"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER,
+                           "testfeatset_classes.pkl"))
     npt.assert_equal(len(features_extracted), 81)
     npt.assert_equal(features_extracted, features_expected)
     npt.assert_array_almost_equal(values_computed, values_expected)

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # featurize.py
 
+from __future__ import print_function
 from operator import itemgetter
 import shutil
 from sklearn.externals import joblib
@@ -124,18 +125,16 @@ def parse_headerfile(headerfile_path, features_to_use):
 
 def generate_features(headerfile_path, zipfile_path, features_to_use,
                       custom_script_path, is_test, USE_DISCO,
-                      already_featurized, in_docker_container, uploads_folder):
+                      already_featurized, in_docker_container):
     """Generate features for provided time-series data.
 
     """
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
     if len(features_to_use) == 0:
         features_to_use = all_features_list
-
     if already_featurized:
         # Read in features from CSV file
         objects = parse_prefeaturized_csv_data(headerfile_path)
-        return objects
     else:
         # Parse header file
         (features_to_use, fname_class_dict, fname_class_science_features_dict,
@@ -163,10 +162,10 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
             objects = extract_serial(
                 headerfile_path, zipfile_path, features_to_use,
                 custom_script_path, is_test, USE_DISCO,
-                already_featurized, in_docker_container, uploads_folder,
+                already_featurized, in_docker_container,
                 fname_class_dict, fname_class_science_features_dict,
                 fname_metadata_dict)
-            return objects
+    return objects
 
 
 def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
@@ -212,20 +211,20 @@ def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
     return all_features
 
 
-def remove_unzipped_files(all_fnames, parent_dir):
+def remove_unzipped_files(all_fnames):
     """
 
     """
     for fname in all_fnames:
         path_to_csv = os.path.join(
-            parent_dir, os.path.join("unzipped", fname))
+            cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
         if os.path.isfile(path_to_csv):
             os.remove(path_to_csv)
 
 
 def extract_serial(headerfile_path, zipfile_path, features_to_use,
                    custom_script_path, is_test, USE_DISCO,
-                   already_featurized, in_docker_container, uploads_folder,
+                   already_featurized, in_docker_container,
                    fname_class_dict, fname_class_science_features_dict,
                    fname_metadata_dict):
     """Generate TS features serially.
@@ -233,7 +232,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
     """
     objects = []
     zipfile = tarfile.open(zipfile_path)
-    zipfile.extractall(path=os.path.join(uploads_folder, "unzipped"))
+    zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER, "unzipped"))
     all_fnames = zipfile.getnames()
     num_objs = len(fname_class_dict)
     zipfile_name = ntpath.basename(zipfile_path)
@@ -243,7 +242,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
     for fname in sorted(all_fnames):
         short_fname = shorten_fname(fname)
         path_to_csv = os.path.join(
-            uploads_folder, os.path.join("unzipped", fname))
+            cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
         if os.path.isfile(path_to_csv):
             print("Extracting features for", fname, "-", count,
                   "of", num_objs)
@@ -267,7 +266,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
         else:
             pass
     print("Done.")
-    remove_unzipped_files(all_fnames, uploads_folder)
+    remove_unzipped_files(all_fnames)
     return objects
 
 
@@ -318,19 +317,21 @@ def count_classes(objects):
     return (class_count, num_used, num_held_back)
 
 
-def write_features_to_disk(objects, featureset_id, features_folder,
-                           features_to_use, in_docker_container):
+def write_features_to_disk(objects, featureset_id, features_to_use,
+                           in_docker_container):
     """
 
     """
+    if objects is None:
+        raise Exception("featurize.write_features_to_disk - `objects` is None")
     features_extracted = list(objects[-1].keys())
     if "class" in features_extracted: features_extracted.remove("class")
     features_to_plot = determine_feats_to_plot(features_extracted)
 
     with open(os.path.join(
-        ("/tmp" if in_docker_container else features_folder),
+        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
         "%s_features.csv" % featureset_id), 'w') as f, open(os.path.join(
-        ("/tmp" if in_docker_container else features_folder),
+        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
         "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
         write_column_titles(f, f2, features_extracted, features_to_use,
                             features_to_plot)
@@ -384,7 +385,7 @@ def write_features_to_disk(objects, featureset_id, features_folder,
         shutil.copy2(
             f2.name, os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
     joblib.dump(classes, os.path.join(
-        ("/tmp" if in_docker_container else features_folder),
+        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
         "%s_classes.pkl" % featureset_id), compress=3)
     print("Done.")
 
@@ -440,26 +441,18 @@ def featurize(
         Human-readable message indicating successful completion.
 
     """
-    # Set appropriate directory paths
-    if in_docker_container:
-        features_folder = "/Data/features/"
-        uploads_folder = "/Data/flask_uploads/"
-    else:
-        features_folder = cfg.FEATURES_FOLDER
-        uploads_folder = cfg.UPLOAD_FOLDER
-
     # Generate features for each TS object
     objects = generate_features(
         headerfile_path, zipfile_path, features_to_use,
         custom_script_path, is_test, USE_DISCO, already_featurized,
-        in_docker_container, uploads_folder)
+        in_docker_container)
 
-    write_features_to_disk(objects, featureset_id, features_folder,
-                           features_to_use, in_docker_container)
+    write_features_to_disk(objects, featureset_id, features_to_use,
+                           in_docker_container)
     # Clean up
     if not in_docker_container:
         os.remove(os.path.join(
-            features_folder, "%s_features_with_classes.csv" % featureset_id))
+            cfg.FEATURES_FOLDER, "%s_features_with_classes.csv" % featureset_id))
     os.remove(headerfile_path)
     if zipfile_path is not None:
         os.remove(zipfile_path)

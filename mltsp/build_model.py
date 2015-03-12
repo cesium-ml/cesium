@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # build_model.py
 
+from __future__ import print_function
 from operator import itemgetter
 import shutil
 from sklearn.ensemble import RandomForestClassifier as RFC
@@ -71,6 +72,18 @@ def read_data_from_csv_file(fname, sep=',', skip_lines=0):
 def count_classes(classes):
     """Count total number of objects per class.
 
+    Parameters
+    ----------
+    classes : list of str
+        List of classes
+
+    Returns
+    ------
+    tuple
+        Two-element tuple consisting of a dict whose keys are class names
+        and values are number of occurrences, and a (sorted) list of unique
+        class names.
+
     """
     # Count up total num of objects per class
     class_count = {}
@@ -87,7 +100,12 @@ def count_classes(classes):
 
 
 def clean_up_data_dict(data_dict):
-    """Remove any empty lines from data.
+    """Remove any empty lines from data (modifies dict in place).
+
+    Parameters
+    ----------
+    data_dict : dict
+        Dictionary containing features data w/ key 'features'.
 
     """
     print("\n\n")
@@ -111,8 +129,8 @@ def clean_up_data_dict(data_dict):
 
 
 def create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container, models_folder):
-    """
+                            in_docker_container):
+    """Create scikit-learn RFC model object and save it to disk.
     """
     # Build the model:
     # Initialize
@@ -130,17 +148,17 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
     # Store the model:
     print("Pickling model...")
     foutname = os.path.join(
-        ("/tmp" if in_docker_container else models_folder),
+        ("/tmp" if in_docker_container else cfg.MODELS_FOLDER),
         "%s_%s.pkl" % (featureset_key, model_type))
     joblib.dump(rf_fit, foutname, compress=3)
     print(foutname, "created.")
 
 
-def read_features_data_from_disk(featureset_key, features_folder):
+def read_features_data_from_disk(featureset_key):
     """
     """
     features_filename = os.path.join(
-        features_folder, "%s_features.csv" % featureset_key)
+        cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
     # Read in feature data and class list
     features_extracted, all_data = read_data_from_csv_file(features_filename)
     classes = joblib.load(
@@ -185,22 +203,14 @@ def build_model(
         Human-readable message indicating successful completion.
 
     """
-    # Determine which directory paths to use
-    if in_docker_container:
-        features_folder = "/Data/features/"
-        models_folder = "/Data/models/"
-    else:
-        features_folder = cfg.FEATURES_FOLDER
-        models_folder = cfg.MODELS_FOLDER
-
-    data_dict = read_features_data_from_disk(featureset_key, features_folder)
+    data_dict = read_features_data_from_disk(featureset_key)
 
     class_count, sorted_class_list = count_classes(data_dict["classes"])
 
     clean_up_data_dict(data_dict)
 
     create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container, models_folder)
+                            in_docker_container)
 
     print("DONE!")
     return ("New model successfully created. Click the Predict tab to "

@@ -1,15 +1,40 @@
+from __future__ import print_function
 from subprocess import Popen, PIPE, call, check_call
 import uuid
 import pickle
 import shutil
-#import dockerpy
 import uuid
 import sys
 import os
 import rethinkdb as r
 import ntpath
-
+from docker import Client
 from . import cfg
+import io
+import tarfile
+
+
+def docker_copy(docker_client, container_id, path, target="."):
+    """Copy file from docker container to host machine.
+
+    Parameters
+    ----------
+    docker_client : docker.Client object
+        The connected Docker client.
+    container_id : str
+        ID of the container to copy from.
+    path : str
+        Path to the file in the container.
+    target : str
+        Folder where to put the file.
+
+    """
+    response = docker_client.copy(container_id, path)
+    buffer = io.BytesIO()
+    buffer.write(response.data)
+    buffer.seek(0)
+    tar = tarfile.open(fileobj=buffer, mode='r|')
+    tar.extractall(path=target)
 
 
 def featurize_in_docker_container(
@@ -85,61 +110,68 @@ def featurize_in_docker_container(
         arguments["custom_script_path"] = ("/home/mltsp/mltsp/"
                                            "custom_feature_scripts/"
                                            "custom_feature_defs.py")
-
-    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    arguments["path_map"] = {copied_data_dir, "/home/mltsp/copied_data_files"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
         pickle.dump(arguments, f, protocol=2)
-    try:
-        # run the docker container
-        cmd = ["docker", "run",
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"),
-                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"),
-                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),
-                "--name=%s" % container_name,
-                "mltsp/featurize"]
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-            "\n\ndocker container stderr:\n\n", stderr, "\n\n")
 
-        # copy all necessary files produced in docker container to host
+
+    cont_id = None
+    try:
+        # Instantiate Docker client
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
+        # Create container
+        cont_id = container_name = client.create_container(
+            "mltsp/featurize",
+            volumes={"/home/mltsp": ""})["Id"]
+        # Start container
+        client.start(cont_id,
+                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+        # Wait for process to complete
+        client.wait(cont_id)
+        stdout = client.logs(container=cont_id, stdout=True)
+        stderr = client.logs(container=cont_id, stderr=True)
+        print("\n\ndocker container stdout:\n\n", str(stdout),
+              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
+        # Copy resulting data files from container to host machine
         for file_suffix in [
             "features.csv", "features_with_classes.csv", "classes.pkl"]:
-            cmd = [
-                "docker", "cp", "%s:/tmp/%s_%s" %
-                    (container_name, featureset_key, file_suffix),
-                cfg.FEATURES_FOLDER]
-            status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-            print((
+            path = "/tmp/%s_%s" % (featureset_key, file_suffix)
+            docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
+            print(
                 os.path.join(
-                    cfg.FEATURES_FOLDER,"%s_%s"%(featureset_key, file_suffix)),
-                "copied to host machine - status code %s" % str(status_code)))
-
+                    cfg.FEATURES_FOLDER,"%s_%s" % (featureset_key,
+                                                   file_suffix)),
+                "copied to host machine.")
+        # Move plot data file from features folder to Flask data folder
         shutil.copy2(
             os.path.join(
                 cfg.FEATURES_FOLDER,
-                "%s_features_with_classes.csv"%featureset_key),
-            os.path.join(cfg.MLTSP_PACKAGE_PATH,"Flask/static/data"))
+                "%s_features_with_classes.csv" % featureset_key),
+            os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
         os.remove(os.path.join(
             cfg.FEATURES_FOLDER,
-            "%s_features_with_classes.csv"%featureset_key))
+            "%s_features_with_classes.csv" % featureset_key))
         print("Process complete.")
-    except:
-        raise
+    except Exception as e:
+        raise(e)
     finally:
-        # delete temp directory and its contents
+        # Delete temp directory and its contents
         shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
         for tmp_file_path in tmp_files:
             try:
                 os.remove(tmp_file_path)
             except Exception as e:
                 print(e)
-        # kill and remove the container
-        cmd = ["docker", "rm", "-f", container_name]
-        status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
+
+        # Kill and remove the container
+        if cont_id is not None:
+            client.remove_container(container=cont_id, force=True)
+        else:
+            print('Docker instance never started successfully')
+
         print("Docker container deleted.")
     return "Featurization complete."
 
@@ -178,38 +210,35 @@ def build_model_in_docker_container(
     # copy relevant data files into docker temp directory
     # on host to be mounted into container:
     tmp_files = []
-    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    arguments["path_map"] = {copied_data_dir, "/home/mltsp/copied_data_files"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
         pickle.dump(arguments, f, protocol=2)
     try:
-        # run the docker container
-        cmd = ["docker", "run",
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-                "-v", "%s:%s" % (cfg.FEATURES_FOLDER, "/Data/features"),
-                "-v", "%s:%s" % (cfg.UPLOAD_FOLDER, "/Data/flask_uploads"),
-                "-v", "%s:%s" % (cfg.MODELS_FOLDER, "/Data/models"),
-                "--name=%s" % container_name,
-                "mltsp/build_model"]
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
-
-        # copy all necessary files produced in Docker container to host
-        cmd = [
-            "docker", "cp",
-            "%s:/tmp/%s_%s.pkl" % (container_name, featureset_key, model_type),
-            cfg.MODELS_FOLDER]
-        #status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-        #print os.path.join(
-        #    cfg.MODELS_FOLDER,"%s_%s.pkl"%(featureset_key, model_type)),
-        #    "copied to host machine - status code %s" % str(status_code)
-        check_call(cmd)
-        print(os.path.join(
-            cfg.MODELS_FOLDER,
-            "%s_%s.pkl"%(featureset_key,model_type)), "copied to host machine.")
+        # Instantiate Docker client
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
+        # Create container
+        cont_id = container_name = client.create_container(
+            "mltsp/build_model",
+            volumes={"/home/mltsp": ""})["Id"]
+        print(cont_id)
+        # Start container
+        client.start(cont_id,
+                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+        # Wait for process to complete
+        client.wait(cont_id)
+        stdout = client.logs(container=cont_id, stdout=True)
+        stderr = client.logs(container=cont_id, stderr=True)
+        print("\n\ndocker container stdout:\n\n", str(stdout),
+              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
+        # copy model object produced in Docker container to host
+        path = "/tmp/%s_%s.pkl" % (featureset_key, model_type)
+        docker_copy(client, cont_id, path, target=cfg.MODELS_FOLDER)
+        print(os.path.join(cfg.MODELS_FOLDER,
+                           "%s_%s.pkl" % (featureset_key, model_type)),
+              "copied to host machine.")
         print("Process complete.")
     except:
         raise
@@ -221,19 +250,18 @@ def build_model_in_docker_container(
                 os.remove(tmp_file)
             except Exception as e:
                 print(e)
-        # kill and remove the container
-        cmd = ["docker", "rm", "-f", container_name]
-        status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
+        # Kill and remove the container
+        client.remove_container(container=cont_id, force=True)
         print("Docker container deleted.")
 
     return "Model creation complete. Click the Predict tab to start using it."
 
 
 def predict_in_docker_container(
-    newpred_file_path, project_name, model_name, model_type,
-    prediction_entry_key, featset_key, sep=",", n_cols_html_table=5,
-    features_already_extracted=None, metadata_file=None,
-    custom_features_script=None):
+        newpred_file_path, model_name, model_type, prediction_entry_key,
+        featset_key, sep=",", n_cols_html_table=5,
+        features_already_extracted=None, metadata_file=None,
+        custom_features_script=None):
     """Generate features and perform classification in Docker container.
 
     Spins up a Docker container in which the
@@ -245,8 +273,6 @@ def predict_in_docker_container(
     newpred_file_path : str
         Path to file containing time series data for featurization and
         prediction.
-    project_name : str
-        Name of the project associated with the model to be used.
     model_name : str
         Name of the model to be used.
     model_type : str
@@ -303,35 +329,34 @@ def predict_in_docker_container(
         arguments["metadata_file"] = os.path.join(
             "/home/mltsp/copied_data_files", ntpath.basename(metadata_file))
 
-    arguments["path_map"] = {copied_data_dir,"/home/mltsp/copied_data_files"}
+    arguments["path_map"] = {copied_data_dir: "/home/mltsp/copied_data_files"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
         pickle.dump(arguments, f, protocol=2)
     try:
-        cmd = ["docker", "run",
-                "-v", "%s:/home/mltsp"%cfg.PROJECT_PATH,
-                "-v", "%s:%s"%(cfg.FEATURES_FOLDER,"/Data/features"),
-                "-v", "%s:%s"%(cfg.UPLOAD_FOLDER,"/Data/flask_uploads"),
-                "-v", "%s:%s"%(cfg.MODELS_FOLDER,"/Data/models"),
-                "--name=%s"%container_name,
-                "mltsp/predict"]
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, \
-              "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        # Instantiate Docker client
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
+        # Create container
+        cont_id = container_name = client.create_container(
+            "mltsp/predict",
+            volumes={"/home/mltsp": ""})["Id"]
+        print(cont_id)
+        # Start container
+        client.start(cont_id,
+                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+        # Wait for process to complete
+        client.wait(cont_id)
+        stdouterr = client.logs(container=cont_id, stdout=True, stderr=True)
+        print("\n\ndocker container stdout/err:\n\n", str(stdouterr), "\n\n")
 
         # copy all necessary files produced in docker container to host
-        cmd = [
-            "docker", "cp",
-            (
-                "%s:/tmp/%s_pred_results.pkl" %
-                (container_name, prediction_entry_key)),
-            "/tmp"]
-        status_code = call(cmd, stdout=PIPE, stderr=PIPE)
-        print("/tmp/%s_pred_results.pkl"%prediction_entry_key, \
-              "copied to host machine - status code %s" % str(status_code))
-        with open("/tmp/%s_pred_results.pkl"%prediction_entry_key, "rb") as f:
+        path = "/tmp/%s_pred_results.pkl" % prediction_entry_key
+        docker_copy(client, cont_id, path, target="/tmp")
+        print("/tmp/%s_pred_results.pkl" % prediction_entry_key,
+              "copied to host machine")
+        with open("/tmp/%s_pred_results.pkl" % prediction_entry_key, "rb") as f:
             pred_results_dict = pickle.load(f)
         if type(pred_results_dict) != dict:
             print(("run_in_docker_container.predict_in_docker_container() - " +
@@ -352,8 +377,8 @@ def predict_in_docker_container(
                 os.remove(tmp_file)
             except Exception as e:
                 print(e)
-        cmd = ["docker", "rm", "-f", container_name]
-        status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
+        # Kill and remove the container
+        client.remove_container(container=cont_id, force=True)
         print("Docker container deleted.")
 
     return pred_results_dict
@@ -367,22 +392,27 @@ def disco_test():
     container_name = str(uuid.uuid4())[:10]
 
     try:
-        # run the docker container
-        cmd = ["docker", "run",
-                "-v", "%s:/home/mltsp" % cfg.PROJECT_PATH,
-                "--name=%s" % container_name,
-                "disco_test"]
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        print("\n\ndocker container stdout:\n\n", stdout, "\n\ndocker container stderr:\n\n", stderr, "\n\n")
+        # Instantiate Docker client
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
+        # Create container
+        cont_id = container_name = client.create_container(
+            "disco_test",
+            volumes={"/home/mltsp": ""})["Id"]
+        print(cont_id)
+        # Start container
+        client.start(cont_id,
+                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+        # Wait for process to complete
+        client.wait(cont_id)
+        stdouterr = client.logs(container=cont_id, stdout=True, stderr=True)
+        print("\n\ndocker container stdout/err:\n\n", str(stdouterr), "\n\n")
         print("Process complete.")
     except:
         raise
     finally:
-
-        # kill and remove the container
-        cmd = ["docker", "rm", "-f", container_name]
-        status_code = call(cmd)#, stdout=PIPE, stderr=PIPE)
+        # Kill and remove the container
+        client.remove_container(container=cont_id, force=True)
         print("Docker container deleted.")
 
     return "Test complete."
