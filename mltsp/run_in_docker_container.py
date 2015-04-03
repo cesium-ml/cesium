@@ -77,10 +77,6 @@ def featurize_in_docker_container(
 
     """
     arguments = locals()
-    # unique name for docker container for later cp and rm commands:
-    container_name = str(uuid.uuid4())[:10]
-    path_to_tmp_dir = os.path.join("/tmp", container_name)
-    os.mkdir(path_to_tmp_dir)
     copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
     tmp_files = []
 
@@ -123,7 +119,7 @@ def featurize_in_docker_container(
         client = Client(base_url='unix://var/run/docker.sock',
                         version='1.14')
         # Create container
-        cont_id = container_name = client.create_container(
+        cont_id = client.create_container(
             "mltsp/featurize",
             volumes={"/home/mltsp": ""})["Id"]
         # Start container
@@ -159,7 +155,6 @@ def featurize_in_docker_container(
         raise(e)
     finally:
         # Delete temp directory and its contents
-        shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
         for tmp_file_path in tmp_files:
             try:
                 os.remove(tmp_file_path)
@@ -201,10 +196,6 @@ def build_model_in_docker_container(
 
     """
     arguments = locals()
-    #unique name for docker container for later cp and rm commands
-    container_name = str(uuid.uuid4())[:10]
-    path_to_tmp_dir = os.path.join("/tmp", container_name)
-    os.mkdir(path_to_tmp_dir)
     copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
 
     # copy relevant data files into docker temp directory
@@ -220,7 +211,7 @@ def build_model_in_docker_container(
         client = Client(base_url='unix://var/run/docker.sock',
                         version='1.14')
         # Create container
-        cont_id = container_name = client.create_container(
+        cont_id = client.create_container(
             "mltsp/build_model",
             volumes={"/home/mltsp": ""})["Id"]
         print(cont_id)
@@ -244,7 +235,6 @@ def build_model_in_docker_container(
         raise
     finally:
         # delete temp directory and its contents on host machine
-        shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
         for tmp_file in tmp_files:
             try:
                 os.remove(tmp_file)
@@ -299,9 +289,6 @@ def predict_in_docker_container(
 
     """
     arguments = locals()
-    container_name = str(uuid.uuid4())[:10]
-    path_to_tmp_dir = os.path.join("/tmp", container_name)
-    os.mkdir(path_to_tmp_dir)
     copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
     tmp_files = []
     # copy relevant data files into docker temp directory
@@ -339,7 +326,7 @@ def predict_in_docker_container(
         client = Client(base_url='unix://var/run/docker.sock',
                         version='1.14')
         # Create container
-        cont_id = container_name = client.create_container(
+        cont_id = client.create_container(
             "mltsp/predict",
             volumes={"/home/mltsp": ""})["Id"]
         print(cont_id)
@@ -371,7 +358,6 @@ def predict_in_docker_container(
         raise
     finally:
         # delete temp directory and its contents
-        shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
         for tmp_file in tmp_files:
             try:
                 os.remove(tmp_file)
@@ -388,15 +374,12 @@ def disco_test():
     """Test Disco functionality inside Docker container.
 
     """
-    #unique name for docker container for later cp and rm commands
-    container_name = str(uuid.uuid4())[:10]
-
     try:
         # Instantiate Docker client
         client = Client(base_url='unix://var/run/docker.sock',
                         version='1.14')
         # Create container
-        cont_id = container_name = client.create_container(
+        cont_id = client.create_container(
             "disco_test",
             volumes={"/home/mltsp": ""})["Id"]
         print(cont_id)
