@@ -881,7 +881,7 @@ def getLocalLc(filename, classname='unknown', sep=',',
                     lcdata[i] = lcdata[i] + ["1.0"]
                 lcdata[i] = ','.join(lcdata[i])
             except TypeError:
-                lcdata[i] = map(str, lcdata[i])
+                lcdata[i] = list(map(str, lcdata[i]))
                 if len(lcdata[i]) == 2 and add_errors:
                     lcdata[i] = lcdata[i] + ["1.0"]
                 lcdata[i] = ','.join(lcdata[i])
