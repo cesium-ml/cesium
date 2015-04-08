@@ -100,11 +100,11 @@ def test_copy_results_files_featurize():
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "TEST01_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "TEST01_classes.pkl")))
+                                       "TEST01_classes.npy")))
     assert(os.path.exists(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                                     "Flask/static/data"),
                                        "TEST01_features_with_classes.csv")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_classes.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_classes.npy"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_features.csv"))
     os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                         "Flask/static/data"),
