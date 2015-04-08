@@ -9,3 +9,5 @@ mltsp/version.py
 *.c
 *#
 .#*
+.noseids
+rethinkdb_data

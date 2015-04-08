@@ -10,7 +10,7 @@ def test_parse_metadata_file():
     """Test parse metadata file."""
     meta_feats = pred.parse_metadata_file(
         os.path.join(os.path.dirname(__file__),
-                     "Data/215153_215176_218272_218934_metadata.dat"))
+                     "data/215153_215176_218272_218934_metadata.dat"))
     assert("dotastro_215153.dat" in meta_feats)
     assert("meta1" in meta_feats["dotastro_215153.dat"])
     npt.assert_almost_equal(meta_feats["dotastro_215153.dat"]["meta1"], 0.23423)
@@ -20,7 +20,7 @@ def test_determine_feats_used():
     """Test determine_feats_used"""
     for suffix in ["features.csv", "classes.pkl"]:
         shutil.copy(
-            os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+            os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
             os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     feats_used = pred.determine_feats_used("TEST001")
@@ -32,7 +32,7 @@ def test_determine_feats_used():
 def test_parse_ts_data():
     """Test parsing of TS data"""
     ts_data = pred.parse_ts_data(os.path.join(os.path.dirname(__file__),
-                                              "Data/dotastro_215153.dat"),
+                                              "data/dotastro_215153.dat"),
                                  ",")
     npt.assert_array_almost_equal(ts_data[0], [2629.52836, 9.511, 0.042])
     npt.assert_array_almost_equal(ts_data[-1], [5145.57672, 9.755, 0.06])
@@ -43,12 +43,12 @@ def test_featurize_multiple_serially():
     """Test serial featurization"""
     meta_feats = pred.parse_metadata_file(
         os.path.join(os.path.dirname(__file__),
-                     "Data/215153_215176_218272_218934_metadata.dat"))
+                     "data/215153_215176_218272_218934_metadata.dat"))
     res_dict = pred.featurize_multiple_serially(
         os.path.join(os.path.dirname(__file__),
-                     "Data/215153_215176_218272_218934.tar.gz"),
+                     "data/215153_215176_218272_218934.tar.gz"),
         "/tmp", ["std_err"], os.path.join(os.path.dirname(__file__),
-                                          "Data/testfeature1.py"),
+                                          "data/testfeature1.py"),
         meta_feats)
     npt.assert_equal(len(res_dict), 4)
     assert all("std_err" in d["features_dict"] for fname, d in res_dict.items())
@@ -58,13 +58,13 @@ def test_featurize_multiple_serially():
 def test_featurize_single():
     """Test featurization of single TS data file"""
     meta_feats = pred.parse_metadata_file(
-        os.path.join(os.path.dirname(__file__), "Data/215153_metadata.dat"))
+        os.path.join(os.path.dirname(__file__), "data/215153_metadata.dat"))
     res_dict = pred.featurize_single(
         os.path.join(os.path.dirname(__file__),
-                     "Data/dotastro_215153.dat"),
+                     "data/dotastro_215153.dat"),
         ["std_err"],
         os.path.join(os.path.dirname(__file__),
-                     "Data/testfeature1.py"),
+                     "data/testfeature1.py"),
         meta_feats)
     assert all("std_err" in d["features_dict"] for fname, d in res_dict.items())
     assert all("ts_data" in d for fname, d in res_dict.items())
@@ -73,7 +73,7 @@ def test_featurize_single():
 def test_featurize_tsdata():
     """Test featurize_tsdata"""
     res_dict = pred.featurize_tsdata(
-        os.path.join(os.path.dirname(__file__), "Data/dotastro_215153.dat"),
+        os.path.join(os.path.dirname(__file__), "data/dotastro_215153.dat"),
         "TEMP_TEST01",
         None, None, False,
         ['std_err'], False)
@@ -100,7 +100,7 @@ def test_add_to_predict_results_dict():
     """Test add data to predict results dict"""
     for suffix in ["classes.pkl", "features.csv"]:
         shutil.copy(
-            os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+            os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
             os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     results_dict = {}
@@ -117,18 +117,18 @@ def test_do_model_predictions():
     """Test model predictions"""
     for suffix in ["classes.pkl", "features.csv"]:
         shutil.copy(
-            os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+            os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
             os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     shutil.copy(
-        os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+        os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                      "test_RF.pkl"),
         os.path.join(cfg.MODELS_FOLDER, "TEST001_RF.pkl"))
     featset_key = "TEST001"
     model_type = "RF"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs"]
     data_dict = pred.featurize_tsdata(
-        os.path.join(os.path.dirname(__file__), "Data/dotastro_215153.dat"),
+        os.path.join(os.path.dirname(__file__), "data/dotastro_215153.dat"),
         "TEMP_TEST01",
         None, None, False,
         cfg.features_list, False)
@@ -141,22 +141,22 @@ def test_do_model_predictions():
 def test_main_predict():
     """Test main predict function"""
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_features.csv"),
+                             "data/TESTRUN_features.csv"),
                 cfg.FEATURES_FOLDER)
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_classes.pkl"),
+                             "data/TESTRUN_classes.pkl"),
                 cfg.FEATURES_FOLDER)
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_RF.pkl"),
+                             "data/TESTRUN_RF.pkl"),
                 cfg.MODELS_FOLDER)
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/dotastro_215153.dat"),
+                             "data/dotastro_215153.dat"),
                 os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_215153_metadata.dat"),
+                             "data/TESTRUN_215153_metadata.dat"),
                 cfg.UPLOAD_FOLDER)
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/testfeature1.py"),
+                             "data/testfeature1.py"),
                 os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                              "TESTRUN_CF.py"))
 
