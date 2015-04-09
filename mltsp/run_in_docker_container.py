@@ -153,7 +153,7 @@ def copy_results_files_featurize(featureset_key, client, cont_id):
     """
     # Copy resulting data files from container to host machine
     for file_suffix in ["features.csv", "features_with_classes.csv",
-                        "classes.pkl"]:
+                        "classes.npy"]:
         path = "/tmp/%s_%s" % (featureset_key, file_suffix)
         docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
         print(

@@ -13,13 +13,6 @@ except:
 import tempfile
 
 
-def setup():
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "data/testfeature1.py"),
-                os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                             "custom_feature_scripts/custom_feature_defs.py"))
-
-
 def test_parse_csv_file():
     """Test parse CSV file"""
     t, m, e = cft.parse_csv_file(os.path.join(os.path.dirname(__file__),
@@ -60,6 +53,12 @@ def test_call_custom_functions():
     fnames_req_prov_dict, all_required_params, all_provided_params = \
         cft.parse_for_req_prov_params(os.path.join(os.path.dirname(__file__),
                                                    "data/testfeature1.py"))
+    if not os.path.exists(os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                                       "custom_feature_defs.py")):
+        shutil.copyfile(os.path.join(os.path.dirname(__file__),
+                                     "data/testfeature1.py"),
+                        os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                                     "custom_feature_defs.py"))
     extracted_feats_list = cft.call_custom_functions(
         [{"t": [1.0, 1.2, 1.4], "m": [12.2, 14.1, 15.2], "e": [0.2, 0.3, 0.1]}],
         all_required_params, all_provided_params, fnames_req_prov_dict)
@@ -67,6 +66,8 @@ def test_call_custom_functions():
     npt.assert_almost_equal(extracted_feats_list[0]["avg_mag"],
                             np.average([12.2, 14.1, 15.2]))
     assert(all(x in extracted_feats_list[0] for x in ["a", "l", "o"]))
+    os.remove(os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                           "custom_feature_defs.py"))
 
 
 def test_execute_functions_in_order():
@@ -264,11 +265,3 @@ def test_running_in_docker_cont():
     output = cft.is_running_in_docker_container()
     assert(isinstance(output, bool))
     npt.assert_equal(output, False)
-
-
-def teardown():
-    """Tear-down - remove tmp files"""
-    for f in [os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                           "custom_feature_scripts/custom_feature_defs.py")]:
-        if os.path.isfile(f):
-            os.remove(f)
