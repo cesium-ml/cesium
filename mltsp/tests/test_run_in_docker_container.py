@@ -11,6 +11,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import tempfile
 
 
 def featurize_setup():
@@ -34,6 +35,48 @@ def featurize_teardown():
     for fpath in fpaths:
         if os.path.exists(fpath):
             os.remove(fpath)
+
+
+def test_copy_data_files_featurize_prep():
+    """Test copy data files - featurization prep"""
+    tmp_dir = tempfile.mkdtemp()
+    test_data_dir = os.path.join(os.path.dirname(__file__), "Data")
+    args_dict = {
+        'copied_data_dir': tmp_dir,
+        'headerfile_path': os.path.join(test_data_dir,
+                                        "asas_training_subset_classes.dat"),
+        'zipfile_path': "None",
+        'custom_script_path': os.path.join(test_data_dir,
+                                           "testfeature1.py")}
+    tmp_files_list = ridc.copy_data_files_featurize_prep(args_dict)
+    assert os.path.exists(os.path.join(tmp_dir, "function_args.pkl"))
+    assert os.path.exists(os.path.join(tmp_dir,
+                                       "asas_training_subset_classes.dat"))
+    copied_custom_script_path = os.path.join(
+        os.path.join(
+            cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
+        "custom_feature_defs.py")
+    assert os.path.exists(copied_custom_script_path)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+    os.remove(copied_custom_script_path)
+    assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0
+
+
+def test_spin_up_and_run_container():
+    """Test spin up and run container"""
+    client, cont_id = ridc.spin_up_and_run_container("mltsp/featurize", "/tmp")
+    conts = client.containers(all=True)
+    found_match = False
+    for cont in conts:
+        if cont["Id"] == cont_id:
+            found_match = True
+            break
+    client.remove_container(container=cont_id, force=True)
+    assert found_match == True
+
+
+def test_copy_results_files_featurize():
+    """### TO-DO ### Test copy results files - featurize"""
 
 
 def test_featurize_in_docker_container():
@@ -104,6 +147,26 @@ def generate_model():
     assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
                                        "TEMP_TEST01_RF.pkl"))
 
+def test_copy_data_files_predict_prep():
+    """Test copy data files - prediction prep"""
+    tmp_dir = tempfile.mkdtemp()
+    test_data_dir = os.path.join(os.path.dirname(__file__), "Data")
+    args_dict = {
+        'copied_data_dir': tmp_dir,
+        'newpred_file_path': os.path.join(test_data_dir,
+                                          "dotastro_215153.dat"),
+        'metadata_file': "None",
+        'custom_features_script': os.path.join(test_data_dir,
+                                           "testfeature1.py")}
+    tmp_files_list = ridc.copy_data_files_predict_prep(args_dict)
+    assert os.path.exists(os.path.join(tmp_dir, "function_args.pkl"))
+    assert os.path.exists(os.path.join(tmp_dir,
+                                       "dotastro_215153.dat"))
+    copied_custom_script_path = os.path.join(tmp_dir, "testfeature1.py")
+    assert os.path.exists(copied_custom_script_path)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+    assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0
+
 
 def test_predict_in_docker_container():
     """Test predict in docker container"""
@@ -119,7 +182,6 @@ def test_predict_in_docker_container():
                              "data/testfeature1.py"),
                 os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                              "TESTRUN_CF.py"))
-
     pred_results_dict = ridc.predict_in_docker_container(
         os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
         "TEMP_TEST01", "RF", "TEMP_TEST01", "TEMP_TEST01",
@@ -127,11 +189,9 @@ def test_predict_in_docker_container():
                                    "TESTRUN_215153_metadata.dat"),
         custom_features_script=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                             "TESTRUN_CF.py"))
-
     npt.assert_equal(
         len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
         3)
-
     os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))

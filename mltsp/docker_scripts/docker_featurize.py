@@ -9,6 +9,7 @@ import time
 
 from subprocess import Popen, PIPE, call
 import pickle
+import shutil
 
 
 def do_featurization():
@@ -51,8 +52,13 @@ def do_featurization():
     '''
     disco_running = False # Just for now til we get it working
     # load pickled ts_data and known features
-    with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
+    with open("/home/copied_data_files/function_args.pkl","rb") as f:
         function_args = pickle.load(f)
+    # Copy custom script to requisite location
+    if os.path.isfile(function_args['custom_script_path']):
+        shutil.copy(
+            function_args['custom_script_path'],
+            "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
     # ensure required files successfully copied into container:
     if "headerfile_path" in function_args:
         headerfile_path = str(function_args['headerfile_path'])

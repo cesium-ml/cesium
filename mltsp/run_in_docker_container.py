@@ -12,6 +12,7 @@ from docker import Client
 from . import cfg
 import io
 import tarfile
+import tempfile
 
 
 def docker_copy(docker_client, container_id, path, target="."):
@@ -35,6 +36,134 @@ def docker_copy(docker_client, container_id, path, target="."):
     buffer.seek(0)
     tar = tarfile.open(fileobj=buffer, mode='r|')
     tar.extractall(path=target)
+
+
+def copy_data_files_featurize_prep(args_dict):
+    """Copy needed files into expected location for featurization.
+
+    Parameters
+    ----------
+    args_dict : dict
+        Dictionary of local variable names and associated values (produced
+        by calling the built-in method `locals()`).
+
+    Returns
+    -------
+    list of str
+        List of paths (strings) to all copied/created temporary files to
+        be removed upon completion of featurization.
+
+    """
+    tmp_files = []
+    if os.path.isfile(str(args_dict['headerfile_path'])):
+        copied_headerfile_path = os.path.join(
+            args_dict['copied_data_dir'],
+            ntpath.basename(args_dict['headerfile_path']))
+        tmp_files.append(copied_headerfile_path)
+        shutil.copy(args_dict['headerfile_path'], copied_headerfile_path)
+        args_dict["headerfile_path"] = os.path.join(
+            "/home/copied_data_files",
+            ntpath.basename(args_dict['headerfile_path']))
+    if os.path.isfile(str(args_dict['zipfile_path'])):
+        copied_zipfile_path = os.path.join(
+            args_dict['copied_data_dir'],
+            ntpath.basename(args_dict['zipfile_path']))
+        tmp_files.append(copied_zipfile_path)
+        shutil.copy(args_dict['zipfile_path'], copied_zipfile_path)
+        args_dict["zipfile_path"] = os.path.join(
+            "/home/copied_data_files",
+            ntpath.basename(args_dict['zipfile_path']))
+    if os.path.isfile(str(args_dict['custom_script_path'])):
+        copied_custom_script_path = os.path.join(
+            args_dict['copied_data_dir'],
+            ntpath.basename(args_dict['custom_script_path']))
+        tmp_files.append(copied_custom_script_path)
+        shutil.copy(args_dict['custom_script_path'], copied_custom_script_path)
+        args_dict["custom_script_path"] = os.path.join(
+            "/home/copied_data_files",
+            ntpath.basename(args_dict['custom_script_path']))
+    args_dict["path_map"] = {args_dict['copied_data_dir']:
+                             "/home/copied_data_files"}
+    function_args_path = os.path.join(args_dict['copied_data_dir'],
+                                      "function_args.pkl")
+    tmp_files.append(function_args_path)
+    with open(function_args_path, "wb") as f:
+        pickle.dump(args_dict, f, protocol=2)
+
+    return tmp_files
+
+
+def spin_up_and_run_container(image_name, tmp_data_dir):
+    """Spin up and run a Docker container.
+
+    Parameters
+    ----------
+    image_name : str
+        Name/tag of the Docker image to be used, e.g. "mltsp/featurize".
+    tmp_dir : str
+        Path to directory containing data files to be mounted into
+        container.
+
+    Returns
+    -------
+    tuple
+       Two-element tuple containing docker.Client object, and the ID of
+       the newly-created container (str).
+
+    """
+    # Instantiate Docker client
+    client = Client(base_url='unix://var/run/docker.sock',
+                    version='1.14')
+    # Create container
+    cont_id = client.create_container(
+        image_name,
+        volumes={"/home/mltsp": "",
+                 "/home/copied_data_files": ""})["Id"]
+    # Start container
+    client.start(cont_id,
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"},
+                        tmp_data_dir: {"bind": "/home/copied_data_files"}})
+    # Wait for process to complete
+    client.wait(cont_id)
+    stdout = client.logs(container=cont_id, stdout=True)
+    stderr = client.logs(container=cont_id, stderr=True)
+    print("\n\ndocker container stdout:\n\n", str(stdout),
+          "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
+    return (client, cont_id)
+
+
+def copy_results_files_featurize(featureset_key, client, cont_id):
+    """Copy features results files from Docker container to host machine.
+
+    Parameters
+    ----------
+    featureset_key : str
+        Key/ID identifying the relevant feature set.
+    client : docker.Client object
+        docker.Client object
+    cont_id : str
+        ID of the relevant container.
+
+    """
+    # Copy resulting data files from container to host machine
+    for file_suffix in ["features.csv", "features_with_classes.csv",
+                        "classes.pkl"]:
+        path = "/tmp/%s_%s" % (featureset_key, file_suffix)
+        docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
+        print(
+            os.path.join(
+                cfg.FEATURES_FOLDER,"%s_%s" % (featureset_key,
+                                               file_suffix)),
+            "copied to host machine.")
+    # Move plot data file from features folder to Flask data folder
+    shutil.copy2(
+        os.path.join(
+            cfg.FEATURES_FOLDER,
+            "%s_features_with_classes.csv" % featureset_key),
+        os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
+    os.remove(os.path.join(
+        cfg.FEATURES_FOLDER,
+        "%s_features_with_classes.csv" % featureset_key))
 
 
 def featurize_in_docker_container(
@@ -76,93 +205,27 @@ def featurize_in_docker_container(
         Human-readable success message.
 
     """
-    arguments = locals()
-    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
-    tmp_files = []
-
-    # copy relevant data files into temp directory on host to be mounted
-    # into container:
-    if os.path.isfile(str(headerfile_path)):
-        copied_headerfile_path = os.path.join(
-            copied_data_dir, ntpath.basename(headerfile_path))
-        tmp_files.append(copied_headerfile_path)
-        shutil.copy(headerfile_path, copied_headerfile_path)
-        arguments["headerfile_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", ntpath.basename(headerfile_path))
-    if os.path.isfile(str(zipfile_path)):
-        copied_zipfile_path = os.path.join(copied_data_dir,
-                                           ntpath.basename(zipfile_path))
-        tmp_files.append(copied_zipfile_path)
-        shutil.copy(zipfile_path, copied_zipfile_path)
-        arguments["zipfile_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", ntpath.basename(zipfile_path))
-    if os.path.isfile(str(custom_script_path)):
-        copied_custom_script_path = os.path.join(
-            os.path.join(
-                cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
-            "custom_feature_defs.py")
-        tmp_files.append(copied_custom_script_path)
-        shutil.copy(custom_script_path, copied_custom_script_path)
-        arguments["custom_script_path"] = ("/home/mltsp/mltsp/"
-                                           "custom_feature_scripts/"
-                                           "custom_feature_defs.py")
-    arguments["path_map"] = {copied_data_dir, "/home/mltsp/copied_data_files"}
-    function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
-    tmp_files.append(function_args_path)
-    with open(function_args_path, "wb") as f:
-        pickle.dump(arguments, f, protocol=2)
-
-
-    cont_id = None
+    copied_data_dir = tempfile.mkdtemp()
+    args_dict = locals()
+    tmp_files = copy_data_files_featurize_prep(args_dict)
     try:
-        # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
-        # Create container
-        cont_id = client.create_container(
-            "mltsp/featurize",
-            volumes={"/home/mltsp": ""})["Id"]
-        # Start container
-        client.start(cont_id,
-                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
-        # Wait for process to complete
-        client.wait(cont_id)
-        stdout = client.logs(container=cont_id, stdout=True)
-        stderr = client.logs(container=cont_id, stderr=True)
-        print("\n\ndocker container stdout:\n\n", str(stdout),
-              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
-        # Copy resulting data files from container to host machine
-        for file_suffix in [
-            "features.csv", "features_with_classes.csv", "classes.npy"]:
-            path = "/tmp/%s_%s" % (featureset_key, file_suffix)
-            docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
-            print(
-                os.path.join(
-                    cfg.FEATURES_FOLDER,"%s_%s" % (featureset_key,
-                                                   file_suffix)),
-                "copied to host machine.")
-        # Move plot data file from features folder to Flask data folder
-        shutil.copy2(
-            os.path.join(
-                cfg.FEATURES_FOLDER,
-                "%s_features_with_classes.csv" % featureset_key),
-            os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
-        os.remove(os.path.join(
-            cfg.FEATURES_FOLDER,
-            "%s_features_with_classes.csv" % featureset_key))
+        client, cont_id = spin_up_and_run_container("mltsp/featurize",
+                                                    copied_data_dir)
+        copy_results_files_featurize(featureset_key, client, cont_id)
         print("Process complete.")
     except Exception as e:
+        cont_id = None
         raise(e)
     finally:
-        # Delete temp directory and its contents
+        # Delete temporary files
         for tmp_file_path in tmp_files:
             try:
                 os.remove(tmp_file_path)
             except Exception as e:
                 print(e)
-
-        # Kill and remove the container
-        if cont_id is not None:
+        shutil.rmtree(copied_data_dir, ignore_errors=True)
+        # Kill and remove Docker container
+        if cont_id and cont_id is not None:
             client.remove_container(container=cont_id, force=True)
         else:
             print('Docker instance never started successfully')
@@ -195,56 +258,92 @@ def build_model_in_docker_container(
         Human-readable success message.
 
     """
-    arguments = locals()
-    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
+    copied_data_dir = tempfile.mkdtemp()
+    args_dict = locals()
 
-    # copy relevant data files into docker temp directory
-    # on host to be mounted into container:
     tmp_files = []
-    arguments["path_map"] = {copied_data_dir, "/home/mltsp/copied_data_files"}
+    args_dict["path_map"] = {copied_data_dir, "/home/copied_data_files"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
-        pickle.dump(arguments, f, protocol=2)
+        pickle.dump(args_dict, f, protocol=2)
     try:
-        # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
-        # Create container
-        cont_id = client.create_container(
-            "mltsp/build_model",
-            volumes={"/home/mltsp": ""})["Id"]
-        print(cont_id)
-        # Start container
-        client.start(cont_id,
-                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
-        # Wait for process to complete
-        client.wait(cont_id)
-        stdout = client.logs(container=cont_id, stdout=True)
-        stderr = client.logs(container=cont_id, stderr=True)
-        print("\n\ndocker container stdout:\n\n", str(stdout),
-              "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
+        client, cont_id = spin_up_and_run_container("mltsp/build_model",
+                                                    copied_data_dir)
         # copy model object produced in Docker container to host
         path = "/tmp/%s_%s.pkl" % (featureset_key, model_type)
         docker_copy(client, cont_id, path, target=cfg.MODELS_FOLDER)
-        print(os.path.join(cfg.MODELS_FOLDER,
-                           "%s_%s.pkl" % (featureset_key, model_type)),
-              "copied to host machine.")
         print("Process complete.")
     except:
         raise
     finally:
-        # delete temp directory and its contents on host machine
+        # delete temp files
         for tmp_file in tmp_files:
             try:
                 os.remove(tmp_file)
             except Exception as e:
                 print(e)
+        shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove the container
         client.remove_container(container=cont_id, force=True)
-        print("Docker container deleted.")
 
     return "Model creation complete. Click the Predict tab to start using it."
+
+
+def copy_data_files_predict_prep(args_dict):
+    """Copy needed files into expected location for prediction.
+
+    Parameters
+    ----------
+    args_dict : dict
+        Dictionary of local variable names and associated values (produced
+        by calling the built-in method `locals()`).
+
+    Returns
+    -------
+    list of str
+        List of paths (strings) to all copied/created temporary files to
+        be removed upon completion of prediction.
+
+    """
+    tmp_files = []
+    if os.path.isfile(str(args_dict["newpred_file_path"])):
+        copied_newpred_file_path = os.path.join(
+            args_dict["copied_data_dir"],
+            ntpath.basename(args_dict["newpred_file_path"]))
+        tmp_files.append(copied_newpred_file_path)
+        shutil.copy(args_dict["newpred_file_path"], copied_newpred_file_path)
+        args_dict["newpred_file_path"] = os.path.join(
+            "/home/copied_data_files",
+            ntpath.basename(args_dict["newpred_file_path"]))
+    if os.path.isfile(str(args_dict["custom_features_script"])):
+        copied_custom_script_path = os.path.join(
+            args_dict["copied_data_dir"],
+            ntpath.basename(args_dict["custom_features_script"]))
+        tmp_files.append(copied_custom_script_path)
+        shutil.copy(args_dict["custom_features_script"],
+                    copied_custom_script_path)
+        args_dict["custom_features_script"] = os.path.join(
+            "/home/copied_data_files",
+            ntpath.basename(args_dict["custom_features_script"]))
+    if os.path.isfile(str(args_dict["metadata_file"])):
+        copied_metadata_file_path = os.path.join(
+            args_dict["copied_data_dir"],
+            ntpath.basename(args_dict["metadata_file"]))
+        tmp_files.append(copied_metadata_file_path)
+        shutil.copy(args_dict["metadata_file"], copied_metadata_file_path)
+        args_dict["metadata_file"] = os.path.join(
+            "/home/copied_data_files",
+            ntpath.basename(args_dict["metadata_file"]))
+
+    args_dict["path_map"] = {args_dict["copied_data_dir"]:
+                             "/home/copied_data_files"}
+    function_args_path = os.path.join(args_dict["copied_data_dir"],
+                                      "function_args.pkl")
+    tmp_files.append(function_args_path)
+    with open(function_args_path, "wb") as f:
+        pickle.dump(args_dict, f, protocol=2)
+    return tmp_files
 
 
 def predict_in_docker_container(
@@ -288,81 +387,32 @@ def predict_in_docker_container(
         Dictionary containing prediction results.
 
     """
-    arguments = locals()
-    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "copied_data_files")
-    tmp_files = []
-    # copy relevant data files into docker temp directory
-    if os.path.isfile(str(newpred_file_path)):
-        copied_newpred_file_path = os.path.join(
-            copied_data_dir, ntpath.basename(newpred_file_path))
-        tmp_files.append(copied_newpred_file_path)
-        shutil.copy(newpred_file_path, copied_newpred_file_path)
-        arguments["newpred_file_path"] = os.path.join(
-            "/home/mltsp/copied_data_files", ntpath.basename(newpred_file_path))
-    if os.path.isfile(str(custom_features_script)):
-        copied_custom_script_path = os.path.join(
-            os.path.join(cfg.MLTSP_PACKAGE_PATH,"custom_feature_scripts"),
-            "custom_feature_defs.py")
-        tmp_files.append(copied_custom_script_path)
-        shutil.copy(custom_features_script, copied_custom_script_path)
-        arguments["custom_features_script"] = ("/home/mltsp/mltsp/"
-                                               "custom_feature_scripts/"
-                                               "custom_feature_defs.py")
-    if os.path.isfile(str(metadata_file)):
-        copied_metadata_file_path = os.path.join(
-            copied_data_dir, ntpath.basename(metadata_file))
-        tmp_files.append(copied_metadata_file_path)
-        shutil.copy(metadata_file, copied_metadata_file_path)
-        arguments["metadata_file"] = os.path.join(
-            "/home/mltsp/copied_data_files", ntpath.basename(metadata_file))
-
-    arguments["path_map"] = {copied_data_dir: "/home/mltsp/copied_data_files"}
-    function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
-    tmp_files.append(function_args_path)
-    with open(function_args_path, "wb") as f:
-        pickle.dump(arguments, f, protocol=2)
+    copied_data_dir = tempfile.mkdtemp()
+    args_dict = locals()
+    tmp_files = copy_data_files_predict_prep(args_dict)
     try:
-        # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
-        # Create container
-        cont_id = client.create_container(
-            "mltsp/predict",
-            volumes={"/home/mltsp": ""})["Id"]
-        print(cont_id)
-        # Start container
-        client.start(cont_id,
-                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
-        # Wait for process to complete
-        client.wait(cont_id)
-        stdouterr = client.logs(container=cont_id, stdout=True, stderr=True)
-        print("\n\ndocker container stdout/err:\n\n", str(stdouterr), "\n\n")
-
+        client, cont_id = spin_up_and_run_container("mltsp/predict",
+                                                    copied_data_dir)
         # copy all necessary files produced in docker container to host
         path = "/tmp/%s_pred_results.pkl" % prediction_entry_key
         docker_copy(client, cont_id, path, target="/tmp")
-        print("/tmp/%s_pred_results.pkl" % prediction_entry_key,
-              "copied to host machine")
         with open("/tmp/%s_pred_results.pkl" % prediction_entry_key, "rb") as f:
             pred_results_dict = pickle.load(f)
         if type(pred_results_dict) != dict:
-            print(("run_in_docker_container.predict_in_docker_container() - " +
-                   "type(pred_results_dict) ="), type(pred_results_dict))
-            print("pred_results_dict:", pred_results_dict)
             raise Exception("run_in_docker_container.predict_in_docker_" +
                             "container() error message - " +
                             "type(pred_results_dict) != dict (%s)" % \
                             str(type(pred_results_dict)))
-        print("Process complete.")
     except:
         raise
     finally:
-        # delete temp directory and its contents
+        # delete temp files
         for tmp_file in tmp_files:
             try:
                 os.remove(tmp_file)
             except Exception as e:
                 print(e)
+        shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove the container
         client.remove_container(container=cont_id, force=True)
         print("Docker container deleted.")

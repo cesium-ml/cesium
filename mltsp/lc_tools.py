@@ -194,7 +194,7 @@ class lightCurve(object):
         self.ra = ra
         self.dec = dec
         self.band = band
-        self.avgt = round((self.total_time)/(float(len(epochs))),3)
+        self.avgt = round((self.total_time)/(float(len(epochs))), 3)
         self.cads = []
 
         self.double_to_single_step = []
@@ -213,14 +213,14 @@ class lightCurve(object):
 
             # all the deltaTs (time to next obs)
             try:
-                self.cads.append(epochs[i+1]-epochs[i])
+                self.cads.append(epochs[i + 1] - epochs[i])
             except IndexError:
                 pass
 
             # ratio of time to obs after next to time to next obs
             try:
                 self.double_to_single_step.append(
-                    (epochs[i+2]-epochs[i])/(epochs[i+2]-epochs[i+1]))
+                    (epochs[i + 2] - epochs[i])/(epochs[i + 2] - epochs[i + 1]))
             except IndexError:
                 pass
             except ZeroDivisionError:
@@ -237,8 +237,8 @@ class lightCurve(object):
         self.all_times_med = np.median(self.all_times)
         self.all_times_avg = np.average(self.all_times)
 
-        hist, bins = np.histogram(self.all_times,bins=50)
-        nhist, bins = np.histogram(self.all_times,bins=50,normed=True)
+        hist, bins = np.histogram(self.all_times, bins=50)
+        nhist, bins = np.histogram(self.all_times, bins=50, normed=True)
         self.all_times_hist = hist
         self.all_times_bins = bins
         self.all_times_hist_peak_val = np.max(hist)
@@ -249,17 +249,17 @@ class lightCurve(object):
         self.all_times_nhist_peak_val = np.max(nhist)
 
         peaks = [] # elements are lists: [peak, index]
-        for peak in heapq.nlargest(10,nhist):
+        for peak in heapq.nlargest(10, nhist):
             index = np.where(nhist == peak)[0][0]
             try:
                 if nhist[index-1] < peak and nhist[index+1] < peak:
-                    peaks.append([peak,index])
+                    peaks.append([peak, index])
                 elif nhist[index-1] == peak:
                     if nhist[index-2] < peak:
-                        peaks.append([peak,index])
+                        peaks.append([peak, index])
                 elif nhist[index+1] == peak:
                     if nhist[index+2] < peak:
-                        peaks.append([peak,index])
+                        peaks.append([peak, index])
             except IndexError:
                 # peak is first or last entry
                 peaks.append([peak,index])
@@ -300,8 +300,8 @@ class lightCurve(object):
         self.cads_med = np.median(self.cads)
 
         self.cad_probs = {}
-        for time in [1,10,20,30,40,50,100,500,1000,5000,10000,50000,
-                     100000,500000,1000000,5000000,10000000]:
+        for time in [1, 10, 20, 30, 40, 50, 100, 500, 1000, 5000, 10000, 50000,
+                     100000, 500000, 1000000, 5000000, 10000000]:
             if self.time_unit == 'day':
                 self.cad_probs[time] = stats.percentileofscore(
                     self.cads,float(time)/(24.0*60.0))/100.0
@@ -398,58 +398,58 @@ def makePdf(sources):
             ax6 = fig.add_subplot(326)
             ax6.axis('off')
 
-            hist, bins, other = ax1.hist(lc.all_times,50,normed=True)
-            ax1.text(np.max(bins)*0.1,np.max(hist)*0.8,
+            hist, bins, other = ax1.hist(lc.all_times, 50, normed=True)
+            ax1.text(np.max(bins)*0.1, np.max(hist)*0.8,
                      r'Histogram (normed) of all $\Delta$Ts')
 
-            ax2.text(0.0,0.9,(r'$\bullet$med time to next obs: ' +
-                              str(np.round(lc.cads_med,4))))
-            ax2.text(0.0,0.75,(r'$\bullet$avg time to next obs: ' +
-                               str(np.round(lc.avgt,4))))
-            ax2.text(0.0,0.6,(r'$\bullet$std dev of time to next obs: ' +
-                              str(np.round(lc.cads_std,4))))
-            ax2.text(0.0,0.45,(r'$\bullet$med of all $\Delta$Ts: ' +
-                               str(np.round(lc.all_times_med,4))))
-            ax2.text(0.0,0.3,(r'$\bullet$avg of all $\Delta$Ts: ' +
-                              str(np.round(lc.all_times_avg,4))))
-            ax2.text(0.0,0.15,(r'$\bullet$std dev of all $\Delta$Ts: ' +
-                               str(np.round(lc.all_times_std,4))))
+            ax2.text(0.0, 0.9, (r'$\bullet$med time to next obs: ' +
+                              str(np.round(lc.cads_med, 4))))
+            ax2.text(0.0, 0.75, (r'$\bullet$avg time to next obs: ' +
+                               str(np.round(lc.avgt, 4))))
+            ax2.text(0.0, 0.6, (r'$\bullet$std dev of time to next obs: ' +
+                              str(np.round(lc.cads_std, 4))))
+            ax2.text(0.0, 0.45, (r'$\bullet$med of all $\Delta$Ts: ' +
+                               str(np.round(lc.all_times_med, 4))))
+            ax2.text(0.0, 0.3, (r'$\bullet$avg of all $\Delta$Ts: ' +
+                              str(np.round(lc.all_times_avg, 4))))
+            ax2.text(0.0, 0.15, (r'$\bullet$std dev of all $\Delta$Ts: ' +
+                               str(np.round(lc.all_times_std, 4))))
 
-            hist, bins, other = ax3.hist(lc.cads,50)
-            ax3.text(np.max(bins)*0.1,np.max(hist)*0.8,
+            hist, bins, other = ax3.hist(lc.cads, 50)
+            ax3.text(np.max(bins) * 0.1, np.max(hist) * 0.8,
                      r'Hist of time to next obs')
 
-            ax6.text(0.0,0.9,r'$\bullet$Number of epochs: ' + str(lc.n_epochs))
-            ax6.text(0.0,0.75,(r'$\bullet$Time b/w first & last obs (days): ' +
-                               str(np.round(lc.total_time,2))))
-            ax6.text(0.0,0.6,(r'$\bullet$Average error in mag: ' +
-                              str(np.round(lc.avg_err,4))))
-            ax6.text(0.0,0.45,(r'$\bullet$Median error in mag: ' +
-                               str(np.round(lc.med_err,4))))
-            ax6.text(0.0,0.3,(r'$\bullet$Std dev of error: ' +
-                              str(np.round(lc.std_err,4))))
-            ax6.text(0.0,0.15,'')
+            ax6.text(0.0, 0.9, r'$\bullet$Number of epochs: ' + str(lc.n_epochs))
+            ax6.text(0.0, 0.75, (r'$\bullet$Time b/w first & last obs (days): ' +
+                               str(np.round(lc.total_time, 2))))
+            ax6.text(0.0, 0.6, (r'$\bullet$Average error in mag: ' +
+                              str(np.round(lc.avg_err, 4))))
+            ax6.text(0.0, 0.45, (r'$\bullet$Median error in mag: ' +
+                               str(np.round(lc.med_err, 4))))
+            ax6.text(0.0, 0.3, (r'$\bullet$Std dev of error: ' +
+                              str(np.round(lc.std_err, 4))))
+            ax6.text(0.0, 0.15, '')
 
-            ax5.scatter(lc.epochs,lc.mags)
+            ax5.scatter(lc.epochs, lc.mags)
 
             ax4.text(0.0, 0.9, (r'$\bullet$Avg double to single step ratio: ' +
-                                str(np.round(lc.avg_double_to_single_step,3))))
-            ax4.text(0.0,0.75,(r'$\bullet$Med double to single step: ' +
-                               str(np.round(lc.med_double_to_single_step,3))))
-            ax4.text(0.0,0.6,(r'$\bullet$Std dev of double to single step: ' +
-                              str(np.round(lc.std_double_to_single_step,3))))
+                                str(np.round(lc.avg_double_to_single_step, 3))))
+            ax4.text(0.0, 0.75, (r'$\bullet$Med double to single step: ' +
+                               str(np.round(lc.med_double_to_single_step, 3))))
+            ax4.text(0.0, 0.6, (r'$\bullet$Std dev of double to single step: ' +
+                              str(np.round(lc.std_double_to_single_step, 3))))
             ax4.text(
                 0.0, 0.45,
                 (r'$\bullet$1st peak to 2nd peak (in all $\Delta$Ts): ' +
-                 str(np.round(lc.all_times_nhist_peak_1_to_2,3))))
+                 str(np.round(lc.all_times_nhist_peak_1_to_2, 3))))
             ax4.text(
                 0.0, 0.3,
                 (r'$\bullet$2ndt peak to 3rd peak (in all $\Delta$Ts): ' +
-                 str(np.round(lc.all_times_nhist_peak_2_to_3,3))))
+                 str(np.round(lc.all_times_nhist_peak_2_to_3, 3))))
             ax4.text(
                 0.0,0.15,
                 (r'$\bullet$1st peak to 3rd peak (in all $\Delta$Ts): ' +
-                 str(np.round(lc.all_times_nhist_peak_1_to_3,3))))
+                 str(np.round(lc.all_times_nhist_peak_1_to_3, 3))))
 
             pdf.savefig(fig)
 
@@ -464,11 +464,12 @@ def makePdf(sources):
     ax3 = fig.add_subplot(223)
     ax4 = fig.add_subplot(224)
 
-    plt.subplots_adjust(wspace=0.4,hspace=0.4)
+    plt.subplots_adjust(wspace=0.4, hspace=0.4)
 
     classnamenum = 0
 
-    colors = ['red','yellow','green','blue','gray','orange','cyan','magenta']
+    colors = ['red', 'yellow', 'green', 'blue', 'gray', 'orange', 'cyan',
+              'magenta']
     for classname, lcs in list(classname_dict.items()):
         classnamenum += 1
         print(classname, len(lcs), 'light curves.')
@@ -490,15 +491,15 @@ def makePdf(sources):
             attr7.append(lc.all_times_nhist_peak_1_to_3)
             attr8.append(lc.all_times_nhist_peak_val)
 
-        ax2.scatter(attr1,attr2,color=colors[classnamenum],label=classname)
-        ax1.scatter(attr3,attr4,color=colors[classnamenum],label=classname)
+        ax2.scatter(attr1, attr2, color=colors[classnamenum], label=classname)
+        ax1.scatter(attr3, attr4, color=colors[classnamenum], label=classname)
         ax2.set_xlabel('N Epochs')
         ax2.set_ylabel('Avg time to next obs')
         ax1.set_xlabel('Standard dev. of time to next obs')
         ax1.set_ylabel('Time b/w first and last obs')
 
-        ax3.scatter(attr5,attr6,color=colors[classnamenum],label=classname)
-        ax4.scatter(attr7,attr8,color=colors[classnamenum],label=classname)
+        ax3.scatter(attr5, attr6, color=colors[classnamenum], label=classname)
+        ax4.scatter(attr7, attr8, color=colors[classnamenum], label=classname)
         ax3.set_xlabel(r'All $\Delta$T hist peak val')
         ax3.set_ylabel('Prob time to next obs <= 5000 min')
         ax4.set_xlabel(r'$\Delta$Ts normed hist peak 1 to peak 3')
@@ -535,10 +536,10 @@ def generate_lc_snippets(lc):
         features generated from the resulting TS data snippets.
 
     """
-    epochs,mags,errs = [lc.epochs,lc.mags,lc.errs]
+    epochs, mags, errs = [lc.epochs, lc.mags, lc.errs]
     lc_snippets = []
     n_epochs = len(epochs)
-    for binsize in [20,40,70,100,150,250,500,1000,10000]:
+    for binsize in [20, 40, 70, 100, 150, 250, 500, 1000, 10000]:
         nbins = 0
         if n_epochs > binsize:
             bin_edges = np.linspace(
@@ -579,7 +580,7 @@ class Source(object):
         Source class, if known.
 
     """
-    def __init__(self,id,lcs,classname='unknown',generate_snippets=True):
+    def __init__(self, id, lcs, classname='unknown', generate_snippets=True):
         """Object constructor.
 
         Instantiates object and creates attributes. Generates snippets
@@ -624,8 +625,8 @@ class Source(object):
             y = n_lcs/x + int(n_lcs%x > 0)
             plotnum = 1
             for lc in self.lcs:
-                plt.subplot(x,y,plotnum)
-                plt.hist(lc.cads,50,range=(0,np.std(lc.cads)*2.0))
+                plt.subplot(x, y, plotnum)
+                plt.hist(lc.cads, 50, range=(0, np.std(lc.cads)*2.0))
                 plt.xlabel('Time to next obs.')
                 plt.ylabel('# Occurrences')
                 plotnum += 1
@@ -660,7 +661,7 @@ def getMultiple(source_ids,classname='unknown'):
 
     """
     if type(source_ids) == str:
-        f = open(source_ids,'r')
+        f = open(source_ids, 'r')
         ids = f.read().split()
         f.close()
     elif type(source_ids) == list:
@@ -669,7 +670,7 @@ def getMultiple(source_ids,classname='unknown'):
     # assuming dotAstro IDs:
     sources = []
     for id in ids:
-        lc = getLcInfo(id,classname)
+        lc = getLcInfo(id, classname)
         if lc: # getLcInfo returns False if no data found
             sources.append(lc)
 
@@ -716,8 +717,8 @@ def getLcInfo(id,classname='unknown'):
         return False
 
     if not isError:
-        lcs = dotAstroLc(lc,id,classname)
-        newSource = Source(id,lcs,classname)
+        lcs = dotAstroLc(lc, id, classname)
+        newSource = Source(id, lcs, classname)
         #print len(lcs), "light curves processed for source", id
         return newSource
 
@@ -772,9 +773,8 @@ def dotAstroLc(lc,id,classname):
             errs.append(float(tds[2].renderContents()))
 
         if len(epochs) > 0:
-            lcs.append(lightCurve(
-                epochs, mags, errs, ra, dec,
-                id, time_unit[numlcs], classname))
+            lcs.append(lightCurve(epochs, mags, errs, ra, dec, id,
+                                  time_unit[numlcs], classname))
             numlcs += 1
 
     return lcs
@@ -831,9 +831,9 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
                     print(len(els), "elements in row - cvsLc()")
     if len(epochs) > 0:
         if single_obj_only:
-            lc = lightCurve(epochs,mags,errs,classname=classname)
+            lc = lightCurve(epochs, mags, errs, classname=classname)
         else:
-            lc = [lightCurve(epochs,mags,errs,classname=classname)]
+            lc = [lightCurve(epochs, mags, errs, classname=classname)]
         return lc
     else:
         print('csvLc() - No data.')
@@ -878,12 +878,12 @@ def getLocalLc(filename, classname='unknown', sep=',',
         for i in range(len(lcdata)):
             try:
                 if len(lcdata[i]) == 2 and add_errors:
-                    lcdata[i] = lcdata[i] + ["1.0"]
+                    lcdata[i].append("1.0")
                 lcdata[i] = ','.join(lcdata[i])
             except TypeError:
                 lcdata[i] = list(map(str, lcdata[i]))
                 if len(lcdata[i]) == 2 and add_errors:
-                    lcdata[i] = lcdata[i] + ["1.0"]
+                    lcdata[i].append("1.0")
                 lcdata[i] = ','.join(lcdata[i])
     else:
         f = open(filename, 'r')
@@ -898,12 +898,12 @@ def getLocalLc(filename, classname='unknown', sep=',',
     if lcdata.find("<Position2D>") > 0 and lcdata.find("xml") > 0:
         lcs = dotAstroLc(lcdata,filename,classname)
     else:
-        lcs = csvLc(lcdata,classname,sep,single_obj_only=single_obj_only)
+        lcs = csvLc(lcdata, classname, sep, single_obj_only=single_obj_only)
     if single_obj_only:
         return lcs
     else:
         #print len(lcs), "light curves processed for", filename
-        newSource = Source(filename,lcs,classname)
+        newSource = Source(filename, lcs, classname)
         return newSource
 
 
