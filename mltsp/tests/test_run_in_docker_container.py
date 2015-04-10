@@ -32,6 +32,8 @@ def featurize_teardown():
               "asas_training_subset.tar.gz", "testfeature1.py"]
     for fname in fnames:
         fpaths.append(os.path.join(cfg.UPLOAD_FOLDER, fname))
+    fpaths.append(os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                               "testfeature1.py"))
     for fpath in fpaths:
         if os.path.exists(fpath):
             os.remove(fpath)
@@ -52,13 +54,10 @@ def test_copy_data_files_featurize_prep():
     assert os.path.exists(os.path.join(tmp_dir, "function_args.pkl"))
     assert os.path.exists(os.path.join(tmp_dir,
                                        "asas_training_subset_classes.dat"))
-    copied_custom_script_path = os.path.join(
-        os.path.join(
-            cfg.MLTSP_PACKAGE_PATH, "custom_feature_scripts"),
-        "custom_feature_defs.py")
+    copied_custom_script_path = os.path.join(tmp_dir, "testfeature1.py")
     assert os.path.exists(copied_custom_script_path)
-    shutil.rmtree(tmp_dir, ignore_errors=True)
     os.remove(copied_custom_script_path)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
     assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0
 
 
@@ -76,7 +75,41 @@ def test_spin_up_and_run_container():
 
 
 def test_copy_results_files_featurize():
-    """### TO-DO ### Test copy results files - featurize"""
+    """Test copy results files - featurize"""
+    copied_data_dir = tempfile.mkdtemp()
+    featurize_setup()
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__),
+                     "Data/testfeature1.py"),
+        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
+    headerfile_path = os.path.join(
+        cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat")
+    zipfile_path = os.path.join(cfg.UPLOAD_FOLDER,
+                                "asas_training_subset.tar.gz")
+    features_to_use = ["std_err", "freq1_harmonics_freq_0"]
+    featureset_key = "TEST01"
+    is_test = True
+    already_featurized = False
+    custom_script_path = os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                      "testfeature1.py")
+    args_dict = locals()
+    tmp_files = ridc.copy_data_files_featurize_prep(args_dict)
+    client, cont_id = ridc.spin_up_and_run_container("mltsp/featurize",
+                                                     copied_data_dir)
+    ridc.copy_results_files_featurize(featureset_key, client, cont_id)
+    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                       "TEST01_features.csv")))
+    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
+                                       "TEST01_classes.pkl")))
+    assert(os.path.exists(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                                    "Flask/static/data"),
+                                       "TEST01_features_with_classes.csv")))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_classes.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_features.csv"))
+    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
+                                        "Flask/static/data"),
+                           "TEST01_features_with_classes.csv"))
+    featurize_teardown()
 
 
 def test_featurize_in_docker_container():
@@ -93,11 +126,11 @@ def test_featurize_in_docker_container():
         zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
                                   "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_harmonics_freq_0"],
-        featureset_key="test", is_test=True, already_featurized=False,
+        featureset_key="TEST01", is_test=True, already_featurized=False,
         custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                         "testfeature1.py"))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv")))
+                                       "TEST01_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_classes.npy")))
     assert(os.path.exists(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
@@ -105,13 +138,13 @@ def test_featurize_in_docker_container():
                                        "test_features_with_classes.csv")))
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv"))
+                                       "TEST01_features.csv"))
     cols = df.columns
     values = df.values
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_features.csv"))
     os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                         "Flask/static/data"),
-                           "test_features_with_classes.csv"))
+                           "TEST01_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
     featurize_teardown()
@@ -198,3 +231,9 @@ def test_predict_in_docker_container():
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+    for fpath in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                               "custom_feature_defs.py"),
+                  os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                               "custom_feature_defs.pyc")]:
+        if os.path.exists(fpath):
+            os.remove(fpath)

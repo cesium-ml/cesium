@@ -424,10 +424,8 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
     """
     """
     shutil.copy(script_fpath,
-                os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                             "custom_feature_defs.py"))
-    with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
-                           "features_already_known_list.pkl"),
+                os.path.join(path_to_tmp_dir, "custom_feature_defs.py"))
+    with open(os.path.join(path_to_tmp_dir, "features_already_known_list.pkl"),
               "wb") as f:
         pickle.dump(features_already_known_list, f, protocol=2)
     return
@@ -445,10 +443,12 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     # Create container
     cont_id = client.create_container(
         "mltsp/extract_custom_feats",
-        volumes={"/home/mltsp": ""})["Id"]
+        volumes={"/home/mltsp": "",
+                 "/home/copied_data_files": ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"},
+                        path_to_tmp_dir: {"bind": "/home/copied_data_files"}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -474,7 +474,7 @@ def remove_tmp_files(path_to_tmp_dir):
     """
     # Remove tmp dir
     shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-    for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+    for tmp_file in (os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                                   "custom_feature_defs.py"),
                      os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                                   "custom_feature_defs.pyc"),
@@ -482,7 +482,7 @@ def remove_tmp_files(path_to_tmp_dir):
                                   "__init__.pyc"),
                      os.path.join(os.path.join(cfg.PROJECT_PATH,
                                                "copied_data_files"),
-                                  "features_already_known_list.pkl")]:
+                                  "features_already_known_list.pkl")):
         try:
             os.remove(tmp_file)
         except Exception as e:
@@ -540,9 +540,10 @@ def docker_extract_features(
                                    ts_datafile_paths, ts_data_list)
     container_name = generate_random_str()
     path_to_tmp_dir = make_tmp_dir()
-
     copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
                          features_already_known_list)
+    assert os.path.exists(os.path.join(path_to_tmp_dir,
+                                       "features_already_known_list.pkl"))
 
     try:
         results_list_of_dict = extract_feats_in_docker_container(

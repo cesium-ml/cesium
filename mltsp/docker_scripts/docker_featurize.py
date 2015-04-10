@@ -24,32 +24,6 @@ def do_featurization():
         generation.
 
     """
-    '''process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    if "stopped" in str(stdout):
-        print("Disco is stopped - attempting to start Disco...")
-        status_code = call(["/disco/bin/disco","nodaemon"])
-        print("Status code for Disco command:", status_code)
-        time.sleep(2)
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        if "stopped" in str(stdout):
-            print("Disco is stopped - attempting to start Disco...")
-            status_code = call(["disco","start"])
-            print("Status code for Disco command:", status_code)
-            time.sleep(2)
-            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate()
-            if "stopped" in str(stdout):
-                print("Disco still stopped... Will featurize without Disco.")
-                disco_running = False
-            else:
-                disco_running = True
-        else:
-            disco_running = True
-    else:
-        disco_running = True
-    '''
     disco_running = False # Just for now til we get it working
     # load pickled ts_data and known features
     with open("/home/copied_data_files/function_args.pkl","rb") as f:

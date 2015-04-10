@@ -129,6 +129,12 @@ def spin_up_and_run_container(image_name, tmp_data_dir):
     stderr = client.logs(container=cont_id, stderr=True)
     print("\n\ndocker container stdout:\n\n", str(stdout),
           "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
+    # Clean up unwanted copied files
+    for fname in ["custom_feature_defs.py", "custom_feature_defs.pyc",
+                  "__init__.pyc"]:
+        fpath = os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER, fname)
+        if os.path.exists(fpath):
+            os.remove(fpath)
     return (client, cont_id)
 
 

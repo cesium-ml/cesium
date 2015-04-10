@@ -10,6 +10,7 @@ try:
     import cPickle as pickle
 except:
     import pickle
+import tempfile
 
 
 def setup():
@@ -148,10 +149,9 @@ def test_make_tmp_dir():
 def test_copy_data_to_tmp_dir():
     """Test copy data to temp dir"""
     tmp_dir_path = cft.make_tmp_dir()
-    copied_file_path1 = os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+    copied_file_path1 = os.path.join(tmp_dir_path,
                                     "custom_feature_defs.py")
-    copied_file_path2 = os.path.join(os.path.join(cfg.PROJECT_PATH,
-                                                  "copied_data_files"),
+    copied_file_path2 = os.path.join(tmp_dir_path,
                                      "features_already_known_list.pkl")
 
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311},
@@ -179,10 +179,19 @@ def test_copy_data_to_tmp_dir():
 
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
-    tmp_dir = "/tmp/mltsp_test"
-    os.mkdir(tmp_dir)
-    results = cft.extract_feats_in_docker_container("test", tmp_dir)
-    npt.assert_equal(len(results), 2)
+    tmp_dir_path = tempfile.mkdtemp()
+    feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
+    ts_datafile_paths = [os.path.join(os.path.dirname(__file__),
+                                      "Data/dotastro_215153.dat")]
+    cft.add_tsdata_to_feats_known_dict(feats_known_dict_list,
+                                       ts_datafile_paths, None)
+    cft.copy_data_to_tmp_dir(tmp_dir_path,
+                             os.path.join(os.path.dirname(__file__),
+                                          "Data/testfeature1.py"),
+                             feats_known_dict_list)
+    results = cft.extract_feats_in_docker_container("test", tmp_dir_path)
+    cft.remove_tmp_files(tmp_dir_path)
+    npt.assert_equal(len(results), 1)
     assert(isinstance(results[0], dict))
     npt.assert_almost_equal(results[0]["avg_mag"], 10.347417647058824)
 
