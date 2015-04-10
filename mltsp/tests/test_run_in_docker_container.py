@@ -56,6 +56,7 @@ def test_copy_data_files_featurize_prep():
                                        "asas_training_subset_classes.dat"))
     copied_custom_script_path = os.path.join(tmp_dir, "testfeature1.py")
     assert os.path.exists(copied_custom_script_path)
+    os.remove(copied_custom_script_path)
     shutil.rmtree(tmp_dir, ignore_errors=True)
     assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0
 
@@ -131,11 +132,11 @@ def test_featurize_in_docker_container():
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "TEST01_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.npy")))
+                                       "TEST01_classes.pkl")))
     assert(os.path.exists(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                                     "Flask/static/data"),
-                                       "test_features_with_classes.csv")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
+                                       "TEST01_features_with_classes.csv")))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_classes.pkl"))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
                                        "TEST01_features.csv"))
     cols = df.columns
