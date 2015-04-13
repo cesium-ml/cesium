@@ -6,7 +6,7 @@ import glob
 
 
 if __name__ == "__main__":
-    from stokman.app import app
+    from mltsp.Flask.flask_app import app
 
     p = multiprocessing.Process(target=app.run)
     p.start()
