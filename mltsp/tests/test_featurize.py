@@ -2,10 +2,10 @@ from mltsp import featurize
 from mltsp import cfg
 import numpy.testing as npt
 import os
+from os.path import join as pjoin
 import pandas as pd
 import ntpath
 import tarfile
-import numpy as np
 try:
     import cPickle as pickle
 except:
@@ -13,13 +13,16 @@ except:
 from sklearn.externals import joblib
 import shutil
 
+
+DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+
+
 def test_setup():
     fpaths = []
     fnames = ["asas_training_subset_classes_with_metadata.dat",
               "asas_training_subset.tar.gz", "testfeature1.py"]
     for fname in fnames:
-        fpaths.append(os.path.join(os.path.dirname(__file__),
-                                   os.path.join("data", fname)))
+        fpaths.append(pjoin(DATA_PATH, fname))
     for fpath in fpaths:
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
 
@@ -27,7 +30,7 @@ def test_setup():
 def test_features_file_parser():
     """Test features file parsing."""
     objects = featurize.parse_prefeaturized_csv_data(
-        os.path.join(os.path.dirname(__file__), "data/csv_test_data.csv"))
+        pjoin(DATA_PATH, "csv_test_data.csv"))
     npt.assert_array_equal(sorted(list(objects[0].keys())), ["col1", "col2",
                                                              "col3", "col4"])
     npt.assert_equal(objects[1]['col1'], ".1")
@@ -38,8 +41,7 @@ def test_headerfile_parser():
     """Test header file parsing."""
     (features_to_use, fname_class_dict, fname_class_science_features_dict,
      fname_metadata_dict) = featurize.parse_headerfile(
-         os.path.join(os.path.dirname(__file__),
-                      "data/sample_classes_with_metadata_headerfile.dat"),
+         pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"),
          features_to_use=["dummy_featname"])
     npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1", "meta2",
                                              "meta3"])
@@ -78,13 +80,12 @@ def test_count_classes():
 def test_generate_features_serial():
     """Test generate_features - serial extraction"""
     objs = featurize.generate_features(
-        os.path.join(cfg.UPLOAD_FOLDER,
-                     "asas_training_subset_classes_with_metadata.dat"),
-        os.path.join(cfg.UPLOAD_FOLDER,
-                     "asas_training_subset.tar.gz"),
+        pjoin(cfg.UPLOAD_FOLDER,
+              "asas_training_subset_classes_with_metadata.dat"),
+        pjoin(cfg.UPLOAD_FOLDER,
+              "asas_training_subset.tar.gz"),
         ["std_err"],
-        os.path.join(cfg.UPLOAD_FOLDER,
-                     "testfeature1.py"),
+        pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
         True, False, False, False)
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
@@ -94,10 +95,10 @@ def test_generate_features_serial():
 def test_generate_features_parallel():
     """Test generate_features - parallelized extraction"""
     objs = featurize.generate_features(
-        os.path.join(cfg.UPLOAD_FOLDER,
-                     "asas_training_subset_classes_with_metadata.dat"),
-        os.path.join(cfg.UPLOAD_FOLDER,
-                     "asas_training_subset.tar.gz"),
+        pjoin(cfg.UPLOAD_FOLDER,
+              "asas_training_subset_classes_with_metadata.dat"),
+        pjoin(cfg.UPLOAD_FOLDER,
+              "asas_training_subset.tar.gz"),
         ["std_err"],
         None, # Custom feats not working with Disco yet
         True, True, False, False)
@@ -108,10 +109,9 @@ def test_generate_features_parallel():
 
 def test_featurize_tsdata_object():
     """Test featurize TS data object function"""
-    path_to_csv = os.path.join(os.path.dirname(__file__),
-                               os.path.join("data", "dotastro_215153.dat"))
+    path_to_csv = pjoin(DATA_PATH, "dotastro_215153.dat")
     short_fname = featurize.shorten_fname(path_to_csv)
-    custom_script_path = os.path.join(cfg.UPLOAD_FOLDER, "testfeature1.py")
+    custom_script_path = pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py")
     fname_class_dict = {"dotastro_215153": "Mira"}
     features_to_use = ["std_err", "freq1_harmonics_freq_0"]
     all_feats = featurize.featurize_tsdata_object(
@@ -124,27 +124,27 @@ def test_featurize_tsdata_object():
 
 def test_remove_unzipped_files():
     """Test removal of unzipped files"""
-    tarball_path = os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz")
-    unzip_path = os.path.join(cfg.UPLOAD_FOLDER, "unzipped")
+    tarball_path = pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz")
+    unzip_path = pjoin(cfg.UPLOAD_FOLDER, "unzipped")
     tarball_obj = tarfile.open(tarball_path)
     tarball_obj.extractall(path=unzip_path)
     all_fnames = tarball_obj.getnames()
     for fname in all_fnames:
-        assert(os.path.exists(os.path.join(unzip_path, fname)))
+        assert(os.path.exists(pjoin(unzip_path, fname)))
 
     featurize.remove_unzipped_files(all_fnames)
 
     for fname in all_fnames:
-        assert(not os.path.exists(os.path.join(cfg.UPLOAD_FOLDER, fname)))
+        assert(not os.path.exists(pjoin(cfg.UPLOAD_FOLDER, fname)))
 
 
 def test_extract_serial():
     """Test serial featurization of multiple TS data sources"""
     objs = featurize.extract_serial(
-        os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset_with_metadata.dat"),
-        os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
+        pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset_with_metadata.dat"),
+        pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
         ["std_err"],
-        os.path.join(cfg.UPLOAD_FOLDER, "testfeature1.py"),
+        pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
         True, False, False, False,
         {"217801": "Mira", "219538": "Herbig_AEBE",
          "223592": "Beta_Lyrae"},
@@ -192,23 +192,22 @@ def test_write_features_to_disk():
         [{"f1": 21.0, "f2": 0.15, "class": "c1"},
          {"f1": 23.4, "f2": 2.31, "class": "c2"}],
         "test_featset01", ["f1", "f2"], False)
-    with open(os.path.join(cfg.FEATURES_FOLDER,
-                           "test_featset01_features.csv")) as f:
+    with open(pjoin(cfg.FEATURES_FOLDER,
+                    "test_featset01_features.csv")) as f:
         feat_cont = f.read()
-    with open(os.path.join(cfg.FEATURES_FOLDER,
-                           "test_featset01_features_with_classes.csv")) as f:
+    with open(pjoin(cfg.FEATURES_FOLDER,
+                    "test_featset01_features_with_classes.csv")) as f:
         feat_class_cont = f.read()
-    classes_list = list(np.load(os.path.join(cfg.FEATURES_FOLDER,
-                                             "test_featset01_classes.npy")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER,
-                           "test_featset01_features.csv"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER,
-                           "test_featset01_features_with_classes.csv"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER,
-                           "test_featset01_classes.npy"))
-    os.remove(os.path.join(
-        os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
-        "test_featset01_features_with_classes.csv"))
+    classes_list = joblib.load(pjoin(cfg.FEATURES_FOLDER,
+                                     "test_featset_classes.npy"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER,
+                    "test_featset01_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER,
+                    "test_featset01_features_with_classes.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER,
+                    "test_featset01_classes.npy"))
+    os.remove(pjoin(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data",
+                    "test_featset01_features_with_classes.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
     npt.assert_equal(feat_class_cont, "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
 
@@ -216,33 +215,32 @@ def test_write_features_to_disk():
 def test_main_featurize_function():
     """Test main featurize function - serial extraction"""
     shutil.copy(
-        os.path.join(os.path.dirname(__file__),
-                     "data/testfeature1.py"),
+        pjoin(DATA_PATH, "testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     results_msg = featurize.featurize(
-        headerfile_path=os.path.join(
+        headerfile_path=pjoin(
             cfg.UPLOAD_FOLDER,
             "asas_training_subset_classes_with_metadata.dat"),
-        zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
-                                  "asas_training_subset.tar.gz"),
+        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
+                           "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_harmonics_freq_0"],
         featureset_id="test", is_test=True,
-        custom_script_path=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
-                                        "testfeature1.py"),
+        custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                 "testfeature1.py"),
         USE_DISCO=False)
-    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv")))
-    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.npy")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
-    df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv"))
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv")))
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_classes.npy")))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
+    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                      "test_features.csv"))
     cols = df.columns
     values = df.values
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                        "Flask/static/data"),
-                           "test_features_with_classes.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                          "Flask/static/data"),
+                          "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
 
@@ -252,32 +250,31 @@ def test_main_featurize_function_disco():
     test_setup()
 
     shutil.copy(
-        os.path.join(os.path.dirname(__file__),
-                     "data/testfeature1.py"),
+        pjoin(DATA_PATH, "testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     results_msg = featurize.featurize(
-        headerfile_path=os.path.join(
+        headerfile_path=pjoin(
             cfg.UPLOAD_FOLDER,
             "asas_training_subset_classes_with_metadata.dat"),
-        zipfile_path=os.path.join(cfg.UPLOAD_FOLDER,
-                                  "asas_training_subset.tar.gz"),
+        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
+                           "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_harmonics_freq_0"],
         featureset_id="test", is_test=True,
         custom_script_path=None,# TODO: Doesn't work when using Disco!!!
         USE_DISCO=True)
-    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv")))
-    assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.npy")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
-    df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_features.csv"))
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv")))
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_classes.npy")))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
+    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv"))
     cols = df.columns
     values = df.values
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
-                                        "Flask/static/data"),
-                           "test_features_with_classes.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                          "Flask/static/data"),
+                          "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
 
@@ -286,7 +283,7 @@ def test_teardown():
     fpaths = []
     for fname in ["asas_training_subset_classes_with_metadata.dat",
                   "asas_training_subset.tar.gz", "testfeature1.py"]:
-        fpaths.append(os.path.join(cfg.UPLOAD_FOLDER, fname))
+        fpaths.append(pjoin(cfg.UPLOAD_FOLDER, fname))
     for fpath in fpaths:
         if os.path.exists(fpath):
             os.remove(fpath)

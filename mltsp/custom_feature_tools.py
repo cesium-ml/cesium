@@ -149,7 +149,7 @@ def parse_csv_file(fname, sep=',', skip_lines=0):
             raise custom_exceptions.DataFormatError(
                 "Incomplete or improperly formatted time "
                 "series data file provided.")
-    tme =  map(list, zip(*ts_data)) # Need t, m, and e in separate lists
+    tme = list(map(list, zip(*ts_data))) # Need t, m, and e in separate lists
     if len(tme) == 2:
         tme.append([]) # Add empty err col
     return tme
