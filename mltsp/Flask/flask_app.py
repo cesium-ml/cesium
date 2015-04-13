@@ -11,27 +11,18 @@ sys_admin_emails = ['a.crellinquick@gmail.com']
 from .. import cfg
 
 import shutil
-import glob
 import time
 import psutil
-import cgi
-import email
 import smtplib
 from email.mime.text import MIMEText
 import logging
 import subprocess
-import re
-import string
-import datetime
-import pytz
 import simplejson
-import pickle
 from flask import (
-    Flask, request, abort, redirect, url_for, render_template,
-    escape, session, Response, jsonify, g)
-from flask.ext import restful
+    Flask, request, abort, render_template,
+    session, Response, jsonify, g)
+from ..ext.flask_googleauth import GoogleAuth
 from werkzeug import secure_filename
-from functools import wraps
 import uuid
 import ntpath
 
@@ -54,29 +45,15 @@ except Exception as theError:
     print("Warning: no installation of Disco found")
 
 import pandas as pd
-import tables
 import tarfile
 import zipfile
 import multiprocessing
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
-try:
-    import bokeh.plotting as bokeh_plt
-    from bokeh.objects import Range1d
-except:
-    pass
-
-from .. import predict_class as predict
-from .. import build_model
-from .. import featurize
-from .. import lc_tools
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import run_in_docker_container
-
-if DISCO_INSTALLED:
-    from .. import parallel_processing
 
 all_available_features_list = cfg.features_list + cfg.features_list_science
 
@@ -123,7 +100,7 @@ app.config['UPLOAD_FOLDER'] = cfg.UPLOAD_FOLDER
 logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 
 # RethinkDB config:
-RDB_HOST =  os.environ.get('RDB_HOST') or 'localhost'
+RDB_HOST = os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
 MLTSP_DB = "mltsp_app"
 rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
@@ -160,12 +137,12 @@ def establish_rdb_connection():
     return connection
 
 
-#sys.excepthook = excepthook_replacement
+# sys.excepthook = excepthook_replacement
 def excepthook_replacement(exctype, value, tb):
     print("\n\nError occurred in flask_app.py")
     print("Type:", exctype)
     print("Value:", value)
-    print("Traceback:", tb,"\n\n")
+    print("Traceback:", tb, "\n\n")
     logging.exception("Error occurred in flask_app.py")
 
 
@@ -194,7 +171,7 @@ def num_lines(filename):
     return linecount
 
 
-@app.route('/check_job_status/',methods=['POST','GET'])
+@app.route('/check_job_status/', methods=['POST','GET'])
 @stormpath.login_required
 def check_job_status(PID=False):
     """Check status of a process, return string summary.
@@ -229,16 +206,17 @@ def check_job_status(PID=False):
                 "This process is currently running and was started at "
                 "%s (last checked at %s).") % (
                     str(start_time), str(time.strftime("%Y-%m-%d %H:%M:%S",
-                    time.localtime())))
+                                                       time.localtime())))
         else:
             psutil.Process(int(PID)).kill()
             msg_str = ("This process was started at %s and has now finished "
-                "(checked at %s).") % (
-                    str(start_time),
-                    str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+                       "(checked at %s).") % (
+                           str(start_time),
+                           str(time.strftime("%Y-%m-%d %H:%M:%S",
+                                             time.localtime())))
     else:
         msg_str = ("This process has finished (checked at %s)." %
-            str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+                   str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
     return msg_str
 
 
@@ -310,7 +288,7 @@ def db_init(force=False):
 
     for table_name in table_names:
         print('Creating table', table_name)
-        result = db.table_create(table_name).run(connection)
+        db.table_create(table_name).run(connection)
     connection.close()
 
     print('Database setup completed.')
@@ -334,7 +312,7 @@ def add_user():
     }).run(g.rdb_conn)
 
 
-#@app.before_first_request
+# @app.before_first_request
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
     if (r.table("users").filter({'email': stormpath.user.email})
@@ -372,7 +350,6 @@ def update_model_entry_with_pid(new_model_key, pid):
     return new_model_key
 
 
-
 def update_featset_entry_with_pid(featset_key, pid):
     """Update RethinkDB feature set entry with process ID.
 
@@ -393,9 +370,8 @@ def update_featset_entry_with_pid(featset_key, pid):
 
     """
     (r.table('features').get(featset_key)
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid" :str(pid)}).run(g.rdb_conn))
     return featset_key
-
 
 
 def update_prediction_entry_with_pid(prediction_key, pid):
@@ -419,7 +395,7 @@ def update_prediction_entry_with_pid(prediction_key, pid):
 
     """
     (r.table('predictions').get(prediction_key)
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid": str(pid)}).run(g.rdb_conn))
     return prediction_key
 
 
@@ -539,7 +515,8 @@ def get_current_userkey():
         User key/ID.
 
     """
-    cursor = r.table("users").filter({"email": stormpath.user.email}).run(g.rdb_conn)
+    cursor = r.table("users").filter({"email": stormpath.user.email})\
+                             .run(g.rdb_conn)
     n_entries = 0
     entries = []
     for entry in cursor:
@@ -672,12 +649,12 @@ def list_featuresets(
         for this_projkey in authed_proj_keys:
             cursor = (
                 r.table("features").filter({"projkey": this_projkey})
-                .pluck("name","created").run(g.rdb_conn))
+                .pluck("name", "created").run(g.rdb_conn))
             authed_featuresets = []
             for entry in cursor:
                 authed_featuresets.append(
                     entry['name'] +
-                    (" (created %s PST)"%str(entry['created'])[:-13]
+                    (" (created %s PST)" % str(entry['created'])[:-13]
                         if not name_only else ""))
 
         return authed_featuresets
@@ -717,9 +694,10 @@ def list_models(
     if by_project:
         this_projkey = project_name_to_key(by_project)
 
-        cursor = (
-            r.table("models").filter({"projkey":this_projkey})
-            .pluck("name","created","type","id","meta_feats").run(g.rdb_conn))
+        cursor = r.table("models").filter({"projkey": this_projkey})\
+                                  .pluck("name", "created", "type", "id",
+                                         "meta_feats")\
+                                  .run(g.rdb_conn)
 
         if as_html_table_string:
             authed_models = (
@@ -741,22 +719,20 @@ def list_models(
                     + (
                         " PST</td><td align='center'><input type='checkbox' "
                         "name='delete_model_key' value='%s'></td></tr>")
-                    %entry['id'])
+                    % entry['id'])
             authed_models += "</table>"
         else:
             authed_models = []
             for entry in cursor:
                 authed_models.append(
                     entry['name']
-                    + (" - %s"%str(entry['type']) if with_type else "")
-                    + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
-                        if not name_only else "")
-                    + (
-                        " meta_feats=%s" % ",".join(entry['meta_feats'])
-                        if 'meta_feats' in entry and entry['meta_feats']
-                        not in [False,[],"False",None,"None"] and
-                        type(entry['meta_feats']) == list else ""))
+                    + (" - %s" % str(entry['type']) if with_type else "")
+                    + (" (created %s PST)"%str(entry['created'])[:-13]
+                       if not name_only else "")
+                    + (" meta_feats=%s" % ",".join(entry['meta_feats'])
+                       if 'meta_feats' in entry and entry['meta_feats']
+                       not in [False, [], "False", None, "None"] and
+                       type(entry['meta_feats']) == list else ""))
         return authed_models
     else:
         if len(authed_proj_keys) == 0:
@@ -1480,12 +1456,13 @@ def update_project_info(
     for prev_auth in already_authed_users:
         if prev_auth not in new_addl_authed_users + [userkey]:
             (r.table("userauth")
-                .filter({"userkey":prev_auth,"projkey":projkey})
+                .filter({"userkey": prev_auth, "projkey": projkey})
                 .delete().run(g.rdb_conn))
     for new_auth in new_addl_authed_users + [userkey]:
         if new_auth not in already_authed_users + [""]:
             (r.table("userauth")
-                .insert({"userkey":new_auth,"projkey":projkey,"active":"y"})
+                .insert({"userkey": new_auth, "projkey": projkey,
+                         "active": "y"})
                 .run(g.rdb_conn))
     if len(delete_prediction_keys) > 0:
         (r.table("predictions").get_all(*delete_prediction_keys)
@@ -1498,7 +1475,7 @@ def update_project_info(
                 os.remove(
                     os.path.join(
                         cfg.FEATURES_FOLDER,
-                        "%s_features.csv"%features_key))
+                        "%s_features.csv" % features_key))
             except Exception as theErr:
                 logging.exception(
                     "Tried to delete a file that does not exist.")
@@ -1507,7 +1484,7 @@ def update_project_info(
                 os.remove(
                     os.path.join(
                         cfg.FEATURES_FOLDER,
-                        "%s_features_with_classes.csv"%features_key))
+                        "%s_features_with_classes.csv" % features_key))
             except Exception as theErr:
                 logging.exception(
                     "Tried to delete a file that does not exist.")
@@ -1515,7 +1492,7 @@ def update_project_info(
             try:
                 os.remove(
                     os.path.join(
-                        cfg.FEATURES_FOLDER, "%s_classes.pkl"%features_key))
+                        cfg.FEATURES_FOLDER, "%s_classes.pkl" % features_key))
             except Exception as theErr:
                 print(theErr)
                 logging.exception(
@@ -1547,7 +1524,7 @@ def update_project_info(
                         os.remove(
                             os.path.join(
                                 cfg.MODELS_FOLDER,
-                                ("%s_%s.pkl"%
+                                ("%s_%s.pkl" %
                                     (featset_entry["id"],
                                      model_entry["type"]))))
                     except Exception as theErr:
@@ -1556,7 +1533,8 @@ def update_project_info(
                             "Tried to delete a file that does not exist.")
                     print("Removed", os.path.join(
                         cfg.MODELS_FOLDER,
-                        "%s_%s.pkl"%(featset_entry["id"],model_entry["type"])))
+                        "%s_%s.pkl" % (featset_entry["id"],
+                                       model_entry["type"])))
         r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
     new_proj_details = get_project_details(new_name)
     return new_proj_details
