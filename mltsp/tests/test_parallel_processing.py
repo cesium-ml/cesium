@@ -1,11 +1,12 @@
 from mltsp import parallel_processing as prl_proc
 from mltsp import cfg
+from mltsp import build_model
 import numpy.testing as npt
 import os
 import pandas as pd
 import shutil
 
-test_data_path = os.path.join(os.path.dirname(__file__), "Data")
+test_data_path = os.path.join(os.path.dirname(__file__), "data")
 
 def test_featurize_in_parallel():
     """Test main parallelized featurization function"""
@@ -21,34 +22,38 @@ def test_featurize_in_parallel():
         assert "std_err" in v and "freq1_harmonics_freq_0" in v
 
 
+def generate_model():
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_classes.npy"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_features.csv"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
+                                       "TEMP_TEST01_RF.pkl"))
+
+
 def test_featurize_prediction_data_in_parallel():
     """Test parallel featurization of prediction TS data"""
+    generate_model()
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_features.csv"),
-                cfg.FEATURES_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_classes.pkl"),
-                cfg.FEATURES_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_RF.pkl"),
-                cfg.MODELS_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/215153_215176_218272_218934.tar.gz"),
+                             "data/215153_215176_218272_218934.tar.gz"),
                 cfg.UPLOAD_FOLDER)
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/testfeature1.py"),
+                             "data/testfeature1.py"),
                 os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                              "TESTRUN_CF.py"))
 
     features_and_tsdata_dict = prl_proc.featurize_prediction_data_in_parallel(
         os.path.join(test_data_path, "215153_215176_218272_218934.tar.gz"),
-                     "TESTRUN")
+                     "TEMP_TEST01")
 
     assert "std_err" in features_and_tsdata_dict\
         ["dotastro_218934.dat"]["features_dict"]
     os.remove(os.path.join(cfg.UPLOAD_FOLDER,
                            "215153_215176_218272_218934.tar.gz"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.pkl"))
-    os.remove(os.path.join(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))

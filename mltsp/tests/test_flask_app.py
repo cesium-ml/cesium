@@ -9,7 +9,7 @@ import uuid
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "Data")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
 def test_num_lines():

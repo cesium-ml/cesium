@@ -1,6 +1,7 @@
 from mltsp import predict_class as pred
 from mltsp import featurize
 from mltsp import cfg
+from mltsp import build_model
 import numpy.testing as npt
 import os
 import pandas as pd
@@ -18,14 +19,14 @@ def test_parse_metadata_file():
 
 def test_determine_feats_used():
     """Test determine_feats_used"""
-    for suffix in ["features.csv", "classes.pkl"]:
+    for suffix in ["features.csv", "classes.npy"]:
         shutil.copy(
             os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
             os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     feats_used = pred.determine_feats_used("TEST001")
     npt.assert_array_equal(feats_used, ["meta1", "meta2", "meta3", "std_err"])
-    for fname in ["TEST001_features.csv", "TEST001_classes.pkl"]:
+    for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(os.path.join(cfg.FEATURES_FOLDER, fname))
 
 
@@ -98,7 +99,7 @@ def test_create_feat_dict_and_list():
 
 def test_add_to_predict_results_dict():
     """Test add data to predict results dict"""
-    for suffix in ["classes.pkl", "features.csv"]:
+    for suffix in ["classes.npy", "features.csv"]:
         shutil.copy(
             os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
@@ -109,46 +110,53 @@ def test_add_to_predict_results_dict():
                                      "TEST001", 5)
     npt.assert_array_equal(results_dict["TT.dat"]["ts_data"], [1, 2, 3])
     npt.assert_equal(len(results_dict["TT.dat"]["pred_results_list"]), 3)
-    for fname in ["TEST001_features.csv", "TEST001_classes.pkl"]:
+    for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(os.path.join(cfg.FEATURES_FOLDER, fname))
+
+
+def generate_model():
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_classes.npy"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_features.csv"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
+                                       "TEMP_TEST01_RF.pkl"))
 
 
 def test_do_model_predictions():
     """Test model predictions"""
-    for suffix in ["classes.pkl", "features.csv"]:
+    generate_model()
+    os.rename(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"),
+              os.path.join(cfg.MODELS_FOLDER, "TEST001_RF.pkl"))
+    for suffix in ["classes.npy", "features.csv"]:
         shutil.copy(
             os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
             os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
-    shutil.copy(
-        os.path.join(os.path.join(os.path.dirname(__file__), "data"),
-                     "test_RF.pkl"),
-        os.path.join(cfg.MODELS_FOLDER, "TEST001_RF.pkl"))
     featset_key = "TEST001"
     model_type = "RF"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs"]
     data_dict = pred.featurize_tsdata(
         os.path.join(os.path.dirname(__file__), "data/dotastro_215153.dat"),
-        "TEMP_TEST01",
+        "TEST001",
         None, None, False,
         cfg.features_list, False)
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
-                                                  model_type, features_to_use, 5)
+                                                  model_type, features_to_use,
+                                                  5)
     assert("dotastro_215153.dat" in pred_results_dict)
-    assert("std_err" in pred_results_dict["dotastro_215153.dat"]["features_dict"])
+    assert("std_err" in
+           pred_results_dict["dotastro_215153.dat"]["features_dict"])
 
 
 def test_main_predict():
     """Test main predict function"""
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "data/TESTRUN_features.csv"),
-                cfg.FEATURES_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "data/TESTRUN_classes.pkl"),
-                cfg.FEATURES_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "data/TESTRUN_RF.pkl"),
-                cfg.MODELS_FOLDER)
+
+    generate_model()
+
     shutil.copy(os.path.join(os.path.dirname(__file__),
                              "data/dotastro_215153.dat"),
                 os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
@@ -162,7 +170,7 @@ def test_main_predict():
 
     pred_results_dict = pred.predict(
         os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-        "TESTRUN", "RF", "TESTRUN",
+        "TEMP_TEST01", "RF", "TEMP_TEST01",
         metadata_file_path=os.path.join(cfg.UPLOAD_FOLDER,
                                         "TESTRUN_215153_metadata.dat"),
         custom_features_script=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
@@ -174,7 +182,7 @@ def test_main_predict():
 
     os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.pkl"))
-    os.remove(os.path.join(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))

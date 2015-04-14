@@ -14,17 +14,17 @@ def test_setup():
     # copy data files to proper directory:
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/asas_training_subset_classes_with_metadata.dat"),
+                     "data/asas_training_subset_classes_with_metadata.dat"),
         cfg.UPLOAD_FOLDER)
 
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/asas_training_subset.tar.gz"),
+                     "data/asas_training_subset.tar.gz"),
         cfg.UPLOAD_FOLDER)
 
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/testfeature1.py"),
+                     "data/testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
 
 
@@ -49,7 +49,7 @@ def test_featurize():
         os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
         "TESTRUN_features_with_classes.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "TESTRUN_classes.pkl")))
+                                       "TESTRUN_classes.npy")))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
                                        "TESTRUN_features.csv"))
     cols = df.columns
@@ -67,12 +67,12 @@ def test_build_model():
 def test_predict():
     """Test class prediction."""
     results_dict = predict_class.predict(
-        os.path.join(os.path.dirname(__file__), "Data/dotastro_215153.dat"),
+        os.path.join(os.path.dirname(__file__), "data/dotastro_215153.dat"),
         "TESTRUN", "RF", "TESTRUN",
         custom_features_script=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                               "testfeature1.py"),
         metadata_file_path=os.path.join(os.path.dirname(__file__),
-                                        "Data/215153_metadata.dat"))
+                                        "data/215153_metadata.dat"))
     assert(isinstance(results_dict, dict))
     assert("dotastro_215153.dat" in results_dict)
     assert(isinstance(
@@ -82,7 +82,7 @@ def test_predict():
 def test_remove_created_files():
     """Remove files created by test suite."""
     for fname in [os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"),
-                  os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.pkl"),
+                  os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.npy"),
                   os.path.join(
                       os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
                       "TESTRUN_features_with_classes.csv"),
