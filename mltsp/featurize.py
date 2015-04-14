@@ -12,6 +12,7 @@ import sys
 import os
 import tarfile
 import ntpath
+import numpy as np
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
@@ -384,9 +385,9 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
     if not in_docker_container:
         shutil.copy2(
             f2.name, os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
-    joblib.dump(classes, os.path.join(
+    np.save(os.path.join(
         ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_classes.pkl" % featureset_id), compress=3)
+        "%s_classes.npy" % featureset_id), classes)
     print("Done.")
 
 
@@ -400,7 +401,7 @@ def featurize(
     Features are saved to the file given by
     ``"%s_features.csv" % featureset_id``
     and a list of corresponding classes is saved to the file given by
-    ``"%s_classes.pkl" % featureset_id``
+    ``"%s_classes.npy" % featureset_id``
     in the directory `cfg.FEATURES_FOLDER` (or is later copied there if
     generated inside a Docker container).
 

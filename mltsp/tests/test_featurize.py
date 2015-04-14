@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import ntpath
 import tarfile
+import numpy as np
 try:
     import cPickle as pickle
 except:
@@ -18,7 +19,7 @@ def test_setup():
               "asas_training_subset.tar.gz", "testfeature1.py"]
     for fname in fnames:
         fpaths.append(os.path.join(os.path.dirname(__file__),
-                                   os.path.join("Data", fname)))
+                                   os.path.join("data", fname)))
     for fpath in fpaths:
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
 
@@ -26,7 +27,7 @@ def test_setup():
 def test_features_file_parser():
     """Test features file parsing."""
     objects = featurize.parse_prefeaturized_csv_data(
-        os.path.join(os.path.dirname(__file__), "Data/csv_test_data.csv"))
+        os.path.join(os.path.dirname(__file__), "data/csv_test_data.csv"))
     npt.assert_array_equal(sorted(list(objects[0].keys())), ["col1", "col2",
                                                              "col3", "col4"])
     npt.assert_equal(objects[1]['col1'], ".1")
@@ -38,7 +39,7 @@ def test_headerfile_parser():
     (features_to_use, fname_class_dict, fname_class_science_features_dict,
      fname_metadata_dict) = featurize.parse_headerfile(
          os.path.join(os.path.dirname(__file__),
-                      "Data/sample_classes_with_metadata_headerfile.dat"),
+                      "data/sample_classes_with_metadata_headerfile.dat"),
          features_to_use=["dummy_featname"])
     npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1", "meta2",
                                              "meta3"])
@@ -108,7 +109,7 @@ def test_generate_features_parallel():
 def test_featurize_tsdata_object():
     """Test featurize TS data object function"""
     path_to_csv = os.path.join(os.path.dirname(__file__),
-                               os.path.join("Data", "dotastro_215153.dat"))
+                               os.path.join("data", "dotastro_215153.dat"))
     short_fname = featurize.shorten_fname(path_to_csv)
     custom_script_path = os.path.join(cfg.UPLOAD_FOLDER, "testfeature1.py")
     fname_class_dict = {"dotastro_215153": "Mira"}
@@ -197,14 +198,14 @@ def test_write_features_to_disk():
     with open(os.path.join(cfg.FEATURES_FOLDER,
                            "test_featset01_features_with_classes.csv")) as f:
         feat_class_cont = f.read()
-    classes_list = joblib.load(os.path.join(cfg.FEATURES_FOLDER,
-                                            "test_featset_classes.pkl"))
+    classes_list = list(np.load(os.path.join(cfg.FEATURES_FOLDER,
+                                             "test_featset01_classes.npy")))
     os.remove(os.path.join(cfg.FEATURES_FOLDER,
                            "test_featset01_features.csv"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER,
                            "test_featset01_features_with_classes.csv"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER,
-                           "test_featset01_classes.pkl"))
+                           "test_featset01_classes.npy"))
     os.remove(os.path.join(
         os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"),
         "test_featset01_features_with_classes.csv"))
@@ -216,7 +217,7 @@ def test_main_featurize_function():
     """Test main featurize function - serial extraction"""
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/testfeature1.py"),
+                     "data/testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     results_msg = featurize.featurize(
         headerfile_path=os.path.join(
@@ -232,8 +233,8 @@ def test_main_featurize_function():
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.pkl")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.pkl"))
+                                       "test_classes.npy")))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv"))
     cols = df.columns
@@ -252,7 +253,7 @@ def test_main_featurize_function_disco():
 
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/testfeature1.py"),
+                     "data/testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     results_msg = featurize.featurize(
         headerfile_path=os.path.join(
@@ -267,8 +268,8 @@ def test_main_featurize_function_disco():
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.pkl")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.pkl"))
+                                       "test_classes.npy")))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv"))
     cols = df.columns

@@ -11,6 +11,7 @@ from sklearn.externals import joblib
 from random import shuffle
 import sys
 import os
+import numpy as np
 
 from . import cfg
 from . import lc_tools
@@ -87,6 +88,7 @@ def count_classes(classes):
     """
     # Count up total num of objects per class
     class_count = {}
+    print("\n\n\nCLASSES:\n", classes, "\n\n\n")
     class_list = []
     for classname in classes:
         if classname not in class_list:
@@ -161,8 +163,8 @@ def read_features_data_from_disk(featureset_key):
         cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
     # Read in feature data and class list
     features_extracted, all_data = read_data_from_csv_file(features_filename)
-    classes = joblib.load(
-        features_filename.replace("_features.csv", "_classes.pkl"))
+    classes = list(np.load(features_filename.replace("_features.csv",
+                                                     "_classes.npy")))
 
     # Put data and class list into dictionary
     data_dict = {}

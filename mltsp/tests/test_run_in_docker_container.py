@@ -1,9 +1,11 @@
 from mltsp import run_in_docker_container as ridc
 from mltsp import cfg
+from mltsp import build_model
 import numpy.testing as npt
 import os
 import pandas as pd
 import shutil
+import numpy as np
 from sklearn.externals import joblib
 try:
     import cPickle as pickle
@@ -17,7 +19,7 @@ def featurize_setup():
               "asas_training_subset.tar.gz", "testfeature1.py"]
     for fname in fnames:
         fpaths.append(os.path.join(os.path.dirname(__file__),
-                                   os.path.join("Data", fname)))
+                                   os.path.join("data", fname)))
     for fpath in fpaths:
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
 
@@ -39,7 +41,7 @@ def test_featurize_in_docker_container():
     featurize_setup()
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/testfeature1.py"),
+                     "data/testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     ridc.featurize_in_docker_container(
         headerfile_path=os.path.join(
@@ -54,11 +56,11 @@ def test_featurize_in_docker_container():
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "test_classes.pkl")))
+                                       "test_classes.npy")))
     assert(os.path.exists(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                                     "Flask/static/data"),
                                        "test_features_with_classes.csv")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "test_classes.npy"))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
                                        "test_features.csv"))
     cols = df.columns
@@ -74,10 +76,10 @@ def test_featurize_in_docker_container():
 
 def test_build_model_in_docker_container():
     """Test build model in docker container"""
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
-                             "test_classes.pkl"),
-                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.pkl"))
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_classes.npy"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                              "test_features.csv"),
                 os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
 
@@ -87,35 +89,40 @@ def test_build_model_in_docker_container():
     model = joblib.load(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     assert hasattr(model, "predict_proba")
     os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+
+
+def generate_model():
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_classes.npy"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_features.csv"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
+                                       "TEMP_TEST01_RF.pkl"))
 
 
 def test_predict_in_docker_container():
     """Test predict in docker container"""
+    generate_model()
+
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_features.csv"),
-                cfg.FEATURES_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_classes.pkl"),
-                cfg.FEATURES_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_RF.pkl"),
-                cfg.MODELS_FOLDER)
-    shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/dotastro_215153.dat"),
+                             "data/dotastro_215153.dat"),
                 os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/TESTRUN_215153_metadata.dat"),
+                             "data/TESTRUN_215153_metadata.dat"),
                 cfg.UPLOAD_FOLDER)
     shutil.copy(os.path.join(os.path.dirname(__file__),
-                             "Data/testfeature1.py"),
+                             "data/testfeature1.py"),
                 os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                              "TESTRUN_CF.py"))
 
     pred_results_dict = ridc.predict_in_docker_container(
         os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-        "TESTRUN", "RF", "TESTRUN", "TESTRUN",
+        "TEMP_TEST01", "RF", "TEMP_TEST01", "TEMP_TEST01",
         metadata_file=os.path.join(cfg.UPLOAD_FOLDER,
                                    "TESTRUN_215153_metadata.dat"),
         custom_features_script=os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
@@ -127,7 +134,7 @@ def test_predict_in_docker_container():
 
     os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(os.path.join(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TESTRUN_classes.pkl"))
-    os.remove(os.path.join(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(os.path.join(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))

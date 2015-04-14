@@ -137,7 +137,7 @@ def featurize_in_docker_container(
               "\n\ndocker container stderr:\n\n", str(stderr), "\n\n")
         # Copy resulting data files from container to host machine
         for file_suffix in [
-            "features.csv", "features_with_classes.csv", "classes.pkl"]:
+            "features.csv", "features_with_classes.csv", "classes.npy"]:
             path = "/tmp/%s_%s" % (featureset_key, file_suffix)
             docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
             print(

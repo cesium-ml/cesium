@@ -3,13 +3,14 @@ from mltsp import cfg
 import numpy.testing as npt
 import os
 import pandas as pd
+import numpy as np
 from sklearn.externals import joblib
 import shutil
 
 def test_csv_parser():
     """Test CSV file parsing."""
     colnames, data_rows = build_model.read_data_from_csv_file(
-        os.path.join(os.path.dirname(__file__), "Data/csv_test_data.csv"))
+        os.path.join(os.path.dirname(__file__), "data/csv_test_data.csv"))
     npt.assert_equal(colnames[0], "col1")
     npt.assert_equal(colnames[-1], "col4")
     npt.assert_equal(len(data_rows[0]), 4)
@@ -57,23 +58,24 @@ def test_create_and_pickle_model():
 
 
 def test_read_features_data_from_disk():
-    for suffix in ["features.csv", "classes.pkl"]:
+    for suffix in ["features.csv", "classes.npy"]:
         shutil.copy(
-            os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+            os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                          "test_%s" % suffix),
             os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     data_dict = build_model.read_features_data_from_disk("TEST001")
     npt.assert_array_equal(data_dict["classes"], ["Mira", "Herbig_AEBE",
                                                   "Beta_Lyrae"])
-    for fname in ["TEST001_features.csv", "TEST001_classes.pkl"]:
+    for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(os.path.join(cfg.FEATURES_FOLDER, fname))
+
 
 def test_build_model():
     """Test main model building method"""
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
-                             "test_classes.pkl"),
-                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.pkl"))
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "Data"),
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_classes.npy"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
                              "test_features.csv"),
                 os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
@@ -83,5 +85,5 @@ def test_build_model():
                                      "TEMP_TEST01_RF.pkl"))
     assert hasattr(model, "predict_proba")
     os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
