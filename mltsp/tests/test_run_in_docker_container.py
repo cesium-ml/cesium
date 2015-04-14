@@ -201,6 +201,18 @@ def test_copy_data_files_predict_prep():
     assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0
 
 
+def generate_model():
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_classes.npy"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
+                             "test_features.csv"),
+                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
+                                       "TEMP_TEST01_RF.pkl"))
+
+
 def test_predict_in_docker_container():
     """Test predict in docker container"""
     generate_model()
