@@ -88,7 +88,6 @@ def count_classes(classes):
     """
     # Count up total num of objects per class
     class_count = {}
-    print("\n\n\nCLASSES:\n", classes, "\n\n\n")
     class_list = []
     for classname in classes:
         if classname not in class_list:
