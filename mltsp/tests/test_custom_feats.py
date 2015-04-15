@@ -183,12 +183,12 @@ def test_extract_feats_in_docker_container():
     tmp_dir_path = tempfile.mkdtemp()
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
     ts_datafile_paths = [os.path.join(os.path.dirname(__file__),
-                                      "Data/dotastro_215153.dat")]
+                                      "data/dotastro_215153.dat")]
     cft.add_tsdata_to_feats_known_dict(feats_known_dict_list,
                                        ts_datafile_paths, None)
     cft.copy_data_to_tmp_dir(tmp_dir_path,
                              os.path.join(os.path.dirname(__file__),
-                                          "Data/testfeature1.py"),
+                                          "data/testfeature1.py"),
                              feats_known_dict_list)
     results = cft.extract_feats_in_docker_container("test", tmp_dir_path)
     cft.remove_tmp_files(tmp_dir_path)

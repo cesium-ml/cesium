@@ -80,7 +80,7 @@ def test_copy_results_files_featurize():
     featurize_setup()
     shutil.copy(
         os.path.join(os.path.dirname(__file__),
-                     "Data/testfeature1.py"),
+                     "data/testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
     headerfile_path = os.path.join(
         cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat")
@@ -132,11 +132,11 @@ def test_featurize_in_docker_container():
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
                                        "TEST01_features.csv")))
     assert(os.path.exists(os.path.join(cfg.FEATURES_FOLDER,
-                                       "TEST01_classes.pkl")))
+                                       "TEST01_classes.npy")))
     assert(os.path.exists(os.path.join(os.path.join(cfg.MLTSP_PACKAGE_PATH,
                                                     "Flask/static/data"),
                                        "TEST01_features_with_classes.csv")))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_classes.pkl"))
+    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEST01_classes.npy"))
     df = pd.io.parsers.read_csv(os.path.join(cfg.FEATURES_FOLDER,
                                        "TEST01_features.csv"))
     cols = df.columns
@@ -183,7 +183,7 @@ def generate_model():
 def test_copy_data_files_predict_prep():
     """Test copy data files - prediction prep"""
     tmp_dir = tempfile.mkdtemp()
-    test_data_dir = os.path.join(os.path.dirname(__file__), "Data")
+    test_data_dir = os.path.join(os.path.dirname(__file__), "data")
     args_dict = {
         'copied_data_dir': tmp_dir,
         'newpred_file_path': os.path.join(test_data_dir,
