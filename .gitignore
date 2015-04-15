@@ -11,3 +11,4 @@ mltsp/version.py
 .#*
 .noseids
 rethinkdb_data
+mltsp.yaml
