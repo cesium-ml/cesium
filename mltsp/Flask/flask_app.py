@@ -29,9 +29,7 @@ import pickle
 from flask import (
     Flask, request, abort, redirect, url_for, render_template,
     escape, session, Response, jsonify, g)
-from flask.ext.login import LoginManager, current_user
 from flask.ext import restful
-from ..ext.flask_googleauth import GoogleAuth, GoogleFederated
 from werkzeug import secure_filename
 from functools import wraps
 import uuid
@@ -42,6 +40,8 @@ import sklearn as skl
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 import numpy as np
+import yaml
+from flask.ext import stormpath
 
 # import disco if installed
 try:
@@ -86,11 +86,37 @@ app.static_folder = 'static'
 app.add_url_rule(
     '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
-app.secret_key = '\xde/P\x86K\xfdIhI"\x1e\x87\x1d&-\x1cY\xc0hX\x96\xc1\xaf\x8d'
 
-# Google authentication
-auth = GoogleAuth(app)
-auth.force_auth_on_every_request = False
+# Load configuration
+config_file = os.path.join(os.path.dirname(__file__), '../../mltsp.yaml')
+try:
+    config = yaml.load(open(config_file))
+except IOError:
+    print("Error!  Could not load 'mltsp.yaml' configuration file.\n"
+          "Please rename 'mltsp.yaml.example' to 'mltsp.yaml' and \n"
+          "modify as necessary.")
+
+
+app.config['SECRET_KEY'] = config['flask']['secret-key']
+app.config['STORMPATH_API_KEY_ID'] = config['authentication']['stormpath_api_key_id']
+app.config['STORMPATH_API_KEY_SECRET'] = config['authentication']['stormpath_api_key_secret']
+app.config['STORMPATH_APPLICATION'] = config['authentication']['stormpath_application']
+
+if config['authentication']['google_client_id'] is not None:
+    app.config['STORMPATH_ENABLE_GOOGLE'] = True
+    app.config['STORMPATH_SOCIAL'] = {
+        'GOOGLE': {
+            'client_id': config['authentication']['google_client_id'],
+            'client_secret': config['authentication']['google_client_secret'],
+        }
+    }
+
+
+# Authentication is done using Stormpath
+# http://flask-stormpath.readthedocs.org/
+stormpath_manager = stormpath.StormpathManager()
+stormpath_manager.init_app(app)
+
 
 app.config['UPLOAD_FOLDER'] = cfg.UPLOAD_FOLDER
 
@@ -169,6 +195,7 @@ def num_lines(filename):
 
 
 @app.route('/check_job_status/',methods=['POST','GET'])
+@stormpath.login_required
 def check_job_status(PID=False):
     """Check status of a process, return string summary.
 
@@ -290,6 +317,7 @@ def db_init(force=False):
 
 
 @app.route('/add_user', methods=['POST'])
+@stormpath.login_required
 def add_user():
     """Add current user to the RethnkDB 'users' table.
 
@@ -299,9 +327,9 @@ def add_user():
 
     """
     r.table('users').insert({
-        "name": g.user['name'],
-        "email": g.user['email'],
-        "id": g.user['email'],
+        "name": stormpath.user.full_name,
+        "email": stormpath.user.email,
+        "id": stormpath.user.email,
         "created": str(r.now().in_timezone("-08:00").run(g.rdb_conn))
     }).run(g.rdb_conn)
 
@@ -309,19 +337,16 @@ def add_user():
 #@app.before_first_request
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
-    if (r.table("users").filter({'email': g.user['email']})
+    if (r.table("users").filter({'email': stormpath.user.email})
         .count().run(g.rdb_conn)) == 0:
-        r.table('users').insert({
-            "name": g.user['name'],
-            "email": g.user['email'],
-            "id": g.user['email'],
-            "created": str(r.now().in_timezone("-08:00").run(g.rdb_conn))
-        }).run(g.rdb_conn)
-        print("User", g.user['name'], "with email", \
-            g.user['email'], "added to users db.")
+
+        add_user()
+
+        print("User", stormpath.user.full_name, "with email",
+              stormpath.user.email, "added to users db.")
     else:
-        print("User", g.user['name'], "with email", \
-            g.user['email'], "already in users db.")
+        print("User", stormpath.user.full_name, "with email",
+              stormpath.user.email, "already in users db.")
 
 
 def update_model_entry_with_pid(new_model_key, pid):
@@ -506,7 +531,7 @@ def get_current_userkey():
     """Return RethinkDB key/ID associated with current user.
 
     Returns the key/ID of the 'users' table entry corresponding to
-    current user's email (accessed through `g.user` thread-local).
+    current user's email (accessed through `stormpath.user` thread-local).
 
     Returns
     -------
@@ -514,7 +539,7 @@ def get_current_userkey():
         User key/ID.
 
     """
-    cursor = r.table("users").filter({"email": g.user['email']}).run(g.rdb_conn)
+    cursor = r.table("users").filter({"email": stormpath.user.email}).run(g.rdb_conn)
     n_entries = 0
     entries = []
     for entry in cursor:
@@ -522,12 +547,12 @@ def get_current_userkey():
         entries.append(entry)
     if len(entries) == 0:
         print(("ERROR!!! get_current_userkey() - no matching entries in users "
-            "table with email"), g.user['email'])
+            "table with email"), stormpath.user.email)
         raise Exception(("dbError - No matching entries in users table for "
-            "email address %s.") % str(g.user['email']))
+            "email address %s.") % str(stormpath.user.email))
     elif len(entries) > 1:
         print(("WARNING!! get_current_userkey() - more than one entry in "
-        "users table with email"), g.user['email'])
+        "users table with email"), stormpath.user.email)
     else:
         return entries[0]['id']
 
@@ -856,6 +881,7 @@ def list_predictions(
 
 
 @app.route('/get_list_of_projects',methods=['POST','GET'])
+@stormpath.login_required
 def get_list_of_projects():
     """Return list of project names current user can access.
 
@@ -921,7 +947,7 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
         authorized to access this new project. Defaults to empty list.
     user_email : str, optional
         Email of user creating new project. If "auto", user email
-        determined by g.user thread-local. Defauls to "auto".
+        determined by `stormpath.user` thread-local. Defauls to "auto".
 
     Returns
     -------
@@ -1288,6 +1314,7 @@ def get_project_details(project_name):
 
 
 @app.route('/get_project_details')
+@stormpath.login_required
 def get_project_details_json():
     """Return Response object containing project details.
 
@@ -1601,8 +1628,8 @@ def allowed_file(filename):
 
 
 @app.route('/')
-@auth.required
-def MainPage():
+@stormpath.login_required
+def index():
     """Render default page."""
     check_user_table()
     ACTION="None"
@@ -1623,6 +1650,7 @@ def MainPage():
 
 
 @app.route('/verifyNewScript', methods=['POST','GET'])
+@stormpath.login_required
 def verifyNewScript():
     """Test POSTed custom features script file.
 
@@ -1671,6 +1699,7 @@ def verifyNewScript():
 
 
 @app.route('/editProjectForm', methods=['POST','GET'])
+@stormpath.login_required
 def editProjectForm():
     """Handles project editing form submission."""
     if request.method == 'POST':
@@ -1705,6 +1734,7 @@ def editProjectForm():
 @app.route(
     '/newProject/<proj_name>/<proj_description>/<addl_users>/<user_email>')
 @app.route('/newProject', methods=['POST','GET'])
+@stormpath.login_required
 def newProject(
     proj_name=None, proj_description=None, addl_users=None, user_email=None):
     """Handle new project form and creates new RethinkDB entry.
@@ -1785,6 +1815,7 @@ def newProject(
 
 
 @app.route('/editOrDeleteProject', methods=['POST'])
+@stormpath.login_required
 def editOrDeleteProject():
     """Handle 'editOrDeleteProjectForm' form submission.
 
@@ -1818,6 +1849,7 @@ def editOrDeleteProject():
     ("/get_featureset_id_by_projname_and_featsetname/<project_name>/"
     "<featureset_name>"),
     methods=["POST","GET"])
+@stormpath.login_required
 def get_featureset_id_by_projname_and_featsetname(
         project_name=None, featureset_name=None):
     """Return flask.Response() object containing feature set ID.
@@ -1856,6 +1888,7 @@ def get_featureset_id_by_projname_and_featsetname(
 @app.route(
     '/get_list_of_featuresets_by_project/<project_name>',
     methods=['POST','GET'])
+@stormpath.login_required
 def get_list_of_featuresets_by_project(project_name=None):
     """Return (in JSON form) list of project's feature sets.
 
@@ -1890,6 +1923,7 @@ def get_list_of_featuresets_by_project(project_name=None):
 @app.route('/get_list_of_models_by_project',methods=['POST','GET'])
 @app.route(
     '/get_list_of_models_by_project/<project_name>', methods=['POST','GET'])
+@stormpath.login_required
 def get_list_of_models_by_project(project_name=None):
     """Return list of models in specified project.
 
@@ -2154,6 +2188,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
 
 
 @app.route('/uploadFeaturesForm', methods=['POST','GET'])
+@stormpath.login_required
 def uploadFeaturesForm():
     """Save uploaded file(s) and begin featurization process.
 
@@ -2186,6 +2221,7 @@ def uploadFeaturesForm():
     '/<featureset_name>/<features_to_use>/<custom_features_script>/'
     '<user_email>/<email_user>/<is_test>'), methods=['POST'])
 @app.route('/uploadDataFeaturize', methods=['POST','GET'])
+@stormpath.login_required
 def uploadDataFeaturize(
         headerfile=None, zipfile=None, sep=None, project_name=None,
         featureset_name=None, features_to_use=None,
@@ -2358,6 +2394,7 @@ def featurize_proc(
 
 
 @app.route('/featurizing')
+@stormpath.login_required
 def featurizing():
     """Render template for featurization in process page.
 
@@ -2403,6 +2440,7 @@ def featurizing():
 @app.route('/featurizationPage', methods=['POST','GET'])
 @app.route(('/featurizationPage/<headerfile_name>/<zipfile_name>/<sep>/'
     '<projkey>/<featlist>/<is_test>/<email_user>'), methods=['POST','GET'])
+@stormpath.login_required
 def featurizationPage(
         featureset_name, project_name, headerfile_name, zipfile_name, sep,
         featlist, is_test, email_user, already_featurized=False,
@@ -2526,6 +2564,7 @@ def featurizationPage(
 @app.route(
     '/source_details/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
+@stormpath.login_required
 def source_details(prediction_entry_key,source_fname):
     """Render Source Details page.
 
@@ -2551,6 +2590,7 @@ def source_details(prediction_entry_key,source_fname):
 @app.route(
     '/load_source_data/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
+@stormpath.login_required
 def load_source_data(prediction_entry_key,source_fname):
     """Return JSONified dict of source data in flask.Response() object.
 
@@ -2595,6 +2635,7 @@ def load_source_data(prediction_entry_key,source_fname):
 
 
 @app.route('/load_prediction_results/<prediction_key>',methods=['POST','GET'])
+@stormpath.login_required
 def load_prediction_results(prediction_key):
     """Return JSON dict with file name and class prediction results.
 
@@ -2626,6 +2667,7 @@ def load_prediction_results(prediction_key):
 
 
 @app.route('/load_model_build_results/<model_key>',methods=['POST','GET'])
+@stormpath.login_required
 def load_model_build_results(model_key):
     """Return JSON dict with model build request status message.
 
@@ -2659,6 +2701,7 @@ def load_model_build_results(model_key):
 
 @app.route('/load_featurization_results/<new_featset_key>',
            methods = ['POST','GET'])
+@stormpath.login_required
 def load_featurization_results(new_featset_key):
     """Returns JSON dict with featurization request status message.
 
@@ -2856,6 +2899,7 @@ def prediction_proc(
 
 
 @app.route('/predicting')
+@stormpath.login_required
 def predicting():
     """Render template that checks on prediction process status.
 
@@ -2977,6 +3021,7 @@ def predictionPage(
 
 
 @app.route('/uploadPredictionData', methods=['POST','GET'])
+@stormpath.login_required
 def uploadPredictionData():
     """Save uploaded files and begin prediction process.
 
@@ -3168,6 +3213,7 @@ def build_model_proc(featureset_name,featureset_key,model_type,model_key):
 
 
 @app.route('/buildingModel')
+@stormpath.login_required
 def buildingModel():
     """Render template to check on model creation process in browser.
 
@@ -3223,6 +3269,7 @@ def buildingModel():
 @app.route('/buildModel/<project_name>/<featureset_name>/<model_type>',
            methods=['POST'])
 @app.route('/buildModel',methods=['POST','GET'])
+@stormpath.login_required
 def buildModel(project_name=None,featureset_name=None,model_type=None):
     """Build new model for specified feature set.
 
@@ -3289,6 +3336,7 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
 
 
 @app.route('/emailUser',methods=['POST','GET'])
+@stormpath.login_required
 def emailUser(user_email=None):
     """Send a notification email to specified address.
 

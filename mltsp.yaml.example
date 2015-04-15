@@ -9,3 +9,12 @@ authentication:
     stormpath_api_key_id:
     stormpath_api_key_secret:
     stormpath_application: mltsp
+
+    # This section is optional.  If not filled in, Google Authentication
+    # will be disabled.
+    #
+    # These values can be obtained from
+    #   https://console.developers.google.com/project
+
+    google_client_id: 1004673267597-m4f2eahiogcob19l8riqj2vt0qoh34nv.apps.googleusercontent.com
+    google_client_secret: oMu0utEG6E4NISt_LLeodHi1
