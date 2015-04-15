@@ -1,9 +1,7 @@
 beautifulsoup4
 flask
-flask-googleauth
-flask-oauth
+Flask-Stormpath
 flask-mail
-flask-login
 flask-restful
 numpy
 numexpr>=2.0
@@ -22,3 +20,4 @@ future>=0.13
 matplotlib
 nose
 nose-exclude
+pyyaml
