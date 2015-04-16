@@ -93,11 +93,20 @@ def test_build_model_in_docker_container():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
 
 
+def generate_model():
+    shutil.copy(pjoin(DATA_PATH, "test_classes.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+
+
 def test_predict_in_docker_container():
     """Test predict in docker container"""
     generate_model()
 
-    shutil.copy(pjoin(DATA_PATH, "data/dotastro_215153.dat"),
+    shutil.copy(pjoin(DATA_PATH, "dotastro_215153.dat"),
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     shutil.copy(pjoin(DATA_PATH, "TESTRUN_215153_metadata.dat"),
                 cfg.UPLOAD_FOLDER)
