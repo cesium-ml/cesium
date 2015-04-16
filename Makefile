@@ -22,7 +22,7 @@ test_backend: db
 	nosetests --exclude-dir=mltsp/Flask/src --nologcapture mltsp
 
 test_frontend: external/casperjs
-	tools/casper_tests.py
+	PYTHONPATH="." tools/casper_tests.py
 
 test: test_backend test_frontend
 
