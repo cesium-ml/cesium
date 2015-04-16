@@ -26,6 +26,7 @@
      cd disco
      make
      cd lib && python setup.py install && cd ..
+     export DISCO_HOME=/path/to/disco/repository
      ```
 
      Launch Disco using: ``bin/disco nodaemon``
