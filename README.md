@@ -29,7 +29,14 @@
      export DISCO_HOME=/path/to/disco/repository
      ```
 
-     Launch Disco using: ``bin/disco nodaemon``
+     You also have to setup SSH authentication to the local machine:
+
+     ```
+     ssh-keygen -N '' -f ~/.ssh/id_dsa
+     cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+     ```
+
+     (Test that SSH is working with: ``ssh localhost erl``)
 
      Navigate to ``localhost:8989``, click "configure" and ensure that
      an entry for "localhost" exists under "Available nodes".  If not,
