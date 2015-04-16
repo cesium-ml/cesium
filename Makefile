@@ -19,7 +19,7 @@ disco: py2
 		if [[ -z `$(DISCO) status | grep running` ]]; then \
 			$(DISCO) start ; \
 		else \
-		    echo "Disco is already running"; \
+		    echo "[Disco] is already running"; \
 		fi; \
 	fi
 
@@ -36,16 +36,16 @@ init: py2
 	python start_mltsp.py --db-init --force
 
 db:
-	@rethinkdb --daemon || echo "(RethinkDB probably already running)"
+	@rethinkdb --daemon 2>&1 | grep -v "already in use" || echo "[RethinkDB] is (probably) already running"
 
 external/casperjs: py2
-	tools/casper_install.sh
+	@tools/casper_install.sh
 
 test_backend: db py2 disco
 	nosetests --exclude-dir=mltsp/Flask/src --nologcapture mltsp
 
-test_frontend: external/casperjs py2 disco
-	PYTHONPATH="." tools/casper_tests.py
+test_frontend: external/casperjs py2 disco db
+	@PYTHONPATH="." tools/casper_tests.py
 
 test: test_backend test_frontend
 

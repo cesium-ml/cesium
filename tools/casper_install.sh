@@ -6,7 +6,7 @@ mkdir -p $EXTERNAL_DIR
 cd $EXTERNAL_DIR
 
 if [[ -d "casperjs" ]]; then
-    echo "CasperJS already downloaded into $EXTERNAL_DIR"
+    echo "[CasperJS] already downloaded into $EXTERNAL_DIR"
 else
     echo "Installing CasperJS into $EXTERNAL_DIR"
     echo
