@@ -312,7 +312,7 @@ def add_user():
     }).run(g.rdb_conn)
 
 
-# @app.before_first_request
+#@app.before_first_request
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
     if (r.table("users").filter({'email': stormpath.user.email})
@@ -370,7 +370,7 @@ def update_featset_entry_with_pid(featset_key, pid):
 
     """
     (r.table('features').get(featset_key)
-        .update({"pid" :str(pid)}).run(g.rdb_conn))
+        .update({"pid": str(pid)}).run(g.rdb_conn))
     return featset_key
 
 
@@ -856,7 +856,7 @@ def list_predictions(
         return predictions
 
 
-@app.route('/get_list_of_projects',methods=['POST','GET'])
+@app.route('/get_list_of_projects', methods=['POST','GET'])
 @stormpath.login_required
 def get_list_of_projects():
     """Return list of project names current user can access.
@@ -875,7 +875,7 @@ def get_list_of_projects():
         return jsonify({'list':list_of_projs})
 
 
-def list_projects(auth_only=True,name_only=False):
+def list_projects(auth_only=True, name_only=False):
     """Return list of strings describing entries in 'projects' table.
 
     Parameters
@@ -3377,9 +3377,13 @@ def run_main(args=None):
         db_init(force=args.force)
         sys.exit(0)
 
+    if args.debug:
+        app.config['DEBUG'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+
     print("Launching server on %s:%s" % (args.host, args.port))
     print("Logging to:", cfg.ERR_LOG_PATH)
-    app.run(port=args.port, debug=args.debug, host=args.host, threaded=True)
+    app.run(port=args.port, host=args.host, threaded=True)
 
 
 if __name__ == '__main__':
