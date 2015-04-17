@@ -32,7 +32,10 @@ from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 import numpy as np
 import yaml
-from flask.ext import stormpath
+if os.getenv("flask_testing") == "True":
+    from ..ext import stormpath_mock as stormpath
+else:
+    from flask.ext import stormpath
 
 # import disco if installed
 try:
@@ -63,6 +66,7 @@ app.static_folder = 'static'
 app.add_url_rule(
     '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
+
 
 # Load configuration
 config_file = os.path.join(os.path.dirname(__file__), '../../mltsp.yaml')
@@ -304,7 +308,7 @@ def add_user():
     is added to flask.g upon authentication).
 
     """
-    r.table('users').insert({
+    return r.table('users').insert({
         "name": stormpath.user.full_name,
         "email": stormpath.user.email,
         "id": stormpath.user.email,
