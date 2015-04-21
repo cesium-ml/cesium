@@ -75,13 +75,14 @@ def copy_data_files_featurize_prep(args_dict):
             ntpath.basename(args_dict['zipfile_path']))
     if os.path.isfile(str(args_dict['custom_script_path'])):
         copied_custom_script_path = os.path.join(
-            args_dict['copied_data_dir'],
-            ntpath.basename(args_dict['custom_script_path']))
+            args_dict['copied_data_dir'], "custom_feature_defs.py")
         tmp_files.append(copied_custom_script_path)
         shutil.copy(args_dict['custom_script_path'], copied_custom_script_path)
         args_dict["custom_script_path"] = os.path.join(
-            "/home/copied_data_files",
-            ntpath.basename(args_dict['custom_script_path']))
+            "/home/copied_data_files", "custom_feature_defs.py")
+        # Create __init__.py file so that custom feats script can be imported
+        open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
+             "w").close()
     args_dict["path_map"] = {args_dict['copied_data_dir']:
                              "/home/copied_data_files"}
     function_args_path = os.path.join(args_dict['copied_data_dir'],
@@ -121,8 +122,9 @@ def spin_up_and_run_container(image_name, tmp_data_dir):
                  "/home/copied_data_files": ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"},
-                        tmp_data_dir: {"bind": "/home/copied_data_files"}})
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp", "ro": True},
+                        tmp_data_dir: {"bind": "/home/copied_data_files",
+                                       "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -324,14 +326,15 @@ def copy_data_files_predict_prep(args_dict):
             ntpath.basename(args_dict["newpred_file_path"]))
     if os.path.isfile(str(args_dict["custom_features_script"])):
         copied_custom_script_path = os.path.join(
-            args_dict["copied_data_dir"],
-            ntpath.basename(args_dict["custom_features_script"]))
+            args_dict["copied_data_dir"], "custom_feature_defs.py")
         tmp_files.append(copied_custom_script_path)
         shutil.copy(args_dict["custom_features_script"],
                     copied_custom_script_path)
         args_dict["custom_features_script"] = os.path.join(
-            "/home/copied_data_files",
-            ntpath.basename(args_dict["custom_features_script"]))
+            "/home/copied_data_files", "custom_feature_defs.py")
+        # Create __init__.py file so that custom feats script can be imported
+        open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
+             "w").close()
     if os.path.isfile(str(args_dict["metadata_file"])):
         copied_metadata_file_path = os.path.join(
             args_dict["copied_data_dir"],
@@ -441,7 +444,8 @@ def disco_test():
         print(cont_id)
         # Start container
         client.start(cont_id,
-                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+                     binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp",
+                                               "ro": True}})
         # Wait for process to complete
         client.wait(cont_id)
         stdouterr = client.logs(container=cont_id, stdout=True, stderr=True)

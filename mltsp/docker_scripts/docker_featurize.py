@@ -29,10 +29,10 @@ def do_featurization():
     with open("/home/copied_data_files/function_args.pkl","rb") as f:
         function_args = pickle.load(f)
     # Copy custom script to requisite location
-    if os.path.isfile(function_args['custom_script_path']):
-        shutil.copy(
-            function_args['custom_script_path'],
-            "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
+    #if os.path.isfile(function_args['custom_script_path']):
+    #    shutil.copy(
+    #        function_args['custom_script_path'],
+    #        "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
     # ensure required files successfully copied into container:
     if "headerfile_path" in function_args:
         headerfile_path = str(function_args['headerfile_path'])

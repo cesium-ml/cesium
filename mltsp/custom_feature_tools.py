@@ -149,7 +149,7 @@ def parse_csv_file(fname, sep=',', skip_lines=0):
             raise custom_exceptions.DataFormatError(
                 "Incomplete or improperly formatted time "
                 "series data file provided.")
-    tme =  map(list, zip(*ts_data)) # Need t, m, and e in separate lists
+    tme =  list(map(list, zip(*ts_data))) # Need t, m, and e in separate lists
     if len(tme) == 2:
         tme.append([]) # Add empty err col
     return tme
@@ -200,7 +200,11 @@ def call_custom_functions(features_already_known_list, all_required_params,
     """
     """
     # import the custom feature defs
-    from .custom_feature_scripts import custom_feature_defs
+    try:
+        from .custom_feature_scripts import custom_feature_defs
+    except ImportError:
+        sys.path.append("/home/copied_data_files")
+        import custom_feature_defs
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout
@@ -428,6 +432,8 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
     with open(os.path.join(path_to_tmp_dir, "features_already_known_list.pkl"),
               "wb") as f:
         pickle.dump(features_already_known_list, f, protocol=2)
+    # Create __init__.py file so that custom feats script can be imported
+    open(os.path.join(path_to_tmp_dir, "__init__.py"), "w").close()
     return
 
 
@@ -447,8 +453,9 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
                  "/home/copied_data_files": ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"},
-                        path_to_tmp_dir: {"bind": "/home/copied_data_files"}})
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp", "ro": True},
+                        path_to_tmp_dir: {"bind": "/home/copied_data_files",
+                                          "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)

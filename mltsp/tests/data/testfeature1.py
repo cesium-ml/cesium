@@ -1,5 +1,10 @@
 import numpy as np
-from ..custom_feature_tools import *
+try:
+    from ..custom_feature_tools import *
+except:
+    import sys
+    sys.path.append("/home/mltsp")
+    from mltsp.custom_feature_tools import *
 
 @myFeature(requires=["t","m"], provides=['period','avg_mag'])
 def test_feature(t,m):

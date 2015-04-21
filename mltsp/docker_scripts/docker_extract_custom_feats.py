@@ -28,10 +28,12 @@ def extract_custom_feats():
         "/home/copied_data_files/features_already_known_list.pkl", "rb") as f:
         features_already_known_list = pickle.load(f)
 
-    shutil.copy(
-        "/home/copied_data_files/custom_feature_defs.py",
-        "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
-    script_fpath = ("/home/mltsp/mltsp/custom_feature_scripts/"
+    #shutil.copy(
+    #    "/home/copied_data_files/custom_feature_defs.py",
+    #    "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
+    #script_fpath = ("/home/mltsp/mltsp/custom_feature_scripts/"
+    #                "custom_feature_defs.py")
+    script_fpath = ("/home/copied_data_files/"
                     "custom_feature_defs.py")
     # extract features
     all_feats = cft.execute_functions_in_order(

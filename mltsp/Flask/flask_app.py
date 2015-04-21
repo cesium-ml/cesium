@@ -21,7 +21,6 @@ import simplejson
 from flask import (
     Flask, request, abort, render_template,
     session, Response, jsonify, g)
-from ..ext.flask_googleauth import GoogleAuth
 from werkzeug import secure_filename
 import uuid
 import ntpath

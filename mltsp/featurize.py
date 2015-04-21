@@ -4,6 +4,7 @@
 from __future__ import print_function
 from operator import itemgetter
 import shutil
+import tempfile
 from sklearn.externals import joblib
 # from sklearn.cross_validation import train_test_split
 # from sklearn.metrics import confusion_matrix
@@ -220,7 +221,10 @@ def remove_unzipped_files(all_fnames):
         path_to_csv = os.path.join(
             cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
         if os.path.isfile(path_to_csv):
-            os.remove(path_to_csv)
+            try:
+                os.remove(path_to_csv)
+            except:
+                pass
 
 
 def extract_serial(headerfile_path, zipfile_path, features_to_use,
@@ -233,7 +237,8 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
     """
     objects = []
     zipfile = tarfile.open(zipfile_path)
-    zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER, "unzipped"))
+    unzip_dir = tempfile.mkdtemp()
+    zipfile.extractall(path=unzip_dir)
     all_fnames = zipfile.getnames()
     num_objs = len(fname_class_dict)
     zipfile_name = ntpath.basename(zipfile_path)
@@ -242,8 +247,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
     # Loop through time-series files and generate features for each
     for fname in sorted(all_fnames):
         short_fname = shorten_fname(fname)
-        path_to_csv = os.path.join(
-            cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
+        path_to_csv = os.path.join(unzip_dir, fname)
         if os.path.isfile(path_to_csv):
             print("Extracting features for", fname, "-", count,
                   "of", num_objs)
@@ -267,7 +271,8 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
         else:
             pass
     print("Done.")
-    remove_unzipped_files(all_fnames)
+    #remove_unzipped_files(all_fnames)
+    shutil.rmtree(unzip_dir, ignore_errors=True)
     return objects
 
 
@@ -325,7 +330,11 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
     """
     if objects is None:
         raise Exception("featurize.write_features_to_disk - `objects` is None")
-    features_extracted = list(objects[-1].keys())
+    if len(objects) > 0:
+        features_extracted = list(objects[-1].keys())
+    else:
+        features_extracted = []
+        return
     if "class" in features_extracted: features_extracted.remove("class")
     features_to_plot = determine_feats_to_plot(features_extracted)
 
@@ -443,6 +452,7 @@ def featurize(
 
     """
     # Generate features for each TS object
+    print(locals())
     objects = generate_features(
         headerfile_path, zipfile_path, features_to_use,
         custom_script_path, is_test, USE_DISCO, already_featurized,
@@ -454,7 +464,7 @@ def featurize(
     if not in_docker_container:
         os.remove(os.path.join(
             cfg.FEATURES_FOLDER, "%s_features_with_classes.csv" % featureset_id))
-    os.remove(headerfile_path)
-    if zipfile_path is not None:
-        os.remove(zipfile_path)
+        os.remove(headerfile_path)
+        if zipfile_path is not None:
+            os.remove(zipfile_path)
     return "Featurization of timeseries data complete."

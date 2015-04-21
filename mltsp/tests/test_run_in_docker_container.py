@@ -54,7 +54,7 @@ def test_copy_data_files_featurize_prep():
     assert os.path.exists(os.path.join(tmp_dir, "function_args.pkl"))
     assert os.path.exists(os.path.join(tmp_dir,
                                        "asas_training_subset_classes.dat"))
-    copied_custom_script_path = os.path.join(tmp_dir, "testfeature1.py")
+    copied_custom_script_path = os.path.join(tmp_dir, "custom_feature_defs.py")
     assert os.path.exists(copied_custom_script_path)
     os.remove(copied_custom_script_path)
     shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -180,38 +180,6 @@ def generate_model():
     assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
                                        "TEMP_TEST01_RF.pkl"))
 
-def test_copy_data_files_predict_prep():
-    """Test copy data files - prediction prep"""
-    tmp_dir = tempfile.mkdtemp()
-    test_data_dir = os.path.join(os.path.dirname(__file__), "data")
-    args_dict = {
-        'copied_data_dir': tmp_dir,
-        'newpred_file_path': os.path.join(test_data_dir,
-                                          "dotastro_215153.dat"),
-        'metadata_file': "None",
-        'custom_features_script': os.path.join(test_data_dir,
-                                           "testfeature1.py")}
-    tmp_files_list = ridc.copy_data_files_predict_prep(args_dict)
-    assert os.path.exists(os.path.join(tmp_dir, "function_args.pkl"))
-    assert os.path.exists(os.path.join(tmp_dir,
-                                       "dotastro_215153.dat"))
-    copied_custom_script_path = os.path.join(tmp_dir, "testfeature1.py")
-    assert os.path.exists(copied_custom_script_path)
-    shutil.rmtree(tmp_dir, ignore_errors=True)
-    assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0
-
-
-def generate_model():
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
-                             "test_classes.npy"),
-                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
-                             "test_features.csv"),
-                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
-    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
-                                       "TEMP_TEST01_RF.pkl"))
-
 
 def test_copy_data_files_predict_prep():
     """Test copy data files - prediction prep"""
@@ -228,7 +196,7 @@ def test_copy_data_files_predict_prep():
     assert os.path.exists(os.path.join(tmp_dir, "function_args.pkl"))
     assert os.path.exists(os.path.join(tmp_dir,
                                        "dotastro_215153.dat"))
-    copied_custom_script_path = os.path.join(tmp_dir, "testfeature1.py")
+    copied_custom_script_path = os.path.join(tmp_dir, "custom_feature_defs.py")
     assert os.path.exists(copied_custom_script_path)
     shutil.rmtree(tmp_dir, ignore_errors=True)
     assert isinstance(tmp_files_list, list) and len(tmp_files_list) > 0

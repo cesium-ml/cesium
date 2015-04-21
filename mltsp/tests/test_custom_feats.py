@@ -198,6 +198,7 @@ def test_extract_feats_in_docker_container():
 
 
 def test_remove_tmp_files_and_container():
+    """Test remove temp files and container"""
     cft.remove_tmp_files("/tmp/mltsp_test")
     assert(not os.path.exists("/tmp/mltsp_test"))
     for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
@@ -216,7 +217,7 @@ def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = os.path.join(os.path.dirname(__file__),
                                 "data/testfeature1.py")
-    ts_datafile_paths = ts_datafile_paths = [
+    ts_datafile_paths = [
         os.path.join(os.path.dirname(__file__), "data/dotastro_215153.dat")]
     results = cft.docker_extract_features(script_fpath,
                                           ts_datafile_paths=ts_datafile_paths)
