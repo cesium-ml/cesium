@@ -1,4 +1,4 @@
-image: ubuntu:vivid
+image: bradrydzewski/base
 git:
   path: github.com/mltsp/mltsp
 env:
