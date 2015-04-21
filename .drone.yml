@@ -1,4 +1,4 @@
-image: bradrydzewski/base
+image: mltsp/base_disco  # any image with ubuntu+git will do
 git:
   path: github.com/mltsp/mltsp
 env:
