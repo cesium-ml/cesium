@@ -1,0 +1,19 @@
+image: ubuntu/vivid
+git:
+  path: github.com/mltsp/mltsp
+env:
+script:
+  - sudo apt-get update 1> /dev/null 2> /dev/null
+  - sudo apt-get -y install python-numpy python-scipy python-flask rethinkdb 1> /dev/null 2> /dev/null
+  - pip install -r requirements.txt
+  - make test
+services:
+  - rethinkdb
+notify:
+  email:
+    recipients:
+      - stefanv@berkeley.edu
+  webhook:
+    on_started: false
+    on_success: true
+    on_failure: true
