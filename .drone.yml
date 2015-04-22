@@ -1,10 +1,9 @@
-image: mltsp/base_disco  # any image with ubuntu+git will do
+image: mltsp/drone
 git:
   path: github.com/mltsp/mltsp
 env:
 script:
   - sudo apt-get update 1> /dev/null 2> /dev/null
-  - sudo apt-get -y install python-numpy python-scipy python-pandas python-flask python-numexpr python-parse python-psutil python-requests python-simplejson python-tables python-matplotlib python-nose python-yaml 1> /dev/null 2> /dev/null
   - pip install -r requirements.txt
   - make test
 services:
