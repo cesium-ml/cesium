@@ -3,6 +3,7 @@ flask
 Flask-Stormpath
 flask-mail
 flask-restful
+docker-py
 numpy
 numexpr>=2.0
 scipy
