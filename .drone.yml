@@ -3,7 +3,7 @@ git:
   path: github.com/mltsp/mltsp
 env:
 script:
-  - /usr/local/bin/wrapdocker &
+  - sudo /usr/local/bin/wrapdocker &
   - sleep 1
   - docker info
   - docker version
