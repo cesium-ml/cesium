@@ -12,3 +12,11 @@ RUN apt-get install -y wget curl git make \
                        cython
                        # Add python-docker when switching to utopic / vivid
 
+# Download MLTSP docker images
+RUN mkdir -p /tmp
+RUN cd /tmp
+RUN git clone --depth=1 https://github.com/mltsp/mltsp.git
+RUN cd mltsp
+RUN /usr/local/bin/wrapdocker & sleep 5
+RUN ./tools/docker_pull.sh
+RUN start-stop-daemon --stop --pidfile "/var/run/docker.pid"
