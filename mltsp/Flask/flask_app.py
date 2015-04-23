@@ -1092,6 +1092,17 @@ def add_prediction(
 
 def project_associated_files(proj_key):
     """Return list of saved files associated with specified project.
+
+    Parameters
+    ----------
+    proj_key : str
+        RethinkDB entry ID of project.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said project.
+
     """
     fpaths = []
 
@@ -1122,6 +1133,17 @@ def project_associated_files(proj_key):
 
 def model_associated_files(model_key):
     """Return list of saved files associated with specified model.
+
+    Parameters
+    ----------
+    model_key : str
+        RethinkDB entry ID of model.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said model.
+
     """
     entry_dict = r.table("models").get(model_key).run(g.rdb_conn)
     featset_key = entry_dict["featset_key"]
@@ -1134,6 +1156,17 @@ def model_associated_files(model_key):
 
 def featset_associated_files(featset_key):
     """Return list of saved files associated with specified feature set.
+
+    Parameters
+    ----------
+    featset_key : str
+        RethinkDB entry ID of feature set.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said feature set.
+
     """
     fpaths = []
     fpaths.extend(
@@ -1153,12 +1186,36 @@ def featset_associated_files(featset_key):
 
 def prediction_associated_files(pred_key):
     """Return list of saved files associated with specified prediction entry.
+
+    Parameters
+    ----------
+    pred_key : str
+        RethinkDB ID of prediction entry.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said prediction entry.
+
     """
     return []
 
 
 def delete_associated_project_data(table_name, proj_key):
-    """Delete all feature sets and associated files, filtered by project."""
+    """Delete DB entries and associated files, filtered by project.
+
+    Parameters
+    ----------
+    table_name : str
+        Name of RethinkDB table ("features", "models", or "predictions")
+        whose relevant entries and files are to be deleted.
+
+    Returns
+    -------
+    int
+        The number of RethinkDB entries deleted.
+
+    """
     get_files_func_dict = {"features": featset_associated_files,
                            "models": model_associated_files,
                            "predictions": prediction_associated_files}
@@ -1601,7 +1658,7 @@ def get_list_of_available_features_set2():
 
 
 def allowed_file(filename):
-    """Return bool indicating whether filename has allowed extension."""
+    """Return bool indicating whether `filename` has allowed extension."""
     return ('.' in filename and
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS)
 
@@ -2216,7 +2273,6 @@ def uploadDataFeaturize(
     details.
 
     """
-    ## ###
     # TODO: ADD MORE ROBUST EXCEPTION HANDLING (HERE AND ALL OTHER FUNCTIONS)
     if request.method == 'POST':
         post_method = "browser"
@@ -2240,7 +2296,7 @@ def uploadDataFeaturize(
             customscript_path = os.path.join(
                 os.path.join(
                     app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
-                str(uuid.uuid4())+"_"+str(customscript_fname))
+                str(uuid.uuid4()) + "_"+str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
             features_to_use += custom_features
@@ -2259,8 +2315,6 @@ def uploadDataFeaturize(
                 is_test = True
         except: # unchecked
             is_test = False
-        #headerfile_name = secure_filename(headerfile.filename)
-        #zipfile_name = secure_filename(zipfile.filename)
         headerfile_name = (str(uuid.uuid4()) + "_" +
             str(secure_filename(headerfile.filename)))
         zipfile_name = (str(uuid.uuid4()) + "_" +
@@ -2289,10 +2343,6 @@ def uploadDataFeaturize(
             return jsonify({"message":str(err),"type":"error"})
         except:
             raise
-        # this line is only necessary if we're checking contents against
-        # existing files:
-        #header_lines = headerfile.stream.readlines()
-        # CHECKING AGAINST EXISTING UPLOADED FILES:
         return featurizationPage(
             featureset_name=featureset_name, project_name=project_name,
             headerfile_name=headerfile_name, zipfile_name=zipfile_name,
@@ -2492,7 +2542,7 @@ def featurizationPage(
             featlist = featlist, custom_features_script = custom_script_path,
             meta_feats = meta_feats, headerfile_path = features_filepath)
         multiprocessing.log_to_stderr()
-        proc = multiprocessing.Process(target=featurize_proc,args=(
+        proc = multiprocessing.Process(target=featurize_proc, args=(
             features_filepath, None, featlist, new_featset_key, is_test,
             email_user, already_featurized, custom_script_path))
         proc.start()
@@ -2783,11 +2833,11 @@ def prediction_proc(
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script=None
     cursor = r.table("features").get(featset_key).run(g.rdb_conn)
-    entry=cursor
+    entry = cursor
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
-    n_cols_html_table=5
+    n_cols_html_table = 5
     results_str = (
         "<table id='pred_results_table' class='tablesorter'>"
         "    <thead>"
