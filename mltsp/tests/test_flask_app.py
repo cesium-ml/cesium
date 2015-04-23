@@ -12,6 +12,7 @@ from flask.ext.stormpath import User, user
 from flask.ext.stormpath.context_processors import user_context_processor
 import unittest
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
+from os.path import join as pjoin
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
@@ -284,9 +285,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                             "userkey": "testhandle@gmail.com",
                                             "active": "y"}).run(conn)
             authed_projkeys = fa.get_authed_projkeys("testhandle@gmail.com")
+            r.table("userauth").get_all(*keys).delete().run(conn)
             npt.assert_equal(len(authed_projkeys), 3)
             assert all(key in authed_projkeys for key in keys)
-            r.table("userauth").get_all(*keys).delete().run(conn)
 
     def test_get_authed_projkeys_not_authed(self):
         """Test get authed project keys - not authorized"""
@@ -301,9 +302,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                             "userkey": "testhandle@gmail.com",
                                             "active": "y"}).run(conn)
             authed_projkeys = fa.get_authed_projkeys("testhandle2@gmail.com")
+            r.table("userauth").get_all(*keys).delete().run(conn)
             npt.assert_equal(len(authed_projkeys), 0)
             assert all(key not in authed_projkeys for key in keys)
-            r.table("userauth").get_all(*keys).delete().run(conn)
 
     def test_get_authed_projkeys_inactive(self):
         """Test get authed project keys - inactive"""
@@ -318,9 +319,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                             "userkey": "testhandle@gmail.com",
                                             "active": "n"}).run(conn)
             authed_projkeys = fa.get_authed_projkeys("testhandle@gmail.com")
+            r.table("userauth").get_all(*keys).delete().run(conn)
             npt.assert_equal(len(authed_projkeys), 0)
             assert all(key not in authed_projkeys for key in keys)
-            r.table("userauth").get_all(*keys).delete().run(conn)
 
     def test_list_featuresets_authed(self):
         """Test list featuresets - authed only"""
@@ -344,13 +345,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "111", "created": "111",
                                         "featlist": [1, 2]}).run(conn)
             featsets = fa.list_featuresets()
-            npt.assert_equal(len(featsets), 1)
-            assert "created" in featsets[0] and "abc123" in featsets[0]
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("features").get("abc123").delete().run(conn)
             r.table("features").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            npt.assert_equal(len(featsets), 1)
+            assert "created" in featsets[0] and "abc123" in featsets[0]
 
     def test_list_featuresets_all(self):
         """Test list featuresets - all featsets and name only"""
@@ -374,13 +375,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "111", "created": "111",
                                         "featlist": [1, 2]}).run(conn)
             featsets = fa.list_featuresets(auth_only=False, name_only=True)
-            assert len(featsets) > 1
-            assert all("created" not in featset for featset in featsets)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("features").get("abc123").delete().run(conn)
             r.table("features").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            assert len(featsets) > 1
+            assert all("created" not in featset for featset in featsets)
 
     def test_list_featuresets_html(self):
         """Test list featuresets - as HTML and by project"""
@@ -409,14 +410,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": [1, 2]}).run(conn)
             featsets = fa.list_featuresets(auth_only=True, by_project="abc123",
                                            as_html_table_string=True)
-            assert isinstance(featsets, (str, unicode))
-            assert "table id" in featsets and "abc123" in featsets
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("features").get("abc123").delete().run(conn)
             r.table("features").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
             r.table("userauth").get("111").delete().run(conn)
+            assert isinstance(featsets, (str, unicode))
+            assert "table id" in featsets and "abc123" in featsets
 
     def test_list_models_authed(self):
         """Test list models - authed only"""
@@ -443,12 +444,12 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "meta_feats": ["1", "2"]}).run(conn)
             models = fa.list_models()
             npt.assert_equal(len(models), 1)
-            assert "created" in models[0] and "abc123" in models[0]
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("models").get("abc123").delete().run(conn)
             r.table("models").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            assert "created" in models[0] and "abc123" in models[0]
 
     def test_list_models_all(self):
         """Test list models - all models and name only"""
@@ -474,13 +475,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=False, name_only=True)
-            assert len(results) > 1
-            assert all("created" not in result for result in results)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("models").get("abc123").delete().run(conn)
             r.table("models").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            assert len(results) > 1
+            assert all("created" not in result for result in results)
 
     def test_list_models_html(self):
         """Test list models - as HTML and by project"""
@@ -511,14 +512,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=True, by_project="abc123",
                                      as_html_table_string=True)
-            assert isinstance(results, (str, unicode))
-            assert "table id" in results and "abc123" in results
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("models").get("abc123").delete().run(conn)
             r.table("models").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
             r.table("userauth").get("111").delete().run(conn)
+            assert isinstance(results, (str, unicode))
+            assert "table id" in results and "abc123" in results
 
     def test_list_preds_authed(self):
         """Test list predictions - authed only"""
@@ -550,13 +551,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "results_str_html": "111HTML"})\
                                   .run(conn)
             results = fa.list_predictions(auth_only=True)
-            npt.assert_equal(len(results), 1)
-            assert "MODEL_NAME" in results[0]
+            print(results)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("predictions").get("abc123").delete().run(conn)
             r.table("predictions").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            npt.assert_equal(len(results), 1)
+            assert "MODEL_NAME" in results[0]
 
     def test_list_predictions_all(self):
         """Test list predictions - all predictions, name only"""
@@ -589,13 +591,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                   .run(conn)
             results = fa.list_predictions(auth_only=False, detailed=False)
             print(results)
-            assert len(results) > 1
-            assert all("created" not in result for result in results)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("predictions").get("abc123").delete().run(conn)
             r.table("predictions").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            assert len(results) > 1
+            assert all("created" not in result for result in results)
 
     def test_list_predictions_html(self):
         """Test list predictions - as HTML and by project"""
@@ -632,14 +634,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                   .run(conn)
             results = fa.list_predictions(by_project="abc123",
                                           as_html_table_string=True)
-            assert isinstance(results, (str, unicode))
-            assert "table id" in results and "abc123" in results
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("predictions").get("abc123").delete().run(conn)
             r.table("predictions").get("111").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
             r.table("userauth").get("111").delete().run(conn)
+            assert isinstance(results, (str, unicode))
+            assert "table id" in results and "abc123" in results
 
     def test_get_list_of_projects(self):
         """Test get list of projects"""
@@ -651,12 +653,12 @@ class FlaskAppTestCase(unittest.TestCase):
                                     "email": TEST_EMAIL,
                                     "active": "y"}).run(conn)
         rv = self.app.get('/get_list_of_projects')
+        r.table("projects").get("abc123").delete().run(conn)
+        r.table("userauth").get("abc123").delete().run(conn)
         print(rv.data)
         assert '{' in rv.data
         assert isinstance(eval(rv.data), dict)
         assert "abc123" in eval(rv.data)["list"]
-        r.table("projects").get("abc123").delete().run(conn)
-        r.table("userauth").get("abc123").delete().run(conn)
 
     def test_list_projects(self):
         """Test list projects - authed only"""
@@ -672,11 +674,11 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             results = fa.list_projects()
-            npt.assert_equal(len(results), 1)
-            assert "abc123" in results[0]
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            npt.assert_equal(len(results), 1)
+            assert "abc123" in results[0]
 
     def test_list_projects(self):
         """Test list projects - all and name only"""
@@ -692,11 +694,11 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             results = fa.list_projects(auth_only=False, name_only=True)
-            assert len(results) >= 2
-            assert all("created" not in res for res in results)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("projects").get("111").delete().run(conn)
+            assert len(results) >= 2
+            assert all("created" not in res for res in results)
 
     def test_add_project(self):
         """Test add project"""
@@ -711,10 +713,10 @@ class FlaskAppTestCase(unittest.TestCase):
             auth_entries = []
             for e in cur:
                 auth_entries.append(e)
-            npt.assert_equal(len(auth_entries), 1)
-            npt.assert_equal(auth_entries[0]["active"], "y")
             r.table("projects").get(new_projkey).delete().run(conn)
             r.table("userauth").get(auth_entries[0]["id"]).delete().run(conn)
+            npt.assert_equal(len(auth_entries), 1)
+            npt.assert_equal(auth_entries[0]["active"], "y")
 
     def test_add_project_addl_users(self):
         """Test add project - addl users"""
@@ -730,11 +732,11 @@ class FlaskAppTestCase(unittest.TestCase):
             auth_entries = []
             for e in cur:
                 auth_entries.append(e)
-            npt.assert_equal(len(auth_entries), 2)
-            npt.assert_equal(auth_entries[0]["active"], "y")
             r.table("projects").get(new_projkey).delete().run(conn)
             r.table("userauth").get(auth_entries[0]["id"]).delete().run(conn)
             r.table("userauth").get(auth_entries[1]["id"]).delete().run(conn)
+            npt.assert_equal(len(auth_entries), 2)
+            npt.assert_equal(auth_entries[0]["active"], "y")
 
     def test_add_featureset(self):
         """Test add feature set"""
@@ -744,9 +746,9 @@ class FlaskAppTestCase(unittest.TestCase):
             new_featset_key = fa.add_featureset(name="TEST", projkey="abc",
                                                 pid="2", featlist=['f1', 'f2'])
             entry = r.table("features").get(new_featset_key).run(conn)
+            r.table("features").get(new_featset_key).delete().run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['featlist'], ['f1', 'f2'])
-            r.table("features").get(new_featset_key).delete().run(conn)
 
     def test_add_model(self):
         """Test add model"""
@@ -756,9 +758,9 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = fa.add_model(featureset_name="TEST", featureset_key="123",
                                    model_type="RF", projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
+            r.table("models").get(new_key).delete().run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['projkey'], "ABC")
-            r.table("models").get(new_key).delete().run(conn)
 
     def test_add_model_meta_feats(self):
         """Test add model - with meta features"""
@@ -770,8 +772,156 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = fa.add_model(featureset_name="TEST", featureset_key="123",
                                    model_type="RF", projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
+            r.table("models").get(new_key).delete().run(conn)
+            r.table("features").get("123").delete().run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['projkey'], "ABC")
             npt.assert_equal(entry['meta_feats'], ['f1', 'f2'])
-            r.table("models").get(new_key).delete().run(conn)
-            r.table("features").get("123").delete().run(conn)
+
+    def test_add_prediction(self):
+        """Test add prediction entry"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            new_key = fa.add_prediction(project_name="abc123",
+                                        model_name="model_name",
+                                        model_type="RF",
+                                        pred_filename="test.dat",
+                                        pid="2")
+            entry = r.table("predictions").get(new_key).run(conn)
+            r.table("predictions").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(entry['project_name'], "abc123")
+            npt.assert_equal(entry['metadata_file'], "None")
+
+    def test_get_projects_associated_files(self):
+        """Test get project's associated files"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            fpaths = fa.project_associated_files("abc123")
+            npt.assert_equal(fpaths, [])
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "type": "RF",
+                                      "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "meta_feats": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123", "model_type": "RF",
+                                           "model_name": "abc123",
+                                           "created": "abc123",
+                                           "filename": "abc.txt",
+                                           "results_str_html": "abcHTML"})\
+                                  .run(conn)
+            fpaths = fa.project_associated_files("abc123")
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("models").get("abc123").delete().run(conn)
+            r.table("predictions").get("abc123").delete().run(conn)
+            short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
+            assert all(fname in short_fnames for fname in
+                       ["abc123_RF.pkl"])
+
+    def test_get_models_associated_files(self):
+        """Test get model's associated files"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            fpaths = fa.model_associated_files("abc123")
+            npt.assert_equal(fpaths, [])
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "type": "RF",
+                                      "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "meta_feats": ["a", "b", "c"]}).run(conn)
+            fpaths = fa.model_associated_files("abc123")
+            r.table("models").get("abc123").delete().run(conn)
+            short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
+            assert all(fname in short_fnames for fname in
+                       ["abc123_RF.pkl"])
+
+    def test_get_featsets_associated_files(self):
+        """Test get feature set's associated files"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            fpaths = fa.featset_associated_files("abc123")
+            npt.assert_equal(fpaths, [])
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            fpaths = fa.featset_associated_files("abc123")
+            r.table("features").get("abc123").delete().run(conn)
+            short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
+            print(short_fnames)
+            assert all(fname in short_fnames for fname in
+                       ["ZIPPATH.tar.gz", "HEADPATH.dat"])
+
+    def test_get_prediction_associated_files(self):
+        """Test get prediction's associated files"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            fpaths = fa.prediction_associated_files("abc123")
+
+    def test_delete_associated_project_data_features(self):
+        """Test delete associated project data - features"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            fa.delete_associated_project_data("features", "abc123")
+            count = r.table("features").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+
+    def test_delete_associated_project_data_models(self):
+        """Test delete associated project data - models"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            fa.delete_associated_project_data("models", "abc123")
+            count = r.table("models").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+
+    def test_delete_associated_project_data_predictions(self):
+        """Test delete associated project data - predictions"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            fa.delete_associated_project_data("predictions", "abc123")
+            count = r.table("predictions").filter({"id": "abc123"}).count()\
+                                                                   .run(conn)
+            npt.assert_equal(count, 0)

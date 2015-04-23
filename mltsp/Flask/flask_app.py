@@ -1109,23 +1109,36 @@ def project_associated_files(proj_key):
     prediction_keys = []
     features_keys = []
     model_keys = []
-    cursor = r.table("predictions").filter({"projkey": proj_key})\
-                                   .pluck("id").run(g.rdb_conn)
-    for entry in cursor:
-        prediction_keys.append(entry["id"])
-    cursor = r.table("features").filter({"projkey": proj_key})\
-                                .pluck("id").run(g.rdb_conn)
-    for entry in cursor:
-        features_keys.append(entry["id"])
-    cursor = r.table("models").filter({"projkey": proj_key})\
-                              .pluck("id").run(g.rdb_conn)
-    for entry in cursor:
-        model_keys.append(entry["id"])
+    try:
+        cursor = r.table("predictions").filter({"projkey": proj_key})\
+                                       .pluck("id").run(g.rdb_conn)
+        for entry in cursor:
+            prediction_keys.append(entry["id"])
+    except:
+        pass
+    try:
+        cursor = r.table("features").filter({"projkey": proj_key})\
+                                    .pluck("id").run(g.rdb_conn)
+        for entry in cursor:
+            features_keys.append(entry["id"])
+    except:
+        pass
+    try:
+        cursor = r.table("models").filter({"projkey": proj_key})\
+                                  .pluck("id").run(g.rdb_conn)
+        for entry in cursor:
+            model_keys.append(entry["id"])
+    except:
+        pass
 
     for featset_key in features_keys:
         fpaths += featset_associated_files(featset_key)
     for model_key in model_keys:
         for newpath in model_associated_files(model_key):
+            if newpath not in fpaths:
+                fpaths.append(newpath)
+    for pred_key in prediction_keys:
+        for newpath in prediction_associated_files(pred_key):
             if newpath not in fpaths:
                 fpaths.append(newpath)
     return fpaths
@@ -1145,12 +1158,18 @@ def model_associated_files(model_key):
         List of paths to files associated with said model.
 
     """
-    entry_dict = r.table("models").get(model_key).run(g.rdb_conn)
-    featset_key = entry_dict["featset_key"]
-    model_type = entry_dict["type"]
-    fpaths = [os.path.join(cfg.MODELS_FOLDER,
-                           "%s_%s.pkl" % (featset_key, model_type))]
-    fpaths += featset_associated_files(featset_key)
+    try:
+        entry_dict = r.table("models").get(model_key).run(g.rdb_conn)
+        featset_key = entry_dict["featset_key"]
+        model_type = entry_dict["type"]
+        fpaths = [os.path.join(cfg.MODELS_FOLDER,
+                               "%s_%s.pkl" % (featset_key, model_type))]
+        fpaths += featset_associated_files(featset_key)
+    except:
+        try:
+            fpaths
+        except:
+            fpaths = []
     return fpaths
 
 
@@ -1169,13 +1188,15 @@ def featset_associated_files(featset_key):
 
     """
     fpaths = []
-    fpaths.extend(
-        [os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
-         os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl" % featset_key),
-         os.path.join(os.path.join(os.path.join(
-             os.path.dirname(__file__), "static"),
-                                   "data"),
-                      "%s_features_with_classes.csv" % featset_key)])
+    for fpath in [
+            os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
+            os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key),
+            os.path.join(os.path.join(os.path.join(
+                os.path.dirname(__file__), "static"),
+                                      "data"),
+                         "%s_features_with_classes.csv" % featset_key)]:
+        if os.path.exists(fpath):
+            fpaths.append(fpath)
     entry_dict = r.table("features").get(featset_key).run(g.rdb_conn)
     for key in ("headerfile_path", "zipfile_path", "custom_features_script"):
         if entry_dict and key in entry_dict:
@@ -1550,7 +1571,7 @@ def update_project_info(
             try:
                 os.remove(
                     os.path.join(
-                        cfg.FEATURES_FOLDER, "%s_classes.pkl" % features_key))
+                        cfg.FEATURES_FOLDER, "%s_classes.npy" % features_key))
             except Exception as theErr:
                 print(theErr)
                 logging.exception(
