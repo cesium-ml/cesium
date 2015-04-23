@@ -86,10 +86,13 @@ def pred_featurize_reduce(iter, params):
     custom_features_script = params['custom_features_script']
     meta_features = params['meta_features']
 
-    import os
+    import os, sys
 
-    from . import cfg
-    from . import predict_class as pred
+    # This import is done from Disco, so we cannot use relative imports
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+    from mltsp import cfg
+    from mltsp import predict_class as pred
 
     for fname, junk in kvgroup(sorted(iter)):
         if os.path.isfile(fname):
