@@ -316,6 +316,7 @@ def add_user():
 
 
 #@app.before_first_request
+@app.route('/check_user_table', methods=['POST'])
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
     if (r.table("users").filter({'email': stormpath.user.email})
@@ -328,6 +329,7 @@ def check_user_table():
     else:
         print("User", stormpath.user.full_name, "with email",
               stormpath.user.email, "already in users db.")
+    return jsonify({})
 
 
 def update_model_entry_with_pid(new_model_key, pid):
@@ -603,6 +605,7 @@ def list_featuresets(
         get_authed_projkeys() if auth_only else get_all_projkeys())
     if by_project:
         this_projkey = project_name_to_key(by_project)
+        print('this_projkey:', this_projkey)
         cursor = r.table("features").filter({"projkey": this_projkey})\
                                     .pluck("name", "created", "id", "featlist")\
                                     .run(g.rdb_conn)
@@ -653,7 +656,6 @@ def list_featuresets(
             cursor = (
                 r.table("features").filter({"projkey": this_projkey})
                 .pluck("name", "created").run(g.rdb_conn))
-            authed_featuresets = []
             for entry in cursor:
                 authed_featuresets.append(
                     entry['name'] +
@@ -730,7 +732,7 @@ def list_models(
                 authed_models.append(
                     entry['name']
                     + (" - %s" % str(entry['type']) if with_type else "")
-                    + (" (created %s PST)"%str(entry['created'])[:-13]
+                    + (" (created %s PST)" % str(entry['created'])[:-13]
                        if not name_only else "")
                     + (" meta_feats=%s" % ",".join(entry['meta_feats'])
                        if 'meta_feats' in entry and entry['meta_feats']
@@ -743,20 +745,19 @@ def list_models(
         authed_models = []
         for this_projkey in authed_proj_keys:
             cursor = (
-                r.table("models").filter({"projkey":this_projkey})
-                .pluck("name","created","type","meta_feats").run(g.rdb_conn))
-            authed_models = []
+                r.table("models").filter({"projkey": this_projkey})
+                .pluck("name", "created", "type", "meta_feats").run(g.rdb_conn))
             for entry in cursor:
                 authed_models.append(
                     entry['name']
-                    + (" - %s"%str(entry['type']) if with_type else "")
+                    + (" - %s" % str(entry['type']) if with_type else "")
                     + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if not name_only else "")
                     + (
                         " meta_feats=%s" % ",".join(entry['meta_feats'])
                         if 'meta_feats' in entry and entry['meta_feats']
-                        not in [False,[],"False",None,"None"]
+                        not in [False, [], "False", None, "None"]
                         and type(entry['meta_feats']) == list else ""))
         return authed_models
 
@@ -788,7 +789,7 @@ def list_predictions(
     if by_project:
         this_projkey = project_name_to_key(by_project)
         cursor = (
-            r.table("predictions").filter({"projkey":this_projkey})
+            r.table("predictions").filter({"projkey": this_projkey})
             .pluck(
                 "model_name", "model_type", "filename",
                 "created", "id","results_str_html")
@@ -832,9 +833,9 @@ def list_predictions(
             for entry in cursor:
                 predictions.append(
                     entry['model_name']
-                    + (" - %s"%str(entry['model_type']) if with_type else "")
+                    + (" - %s" % str(entry['model_type']) if detailed else "")
                     + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if detailed else ""))
         return predictions
     else:
@@ -845,16 +846,15 @@ def list_predictions(
         predictions = []
         for this_projkey in authed_proj_keys:
             cursor = (
-                r.table("predictions").filter({"projkey":this_projkey})
-                .pluck("model_name","model_type","filename","created")
+                r.table("predictions").filter({"projkey": this_projkey})
+                .pluck("model_name", "model_type", "filename", "created")
                 .run(g.rdb_conn))
-            predictions = []
             for entry in cursor:
                 predictions.append(
                     entry['model_name']
-                    + (" - %s"%str(entry['model_type']) if with_type else "")
+                    + (" - %s" % str(entry['model_type']) if detailed else "")
                     + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if detailed else ""))
         return predictions
 
@@ -875,7 +875,7 @@ def get_list_of_projects():
     """
     if request.method == 'GET':
         list_of_projs = list_projects(name_only=True)
-        return jsonify({'list':list_of_projs})
+        return jsonify({'list': list_of_projs})
 
 
 def list_projects(auth_only=True, name_only=False):
@@ -903,16 +903,16 @@ def list_projects(auth_only=True, name_only=False):
     proj_names = []
     for entry in (
             r.table('projects').get_all(*proj_keys)
-            .pluck('name','created').run(g.rdb_conn)):
+            .pluck('name', 'created').run(g.rdb_conn)):
         proj_names.append(
             entry['name']
             + (
-                " (created %s PST)"%str(entry['created'])[:-13]
+                " (created %s PST)" % str(entry['created'])[:-13]
                 if not name_only else ""))
     return proj_names
 
 
-def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
+def add_project(name, desc="", addl_authed_users=[], user_email="auto"):
     """Add a new entry to the rethinkDB 'projects' table.
 
     Parameters
@@ -934,22 +934,22 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
         RethinkDB key/ID of newly created project entry.
 
     """
-    if user_email in ["auto",None,"None","none","Auto"]:
+    if user_email in ["auto", None, "None", "none", "Auto"]:
         user_email = get_current_userkey()
     if type(addl_authed_users) == str:
-        if addl_authed_users.strip() in [",",""]:
+        if addl_authed_users.strip() in [",", ""]:
             addl_authed_users = []
     new_projkey = r.table("projects").insert({
         "name": name,
-        "description":desc,
+        "description": desc,
         "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn))
     }).run(g.rdb_conn)['generated_keys'][0]
     new_entries = []
     for authed_user in [user_email] + addl_authed_users:
         new_entries.append({
-            "userkey":authed_user,
-            "projkey":new_projkey,
-            "active":"y" })
+            "userkey": authed_user,
+            "projkey": new_projkey,
+            "active": "y" })
     r.table("userauth").insert(new_entries).run(g.rdb_conn)
     print("Project", name, "created and added to db; users", \
         [user_email] + addl_authed_users, \
@@ -1032,10 +1032,8 @@ def add_model(
         RethinkDB key/ID of newly created model entry.
 
     """
-    entry = (
-        r.table("features").get(featureset_key)
-        .pluck('meta_feats').run(g.rdb_conn))
-    if 'meta_feats' in entry:
+    entry = r.table("features").get(featureset_key).run(g.rdb_conn)
+    if entry is not None and 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
     new_model_key = r.table("models").insert({
         "name": featureset_name,
@@ -1044,7 +1042,7 @@ def add_model(
         "projkey": projkey,
         "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
         "pid": pid,
-        "meta_feats":meta_feats
+        "meta_feats": meta_feats
     }).run(g.rdb_conn)['generated_keys'][0]
     print("New model entry %s added to mltsp_app db." % featureset_name)
     return new_model_key

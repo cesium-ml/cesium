@@ -265,4 +265,3 @@ def test_running_in_docker_cont():
     """Test running in Docker cont check"""
     output = cft.is_running_in_docker_container()
     assert(isinstance(output, bool))
-    npt.assert_equal(output, False)
