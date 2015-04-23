@@ -3,13 +3,8 @@ git:
   path: github.com/mltsp/mltsp
 env:
 script:
-  - sudo /usr/local/bin/wrapdocker &
-  - sleep 1
-  - docker info
-  - docker version
-  - pip install -r requirements.txt
-  - python setup.py build_ext -i
-  - make test
+  - ./.drone/build.sh
+  - ./.drone/stop_docker.sh
 services:
   - library/rethinkdb
 notify:
