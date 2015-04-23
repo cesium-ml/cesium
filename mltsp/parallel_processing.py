@@ -1,30 +1,12 @@
 from __future__ import print_function
-from operator import itemgetter
-#from rpy2.robjects.packages import importr
-#from rpy2 import robjects
-import shutil
-import sklearn as skl
-from sklearn.ensemble import RandomForestClassifier as RFC
-from sklearn.externals import joblib
 
-import pickle
-import sys
 import os
 
-import numpy as np
-import datetime
-import pytz
-import tarfile
-import glob
 import tarfile
 import uuid
-import shutil
 import ntpath
 
 from . import cfg
-from . import lc_tools
-from . import disco_tools
-from . import custom_exceptions
 
 try:
     from disco.core import Job, result_iterator
@@ -100,24 +82,14 @@ def pred_featurize_reduce(iter, params):
         time series data (list of lists) as its the second element.
 
     """
-    from copy import deepcopy
     featset_key = params['featset_key']
-    sep = params['sep']
     custom_features_script = params['custom_features_script']
     meta_features = params['meta_features']
 
-    import sys, os
-    from disco.util import kvgroup
-    import uuid
     import os
-    import sys
-    # This should not be necessary when mltsp is installed on the system
-    # as a proper package:
-    sys.path.append("/home/arien/projects/mltsp")# #TEMP#
-    from mltsp import cfg
-    from mltsp import predict_class as pred
-    from mltsp import custom_exceptions
-    import mltsp
+
+    from . import cfg
+    from . import predict_class as pred
 
     for fname, junk in kvgroup(sorted(iter)):
         if os.path.isfile(fname):
@@ -178,7 +150,6 @@ def process_prediction_data_featurization_with_disco(
         generated.
 
     """
-    from disco.core import Job, result_iterator
     job = Job().run(input=input_list,
                     map=pred_map,
                     partitions=partitions,
@@ -333,14 +304,7 @@ def featurize_reduce(iter, params):
             class_name = str(class_names[0])
 
         print("fname: " + fname + ", class_name: " + class_name)
-        import os
-        import sys
-        # This should not be necessary when mltsp is installed on the system
-        # as a proper package:
-        sys.path.append("/home/arien/projects/mltsp")# #TEMP#
-        from mltsp import cfg
-        from mltsp import featurize
-        import mltsp
+        from . import featurize
 
         short_fname = os.path.splitext(ntpath.basename(fname))[0]
         path_to_csv = os.path.join(
@@ -440,7 +404,6 @@ def featurize_in_parallel(
         features_to_use = all_features_list
 
     fname_class_dict = {}
-    objects = []
     line_no = 0
     with open(headerfile_path) as headerfile:
         for line in headerfile:
@@ -454,14 +417,9 @@ def featurize_in_parallel(
     zipfile = tarfile.open(zipfile_path)
     zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER, "unzipped"))
     all_fnames = zipfile.getnames()
-    num_objs = len(fname_class_dict)
-    zipfile_name = ntpath.basename(zipfile_path)
 
-    count=0
     print("Generating science features...")
 
-    fname_class_list = list(fname_class_dict.items())
-    input_fname_list = all_fnames
     longfname_class_list = []
     if is_test:
         all_fnames = all_fnames[:3]

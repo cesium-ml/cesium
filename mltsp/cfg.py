@@ -8,7 +8,7 @@ import os, sys
 # Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
-DATA_PATH = os.path.join(PROJECT_PATH, "Data")
+DATA_PATH = os.path.join(PROJECT_PATH, "data")
 SAMPLE_DATA_PATH = os.path.join(DATA_PATH, "sample_data")
 
 # Specify path to uploads, models, and feature folders:

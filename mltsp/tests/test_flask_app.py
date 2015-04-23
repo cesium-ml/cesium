@@ -2,6 +2,7 @@ from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 import numpy.testing as npt
 import os
+from os.path import join as pjoin
 import pandas as pd
 import shutil
 import ntpath
@@ -9,12 +10,12 @@ import uuid
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 
 def test_num_lines():
     """Test line counting"""
-    num_lines = fa.num_lines(os.path.join(DATA_DIR, "dotastro_215153.dat"))
+    num_lines = fa.num_lines(pjoin(DATA_PATH, "dotastro_215153.dat"))
     npt.assert_equal(num_lines, 170)
 
 
