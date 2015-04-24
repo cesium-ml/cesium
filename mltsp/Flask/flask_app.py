@@ -605,7 +605,6 @@ def list_featuresets(
         get_authed_projkeys() if auth_only else get_all_projkeys())
     if by_project:
         this_projkey = project_name_to_key(by_project)
-        print('this_projkey:', this_projkey)
         cursor = r.table("features").filter({"projkey": this_projkey})\
                                     .pluck("name", "created", "id", "featlist")\
                                     .run(g.rdb_conn)
