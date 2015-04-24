@@ -13,3 +13,5 @@ mltsp/version.py
 rethinkdb_data
 mltsp.yaml
 mltsp.egg-info
+data
+external

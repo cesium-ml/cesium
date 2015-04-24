@@ -3,6 +3,8 @@ os.environ["flask_testing"] = "True"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 import numpy.testing as npt
+import os
+from os.path import join as pjoin
 import pandas as pd
 import shutil
 import ntpath
@@ -14,7 +16,7 @@ import unittest
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 from os.path import join as pjoin
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+DATA_DIR = pjoin(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
 TEST_PASSWORD = "TestPass15"
 
@@ -660,7 +662,7 @@ class FlaskAppTestCase(unittest.TestCase):
         assert isinstance(eval(rv.data), dict)
         assert "abc123" in eval(rv.data)["list"]
 
-    def test_list_projects(self):
+    def test_list_projects_authed(self):
         """Test list projects - authed only"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
@@ -680,7 +682,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(len(results), 1)
             assert "abc123" in results[0]
 
-    def test_list_projects(self):
+    def test_list_projects_all(self):
         """Test list projects - all and name only"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()

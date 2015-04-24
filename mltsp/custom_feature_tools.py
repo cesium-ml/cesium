@@ -547,10 +547,9 @@ def docker_extract_features(
                                    ts_datafile_paths, ts_data_list)
     container_name = generate_random_str()
     path_to_tmp_dir = make_tmp_dir()
+
     copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
                          features_already_known_list)
-    assert os.path.exists(os.path.join(path_to_tmp_dir,
-                                       "features_already_known_list.pkl"))
 
     try:
         results_list_of_dict = extract_feats_in_docker_container(

@@ -2,15 +2,19 @@ from mltsp import build_model
 from mltsp import cfg
 import numpy.testing as npt
 import os
+from os.path import join as pjoin
 import pandas as pd
-import numpy as np
 from sklearn.externals import joblib
 import shutil
+
+
+DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+
 
 def test_csv_parser():
     """Test CSV file parsing."""
     colnames, data_rows = build_model.read_data_from_csv_file(
-        os.path.join(os.path.dirname(__file__), "data/csv_test_data.csv"))
+        pjoin(DATA_PATH, "csv_test_data.csv"))
     npt.assert_equal(colnames[0], "col1")
     npt.assert_equal(colnames[-1], "col4")
     npt.assert_equal(len(data_rows[0]), 4)
@@ -47,43 +51,39 @@ def test_create_and_pickle_model():
         {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
          "classes": ['1', '2']},
         "test_build_model", "RF", False)
-    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
-                                       "test_build_model_RF.pkl"))
-    model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
-                                     "test_build_model_RF.pkl"))
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "test_build_model_RF.pkl"))
+    model = joblib.load(pjoin(cfg.MODELS_FOLDER,
+                              "test_build_model_RF.pkl"))
     assert hasattr(model, "predict_proba")
-    os.remove(os.path.join(cfg.MODELS_FOLDER, "test_build_model_RF.pkl"))
-    assert not os.path.exists(os.path.join(cfg.MODELS_FOLDER,
-                                           "test_build_model_RF.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "test_build_model_RF.pkl"))
+    assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                    "test_build_model_RF.pkl"))
 
 
 def test_read_features_data_from_disk():
     for suffix in ["features.csv", "classes.npy"]:
         shutil.copy(
-            os.path.join(os.path.join(os.path.dirname(__file__), "data"),
-                         "test_%s" % suffix),
-            os.path.join(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
+            pjoin(DATA_PATH, "test_%s" % suffix),
+            pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     data_dict = build_model.read_features_data_from_disk("TEST001")
     npt.assert_array_equal(data_dict["classes"], ["Mira", "Herbig_AEBE",
                                                   "Beta_Lyrae"])
     for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
-        os.remove(os.path.join(cfg.FEATURES_FOLDER, fname))
-
+        os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
 def test_build_model():
     """Test main model building method"""
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
-                             "test_classes.npy"),
-                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    shutil.copy(os.path.join(os.path.join(os.path.dirname(__file__), "data"),
-                             "test_features.csv"),
-                os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    shutil.copy(pjoin(DATA_PATH, "test_classes.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
-    assert os.path.exists(os.path.join(cfg.MODELS_FOLDER,
-                                       "TEMP_TEST01_RF.pkl"))
-    model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
-                                     "TEMP_TEST01_RF.pkl"))
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_RF.pkl"))
+    model = joblib.load(pjoin(cfg.MODELS_FOLDER,
+                              "TEMP_TEST01_RF.pkl"))
     assert hasattr(model, "predict_proba")
-    os.remove(os.path.join(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    os.remove(os.path.join(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))

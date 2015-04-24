@@ -902,13 +902,14 @@ def list_projects(auth_only=True, name_only=False):
         return []
     proj_names = []
     for entry in (
-            r.table('projects').get_all(*proj_keys)
-            .pluck('name', 'created').run(g.rdb_conn)):
-        proj_names.append(
-            entry['name']
-            + (
-                " (created %s PST)" % str(entry['created'])[:-13]
-                if not name_only else ""))
+            r.table('projects').get_all(*proj_keys).run(g.rdb_conn)):
+        if 'name' in entry:
+            if 'created' not in entry:
+                name_only = True
+            proj_names.append(
+                entry['name'] + (
+                    " (created %s PST)" % str(entry['created'])[:-13]
+                    if not name_only else ""))
     return proj_names
 
 
