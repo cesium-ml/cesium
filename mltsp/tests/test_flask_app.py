@@ -1,5 +1,5 @@
 import os
-os.environ["flask_testing"] = "True"
+os.environ["flask_testing"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 import numpy.testing as npt

@@ -31,7 +31,7 @@ from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 import numpy as np
 import yaml
-if os.getenv("flask_testing") == "True":
+if os.getenv("flask_testing") == "1":
     from ..ext import stormpath_mock as stormpath
 else:
     from flask.ext import stormpath
