@@ -2,14 +2,11 @@
 # featurize.py
 
 from __future__ import print_function
-from operator import itemgetter
 import shutil
 import tempfile
-from sklearn.externals import joblib
 # from sklearn.cross_validation import train_test_split
 # from sklearn.metrics import confusion_matrix
 from random import shuffle
-import sys
 import os
 import tarfile
 import ntpath
@@ -452,7 +449,6 @@ def featurize(
 
     """
     # Generate features for each TS object
-    print(locals())
     objects = generate_features(
         headerfile_path, zipfile_path, features_to_use,
         custom_script_path, is_test, USE_DISCO, already_featurized,

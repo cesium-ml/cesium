@@ -1,20 +1,14 @@
 import os
-os.environ["flask_testing"] = "1"
+os.environ["DEBUG_LOGIN"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
-import pandas as pd
-import shutil
 import ntpath
 import uuid
 import rethinkdb as r
-from flask.ext.stormpath import User, user
-from flask.ext.stormpath.context_processors import user_context_processor
 import unittest
-from rethinkdb.errors import RqlRuntimeError, RqlDriverError
-from os.path import join as pjoin
 
 DATA_DIR = pjoin(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
@@ -91,7 +85,7 @@ class FlaskAppTestCase(unittest.TestCase):
 
     def test_check_user_table(self):
         """Test check user table"""
-        with fa.app.test_request_context() as trq:
+        with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             N = r.table('users').filter({'email': TEST_EMAIL}).count()\
@@ -883,7 +877,7 @@ class FlaskAppTestCase(unittest.TestCase):
                        ["ZIPPATH.tar.gz", "HEADPATH.dat"])
 
     def test_get_prediction_associated_files(self):
-        """Test get prediction's associated files"""
+        """ ## TO-DO ## Test get prediction's associated files"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn

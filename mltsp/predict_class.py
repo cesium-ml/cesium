@@ -1,28 +1,18 @@
 from __future__ import print_function
-import sklearn as skl
-from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 
-import logging
 from operator import itemgetter
-import pickle
-import sys
 import os
-import uuid
 import shutil
 import tempfile
 import numpy as np
-import datetime
-import pytz
 import tarfile
-import glob
 from copy import deepcopy
 import ntpath
 
 from . import cfg
 from . import custom_exceptions
 from . import lc_tools
-from . import featurize
 from . import custom_feature_tools as cft
 
 try:

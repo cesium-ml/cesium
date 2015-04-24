@@ -3,7 +3,6 @@ from mltsp import cfg
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
-import pandas as pd
 from sklearn.externals import joblib
 import shutil
 

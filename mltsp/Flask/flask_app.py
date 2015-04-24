@@ -16,7 +16,6 @@ import psutil
 import smtplib
 from email.mime.text import MIMEText
 import logging
-import subprocess
 import simplejson
 from flask import (
     Flask, request, abort, render_template,
@@ -25,30 +24,13 @@ from werkzeug import secure_filename
 import uuid
 import ntpath
 
-from operator import itemgetter
-import sklearn as skl
-from sklearn.ensemble import RandomForestClassifier as RFC
-from sklearn.externals import joblib
-import numpy as np
 import yaml
-if os.getenv("flask_testing") == "1":
+if os.getenv("DEBUG_LOGIN") == "1":
     from ..ext import stormpath_mock as stormpath
 else:
     from flask.ext import stormpath
 
-# import disco if installed
-try:
-    from disco.core import Job, result_iterator
-    from disco.util import kvgroup
-    DISCO_INSTALLED = True
-except Exception as theError:
-    print(theError)
-    DISCO_INSTALLED = False
-    print("Warning: no installation of Disco found")
-
-import pandas as pd
 import tarfile
-import zipfile
 import multiprocessing
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError

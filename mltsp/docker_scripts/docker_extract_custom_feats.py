@@ -7,8 +7,6 @@ try:
     import cPickle as pickle
 except:
     import pickle
-import shutil
-import os
 
 
 def extract_custom_feats():
@@ -25,14 +23,10 @@ def extract_custom_feats():
     """
     # load pickled ts_data and known features
     with open(
-        "/home/copied_data_files/features_already_known_list.pkl", "rb") as f:
+            "/home/copied_data_files/features_already_known_list.pkl", "rb") \
+            as f:
         features_already_known_list = pickle.load(f)
 
-    #shutil.copy(
-    #    "/home/copied_data_files/custom_feature_defs.py",
-    #    "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
-    #script_fpath = ("/home/mltsp/mltsp/custom_feature_scripts/"
-    #                "custom_feature_defs.py")
     script_fpath = ("/home/copied_data_files/"
                     "custom_feature_defs.py")
     # extract features

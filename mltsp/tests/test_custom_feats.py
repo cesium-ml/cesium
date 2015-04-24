@@ -4,7 +4,6 @@ import numpy.testing as npt
 import numpy as np
 import os
 from os.path import join as pjoin
-import pandas as pd
 from subprocess import call, PIPE
 import shutil
 try:

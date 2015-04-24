@@ -1,12 +1,8 @@
 # to be run from INSIDE a docker container
 
 from __future__ import print_function
-import subprocess
-import sys
-import os
 from .. import build_model as BM
 
-from subprocess import Popen, PIPE, call
 import pickle
 
 
@@ -23,7 +19,7 @@ def build_model():
 
     """
     # load pickled ts_data and known features
-    with open("/home/copied_data_files/function_args.pkl","rb") as f:
+    with open("/home/copied_data_files/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
 
     results_str = BM.build_model(
@@ -35,6 +31,6 @@ def build_model():
     return results_str
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     results_str = build_model()
     print(results_str)

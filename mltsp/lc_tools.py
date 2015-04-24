@@ -1,5 +1,4 @@
 from __future__ import print_function
-import re
 try:
     from urllib.request import urlopen
 except ImportError:
@@ -14,13 +13,7 @@ try:
 except:
     pass
 import scipy.stats as stats
-import pickle as p
-#from matplotlib.backends.backend_pdf import PdfPages
 import heapq
-#import pyPdf
-#import lcs_db
-import os
-import sys
 from . import cfg
 
 

@@ -6,12 +6,7 @@ import os
 from os.path import join as pjoin
 import pandas as pd
 import shutil
-import numpy as np
 from sklearn.externals import joblib
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 import tempfile
 
 

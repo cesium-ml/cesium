@@ -1,15 +1,9 @@
 # to be run from INSIDE a docker container
 
 from __future__ import print_function
-import subprocess
-import sys
 import os
-from .. import custom_feature_tools as cft
 from .. import predict_class
-import time
-from subprocess import Popen, PIPE, call
 import pickle
-import shutil
 
 
 def predict():
@@ -32,7 +26,7 @@ def predict():
     # time.sleep(2)
 
     # load pickled ts_data and known features
-    with open("/home/copied_data_files/function_args.pkl","rb") as f:
+    with open("/home/copied_data_files/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
 
     # ensure required files successfully copied into container:
@@ -58,9 +52,6 @@ def predict():
                 "ERROR - (IN DOCKER CONTAINER) predict - " +
                 "custom_features_script = %s is not a file " +
                 "currently on disk.") % custom_features_script)
-        #shutil.copy(
-        #    function_args['custom_features_script'],
-        #    "/home/mltsp/mltsp/custom_feature_scripts/custom_feature_defs.py")
     if ("metadata_file" in function_args and
             function_args["metadata_file"] not in [None,False,"None",""]):
         metadata_file = str(function_args['metadata_file'])

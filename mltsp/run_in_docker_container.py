@@ -1,12 +1,7 @@
 from __future__ import print_function
-from subprocess import Popen, PIPE, call, check_call
-import uuid
 import pickle
 import shutil
-import uuid
-import sys
 import os
-import rethinkdb as r
 import ntpath
 from docker import Client
 from . import cfg

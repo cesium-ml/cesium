@@ -4,7 +4,6 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import pandas as pd
-import ntpath
 import tarfile
 import numpy as np
 import shutil
@@ -55,8 +54,8 @@ def test_shorten_fname():
     npt.assert_equal(featurize.shorten_fname("/home/path/abc.dat"), "abc")
 
 
-def test_determine_feats_to_plot():
-    """Test determine feats to plot"""
+def test_determine_feats_to_plot1():
+    """Test determine feats to plot - 1"""
     ftp = featurize.determine_feats_to_plot(["abc", "221a", "22d"])
     assert("221a" in ftp)
     assert("median" not in ftp)
@@ -154,8 +153,8 @@ def test_extract_serial():
     assert(all("avg_mag" in obj for obj in objs))
 
 
-def test_determine_feats_to_plot():
-    """Test determine features to plot"""
+def test_determine_feats_to_plot2():
+    """Test determine features to plot - 2"""
     ftpl = featurize.determine_feats_to_plot(cfg.features_to_plot)
     npt.assert_array_equal(ftpl, cfg.features_to_plot)
     ftpl = featurize.determine_feats_to_plot(cfg.features_list_science)

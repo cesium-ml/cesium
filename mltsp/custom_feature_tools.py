@@ -1,12 +1,9 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import glob
 from parse import parse
-from subprocess import call, Popen, PIPE
 import sys
 import os
-import inspect
 import tempfile
 try:
     import cPickle as pickle
@@ -16,7 +13,7 @@ import uuid
 import shutil
 import numpy as np
 from . import cfg
-from . import lc_tools
+
 
 class MissingRequiredParameterError(Exception):
     """Required parameter is not provided in feature function call."""
@@ -259,7 +256,8 @@ def call_custom_functions(features_already_known_list, all_required_params,
 def execute_functions_in_order(
         script_fpath,
         features_already_known={
-            "t":[1,2,3], "m":[1,23,2], "e":[0.2,0.3,0.2], "coords":[22,33]},
+            "t":[1, 2, 3], "m":[1, 23, 2], "e":[0.2, 0.3, 0.2],
+            "coords":[22, 33]},
         multiple_sources=False):
     """Generate custom features defined in script_fpath.
 
