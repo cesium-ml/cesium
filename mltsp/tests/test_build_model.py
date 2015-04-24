@@ -72,6 +72,7 @@ def test_read_features_data_from_disk():
     for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
+
 def test_build_model():
     """Test main model building method"""
     shutil.copy(pjoin(DATA_PATH, "test_classes.npy"),

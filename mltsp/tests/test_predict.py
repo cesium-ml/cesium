@@ -18,7 +18,8 @@ def test_parse_metadata_file():
         pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat"))
     assert("dotastro_215153.dat" in meta_feats)
     assert("meta1" in meta_feats["dotastro_215153.dat"])
-    npt.assert_almost_equal(meta_feats["dotastro_215153.dat"]["meta1"], 0.23423)
+    npt.assert_almost_equal(meta_feats["dotastro_215153.dat"]["meta1"],
+                            0.23423)
 
 
 def test_determine_feats_used():
@@ -51,7 +52,8 @@ def test_featurize_multiple_serially():
         "/tmp", ["std_err"], pjoin(DATA_PATH, "testfeature1.py"),
         meta_feats)
     npt.assert_equal(len(res_dict), 4)
-    assert all("std_err" in d["features_dict"] for fname, d in res_dict.items())
+    assert all("std_err" in d["features_dict"]
+               for fname, d in res_dict.items())
     assert all("ts_data" in d for fname, d in res_dict.items())
 
 
@@ -64,7 +66,8 @@ def test_featurize_single():
         ["std_err"],
         pjoin(DATA_PATH, "testfeature1.py"),
         meta_feats)
-    assert all("std_err" in d["features_dict"] for fname, d in res_dict.items())
+    assert all("std_err" in d["features_dict"]
+               for fname, d in res_dict.items())
     assert all("ts_data" in d for fname, d in res_dict.items())
 
 
@@ -75,7 +78,8 @@ def test_featurize_tsdata():
         "TEMP_TEST01",
         None, None, False,
         ['std_err'], False)
-    assert all("std_err" in d["features_dict"] for fname, d in res_dict.items())
+    assert all("std_err" in d["features_dict"]
+               for fname, d in res_dict.items())
     assert all("ts_data" in d for fname, d in res_dict.items())
 
 

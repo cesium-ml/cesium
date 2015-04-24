@@ -48,17 +48,16 @@ def test_featurize_prediction_data_in_parallel():
 
     features_and_tsdata_dict = prl_proc.featurize_prediction_data_in_parallel(
         os.path.join(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
-                     "TEMP_TEST01")
+        "TEMP_TEST01")
 
-    assert "std_err" in features_and_tsdata_dict\
-        ["dotastro_218934.dat"]["features_dict"]
+    assert "std_err" in \
+        features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]
     for fname in (
             pjoin(cfg.UPLOAD_FOLDER,
-                "215153_215176_218272_218934.tar.gz"),
+                  "215153_215176_218272_218934.tar.gz"),
             pjoin(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"),
             pjoin(cfg.FEATURES_FOLDER, "TESTRUN_classes.npy"),
             pjoin(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"),
             pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py")):
         if os.path.exists(fname):
             os.remove(fname)
-

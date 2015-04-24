@@ -10,7 +10,6 @@ from . import cfg
 
 try:
     from disco.core import Job, result_iterator
-    from disco.util import kvgroup
     DISCO_INSTALLED = True
 except Exception as theError:
     DISCO_INSTALLED = False
@@ -18,12 +17,12 @@ except Exception as theError:
 
 def currently_running_in_docker_container():
     import subprocess
-    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
     output = proc.stdout.read()
     if "/docker/" in str(output):
-        in_docker_container=True
+        in_docker_container = True
     else:
-        in_docker_container=False
+        in_docker_container = False
     return in_docker_container
 
 
@@ -105,7 +104,8 @@ def pred_featurize_reduce(iter, params):
                 os.path.join(cfg.UPLOAD_FOLDER, "unzipped"), fname)
         else:
             print((fname if cfg.UPLOAD_FOLDER in fname else
-                os.path.join(cfg.UPLOAD_FOLDER, fname)) + " is not a file...")
+                   os.path.join(cfg.UPLOAD_FOLDER, fname)) +
+                  " is not a file...")
             if (os.path.exists(os.path.join(cfg.UPLOAD_FOLDER, fname)) or
                     os.path.exists(fname)):
                 print("But it does exist on the disk.")
@@ -124,8 +124,8 @@ def pred_featurize_reduce(iter, params):
         yield short_fname, [all_features, ts_data]
 
 
-def process_prediction_data_featurization_with_disco(
-    input_list, params, partitions=4):
+def process_prediction_data_featurization_with_disco(input_list, params,
+                                                     partitions=4):
     """Featurize time-series data in parallel as a Disco job.
 
     Called from within the `featurize_prediction_data_in_parallel`
@@ -152,12 +152,14 @@ def process_prediction_data_featurization_with_disco(
         generated.
 
     """
-    job = Job('with_modules').run(input=input_list,
-                    map=pred_map,
-                    partitions=partitions,
-                    reduce=pred_featurize_reduce,
-                    params=params,
-                    required_modules=[("mltsp", os.path.dirname(os.path.dirname(__file__)))])
+    job = Job('with_modules').run(
+        input=input_list,
+        map=pred_map,
+        partitions=partitions,
+        reduce=pred_featurize_reduce,
+        params=params,
+        required_modules=[("mltsp",
+                           os.path.dirname(os.path.dirname(__file__)))])
 
     result = result_iterator(job.wait(show=True))
     return result
@@ -212,18 +214,18 @@ def featurize_prediction_data_in_parallel(
     big_features_and_tsdata_dict = {}
 
     params = {"featset_key": featset_key, "sep": sep,
-            "custom_features_script": custom_features_script,
-            "meta_features": meta_features,
-            "tmp_dir_path": tmp_dir_path}
+              "custom_features_script": custom_features_script,
+              "meta_features": meta_features,
+              "tmp_dir_path": tmp_dir_path}
 
     with open("/tmp/%s_disco_tmp.txt" % str(uuid.uuid4()), "w") as f:
         for fname in all_fnames:
-            f.write(fname+",unknown\n")
+            f.write(fname + ",unknown\n")
 
     disco_iterator = process_prediction_data_featurization_with_disco(
-        input_list=[f.name],params=params,partitions=4)
+        input_list=[f.name], params=params, partitions=4)
 
-    for k,v in disco_iterator:
+    for k, v in disco_iterator:
         fname = k
         features_dict, ts_data = v
         if fname != "":
@@ -310,7 +312,6 @@ def featurize_reduce(iter, params):
             class_name = str(class_names[0])
 
         print("fname: " + fname + ", class_name: " + class_name)
-        
 
         short_fname = os.path.splitext(ntpath.basename(fname))[0]
         path_to_csv = os.path.join(
@@ -355,20 +356,22 @@ def process_featurization_with_disco(input_list, params, partitions=4):
 
     """
     from disco.core import Job, result_iterator
-    job = Job('with_modules').run(input=input_list,
-                    map=map,
-                    partitions=partitions,
-                    reduce=featurize_reduce,
-                    params=params,
-                    required_modules=[("mltsp", os.path.dirname(os.path.dirname(__file__)))])
+    job = Job('with_modules').run(
+        input=input_list,
+        map=map,
+        partitions=partitions,
+        reduce=featurize_reduce,
+        params=params,
+        required_modules=[("mltsp",
+                           os.path.dirname(os.path.dirname(__file__)))])
 
     result = result_iterator(job.wait(show=True))
     return result
 
 
-def featurize_in_parallel(
-    headerfile_path, zipfile_path, features_to_use=[],
-    is_test=False, custom_script_path=None, meta_features={}):
+def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
+                          is_test=False, custom_script_path=None,
+                          meta_features={}):
     """Generate features using Disco's map-reduce framework.
 
     Utilizes Disco's map-reduce framework to generate features on
@@ -414,8 +417,8 @@ def featurize_in_parallel(
     line_no = 0
     with open(headerfile_path) as headerfile:
         for line in headerfile:
-            if (len(line) > 1 and line[0] not in ["#", "\n"] and
-                line_no > 0 and not line.isspace()):
+            if len(line) > 1 and line[0] not in ["#", "\n"] and \
+               line_no > 0 and not line.isspace():
                 if len(line.split(',')) >= 2:
                     fname, class_name = line.strip('\n').split(',')[:2]
                     fname_class_dict[fname] = class_name
@@ -452,7 +455,7 @@ def featurize_in_parallel(
         input_list=[f.name], params=params)
 
     fname_features_dict = {}
-    for k,v in disco_results:
+    for k, v in disco_results:
         fname_features_dict[k] = v
 
     os.remove(f.name)
