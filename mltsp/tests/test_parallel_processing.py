@@ -1,10 +1,8 @@
 from mltsp import parallel_processing as prl_proc
 from mltsp import cfg
 from mltsp import build_model
-import numpy.testing as npt
 import os
 from os.path import join as pjoin
-import pandas as pd
 import shutil
 
 
@@ -47,14 +45,17 @@ def test_featurize_prediction_data_in_parallel():
                       "TESTRUN_CF.py"))
 
     features_and_tsdata_dict = prl_proc.featurize_prediction_data_in_parallel(
-        os.path.join(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
+        os.path.join(test_data_path, "215153_215176_218272_218934.tar.gz"),
                      "TEMP_TEST01")
 
-    assert "std_err" in features_and_tsdata_dict\
-        ["dotastro_218934.dat"]["features_dict"]
-    os.remove(pjoin(cfg.UPLOAD_FOLDER,
-                    "215153_215176_218272_218934.tar.gz"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "TESTRUN_classes.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"))
-    os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+    assert "std_err" in \
+        features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]
+    for fname in (
+            pjoin(cfg.UPLOAD_FOLDER,
+                  "215153_215176_218272_218934.tar.gz"),
+            pjoin(cfg.FEATURES_FOLDER, "TESTRUN_features.csv"),
+            pjoin(cfg.FEATURES_FOLDER, "TESTRUN_classes.npy"),
+            pjoin(cfg.MODELS_FOLDER, "TESTRUN_RF.pkl"),
+            pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py")):
+        if os.path.exists(fname):
+            os.remove(fname)

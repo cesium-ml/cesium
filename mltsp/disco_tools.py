@@ -1,20 +1,20 @@
 from disco.ddfs import DDFS
 import ntpath
+import os
 
-
-def push_by_tag(file_paths,tag=None):
+def push_by_tag(file_paths, tag=None):
     '''
     '''
     ddfs = DDFS()
     if tag is None:
         for file_path in file_paths:
             tag = os.path.splitext(ntpath.basename(file_path))[0]
-            ddfs.push(tag,[file_path])
+            ddfs.push(tag, [file_path])
     else:
-        ddfs.push(tag,file_paths)
+        ddfs.push(tag, file_paths)
 
 
-def push_all_objects(file_paths,tags=None):
+def push_all_objects(file_paths, tags=None):
     '''
     '''
     if tags != None:
@@ -45,14 +45,14 @@ def headerfile_to_fname_dict(headerfile_path):
     with open(headerfile_path) as f:
         all_lines = f.readlines()
     column_titles = all_lines[0].strip().split(",")
-    dict_of_dicts = {"column_titles":column_titles[:]}
+    dict_of_dicts = {"column_titles": column_titles[:]}
     for line in all_lines[1:]:
         els = line.strip().split(",")
         if len(els) <= 1:
             continue
         this_dict = {}
         if len(els) == len(column_titles):
-            for i in range(1,len(els)):
+            for i in range(1, len(els)):
                 this_dict[column_titles[i]] = els[i]
             dict_of_dicts[els[0]] = this_dict
         else:

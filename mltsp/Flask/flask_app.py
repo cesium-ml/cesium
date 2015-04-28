@@ -11,72 +11,33 @@ sys_admin_emails = ['a.crellinquick@gmail.com']
 from .. import cfg
 
 import shutil
-import glob
 import time
 import psutil
-import cgi
-import email
 import smtplib
 from email.mime.text import MIMEText
 import logging
-import subprocess
-import re
-import string
-import datetime
-import pytz
 import simplejson
-import pickle
 from flask import (
-    Flask, request, abort, redirect, url_for, render_template,
-    escape, session, Response, jsonify, g)
-from flask.ext import restful
+    Flask, request, abort, render_template,
+    session, Response, jsonify, g)
 from werkzeug import secure_filename
-from functools import wraps
 import uuid
 import ntpath
 
-from operator import itemgetter
-import sklearn as skl
-from sklearn.ensemble import RandomForestClassifier as RFC
-from sklearn.externals import joblib
-import numpy as np
 import yaml
-from flask.ext import stormpath
+if os.getenv("DEBUG_LOGIN") == "1":
+    from ..ext import stormpath_mock as stormpath
+else:
+    from flask.ext import stormpath
 
-# import disco if installed
-try:
-    from disco.core import Job, result_iterator
-    from disco.util import kvgroup
-    DISCO_INSTALLED = True
-except Exception as theError:
-    print(theError)
-    DISCO_INSTALLED = False
-    print("Warning: no installation of Disco found")
-
-import pandas as pd
-import tables
 import tarfile
-import zipfile
 import multiprocessing
 import rethinkdb as r
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
-try:
-    import bokeh.plotting as bokeh_plt
-    from bokeh.objects import Range1d
-except:
-    pass
-
-from .. import predict_class as predict
-from .. import build_model
-from .. import featurize
-from .. import lc_tools
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import run_in_docker_container
-
-if DISCO_INSTALLED:
-    from .. import parallel_processing
 
 all_available_features_list = cfg.features_list + cfg.features_list_science
 
@@ -86,6 +47,7 @@ app.static_folder = 'static'
 app.add_url_rule(
     '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
+
 
 # Load configuration
 config_file = os.path.join(os.path.dirname(__file__), '../../mltsp.yaml')
@@ -124,7 +86,7 @@ app.config['UPLOAD_FOLDER'] = cfg.UPLOAD_FOLDER
 logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 
 # RethinkDB config:
-RDB_HOST =  os.environ.get('RDB_HOST') or 'localhost'
+RDB_HOST = os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
 MLTSP_DB = "mltsp_app"
 rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
@@ -161,12 +123,12 @@ def establish_rdb_connection():
     return connection
 
 
-#sys.excepthook = excepthook_replacement
+# sys.excepthook = excepthook_replacement
 def excepthook_replacement(exctype, value, tb):
     print("\n\nError occurred in flask_app.py")
     print("Type:", exctype)
     print("Value:", value)
-    print("Traceback:", tb,"\n\n")
+    print("Traceback:", tb, "\n\n")
     logging.exception("Error occurred in flask_app.py")
 
 
@@ -195,7 +157,7 @@ def num_lines(filename):
     return linecount
 
 
-@app.route('/check_job_status/',methods=['POST','GET'])
+@app.route('/check_job_status/', methods=['POST','GET'])
 @stormpath.login_required
 def check_job_status(PID=False):
     """Check status of a process, return string summary.
@@ -230,16 +192,17 @@ def check_job_status(PID=False):
                 "This process is currently running and was started at "
                 "%s (last checked at %s).") % (
                     str(start_time), str(time.strftime("%Y-%m-%d %H:%M:%S",
-                    time.localtime())))
+                                                       time.localtime())))
         else:
             psutil.Process(int(PID)).kill()
             msg_str = ("This process was started at %s and has now finished "
-                "(checked at %s).") % (
-                    str(start_time),
-                    str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+                       "(checked at %s).") % (
+                           str(start_time),
+                           str(time.strftime("%Y-%m-%d %H:%M:%S",
+                                             time.localtime())))
     else:
         msg_str = ("This process has finished (checked at %s)." %
-            str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+                   str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
     return msg_str
 
 
@@ -311,7 +274,7 @@ def db_init(force=False):
 
     for table_name in table_names:
         print('Creating table', table_name)
-        result = db.table_create(table_name).run(connection)
+        db.table_create(table_name).run(connection)
     connection.close()
 
     print('Database setup completed.')
@@ -327,7 +290,7 @@ def add_user():
     is added to flask.g upon authentication).
 
     """
-    r.table('users').insert({
+    return r.table('users').insert({
         "name": stormpath.user.full_name,
         "email": stormpath.user.email,
         "id": stormpath.user.email,
@@ -336,6 +299,7 @@ def add_user():
 
 
 #@app.before_first_request
+@app.route('/check_user_table', methods=['POST'])
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
     if (r.table("users").filter({'email': stormpath.user.email})
@@ -348,6 +312,7 @@ def check_user_table():
     else:
         print("User", stormpath.user.full_name, "with email",
               stormpath.user.email, "already in users db.")
+    return jsonify({})
 
 
 def update_model_entry_with_pid(new_model_key, pid):
@@ -373,7 +338,6 @@ def update_model_entry_with_pid(new_model_key, pid):
     return new_model_key
 
 
-
 def update_featset_entry_with_pid(featset_key, pid):
     """Update RethinkDB feature set entry with process ID.
 
@@ -394,9 +358,8 @@ def update_featset_entry_with_pid(featset_key, pid):
 
     """
     (r.table('features').get(featset_key)
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid": str(pid)}).run(g.rdb_conn))
     return featset_key
-
 
 
 def update_prediction_entry_with_pid(prediction_key, pid):
@@ -420,7 +383,7 @@ def update_prediction_entry_with_pid(prediction_key, pid):
 
     """
     (r.table('predictions').get(prediction_key)
-        .update({"pid":str(pid)}).run(g.rdb_conn))
+        .update({"pid": str(pid)}).run(g.rdb_conn))
     return prediction_key
 
 
@@ -540,7 +503,8 @@ def get_current_userkey():
         User key/ID.
 
     """
-    cursor = r.table("users").filter({"email": stormpath.user.email}).run(g.rdb_conn)
+    cursor = r.table("users").filter({"email": stormpath.user.email})\
+                             .run(g.rdb_conn)
     n_entries = 0
     entries = []
     for entry in cursor:
@@ -673,12 +637,11 @@ def list_featuresets(
         for this_projkey in authed_proj_keys:
             cursor = (
                 r.table("features").filter({"projkey": this_projkey})
-                .pluck("name","created").run(g.rdb_conn))
-            authed_featuresets = []
+                .pluck("name", "created").run(g.rdb_conn))
             for entry in cursor:
                 authed_featuresets.append(
                     entry['name'] +
-                    (" (created %s PST)"%str(entry['created'])[:-13]
+                    (" (created %s PST)" % str(entry['created'])[:-13]
                         if not name_only else ""))
 
         return authed_featuresets
@@ -718,9 +681,10 @@ def list_models(
     if by_project:
         this_projkey = project_name_to_key(by_project)
 
-        cursor = (
-            r.table("models").filter({"projkey":this_projkey})
-            .pluck("name","created","type","id","meta_feats").run(g.rdb_conn))
+        cursor = r.table("models").filter({"projkey": this_projkey})\
+                                  .pluck("name", "created", "type", "id",
+                                         "meta_feats")\
+                                  .run(g.rdb_conn)
 
         if as_html_table_string:
             authed_models = (
@@ -742,22 +706,20 @@ def list_models(
                     + (
                         " PST</td><td align='center'><input type='checkbox' "
                         "name='delete_model_key' value='%s'></td></tr>")
-                    %entry['id'])
+                    % entry['id'])
             authed_models += "</table>"
         else:
             authed_models = []
             for entry in cursor:
                 authed_models.append(
                     entry['name']
-                    + (" - %s"%str(entry['type']) if with_type else "")
-                    + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
-                        if not name_only else "")
-                    + (
-                        " meta_feats=%s" % ",".join(entry['meta_feats'])
-                        if 'meta_feats' in entry and entry['meta_feats']
-                        not in [False,[],"False",None,"None"] and
-                        type(entry['meta_feats']) == list else ""))
+                    + (" - %s" % str(entry['type']) if with_type else "")
+                    + (" (created %s PST)" % str(entry['created'])[:-13]
+                       if not name_only else "")
+                    + (" meta_feats=%s" % ",".join(entry['meta_feats'])
+                       if 'meta_feats' in entry and entry['meta_feats']
+                       not in [False, [], "False", None, "None"] and
+                       type(entry['meta_feats']) == list else ""))
         return authed_models
     else:
         if len(authed_proj_keys) == 0:
@@ -765,20 +727,19 @@ def list_models(
         authed_models = []
         for this_projkey in authed_proj_keys:
             cursor = (
-                r.table("models").filter({"projkey":this_projkey})
-                .pluck("name","created","type","meta_feats").run(g.rdb_conn))
-            authed_models = []
+                r.table("models").filter({"projkey": this_projkey})
+                .pluck("name", "created", "type", "meta_feats").run(g.rdb_conn))
             for entry in cursor:
                 authed_models.append(
                     entry['name']
-                    + (" - %s"%str(entry['type']) if with_type else "")
+                    + (" - %s" % str(entry['type']) if with_type else "")
                     + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if not name_only else "")
                     + (
                         " meta_feats=%s" % ",".join(entry['meta_feats'])
                         if 'meta_feats' in entry and entry['meta_feats']
-                        not in [False,[],"False",None,"None"]
+                        not in [False, [], "False", None, "None"]
                         and type(entry['meta_feats']) == list else ""))
         return authed_models
 
@@ -810,7 +771,7 @@ def list_predictions(
     if by_project:
         this_projkey = project_name_to_key(by_project)
         cursor = (
-            r.table("predictions").filter({"projkey":this_projkey})
+            r.table("predictions").filter({"projkey": this_projkey})
             .pluck(
                 "model_name", "model_type", "filename",
                 "created", "id","results_str_html")
@@ -854,9 +815,9 @@ def list_predictions(
             for entry in cursor:
                 predictions.append(
                     entry['model_name']
-                    + (" - %s"%str(entry['model_type']) if with_type else "")
+                    + (" - %s" % str(entry['model_type']) if detailed else "")
                     + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if detailed else ""))
         return predictions
     else:
@@ -867,21 +828,20 @@ def list_predictions(
         predictions = []
         for this_projkey in authed_proj_keys:
             cursor = (
-                r.table("predictions").filter({"projkey":this_projkey})
-                .pluck("model_name","model_type","filename","created")
+                r.table("predictions").filter({"projkey": this_projkey})
+                .pluck("model_name", "model_type", "filename", "created")
                 .run(g.rdb_conn))
-            predictions = []
             for entry in cursor:
                 predictions.append(
                     entry['model_name']
-                    + (" - %s"%str(entry['model_type']) if with_type else "")
+                    + (" - %s" % str(entry['model_type']) if detailed else "")
                     + (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if detailed else ""))
         return predictions
 
 
-@app.route('/get_list_of_projects',methods=['POST','GET'])
+@app.route('/get_list_of_projects', methods=['POST','GET'])
 @stormpath.login_required
 def get_list_of_projects():
     """Return list of project names current user can access.
@@ -897,10 +857,10 @@ def get_list_of_projects():
     """
     if request.method == 'GET':
         list_of_projs = list_projects(name_only=True)
-        return jsonify({'list':list_of_projs})
+        return jsonify({'list': list_of_projs})
 
 
-def list_projects(auth_only=True,name_only=False):
+def list_projects(auth_only=True, name_only=False):
     """Return list of strings describing entries in 'projects' table.
 
     Parameters
@@ -924,17 +884,18 @@ def list_projects(auth_only=True,name_only=False):
         return []
     proj_names = []
     for entry in (
-            r.table('projects').get_all(*proj_keys)
-            .pluck('name','created').run(g.rdb_conn)):
-        proj_names.append(
-            entry['name']
-            + (
-                " (created %s PST)"%str(entry['created'])[:-13]
-                if not name_only else ""))
+            r.table('projects').get_all(*proj_keys).run(g.rdb_conn)):
+        if 'name' in entry:
+            if 'created' not in entry:
+                name_only = True
+            proj_names.append(
+                entry['name'] + (
+                    " (created %s PST)" % str(entry['created'])[:-13]
+                    if not name_only else ""))
     return proj_names
 
 
-def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
+def add_project(name, desc="", addl_authed_users=[], user_email="auto"):
     """Add a new entry to the rethinkDB 'projects' table.
 
     Parameters
@@ -956,22 +917,22 @@ def add_project(name,desc="",addl_authed_users=[], user_email="auto"):
         RethinkDB key/ID of newly created project entry.
 
     """
-    if user_email in ["auto",None,"None","none","Auto"]:
+    if user_email in ["auto", None, "None", "none", "Auto"]:
         user_email = get_current_userkey()
     if type(addl_authed_users) == str:
-        if addl_authed_users.strip() in [",",""]:
+        if addl_authed_users.strip() in [",", ""]:
             addl_authed_users = []
     new_projkey = r.table("projects").insert({
         "name": name,
-        "description":desc,
+        "description": desc,
         "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn))
     }).run(g.rdb_conn)['generated_keys'][0]
     new_entries = []
     for authed_user in [user_email] + addl_authed_users:
         new_entries.append({
-            "userkey":authed_user,
-            "projkey":new_projkey,
-            "active":"y" })
+            "userkey": authed_user,
+            "projkey": new_projkey,
+            "active": "y" })
     r.table("userauth").insert(new_entries).run(g.rdb_conn)
     print("Project", name, "created and added to db; users", \
         [user_email] + addl_authed_users, \
@@ -1054,10 +1015,8 @@ def add_model(
         RethinkDB key/ID of newly created model entry.
 
     """
-    entry = (
-        r.table("features").get(featureset_key)
-        .pluck('meta_feats').run(g.rdb_conn))
-    if 'meta_feats' in entry:
+    entry = r.table("features").get(featureset_key).run(g.rdb_conn)
+    if entry is not None and 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
     new_model_key = r.table("models").insert({
         "name": featureset_name,
@@ -1066,7 +1025,7 @@ def add_model(
         "projkey": projkey,
         "created": str(r.now().in_timezone('-08:00').run(g.rdb_conn)),
         "pid": pid,
-        "meta_feats":meta_feats
+        "meta_feats": meta_feats
     }).run(g.rdb_conn)['generated_keys'][0]
     print("New model entry %s added to mltsp_app db." % featureset_name)
     return new_model_key
@@ -1116,24 +1075,44 @@ def add_prediction(
 
 def project_associated_files(proj_key):
     """Return list of saved files associated with specified project.
+
+    Parameters
+    ----------
+    proj_key : str
+        RethinkDB entry ID of project.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said project.
+
     """
     fpaths = []
 
     prediction_keys = []
     features_keys = []
     model_keys = []
-    cursor = r.table("predictions").filter({"projkey": proj_key})\
-                                   .pluck("id").run(g.rdb_conn)
-    for entry in cursor:
-        prediction_keys.append(entry["id"])
-    cursor = r.table("features").filter({"projkey": proj_key})\
-                                .pluck("id").run(g.rdb_conn)
-    for entry in cursor:
-        features_keys.append(entry["id"])
-    cursor = r.table("models").filter({"projkey": proj_key})\
-                              .pluck("id").run(g.rdb_conn)
-    for entry in cursor:
-        model_keys.append(entry["id"])
+    try:
+        cursor = r.table("predictions").filter({"projkey": proj_key})\
+                                       .pluck("id").run(g.rdb_conn)
+        for entry in cursor:
+            prediction_keys.append(entry["id"])
+    except:
+        pass
+    try:
+        cursor = r.table("features").filter({"projkey": proj_key})\
+                                    .pluck("id").run(g.rdb_conn)
+        for entry in cursor:
+            features_keys.append(entry["id"])
+    except:
+        pass
+    try:
+        cursor = r.table("models").filter({"projkey": proj_key})\
+                                  .pluck("id").run(g.rdb_conn)
+        for entry in cursor:
+            model_keys.append(entry["id"])
+    except:
+        pass
 
     for featset_key in features_keys:
         fpaths += featset_associated_files(featset_key)
@@ -1141,32 +1120,66 @@ def project_associated_files(proj_key):
         for newpath in model_associated_files(model_key):
             if newpath not in fpaths:
                 fpaths.append(newpath)
+    for pred_key in prediction_keys:
+        for newpath in prediction_associated_files(pred_key):
+            if newpath not in fpaths:
+                fpaths.append(newpath)
     return fpaths
 
 
 def model_associated_files(model_key):
     """Return list of saved files associated with specified model.
+
+    Parameters
+    ----------
+    model_key : str
+        RethinkDB entry ID of model.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said model.
+
     """
-    entry_dict = r.table("models").get(model_key).run(g.rdb_conn)
-    featset_key = entry_dict["featset_key"]
-    model_type = entry_dict["type"]
-    fpaths = [os.path.join(cfg.MODELS_FOLDER,
-                           "%s_%s.pkl" % (featset_key, model_type))]
-    fpaths += featset_associated_files(featset_key)
+    try:
+        entry_dict = r.table("models").get(model_key).run(g.rdb_conn)
+        featset_key = entry_dict["featset_key"]
+        model_type = entry_dict["type"]
+        fpaths = [os.path.join(cfg.MODELS_FOLDER,
+                               "%s_%s.pkl" % (featset_key, model_type))]
+        fpaths += featset_associated_files(featset_key)
+    except:
+        try:
+            fpaths
+        except:
+            fpaths = []
     return fpaths
 
 
 def featset_associated_files(featset_key):
     """Return list of saved files associated with specified feature set.
+
+    Parameters
+    ----------
+    featset_key : str
+        RethinkDB entry ID of feature set.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said feature set.
+
     """
     fpaths = []
-    fpaths.extend(
-        [os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
-         os.path.join(cfg.FEATURES_FOLDER, "%s_classes.pkl" % featset_key),
-         os.path.join(os.path.join(os.path.join(
-             os.path.dirname(__file__), "static"),
-                                   "data"),
-                      "%s_features_with_classes.csv" % featset_key)])
+    for fpath in [
+            os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
+            os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key),
+            os.path.join(os.path.join(os.path.join(
+                os.path.dirname(__file__), "static"),
+                                      "data"),
+                         "%s_features_with_classes.csv" % featset_key)]:
+        if os.path.exists(fpath):
+            fpaths.append(fpath)
     entry_dict = r.table("features").get(featset_key).run(g.rdb_conn)
     for key in ("headerfile_path", "zipfile_path", "custom_features_script"):
         if entry_dict and key in entry_dict:
@@ -1177,12 +1190,36 @@ def featset_associated_files(featset_key):
 
 def prediction_associated_files(pred_key):
     """Return list of saved files associated with specified prediction entry.
+
+    Parameters
+    ----------
+    pred_key : str
+        RethinkDB ID of prediction entry.
+
+    Returns
+    -------
+    list of str
+        List of paths to files associated with said prediction entry.
+
     """
     return []
 
 
 def delete_associated_project_data(table_name, proj_key):
-    """Delete all feature sets and associated files, filtered by project."""
+    """Delete DB entries and associated files, filtered by project.
+
+    Parameters
+    ----------
+    table_name : str
+        Name of RethinkDB table ("features", "models", or "predictions")
+        whose relevant entries and files are to be deleted.
+
+    Returns
+    -------
+    int
+        The number of RethinkDB entries deleted.
+
+    """
     get_files_func_dict = {"features": featset_associated_files,
                            "models": model_associated_files,
                            "predictions": prediction_associated_files}
@@ -1481,12 +1518,13 @@ def update_project_info(
     for prev_auth in already_authed_users:
         if prev_auth not in new_addl_authed_users + [userkey]:
             (r.table("userauth")
-                .filter({"userkey":prev_auth,"projkey":projkey})
+                .filter({"userkey": prev_auth, "projkey": projkey})
                 .delete().run(g.rdb_conn))
     for new_auth in new_addl_authed_users + [userkey]:
         if new_auth not in already_authed_users + [""]:
             (r.table("userauth")
-                .insert({"userkey":new_auth,"projkey":projkey,"active":"y"})
+                .insert({"userkey": new_auth, "projkey": projkey,
+                         "active": "y"})
                 .run(g.rdb_conn))
     if len(delete_prediction_keys) > 0:
         (r.table("predictions").get_all(*delete_prediction_keys)
@@ -1499,7 +1537,7 @@ def update_project_info(
                 os.remove(
                     os.path.join(
                         cfg.FEATURES_FOLDER,
-                        "%s_features.csv"%features_key))
+                        "%s_features.csv" % features_key))
             except Exception as theErr:
                 logging.exception(
                     "Tried to delete a file that does not exist.")
@@ -1508,7 +1546,7 @@ def update_project_info(
                 os.remove(
                     os.path.join(
                         cfg.FEATURES_FOLDER,
-                        "%s_features_with_classes.csv"%features_key))
+                        "%s_features_with_classes.csv" % features_key))
             except Exception as theErr:
                 logging.exception(
                     "Tried to delete a file that does not exist.")
@@ -1516,7 +1554,7 @@ def update_project_info(
             try:
                 os.remove(
                     os.path.join(
-                        cfg.FEATURES_FOLDER, "%s_classes.pkl"%features_key))
+                        cfg.FEATURES_FOLDER, "%s_classes.npy" % features_key))
             except Exception as theErr:
                 print(theErr)
                 logging.exception(
@@ -1548,7 +1586,7 @@ def update_project_info(
                         os.remove(
                             os.path.join(
                                 cfg.MODELS_FOLDER,
-                                ("%s_%s.pkl"%
+                                ("%s_%s.pkl" %
                                     (featset_entry["id"],
                                      model_entry["type"]))))
                     except Exception as theErr:
@@ -1557,7 +1595,8 @@ def update_project_info(
                             "Tried to delete a file that does not exist.")
                     print("Removed", os.path.join(
                         cfg.MODELS_FOLDER,
-                        "%s_%s.pkl"%(featset_entry["id"],model_entry["type"])))
+                        "%s_%s.pkl" % (featset_entry["id"],
+                                       model_entry["type"])))
         r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
     new_proj_details = get_project_details(new_name)
     return new_proj_details
@@ -1623,7 +1662,7 @@ def get_list_of_available_features_set2():
 
 
 def allowed_file(filename):
-    """Return bool indicating whether filename has allowed extension."""
+    """Return bool indicating whether `filename` has allowed extension."""
     return ('.' in filename and
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS)
 
@@ -2238,7 +2277,6 @@ def uploadDataFeaturize(
     details.
 
     """
-    ## ###
     # TODO: ADD MORE ROBUST EXCEPTION HANDLING (HERE AND ALL OTHER FUNCTIONS)
     if request.method == 'POST':
         post_method = "browser"
@@ -2262,7 +2300,7 @@ def uploadDataFeaturize(
             customscript_path = os.path.join(
                 os.path.join(
                     app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
-                str(uuid.uuid4())+"_"+str(customscript_fname))
+                str(uuid.uuid4()) + "_"+str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
             features_to_use += custom_features
@@ -2281,8 +2319,6 @@ def uploadDataFeaturize(
                 is_test = True
         except: # unchecked
             is_test = False
-        #headerfile_name = secure_filename(headerfile.filename)
-        #zipfile_name = secure_filename(zipfile.filename)
         headerfile_name = (str(uuid.uuid4()) + "_" +
             str(secure_filename(headerfile.filename)))
         zipfile_name = (str(uuid.uuid4()) + "_" +
@@ -2311,10 +2347,6 @@ def uploadDataFeaturize(
             return jsonify({"message":str(err),"type":"error"})
         except:
             raise
-        # this line is only necessary if we're checking contents against
-        # existing files:
-        #header_lines = headerfile.stream.readlines()
-        # CHECKING AGAINST EXISTING UPLOADED FILES:
         return featurizationPage(
             featureset_name=featureset_name, project_name=project_name,
             headerfile_name=headerfile_name, zipfile_name=zipfile_name,
@@ -2514,7 +2546,7 @@ def featurizationPage(
             featlist = featlist, custom_features_script = custom_script_path,
             meta_feats = meta_feats, headerfile_path = features_filepath)
         multiprocessing.log_to_stderr()
-        proc = multiprocessing.Process(target=featurize_proc,args=(
+        proc = multiprocessing.Process(target=featurize_proc, args=(
             features_filepath, None, featlist, new_featset_key, is_test,
             email_user, already_featurized, custom_script_path))
         proc.start()
@@ -2805,11 +2837,11 @@ def prediction_proc(
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script=None
     cursor = r.table("features").get(featset_key).run(g.rdb_conn)
-    entry=cursor
+    entry = cursor
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
-    n_cols_html_table=5
+    n_cols_html_table = 5
     results_str = (
         "<table id='pred_results_table' class='tablesorter'>"
         "    <thead>"
@@ -3400,9 +3432,13 @@ def run_main(args=None):
         db_init(force=args.force)
         sys.exit(0)
 
+    if args.debug:
+        app.config['DEBUG'] = True
+        app.config['WTF_CSRF_ENABLED'] = False
+
     print("Launching server on %s:%s" % (args.host, args.port))
     print("Logging to:", cfg.ERR_LOG_PATH)
-    app.run(port=args.port, debug=args.debug, host=args.host, threaded=True)
+    app.run(port=args.port, host=args.host, threaded=True)
 
 
 if __name__ == '__main__':

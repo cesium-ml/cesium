@@ -37,7 +37,7 @@ def test_featurize():
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
                            "asas_training_subset.tar.gz"),
-        features_to_use=["std_err"],# #TEMP# TCP still broken under py3
+        features_to_use=["std_err"],  # #TEMP# TCP still broken under py3
         featureset_id="TESTRUN", is_test=True,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                  "testfeature1.py"),
@@ -75,7 +75,8 @@ def test_predict():
     assert(isinstance(results_dict, dict))
     assert("dotastro_215153.dat" in results_dict)
     assert(isinstance(
-        results_dict["dotastro_215153.dat"]["features_dict"]["std_err"], float))
+        results_dict["dotastro_215153.dat"]["features_dict"]["std_err"],
+        float))
 
 
 def test_remove_created_files():

@@ -1,13 +1,9 @@
 # to be run from INSIDE a docker container
 
 from __future__ import print_function
-import subprocess
-import sys
 import os
 from .. import featurize
-import time
 
-from subprocess import Popen, PIPE, call
 import pickle
 
 
@@ -23,37 +19,11 @@ def do_featurization():
         generation.
 
     """
-    '''process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    if "stopped" in str(stdout):
-        print("Disco is stopped - attempting to start Disco...")
-        status_code = call(["/disco/bin/disco","nodaemon"])
-        print("Status code for Disco command:", status_code)
-        time.sleep(2)
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        if "stopped" in str(stdout):
-            print("Disco is stopped - attempting to start Disco...")
-            status_code = call(["disco","start"])
-            print("Status code for Disco command:", status_code)
-            time.sleep(2)
-            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate()
-            if "stopped" in str(stdout):
-                print("Disco still stopped... Will featurize without Disco.")
-                disco_running = False
-            else:
-                disco_running = True
-        else:
-            disco_running = True
-    else:
-        disco_running = True
-    '''
-    disco_running = False # Just for now til we get it working
-    # load pickled ts_data and known features
-    with open("/home/mltsp/copied_data_files/function_args.pkl","rb") as f:
+    disco_running = False  # Just for now til we get it working in Docker
+    # Load pickled ts_data and known features
+    with open("/home/copied_data_files/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
-    # ensure required files successfully copied into container:
+    # Ensure required files successfully copied into container:
     if "headerfile_path" in function_args:
         headerfile_path = str(function_args['headerfile_path'])
         if os.path.isfile(headerfile_path):

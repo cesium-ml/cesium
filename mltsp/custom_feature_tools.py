@@ -1,12 +1,9 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import glob
 from parse import parse
-from subprocess import call, Popen, PIPE
 import sys
 import os
-import inspect
 import tempfile
 try:
     import cPickle as pickle
@@ -16,7 +13,7 @@ import uuid
 import shutil
 import numpy as np
 from . import cfg
-from . import lc_tools
+
 
 class MissingRequiredParameterError(Exception):
     """Required parameter is not provided in feature function call."""
@@ -149,7 +146,7 @@ def parse_csv_file(fname, sep=',', skip_lines=0):
             raise custom_exceptions.DataFormatError(
                 "Incomplete or improperly formatted time "
                 "series data file provided.")
-    tme = list(map(list, zip(*ts_data))) # Need t, m, and e in separate lists
+    tme =  list(map(list, zip(*ts_data))) # Need t, m, and e in separate lists
     if len(tme) == 2:
         tme.append([]) # Add empty err col
     return tme
@@ -200,7 +197,11 @@ def call_custom_functions(features_already_known_list, all_required_params,
     """
     """
     # import the custom feature defs
-    from .custom_feature_scripts import custom_feature_defs
+    try:
+        from .custom_feature_scripts import custom_feature_defs
+    except ImportError:
+        sys.path.append("/home/copied_data_files")
+        import custom_feature_defs
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout
@@ -255,7 +256,8 @@ def call_custom_functions(features_already_known_list, all_required_params,
 def execute_functions_in_order(
         script_fpath,
         features_already_known={
-            "t":[1,2,3], "m":[1,23,2], "e":[0.2,0.3,0.2], "coords":[22,33]},
+            "t":[1, 2, 3], "m":[1, 23, 2], "e":[0.2, 0.3, 0.2],
+            "coords":[22, 33]},
         multiple_sources=False):
     """Generate custom features defined in script_fpath.
 
@@ -424,12 +426,12 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
     """
     """
     shutil.copy(script_fpath,
-                os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                             "custom_feature_defs.py"))
-    with open(os.path.join(os.path.join(cfg.PROJECT_PATH, "copied_data_files"),
-                           "features_already_known_list.pkl"),
+                os.path.join(path_to_tmp_dir, "custom_feature_defs.py"))
+    with open(os.path.join(path_to_tmp_dir, "features_already_known_list.pkl"),
               "wb") as f:
         pickle.dump(features_already_known_list, f, protocol=2)
+    # Create __init__.py file so that custom feats script can be imported
+    open(os.path.join(path_to_tmp_dir, "__init__.py"), "w").close()
     return
 
 
@@ -445,10 +447,13 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     # Create container
     cont_id = client.create_container(
         "mltsp/extract_custom_feats",
-        volumes={"/home/mltsp": ""})["Id"]
+        volumes={"/home/mltsp": "",
+                 "/home/copied_data_files": ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp"}})
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp", "ro": True},
+                        path_to_tmp_dir: {"bind": "/home/copied_data_files",
+                                          "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -474,7 +479,7 @@ def remove_tmp_files(path_to_tmp_dir):
     """
     # Remove tmp dir
     shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-    for tmp_file in [os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+    for tmp_file in (os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                                   "custom_feature_defs.py"),
                      os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                                   "custom_feature_defs.pyc"),
@@ -482,7 +487,7 @@ def remove_tmp_files(path_to_tmp_dir):
                                   "__init__.pyc"),
                      os.path.join(os.path.join(cfg.PROJECT_PATH,
                                                "copied_data_files"),
-                                  "features_already_known_list.pkl")]:
+                                  "features_already_known_list.pkl")):
         try:
             os.remove(tmp_file)
         except Exception as e:

@@ -4,13 +4,8 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import pandas as pd
-import ntpath
 import tarfile
-try:
-    import cPickle as pickle
-except:
-    import pickle
-from sklearn.externals import joblib
+import numpy as np
 import shutil
 
 
@@ -43,8 +38,8 @@ def test_headerfile_parser():
      fname_metadata_dict) = featurize.parse_headerfile(
          pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"),
          features_to_use=["dummy_featname"])
-    npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1", "meta2",
-                                             "meta3"])
+    npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1",
+                                             "meta2", "meta3"])
     npt.assert_equal(fname_class_dict["237022"], "W_Ursae_Maj")
     npt.assert_equal(fname_class_science_features_dict["215153"]["class"],
                      "Mira")
@@ -59,8 +54,8 @@ def test_shorten_fname():
     npt.assert_equal(featurize.shorten_fname("/home/path/abc.dat"), "abc")
 
 
-def test_determine_feats_to_plot():
-    """Test determine feats to plot"""
+def test_determine_feats_to_plot1():
+    """Test determine feats to plot - 1"""
     ftp = featurize.determine_feats_to_plot(["abc", "221a", "22d"])
     assert("221a" in ftp)
     assert("median" not in ftp)
@@ -100,7 +95,7 @@ def test_generate_features_parallel():
         pjoin(cfg.UPLOAD_FOLDER,
               "asas_training_subset.tar.gz"),
         ["std_err"],
-        None, # Custom feats not working with Disco yet
+        None,  # Custom feats not working with Disco yet
         True, True, False, False)
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
@@ -158,8 +153,8 @@ def test_extract_serial():
     assert(all("avg_mag" in obj for obj in objs))
 
 
-def test_determine_feats_to_plot():
-    """Test determine features to plot"""
+def test_determine_feats_to_plot2():
+    """Test determine features to plot - 2"""
     ftpl = featurize.determine_feats_to_plot(cfg.features_to_plot)
     npt.assert_array_equal(ftpl, cfg.features_to_plot)
     ftpl = featurize.determine_feats_to_plot(cfg.features_list_science)
@@ -174,7 +169,8 @@ def test_determine_feats_to_plot():
 def test_write_column_titles():
     """Test write column titles to files"""
     with open("test_file1.txt", "w") as f1, open("test_file2.txt", "w") as f2:
-        featurize.write_column_titles(f1, f2, ["feat1", "feat2", "feat3", "feat4"],
+        featurize.write_column_titles(f1, f2, ["feat1", "feat2", "feat3",
+                                               "feat4"],
                                       ["feat1", "feat2", "feat3"],
                                       ["feat1", "feat2"])
     with open("test_file1.txt", "r") as f1, open("test_file2.txt", "r") as f2:
@@ -198,8 +194,8 @@ def test_write_features_to_disk():
     with open(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features_with_classes.csv")) as f:
         feat_class_cont = f.read()
-    classes_list = joblib.load(pjoin(cfg.FEATURES_FOLDER,
-                                     "test_featset_classes.npy"))
+    classes_list = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                      "test_featset01_classes.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
@@ -209,7 +205,8 @@ def test_write_features_to_disk():
     os.remove(pjoin(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data",
                     "test_featset01_features_with_classes.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
-    npt.assert_equal(feat_class_cont, "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
+    npt.assert_equal(feat_class_cont,
+                     "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
 
 
 def test_main_featurize_function():
@@ -240,7 +237,7 @@ def test_main_featurize_function():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
     os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                           "Flask/static/data"),
-                          "test_features_with_classes.csv"))
+                    "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
 
@@ -260,7 +257,7 @@ def test_main_featurize_function_disco():
                            "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_harmonics_freq_0"],
         featureset_id="test", is_test=True,
-        custom_script_path=None,# TODO: Doesn't work when using Disco!!!
+        custom_script_path=None,  # TODO: Doesn't work when using Disco!!!
         USE_DISCO=True)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
@@ -274,7 +271,7 @@ def test_main_featurize_function_disco():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
     os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                           "Flask/static/data"),
-                          "test_features_with_classes.csv"))
+                    "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
 

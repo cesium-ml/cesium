@@ -4,14 +4,13 @@ import numpy.testing as npt
 import numpy as np
 import os
 from os.path import join as pjoin
-import pandas as pd
 from subprocess import call, PIPE
 import shutil
 try:
     import cPickle as pickle
 except:
     import pickle
-
+import tempfile
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
@@ -19,7 +18,7 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 def setup():
     shutil.copy(pjoin(DATA_PATH, "testfeature1.py"),
                 pjoin(cfg.MLTSP_PACKAGE_PATH,
-                             "custom_feature_scripts/custom_feature_defs.py"))
+                      "custom_feature_scripts/custom_feature_defs.py"))
 
 
 def test_parse_csv_file():
@@ -58,13 +57,21 @@ def test_call_custom_functions():
     """Test executing of custom feature definition functions"""
     fnames_req_prov_dict, all_required_params, all_provided_params = \
         cft.parse_for_req_prov_params(pjoin(DATA_PATH, "testfeature1.py"))
+    if not os.path.exists(pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                                "custom_feature_defs.py")):
+        shutil.copyfile(pjoin(DATA_PATH, "testfeature1.py"),
+                        pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                              "custom_feature_defs.py"))
     extracted_feats_list = cft.call_custom_functions(
-        [{"t": [1.0, 1.2, 1.4], "m": [12.2, 14.1, 15.2], "e": [0.2, 0.3, 0.1]}],
+        [{"t": [1.0, 1.2, 1.4], "m": [12.2, 14.1, 15.2],
+          "e": [0.2, 0.3, 0.1]}],
         all_required_params, all_provided_params, fnames_req_prov_dict)
     assert(isinstance(extracted_feats_list, list))
     npt.assert_almost_equal(extracted_feats_list[0]["avg_mag"],
                             np.average([12.2, 14.1, 15.2]))
     assert(all(x in extracted_feats_list[0] for x in ["a", "l", "o"]))
+    os.remove(pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                    "custom_feature_defs.py"))
 
 
 def test_execute_functions_in_order():
@@ -146,10 +153,9 @@ def test_make_tmp_dir():
 def test_copy_data_to_tmp_dir():
     """Test copy data to temp dir"""
     tmp_dir_path = cft.make_tmp_dir()
-    copied_file_path1 = pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                                    "custom_feature_defs.py")
-    copied_file_path2 = pjoin(cfg.PROJECT_PATH,
-                              "copied_data_files",
+    copied_file_path1 = pjoin(tmp_dir_path,
+                              "custom_feature_defs.py")
+    copied_file_path2 = pjoin(tmp_dir_path,
                               "features_already_known_list.pkl")
 
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311},
@@ -175,15 +181,23 @@ def test_copy_data_to_tmp_dir():
 
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
-    tmp_dir = "/tmp/mltsp_test"
-    os.mkdir(tmp_dir)
-    results = cft.extract_feats_in_docker_container("test", tmp_dir)
-    npt.assert_equal(len(results), 2)
+    tmp_dir_path = tempfile.mkdtemp()
+    feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
+    ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
+    cft.add_tsdata_to_feats_known_dict(feats_known_dict_list,
+                                       ts_datafile_paths, None)
+    cft.copy_data_to_tmp_dir(tmp_dir_path,
+                             pjoin(DATA_PATH, "testfeature1.py"),
+                             feats_known_dict_list)
+    results = cft.extract_feats_in_docker_container("test", tmp_dir_path)
+    cft.remove_tmp_files(tmp_dir_path)
+    npt.assert_equal(len(results), 1)
     assert(isinstance(results[0], dict))
     npt.assert_almost_equal(results[0]["avg_mag"], 10.347417647058824)
 
 
 def test_remove_tmp_files_and_container():
+    """Test remove temp files and container"""
     cft.remove_tmp_files("/tmp/mltsp_test")
     assert(not os.path.exists("/tmp/mltsp_test"))
     for tmp_file in [pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
@@ -201,8 +215,7 @@ def test_remove_tmp_files_and_container():
 def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")
-    ts_datafile_paths = ts_datafile_paths = [
-        pjoin(DATA_PATH, "dotastro_215153.dat")]
+    ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
     results = cft.docker_extract_features(script_fpath,
                                           ts_datafile_paths=ts_datafile_paths)
     npt.assert_equal(len(results), 1)
@@ -237,7 +250,8 @@ def test_list_features_provided():
 def test_generate_custom_features():
     """Test main generate custom features function"""
     feats = cft.generate_custom_features(pjoin(DATA_PATH, "testfeature1.py"),
-                                         pjoin(DATA_PATH, "dotastro_215153.dat"))
+                                         pjoin(DATA_PATH,
+                                               "dotastro_215153.dat"))
     npt.assert_almost_equal(feats[0]["avg_mag"], 10.347417647058824)
 
 

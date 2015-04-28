@@ -2,20 +2,14 @@
 # build_model.py
 
 from __future__ import print_function
-from operator import itemgetter
-import shutil
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 # from sklearn.cross_validation import train_test_split
 # from sklearn.metrics import confusion_matrix
-from random import shuffle
-import sys
 import os
 import numpy as np
 
 from . import cfg
-from . import lc_tools
-from . import custom_feature_tools as cft
 
 
 def read_data_from_csv_file(fname, sep=',', skip_lines=0):
@@ -88,7 +82,6 @@ def count_classes(classes):
     """
     # Count up total num of objects per class
     class_count = {}
-    print("\n\n\nCLASSES:\n", classes, "\n\n\n")
     class_list = []
     for classname in classes:
         if classname not in class_list:

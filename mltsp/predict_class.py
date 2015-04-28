@@ -1,27 +1,18 @@
 from __future__ import print_function
-import sklearn as skl
-from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
 
-import logging
 from operator import itemgetter
-import pickle
-import sys
 import os
-import uuid
 import shutil
+import tempfile
 import numpy as np
-import datetime
-import pytz
 import tarfile
-import glob
 from copy import deepcopy
 import ntpath
 
 from . import cfg
 from . import custom_exceptions
 from . import lc_tools
-from . import featurize
 from . import custom_feature_tools as cft
 
 try:
@@ -132,7 +123,7 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
             ts_data=deepcopy(ts_data))
     else:
         science_features = {}
-    if custom_features_script not in [None,"None","none",False]:
+    if custom_features_script not in [None, "None", "none", False]:
         custom_features = cft.generate_custom_features(
             custom_script_path=custom_features_script, path_to_csv=None,
             features_already_known=dict(
@@ -172,11 +163,8 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     sep = sepr = ","
 
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
-
+    tmp_dir_path = tempfile.mkdtemp()
     if tarfile.is_tarfile(newpred_file_path):
-        tmp_dir_path = os.path.join(os.path.join(
-            cfg.UPLOAD_FOLDER, "unzipped"), str(uuid.uuid4()))
-        os.mkdir(tmp_dir_path)
         if DISCO_INSTALLED and not in_docker_container:# #TEMP#
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
@@ -195,13 +183,12 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
             big_features_and_tsdata_dict = featurize_multiple_serially(
                 newpred_file_path, tmp_dir_path, features_to_use,
                 custom_features_script, meta_features)
-        shutil.rmtree(tmp_dir_path, ignore_errors=True)
-
     else:
         big_features_and_tsdata_dict = featurize_single(
             newpred_file_path, features_to_use, custom_features_script,
             meta_features)
 
+    shutil.rmtree(tmp_dir_path, ignore_errors=True)
     return big_features_and_tsdata_dict
 
 
@@ -234,9 +221,9 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
     """
     """
     # Load model class list
-    all_objs_class_list = map(
+    all_objs_class_list = list(map(
         list, np.load(os.path.join(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % featset_key)))
+                                   "%s_classes.npy" % featset_key))))
     sorted_class_list = []
     for i in sorted(all_objs_class_list):
         if i not in sorted_class_list:

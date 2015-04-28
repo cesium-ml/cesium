@@ -3,7 +3,6 @@ from mltsp import cfg
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
-import pandas as pd
 from sklearn.externals import joblib
 import shutil
 
@@ -71,6 +70,7 @@ def test_read_features_data_from_disk():
                                                   "Beta_Lyrae"])
     for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
+
 
 def test_build_model():
     """Test main model building method"""
