@@ -57,7 +57,7 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_headerfile_path)
         shutil.copy(args_dict['headerfile_path'], copied_headerfile_path)
         args_dict["headerfile_path"] = os.path.join(
-            "/home/copied_data_files",
+            "/data",
             ntpath.basename(args_dict['headerfile_path']))
     if os.path.isfile(str(args_dict['zipfile_path'])):
         copied_zipfile_path = os.path.join(
@@ -66,7 +66,7 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_zipfile_path)
         shutil.copy(args_dict['zipfile_path'], copied_zipfile_path)
         args_dict["zipfile_path"] = os.path.join(
-            "/home/copied_data_files",
+            "/data",
             ntpath.basename(args_dict['zipfile_path']))
     if os.path.isfile(str(args_dict['custom_script_path'])):
         copied_custom_script_path = os.path.join(
@@ -74,12 +74,12 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_custom_script_path)
         shutil.copy(args_dict['custom_script_path'], copied_custom_script_path)
         args_dict["custom_script_path"] = os.path.join(
-            "/home/copied_data_files", "custom_feature_defs.py")
+            "/data", "custom_feature_defs.py")
         # Create __init__.py file so that custom feats script can be imported
         open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
              "w").close()
     args_dict["path_map"] = {args_dict['copied_data_dir']:
-                             "/home/copied_data_files"}
+                             "/data"}
     function_args_path = os.path.join(args_dict['copied_data_dir'],
                                       "function_args.pkl")
     tmp_files.append(function_args_path)
@@ -114,11 +114,11 @@ def spin_up_and_run_container(image_name, tmp_data_dir):
     cont_id = client.create_container(
         image_name,
         volumes={"/home/mltsp": "",
-                 "/home/copied_data_files": ""})["Id"]
+                 "/data": ""})["Id"]
     # Start container
     client.start(cont_id,
                  binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp", "ro": True},
-                        tmp_data_dir: {"bind": "/home/copied_data_files",
+                        tmp_data_dir: {"bind": "/data",
                                        "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
@@ -265,7 +265,7 @@ def build_model_in_docker_container(
     args_dict = locals()
 
     tmp_files = []
-    args_dict["path_map"] = {copied_data_dir, "/home/copied_data_files"}
+    args_dict["path_map"] = {copied_data_dir, "/data"}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
@@ -317,7 +317,7 @@ def copy_data_files_predict_prep(args_dict):
         tmp_files.append(copied_newpred_file_path)
         shutil.copy(args_dict["newpred_file_path"], copied_newpred_file_path)
         args_dict["newpred_file_path"] = os.path.join(
-            "/home/copied_data_files",
+            "/data",
             ntpath.basename(args_dict["newpred_file_path"]))
     if os.path.isfile(str(args_dict["custom_features_script"])):
         copied_custom_script_path = os.path.join(
@@ -326,7 +326,7 @@ def copy_data_files_predict_prep(args_dict):
         shutil.copy(args_dict["custom_features_script"],
                     copied_custom_script_path)
         args_dict["custom_features_script"] = os.path.join(
-            "/home/copied_data_files", "custom_feature_defs.py")
+            "/data", "custom_feature_defs.py")
         # Create __init__.py file so that custom feats script can be imported
         open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
              "w").close()
@@ -337,11 +337,11 @@ def copy_data_files_predict_prep(args_dict):
         tmp_files.append(copied_metadata_file_path)
         shutil.copy(args_dict["metadata_file"], copied_metadata_file_path)
         args_dict["metadata_file"] = os.path.join(
-            "/home/copied_data_files",
+            "/data",
             ntpath.basename(args_dict["metadata_file"]))
 
     args_dict["path_map"] = {args_dict["copied_data_dir"]:
-                             "/home/copied_data_files"}
+                             "/data"}
     function_args_path = os.path.join(args_dict["copied_data_dir"],
                                       "function_args.pkl")
     tmp_files.append(function_args_path)

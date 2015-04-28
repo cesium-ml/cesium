@@ -19,7 +19,7 @@ def build_model():
 
     """
     # load pickled ts_data and known features
-    with open("/home/copied_data_files/function_args.pkl", "rb") as f:
+    with open("/data/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
 
     results_str = BM.build_model(

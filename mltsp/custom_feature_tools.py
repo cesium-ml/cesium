@@ -200,7 +200,7 @@ def call_custom_functions(features_already_known_list, all_required_params,
     try:
         from .custom_feature_scripts import custom_feature_defs
     except ImportError:
-        sys.path.append("/home/copied_data_files")
+        sys.path.append("/data")
         import custom_feature_defs
 
     # temporarily redirect stdout:
@@ -448,11 +448,11 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     cont_id = client.create_container(
         "mltsp/extract_custom_feats",
         volumes={"/home/mltsp": "",
-                 "/home/copied_data_files": ""})["Id"]
+                 "/data": ""})["Id"]
     # Start container
     client.start(cont_id,
                  binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp", "ro": True},
-                        path_to_tmp_dir: {"bind": "/home/copied_data_files",
+                        path_to_tmp_dir: {"bind": "/data",
                                           "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
