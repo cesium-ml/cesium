@@ -1321,14 +1321,14 @@ def get_project_details(project_name):
     """
     # TODO: add following info: associated featuresets, models
     entries = []
-    cursor = r.table("projects").filter({"name":project_name}).run(g.rdb_conn)
+    cursor = r.table("projects").filter({"name": project_name}).run(g.rdb_conn)
     for entry in cursor:
         entries.append(entry)
     if len(entries) == 1:
         proj_info = entries[0]
         cursor = (
             r.table("userauth")
-            .filter({"projkey":proj_info["id"],"active":"y"})
+            .filter({"projkey": proj_info["id"], "active": "y"})
             .pluck("userkey").run(g.rdb_conn))
         authed_users = []
         for entry in cursor:
@@ -1341,7 +1341,7 @@ def get_project_details(project_name):
         proj_info["predictions"] = list_predictions(
             by_project=project_name, as_html_table_string=True)
         return proj_info
-    elif len(entries)>1:
+    elif len(entries) > 1:
         print(("###### get_project_details() - ERROR: MORE THAN ONE PROJECT "
         "WITH NAME %s. ######") % project_name)
         return False
@@ -1374,7 +1374,7 @@ def get_project_details_json():
         project_name = str(request.args.get("project_name")).strip()
     except:
         return jsonify({
-            "Server response":"URL parameter must be 'project_name'"})
+            "Server response": "URL parameter must be 'project_name'"})
     project_details = get_project_details(project_name)
     return jsonify(project_details)
 
@@ -1394,7 +1394,7 @@ def get_authed_users(project_key):
 
     """
     authed_users = []
-    cursor = (r.table("userauth").filter({"projkey":project_key})
+    cursor = (r.table("userauth").filter({"projkey": project_key})
               .pluck("userkey").run(g.rdb_conn))
     for entry in cursor:
         authed_users.append(entry["userkey"])
