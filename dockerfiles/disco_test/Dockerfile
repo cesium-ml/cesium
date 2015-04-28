@@ -1,8 +1,8 @@
 FROM mltsp/base_disco
 
 RUN useradd -ms /bin/bash mltsp
-ENV HOME /home/mltsp
-WORKDIR /home/mltsp
+ENV HOME /home/mltsp/mltsp
+WORKDIR /home/mltsp/mltsp
 
 RUN mkdir -p /home/disco/.ssh && rm /home/disco/.ssh/*
 RUN ssh-keygen -t dsa -f /home/disco/.ssh/id_dsa

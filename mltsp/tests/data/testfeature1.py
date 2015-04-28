@@ -3,7 +3,7 @@ try:
     from ..custom_feature_tools import *
 except:
     import sys
-    sys.path.append("/home/mltsp")
+    sys.path.append("/home/mltsp/mltsp")
     from mltsp.custom_feature_tools import *
 
 @myFeature(requires=["t","m"], provides=['period','avg_mag'])

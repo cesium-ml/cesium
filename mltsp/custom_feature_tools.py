@@ -447,11 +447,11 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     # Create container
     cont_id = client.create_container(
         "mltsp/extract_custom_feats",
-        volumes={"/home/mltsp": "",
+        volumes={"/home/mltsp/mltsp": "",
                  "/data": ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp", "ro": True},
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
                         path_to_tmp_dir: {"bind": "/data",
                                           "ro": True}})
     # Wait for process to complete
