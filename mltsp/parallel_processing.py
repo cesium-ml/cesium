@@ -10,6 +10,7 @@ from . import cfg
 
 try:
     from disco.core import Job, result_iterator
+    from disco.util import kvgroup
     DISCO_INSTALLED = True
 except Exception as theError:
     DISCO_INSTALLED = False

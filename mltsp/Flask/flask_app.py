@@ -57,6 +57,7 @@ except IOError:
     print("Error!  Could not load 'mltsp.yaml' configuration file.\n"
           "Please rename 'mltsp.yaml.example' to 'mltsp.yaml' and \n"
           "modify as necessary.")
+    sys.exit(-1)
 
 
 app.config['SECRET_KEY'] = config['flask']['secret-key']

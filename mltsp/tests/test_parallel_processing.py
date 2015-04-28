@@ -45,8 +45,8 @@ def test_featurize_prediction_data_in_parallel():
                       "TESTRUN_CF.py"))
 
     features_and_tsdata_dict = prl_proc.featurize_prediction_data_in_parallel(
-        os.path.join(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
-        "TEMP_TEST01")
+        os.path.join(test_data_path, "215153_215176_218272_218934.tar.gz"),
+                     "TEMP_TEST01")
 
     assert "std_err" in \
         features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]
