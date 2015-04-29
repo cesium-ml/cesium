@@ -3,7 +3,7 @@
 # to be run from INSIDE a docker container
 
 import sys
-sys.path.append("/home/mltsp/mltsp/mltsp")
+sys.path.append("/home/mltsp/mltsp")
 #import featurize
 from subprocess import Popen, PIPE
 import time

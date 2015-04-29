@@ -5,4 +5,4 @@ MLTP_DIR=$(cd "${THIS_DIR}/../.." && pwd)
 
 set -ex
 docker build -t disco_test .
-docker run -v "$MLTP_DIR:/home/mltsp/mltsp/mltsp" disco_test
+docker run -v "$MLTP_DIR:/home/mltsp/mltsp" disco_test

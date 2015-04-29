@@ -205,10 +205,7 @@ def test_remove_tmp_files_and_container():
                      pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
                            "custom_feature_defs.pyc"),
                      pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                           "__init__.pyc"),
-                     pjoin(cfg.PROJECT_PATH,
-                           "copied_data_files",
-                           "features_already_known_list.pkl")]:
+                           "__init__.pyc")]:
         assert(not os.path.exists(tmp_file))
 
 

@@ -484,10 +484,7 @@ def remove_tmp_files(path_to_tmp_dir):
                      os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
                                   "custom_feature_defs.pyc"),
                      os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                                  "__init__.pyc"),
-                     os.path.join(os.path.join(cfg.PROJECT_PATH,
-                                               "copied_data_files"),
-                                  "features_already_known_list.pkl")):
+                                  "__init__.pyc")):
         try:
             os.remove(tmp_file)
         except Exception as e:
