@@ -939,3 +939,106 @@ class FlaskAppTestCase(unittest.TestCase):
             count = r.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
+
+    def test_delete_project(self):
+        """Test delete project"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "headerfile_path": "HEADPATH.dat",
+                                           "zipfile_path": "ZIPPATH.tar.gz",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            # Call the method being tested
+            fa.delete_project("abc123")
+            count = r.table("projects").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            count = r.table("features").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            count = r.table("models").filter({"id": "abc123"}).count()\
+                                                              .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                            "abc123_RF.pkl"))
+            count = r.table("predictions").filter({"id": "abc123"}).count()\
+                                                                   .run(conn)
+            npt.assert_equal(count, 0)
+
+    def test_get_project_details(self):
+        """Test get project details"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "model_name": "abc123",
+                                           "model_type": "RF",
+                                           "filename": "FNAME.dat",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            proj_info = fa.get_project_details("abc123")
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("models").get("abc123").delete().run(conn)
+            r.table("predictions").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123_2").delete().run(conn)
+            print(proj_info)
+            assert all(email in proj_info["authed_users"] for email in
+                       [TEST_EMAIL, "abc@123.com"])
+            assert "<table" in proj_info["featuresets"] and "abc123" in \
+                proj_info["featuresets"]
+            assert "<table" in proj_info["models"] and "abc123" in \
+                proj_info["models"]
+            assert all(x in proj_info["predictions"] for x in
+                       ["<table", "RF", "abc123", "FNAME.dat"])
+
+    def test_get_project_details_json(self):
+        """Tests get projects details as JSON"""
+        

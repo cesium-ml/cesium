@@ -19,7 +19,7 @@ def do_featurization():
         generation.
 
     """
-    disco_running = False  # Just for now til we get it working in Docker
+    disco_running = True  # Just for now til we get it working in Docker
     # Load pickled ts_data and known features
     with open("/data/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)

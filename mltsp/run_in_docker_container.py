@@ -228,9 +228,13 @@ def featurize_in_docker_container(
                 print(e)
         shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove Docker container
-        if cont_id and cont_id is not None:
-            client.remove_container(container=cont_id, force=True)
-        else:
+        try:
+            cont_id
+            if cont_id is not None:
+                client.remove_container(container=cont_id, force=True)
+            else:
+                print('Docker instance never started successfully')
+        except NameError:
             print('Docker instance never started successfully')
 
         print("Docker container deleted.")

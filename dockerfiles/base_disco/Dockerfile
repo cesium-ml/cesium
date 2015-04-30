@@ -17,12 +17,19 @@ RUN ssh-keygen -t dsa -f /home/disco/.ssh/id_dsa
 RUN cat /home/disco/.ssh/id_dsa.pub > /home/disco/.ssh/authorized_keys
 RUN /usr/sbin/sshd && ssh-keyscan -H localhost > /home/disco/.ssh/known_hosts
 
+## passwordless login for root
+RUN mkdir -p /root/.ssh
+RUN ssh-keygen -N '' -f /root/.ssh/id_dsa
+RUN cat /root/.ssh/id_dsa.pub >> /root/.ssh/authorized_keys
+RUN echo -n "localhost " > /root/.ssh/known_hosts
+RUN cat /etc/ssh/ssh_host_rsa_key.pub >> /root/.ssh/known_hosts
+
 ## install disco
 
 RUN git clone --depth 1 https://github.com/discoproject/disco.git /disco
 RUN cd /disco &&  make install
 RUN chown -R disco /usr/var/disco
-ADD disco_8989.config /disco/root/disco_8989.config
+ADD disco_8989.config /usr/var/disco/disco_8989.config
 
 ## add disco install location to pythonpath
 ENV PYTHONPATH /disco/lib

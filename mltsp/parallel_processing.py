@@ -5,9 +5,8 @@ import os
 import tarfile
 import uuid
 import ntpath
-
 from . import cfg
-
+import tempfile
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
@@ -424,9 +423,9 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
                     fname, class_name = line.strip('\n').split(',')[:2]
                     fname_class_dict[fname] = class_name
             line_no += 1
-
+    tmp_dir_path = tempfile.mkdtemp()
     zipfile = tarfile.open(zipfile_path)
-    zipfile.extractall(path=os.path.join(cfg.UPLOAD_FOLDER, "unzipped"))
+    zipfile.extractall(tmp_dir_path)
     all_fnames = zipfile.getnames()
 
     print("Generating science features...")
