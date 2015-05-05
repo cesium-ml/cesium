@@ -9,6 +9,7 @@ import ntpath
 import uuid
 import rethinkdb as r
 import unittest
+import json
 
 DATA_DIR = pjoin(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
@@ -1040,5 +1041,215 @@ class FlaskAppTestCase(unittest.TestCase):
                        ["<table", "RF", "abc123", "FNAME.dat"])
 
     def test_get_project_details_json(self):
-        """Tests get projects details as JSON"""
-        
+        """Test get projects details as JSON"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "model_name": "abc123",
+                                           "model_type": "RF",
+                                           "filename": "FNAME.dat",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            rv = self.app.post("/get_project_details/abc123")
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("models").get("abc123").delete().run(conn)
+            r.table("predictions").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123_2").delete().run(conn)
+        res_dict = json.loads(rv.data)
+        npt.assert_equal(res_dict['name'], "abc123")
+        npt.assert_array_equal(sorted(res_dict["authed_users"]),
+                               ['abc@123.com', 'testhandle@test.com'])
+        assert "FNAME.dat" in res_dict["predictions"]
+        assert "abc123" in res_dict["models"]
+
+    def test_get_authed_users(self):
+        """Test get authed users"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            authed_users = fa.get_authed_users("abc123")
+            r.table("userauth").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123_2").delete().run(conn)
+            npt.assert_array_equal(sorted(authed_users),
+                                   sorted([TEST_EMAIL, "abc@123.com"] +
+                                          fa.sys_admin_emails))
+
+    def test_project_name_to_key(self):
+        """Test project name to key"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123_name"}).run(conn)
+            key = fa.project_name_to_key("abc123_name")
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(key, "abc123")
+
+    def test_featureset_name_to_key(self):
+        """Test featureset name to key"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").insert({"id": "abc123",
+                                        "name": "abc123_name",
+                                        "projkey": "abc123"}).run(conn)
+            key = fa.featureset_name_to_key("abc123_name",
+                                            project_id="abc123")
+            r.table("features").get("abc123").delete().run(conn)
+            npt.assert_equal(key, "abc123")
+
+    def test_featureset_name_to_key_projname(self):
+        """Test featureset name to key - with project name"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").insert({"id": "abc123",
+                                        "name": "abc123_name",
+                                        "projkey": "abc123"}).run(conn)
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123_name"}).run(conn)
+            key = fa.featureset_name_to_key("abc123_name",
+                                            project_name="abc123_name")
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(key, "abc123")
+
+    def test_update_project_info(self):
+        """Test update project info"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            fa.update_project_info("abc123", "new_name", "DESC!", [])
+            proj_dets = fa.get_project_details("new_name")
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("userauth").filter({"id": "abc123_2"}).count().run(conn),
+                0)
+            npt.assert_equal(proj_dets["description"], "DESC!")
+
+    def test_update_project_info_delete_features(self):
+        """Test update project info - delete features"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            fa.update_project_info("abc123", "abc123", "", [],
+                                   delete_features_keys=["abc123"])
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_classes.npy"))
+
+    def test_update_project_info_delete_models(self):
+        """Test update project info - delete models"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "type": "RF",
+                                      "featset_key": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            fa.update_project_info("abc123", "abc123", "", [],
+                                   delete_model_keys=["abc123"])
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("features").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+
+    def test_update_project_info_delete_predictions(self):
+        """Test update project info - delete predictions"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123"}).run(conn)
+            fa.update_project_info("abc123", "abc123", "", [],
+                                   delete_prediction_keys=["abc123"])
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("predictions").filter({"id": "abc123"}).count().run(conn),
+                0)
+
+    def test_get_all_info_dict(self):
+        """Test get all info dict - auth only"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            d = fa.get_all_info_dict()
+            print(d)
+            1/0

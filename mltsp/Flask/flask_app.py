@@ -1351,9 +1351,9 @@ def get_project_details(project_name):
         return False
 
 
-@app.route('/get_project_details')
+@app.route('/get_project_details/<project_name>', methods=["POST", "GET"])
 @stormpath.login_required
-def get_project_details_json():
+def get_project_details_json(project_name=None):
     """Return Response object containing project details.
 
     Returns flask.Response() object with JSONified output of
@@ -1370,11 +1370,14 @@ def get_project_details_json():
         Response object contains project details in JSON form.
 
     """
-    try:
-        project_name = str(request.args.get("project_name")).strip()
-    except:
-        return jsonify({
-            "Server response": "URL parameter must be 'project_name'"})
+    if project_name is None:
+        try:
+            project_name = str(request.args.get("project_name")).strip()
+        except:
+            print("project_name parameter not present in call to "
+                  "get_project_details")
+            return jsonify({
+                "Server response": "URL parameter must be 'project_name'"})
     project_details = get_project_details(project_name)
     return jsonify(project_details)
 
@@ -1429,7 +1432,7 @@ def project_name_to_key(projname):
         return False
 
 
-def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
+def featureset_name_to_key(featureset_name, project_name=None, project_id=None):
     """Return RethinkDB key associated with given feature set details.
 
     Parameters
@@ -1461,7 +1464,7 @@ def featureset_name_to_key(featureset_name,project_name=None,project_id=None):
         featureset_key = []
         cursor = (
             r.table("features")
-            .filter({"projkey":project_id, "name":featureset_name})
+            .filter({"projkey": project_id, "name": featureset_name})
             .pluck("id").run(g.rdb_conn))
         for entry in cursor:
             featureset_key.append(entry["id"])
@@ -1515,6 +1518,7 @@ def update_project_info(
             "description": new_desc})
         .run(g.rdb_conn))
     already_authed_users = get_authed_users(projkey)
+    delete_fpaths = []
     for prev_auth in already_authed_users:
         if prev_auth not in new_addl_authed_users + [userkey]:
             (r.table("userauth")
@@ -1527,77 +1531,24 @@ def update_project_info(
                          "active": "y"})
                 .run(g.rdb_conn))
     if len(delete_prediction_keys) > 0:
-        (r.table("predictions").get_all(*delete_prediction_keys)
-            .delete().run(g.rdb_conn))
+        for pred_key in delete_prediction_keys:
+            delete_fpaths.extend(prediction_associated_files(pred_key))
+        r.table("predictions").get_all(*delete_prediction_keys)\
+                              .delete().run(g.rdb_conn)
     if len(delete_features_keys) > 0:
-        (r.table("features").get_all(*delete_features_keys)
-            .delete().run(g.rdb_conn))
         for features_key in delete_features_keys:
-            try:
-                os.remove(
-                    os.path.join(
-                        cfg.FEATURES_FOLDER,
-                        "%s_features.csv" % features_key))
-            except Exception as theErr:
-                logging.exception(
-                    "Tried to delete a file that does not exist.")
-                print(theErr)
-            try:
-                os.remove(
-                    os.path.join(
-                        cfg.FEATURES_FOLDER,
-                        "%s_features_with_classes.csv" % features_key))
-            except Exception as theErr:
-                logging.exception(
-                    "Tried to delete a file that does not exist.")
-                print(theErr)
-            try:
-                os.remove(
-                    os.path.join(
-                        cfg.FEATURES_FOLDER, "%s_classes.npy" % features_key))
-            except Exception as theErr:
-                print(theErr)
-                logging.exception(
-                    "Tried to delete a file that does not exist.")
-            try:
-                os.remove(
-                    os.path.join(
-                        cfg.MLTSP_PACKAGE_PATH,
-                        ("Flask/static/data/%s_features_with_classes.csv"
-                        %features_key)))
-            except Exception as theErr:
-                print(theErr)
-                logging.exception(
-                    "Tried to delete a file that does not exist.")
+            delete_fpaths.extend(featset_associated_files(features_key))
+        r.table("features").get_all(*delete_features_keys)\
+                           .delete().run(g.rdb_conn)
     if len(delete_model_keys) > 0:
         for model_key in delete_model_keys:
-            cursor = (
-                r.table("models").filter({"id":model_key})
-                .pluck("projkey","name","type").run(g.rdb_conn))
-            for model_entry in cursor:
-                cursor2 = (
-                    r.table("features")
-                    .filter({
-                        "projkey": model_entry["projkey"],
-                        "name": model_entry["name"]})
-                    .pluck("id").run(g.rdb_conn))
-                for featset_entry in cursor2:
-                    try:
-                        os.remove(
-                            os.path.join(
-                                cfg.MODELS_FOLDER,
-                                ("%s_%s.pkl" %
-                                    (featset_entry["id"],
-                                     model_entry["type"]))))
-                    except Exception as theErr:
-                        print(theErr)
-                        logging.exception(
-                            "Tried to delete a file that does not exist.")
-                    print("Removed", os.path.join(
-                        cfg.MODELS_FOLDER,
-                        "%s_%s.pkl" % (featset_entry["id"],
-                                       model_entry["type"])))
+            delete_fpaths.extend(model_associated_files(model_key))
         r.table("models").get_all(*delete_model_keys).delete().run(g.rdb_conn)
+    for fpath in delete_fpaths:
+        try:
+            os.remove(fpath)
+        except:
+            pass
     new_proj_details = get_project_details(new_name)
     return new_proj_details
 
