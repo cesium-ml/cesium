@@ -33,3 +33,5 @@ ADD disco.sh /etc/service/disco/run
 
 # clean system
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENTRYPOINT ["/sbin/my_init", "--"]
