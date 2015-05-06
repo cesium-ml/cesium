@@ -1252,4 +1252,3 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             d = fa.get_all_info_dict()
             print(d)
-            1/0

@@ -9,6 +9,7 @@ import numpy as np
 import tarfile
 from copy import deepcopy
 import ntpath
+import uuid
 
 from . import cfg
 from . import custom_exceptions
@@ -163,9 +164,10 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     sep = sepr = ","
 
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
-    tmp_dir_path = tempfile.mkdtemp()
+    tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(tmp_dir_path)
     if tarfile.is_tarfile(newpred_file_path):
-        if DISCO_INSTALLED and not in_docker_container:# #TEMP#
+        if DISCO_INSTALLED:# and not in_docker_container:# #TEMP#
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
                     newpred_file_path=newpred_file_path,

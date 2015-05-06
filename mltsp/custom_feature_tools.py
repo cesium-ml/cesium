@@ -4,7 +4,6 @@ from __future__ import print_function
 from parse import parse
 import sys
 import os
-import tempfile
 try:
     import cPickle as pickle
 except:
@@ -138,7 +137,7 @@ def parse_csv_file(fname, sep=',', skip_lines=0):
         empty lists.
 
     """
-    with open(fname) as f:
+    with open(fname, "r") as f:
         ts_data = np.loadtxt(f, delimiter=",", skiprows=skip_lines)
     ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
     for row in ts_data:
@@ -155,7 +154,7 @@ def parse_csv_file(fname, sep=',', skip_lines=0):
 def parse_for_req_prov_params(script_fpath):
     """
     """
-    with open(script_fpath) as f:
+    with open(script_fpath, "r") as f:
         all_lines = f.readlines()
     fnames_req_prov_dict = {}
     all_required_params = []
@@ -356,7 +355,7 @@ def parse_tsdata_to_lists(ts_data):
 def parse_tsdata_from_file(ts_datafile_path):
     """
     """
-    with open(ts_datafile_path) as f:
+    with open(ts_datafile_path, "r") as f:
         ts_data = np.loadtxt(f, delimiter=",")
     ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
     for row in ts_data:
@@ -411,7 +410,8 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
 def make_tmp_dir():
     """
     """
-    path_to_tmp_dir = tempfile.mkdtemp()
+    path_to_tmp_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(path_to_tmp_dir)
     return path_to_tmp_dir
 
 
@@ -453,7 +453,8 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     client.start(cont_id,
                  binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
                         path_to_tmp_dir: {"bind": "/data",
-                                          "ro": True}})
+                                          "ro": True}},
+                 privileged=True)
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -627,7 +628,7 @@ def list_features_provided(script_fpath):
         List of feature names that the script will generate.
 
     """
-    with open(script_fpath) as f:
+    with open(script_fpath, "r") as f:
         all_lines = f.readlines()
     fnames_req_prov_dict = {}
     all_required_params = []

@@ -7,8 +7,8 @@ from docker import Client
 from . import cfg
 import io
 import tarfile
-import tempfile
-
+import uuid
+import stat
 
 def docker_copy(docker_client, container_id, path, target="."):
     """Copy file from docker container to host machine.
@@ -85,16 +85,17 @@ def copy_data_files_featurize_prep(args_dict):
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
         pickle.dump(args_dict, f, protocol=2)
-
+    # Was getting permissions errors from Disco workers
+    os.chmod(args_dict['copied_data_dir'], 0777)
     return tmp_files
 
 
-def spin_up_and_run_container(image_name, tmp_data_dir):
+def spin_up_and_run_container(task_name, tmp_data_dir):
     """Spin up and run a Docker container.
 
     Parameters
     ----------
-    image_name : str
+    task_name : str
         Name/tag of the Docker image to be used, e.g. "mltsp/featurize".
     tmp_dir : str
         Path to directory containing data files to be mounted into
@@ -112,14 +113,18 @@ def spin_up_and_run_container(image_name, tmp_data_dir):
                     version='1.14')
     # Create container
     cont_id = client.create_container(
-        image_name,
+        image="mltsp/base_disco",
+        command="python /home/mltsp/mltsp/run_script_in_container.py --%s" %\
+        task_name,
+        tty=True,
         volumes={"/home/mltsp/mltsp": "",
                  "/data": ""})["Id"]
     # Start container
     client.start(cont_id,
                  binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
                         tmp_data_dir: {"bind": "/data",
-                                       "ro": True}})
+                                       "ro": True}},
+                 privileged=True)
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -208,11 +213,12 @@ def featurize_in_docker_container(
         Human-readable success message.
 
     """
-    copied_data_dir = tempfile.mkdtemp()
+    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(copied_data_dir)
     args_dict = locals()
     tmp_files = copy_data_files_featurize_prep(args_dict)
     try:
-        client, cont_id = spin_up_and_run_container("mltsp/featurize",
+        client, cont_id = spin_up_and_run_container("featurize",
                                                     copied_data_dir)
         copy_results_files_featurize(featureset_key, client, cont_id)
         print("Process complete.")
@@ -265,7 +271,8 @@ def build_model_in_docker_container(
         Human-readable success message.
 
     """
-    copied_data_dir = tempfile.mkdtemp()
+    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(copied_data_dir)
     args_dict = locals()
 
     tmp_files = []
@@ -275,7 +282,7 @@ def build_model_in_docker_container(
     with open(function_args_path, "wb") as f:
         pickle.dump(args_dict, f, protocol=2)
     try:
-        client, cont_id = spin_up_and_run_container("mltsp/build_model",
+        client, cont_id = spin_up_and_run_container("build_model",
                                                     copied_data_dir)
         # copy model object produced in Docker container to host
         path = "/tmp/%s_%s.pkl" % (featureset_key, model_type)
@@ -395,11 +402,12 @@ def predict_in_docker_container(
         Dictionary containing prediction results.
 
     """
-    copied_data_dir = tempfile.mkdtemp()
+    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(copied_data_dir)
     args_dict = locals()
     tmp_files = copy_data_files_predict_prep(args_dict)
     try:
-        client, cont_id = spin_up_and_run_container("mltsp/predict",
+        client, cont_id = spin_up_and_run_container("predict",
                                                     copied_data_dir)
         # copy all necessary files produced in docker container to host
         path = "/tmp/%s_pred_results.pkl" % prediction_entry_key

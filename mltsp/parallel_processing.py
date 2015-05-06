@@ -117,7 +117,10 @@ def pred_featurize_reduce(iter, params):
         big_feats_and_tsdata_dict = pred.featurize_single(
             fpath, features_to_use, custom_features_script, meta_features)
 
-        os.remove(fpath)
+        try:
+            os.remove(fpath)
+        except Exception as e:
+            print(e)
         short_fname = ntpath.basename(fpath)
         all_features = big_feats_and_tsdata_dict[short_fname]["features_dict"]
         ts_data = big_feats_and_tsdata_dict[short_fname]["ts_data"]
@@ -314,19 +317,17 @@ def featurize_reduce(iter, params):
         print("fname: " + fname + ", class_name: " + class_name)
 
         short_fname = os.path.splitext(ntpath.basename(fname))[0]
-        path_to_csv = os.path.join(
-            cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
-        if os.path.isfile(path_to_csv):
+        path_to_csv = os.path.join(params['tmp_dir_path'], fname)
+        if os.path.exists(path_to_csv):
             print("Extracting features for " + fname)
             all_features = featurize.featurize_tsdata_object(
                 path_to_csv, short_fname, params['custom_script_path'],
                 params['fname_class_dict'], params['features_to_use'])
+            all_features["class"] = class_name
+            yield short_fname, all_features
         else:
-            print(fname + " is not a file.")
+            print("*"*10 + " " + path_to_csv + " doesn't exist on the disk.")
             yield "", ""
-        all_features["class"] = class_name
-
-        yield short_fname, all_features
 
 
 def process_featurization_with_disco(input_list, params, partitions=4):
@@ -423,7 +424,8 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
                     fname, class_name = line.strip('\n').split(',')[:2]
                     fname_class_dict[fname] = class_name
             line_no += 1
-    tmp_dir_path = tempfile.mkdtemp()
+    tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(tmp_dir_path)
     zipfile = tarfile.open(zipfile_path)
     zipfile.extractall(tmp_dir_path)
     all_fnames = zipfile.getnames()
@@ -450,6 +452,7 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
     params['features_to_use'] = features_to_use
     params['meta_features'] = meta_features
     params['custom_script_path'] = custom_script_path
+    params['tmp_dir_path'] = tmp_dir_path
 
     disco_results = process_featurization_with_disco(
         input_list=[f.name], params=params)
