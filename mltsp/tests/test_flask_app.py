@@ -2,6 +2,7 @@ import os
 os.environ["DEBUG_LOGIN"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
+from mltsp import custom_exceptions
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
@@ -9,10 +10,48 @@ import ntpath
 import uuid
 import rethinkdb as r
 import unittest
+import json
+import shutil
+import pandas as pd
+from sklearn.externals import joblib
 
 DATA_DIR = pjoin(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
 TEST_PASSWORD = "TestPass15"
+
+
+def featurize_setup():
+    fpaths = []
+    fnames = ["asas_training_subset_classes_with_metadata.dat",
+              "asas_training_subset.tar.gz", "testfeature1.py"]
+    for fname in fnames:
+        fpaths.append(pjoin(DATA_DIR, fname))
+    for fpath in fpaths:
+        shutil.copy(fpath, cfg.UPLOAD_FOLDER)
+
+
+def featurize_teardown():
+    fpaths = [pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                    "testfeature1.py")]
+    fnames = ["asas_training_subset_classes_with_metadata.dat",
+              "asas_training_subset.tar.gz", "testfeature1.py"]
+    for fname in fnames:
+        fpaths.append(pjoin(cfg.UPLOAD_FOLDER, fname))
+    fpaths.append(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                        "testfeature1.py"))
+    for fpath in fpaths:
+        if os.path.exists(fpath):
+            os.remove(fpath)
+
+
+def generate_model():
+    shutil.copy(pjoin(DATA_DIR, "test_classes.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_RF.pkl"))
 
 
 class FlaskAppTestCase(unittest.TestCase):
@@ -939,3 +978,522 @@ class FlaskAppTestCase(unittest.TestCase):
             count = r.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
+
+    def test_delete_project(self):
+        """Test delete project"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "headerfile_path": "HEADPATH.dat",
+                                           "zipfile_path": "ZIPPATH.tar.gz",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            # Call the method being tested
+            fa.delete_project("abc123")
+            count = r.table("projects").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            count = r.table("features").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            count = r.table("models").filter({"id": "abc123"}).count()\
+                                                              .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                            "abc123_RF.pkl"))
+            count = r.table("predictions").filter({"id": "abc123"}).count()\
+                                                                   .run(conn)
+            npt.assert_equal(count, 0)
+
+    def test_get_project_details(self):
+        """Test get project details"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "model_name": "abc123",
+                                           "model_type": "RF",
+                                           "filename": "FNAME.dat",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            proj_info = fa.get_project_details("abc123")
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("models").get("abc123").delete().run(conn)
+            r.table("predictions").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123_2").delete().run(conn)
+            print(proj_info)
+            assert all(email in proj_info["authed_users"] for email in
+                       [TEST_EMAIL, "abc@123.com"])
+            assert "<table" in proj_info["featuresets"] and "abc123" in \
+                proj_info["featuresets"]
+            assert "<table" in proj_info["models"] and "abc123" in \
+                proj_info["models"]
+            assert all(x in proj_info["predictions"] for x in
+                       ["<table", "RF", "abc123", "FNAME.dat"])
+
+    def test_get_project_details_json(self):
+        """Test get projects details as JSON"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "model_name": "abc123",
+                                           "model_type": "RF",
+                                           "filename": "FNAME.dat",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            rv = self.app.post("/get_project_details/abc123")
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("models").get("abc123").delete().run(conn)
+            r.table("predictions").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123_2").delete().run(conn)
+        res_dict = json.loads(rv.data)
+        npt.assert_equal(res_dict['name'], "abc123")
+        npt.assert_array_equal(sorted(res_dict["authed_users"]),
+                               ['abc@123.com', 'testhandle@test.com'])
+        assert "FNAME.dat" in res_dict["predictions"]
+        assert "abc123" in res_dict["models"]
+
+    def test_get_authed_users(self):
+        """Test get authed users"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            authed_users = fa.get_authed_users("abc123")
+            r.table("userauth").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123_2").delete().run(conn)
+            npt.assert_array_equal(sorted(authed_users),
+                                   sorted([TEST_EMAIL, "abc@123.com"] +
+                                          fa.sys_admin_emails))
+
+    def test_project_name_to_key(self):
+        """Test project name to key"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123_name"}).run(conn)
+            key = fa.project_name_to_key("abc123_name")
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(key, "abc123")
+
+    def test_featureset_name_to_key(self):
+        """Test featureset name to key"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").insert({"id": "abc123",
+                                        "name": "abc123_name",
+                                        "projkey": "abc123"}).run(conn)
+            key = fa.featureset_name_to_key("abc123_name",
+                                            project_id="abc123")
+            r.table("features").get("abc123").delete().run(conn)
+            npt.assert_equal(key, "abc123")
+
+    def test_featureset_name_to_key_projname(self):
+        """Test featureset name to key - with project name"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").insert({"id": "abc123",
+                                        "name": "abc123_name",
+                                        "projkey": "abc123"}).run(conn)
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123_name"}).run(conn)
+            key = fa.featureset_name_to_key("abc123_name",
+                                            project_name="abc123_name")
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(key, "abc123")
+
+    def test_update_project_info(self):
+        """Test update project info"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            r.table("userauth").insert({"id": "abc123_2",
+                                        "projkey": "abc123",
+                                        "userkey": "abc@123.com",
+                                        "active": "y"}).run(conn)
+            fa.update_project_info("abc123", "new_name", "DESC!", [])
+            proj_dets = fa.get_project_details("new_name")
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("userauth").filter({"id": "abc123_2"}).count().run(conn),
+                0)
+            npt.assert_equal(proj_dets["description"], "DESC!")
+
+    def test_update_project_info_delete_features(self):
+        """Test update project info - delete features"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            fa.update_project_info("abc123", "abc123", "", [],
+                                   delete_features_keys=["abc123"])
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_classes.npy"))
+
+    def test_update_project_info_delete_models(self):
+        """Test update project info - delete models"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "type": "RF",
+                                      "featset_key": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            fa.update_project_info("abc123", "abc123", "", [],
+                                   delete_model_keys=["abc123"])
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("features").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+
+    def test_update_project_info_delete_predictions(self):
+        """Test update project info - delete predictions"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123"}).run(conn)
+            fa.update_project_info("abc123", "abc123", "", [],
+                                   delete_prediction_keys=["abc123"])
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(
+                r.table("predictions").filter({"id": "abc123"}).count().run(conn),
+                0)
+
+    def test_get_all_info_dict(self):
+        """Test get all info dict - auth only"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            d = fa.get_all_info_dict()
+            npt.assert_equal(d['list_of_current_projects'], [])
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            d = fa.get_all_info_dict()
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(d['list_of_current_projects'], [])
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("userauth").insert({"id": "abc123",
+                                        "projkey": "abc123",
+                                        "userkey": TEST_EMAIL,
+                                        "active": "y"}).run(conn)
+            d = fa.get_all_info_dict()
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("userauth").get("abc123").delete().run(conn)
+            npt.assert_equal(d['list_of_current_projects'], ["abc123"])
+
+    def test_get_all_info_dict_unauthed(self):
+        """Test get all info dict - unauthed"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            d = fa.get_all_info_dict()
+            npt.assert_equal(d['list_of_current_projects'], [])
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            d = fa.get_all_info_dict(auth_only=False)
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(d['list_of_current_projects'], ["abc123"])
+
+    def test_get_list_of_available_features(self):
+        """Test get list of available features"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            featlist = fa.get_list_of_available_features()
+            expected = sorted([x for x in cfg.features_list_science if x not in
+                               cfg.ignore_feats_list_science])
+            npt.assert_array_equal(featlist, expected)
+
+    def test_get_list_of_available_features_set2(self):
+        """Test get list of available features - set 2"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            featlist = fa.get_list_of_available_features_set2()
+            expected = sorted([x for x in cfg.features_list if x not in
+                               cfg.ignore_feats_list_science])
+            npt.assert_array_equal(featlist, expected)
+
+    def test_allowed_file(self):
+        """Test allowed file type"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            npt.assert_equal(fa.allowed_file("abc.dat"), True)
+            npt.assert_equal(fa.allowed_file("abc.csv"), True)
+            npt.assert_equal(fa.allowed_file("abc.txt"), True)
+            npt.assert_equal(fa.allowed_file("abc.exe"), False)
+            npt.assert_equal(fa.allowed_file("abc.sh"), False)
+
+    def test_check_headerfile_and_tsdata_format_pass(self):
+        """Test check header file and TS data format - pass"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            npt.assert_equal(
+                fa.check_headerfile_and_tsdata_format(
+                    pjoin(DATA_DIR, "asas_training_subset_classes.dat"),
+                    pjoin(DATA_DIR, "asas_training_subset.tar.gz")),
+                False)
+
+    def test_check_headerfile_and_tsdata_format_raisefnameerr(self):
+        """Test check header file and TS data format - raise file name error"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.TimeSeriesFileNameError):
+                fa.check_headerfile_and_tsdata_format(
+                    pjoin(DATA_DIR, "asas_training_subset_classes.dat"),
+                    pjoin(DATA_DIR, "215153_215176_218272_218934.tar.gz"))
+
+    def test_check_headerfile_and_tsdata_format_header_err(self):
+        """Test check header file and TS data format - header file error"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.DataFormatError):
+                fa.check_headerfile_and_tsdata_format(
+                    pjoin(DATA_DIR, "improperlyformattedheader.dat"),
+                    pjoin(DATA_DIR, "215153_215176_218272_218934.tar.gz"))
+
+    def test_check_headerfile_and_tsdata_format_tsdata_err(self):
+        """Test check header file and TS data format - TS data file error"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.DataFormatError):
+                fa.check_headerfile_and_tsdata_format(
+                    pjoin(DATA_DIR, "improperlyformattedtsdata_header.dat"),
+                    pjoin(DATA_DIR, "improperlyformattedtsdata.tar.gz"))
+
+    def test_check_headerfile_and_tsdata_format_tsdata_err2(self):
+        """Test check header file and TS data format - TS data file error - 2"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.DataFormatError):
+                fa.check_headerfile_and_tsdata_format(
+                    pjoin(DATA_DIR, "improperlyformattedtsdata2_header.dat"),
+                    pjoin(DATA_DIR, "improperlyformattedtsdata2.tar.gz"))
+
+    def test_check_prediction_tsdata_format_dataformaterr1(self):
+        """Test check prediction TS data format - DataFormatError 1"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.DataFormatError):
+                fa.check_prediction_tsdata_format(
+                    pjoin(DATA_DIR, "improperlyformattedtsdata.tar.gz"))
+
+    def test_check_prediction_tsdata_format_dataformaterr2(self):
+        """Test check prediction TS data format - DataFormatError 2"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.DataFormatError):
+                fa.check_prediction_tsdata_format(
+                    pjoin(DATA_DIR, "improperlyformattedtsdata2.tar.gz"))
+
+    def test_check_prediction_tsdata_format_fname_error(self):
+        """Test check prediction TS data format - file name error"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.TimeSeriesFileNameError):
+                fa.check_prediction_tsdata_format(
+                    pjoin(DATA_DIR, "215153_215176_218272_218934.tar.gz"),
+                    pjoin(DATA_DIR, "215153_metadata.dat"))
+
+    def test_check_prediction_tsdata_format_fname_error2(self):
+        """Test check prediction TS data format - file name error #2"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            with self.assertRaises(custom_exceptions.TimeSeriesFileNameError):
+                fa.check_prediction_tsdata_format(
+                    pjoin(DATA_DIR, "dotastro_215153.dat"),
+                    pjoin(DATA_DIR, "215153_215176_218272_218934_metadata.dat"))
+
+    def test_featurize_proc(self):
+        """Test featurize process"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            featurize_setup()
+            r.table("features").insert({"id": "TEST01", "name": "TEST01"})\
+                               .run(conn)
+            fa.featurize_proc(
+                headerfile_path=pjoin(
+                    cfg.UPLOAD_FOLDER,
+                    "asas_training_subset_classes_with_metadata.dat"),
+                zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
+                                   "asas_training_subset.tar.gz"),
+                features_to_use=["std_err"],
+                featureset_key="TEST01", is_test=True, email_user=False,
+                already_featurized=False,
+                custom_script_path=None)
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "TEST01_features.csv")))
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "TEST01_classes.npy")))
+            assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                              "Flask/static/data"),
+                                        "TEST01_features_with_classes.csv")))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_classes.npy"))
+            df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                              "TEST01_features.csv"))
+            cols = df.columns
+            values = df.values
+            entry = r.table("features").get("TEST01").run(conn)
+            r.table("features").get("TEST01").delete().run(conn)
+            assert "results_msg" in entry
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_features.csv"))
+            os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                  "Flask/static/data"),
+                            "TEST01_features_with_classes.csv"))
+            assert("std_err" in cols)
+            featurize_teardown()
+
+    def test_build_model_proc(self):
+        """Test build model process"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("features").insert({"id": "TEMP_TEST01",
+                                        "name": "TEMP_TEST01"}).run(conn)
+            r.table("models").insert({"id": "TEMP_TEST01",
+                                      "name": "TEMP_TEST01"}).run(conn)
+            shutil.copy(pjoin(DATA_DIR, "test_classes.npy"),
+                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
+                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+            fa.build_model_proc("TEMP_TEST01", "TEMP_TEST01",
+                                "RF", "TEMP_TEST01")
+            entry = r.table("models").get("TEMP_TEST01").run(conn)
+            r.table("models").get("TEMP_TEST01").delete().run(conn)
+            r.table("features").get("TEMP_TEST01").delete().run(conn)
+            assert "results_msg" in entry
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                        "TEMP_TEST01_RF.pkl"))
+            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+            assert hasattr(model, "predict_proba")
+            os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+
+    def test_prediction_proc(self):
+        """Test prediction process"""
+        

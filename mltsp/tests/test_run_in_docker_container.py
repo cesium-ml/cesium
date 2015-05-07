@@ -61,7 +61,7 @@ def test_copy_data_files_featurize_prep():
 
 def test_spin_up_and_run_container():
     """Test spin up and run container"""
-    client, cont_id = ridc.spin_up_and_run_container("mltsp/featurize", "/tmp")
+    client, cont_id = ridc.spin_up_and_run_container("featurize", "/tmp")
     conts = client.containers(all=True)
     found_match = False
     for cont in conts:
@@ -91,7 +91,7 @@ def test_copy_results_files_featurize():
                                "testfeature1.py")
     args_dict = locals()
     tmp_files = ridc.copy_data_files_featurize_prep(args_dict)
-    client, cont_id = ridc.spin_up_and_run_container("mltsp/featurize",
+    client, cont_id = ridc.spin_up_and_run_container("featurize",
                                                      copied_data_dir)
     ridc.copy_results_files_featurize(featureset_key, client, cont_id)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -220,6 +220,39 @@ def test_predict_in_docker_container():
 
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+
+
+def test_predict_in_docker_container_multiple():
+    """Test predict in docker container - multiple TS data files"""
+    generate_model()
+
+    shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
+                pjoin(cfg.UPLOAD_FOLDER))
+    shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat"),
+                cfg.UPLOAD_FOLDER)
+    shutil.copy(pjoin(DATA_PATH, "testfeature1.py"),
+                pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                      "TESTRUN_CF.py"))
+
+    pred_results_dict = ridc.predict_in_docker_container(
+        pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"),
+        "TEMP_TEST01", "RF", "TEMP_TEST01", "TEMP_TEST01",
+        metadata_file=pjoin(cfg.UPLOAD_FOLDER,
+                            "215153_215176_218272_218934_metadata.dat"),
+        custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                     "TESTRUN_CF.py"))
+
+    npt.assert_equal(
+        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        3)
+
+    os.remove(pjoin(cfg.UPLOAD_FOLDER,
+                    "215153_215176_218272_218934_metadata.dat"))
+    os.remove(pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))

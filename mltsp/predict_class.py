@@ -9,6 +9,7 @@ import numpy as np
 import tarfile
 from copy import deepcopy
 import ntpath
+import uuid
 
 from . import cfg
 from . import custom_exceptions
@@ -163,9 +164,11 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     sep = sepr = ","
 
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
-    tmp_dir_path = tempfile.mkdtemp()
+    tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
+    os.mkdir(tmp_dir_path)
+    os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
-        if DISCO_INSTALLED and not in_docker_container:# #TEMP#
+        if DISCO_INSTALLED:# and not in_docker_container:# #TEMP#
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
                     newpred_file_path=newpred_file_path,
@@ -221,9 +224,8 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
     """
     """
     # Load model class list
-    all_objs_class_list = list(map(
-        list, np.load(os.path.join(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % featset_key))))
+    all_objs_class_list = list(np.load(
+        os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key)))
     sorted_class_list = []
     for i in sorted(all_objs_class_list):
         if i not in sorted_class_list:
@@ -246,7 +248,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
             results_str += """
                 <td class='pred_results'>%s</td>
                 <td class='pred_results'>%s</td>
-            """ % (results_arr[i][0], str(results_arr[i][1]))
+            """ % (str(results_arr[i][0]), str(results_arr[i][1]))
 
     results_str += "</tr>"
     results_dict[ntpath.basename(fname)] = {

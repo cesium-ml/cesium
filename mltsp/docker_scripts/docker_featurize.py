@@ -5,6 +5,8 @@ import os
 from .. import featurize
 
 import pickle
+from subprocess import Popen, PIPE, call
+import time
 
 
 def do_featurization():
@@ -19,9 +21,21 @@ def do_featurization():
         generation.
 
     """
-    disco_running = False  # Just for now til we get it working in Docker
+    '''process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    print("-> disco status", stdout, stderr)
+    call(["disco", "-v"])
+    while "stopped" in str(stdout):
+        call(["disco", "start"])
+        time.sleep(1)
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        print("-> disco status", stdout, stderr)
+        call(["disco", "-v"])'''
+
+    disco_running = True  # Just for now til we get it working in Docker
     # Load pickled ts_data and known features
-    with open("/home/copied_data_files/function_args.pkl", "rb") as f:
+    with open("/data/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
     # Ensure required files successfully copied into container:
     if "headerfile_path" in function_args:

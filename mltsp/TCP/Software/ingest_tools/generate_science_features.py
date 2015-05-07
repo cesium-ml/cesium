@@ -110,8 +110,8 @@ def generate_arff_using_raw_xml(xml_str):
     include_arff_header = True
 
     ### Generate the features:
-    #tmp_stdout = sys.stdout
-    #sys.stdout = open(os.devnull, 'w')
+    tmp_stdout = sys.stdout
+    sys.stdout = open(os.devnull, 'w')
     signals_list = []
     gen = generators_importers.from_xml(signals_list)
     gen.generate(xml_handle=xml_str)
@@ -119,8 +119,8 @@ def generate_arff_using_raw_xml(xml_str):
     gen.sig.x_sdict['src_id'] = new_srcid
     dbi_src = db_importer.Source(make_dict_if_given_xml=False)
     dbi_src.source_dict_to_xml(gen.sig.x_sdict)
-    #sys.stdout.close()
-    #sys.stdout = tmp_stdout
+    sys.stdout.close()
+    sys.stdout = tmp_stdout
 
     xml_fpath = dbi_src.xml_string
 

@@ -26,7 +26,7 @@ def predict():
     # time.sleep(2)
 
     # load pickled ts_data and known features
-    with open("/home/copied_data_files/function_args.pkl", "rb") as f:
+    with open("/data/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
 
     # ensure required files successfully copied into container:

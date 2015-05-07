@@ -204,4 +204,7 @@ for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
         path = os.path.dirname(path)
     if not os.path.exists(path):
         print("Creating %s" % path)
-        os.makedirs(path)
+        try:
+            os.makedirs(path)
+        except Exception as e:
+            print(e)
