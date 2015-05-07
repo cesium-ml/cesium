@@ -6,7 +6,6 @@ import tarfile
 import uuid
 import ntpath
 from . import cfg
-import tempfile
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup

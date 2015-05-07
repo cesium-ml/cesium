@@ -1596,26 +1596,500 @@ def get_all_info_dict(auth_only=True):
 
 def get_list_of_available_features():
     """Return list of built-in time-series features available."""
-    features_list_science_used = []
-    for feat in cfg.features_list_science:
-        if feat not in cfg.ignore_feats_list_science:
-            features_list_science_used.append(feat)
-    return sorted(features_list_science_used)
+    return sorted([feat for feat in cfg.features_list_science if feat not in
+                   cfg.ignore_feats_list_science])
 
 
 def get_list_of_available_features_set2():
     """Return list of additional built-in time-series features."""
-    features_list_set2_used = []
-    for feat in cfg.features_list:
-        if feat not in cfg.ignore_feats_list_science:
-            features_list_set2_used.append(feat)
-    return sorted(features_list_set2_used)
+    return sorted([feat for feat in cfg.features_list if feat not in
+                   cfg.ignore_feats_list_science])
 
 
 def allowed_file(filename):
     """Return bool indicating whether `filename` has allowed extension."""
     return ('.' in filename and
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS)
+
+
+def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
+    """Ensure uploaded files are correctly formatted.
+
+    Ensures that headerfile_path and zipfile_path conform
+    to expected format - returns False if so, raises Exception if not.
+
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to header file to inspect.
+    zipfile_path : str
+        Path to tarball to inspect.
+
+    Returns
+    -------
+    bool
+        Returns False if files are correctly formatted, otherwise
+        raises an exception (see below).
+
+    Raises
+    ------
+    custom_exceptions.TimeSeriesFileNameError
+        If any provided time-series data files' names are absent in
+        provided header file.
+    custom_exceptions.DataFormatError
+        If provided time-series data files or header file are
+        improperly formatted.
+
+    """
+    with open(headerfile_path) as f:
+        all_header_fnames = []
+        column_header_line = str(f.readline())
+        for line in f:
+            line = str(line)
+            if line.strip() != '':
+                if len(line.strip().split(",")) < 2:
+                    raise custom_exceptions.DataFormatError((
+                        "Header file improperly formatted. At least two "
+                        "comma-separated columns (file_name,class_name) are "
+                        "required."))
+                else:
+                    all_header_fnames.append(line.strip().split(",")[0])
+    the_zipfile = tarfile.open(zipfile_path)
+    file_list = list(the_zipfile.getnames())
+    all_fname_variants = []
+    for file_name in file_list:
+        this_file = the_zipfile.getmember(file_name)
+        if this_file.isfile():
+            file_name_variants = [
+                file_name, ntpath.basename(file_name),
+                os.path.splitext(file_name)[0],
+                os.path.splitext(ntpath.basename(file_name))[0]]
+            all_fname_variants.extend(file_name_variants)
+            if (len(list(set(file_name_variants) &
+                    set(all_header_fnames))) == 0):
+                raise custom_exceptions.TimeSeriesFileNameError((
+                    "Time series data file %s provided in tarball/zip file "
+                    "has no corresponding entry in header file.")
+                    % str(file_name))
+            f = the_zipfile.extractfile(this_file)
+            all_lines = [
+                line.strip() for line in f.readlines() if line.strip() != '']
+            line_no = 1
+            for line in all_lines:
+                line = str(line)
+                if line_no == 1:
+                    num_labels = len(line.split(','))
+                    if num_labels < 2:
+                        raise custom_exceptions.DataFormatError((
+                            "Time series data file improperly formatted; at "
+                            "least two comma-separated columns "
+                            "(time,measurement) are required. Error occurred "
+                            "on file %s")%str(file_name))
+                else:
+                    if len(line.split(',')) != num_labels:
+                        raise custom_exceptions.DataFormatError((
+                            "Time series data file improperly formatted; in "
+                            "file %s line number %s has %s columns while the "
+                            "first line has %s columns.") %
+                            (
+                                file_name, str(line_no),
+                                str(len(line.split(","))), str(num_labels)))
+                line_no += 1
+    for header_fname in all_header_fnames:
+        if header_fname not in all_fname_variants:
+            raise custom_exceptions.TimeSeriesFileNameError((
+                "Header file entry with file_name=%s has no corresponding "
+                "file in provided tarball/zip file.") % header_fname)
+    return False
+
+
+def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
+    """Ensure uploaded files are correctly formatted.
+
+    Ensures that time-series data file(s) and metadata file (if any)
+    conform to expected format - returns False if so, raises Exception
+    if not.
+
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to time-series data file or tarball of files.
+    metadata_file_path : str
+        Path to metadata file or "None".
+
+    Returns
+    -------
+    bool
+        False if files are correctly formatted, otherwise raises an
+        exception (see below).
+
+    Raises
+    ------
+    custom_exceptions.TimeSeriesFileNameError
+        If any provided time-series data files' names are absent in
+        provided metadata file (only if `metadata_file_path` is not
+        "None" or None).
+    custom_exceptions.DataFormatError
+        If provided time-series data files or metadata file are
+        improperly formatted.
+
+    """
+    all_fname_variants = []
+    all_fname_variants_list_of_lists = []
+    if tarfile.is_tarfile(newpred_file_path):
+        the_zipfile = tarfile.open(newpred_file_path)
+        file_list = list(the_zipfile.getnames())
+
+        for file_name in file_list:
+            this_file = the_zipfile.getmember(file_name)
+            if this_file.isfile():
+
+                file_name_variants = [
+                    file_name, ntpath.basename(file_name),
+                    os.path.splitext(file_name)[0],
+                    os.path.splitext(ntpath.basename(file_name))[0]]
+                all_fname_variants.extend(file_name_variants)
+                all_fname_variants_list_of_lists.append(file_name_variants)
+
+                f = the_zipfile.extractfile(this_file)
+                all_lines = [
+                    line.strip() for line in
+                    f.readlines() if line.strip() != '']
+                line_no = 1
+                for line in all_lines:
+                    line = str(line)
+                    if line_no == 1:
+                        num_labels = len(line.split(','))
+                        if num_labels < 2:
+                            raise custom_exceptions.DataFormatError((
+                                "Error occurred processing file %s. Time "
+                                "series data file improperly formatted; at "
+                                "least two comma-separated columns "
+                                "(time,measurement) are required. ")
+                                % str(file_name))
+                    else:
+                        if len(line.split(',')) != num_labels:
+                            raise custom_exceptions.DataFormatError((
+                                "Time series data file improperly formatted; "
+                                "in file %s line number %s has %s columns "
+                                "while the first line has %s columns.")
+                                % (
+                                    file_name, str(line_no),
+                                    str(len(line.split(","))), str(num_labels)))
+                    line_no += 1
+    else:
+        with open(newpred_file_path) as f:
+            all_lines = [str(line).strip() for line in
+                         f.readlines() if str(line).strip() != '']
+        file_name_variants = [
+            f.name, ntpath.basename(f.name),
+            os.path.splitext(f.name)[0],
+            os.path.splitext(ntpath.basename(f.name))[0]]
+        all_fname_variants.extend(file_name_variants)
+        all_fname_variants_list_of_lists.append(file_name_variants)
+
+        line_no = 1
+        for line in all_lines:
+            if line_no == 1:
+                num_labels = len(line.split(','))
+                if num_labels < 2:
+                    raise custom_exceptions.DataFormatError(((
+                        "Error occurred processing file %s. Time series data "
+                        "file improperly formatted; at least two "
+                        "comma-separated columns (time,measurement) are "
+                        "required. Error occurred processing file %s.") %
+                        ntpath.basename(newpred_file_path)))
+            else:
+                if len(line.split(',')) != num_labels:
+                    raise custom_exceptions.DataFormatError(((
+                        "Time series data file improperly formatted; in file "
+                        "%s line number %s has %s columns while the first "
+                        "line has %s columns.") %
+                        (
+                            ntpath.basename(newpred_file_path),
+                            str(line_no), str(len(line.split(","))),
+                            str(num_labels))))
+            line_no += 1
+    # Inspect metadata file, if exists
+    if metadata_file_path not in ["None", None, "False", False, 0, ""]:
+        all_metafile_fnames = []
+        with open(metadata_file_path) as f:
+            line_count = 0
+            for line in f:
+                line = str(line)
+                if line.strip() != '':
+                    if len(line.strip().split(",")) < 2:
+                        raise custom_exceptions.DataFormatError((
+                            "Meta data file improperly formatted. At least "
+                            "two comma-separated columns "
+                            "(file_name,meta_feature) are required."))
+                    if line_count > 0:
+                        this_fname = line.strip().split(",")[0]
+                        if this_fname in all_fname_variants:
+                            all_metafile_fnames.append(this_fname)
+                        else:
+                            raise custom_exceptions.TimeSeriesFileNameError((
+                                "Metadata file entry with file_name=%s has no"
+                                " corresponding file in provided time series "
+                                "data files.")%this_fname)
+                line_count += 1
+        for file_name_vars in all_fname_variants_list_of_lists:
+            if (len(set(file_name_vars) & set(all_metafile_fnames)) == 0 and
+                    len(file_name_vars) > 1):
+                raise custom_exceptions.TimeSeriesFileNameError(
+                    ("Provided time series data file %s has no corresponding "
+                    "entry in provided metadata file.")%file_name_vars[1])
+    return False
+
+
+def featurize_proc(
+        headerfile_path, zipfile_path, features_to_use, featureset_key,
+        is_test, email_user, already_featurized, custom_script_path):
+    """Generate features and update feature set entry with results.
+
+    To be executed in a subprocess using the multiprocessing module's
+    Process routine.
+
+    Parameters
+    ----------
+    headerfile_path : str
+        Path to TS data header file.
+    zipfile_path : str
+        Path TS data tarball.
+    features_to_use : list
+        List of features to generate.
+    featureset_key : str
+        RethinkDB ID of new feature set.
+    is_test : bool
+        Boolean indicating whether to run as test.
+    email_user : str or False
+        If not False, email address of user to be notified upon
+        completion.
+    already_featurized : bool
+        Boolean indicating whether files contain already generated
+        features as opposed to TS data to be used for feature
+        generation.
+    custom_script_path : str
+        Path to custom features definition script, or "None".
+
+    """
+    # needed to establish database connection because we're now in a
+    # subprocess that is separate from main app:
+    before_request()
+    try:
+        results_str = run_in_docker_container.featurize_in_docker_container(
+            headerfile_path, zipfile_path, features_to_use, featureset_key,
+            is_test, already_featurized, custom_script_path)
+        #results_str = featurize.featurize(
+        #    headerfile_path, zipfile_path, features_to_use=features_to_use,
+        #    featureset_id=featureset_key, is_test=is_test,
+        #    already_featurized=already_featurized,
+        #    custom_script_path=custom_script_path, USE_DISCO=False)
+        if email_user not in (False, None, "False", "None"):
+            emailUser(email_user)
+    except Exception as theErr:
+        results_str = ("An error occurred while processing your request. "
+            "Please ensure that the header file and tarball of time series "
+            "data files conform to the formatting requirements.")
+        print(("   #########      Error:    flask_app.featurize_proc: %s" %
+            str(theErr)))
+        logging.exception(("Error occurred during featurize.featurize() "
+            "call."))
+        try:
+            if custom_script_path not in ("None", None, False, "False"):
+                os.remove(custom_script_path)
+        except Exception as err:
+            print ("An error occurred while attempting to remove files "
+                   "associated with failed featurization attempt.")
+            print(err)
+            logging.exception("An error occurred while attempting to remove "
+                              "files associated with failed featurization "
+                              "attempt.")
+    finally:
+        for fpath in (headerfile_path, zipfile_path):
+            try:
+                os.remove(fpath)
+            except Exception as e:
+                print(e)
+    update_featset_entry_with_results_msg(featureset_key, results_str)
+
+
+def build_model_proc(featureset_name, featureset_key, model_type, model_key):
+    """Build a model based on given features.
+
+    Begins the model building process by calling
+    build_model.build_model with provided parameters. To be executed
+    as a separate process using the multiprocessing module's Process
+    routine.
+
+    Parameters
+    ----------
+    featureset_name : str
+        Name of the feature set associated with the model to be created.
+    model_type : str
+        Abbreviation of the model type to be created (e.g. "RF").
+    featureset_key : str
+        RethinkDB ID of the associated feature set.
+
+    Returns
+    -------
+    bool
+        Returns True.
+    """
+    # needed to establish database connect because we're now in a subprocess
+    # that is separate from main app:
+    before_request()
+    print("Building model...")
+    try:
+        model_built_msg = (run_in_docker_container.
+            build_model_in_docker_container(
+                featureset_name=featureset_name,
+                featureset_key=featureset_key,
+                model_type=model_type))
+        print("Done!")
+    except Exception as theErr:
+        print("  #########   Error: flask_app.build_model_proc() -", theErr)
+        model_built_msg = (
+            "An error occurred while processing your request. "
+            "Please try again at a later time. If the problem persists, please"
+            " <a href='mailto:MLTimeseriesPlatform+Support@gmail.com' "
+            "target='_blank'>contact the support team</a>.")
+        logging.exception(
+            "Error occurred during build_model.build_model() call.")
+    update_model_entry_with_results_msg(model_key,model_built_msg)
+    return True
+
+
+def prediction_proc(
+        newpred_file_path, project_name, model_name, model_type,
+        prediction_entry_key, sep = ",", metadata_file = None,
+        path_to_tmp_dir = None):
+    """Generate features for new TS data and perform model prediction.
+
+    Begins the featurization and prediction process. To be executed
+    as a subprocess using the multiprocessing module's Process
+    routine.
+
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to file containing time series data for featurization and
+        prediction.
+    project_name : str
+        Name of the project associated with the model to be used.
+    model_name : str
+        Name of the model to be used.
+    model_type : str
+        Abbreviation of the model type (e.g. "RF").
+    prediction_entry_key : str
+        Prediction entry RethinkDB key.
+    sep : str, optional
+        Delimiting character in time series data files. Defaults to
+        comma ",".
+    metadata_file : str, optional
+        Path to associated metadata file, if any. Defaults to None.
+
+    """
+    # needed to establish database connect because we're now in a subprocess
+    # that is separate from main app:
+    before_request()
+    featset_key = featureset_name_to_key(
+        featureset_name = model_name, project_name = project_name)
+    is_tarfile = tarfile.is_tarfile(newpred_file_path)
+    custom_features_script=None
+    cursor = r.table("features").get(featset_key).run(g.rdb_conn)
+    entry = cursor
+    features_to_use = list(entry['featlist'])
+    if "custom_features_script" in entry:
+        custom_features_script = entry['custom_features_script']
+    n_cols_html_table = 5
+    results_str = (
+        "<table id='pred_results_table' class='tablesorter'>"
+        "    <thead>"
+        "        <tr class='pred_results'>"
+        "            <th class='pred_results'>File</th>")
+    for i in range(n_cols_html_table):
+        results_str += (
+        "            <th class='pred_results'>Class%d</th>"
+        "            <th class='pred_results'>Class%d_Prob</th>")%(i+1,i+1)
+    results_str += (
+        "        </tr>"
+        "    </thead>"
+        "    <tbody>")
+    try:
+        results_dict = run_in_docker_container.predict_in_docker_container(
+            newpred_file_path, model_name, model_type,
+            prediction_entry_key, featset_key, sep = sep,
+            n_cols_html_table = n_cols_html_table,
+            features_already_extracted = None, metadata_file = metadata_file,
+            custom_features_script = custom_features_script)
+
+        #results_dict = predict.predict(
+        #    newpred_file_path = newpred_file_path, model_name = model_name,
+        #    model_type = model_type, featset_key = featset_key, sepr = sep,
+        #    n_cols_html_table = n_cols_html_table,
+        #    custom_features_script = custom_features_script,
+        #    metadata_file_path = metadata_file)
+
+        try:
+            os.remove(newpred_file_path)
+            if metadata_file:
+                os.remove(metadata_file)
+        except Exception as err:
+            print (
+                "An error occurred while attempting to remove the uploaded "
+                "timeseries data file (and possibly associated "
+                "metadata file).")
+            logging.exception((
+                "An error occurred while attempting to remove "
+                "the uploaded timeseries data file (and possibly associated "
+                "metadata file)."))
+    except Exception as theErr:
+        msg = (
+            "<font color='red'>An error occurred while processing your "
+            "request. Please ensure the formatting of the provided time series"
+            " data file(s) conforms to the specified requirements.</font>" )
+        update_prediction_entry_with_results(
+            prediction_entry_key, html_str=msg, features_dict={},
+            ts_data_dict={}, pred_results_list_dict=[], err=str(theErr))
+        print("   #########      Error:   flask_app.prediction_proc:", theErr)
+        logging.exception(
+            "Error occurred during predict_class.predict() call.")
+    else:
+        if type(results_dict) == dict:
+            big_features_dict = {}
+            ts_data_dict = {}
+            pred_results_list_dict = {}
+            for fname,data_dict in results_dict.items():
+                pred_results = data_dict['results_str']
+                ts_data = data_dict['ts_data']
+                features_dict = data_dict['features_dict']
+                pred_results_list = data_dict['pred_results_list']
+
+                results_str += pred_results
+                big_features_dict[fname] = features_dict
+                ts_data_dict[fname] = ts_data
+                pred_results_list_dict[fname] = pred_results_list
+            results_str += (
+                "   </tbody>"
+                "</table>")
+            update_prediction_entry_with_results(
+                prediction_entry_key, html_str = results_str,
+                features_dict = big_features_dict, ts_data_dict = ts_data_dict,
+                pred_results_list_dict = pred_results_list_dict)
+        elif type(results_dict) == str:
+            update_prediction_entry_with_results(
+                prediction_entry_key, html_str = results_dict,
+                features_dict = {}, ts_data_dict = {},
+                pred_results_list_dict = {})
+        return True
+    finally:
+        if path_to_tmp_dir is not None:
+            try:
+                shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
+            except:
+                logging.exception(("Error occurred while attempting to remove "
+                    "uploaded files and tmp directory."))
 
 
 @app.route('/')
@@ -1948,236 +2422,6 @@ def get_list_of_models_by_project(project_name=None):
         return jsonify({"model_list":model_list})
 
 
-def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
-    """Ensure uploaded files are correctly formatted.
-
-    Ensures that headerfile_path and zipfile_path conform
-    to expected format - returns False if so, raises Exception if not.
-
-    Parameters
-    ----------
-    headerfile_path : str
-        Path to header file to inspect.
-    zipfile_path : str
-        Path to tarball to inspect.
-
-    Returns
-    -------
-    bool
-        Returns False if files are correctly formatted, otherwise
-        raises an exception (see below).
-
-    Raises
-    ------
-    custom_exceptions.TimeSeriesFileNameError
-        If any provided time-series data files' names are absent in
-        provided header file.
-    custom_exceptions.DataFormatError
-        If provided time-series data files or header file are
-        improperly formatted.
-
-    """
-    with open(headerfile_path) as f:
-        all_header_fnames = []
-        column_header_line = str(f.readline())
-        for line in f:
-            line = str(line)
-            if line.strip() != '':
-                if len(line.strip().split(",")) < 2:
-                    raise custom_exceptions.DataFormatError((
-                        "Header file improperly formatted. At least two "
-                        "comma-separated columns (file_name,class_name) are "
-                        "required."))
-                else:
-                    all_header_fnames.append(line.strip().split(",")[0])
-    the_zipfile = tarfile.open(zipfile_path)
-    file_list = list(the_zipfile.getnames())
-    all_fname_variants = []
-    for file_name in file_list:
-        this_file = the_zipfile.getmember(file_name)
-        if this_file.isfile():
-            file_name_variants = [
-                file_name, ntpath.basename(file_name),
-                os.path.splitext(file_name)[0],
-                os.path.splitext(ntpath.basename(file_name))[0]]
-            all_fname_variants.extend(file_name_variants)
-            if (len(list(set(file_name_variants) &
-                    set(all_header_fnames))) == 0):
-                raise custom_exceptions.TimeSeriesFileNameError((
-                    "Time series data file %s provided in tarball/zip file "
-                    "has no corresponding entry in header file.")
-                    % str(file_name))
-            f = the_zipfile.extractfile(this_file)
-            all_lines = [
-                line.strip() for line in f.readlines() if line.strip() != '']
-            line_no = 1
-            for line in all_lines:
-                line = str(line)
-                if line_no == 1:
-                    num_labels = len(line.split(','))
-                    if num_labels < 2:
-                        raise custom_exceptions.DataFormatError((
-                            "Time series data file improperly formatted; at "
-                            "least two comma-separated columns "
-                            "(time,measurement) are required. Error occurred "
-                            "on file %s")%str(file_name))
-                else:
-                    if len(line.split(',')) != num_labels:
-                        raise custom_exceptions.DataFormatError((
-                            "Time series data file improperly formatted; in "
-                            "file %s line number %s has %s columns while the "
-                            "first line has %s columns.") %
-                            (
-                                file_name, str(line_no),
-                                str(len(line.split(","))), str(num_labels)))
-                line_no += 1
-    for header_fname in all_header_fnames:
-        if header_fname not in all_fname_variants:
-            raise custom_exceptions.TimeSeriesFileNameError((
-                "Header file entry with file_name=%s has no corresponding "
-                "file in provided tarball/zip file.")%header_fname)
-    return False
-
-
-def check_prediction_tsdata_format(newpred_file_path, metadata_file_path):
-    """Ensure uploaded files are correctly formatted.
-
-    Ensures that time-series data file(s) and metadata file (if any)
-    conform to expected format - returns False if so, raises Exception
-    if not.
-
-    Parameters
-    ----------
-    newpred_file_path : str
-        Path to time-series data file or tarball of files.
-    metadata_file_path : str
-        Path to metadata file or "None".
-
-    Returns
-    -------
-    bool
-        False if files are correctly formatted, otherwise raises an
-        exception (see below).
-
-    Raises
-    ------
-    custom_exceptions.TimeSeriesFileNameError
-        If any provided time-series data files' names are absent in
-        provided metadata file (only if `metadata_file_path` is not
-        "None" or None).
-    custom_exceptions.DataFormatError
-        If provided time-series data files or metadata file are
-        improperly formatted.
-
-    """
-    all_fname_variants = []
-    all_fname_variants_list_of_lists = []
-    if tarfile.is_tarfile(newpred_file_path):
-        the_zipfile = tarfile.open(newpred_file_path)
-        file_list = list(the_zipfile.getnames())
-
-        for file_name in file_list:
-            this_file = the_zipfile.getmember(file_name)
-            if this_file.isfile():
-
-                file_name_variants = [
-                    file_name, ntpath.basename(file_name),
-                    os.path.splitext(file_name)[0],
-                    os.path.splitext(ntpath.basename(file_name))[0]]
-                all_fname_variants.extend(file_name_variants)
-                all_fname_variants_list_of_lists.append(file_name_variants)
-
-                f = the_zipfile.extractfile(this_file)
-                all_lines = [
-                    line.strip() for line in
-                    f.readlines() if line.strip() != '']
-                line_no = 1
-                for line in all_lines:
-                    line = str(line)
-                    if line_no == 1:
-                        num_labels = len(line.split(','))
-                        if num_labels < 2:
-                            raise custom_exceptions.DataFormatError((
-                                "Error occurred processing file %s. Time "
-                                "series data file improperly formatted; at "
-                                "least two comma-separated columns "
-                                "(time,measurement) are required. ")
-                                % str(file_name))
-                    else:
-                        if len(line.split(',')) != num_labels:
-                            raise custom_exceptions.DataFormatError((
-                                "Time series data file improperly formatted; "
-                                "in file %s line number %s has %s columns "
-                                "while the first line has %s columns.")
-                                % (
-                                    file_name, str(line_no),
-                                    str(len(line.split(","))), str(num_labels)))
-                    line_no += 1
-    else:
-        with open(newpred_file_path) as f:
-            all_lines = [str(line).strip() for line in
-                         f.readlines() if str(line).strip() != '']
-        file_name_variants = [
-            f.name, ntpath.basename(f.name),
-            os.path.splitext(f.name)[0],
-            os.path.splitext(ntpath.basename(f.name))[0]]
-        all_fname_variants.extend(file_name_variants)
-        all_fname_variants_list_of_lists.append(file_name_variants)
-
-        line_no = 1
-        for line in all_lines:
-            if line_no == 1:
-                num_labels = len(line.split(','))
-                if num_labels < 2:
-                    raise custom_exceptions.DataFormatError(((
-                        "Error occurred processing file %s. Time series data "
-                        "file improperly formatted; at least two "
-                        "comma-separated columns (time,measurement) are "
-                        "required. Error occurred processing file %s.") %
-                        ntpath.basename(newpred_file_path)))
-            else:
-                if len(line.split(',')) != num_labels:
-                    raise custom_exceptions.DataFormatError(((
-                        "Time series data file improperly formatted; in file "
-                        "%s line number %s has %s columns while the first "
-                        "line has %s columns.") %
-                        (
-                            ntpath.basename(newpred_file_path),
-                            str(line_no), str(len(line.split(","))),
-                            str(num_labels))))
-            line_no += 1
-    # Inspect metadata file, if exists
-    if metadata_file_path not in ["None", None, "False", False, 0]:
-        all_metafile_fnames = []
-        with open(metadata_file_path) as f:
-            line_count = 0
-            for line in f:
-                line = str(line)
-                if line.strip() != '':
-                    if len(line.strip().split(",")) < 2:
-                        raise custom_exceptions.DataFormatError((
-                            "Meta data file improperly formatted. At least "
-                            "two comma-separated columns "
-                            "(file_name,meta_feature) are required."))
-                    if line_count > 0:
-                        this_fname = line.strip().split(",")[0]
-                        if this_fname in all_fname_variants:
-                            all_metafile_fnames.append(this_fname)
-                        else:
-                            raise custom_exceptions.TimeSeriesFileNameError((
-                                "Metadata file entry with file_name=%s has no"
-                                " corresponding file in provided time series "
-                                "data files.")%this_fname)
-                line_count += 1
-        for file_name_vars in all_fname_variants_list_of_lists:
-            if (len(set(file_name_vars) & set(all_metafile_fnames)) == 0 and
-                    len(file_name_vars) > 1):
-                raise custom_exceptions.TimeSeriesFileNameError(
-                    ("Provided time series data file %s has no corresponding "
-                    "entry in provided metadata file.")%file_name_vars[1])
-    return False
-
-
 @app.route('/uploadFeaturesForm', methods=['POST','GET'])
 @stormpath.login_required
 def uploadFeaturesForm():
@@ -2303,78 +2547,6 @@ def uploadDataFeaturize(
             headerfile_name=headerfile_name, zipfile_name=zipfile_name,
             sep=sep,featlist=features_to_use, is_test=is_test,
             email_user=email_user, custom_script_path=customscript_path)
-
-
-def featurize_proc(
-        headerfile_path, zipfile_path, features_to_use, featureset_key,
-        is_test, email_user, already_featurized, custom_script_path):
-    """Generate features and update feature set entry with results.
-
-    To be executed in a subprocess using the multiprocessing module's
-    Process routine.
-
-    Parameters
-    ----------
-    headerfile_path : str
-        Path to TS data header file.
-    zipfile_path : str
-        Path TS data tarball.
-    features_to_use : list
-        List of features to generate.
-    featureset_key : str
-        RethinkDB ID of new feature set.
-    is_test : bool
-        Boolean indicating whether to run as test.
-    email_user : str or False
-        If not False, email address of user to be notified upon
-        completion.
-    already_featurized : bool
-        Boolean indicating whether files contain already generated
-        features as opposed to TS data to be used for feature
-        generation.
-    custom_script_path : str
-        Path to custom features definition script, or "None".
-
-    """
-    # needed to establish database connection because we're now in a
-    # subprocess that is separate from main app:
-    before_request()
-    try:
-        results_str = run_in_docker_container.featurize_in_docker_container(
-            headerfile_path, zipfile_path, features_to_use, featureset_key,
-            is_test, already_featurized, custom_script_path)
-        #results_str = featurize.featurize(
-        #    headerfile_path, zipfile_path, features_to_use=features_to_use,
-        #    featureset_id=featureset_key, is_test=is_test,
-        #    already_featurized=already_featurized,
-        #    custom_script_path=custom_script_path, USE_DISCO=False)
-        if email_user not in (False, None, "False", "None"):
-            emailUser(email_user)
-    except Exception as theErr:
-        results_str = ("An error occurred while processing your request. "
-            "Please ensure that the header file and tarball of time series "
-            "data files conform to the formatting requirements.")
-        print(("   #########      Error:    flask_app.featurize_proc: %s" %
-            str(theErr)))
-        logging.exception(("Error occurred during featurize.featurize() "
-            "call."))
-        try:
-            if custom_script_path not in ("None", None, False, "False"):
-                os.remove(custom_script_path)
-        except Exception as err:
-            print ("An error occurred while attempting to remove files "
-                   "associated with failed featurization attempt.")
-            print(err)
-            logging.exception("An error occurred while attempting to remove "
-                              "files associated with failed featurization "
-                              "attempt.")
-    finally:
-        for fpath in (headerfile_path, zipfile_path):
-            try:
-                os.remove(fpath)
-            except Exception as e:
-                print(e)
-    update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
 @app.route('/featurizing')
@@ -2750,138 +2922,6 @@ def load_featurization_results(new_featset_key):
         })
 
 
-def prediction_proc(
-        newpred_file_path, project_name, model_name, model_type,
-        prediction_entry_key, sep = ",", metadata_file = None,
-        path_to_tmp_dir = None):
-    """Generate features for new TS data and perform model prediction.
-
-    Begins the featurization and prediction process. To be executed
-    as a subprocess using the multiprocessing module's Process
-    routine.
-
-    Parameters
-    ----------
-    newpred_file_path : str
-        Path to file containing time series data for featurization and
-        prediction.
-    project_name : str
-        Name of the project associated with the model to be used.
-    model_name : str
-        Name of the model to be used.
-    model_type : str
-        Abbreviation of the model type (e.g. "RF").
-    prediction_entry_key : str
-        Prediction entry RethinkDB key.
-    sep : str, optional
-        Delimiting character in time series data files. Defaults to
-        comma ",".
-    metadata_file : str, optional
-        Path to associated metadata file, if any. Defaults to None.
-
-    """
-    # needed to establish database connect because we're now in a subprocess
-    # that is separate from main app:
-    before_request()
-    featset_key = featureset_name_to_key(
-        featureset_name = model_name, project_name = project_name)
-    is_tarfile = tarfile.is_tarfile(newpred_file_path)
-    custom_features_script=None
-    cursor = r.table("features").get(featset_key).run(g.rdb_conn)
-    entry = cursor
-    features_to_use = list(entry['featlist'])
-    if "custom_features_script" in entry:
-        custom_features_script = entry['custom_features_script']
-    n_cols_html_table = 5
-    results_str = (
-        "<table id='pred_results_table' class='tablesorter'>"
-        "    <thead>"
-        "        <tr class='pred_results'>"
-        "            <th class='pred_results'>File</th>")
-    for i in range(n_cols_html_table):
-        results_str += (
-        "            <th class='pred_results'>Class%d</th>"
-        "            <th class='pred_results'>Class%d_Prob</th>")%(i+1,i+1)
-    results_str += (
-        "        </tr>"
-        "    </thead>"
-        "    <tbody>")
-    try:
-        results_dict = run_in_docker_container.predict_in_docker_container(
-            newpred_file_path, model_name, model_type,
-            prediction_entry_key, featset_key, sep = sep,
-            n_cols_html_table = n_cols_html_table,
-            features_already_extracted = None, metadata_file = metadata_file,
-            custom_features_script = custom_features_script)
-
-        #results_dict = predict.predict(
-        #    newpred_file_path = newpred_file_path, model_name = model_name,
-        #    model_type = model_type, featset_key = featset_key, sepr = sep,
-        #    n_cols_html_table = n_cols_html_table,
-        #    custom_features_script = custom_features_script,
-        #    metadata_file_path = metadata_file)
-
-        try:
-            os.remove(newpred_file_path)
-            if metadata_file:
-                os.remove(metadata_file)
-        except Exception as err:
-            print (
-                "An error occurred while attempting to remove the uploaded "
-                "timeseries data file (and possibly associated "
-                "metadata file).")
-            logging.exception((
-                "An error occurred while attempting to remove "
-                "the uploaded timeseries data file (and possibly associated "
-                "metadata file)."))
-    except Exception as theErr:
-        msg = (
-            "<font color='red'>An error occurred while processing your "
-            "request. Please ensure the formatting of the provided time series"
-            " data file(s) conforms to the specified requirements.</font>" )
-        update_prediction_entry_with_results(
-            prediction_entry_key, html_str=msg, features_dict={},
-            ts_data_dict={}, pred_results_list_dict=[], err=str(theErr))
-        print("   #########      Error:   flask_app.prediction_proc:", theErr)
-        logging.exception(
-            "Error occurred during predict_class.predict() call.")
-    else:
-        if type(results_dict) == dict:
-            big_features_dict = {}
-            ts_data_dict = {}
-            pred_results_list_dict = {}
-            for fname,data_dict in results_dict.items():
-                pred_results = data_dict['results_str']
-                ts_data = data_dict['ts_data']
-                features_dict = data_dict['features_dict']
-                pred_results_list = data_dict['pred_results_list']
-
-                results_str += pred_results
-                big_features_dict[fname] = features_dict
-                ts_data_dict[fname] = ts_data
-                pred_results_list_dict[fname] = pred_results_list
-            results_str += (
-                "   </tbody>"
-                "</table>")
-            update_prediction_entry_with_results(
-                prediction_entry_key, html_str = results_str,
-                features_dict = big_features_dict, ts_data_dict = ts_data_dict,
-                pred_results_list_dict = pred_results_list_dict)
-        elif type(results_dict) == str:
-            update_prediction_entry_with_results(
-                prediction_entry_key, html_str = results_dict,
-                features_dict = {}, ts_data_dict = {},
-                pred_results_list_dict = {})
-        return True
-    finally:
-        if path_to_tmp_dir is not None:
-            try:
-                shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
-            except:
-                logging.exception(("Error occurred while attempting to remove "
-                    "uploaded files and tmp directory."))
-
-
 @app.route('/predicting')
 @stormpath.login_required
 def predicting():
@@ -3148,52 +3188,6 @@ def uploadPredictionData():
             model_type=model_type,
             metadata_file_path=metadata_file_path,
             path_to_tmp_dir=path_to_tmp_dir)
-
-
-def build_model_proc(featureset_name,featureset_key,model_type,model_key):
-    """Build a model based on given features.
-
-    Begins the model building process by calling
-    build_model.build_model with provided parameters. To be executed
-    as a separate process using the multiprocessing module's Process
-    routine.
-
-    Parameters
-    ----------
-    featureset_name : str
-        Name of the feature set associated with the model to be created.
-    model_type : str
-        Abbreviation of the model type to be created (e.g. "RF").
-    featureset_key : str
-        RethinkDB ID of the associated feature set.
-
-    Returns
-    -------
-    bool
-        Returns True.
-    """
-    # needed to establish database connect because we're now in a subprocess
-    # that is separate from main app:
-    before_request()
-    print("Building model...")
-    try:
-        model_built_msg = (run_in_docker_container.
-            build_model_in_docker_container(
-                featureset_name=featureset_name,
-                featureset_key=featureset_key,
-                model_type=model_type))
-        print("Done!")
-    except Exception as theErr:
-        print("  #########   Error: flask_app.build_model_proc() -", theErr)
-        model_built_msg = (
-            "An error occurred while processing your request. "
-            "Please try again at a later time. If the problem persists, please"
-            " <a href='mailto:MLTimeseriesPlatform+Support@gmail.com' "
-            "target='_blank'>contact the support team</a>.")
-        logging.exception(
-            "Error occurred during build_model.build_model() call.")
-    update_model_entry_with_results_msg(model_key,model_built_msg)
-    return True
 
 
 @app.route('/buildingModel')
