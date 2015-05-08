@@ -61,9 +61,12 @@ except IOError:
 
 
 app.config['SECRET_KEY'] = config['flask']['secret-key']
-app.config['STORMPATH_API_KEY_ID'] = config['authentication']['stormpath_api_key_id']
-app.config['STORMPATH_API_KEY_SECRET'] = config['authentication']['stormpath_api_key_secret']
-app.config['STORMPATH_APPLICATION'] = config['authentication']['stormpath_application']
+app.config['STORMPATH_API_KEY_ID'] = \
+    config['authentication']['stormpath_api_key_id']
+app.config['STORMPATH_API_KEY_SECRET'] = \
+    config['authentication']['stormpath_api_key_secret']
+app.config['STORMPATH_APPLICATION'] = \
+    config['authentication']['stormpath_application']
 
 if config['authentication']['google_client_id'] is not None:
     app.config['STORMPATH_ENABLE_GOOGLE'] = True
@@ -157,7 +160,7 @@ def num_lines(filename):
     return linecount
 
 
-@app.route('/check_job_status/', methods=['POST','GET'])
+@app.route('/check_job_status/', methods=['POST', 'GET'])
 @stormpath.login_required
 def check_job_status(PID=False):
     """Check status of a process, return string summary.
@@ -298,12 +301,12 @@ def add_user():
     }).run(g.rdb_conn)
 
 
-#@app.before_first_request
+# @app.before_first_request
 @app.route('/check_user_table', methods=['POST'])
 def check_user_table():
     """Add current user to RethinkDB 'users' table if not present."""
-    if (r.table("users").filter({'email': stormpath.user.email})
-        .count().run(g.rdb_conn)) == 0:
+    if r.table("users").filter({'email': stormpath.user.email})\
+                       .count().run(g.rdb_conn) == 0:
 
         add_user()
 
@@ -385,7 +388,6 @@ def update_prediction_entry_with_pid(prediction_key, pid):
     (r.table('predictions').get(prediction_key)
         .update({"pid": str(pid)}).run(g.rdb_conn))
     return prediction_key
-
 
 
 def update_prediction_entry_with_results(prediction_entry_key, html_str,
@@ -512,12 +514,12 @@ def get_current_userkey():
         entries.append(entry)
     if len(entries) == 0:
         print(("ERROR!!! get_current_userkey() - no matching entries in users "
-            "table with email"), stormpath.user.email)
+               "table with email"), stormpath.user.email)
         raise Exception(("dbError - No matching entries in users table for "
-            "email address %s.") % str(stormpath.user.email))
+                         "email address %s.") % str(stormpath.user.email))
     elif len(entries) > 1:
         print(("WARNING!! get_current_userkey() - more than one entry in "
-        "users table with email"), stormpath.user.email)
+               "users table with email"), stormpath.user.email)
     else:
         return entries[0]['id']
 
@@ -560,8 +562,8 @@ def get_authed_projkeys(this_userkey=None):
 
 
 def list_featuresets(
-    auth_only=True, by_project=False, name_only=False,
-    as_html_table_string=False):
+        auth_only=True, by_project=False, name_only=False,
+        as_html_table_string=False):
     """Return list of strings describing entries in 'features' table.
 
     Parameters
@@ -605,7 +607,7 @@ def list_featuresets(
                 authed_featuresets += (
                     "<tr class='features_row'><td align='left'>" +
                     entry['name'] + "</td><td align='left'>" +
-                    entry['created'][:-13]+
+                    entry['created'][:-13] +
                     ((
                         " PST</td><td align='center'>" +
                         "<a href='#' onclick=\"$('#feats_used_div_%d')" +
@@ -1962,8 +1964,8 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
 
 def prediction_proc(
         newpred_file_path, project_name, model_name, model_type,
-        prediction_entry_key, sep = ",", metadata_file = None,
-        path_to_tmp_dir = None):
+        prediction_entry_key, sep=",", metadata_file=None,
+        path_to_tmp_dir=None):
     """Generate features for new TS data and perform model prediction.
 
     Begins the featurization and prediction process. To be executed
@@ -1990,13 +1992,13 @@ def prediction_proc(
         Path to associated metadata file, if any. Defaults to None.
 
     """
-    # needed to establish database connect because we're now in a subprocess
+    # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
     featset_key = featureset_name_to_key(
-        featureset_name = model_name, project_name = project_name)
+        featureset_name=model_name, project_name=project_name)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
-    custom_features_script=None
+    custom_features_script = None
     cursor = r.table("features").get(featset_key).run(g.rdb_conn)
     entry = cursor
     features_to_use = list(entry['featlist'])
@@ -2019,17 +2021,17 @@ def prediction_proc(
     try:
         results_dict = run_in_docker_container.predict_in_docker_container(
             newpred_file_path, model_name, model_type,
-            prediction_entry_key, featset_key, sep = sep,
-            n_cols_html_table = n_cols_html_table,
-            features_already_extracted = None, metadata_file = metadata_file,
-            custom_features_script = custom_features_script)
+            prediction_entry_key, featset_key, sep=sep,
+            n_cols_html_table=n_cols_html_table,
+            features_already_extracted=None, metadata_file=metadata_file,
+            custom_features_script=custom_features_script)
 
         #results_dict = predict.predict(
-        #    newpred_file_path = newpred_file_path, model_name = model_name,
-        #    model_type = model_type, featset_key = featset_key, sepr = sep,
-        #    n_cols_html_table = n_cols_html_table,
-        #    custom_features_script = custom_features_script,
-        #    metadata_file_path = metadata_file)
+        #    newpred_file_path=newpred_file_path, model_name=model_name,
+        #    model_type=model_type, featset_key=featset_key, sepr=sep,
+        #    n_cols_html_table=n_cols_html_table,
+        #    custom_features_script=custom_features_script,
+        #    metadata_file_path=metadata_file)
 
         try:
             os.remove(newpred_file_path)
@@ -2060,7 +2062,7 @@ def prediction_proc(
             big_features_dict = {}
             ts_data_dict = {}
             pred_results_list_dict = {}
-            for fname,data_dict in results_dict.items():
+            for fname, data_dict in results_dict.items():
                 pred_results = data_dict['results_str']
                 ts_data = data_dict['ts_data']
                 features_dict = data_dict['features_dict']
@@ -2074,9 +2076,9 @@ def prediction_proc(
                 "   </tbody>"
                 "</table>")
             update_prediction_entry_with_results(
-                prediction_entry_key, html_str = results_str,
-                features_dict = big_features_dict, ts_data_dict = ts_data_dict,
-                pred_results_list_dict = pred_results_list_dict)
+                prediction_entry_key, html_str=results_str,
+                features_dict=big_features_dict, ts_data_dict=ts_data_dict,
+                pred_results_list_dict=pred_results_list_dict)
         elif type(results_dict) == str:
             update_prediction_entry_with_results(
                 prediction_entry_key, html_str = results_dict,
@@ -2086,7 +2088,7 @@ def prediction_proc(
     finally:
         if path_to_tmp_dir is not None:
             try:
-                shutil.rmtree(path_to_tmp_dir,ignore_errors=True)
+                shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
             except:
                 logging.exception(("Error occurred while attempting to remove "
                     "uploaded files and tmp directory."))
@@ -3035,7 +3037,7 @@ def predictionPage(
     return jsonify({
         "message": ("New prediction files saved successfully, and "
             "featurization/model prediction has begun (with process ID = %s)."
-            )%str(PID),
+            ) % str(PID),
         "PID": PID,
         "project_name": project_name,
         "prediction_entry_key": new_prediction_key,
@@ -3097,7 +3099,7 @@ def uploadPredictionData():
             # suffix of _2, _3, etc...
             file_suffix = newpred_filename.split('.')[-1]
             number_suffixes = ['']
-            number_suffixes.extend(list(range(1,999)))
+            number_suffixes.extend(list(range(1, 999)))
             for number_suffix in number_suffixes:
                 number_suffix = str(number_suffix)
                 if number_suffix == '':

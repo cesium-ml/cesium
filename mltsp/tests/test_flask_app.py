@@ -3,6 +3,7 @@ os.environ["DEBUG_LOGIN"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 from mltsp import custom_exceptions
+from mltsp import build_model
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
@@ -1496,4 +1497,54 @@ class FlaskAppTestCase(unittest.TestCase):
 
     def test_prediction_proc(self):
         """Test prediction process"""
-        
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+
+            generate_model()
+            shutil.copy(pjoin(DATA_DIR, "dotastro_215153.dat"),
+                        pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
+            shutil.copy(pjoin(DATA_DIR, "TESTRUN_215153_metadata.dat"),
+                        cfg.UPLOAD_FOLDER)
+            shutil.copy(pjoin(DATA_DIR, "testfeature1.py"),
+                        pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                              "TESTRUN_CF.py"))
+
+            r.table("features").insert({"id": "TEMP_TEST01",
+                                        "name": "TEMP_TEST01",
+                                        "projkey": "TEMP_TEST01",
+                                        "featlist": ["std_err"]}).run(conn)
+            r.table("projects").insert({"id": "TEMP_TEST01",
+                                        "name": "TEMP_TEST01"}).run(conn)
+            r.table("predictions").insert({"id": "TEMP_TEST01"}).run(conn)
+            fa.prediction_proc(
+                pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
+                "TEMP_TEST01", "TEMP_TEST01", "RF", "TEMP_TEST01",
+                "TEMP_TEST01",
+                metadata_file=pjoin(cfg.UPLOAD_FOLDER,
+                                    "TESTRUN_215153_metadata.dat"))
+
+            entry = r.table("predictions").get("TEMP_TEST01").run(conn)
+            pred_results_list_dict = entry
+            npt.assert_equal(pred_results_list_dict["pred_results_list_dict"]\
+                             ["TESTRUN_215153.dat"][0][0],
+                             'Herbig_AEBE')
+
+            assert all(key in pred_results_list_dict for key in ("ts_data_dict",
+                                                            "features_dict"))
+            r.table("models").get("TEMP_TEST01").delete().run(conn)
+            r.table("features").get("TEMP_TEST01").delete().run(conn)
+            r.table("predictions").get("TEMP_TEST01").delete().run(conn)
+            for fpath in [pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
+                          pjoin(cfg.UPLOAD_FOLDER,
+                                "TESTRUN_215153_metadata.dat"),
+                          pjoin(cfg.FEATURES_FOLDER,
+                                "TEMP_TEST01_features.csv"),
+                          pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"),
+                          pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"),
+                          pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                "TESTRUN_CF.py")]:
+                try:
+                    os.remove(fpath)
+                except Exception as e:
+                    print(e)
