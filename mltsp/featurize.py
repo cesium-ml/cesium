@@ -268,7 +268,7 @@ def extract_serial(headerfile_path, zipfile_path, features_to_use,
         else:
             pass
     print("Done.")
-    #remove_unzipped_files(all_fnames)
+    # remove_unzipped_files(all_fnames)
     shutil.rmtree(unzip_dir, ignore_errors=True)
     return objects
 
@@ -332,14 +332,15 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
     else:
         features_extracted = []
         return
-    if "class" in features_extracted: features_extracted.remove("class")
+    if "class" in features_extracted:
+        features_extracted.remove("class")
     features_to_plot = determine_feats_to_plot(features_extracted)
 
     with open(os.path.join(
         ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
         "%s_features.csv" % featureset_id), 'w') as f, open(os.path.join(
-        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
+            ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
+            "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
         write_column_titles(f, f2, features_extracted, features_to_use,
                             features_to_plot)
         class_count, num_used, num_held_back = count_classes(objects)

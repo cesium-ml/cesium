@@ -53,7 +53,7 @@ def predict():
                 "custom_features_script = %s is not a file " +
                 "currently on disk.") % custom_features_script)
     if ("metadata_file" in function_args and
-            function_args["metadata_file"] not in [None,False,"None",""]):
+            function_args["metadata_file"] not in [None, False, "None", ""]):
         metadata_file = str(function_args['metadata_file'])
         if not os.path.isfile(metadata_file):
             raise Exception((
@@ -80,6 +80,6 @@ def predict():
     return "Featurization and prediction complete."
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     results_str = predict()
     print(results_str)

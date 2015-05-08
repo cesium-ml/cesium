@@ -15,9 +15,10 @@ from . import cfg
 
 
 class MissingRequiredParameterError(Exception):
+
     """Required parameter is not provided in feature function call."""
 
-    def __init__(self,value):
+    def __init__(self, value):
         self.value = value
 
     def __str__(self):
@@ -25,6 +26,7 @@ class MissingRequiredParameterError(Exception):
 
 
 class MissingRequiredReturnKeyError(Exception):
+
     """Required return value is not provided in feature definition."""
 
     def __init__(self, value):
@@ -35,6 +37,7 @@ class MissingRequiredReturnKeyError(Exception):
 
 
 class myFeature(object):
+
     """Decorator for custom-defined time series feature(s) function.
 
     Applies function wrapper that ensures required parameters and
@@ -99,7 +102,9 @@ class myFeature(object):
 
 
 class DummyFile(object):
+
     """Used as a file object to temporarily redirect/suppress output."""
+
     def write(self, x):
         pass
 
@@ -107,13 +112,13 @@ class DummyFile(object):
 def is_running_in_docker_container():
     """Return bool indicating whether running in a Docker container."""
     import subprocess
-    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
     output = proc.stdout.read()
     print(output)
     if "/docker/" in str(output):
-        in_docker_container=True
+        in_docker_container = True
     else:
-        in_docker_container=False
+        in_docker_container = False
     return in_docker_container
 
 
@@ -139,15 +144,15 @@ def parse_csv_file(fname, sep=',', skip_lines=0):
     """
     with open(fname, "r") as f:
         ts_data = np.loadtxt(f, delimiter=",", skiprows=skip_lines)
-    ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
+    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
     for row in ts_data:
         if len(row) < 2:
             raise custom_exceptions.DataFormatError(
                 "Incomplete or improperly formatted time "
                 "series data file provided.")
-    tme =  list(map(list, zip(*ts_data))) # Need t, m, and e in separate lists
+    tme = list(map(list, zip(*ts_data)))  # Need t, m, and e in separate lists
     if len(tme) == 2:
-        tme.append([]) # Add empty err col
+        tme.append([])  # Add empty err col
     return tme
 
 
@@ -159,13 +164,13 @@ def parse_for_req_prov_params(script_fpath):
     fnames_req_prov_dict = {}
     all_required_params = []
     all_provided_params = []
-    for i in range(len(all_lines)-1):
-        if "@myFeature" in all_lines[i] and "def " in all_lines[i+1]:
+    for i in range(len(all_lines) - 1):
+        if "@myFeature" in all_lines[i] and "def " in all_lines[i + 1]:
             reqs_provs_1 = parse(
                 "@myFeature(requires={requires}, provides={provides})",
                 all_lines[i].strip())
             func_name = parse(
-                "def {funcname}({args}):", all_lines[i+1].strip())
+                "def {funcname}({args}):", all_lines[i + 1].strip())
             fnames_req_prov_dict[func_name.named['funcname']] = {
                 "requires": eval(reqs_provs_1.named["requires"]),
                 "provides": eval(reqs_provs_1.named["provides"])}
@@ -187,7 +192,7 @@ def listify_feats_known_dict(features_already_known):
         return features_already_known
     else:
         raise ValueError("custom_feature_tools.py - features_already_known"
-                         " is of an invalid type (%s)." %\
+                         " is of an invalid type (%s)." %
                          str(type(features_already_known)))
 
 
@@ -233,16 +238,17 @@ def call_custom_functions(features_already_known_list, all_required_params,
                 else:
                     func_rounds[str(i)].append(funcname)
                     all_required_params_copy = [x for x in all_required_params_copy
-                                           if x not in provs]
+                                                if x not in provs]
                     arguments = {}
                     for req in reqs:
                         if req in features_already_known:
                             arguments[req] = features_already_known[req]
                         elif req in all_extracted_features:
                             arguments[req] = all_extracted_features[req]
-                    func_result = getattr(custom_feature_defs, funcname)(**arguments)
+                    func_result = getattr(
+                        custom_feature_defs, funcname)(**arguments)
                     all_extracted_features = dict(
-                        list(all_extracted_features.items()) + \
+                        list(all_extracted_features.items()) +
                         list(func_result.items()))
                     funcnames.remove(funcname)
             i += 1
@@ -255,8 +261,8 @@ def call_custom_functions(features_already_known_list, all_required_params,
 def execute_functions_in_order(
         script_fpath,
         features_already_known={
-            "t":[1, 2, 3], "m":[1, 23, 2], "e":[0.2, 0.3, 0.2],
-            "coords":[22, 33]},
+            "t": [1, 2, 3], "m": [1, 23, 2], "e": [0.2, 0.3, 0.2],
+            "coords": [22, 33]},
         multiple_sources=False):
     """Generate custom features defined in script_fpath.
 
@@ -326,7 +332,7 @@ def parse_tsdata_to_lists(ts_data):
                 # ts_data already in desired format
                 tme = ts_data
             elif isinstance(ts_data[0], (str, type(u''))) and \
-                 "," in ts_data[0]:
+                    "," in ts_data[0]:
                 for el in ts_data:
                     if str(el) not in ["\n", ""]:
                         tme.append(el.split(","))
@@ -338,7 +344,8 @@ def parse_tsdata_to_lists(ts_data):
             if all_lines[i].strip() == "":
                 continue
             else:
-                tme.append([x.strip() for x in all_lines[i].strip().split(",")])
+                tme.append([x.strip()
+                            for x in all_lines[i].strip().split(",")])
     else:
         try:
             all_lines = str(ts_data).strip().split("\n")
@@ -346,7 +353,8 @@ def parse_tsdata_to_lists(ts_data):
                 if all_lines[i].strip() == "":
                     continue
                 else:
-                    tme.append([x.strip() for x in all_lines[i].strip().split(",")])
+                    tme.append([x.strip()
+                                for x in all_lines[i].strip().split(",")])
         except:
             pass
     return tme
@@ -357,7 +365,7 @@ def parse_tsdata_from_file(ts_datafile_path):
     """
     with open(ts_datafile_path, "r") as f:
         ts_data = np.loadtxt(f, delimiter=",")
-    ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
+    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
     for row in ts_data:
         if len(row) < 2:
             raise custom_exceptions.DataFormatError(
@@ -381,10 +389,10 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
             if ts_datafile_paths[i] is None and ts_data_list[i] is None:
                 raise ValueError("No time series data provided! ts_datafile_paths "
                                  "is None and ts_data_list is None  !!")
-            if ts_datafile_paths[i] is not None: # path to ts data file
+            if ts_datafile_paths[i] is not None:  # path to ts data file
                 # parse ts data and put t,m(,e) into features_already_known
                 tme = parse_tsdata_from_file(ts_datafile_paths[i])
-            else: # ts_data passed directly
+            else:  # ts_data passed directly
                 tme = parse_tsdata_to_lists(ts_data_list[i])
             if len(tme) > 0:
                 if all(len(this_tme) == 3 for this_tme in tme):
@@ -633,13 +641,13 @@ def list_features_provided(script_fpath):
     fnames_req_prov_dict = {}
     all_required_params = []
     all_provided_params = []
-    for i in range(len(all_lines)-1):
-        if "@myFeature" in all_lines[i] and "def " in all_lines[i+1]:
+    for i in range(len(all_lines) - 1):
+        if "@myFeature" in all_lines[i] and "def " in all_lines[i + 1]:
             reqs_provs_1 = parse(
                 "@myFeature(requires={requires}, provides={provides})",
                 all_lines[i].strip())
             func_name = parse(
-                "def {funcname}({args}):", all_lines[i+1].strip())
+                "def {funcname}({args}):", all_lines[i + 1].strip())
             fnames_req_prov_dict[func_name.named['funcname']] = {
                 "requires": eval(reqs_provs_1.named["requires"]),
                 "provides": eval(reqs_provs_1.named["provides"])}
@@ -647,8 +655,8 @@ def list_features_provided(script_fpath):
                 all_required_params +
                 list(set(eval(reqs_provs_1.named["requires"])))))
             all_provided_params = list(set(
-            all_provided_params +
-            list(set(eval(reqs_provs_1.named["provides"])))))
+                all_provided_params +
+                list(set(eval(reqs_provs_1.named["provides"])))))
     return all_provided_params
 
 
@@ -692,14 +700,16 @@ def generate_custom_features(
         print("path_to_csv:", path_to_csv)
         print("ts_data:", ts_data)
         raise Exception("Neither path_to_csv nor ts_data provided...")
-    if "t" not in features_already_known: features_already_known['t'] = t
-    if "m" not in features_already_known: features_already_known['m'] = m
+    if "t" not in features_already_known:
+        features_already_known['t'] = t
+    if "m" not in features_already_known:
+        features_already_known['m'] = m
     if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
     if is_running_in_docker_container():
         all_new_features = execute_functions_in_order(
-                features_already_known=features_already_known,
-                script_fpath=custom_script_path)
+            features_already_known=features_already_known,
+            script_fpath=custom_script_path)
     else:
         if docker_installed():
             print("Generating custom features inside docker container...")

@@ -65,7 +65,7 @@ def parse_ts_data(filepath, sep):
     """
     with open(filepath) as f:
         ts_data = np.loadtxt(f, delimiter=",")
-    ts_data = ts_data[:,:3].tolist() # Only using T, M, E; convert to list
+    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
     for row in ts_data:
         if len(row) < 2:
             raise custom_exceptions.DataFormatError(
@@ -118,7 +118,7 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
     else:
         timeseries_features = {}
     if len(list(set(features_to_use) &
-            set(cfg.features_list_science))) > 0:
+                set(cfg.features_list_science))) > 0:
         from .TCP.Software.ingest_tools import generate_science_features
         science_features = generate_science_features.generate(
             ts_data=deepcopy(ts_data))
@@ -133,8 +133,8 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
                     list(meta_features[short_fname].items()) if short_fname in
                     meta_features else list({}.items()))), ts_data=ts_data)
         if (isinstance(custom_features, list) and
-            len(custom_features) == 1):
-                custom_features = custom_features[0]
+                len(custom_features) == 1):
+            custom_features = custom_features[0]
         elif (isinstance(custom_features, list) and
               len(custom_features) == 0):
             custom_features = {}
@@ -168,7 +168,7 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.mkdir(tmp_dir_path)
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
-        if DISCO_INSTALLED:# and not in_docker_container:# #TEMP#
+        if DISCO_INSTALLED:  # and not in_docker_container:# #TEMP#
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
                     newpred_file_path=newpred_file_path,
@@ -180,7 +180,7 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
                 if fname in meta_features:
                     big_features_and_tsdata_dict[fname]['features_dict'] = (
                         dict(list(big_features_and_tsdata_dict[fname]
-                             ['features_dict'].items())
+                                  ['features_dict'].items())
                              + list(meta_features[fname].items())))
         else:
             big_features_and_tsdata_dict = featurize_multiple_serially(
@@ -234,8 +234,8 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
     class_names = sorted_class_list
 
     results_str = ("<tr class='pred_results'>"
-        "<td class='pred_results pred_results_fname_cell'>"
-        "<a href='#'>%s</a></td>") % ntpath.basename(fname)
+                   "<td class='pred_results pred_results_fname_cell'>"
+                   "<a href='#'>%s</a></td>") % ntpath.basename(fname)
     results_arr = []
 
     for i in range(len(class_probs)):
