@@ -4,6 +4,7 @@ from mltsp import build_model
 import os
 from os.path import join as pjoin
 import shutil
+from subprocess import Popen, PIPE
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -11,6 +12,13 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 def test_featurize_in_parallel():
     """Test main parallelized featurization function"""
+    # Check if Disco is running
+    process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    disco_running = "running" in stdout
+    if not disco_running:
+        print("Disco not running - aborting test.")
+        return
     fname_features_dict = prl_proc.featurize_in_parallel(
         pjoin(DATA_PATH,
               "asas_training_subset_classes.dat"),
@@ -37,6 +45,13 @@ def generate_model():
 
 def test_featurize_prediction_data_in_parallel():
     """Test parallel featurization of prediction TS data"""
+    # Check if Disco is running
+    process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    disco_running = "running" in stdout
+    if not disco_running:
+        print("Disco not running - aborting test.")
+        return
     generate_model()
     shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
                 cfg.UPLOAD_FOLDER)
