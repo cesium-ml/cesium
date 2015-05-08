@@ -10,6 +10,7 @@ import tarfile
 from copy import deepcopy
 import ntpath
 import uuid
+from subprocess import Popen, PIPE
 
 from . import cfg
 from . import custom_exceptions
@@ -168,7 +169,11 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.mkdir(tmp_dir_path)
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
-        if DISCO_INSTALLED:  # and not in_docker_container:# #TEMP#
+        # Check if Disco is running
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        disco_running = "running" in stdout
+        if DISCO_INSTALLED and disco_running:
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
                     newpred_file_path=newpred_file_path,

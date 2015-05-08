@@ -21,19 +21,6 @@ def do_featurization():
         generation.
 
     """
-    '''process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    print("-> disco status", stdout, stderr)
-    call(["disco", "-v"])
-    while "stopped" in str(stdout):
-        call(["disco", "start"])
-        time.sleep(1)
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        print("-> disco status", stdout, stderr)
-        call(["disco", "-v"])'''
-
-    disco_running = True  # Just for now til we get it working in Docker
     # Load pickled ts_data and known features
     with open("/data/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
@@ -64,6 +51,10 @@ def do_featurization():
     elif ("already_featurized" in function_args and
           function_args["already_featurized"] == True):
         pass
+    # Check if Disco is running
+    process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    disco_running = "running" in stdout
     results_str = featurize.featurize(
         function_args["headerfile_path"],
         function_args["zipfile_path"],

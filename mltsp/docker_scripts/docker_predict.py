@@ -21,10 +21,6 @@ def predict():
         Human-readable status message.
 
     """
-    # # start Disco
-    # status_code = call(["/disco/bin/disco", "nodaemon"])
-    # time.sleep(2)
-
     # load pickled ts_data and known features
     with open("/data/function_args.pkl", "rb") as f:
         function_args = pickle.load(f)
