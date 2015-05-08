@@ -6,6 +6,7 @@ flask-restful
 numpy
 numexpr>=2.0
 scipy
+scikit-learn
 mpld3
 pandas
 parse

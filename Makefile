@@ -29,22 +29,22 @@ all: py2
 clean:
 	find . -name "*.so" | xargs rm
 
-webapp: py2 disco
+webapp: py2
 	tools/launch_waitress.py
 
 init: py2
 	python start_mltsp.py --db-init --force
 
 db:
-	@rethinkdb --daemon 2>&1 | grep -v "already in use" || echo "[RethinkDB] is (probably) already running"
+	@if [[ -n `rethinkdb --daemon 2>&1 | grep "already in use"` ]]; then echo "[RethinkDB] is (probably) already running"; fi
 
 external/casperjs: py2
 	@tools/casper_install.sh
 
-test_backend: db py2 disco
+test_backend: db py2
 	nosetests --exclude-dir=mltsp/Flask/src --nologcapture mltsp
 
-test_frontend: external/casperjs py2 disco db
+test_frontend: external/casperjs py2 db
 	@PYTHONPATH="." tools/casper_tests.py
 
 test: test_backend test_frontend
