@@ -44,8 +44,8 @@ def do_featurization():
             pass
         else:
             raise Exception(("ERROR - IN DOCKER CONTAINER featurize - " +
-                            "headerfile_path = %s is not a file currently " +
-                            "on disk.") % headerfile_path)
+                             "headerfile_path = %s is not a file currently " +
+                             "on disk.") % headerfile_path)
     else:
         raise Exception("ERROR - IN DOCKER CONTAINER featurize - " +
                         "headerfile_path not in function args.")
@@ -56,7 +56,7 @@ def do_featurization():
         else:
             raise Exception(("ERROR - (IN DOCKER CONTAINER) featurize - "
                              "zipfile_path = %s is not a file currently on "
-                             "disk.")%zipfile_path)
+                             "disk.") % zipfile_path)
     elif ("already_featurized" in function_args and
           function_args["already_featurized"] == False):
         raise Exception("ERROR - IN DOCKER CONTAINER featurize - zipfile_path "
@@ -77,6 +77,6 @@ def do_featurization():
     return results_str
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     results_str = do_featurization()
     print(results_str)

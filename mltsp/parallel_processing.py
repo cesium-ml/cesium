@@ -325,7 +325,7 @@ def featurize_reduce(iter, params):
             all_features["class"] = class_name
             yield short_fname, all_features
         else:
-            print("*"*10 + " " + path_to_csv + " doesn't exist on the disk.")
+            print("*" * 10 + " " + path_to_csv + " doesn't exist on the disk.")
             yield "", ""
 
 

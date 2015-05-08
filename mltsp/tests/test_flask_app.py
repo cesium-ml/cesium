@@ -143,7 +143,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("users").get(TEST_EMAIL).delete().run(conn)
             r.table("users").insert({"id": TEST_EMAIL,
                                      "email": TEST_EMAIL})\
-                            .run(conn)
+                .run(conn)
             N = r.table('users').filter({'email': TEST_EMAIL}).count()\
                                                               .run(conn)
             npt.assert_equal(N, 1)
@@ -583,7 +583,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "abc123",
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
-                                  .run(conn)
+                .run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("predictions").insert({"id": "111", "projkey": "111",
@@ -592,7 +592,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "111",
                                            "filename": "111.txt",
                                            "results_str_html": "111HTML"})\
-                                  .run(conn)
+                .run(conn)
             results = fa.list_predictions(auth_only=True)
             print(results)
             r.table("userauth").get("abc123").delete().run(conn)
@@ -623,7 +623,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "abc123",
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
-                                  .run(conn)
+                .run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("predictions").insert({"id": "111", "projkey": "111",
@@ -632,7 +632,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "111",
                                            "filename": "111.txt",
                                            "results_str_html": "111HTML"})\
-                                  .run(conn)
+                .run(conn)
             results = fa.list_predictions(auth_only=False, detailed=False)
             print(results)
             r.table("userauth").get("abc123").delete().run(conn)
@@ -667,7 +667,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "abc123",
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
-                                  .run(conn)
+                .run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("predictions").insert({"id": "111", "projkey": "111",
@@ -676,7 +676,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "111",
                                            "filename": "111.txt",
                                            "results_str_html": "111HTML"})\
-                                  .run(conn)
+                .run(conn)
             results = fa.list_predictions(by_project="abc123",
                                           as_html_table_string=True)
             r.table("userauth").get("abc123").delete().run(conn)
@@ -869,7 +869,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "abc123",
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
-                                  .run(conn)
+                .run(conn)
             fpaths = fa.project_associated_files("abc123")
             r.table("features").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
@@ -1208,7 +1208,8 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123").delete().run(conn)
             npt.assert_equal(
-                r.table("userauth").filter({"id": "abc123_2"}).count().run(conn),
+                r.table("userauth").filter(
+                    {"id": "abc123_2"}).count().run(conn),
                 0)
             npt.assert_equal(proj_dets["description"], "DESC!")
 
@@ -1265,7 +1266,8 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            assert not os.path.exists(
+                pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
 
     def test_update_project_info_delete_predictions(self):
         """Test update project info - delete predictions"""
@@ -1281,7 +1283,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                    delete_prediction_keys=["abc123"])
             r.table("projects").get("abc123").delete().run(conn)
             npt.assert_equal(
-                r.table("predictions").filter({"id": "abc123"}).count().run(conn),
+                r.table("predictions").filter(
+                    {"id": "abc123"}).count().run(conn),
                 0)
 
     def test_get_all_info_dict(self):
@@ -1313,12 +1316,13 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             d = fa.get_all_info_dict()
-            npt.assert_equal(d['list_of_current_projects'], [])
+            npt.assert_equal(len(d['list_of_current_projects']), 0)
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             d = fa.get_all_info_dict(auth_only=False)
             r.table("projects").get("abc123").delete().run(conn)
-            npt.assert_equal(d['list_of_current_projects'], ["abc123"])
+            print(d["list_of_current_projects"])
+            assert len(d["list_of_current_projects"]) > 0
 
     def test_get_list_of_available_features(self):
         """Test get list of available features"""
@@ -1526,13 +1530,14 @@ class FlaskAppTestCase(unittest.TestCase):
 
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
             pred_results_list_dict = entry
-            npt.assert_equal(pred_results_list_dict["pred_results_list_dict"]\
+            npt.assert_equal(pred_results_list_dict["pred_results_list_dict"]
                              ["TESTRUN_215153.dat"][0][0],
                              'Herbig_AEBE')
 
             assert all(key in pred_results_list_dict for key in ("ts_data_dict",
-                                                            "features_dict"))
+                                                                 "features_dict"))
             r.table("models").get("TEMP_TEST01").delete().run(conn)
+            r.table("projects").get("TEMP_TEST01").delete().run(conn)
             r.table("features").get("TEMP_TEST01").delete().run(conn)
             r.table("predictions").get("TEMP_TEST01").delete().run(conn)
             for fpath in [pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
@@ -1540,7 +1545,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                 "TESTRUN_215153_metadata.dat"),
                           pjoin(cfg.FEATURES_FOLDER,
                                 "TEMP_TEST01_features.csv"),
-                          pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"),
+                          pjoin(
+                              cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"),
                           pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"),
                           pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                 "TESTRUN_CF.py")]:

@@ -608,19 +608,19 @@ def list_featuresets(
                     "<tr class='features_row'><td align='left'>" +
                     entry['name'] + "</td><td align='left'>" +
                     entry['created'][:-13] +
-                    ((
+                    (
                         " PST</td><td align='center'>" +
                         "<a href='#' onclick=\"$('#feats_used_div_%d')" +
                         ".dialog('open');\">Show</a><div " +
                         "id='feats_used_div_%d' style='display:none;' " +
-                        "class='feats_used_div' title='%s: Features used'>"))
-                        % (
-                            count, count, (
-                                entry['name'] +
-                                ', '.join(entry['featlist']))) +
-                                ("</div></td><td align='center'><input "
-                                "type='checkbox' name='delete_features_key' "
-                                "value='%s'></td></tr>") % entry['id'])
+                        "class='feats_used_div' title='%s: Features used'>")
+                    % (
+                        count, count, (
+                            entry['name'] +
+                            ', '.join(entry['featlist']))) +
+                    ("</div></td><td align='center'><input "
+                     "type='checkbox' name='delete_features_key' "
+                     "value='%s'></td></tr>") % entry['id'])
                 count += 1
             authed_featuresets += "</table>"
         else:
@@ -629,7 +629,7 @@ def list_featuresets(
                 authed_featuresets.append(
                     entry['name'] +
                     (
-                        " (created %s PST)"%str(entry['created'])[:-13]
+                        " (created %s PST)" % str(entry['created'])[:-13]
                         if not name_only else ""))
         return authed_featuresets
     else:
@@ -650,8 +650,8 @@ def list_featuresets(
 
 
 def list_models(
-    auth_only=True, by_project=False, name_only=False, with_type=True,
-    as_html_table_string=False):
+        auth_only=True, by_project=False, name_only=False, with_type=True,
+        as_html_table_string=False):
     """Return list of strings describing entries in 'models' table.
 
     Parameters
@@ -699,8 +699,8 @@ def list_models(
                 authed_models += (
                     " class='%s'" '&'.join(entry['meta_feats'])
                     if 'meta_feats' in entry and entry['meta_feats']
-                    not in [False,[],"False",None,"None"] and
-                    type(entry['meta_feats']) == list else "")
+                    not in [False, [], "False", None, "None"] and
+                    isinstance(entry['meta_feats'], list) else "")
                 authed_models += (
                     ">" + entry['name']
                     + "</td><td align='left'>" + entry['type']
@@ -721,7 +721,7 @@ def list_models(
                     + (" meta_feats=%s" % ",".join(entry['meta_feats'])
                        if 'meta_feats' in entry and entry['meta_feats']
                        not in [False, [], "False", None, "None"] and
-                       type(entry['meta_feats']) == list else ""))
+                       isinstance(entry['meta_feats'], list) else ""))
         return authed_models
     else:
         if len(authed_proj_keys) == 0:
@@ -742,13 +742,13 @@ def list_models(
                         " meta_feats=%s" % ",".join(entry['meta_feats'])
                         if 'meta_feats' in entry and entry['meta_feats']
                         not in [False, [], "False", None, "None"]
-                        and type(entry['meta_feats']) == list else ""))
+                        and isinstance(entry['meta_feats'], list) else ""))
         return authed_models
 
 
 def list_predictions(
-    auth_only=False, by_project=False, detailed=True,
-    as_html_table_string=False):
+        auth_only=False, by_project=False, detailed=True,
+        as_html_table_string=False):
     """Return list of strings describing entries in 'predictions' table.
 
     Parameters
@@ -776,7 +776,7 @@ def list_predictions(
             r.table("predictions").filter({"projkey": this_projkey})
             .pluck(
                 "model_name", "model_type", "filename",
-                "created", "id","results_str_html")
+                "created", "id", "results_str_html")
             .run(g.rdb_conn))
         if as_html_table_string:
             predictions = (
@@ -800,15 +800,15 @@ def list_predictions(
                         "<div id='prediction_results_div_%d' "
                         "style='display:none;' class='pred_results_dialog_div'"
                         " title='Prediction Results'>")
-                    % (count,count))
+                    % (count, count))
                 try:
                     predictions += entry['results_str_html']
                 except KeyError:
                     predictions += (
                         "No prediction results saved for this entry.")
                 predictions += ((
-                        "</div></td><td align='center'><input type='checkbox' "
-                        "name='delete_prediction_key' value='%s'></td></tr>")
+                    "</div></td><td align='center'><input type='checkbox' "
+                    "name='delete_prediction_key' value='%s'></td></tr>")
                     % entry['id'])
                 count += 1
             predictions += "</table>"
@@ -843,7 +843,7 @@ def list_predictions(
         return predictions
 
 
-@app.route('/get_list_of_projects', methods=['POST','GET'])
+@app.route('/get_list_of_projects', methods=['POST', 'GET'])
 @stormpath.login_required
 def get_list_of_projects():
     """Return list of project names current user can access.
@@ -921,7 +921,7 @@ def add_project(name, desc="", addl_authed_users=[], user_email="auto"):
     """
     if user_email in ["auto", None, "None", "none", "Auto"]:
         user_email = get_current_userkey()
-    if type(addl_authed_users) == str:
+    if isinstance(addl_authed_users, str):
         if addl_authed_users.strip() in [",", ""]:
             addl_authed_users = []
     new_projkey = r.table("projects").insert({
@@ -934,17 +934,17 @@ def add_project(name, desc="", addl_authed_users=[], user_email="auto"):
         new_entries.append({
             "userkey": authed_user,
             "projkey": new_projkey,
-            "active": "y" })
+            "active": "y"})
     r.table("userauth").insert(new_entries).run(g.rdb_conn)
-    print("Project", name, "created and added to db; users", \
-        [user_email] + addl_authed_users, \
-        "added to userauth db for this project.")
+    print("Project", name, "created and added to db; users",
+          [user_email] + addl_authed_users,
+          "added to userauth db for this project.")
     return new_projkey
 
 
 def add_featureset(
-    name, projkey, pid, featlist, custom_features_script=None,
-    meta_feats=[], headerfile_path=None, zipfile_path=None):
+        name, projkey, pid, featlist, custom_features_script=None,
+        meta_feats=[], headerfile_path=None, zipfile_path=None):
     """Add a new entry to the rethinkDB 'features' table.
 
     Parameters
@@ -991,8 +991,8 @@ def add_featureset(
 
 
 def add_model(
-    featureset_name, featureset_key, model_type, projkey, pid,
-    meta_feats=False):
+        featureset_name, featureset_key, model_type, projkey, pid,
+        meta_feats=False):
     """Add a new entry to the rethinkDB 'models' table.
 
     Parameters
@@ -1034,8 +1034,8 @@ def add_model(
 
 
 def add_prediction(
-    project_name, model_name, model_type, pred_filename,
-    pid="None", metadata_file="None"):
+        project_name, model_name, model_type, pred_filename,
+        pid="None", metadata_file="None"):
     """Add a new entry to the rethinkDB 'predictions' table.
 
     Parameters
@@ -1178,8 +1178,8 @@ def featset_associated_files(featset_key):
             os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key),
             os.path.join(os.path.join(os.path.join(
                 os.path.dirname(__file__), "static"),
-                                      "data"),
-                         "%s_features_with_classes.csv" % featset_key)]:
+                "data"),
+                "%s_features_with_classes.csv" % featset_key)]:
         if os.path.exists(fpath):
             fpaths.append(fpath)
     entry_dict = r.table("features").get(featset_key).run(g.rdb_conn)
@@ -1345,11 +1345,11 @@ def get_project_details(project_name):
         return proj_info
     elif len(entries) > 1:
         print(("###### get_project_details() - ERROR: MORE THAN ONE PROJECT "
-        "WITH NAME %s. ######") % project_name)
+               "WITH NAME %s. ######") % project_name)
         return False
     elif len(entries) == 0:
         print(("###### get_project_details() - ERROR: NO PROJECTS WITH "
-        "NAME %s. ######") % project_name)
+               "NAME %s. ######") % project_name)
         return False
 
 
@@ -1430,11 +1430,13 @@ def project_name_to_key(projname):
     if len(projkeys) >= 1:
         return projkeys[0]
     else:
-        raise Exception("No matching project name! - projname="+str(projname))
+        raise Exception(
+            "No matching project name! - projname=" + str(projname))
         return False
 
 
-def featureset_name_to_key(featureset_name, project_name=None, project_id=None):
+def featureset_name_to_key(
+        featureset_name, project_name=None, project_id=None):
     """Return RethinkDB key associated with given feature set details.
 
     Parameters
@@ -1479,8 +1481,8 @@ def featureset_name_to_key(featureset_name, project_name=None, project_id=None):
 
 
 def update_project_info(
-    orig_name, new_name, new_desc, new_addl_authed_users,
-    delete_features_keys=[], delete_model_keys=[], delete_prediction_keys=[]):
+        orig_name, new_name, new_desc, new_addl_authed_users,
+        delete_features_keys=[], delete_model_keys=[], delete_prediction_keys=[]):
     # TODO - Refactor; delete custom feat scripts
     """Modify/update project entry with new information.
 
@@ -1580,14 +1582,14 @@ def get_all_info_dict(auth_only=True):
     info_dict = {}
     info_dict['list_of_current_projects'] = list_projects(auth_only=auth_only)
     info_dict['list_of_current_projects_json'] = simplejson.dumps(
-        list_projects(auth_only=auth_only,name_only=True))
+        list_projects(auth_only=auth_only, name_only=True))
     info_dict['list_of_current_featuresets'] = list_featuresets(
         auth_only=auth_only)
     info_dict['list_of_current_featuresets_json'] = simplejson.dumps(
-        list_featuresets(auth_only=auth_only,name_only=True))
+        list_featuresets(auth_only=auth_only, name_only=True))
     info_dict['list_of_current_models'] = list_models(auth_only=auth_only)
     info_dict['list_of_current_models_json'] = simplejson.dumps(
-        list_models(auth_only=auth_only,name_only=True))
+        list_models(auth_only=auth_only, name_only=True))
     info_dict['PROJECT_NAME'] = (
         session['PROJECT_NAME'] if "PROJECT_NAME" in session else "")
     info_dict['features_available_set1'] = get_list_of_available_features()
@@ -1668,7 +1670,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                 os.path.splitext(ntpath.basename(file_name))[0]]
             all_fname_variants.extend(file_name_variants)
             if (len(list(set(file_name_variants) &
-                    set(all_header_fnames))) == 0):
+                         set(all_header_fnames))) == 0):
                 raise custom_exceptions.TimeSeriesFileNameError((
                     "Time series data file %s provided in tarball/zip file "
                     "has no corresponding entry in header file.")
@@ -1686,7 +1688,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
                             "Time series data file improperly formatted; at "
                             "least two comma-separated columns "
                             "(time,measurement) are required. Error occurred "
-                            "on file %s")%str(file_name))
+                            "on file %s") % str(file_name))
                 else:
                     if len(line.split(',')) != num_labels:
                         raise custom_exceptions.DataFormatError((
@@ -1833,14 +1835,14 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
                             raise custom_exceptions.TimeSeriesFileNameError((
                                 "Metadata file entry with file_name=%s has no"
                                 " corresponding file in provided time series "
-                                "data files.")%this_fname)
+                                "data files.") % this_fname)
                 line_count += 1
         for file_name_vars in all_fname_variants_list_of_lists:
             if (len(set(file_name_vars) & set(all_metafile_fnames)) == 0 and
                     len(file_name_vars) > 1):
                 raise custom_exceptions.TimeSeriesFileNameError(
                     ("Provided time series data file %s has no corresponding "
-                    "entry in provided metadata file.")%file_name_vars[1])
+                     "entry in provided metadata file.") % file_name_vars[1])
     return False
 
 
@@ -1882,7 +1884,7 @@ def featurize_proc(
         results_str = run_in_docker_container.featurize_in_docker_container(
             headerfile_path, zipfile_path, features_to_use, featureset_key,
             is_test, already_featurized, custom_script_path)
-        #results_str = featurize.featurize(
+        # results_str = featurize.featurize(
         #    headerfile_path, zipfile_path, features_to_use=features_to_use,
         #    featureset_id=featureset_key, is_test=is_test,
         #    already_featurized=already_featurized,
@@ -1891,12 +1893,12 @@ def featurize_proc(
             emailUser(email_user)
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
-            "Please ensure that the header file and tarball of time series "
-            "data files conform to the formatting requirements.")
+                       "Please ensure that the header file and tarball of time series "
+                       "data files conform to the formatting requirements.")
         print(("   #########      Error:    flask_app.featurize_proc: %s" %
-            str(theErr)))
+               str(theErr)))
         logging.exception(("Error occurred during featurize.featurize() "
-            "call."))
+                           "call."))
         try:
             if custom_script_path not in ("None", None, False, "False"):
                 os.remove(custom_script_path)
@@ -1944,10 +1946,10 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     print("Building model...")
     try:
         model_built_msg = (run_in_docker_container.
-            build_model_in_docker_container(
-                featureset_name=featureset_name,
-                featureset_key=featureset_key,
-                model_type=model_type))
+                           build_model_in_docker_container(
+                               featureset_name=featureset_name,
+                               featureset_key=featureset_key,
+                               model_type=model_type))
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -1958,7 +1960,7 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
             "target='_blank'>contact the support team</a>.")
         logging.exception(
             "Error occurred during build_model.build_model() call.")
-    update_model_entry_with_results_msg(model_key,model_built_msg)
+    update_model_entry_with_results_msg(model_key, model_built_msg)
     return True
 
 
@@ -2012,8 +2014,8 @@ def prediction_proc(
         "            <th class='pred_results'>File</th>")
     for i in range(n_cols_html_table):
         results_str += (
-        "            <th class='pred_results'>Class%d</th>"
-        "            <th class='pred_results'>Class%d_Prob</th>")%(i+1,i+1)
+            "            <th class='pred_results'>Class%d</th>"
+            "            <th class='pred_results'>Class%d_Prob</th>") % (i + 1, i + 1)
     results_str += (
         "        </tr>"
         "    </thead>"
@@ -2026,7 +2028,7 @@ def prediction_proc(
             features_already_extracted=None, metadata_file=metadata_file,
             custom_features_script=custom_features_script)
 
-        #results_dict = predict.predict(
+        # results_dict = predict.predict(
         #    newpred_file_path=newpred_file_path, model_name=model_name,
         #    model_type=model_type, featset_key=featset_key, sepr=sep,
         #    n_cols_html_table=n_cols_html_table,
@@ -2050,7 +2052,7 @@ def prediction_proc(
         msg = (
             "<font color='red'>An error occurred while processing your "
             "request. Please ensure the formatting of the provided time series"
-            " data file(s) conforms to the specified requirements.</font>" )
+            " data file(s) conforms to the specified requirements.</font>")
         update_prediction_entry_with_results(
             prediction_entry_key, html_str=msg, features_dict={},
             ts_data_dict={}, pred_results_list_dict=[], err=str(theErr))
@@ -2058,7 +2060,7 @@ def prediction_proc(
         logging.exception(
             "Error occurred during predict_class.predict() call.")
     else:
-        if type(results_dict) == dict:
+        if isinstance(results_dict, dict):
             big_features_dict = {}
             ts_data_dict = {}
             pred_results_list_dict = {}
@@ -2079,11 +2081,11 @@ def prediction_proc(
                 prediction_entry_key, html_str=results_str,
                 features_dict=big_features_dict, ts_data_dict=ts_data_dict,
                 pred_results_list_dict=pred_results_list_dict)
-        elif type(results_dict) == str:
+        elif isinstance(results_dict, str):
             update_prediction_entry_with_results(
-                prediction_entry_key, html_str = results_dict,
-                features_dict = {}, ts_data_dict = {},
-                pred_results_list_dict = {})
+                prediction_entry_key, html_str=results_dict,
+                features_dict={}, ts_data_dict={},
+                pred_results_list_dict={})
         return True
     finally:
         if path_to_tmp_dir is not None:
@@ -2091,7 +2093,7 @@ def prediction_proc(
                 shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
             except:
                 logging.exception(("Error occurred while attempting to remove "
-                    "uploaded files and tmp directory."))
+                                   "uploaded files and tmp directory."))
 
 
 @app.route('/')
@@ -2099,14 +2101,14 @@ def prediction_proc(
 def index():
     """Render default page."""
     check_user_table()
-    ACTION="None"
+    ACTION = "None"
     info_dict = get_all_info_dict()
     return render_template(
         'index.html',
         ACTION=ACTION,
         RESULTS=False,
         FEATURES_AVAILABLE=[info_dict['features_available_set1'],
-        info_dict['features_available_set2']],
+                            info_dict['features_available_set2']],
         CURRENT_PROJECTS=info_dict['list_of_current_projects'],
         CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
         CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
@@ -2116,7 +2118,7 @@ def index():
         PROJECT_NAME=info_dict['PROJECT_NAME'])
 
 
-@app.route('/verifyNewScript', methods=['POST','GET'])
+@app.route('/verifyNewScript', methods=['POST', 'GET'])
 @stormpath.login_required
 def verifyNewScript():
     """Test POSTed custom features script file.
@@ -2139,22 +2141,22 @@ def verifyNewScript():
         scriptfile_name = secure_filename(scriptfile.filename)
         scriptfile_path = os.path.join(
             os.path.join(
-                app.config['UPLOAD_FOLDER'],"custom_feature_scripts"),
-            str(uuid.uuid4())+"_"+str(scriptfile_name))
+                app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
+            str(uuid.uuid4()) + "_" + str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
             test_results = cft.verify_new_script(script_fpath=scriptfile_path)
-            ks=[]
+            ks = []
             for thisone in test_results:
-                for k,v in thisone.items():
+                for k, v in thisone.items():
                     if k not in ks:
                         ks.append(k)
             res_str = ""
             for k in ks:
                 res_str += (("<input type='checkbox' value='%s' "
-                        "name='custom_feature_checkbox' "
-                        "id='custom_feature_checkbox' checked>%s<br>")
-                    %(str(k),str(k)))
+                             "name='custom_feature_checkbox' "
+                             "id='custom_feature_checkbox' checked>%s<br>")
+                            % (str(k), str(k)))
         except Exception as theErr:
             print(theErr)
             logging.exception("verifyNewScript error.")
@@ -2165,7 +2167,7 @@ def verifyNewScript():
             + res_str)
 
 
-@app.route('/editProjectForm', methods=['POST','GET'])
+@app.route('/editProjectForm', methods=['POST', 'GET'])
 @stormpath.login_required
 def editProjectForm():
     """Handles project editing form submission."""
@@ -2189,21 +2191,22 @@ def editProjectForm():
                 request.form.getlist("delete_features_key"))
         except:
             delete_features_keys = []
-        if new_addl_users == ['']: new_addl_users = []
+        if new_addl_users == ['']:
+            new_addl_users = []
         result = update_project_info(
             orig_proj_name, new_proj_name, new_proj_description,
             new_addl_users, delete_prediction_keys=delete_prediction_keys,
             delete_features_keys=delete_features_keys,
             delete_model_keys=delete_model_keys)
-        return jsonify({"result":result})
+        return jsonify({"result": result})
 
 
 @app.route(
     '/newProject/<proj_name>/<proj_description>/<addl_users>/<user_email>')
-@app.route('/newProject', methods=['POST','GET'])
+@app.route('/newProject', methods=['POST', 'GET'])
 @stormpath.login_required
 def newProject(
-    proj_name=None, proj_description=None, addl_users=None, user_email=None):
+        proj_name=None, proj_description=None, addl_users=None, user_email=None):
     """Handle new project form and creates new RethinkDB entry.
 
     Parameters
@@ -2233,14 +2236,14 @@ def newProject(
             user_email = str(user_email).strip()
             if user_email == "":
                 return jsonify({
-                    "result":("Required parameter 'user_email' must be a "
-                              "valid email address.")})
+                    "result": ("Required parameter 'user_email' must be a "
+                               "valid email address.")})
         except:
-            return jsonify({"result":"Invalid project title."})
+            return jsonify({"result": "Invalid project title."})
         if proj_name == "":
             return jsonify({
-                "result":("Project title must contain non-whitespace "
-                          "characters. Please try another name.")})
+                "result": ("Project title must contain non-whitespace "
+                           "characters. Please try another name.")})
         addl_users = str(addl_users).split(',')
         if addl_users == [''] or addl_users == [' '] or addl_users == ["None"]:
             addl_users = []
@@ -2248,16 +2251,16 @@ def newProject(
             proj_name, desc=proj_description, addl_authed_users=addl_users,
             user_email=user_email)
         print(("New project %s with key %s successfully created."
-               %(str(proj_name),str(new_projkey))))
+               % (str(proj_name), str(new_projkey))))
         return jsonify({
-            "result":("New project %s with key %s successfully created."
-                      %(str(proj_name),str(new_projkey)))})
+            "result": ("New project %s with key %s successfully created."
+                       % (str(proj_name), str(new_projkey)))})
     if request.method == 'POST':
         proj_name = str(request.form["new_project_name"]).strip()
         if proj_name == "":
             return jsonify({
-                "result":("Project title must contain at least one "
-                          "non-whitespace character. Please try another name.")
+                "result": ("Project title must contain at least one "
+                           "non-whitespace character. Please try another name.")
             })
         proj_description = str(request.form["project_description"]).strip()
         addl_users = str(request.form["addl_authed_users"]).strip().split(',')
@@ -2266,19 +2269,19 @@ def newProject(
         if "user_email" in request.form:
             user_email = str(request.form["user_email"]).strip()
         else:
-            user_email="auto" # will be determined through Flask
+            user_email = "auto"  # will be determined through Flask
 
         addl_users = [addl_user.strip() for addl_user in addl_users]
         if user_email == "":
             return jsonify({
-                "result":("Required parameter 'user_email' must be a valid "
-                    "email address.")})
+                "result": ("Required parameter 'user_email' must be a valid "
+                           "email address.")})
 
         new_projkey = add_project(
             proj_name, desc=proj_description, addl_authed_users=addl_users,
             user_email=user_email)
         print("added new proj")
-        return jsonify({"result":"New project successfully created."})
+        return jsonify({"result": "New project successfully created."})
 
 
 @app.route('/editOrDeleteProject', methods=['POST'])
@@ -2294,7 +2297,7 @@ def editOrDeleteProject():
     """
     if request.method == 'POST':
         proj_name = (str(request.form["PROJECT_NAME_TO_EDIT"])
-            .split(" (created ")[0].strip())
+                     .split(" (created ")[0].strip())
         action = str(request.form["action"])
 
         if action == "Edit":
@@ -2304,18 +2307,18 @@ def editOrDeleteProject():
         elif action == "Delete":
             result = delete_project(proj_name)
             print(result)
-            return jsonify({"result":"Deleted %s project(s)."%result})
-            #return Response(status=str(result))
+            return jsonify({"result": "Deleted %s project(s)." % result})
+            # return Response(status=str(result))
         else:
             print ("###### ERROR - editOrDeleteProject() - 'action' not "
-                "in ['Edit','Delete'] ########")
+                   "in ['Edit','Delete'] ########")
             return Response()
 
 
 @app.route(
     ("/get_featureset_id_by_projname_and_featsetname/<project_name>/"
-    "<featureset_name>"),
-    methods=["POST","GET"])
+     "<featureset_name>"),
+    methods=["POST", "GET"])
 @stormpath.login_required
 def get_featureset_id_by_projname_and_featsetname(
         project_name=None, featureset_name=None):
@@ -2341,20 +2344,20 @@ def get_featureset_id_by_projname_and_featsetname(
     projkey = project_name_to_key(project_name)
     cursor = (
         r.table("features")
-        .filter({"name":featureset_name,"projkey":projkey})
+        .filter({"name": featureset_name, "projkey": projkey})
         .pluck("id").run(g.rdb_conn))
     featureset_id = []
     for entry in cursor:
         print(entry)
         featureset_id.append(entry["id"])
     featureset_id = featureset_id[0]
-    return jsonify({"featureset_id":featureset_id})
+    return jsonify({"featureset_id": featureset_id})
 
 
-@app.route('/get_list_of_featuresets_by_project',methods=['POST','GET'])
+@app.route('/get_list_of_featuresets_by_project', methods=['POST', 'GET'])
 @app.route(
     '/get_list_of_featuresets_by_project/<project_name>',
-    methods=['POST','GET'])
+    methods=['POST', 'GET'])
 @stormpath.login_required
 def get_list_of_featuresets_by_project(project_name=None):
     """Return (in JSON form) list of project's feature sets.
@@ -2377,19 +2380,19 @@ def get_list_of_featuresets_by_project(project_name=None):
             try:
                 project_name = str(request.form["project_name"]).strip()
             except:
-                return jsonify({"featset_list":[]})
+                return jsonify({"featset_list": []})
         project_name = project_name.split(" (created")[0]
         if project_name not in ["", "None", "null", None]:
             featset_list = list_featuresets(
                 auth_only=False, by_project=project_name, name_only=True)
         else:
-            return jsonify({"featset_list":[]})
-        return jsonify({"featset_list":featset_list})
+            return jsonify({"featset_list": []})
+        return jsonify({"featset_list": featset_list})
 
 
-@app.route('/get_list_of_models_by_project',methods=['POST','GET'])
+@app.route('/get_list_of_models_by_project', methods=['POST', 'GET'])
 @app.route(
-    '/get_list_of_models_by_project/<project_name>', methods=['POST','GET'])
+    '/get_list_of_models_by_project/<project_name>', methods=['POST', 'GET'])
 @stormpath.login_required
 def get_list_of_models_by_project(project_name=None):
     """Return list of models in specified project.
@@ -2412,7 +2415,7 @@ def get_list_of_models_by_project(project_name=None):
             try:
                 project_name = str(request.form["project_name"]).strip()
             except:
-                return jsonify({"model_list":[]})
+                return jsonify({"model_list": []})
 
         project_name = project_name.split(" (created")[0]
         if project_name not in ["", "None", "null"]:
@@ -2421,10 +2424,10 @@ def get_list_of_models_by_project(project_name=None):
                 name_only=False, with_type=True)
         else:
             return jsonify({"model_list": []})
-        return jsonify({"model_list":model_list})
+        return jsonify({"model_list": model_list})
 
 
-@app.route('/uploadFeaturesForm', methods=['POST','GET'])
+@app.route('/uploadFeaturesForm', methods=['POST', 'GET'])
 @stormpath.login_required
 def uploadFeaturesForm():
     """Save uploaded file(s) and begin featurization process.
@@ -2441,9 +2444,9 @@ def uploadFeaturesForm():
         features_file = request.files["features_file"]
         featureset_name = str(request.form["featuresetname"]).strip()
         project_name = (str(request.form["featureset_projname_select"]).
-            strip().split(" (created")[0])
+                        strip().split(" (created")[0])
         features_file_name = (str(uuid.uuid4()) +
-            str(secure_filename(features_file.filename)))
+                              str(secure_filename(features_file.filename)))
         path = os.path.join(app.config['UPLOAD_FOLDER'], features_file_name)
         features_file.save(path)
         print("Saved", path)
@@ -2455,9 +2458,9 @@ def uploadFeaturesForm():
 
 
 @app.route(('/uploadDataFeaturize/<headerfile>/<zipfile>/<sep>/<project_name>'
-    '/<featureset_name>/<features_to_use>/<custom_features_script>/'
-    '<user_email>/<email_user>/<is_test>'), methods=['POST'])
-@app.route('/uploadDataFeaturize', methods=['POST','GET'])
+            '/<featureset_name>/<features_to_use>/<custom_features_script>/'
+            '<user_email>/<email_user>/<is_test>'), methods=['POST'])
+@app.route('/uploadDataFeaturize', methods=['POST', 'GET'])
 @stormpath.login_required
 def uploadDataFeaturize(
         headerfile=None, zipfile=None, sep=None, project_name=None,
@@ -2480,14 +2483,14 @@ def uploadDataFeaturize(
         featureset_name = str(request.form["featureset_name"]).strip()
         if featureset_name == "":
             return jsonify({
-                "message":("Feature Set Title must contain non-whitespace "
-                    "characters. Please try a different title."),
-                "type":"error"})
+                "message": ("Feature Set Title must contain non-whitespace "
+                            "characters. Please try a different title."),
+                "type": "error"})
         headerfile = request.files["headerfile"]
         zipfile = request.files["zipfile"]
         sep = str(request.form["sep"])
         project_name = (str(request.form["featureset_project_name_select"]).
-            strip().split(" (created")[0])
+                        strip().split(" (created")[0])
         features_to_use = request.form.getlist("features_selected")
         custom_script_tested = str(request.form["custom_script_tested"])
         if custom_script_tested == "yes":
@@ -2497,7 +2500,7 @@ def uploadDataFeaturize(
             customscript_path = os.path.join(
                 os.path.join(
                     app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
-                str(uuid.uuid4()) + "_"+str(customscript_fname))
+                str(uuid.uuid4()) + "_" + str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
             features_to_use += custom_features
@@ -2508,18 +2511,18 @@ def uploadDataFeaturize(
             email_user = request.form["email_user"]
             if email_user == "True":
                 email_user = True
-        except: # unchecked
+        except:  # unchecked
             email_user = False
         try:
             is_test = request.form["is_test"]
             if is_test == "True":
                 is_test = True
-        except: # unchecked
+        except:  # unchecked
             is_test = False
         headerfile_name = (str(uuid.uuid4()) + "_" +
-            str(secure_filename(headerfile.filename)))
+                           str(secure_filename(headerfile.filename)))
         zipfile_name = (str(uuid.uuid4()) + "_" +
-            str(secure_filename(zipfile.filename)))
+                        str(secure_filename(zipfile.filename)))
         proj_key = project_name_to_key(project_name)
         if not sep or sep == "":
             print(filename, "uploaded but no sep info. Setting sep=,")
@@ -2536,18 +2539,18 @@ def uploadDataFeaturize(
             os.remove(headerfile_path)
             os.remove(zipfile_path)
             print("Removed", headerfile_name, "and", zipfile_name)
-            return jsonify({"message":str(err),"type":"error"})
+            return jsonify({"message": str(err), "type": "error"})
         except custom_exceptions.TimeSeriesFileNameError as err:
             os.remove(headerfile_path)
             os.remove(zipfile_path)
             print("Removed", headerfile_name, "and", zipfile_name)
-            return jsonify({"message":str(err),"type":"error"})
+            return jsonify({"message": str(err), "type": "error"})
         except:
             raise
         return featurizationPage(
             featureset_name=featureset_name, project_name=project_name,
             headerfile_name=headerfile_name, zipfile_name=zipfile_name,
-            sep=sep,featlist=features_to_use, is_test=is_test,
+            sep=sep, featlist=features_to_use, is_test=is_test,
             email_user=email_user, custom_script_path=customscript_path)
 
 
@@ -2583,7 +2586,7 @@ def featurizing():
     return render_template(
         'index.html', ACTION="featurizing", PID=PID, newpred_filename="",
         FEATURES_AVAILABLE=[info_dict['features_available_set1'],
-            info_dict['features_available_set2']],
+                            info_dict['features_available_set2']],
         CURRENT_PROJECTS=info_dict['list_of_current_projects'],
         CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
         CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
@@ -2595,9 +2598,9 @@ def featurizing():
         featureset_name=featureset_name)
 
 
-@app.route('/featurizationPage', methods=['POST','GET'])
+@app.route('/featurizationPage', methods=['POST', 'GET'])
 @app.route(('/featurizationPage/<headerfile_name>/<zipfile_name>/<sep>/'
-    '<projkey>/<featlist>/<is_test>/<email_user>'), methods=['POST','GET'])
+            '<projkey>/<featlist>/<is_test>/<email_user>'), methods=['POST', 'GET'])
 @stormpath.login_required
 def featurizationPage(
         featureset_name, project_name, headerfile_name, zipfile_name, sep,
@@ -2665,11 +2668,11 @@ def featurizationPage(
                     feat not in custom_features):
                 meta_feats.append(feat)
         if len(meta_feats) > 0:
-            pass # do stuff here !!!!!!!!!!!!!!!!!
+            pass  # do stuff here !!!!!!!!!!!!!!!!!
         new_featset_key = add_featureset(
-            name = featureset_name, projkey = projkey, pid = "None",
-            featlist = featlist, custom_features_script = custom_script_path,
-            meta_feats = meta_feats, headerfile_path = features_filepath)
+            name=featureset_name, projkey=projkey, pid="None",
+            featlist=featlist, custom_features_script=custom_script_path,
+            meta_feats=meta_feats, headerfile_path=features_filepath)
         multiprocessing.log_to_stderr()
         proc = multiprocessing.Process(target=featurize_proc, args=(
             features_filepath, None, featlist, new_featset_key, is_test,
@@ -2679,25 +2682,25 @@ def featurizationPage(
         PID = str(proc.pid)
         print("PROCESS ID IS", PID)
         session["PID"] = PID
-        update_featset_entry_with_pid(new_featset_key,PID)
+        update_featset_entry_with_pid(new_featset_key, PID)
         return jsonify({
             "message": ("New feature set files saved successfully, and "
-                "featurization has begun (with process ID = %s).")%str(PID),
-            "PID":PID, "featureset_name":featureset_name,
-            "project_name":project_name, "headerfile_name":headerfile_name,
-            "zipfile_name":str(zipfile_name),
-            "featureset_key":new_featset_key})
-    else: # user is uploading timeseries data to be featurized
+                        "featurization has begun (with process ID = %s).") % str(PID),
+            "PID": PID, "featureset_name": featureset_name,
+            "project_name": project_name, "headerfile_name": headerfile_name,
+            "zipfile_name": str(zipfile_name),
+            "featureset_key": new_featset_key})
+    else:  # user is uploading timeseries data to be featurized
         headerfile_path = os.path.join(
             app.config['UPLOAD_FOLDER'], headerfile_name)
         zipfile_path = os.path.join(app.config['UPLOAD_FOLDER'], zipfile_name)
         with open(headerfile_path) as f:
             meta_feats = f.readline().strip().split(',')[2:]
         new_featset_key = add_featureset(
-            name=featureset_name, projkey = projkey, pid = "None",
-            featlist = featlist, custom_features_script = custom_script_path,
-            meta_feats = meta_feats, headerfile_path = headerfile_path,
-            zipfile_path = zipfile_path)
+            name=featureset_name, projkey=projkey, pid="None",
+            featlist=featlist, custom_features_script=custom_script_path,
+            meta_feats=meta_feats, headerfile_path=headerfile_path,
+            zipfile_path=zipfile_path)
         print("NEW FEATURESET ADDED WITH featset_key =", new_featset_key)
         multiprocessing.log_to_stderr()
         proc = multiprocessing.Process(
@@ -2709,21 +2712,21 @@ def featurizationPage(
         PID = str(proc.pid)
         print("PROCESS ID IS", PID)
         session["PID"] = PID
-        update_featset_entry_with_pid(new_featset_key,PID)
+        update_featset_entry_with_pid(new_featset_key, PID)
         return jsonify({
             "message": ("New feature set files saved successfully, and "
-                "featurization has begun (with process ID = %s).")%str(PID),
-            "PID":PID, "featureset_name":featureset_name,
-            "project_name":project_name, "headerfile_name":headerfile_name,
-            "zipfile_name":str(zipfile_name),
-            "featureset_key":new_featset_key})
+                        "featurization has begun (with process ID = %s).") % str(PID),
+            "PID": PID, "featureset_name": featureset_name,
+            "project_name": project_name, "headerfile_name": headerfile_name,
+            "zipfile_name": str(zipfile_name),
+            "featureset_key": new_featset_key})
 
 
 @app.route(
     '/source_details/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
 @stormpath.login_required
-def source_details(prediction_entry_key,source_fname):
+def source_details(prediction_entry_key, source_fname):
     """Render Source Details page.
 
     Parameters
@@ -2741,15 +2744,15 @@ def source_details(prediction_entry_key,source_fname):
     """
     return render_template(
         'source_details.html',
-        prediction_entry_key = prediction_entry_key,
-        source_fname = source_fname)
+        prediction_entry_key=prediction_entry_key,
+        source_fname=source_fname)
 
 
 @app.route(
     '/load_source_data/<prediction_entry_key>/<source_fname>',
     methods=['GET'])
 @stormpath.login_required
-def load_source_data(prediction_entry_key,source_fname):
+def load_source_data(prediction_entry_key, source_fname):
     """Return JSONified dict of source data in flask.Response() object.
 
     Returns flask.Response object containing JSONified dict with
@@ -2771,18 +2774,18 @@ def load_source_data(prediction_entry_key,source_fname):
 
     """
     entries = []
-    cursor = (r.table("predictions").filter({"id":prediction_entry_key})
-        .run(g.rdb_conn))
+    cursor = (r.table("predictions").filter({"id": prediction_entry_key})
+              .run(g.rdb_conn))
     for entry in cursor:
         entries.append(entry)
     if len(entries) >= 1:
         entry = entries[0]
     else:
         return jsonify({
-            "ts_data":("No entry found for prediction_entry_key = %s."
-                % prediction_entry_key),
+            "ts_data": ("No entry found for prediction_entry_key = %s."
+                        % prediction_entry_key),
             "features_dict": ("No entry found for prediction_entry_key = %s."
-                % prediction_entry_key),
+                              % prediction_entry_key),
             "pred_results": pred_results})
     pred_results = entry['pred_results_list_dict'][source_fname]
     features_dict = entry['features_dict'][source_fname]
@@ -2792,7 +2795,8 @@ def load_source_data(prediction_entry_key,source_fname):
         "features_dict": features_dict, "ts_data": ts_data})
 
 
-@app.route('/load_prediction_results/<prediction_key>',methods=['POST','GET'])
+@app.route(
+    '/load_prediction_results/<prediction_key>', methods=['POST', 'GET'])
 @stormpath.login_required
 def load_prediction_results(prediction_key):
     """Return JSON dict with file name and class prediction results.
@@ -2820,11 +2824,11 @@ def load_prediction_results(prediction_key):
         return jsonify(results_dict)
     else:
         return jsonify({
-            "results_str_html":("<font color='red'>An error occurred while "
-                "processing your request.</font>")})
+            "results_str_html": ("<font color='red'>An error occurred while "
+                                 "processing your request.</font>")})
 
 
-@app.route('/load_model_build_results/<model_key>',methods=['POST','GET'])
+@app.route('/load_model_build_results/<model_key>', methods=['POST', 'GET'])
 @stormpath.login_required
 def load_model_build_results(model_key):
     """Return JSON dict with model build request status message.
@@ -2854,11 +2858,11 @@ def load_model_build_results(model_key):
     else:
         return jsonify({
             "results_msg": ("No status message could be found for this "
-                "process.")})
+                            "process.")})
 
 
 @app.route('/load_featurization_results/<new_featset_key>',
-           methods = ['POST','GET'])
+           methods=['POST', 'GET'])
 @stormpath.login_required
 def load_featurization_results(new_featset_key):
     """Returns JSON dict with featurization request status message.
@@ -2903,10 +2907,10 @@ def load_featurization_results(new_featset_key):
                     results_dict["custom_features_script"]):
                 try:
                     (os.remove(str(results_dict["custom_features_script"])
-                        .replace(".py",".pyc")))
+                               .replace(".py", ".pyc")))
                     print(("Deleted",
-                        (str(results_dict["custom_features_script"])
-                        .replace(".py",".pyc"))))
+                           (str(results_dict["custom_features_script"])
+                            .replace(".py", ".pyc"))))
                 except Exception as err:
                     print(err)
                 try:
@@ -2920,7 +2924,7 @@ def load_featurization_results(new_featset_key):
         return jsonify(results_dict)
     else:
         return jsonify({
-            "results_msg":"No status message could be found for this process."
+            "results_msg": "No status message could be found for this process."
         })
 
 
@@ -2957,23 +2961,23 @@ def predicting():
     model_type = request.args.get("model_type")
     info_dict = get_all_info_dict()
     return render_template(
-        'index.html', ACTION = "predicting", PID = PID, newpred_filename = "",
-        FEATURES_AVAILABLE = [info_dict['features_available_set1'],
-            info_dict['features_available_set2']],
+        'index.html', ACTION="predicting", PID=PID, newpred_filename="",
+        FEATURES_AVAILABLE=[info_dict['features_available_set1'],
+                            info_dict['features_available_set2']],
         CURRENT_PROJECTS=info_dict['list_of_current_projects'],
         CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
         CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
         CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
         CURRENT_MODELS=info_dict['list_of_current_models'],
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
-        PROJECT_NAME=project_name,headerfile_name="",RESULTS=True,
-        features_str="",prediction_entry_key=prediction_entry_key,
-        prediction_model_name=prediction_model_name,model_type=model_type)
+        PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
+        features_str="", prediction_entry_key=prediction_entry_key,
+        prediction_model_name=prediction_model_name, model_type=model_type)
 
 
 def predictionPage(
         newpred_file_path, project_name, model_name, model_type,
-        sep = ",", metadata_file_path = None, path_to_tmp_dir = None):
+        sep=",", metadata_file_path=None, path_to_tmp_dir=None):
     """Start featurization/prediction routine in a subprocess.
 
     Starts featurization and prediction process as a subprocess
@@ -3013,14 +3017,14 @@ def predictionPage(
         pred_filename=ntpath.basename(newpred_file_path),
         pid="None",
         metadata_file=(ntpath.basename(metadata_file_path) if
-            metadata_file_path is not None else None))
+                       metadata_file_path is not None else None))
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
     pred_file_name = ntpath.basename(newpred_file_path)
     print("starting prediction_proc...")
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
-        target = prediction_proc,
-        args = (
+        target=prediction_proc,
+        args=(
             newpred_file_path,
             project_name,
             model_name,
@@ -3033,11 +3037,11 @@ def predictionPage(
     PID = str(proc.pid)
     print("PROCESS ID IS", PID)
     session["PID"] = PID
-    update_prediction_entry_with_pid(new_prediction_key,PID)
+    update_prediction_entry_with_pid(new_prediction_key, PID)
     return jsonify({
         "message": ("New prediction files saved successfully, and "
-            "featurization/model prediction has begun (with process ID = %s)."
-            ) % str(PID),
+                    "featurization/model prediction has begun (with process ID = %s)."
+                    ) % str(PID),
         "PID": PID,
         "project_name": project_name,
         "prediction_entry_key": new_prediction_key,
@@ -3046,7 +3050,7 @@ def predictionPage(
         "pred_file_name": pred_file_name})
 
 
-@app.route('/uploadPredictionData', methods=['POST','GET'])
+@app.route('/uploadPredictionData', methods=['POST', 'GET'])
 @stormpath.login_required
 def uploadPredictionData():
     """Save uploaded files and begin prediction process.
@@ -3061,13 +3065,13 @@ def uploadPredictionData():
     """
     if request.method == 'POST':
         newpred_file = request.files["newpred_file"]
-        tmp_folder = "tmp_"+str(uuid.uuid4())
+        tmp_folder = "tmp_" + str(uuid.uuid4())
         path_to_tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], tmp_folder)
         os.mkdir(path_to_tmp_dir)
         if "prediction_files_metadata" in request.files:
             prediction_files_metadata = request.files[
                 "prediction_files_metadata"]
-            if prediction_files_metadata.filename in [""," "]:
+            if prediction_files_metadata.filename in ["", " "]:
                 print("prediction_files_metadata file not provided")
                 prediction_files_metadata = None
                 metadata_file_path = None
@@ -3082,7 +3086,7 @@ def uploadPredictionData():
             metadata_file_path = None
         sep = str(request.form["newpred_file_sep"])
         project_name = (str(request.form["prediction_project_name"])
-            .split(" (created")[0])
+                        .split(" (created")[0])
         model_name, model_type_and_time = str(
             request.form["prediction_model_name_and_type"]).split(" - ")
         model_type = model_type_and_time.split(" ")[0]
@@ -3122,9 +3126,9 @@ def uploadPredictionData():
                         num_lines = len(header_lines)
                         if len(local_lines) < num_lines:
                             num_lines = len(local_lines)
-                        for i in range(num_lines-1):
-                            if (local_lines[i].replace("\n","") !=
-                                    header_lines[i].replace("\n","")):
+                        for i in range(num_lines - 1):
+                            if (local_lines[i].replace("\n", "") !=
+                                    header_lines[i].replace("\n", "")):
                                 is_match = False
                     if is_match:
                         # filename_test exists and is the same as file
@@ -3138,9 +3142,9 @@ def uploadPredictionData():
                 else:
                     # filename_test does not exist on disk and we now save it
                     for i in range(len(header_lines)):
-                        header_lines[i] = header_lines[i].replace('\n','')
+                        header_lines[i] = header_lines[i].replace('\n', '')
                     header_lines = '\n'.join(header_lines)
-                    f = open(headerfile_path,'w')
+                    f = open(headerfile_path, 'w')
                     f.write(header_lines)
                     f.close()
                     del header_lines
@@ -3164,9 +3168,9 @@ def uploadPredictionData():
             if metadata_file_path is not None:
                 os.remove(metadata_file_path)
             print("Removed ", str(newpred_file_path), (
-                ("and"+str(metadata_file_path) if metadata_file_path is
-                not None else "")))
-            return jsonify({"message":str(err),"type":"error"})
+                ("and" + str(metadata_file_path) if metadata_file_path is
+                 not None else "")))
+            return jsonify({"message": str(err), "type": "error"})
         except Exception as err:
             print("Uploaded Data Files Improperly Formatted.")
             print(err)
@@ -3174,14 +3178,14 @@ def uploadPredictionData():
             if metadata_file_path is not None:
                 os.remove(metadata_file_path)
             print("Removed ", str(newpred_file_path), (
-                ("and"+str(metadata_file_path) if metadata_file_path is not
-                None else "")))
+                ("and" + str(metadata_file_path) if metadata_file_path is not
+                 None else "")))
             return jsonify({
-            "message":(
-                "Uploaded data files improperly "
-                "formatted. Please ensure that your data files meet the "
-                "formatting guidelines and try again."),
-            "type":"error"})
+                "message": (
+                    "Uploaded data files improperly "
+                    "formatted. Please ensure that your data files meet the "
+                    "formatting guidelines and try again."),
+                "type": "error"})
         return predictionPage(
             newpred_file_path=newpred_file_path,
             sep=sep,
@@ -3231,7 +3235,7 @@ def buildingModel():
         PID=PID,
         newpred_filename="",
         FEATURES_AVAILABLE=[info_dict['features_available_set1'],
-            info_dict['features_available_set2']],
+                            info_dict['features_available_set2']],
         CURRENT_PROJECTS=info_dict['list_of_current_projects'],
         CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
         CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
@@ -3248,9 +3252,9 @@ def buildingModel():
 
 @app.route('/buildModel/<project_name>/<featureset_name>/<model_type>',
            methods=['POST'])
-@app.route('/buildModel',methods=['POST','GET'])
+@app.route('/buildModel', methods=['POST', 'GET'])
 @stormpath.login_required
-def buildModel(project_name=None,featureset_name=None,model_type=None):
+def buildModel(project_name=None, featureset_name=None, model_type=None):
     """Build new model for specified feature set.
 
     Handles 'buildModelForm' submission and starts model creation
@@ -3274,12 +3278,12 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
         building details.
 
     """
-    if project_name is None: # browser form submission
+    if project_name is None:  # browser form submission
         post_method = "browser"
         project_name = (str(request.form['buildmodel_project_name_select'])
-            .split(" (created")[0].strip())
+                        .split(" (created")[0].strip())
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
-            .split(" (created")[0].strip())
+                           .split(" (created")[0].strip())
         # new_model_name = str(request.form['new_model_name'])
         model_type = str(request.form['model_type_select'])
     else:
@@ -3292,7 +3296,7 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
         featureset_name=featureset_name,
         featureset_key=featureset_key,
         model_type=model_type,
-        projkey=projkey,pid="None")
+        projkey=projkey, pid="None")
     print("new model key =", new_model_key)
     print("New model featureset_key =", featureset_key)
     multiprocessing.log_to_stderr()
@@ -3306,16 +3310,16 @@ def buildModel(project_name=None,featureset_name=None,model_type=None):
     PID = str(proc.pid)
     print("PROCESS ID IS", PID)
     session["PID"] = PID
-    update_model_entry_with_pid(new_model_key,PID)
+    update_model_entry_with_pid(new_model_key, PID)
     return jsonify({
-        "message":"Model creation has begun (with process ID = %s)."%str(PID),
-        "PID":PID,
-        "project_name":project_name,
-        "new_model_key":new_model_key,
-        "model_name":featureset_name})
+        "message": "Model creation has begun (with process ID = %s)." % str(PID),
+        "PID": PID,
+        "project_name": project_name,
+        "new_model_key": new_model_key,
+        "model_name": featureset_name})
 
 
-@app.route('/emailUser',methods=['POST','GET'])
+@app.route('/emailUser', methods=['POST', 'GET'])
 @stormpath.login_required
 def emailUser(user_email=None):
     """Send a notification email to specified address.
@@ -3351,8 +3355,8 @@ def emailUser(user_email=None):
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(msg_from,msg_from_passwd)
-        s.sendmail(msg_from,[user_email],msg.as_string())
+        s.login(msg_from, msg_from_passwd)
+        s.sendmail(msg_from, [user_email], msg.as_string())
         s.quit()
         return "A notification email has been sent to %s." % user_email
     except Exception as theError:
@@ -3365,13 +3369,13 @@ def run_main(args=None):
 
         parser = argparse.ArgumentParser(description='MLTSP web server')
         parser.add_argument('--port', type=int, default=8000,
-                        help='Port number (default 8000)')
+                            help='Port number (default 8000)')
         parser.add_argument('--host', type=str, default='127.0.0.1',
-                        help='Address to listen on (default 127.0.0.1)')
+                            help='Address to listen on (default 127.0.0.1)')
         parser.add_argument('--debug', action='store_true',
-                        help='Enable debugging (default: False)')
+                            help='Enable debugging (default: False)')
         parser.add_argument('--db-init', action='store_true',
-                        help='Initialize the database')
+                            help='Initialize the database')
         parser.add_argument('--force', action='store_true')
         args = parser.parse_args()
 

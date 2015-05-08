@@ -18,6 +18,7 @@ from . import cfg
 
 
 class lightCurve(object):
+
     """Time-series data and features object.
 
     Attributes
@@ -138,9 +139,9 @@ class lightCurve(object):
     """
 
     def __init__(
-        self, epochs, mags, errs=[], ra='none', dec='none',
-        source_id='none', time_unit='day', classname='unknown',
-        band='unknown', features_to_use=[]):
+            self, epochs, mags, errs=[], ra='none', dec='none',
+            source_id='none', time_unit='day', classname='unknown',
+            band='unknown', features_to_use=[]):
         """Instantiate object and generate features.
 
         Generates all features described in Attributes section of class
@@ -187,7 +188,7 @@ class lightCurve(object):
         self.ra = ra
         self.dec = dec
         self.band = band
-        self.avgt = round((self.total_time)/(float(len(epochs))), 3)
+        self.avgt = round((self.total_time) / (float(len(epochs))), 3)
         self.cads = []
 
         self.double_to_single_step = []
@@ -213,16 +214,16 @@ class lightCurve(object):
             # ratio of time to obs after next to time to next obs
             try:
                 self.double_to_single_step.append(
-                    (epochs[i + 2] - epochs[i])/(epochs[i + 2] - epochs[i + 1]))
+                    (epochs[i + 2] - epochs[i]) / (epochs[i + 2] - epochs[i + 1]))
             except IndexError:
                 pass
             except ZeroDivisionError:
                 pass
 
             # all possible deltaTs ()
-            for j in range(1,len(epochs)):
+            for j in range(1, len(epochs)):
                 try:
-                    self.all_times.append(epochs[i+j]-epochs[i])
+                    self.all_times.append(epochs[i + j] - epochs[i])
                 except IndexError:
                     pass
 
@@ -238,26 +239,26 @@ class lightCurve(object):
         self.all_times_hist_peak_bin = np.where(
             hist == self.all_times_hist_peak_val)[0][0]
         self.all_times_hist_normed = nhist
-        self.all_times_bins_normed = bins/np.max(self.all_times)
+        self.all_times_bins_normed = bins / np.max(self.all_times)
         self.all_times_nhist_peak_val = np.max(nhist)
 
-        peaks = [] # elements are lists: [peak, index]
+        peaks = []  # elements are lists: [peak, index]
         for peak in heapq.nlargest(10, nhist):
             index = np.where(nhist == peak)[0][0]
             try:
-                if nhist[index-1] < peak and nhist[index+1] < peak:
+                if nhist[index - 1] < peak and nhist[index + 1] < peak:
                     peaks.append([peak, index])
-                elif nhist[index-1] == peak:
-                    if nhist[index-2] < peak:
+                elif nhist[index - 1] == peak:
+                    if nhist[index - 2] < peak:
                         peaks.append([peak, index])
-                elif nhist[index+1] == peak:
-                    if nhist[index+2] < peak:
+                elif nhist[index + 1] == peak:
+                    if nhist[index + 2] < peak:
                         peaks.append([peak, index])
             except IndexError:
                 # peak is first or last entry
-                peaks.append([peak,index])
+                peaks.append([peak, index])
 
-        peaks = sorted(peaks,key=lambda x:x[1])
+        peaks = sorted(peaks, key=lambda x: x[1])
 
         self.all_times_nhist_peaks = peaks[:4]
         self.all_times_nhist_numpeaks = len(peaks)
@@ -268,20 +269,23 @@ class lightCurve(object):
         (self.all_times_nhist_peak_1_to_2, self.all_times_nhist_peak_1_to_3,
             self.all_times_nhist_peak_2_to_3, self.all_times_nhist_peak_1_to_4,
             self.all_times_nhist_peak_2_to_4,
-            self.all_times_nhist_peak_3_to_4) = [None,None,None,None,None,None]
+            self.all_times_nhist_peak_3_to_4) = [None, None, None, None, None, None]
         (self.all_times_nhist_peak4_bin, self.all_times_nhist_peak3_bin,
-            self.all_times_nhist_peak2_bin) = [None,None,None]
+            self.all_times_nhist_peak2_bin) = [None, None, None]
         if len(peaks) >= 2:
-            self.all_times_nhist_peak_1_to_2 = peaks[0][0]/peaks[1][0]
+            self.all_times_nhist_peak_1_to_2 = peaks[0][0] / peaks[1][0]
             self.all_times_nhist_peak2_bin = peaks[1][1]
             if len(peaks) >= 3:
-                self.all_times_nhist_peak_2_to_3 = peaks[1][0]/peaks[2][0]
-                self.all_times_nhist_peak_1_to_3 = peaks[0][0]/peaks[2][0]
+                self.all_times_nhist_peak_2_to_3 = peaks[1][0] / peaks[2][0]
+                self.all_times_nhist_peak_1_to_3 = peaks[0][0] / peaks[2][0]
                 self.all_times_nhist_peak3_bin = peaks[2][1]
                 if len(peaks) >= 4:
-                    self.all_times_nhist_peak_1_to_4 = peaks[0][0]/peaks[3][0]
-                    self.all_times_nhist_peak_2_to_4 = peaks[1][0]/peaks[3][0]
-                    self.all_times_nhist_peak_3_to_4 = peaks[2][0]/peaks[3][0]
+                    self.all_times_nhist_peak_1_to_4 = peaks[
+                        0][0] / peaks[3][0]
+                    self.all_times_nhist_peak_2_to_4 = peaks[
+                        1][0] / peaks[3][0]
+                    self.all_times_nhist_peak_3_to_4 = peaks[
+                        2][0] / peaks[3][0]
                     self.all_times_nhist_peak4_bin = peaks[3][1]
 
         self.avg_double_to_single_step = np.average(self.double_to_single_step)
@@ -297,10 +301,10 @@ class lightCurve(object):
                      100000, 500000, 1000000, 5000000, 10000000]:
             if self.time_unit == 'day':
                 self.cad_probs[time] = stats.percentileofscore(
-                    self.cads,float(time)/(24.0*60.0))/100.0
+                    self.cads, float(time) / (24.0 * 60.0)) / 100.0
             elif self.time_unit == 'hour':
                 self.cad_probs[time] = stats.percentileofscore(
-                    self.cads,float(time))/100.0
+                    self.cads, float(time)) / 100.0
 
         self.cad_probs_1 = self.cad_probs[1]
         self.cad_probs_10 = self.cad_probs[10]
@@ -321,7 +325,7 @@ class lightCurve(object):
         self.cad_probs_10000000 = self.cad_probs[10000000]
 
     def showInfo(self):
-        print([self.start,self.end,len(self.epochs),self.avgt])
+        print([self.start, self.end, len(self.epochs), self.avgt])
 
     def showAllInfo(self):
         for attr, val in list(vars(self).items()):
@@ -361,8 +365,8 @@ def makePdf(sources):
     pdf = PdfPages("sample_features.pdf")
     classnames = []
     classname_dict = {}
-    x = 2 # number of subplot columns
-    y = 3 # number of subplot rows
+    x = 2  # number of subplot columns
+    y = 3  # number of subplot rows
     for source in sources:
         lc = source.lcs[0]
 
@@ -392,35 +396,36 @@ def makePdf(sources):
             ax6.axis('off')
 
             hist, bins, other = ax1.hist(lc.all_times, 50, normed=True)
-            ax1.text(np.max(bins)*0.1, np.max(hist)*0.8,
+            ax1.text(np.max(bins) * 0.1, np.max(hist) * 0.8,
                      r'Histogram (normed) of all $\Delta$Ts')
 
             ax2.text(0.0, 0.9, (r'$\bullet$med time to next obs: ' +
-                              str(np.round(lc.cads_med, 4))))
+                                str(np.round(lc.cads_med, 4))))
             ax2.text(0.0, 0.75, (r'$\bullet$avg time to next obs: ' +
-                               str(np.round(lc.avgt, 4))))
+                                 str(np.round(lc.avgt, 4))))
             ax2.text(0.0, 0.6, (r'$\bullet$std dev of time to next obs: ' +
-                              str(np.round(lc.cads_std, 4))))
+                                str(np.round(lc.cads_std, 4))))
             ax2.text(0.0, 0.45, (r'$\bullet$med of all $\Delta$Ts: ' +
-                               str(np.round(lc.all_times_med, 4))))
+                                 str(np.round(lc.all_times_med, 4))))
             ax2.text(0.0, 0.3, (r'$\bullet$avg of all $\Delta$Ts: ' +
-                              str(np.round(lc.all_times_avg, 4))))
+                                str(np.round(lc.all_times_avg, 4))))
             ax2.text(0.0, 0.15, (r'$\bullet$std dev of all $\Delta$Ts: ' +
-                               str(np.round(lc.all_times_std, 4))))
+                                 str(np.round(lc.all_times_std, 4))))
 
             hist, bins, other = ax3.hist(lc.cads, 50)
             ax3.text(np.max(bins) * 0.1, np.max(hist) * 0.8,
                      r'Hist of time to next obs')
 
-            ax6.text(0.0, 0.9, r'$\bullet$Number of epochs: ' + str(lc.n_epochs))
+            ax6.text(
+                0.0, 0.9, r'$\bullet$Number of epochs: ' + str(lc.n_epochs))
             ax6.text(0.0, 0.75, (r'$\bullet$Time b/w first & last obs (days): ' +
-                               str(np.round(lc.total_time, 2))))
+                                 str(np.round(lc.total_time, 2))))
             ax6.text(0.0, 0.6, (r'$\bullet$Average error in mag: ' +
-                              str(np.round(lc.avg_err, 4))))
+                                str(np.round(lc.avg_err, 4))))
             ax6.text(0.0, 0.45, (r'$\bullet$Median error in mag: ' +
-                               str(np.round(lc.med_err, 4))))
+                                 str(np.round(lc.med_err, 4))))
             ax6.text(0.0, 0.3, (r'$\bullet$Std dev of error: ' +
-                              str(np.round(lc.std_err, 4))))
+                                str(np.round(lc.std_err, 4))))
             ax6.text(0.0, 0.15, '')
 
             ax5.scatter(lc.epochs, lc.mags)
@@ -428,9 +433,9 @@ def makePdf(sources):
             ax4.text(0.0, 0.9, (r'$\bullet$Avg double to single step ratio: ' +
                                 str(np.round(lc.avg_double_to_single_step, 3))))
             ax4.text(0.0, 0.75, (r'$\bullet$Med double to single step: ' +
-                               str(np.round(lc.med_double_to_single_step, 3))))
+                                 str(np.round(lc.med_double_to_single_step, 3))))
             ax4.text(0.0, 0.6, (r'$\bullet$Std dev of double to single step: ' +
-                              str(np.round(lc.std_double_to_single_step, 3))))
+                                str(np.round(lc.std_double_to_single_step, 3))))
             ax4.text(
                 0.0, 0.45,
                 (r'$\bullet$1st peak to 2nd peak (in all $\Delta$Ts): ' +
@@ -440,7 +445,7 @@ def makePdf(sources):
                 (r'$\bullet$2ndt peak to 3rd peak (in all $\Delta$Ts): ' +
                  str(np.round(lc.all_times_nhist_peak_2_to_3, 3))))
             ax4.text(
-                0.0,0.15,
+                0.0, 0.15,
                 (r'$\bullet$1st peak to 3rd peak (in all $\Delta$Ts): ' +
                  str(np.round(lc.all_times_nhist_peak_1_to_3, 3))))
 
@@ -499,7 +504,7 @@ def makePdf(sources):
         ax4.set_ylabel(r'Peak val of all $\Delta$Ts normed hist')
 
     #ax1.legend(bbox_to_anchor=(1.1, 1.1),prop={'size':6})
-    ax2.legend(bbox_to_anchor=(1.1, 1.1),prop={'size':6})
+    ax2.legend(bbox_to_anchor=(1.1, 1.1), prop={'size': 6})
     #ax3.legend(loc='upper right',prop={'size':6})
     #ax4.legend(loc='upper right',prop={'size':6})
 
@@ -536,28 +541,29 @@ def generate_lc_snippets(lc):
         nbins = 0
         if n_epochs > binsize:
             bin_edges = np.linspace(
-                0,n_epochs-1,int(round(float(n_epochs)/float(binsize)))+1)
-            #for chunk in list(chunks(range(n_epochs),binsize)):
-            bin_indices = list(range(len(bin_edges)-1))
+                0, n_epochs - 1, int(round(float(n_epochs) / float(binsize))) + 1)
+            # for chunk in list(chunks(range(n_epochs),binsize)):
+            bin_indices = list(range(len(bin_edges) - 1))
             np.random.shuffle(bin_indices)
             for i in bin_indices:
                 nbins += 1
-                if (int(round(bin_edges[i+1])) -
+                if (int(round(bin_edges[i + 1])) -
                         int(round(bin_edges[i])) >= 10 and
                         nbins < 4):
                     lc_snippets.append(lightCurve(
                         epochs[int(round(bin_edges[i])):
-                            int(round(bin_edges[i+1]))],
+                               int(round(bin_edges[i + 1]))],
                         mags[int(round(bin_edges[i])):
-                            int(round(bin_edges[i+1]))],
+                             int(round(bin_edges[i + 1]))],
                         errs[int(round(bin_edges[i])):
-                            int(round(bin_edges[i+1]))],
+                             int(round(bin_edges[i + 1]))],
                         classname=lc.classname))
 
     return lc_snippets
 
 
 class Source(object):
+
     """Time-series data source object.
 
     Attributes
@@ -573,6 +579,7 @@ class Source(object):
         Source class, if known.
 
     """
+
     def __init__(self, id, lcs, classname='unknown', generate_snippets=True):
         """Object constructor.
 
@@ -606,7 +613,8 @@ class Source(object):
         """Print a human-readable summary of object attributes.
 
         """
-        print("dotAstro ID: " + str(self.id) + "Num LCs: " + str(len(self.lcs)))
+        print("dotAstro ID: " + str(self.id) +
+              "Num LCs: " + str(len(self.lcs)))
 
     def plotCadHists(self):
         """Plot cadence histograms for all `lcs` attribute elements.
@@ -615,11 +623,11 @@ class Source(object):
         n_lcs = len(self.lcs)
         if n_lcs > 0:
             x = int(np.sqrt(n_lcs))
-            y = n_lcs/x + int(n_lcs%x > 0)
+            y = n_lcs / x + int(n_lcs % x > 0)
             plotnum = 1
             for lc in self.lcs:
                 plt.subplot(x, y, plotnum)
-                plt.hist(lc.cads, 50, range=(0, np.std(lc.cads)*2.0))
+                plt.hist(lc.cads, 50, range=(0, np.std(lc.cads) * 2.0))
                 plt.xlabel('Time to next obs.')
                 plt.ylabel('# Occurrences')
                 plotnum += 1
@@ -628,12 +636,12 @@ class Source(object):
 
     def put(self, cursor, lc_cursor):
         cursor.execute(
-            "INSERT INTO sources VALUES(?, ?)",(self.id, self.classname))
+            "INSERT INTO sources VALUES(?, ?)", (self.id, self.classname))
         for lc in self.lcs:
             lc.put(lc_cursor)
 
 
-def getMultiple(source_ids,classname='unknown'):
+def getMultiple(source_ids, classname='unknown'):
     """Create multiple Source() objects from list of dotAstro IDs.
 
     Pulls time-series data over HTTP to create Source() objects with
@@ -664,13 +672,13 @@ def getMultiple(source_ids,classname='unknown'):
     sources = []
     for id in ids:
         lc = getLcInfo(id, classname)
-        if lc: # getLcInfo returns False if no data found
+        if lc:  # getLcInfo returns False if no data found
             sources.append(lc)
 
     return sources
 
 
-def getLcInfo(id,classname='unknown'):
+def getLcInfo(id, classname='unknown'):
     """Create Source() object from dotAstro ID.
 
     Pulls time-series data over HTTP to create Source() object with
@@ -712,13 +720,13 @@ def getLcInfo(id,classname='unknown'):
     if not isError:
         lcs = dotAstroLc(lc, id, classname)
         newSource = Source(id, lcs, classname)
-        #print len(lcs), "light curves processed for source", id
+        # print len(lcs), "light curves processed for source", id
         return newSource
 
     return
 
 
-def dotAstroLc(lc,id,classname):
+def dotAstroLc(lc, id, classname):
     """Return list of lightCurve() objects made from provided data.
 
     Parameters
@@ -742,13 +750,13 @@ def dotAstroLc(lc,id,classname):
     data = lc
     soup = BeautifulSoup(data)
     try:
-        ra = float(soup('position2d')[0]('value2')[0]('c1')[0]\
-            .renderContents())
-        dec = float(soup('position2d')[0]('value2')[0]('c2')[0]\
-            .renderContents())
+        ra = float(soup('position2d')[0]('value2')[0]('c1')[0]
+                   .renderContents())
+        dec = float(soup('position2d')[0]('value2')[0]('c2')[0]
+                    .renderContents())
     except IndexError:
         print('position2d/value2/c1 or c2 tag not present in light curve file')
-        ra, dec = [None,None]
+        ra, dec = [None, None]
     time_unit = []
     for timeunitfield in soup(ucd="time.epoch"):
         time_unit.append(timeunitfield['unit'])
@@ -773,7 +781,7 @@ def dotAstroLc(lc,id,classname):
     return lcs
 
 
-def getMultipleLocal(filenames,classname='unknown'):
+def getMultipleLocal(filenames, classname='unknown'):
     """Create and return a list of Source() objects from provided data.
 
     Parameters
@@ -791,11 +799,11 @@ def getMultipleLocal(filenames,classname='unknown'):
     """
     sources = []
     for filename in filenames:
-        sources.append(getLocalLc(filename,classname))
+        sources.append(getLocalLc(filename, classname))
     return sources
 
 
-def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
+def csvLc(lcdata, classname='unknown', sep=',', single_obj_only=False):
     """Create and return a lightCurve() object from provided TS data.
 
     """
@@ -804,7 +812,7 @@ def csvLc(lcdata,classname='unknown',sep=',',single_obj_only=False):
     mags = []
     errs = []
     for line in lcdata:
-        line = line.replace("\n","")
+        line = line.replace("\n", "")
         if len(line.split()) > len(line.split(sep)):
             sep = ' '
         if len(line) > 0:
@@ -889,20 +897,20 @@ def getLocalLc(filename, classname='unknown', sep=',',
         f.close()
     lcdata = '\n'.join(lcdata)
     if lcdata.find("<Position2D>") > 0 and lcdata.find("xml") > 0:
-        lcs = dotAstroLc(lcdata,filename,classname)
+        lcs = dotAstroLc(lcdata, filename, classname)
     else:
         lcs = csvLc(lcdata, classname, sep, single_obj_only=single_obj_only)
     if single_obj_only:
         return lcs
     else:
-        #print len(lcs), "light curves processed for", filename
+        # print len(lcs), "light curves processed for", filename
         newSource = Source(filename, lcs, classname)
         return newSource
 
 
 def generate_timeseries_features(
-    filename, classname='unknown', sep=',', single_obj_only=True,
-    ts_data_passed_directly=False, add_errors=True):
+        filename, classname='unknown', sep=',', single_obj_only=True,
+        ts_data_passed_directly=False, add_errors=True):
     """Generate features dict from given time-series data.
 
     Parameters
@@ -984,13 +992,13 @@ def dotAstro_to_csv(id):
     lcdata = lc
     soup = BeautifulSoup(lcdata)
     try:
-        ra = float(soup('position2d')[0]('value2')[0]('c1')[0]\
-             .renderContents())
-        dec = float(soup('position2d')[0]('value2')[0]('c2')[0]\
-              .renderContents())
+        ra = float(soup('position2d')[0]('value2')[0]('c1')[0]
+                   .renderContents())
+        dec = float(soup('position2d')[0]('value2')[0]('c2')[0]
+                    .renderContents())
     except IndexError:
         print('position2d/value2/c1 or c2 tag not present in light curve file')
-        ra, dec = [None,None]
+        ra, dec = [None, None]
     time_unit = []
     for timeunitfield in soup(ucd="time.epoch"):
         time_unit.append(timeunitfield['unit'])

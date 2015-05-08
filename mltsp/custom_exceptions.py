@@ -1,4 +1,5 @@
 class DataFormatError(Exception):
+
     """TS data file or header file does not improperly formatted.
 
     Attributes
@@ -8,7 +9,7 @@ class DataFormatError(Exception):
 
     """
 
-    def __init__(self,value):
+    def __init__(self, value):
         self.value = value
 
     def __str__(self):
@@ -16,6 +17,7 @@ class DataFormatError(Exception):
 
 
 class TimeSeriesFileNameError(Exception):
+
     """Provided TS data file name(s) missing from header file.
 
     Attributes
@@ -25,7 +27,7 @@ class TimeSeriesFileNameError(Exception):
 
     """
 
-    def __init__(self,value):
+    def __init__(self, value):
         self.value = value
 
     def __str__(self):
