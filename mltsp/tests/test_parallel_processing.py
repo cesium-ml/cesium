@@ -13,9 +13,12 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 def test_featurize_in_parallel():
     """Test main parallelized featurization function"""
     # Check if Disco is running
-    process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    disco_running = "running" in stdout
+    try:
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        disco_running = "running" in stdout
+    except OSError:
+        disco_running = False
     if not disco_running:
         print("Disco not running - aborting test.")
         return
@@ -46,9 +49,12 @@ def generate_model():
 def test_featurize_prediction_data_in_parallel():
     """Test parallel featurization of prediction TS data"""
     # Check if Disco is running
-    process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    disco_running = "running" in stdout
+    try:
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        disco_running = "running" in stdout
+    except OSError:
+        disco_running = False
     if not disco_running:
         print("Disco not running - aborting test.")
         return

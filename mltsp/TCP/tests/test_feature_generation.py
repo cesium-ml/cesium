@@ -53,7 +53,7 @@ def test_feature_generation():
 
     os.remove(os.path.join(cfg.FEATURES_FOLDER, "testfeatset_features.csv"))
     os.remove(os.path.join(cfg.FEATURES_FOLDER,
-                           "testfeatset_classes.pkl"))
+                           "testfeatset_classes.npy"))
     npt.assert_equal(len(features_extracted), 81)
     npt.assert_equal(features_extracted, features_expected)
     npt.assert_array_almost_equal(values_computed, values_expected)

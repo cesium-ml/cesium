@@ -141,9 +141,12 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
          fname_metadata_dict) = parse_headerfile(headerfile_path,
                                                  features_to_use)
         # Check if Disco is running
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        disco_running = "running" in stdout
+        try:
+            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            disco_running = "running" in stdout
+        except OSError:
+            disco_running = False
         # Generate the features
         if DISCO_INSTALLED and USE_DISCO and disco_running:
             # Featurize in parallel

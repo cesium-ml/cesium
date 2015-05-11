@@ -52,9 +52,12 @@ def do_featurization():
           function_args["already_featurized"] == True):
         pass
     # Check if Disco is running
-    process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate()
-    disco_running = "running" in stdout
+    try:
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        disco_running = "running" in stdout
+    except OSError:
+        disco_running = False
     results_str = featurize.featurize(
         function_args["headerfile_path"],
         function_args["zipfile_path"],

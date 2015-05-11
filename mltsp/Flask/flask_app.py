@@ -2142,7 +2142,7 @@ def verifyNewScript():
         scriptfile_path = os.path.join(
             os.path.join(
                 app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
-            str(uuid.uuid4()) + "_" + str(scriptfile_name))
+            str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
             test_results = cft.verify_new_script(script_fpath=scriptfile_path)

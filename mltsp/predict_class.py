@@ -170,9 +170,12 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
         # Check if Disco is running
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        disco_running = "running" in stdout
+        try:
+            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            disco_running = "running" in stdout
+        except OSError:
+            disco_running = False
         if DISCO_INSTALLED and disco_running:
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
