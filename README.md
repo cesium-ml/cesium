@@ -68,6 +68,10 @@
 
    * Install nginx
 
+   * Install mltsp:
+
+     ``pip install -e .``
+
 
 ## Configuration
 
@@ -79,6 +83,9 @@
      Optionally, also set
 
      ``MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER, ERR_LOG_PATH``
+
+   * Authentication information is currently stored in ``mltsp.yaml``.  This
+     configuration file will still be merged with ``cfg.py``.
 
 
 ## Starting the application
