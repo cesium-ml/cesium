@@ -235,7 +235,6 @@ def featurize_in_docker_container(
         shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove Docker container
         try:
-            cont_id
             if cont_id is not None:
                 client.remove_container(container=cont_id, force=True)
             else:
@@ -299,7 +298,10 @@ def build_model_in_docker_container(
                 print(e)
         shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove the container
-        client.remove_container(container=cont_id, force=True)
+        try:
+            client.remove_container(container=cont_id, force=True)
+        except:
+            print("Docker instance never started successfully")
 
     return "Model creation complete. Click the Predict tab to start using it."
 
