@@ -13,6 +13,7 @@ import shutil
 import numpy as np
 from . import cfg
 
+from .docker_tools import docker_images_available, is_running_in_docker
 
 class MissingRequiredParameterError(Exception):
 
@@ -108,18 +109,6 @@ class DummyFile(object):
     def write(self, x):
         pass
 
-
-def is_running_in_docker_container():
-    """Return bool indicating whether running in a Docker container."""
-    import subprocess
-    proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    print(output)
-    if "/docker/" in str(output):
-        in_docker_container = True
-    else:
-        in_docker_container = False
-    return in_docker_container
 
 
 def parse_csv_file(fname, sep=',', skip_lines=0):
@@ -309,25 +298,6 @@ def execute_functions_in_order(
 
     return all_extracted_features_list
 
-
-def docker_installed():
-    """Return boolean indicating whether Docker images are present."""
-    try:
-        from docker import Client
-        from docker.errors import DockerException
-        import requests
-    except ImportError:
-        return False
-    try:
-        cli = Client(base_url='unix://var/run/docker.sock',
-                     version='1.14')
-        img_ids = cli.images(quiet=True)
-        if len(img_ids) > 0:
-            return True
-        else:
-            return False
-    except (DockerException, requests.ConnectionError):
-        return False
 
 
 def parse_tsdata_to_lists(ts_data):
@@ -614,7 +584,7 @@ def verify_new_script(script_fpath, docker_container=False):
     features_already_known_list = assemble_test_data()
 
     all_extracted_features_list = []
-    if docker_installed():
+    if docker_images_available():
         print("Extracting features inside docker container...")
         all_extracted_features_list = docker_extract_features(
             script_fpath=script_fpath,
@@ -714,12 +684,13 @@ def generate_custom_features(
         features_already_known['m'] = m
     if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
-    if is_running_in_docker_container():
+
+    if is_running_in_docker():
         all_new_features = execute_functions_in_order(
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
     else:
-        if docker_installed():
+        if docker_images_available():
             print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
@@ -729,4 +700,5 @@ def generate_custom_features(
             all_new_features = execute_functions_in_order(
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
+
     return all_new_features
