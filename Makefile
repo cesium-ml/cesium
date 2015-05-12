@@ -42,7 +42,7 @@ external/casperjs: py2
 	@tools/casper_install.sh
 
 test_backend: db py2
-	nosetests --exclude-dir=mltsp/Flask/src --nologcapture mltsp
+	nosetests --nologcapture mltsp
 
 test_frontend: external/casperjs py2 db
 	@PYTHONPATH="." tools/casper_tests.py
