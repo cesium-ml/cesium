@@ -18,6 +18,7 @@ def get_client(version='1.14'):
             try:
                 cli = Client(base_url='unix://{}'.format(sock), version=version)
                 cli.info()
+                return cli
             except ConnectionError:
                 pass
 
