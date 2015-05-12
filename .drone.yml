@@ -4,6 +4,7 @@ git:
   path: github.com/mltsp/mltsp
 env:
 script:
+  - ./.drone/systems_check.sh
   - ./.drone/build.sh
 services:
   - library/rethinkdb
