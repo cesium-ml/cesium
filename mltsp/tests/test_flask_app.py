@@ -1449,7 +1449,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 features_to_use=["std_err"],
                 featureset_key="TEST01", is_test=True, email_user=False,
                 already_featurized=False,
-                custom_script_path=None)
+                custom_script_path=pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "TEST01_features.csv")))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,

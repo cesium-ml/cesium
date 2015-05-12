@@ -453,9 +453,15 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         "mltsp/extract_custom_feats",
         volumes={"/home/mltsp/mltsp": "",
                  "/data": ""})["Id"]
+    # Use symlink if exists
+    if os.path.exists(cfg.PROJECT_PATH_LINK):
+        proj_mount_path = cfg.PROJECT_PATH_LINK
+    else:
+        proj_mount_path = cfg.PROJECT_PATH
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
+                 binds={proj_mount_path: {"bind": "/home/mltsp/mltsp",
+                                          "ro": True},
                         path_to_tmp_dir: {"bind": "/data",
                                           "ro": True}},
                  privileged=True)
@@ -713,8 +719,7 @@ def generate_custom_features(
                 script_fpath=custom_script_path,
                 features_already_known_list=features_already_known)
         else:
-            print("Generating custom features WITHOUT docker container...")
-            all_new_features = execute_functions_in_order(
-                features_already_known=features_already_known,
-                script_fpath=custom_script_path)
+            print("Docker not installed - running custom features script could "
+                  "be unsafe. Skipping extraction of custom features.")
+            return []
     return all_new_features

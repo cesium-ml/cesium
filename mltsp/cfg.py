@@ -27,6 +27,8 @@ ERR_LOG_PATH = os.path.join(
 TCP_INGEST_TOOLS_PATH = os.path.join(MLTSP_PACKAGE_PATH,
                                      "TCP/Software/ingest_tools")
 
+PROJECT_PATH_LINK = "/tmp/mltsp_link"
+
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
 features_list = [
