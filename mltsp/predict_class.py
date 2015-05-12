@@ -10,12 +10,12 @@ import tarfile
 from copy import deepcopy
 import ntpath
 import uuid
-from subprocess import Popen, PIPE
 
 from . import cfg
 from . import custom_exceptions
 from . import lc_tools
 from . import custom_feature_tools as cft
+from . import util
 
 try:
     from disco.core import Job, result_iterator
@@ -169,13 +169,7 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.mkdir(tmp_dir_path)
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
-        # Check if Disco is running
-        try:
-            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate()
-            disco_running = "running" in stdout
-        except OSError:
-            disco_running = False
+        disco_running = util.check_disco_running()
         if DISCO_INSTALLED and disco_running:
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(

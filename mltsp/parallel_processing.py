@@ -6,23 +6,13 @@ import tarfile
 import uuid
 import ntpath
 from . import cfg
+from . import util
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
     DISCO_INSTALLED = True
 except Exception as theError:
     DISCO_INSTALLED = False
-
-
-def currently_running_in_docker_container():
-    import subprocess
-    proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    if "/docker/" in str(output):
-        in_docker_container = True
-    else:
-        in_docker_container = False
-    return in_docker_container
 
 
 def pred_map(fname, params):

@@ -252,13 +252,6 @@ def test_generate_custom_features():
     npt.assert_almost_equal(feats[0]["avg_mag"], 10.347417647058824)
 
 
-def test_running_in_docker_cont():
-    """Test running in Docker cont check"""
-    output = cft.is_running_in_docker_container()
-    assert(isinstance(output, bool))
-    npt.assert_equal(output, False)
-
-
 def teardown():
     """Tear-down - remove tmp files"""
     for f in [pjoin(cfg.MLTSP_PACKAGE_PATH,

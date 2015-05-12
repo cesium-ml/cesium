@@ -181,20 +181,10 @@ features_to_plot = [
     "freq1_harmonics_rel_phase_1"]
 
 
-def currently_running_in_docker_container():
-    import subprocess
-    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    if "/docker/" in str(output):
-        in_docker_container=True
-    else:
-        in_docker_container=False
-    return in_docker_container
-
-
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
-    if currently_running_in_docker_container() == False:
+    from . import util
+    if util.currently_running_in_docker_container() == False:
         sys.exit(-1)
 
 

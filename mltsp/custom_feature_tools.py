@@ -12,6 +12,7 @@ import uuid
 import shutil
 import numpy as np
 from . import cfg
+from . import util
 
 
 class MissingRequiredParameterError(Exception):
@@ -107,19 +108,6 @@ class DummyFile(object):
 
     def write(self, x):
         pass
-
-
-def is_running_in_docker_container():
-    """Return bool indicating whether running in a Docker container."""
-    import subprocess
-    proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    print(output)
-    if "/docker/" in str(output):
-        in_docker_container = True
-    else:
-        in_docker_container = False
-    return in_docker_container
 
 
 def parse_csv_file(fname, sep=',', skip_lines=0):
@@ -714,7 +702,7 @@ def generate_custom_features(
         features_already_known['m'] = m
     if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
-    if is_running_in_docker_container():
+    if util.currently_running_in_docker_container():
         all_new_features = execute_functions_in_order(
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
