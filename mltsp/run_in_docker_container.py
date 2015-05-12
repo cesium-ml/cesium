@@ -124,7 +124,7 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
                  binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
                         tmp_data_dir: {"bind": "/data",
                                        "ro": True}},
-                 privileged=True)
+                 privileged=False)
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
