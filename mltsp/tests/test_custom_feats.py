@@ -1,5 +1,6 @@
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
+from mltsp import docker_tools
 import numpy.testing as npt
 import numpy as np
 import os
@@ -87,14 +88,7 @@ def test_execute_functions_in_order():
 
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
-    docker_installed = cft.docker_installed()
-    assert(isinstance(docker_installed, bool))
-    try:
-        x = call(["docker"], stdout=PIPE, stderr=PIPE)
-        docker_really_installed = True
-    except OSError:
-        docker_really_installed = False
-    npt.assert_equal(docker_installed, docker_really_installed)
+    assert(docker_tools.docker_images_available())
 
 
 def test_parse_tsdata_to_lists():
@@ -250,13 +244,6 @@ def test_generate_custom_features():
                                          pjoin(DATA_PATH,
                                                "dotastro_215153.dat"))
     npt.assert_almost_equal(feats[0]["avg_mag"], 10.347417647058824)
-
-
-def test_running_in_docker_cont():
-    """Test running in Docker cont check"""
-    output = cft.is_running_in_docker_container()
-    assert(isinstance(output, bool))
-    npt.assert_equal(output, False)
 
 
 def teardown():
