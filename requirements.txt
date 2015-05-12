@@ -23,4 +23,3 @@ matplotlib
 nose
 nose-exclude
 pyyaml
-docker-py
