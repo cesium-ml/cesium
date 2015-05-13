@@ -9,7 +9,7 @@ from subprocess import Popen, PIPE, call
 import time
 
 
-def do_featurization():
+def do_featurization(data_path):
     """Load pickled parameters and call `featurize.featurize`.
 
     To be run from inside a Docker container.
@@ -22,7 +22,7 @@ def do_featurization():
 
     """
     # Load pickled ts_data and known features
-    with open("/data/function_args.pkl", "rb") as f:
+    with open(os.path.join(data_path, "function_args.pkl"), "rb") as f:
         function_args = pickle.load(f)
     # Ensure required files successfully copied into container:
     if "headerfile_path" in function_args:

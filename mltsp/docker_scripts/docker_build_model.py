@@ -4,9 +4,10 @@ from __future__ import print_function
 from .. import build_model as BM
 
 import pickle
+import os
 
 
-def build_model():
+def build_model(data_path):
     """Load pickled parameters and call `build_model.build_model`.
 
     To be called from inside a Docker container. Pickles model which
@@ -19,7 +20,7 @@ def build_model():
 
     """
     # load pickled ts_data and known features
-    with open("/data/function_args.pkl", "rb") as f:
+    with open(os.path.join(data_path, "function_args.pkl"), "rb") as f:
         function_args = pickle.load(f)
 
     results_str = BM.build_model(
