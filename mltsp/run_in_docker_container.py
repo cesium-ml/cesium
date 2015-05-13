@@ -3,12 +3,33 @@ import pickle
 import shutil
 import os
 import ntpath
-from docker import Client
+from .docker_tools import get_client
 from . import cfg
 import io
 import tarfile
 import uuid
 import stat
+
+import errno
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
+
+def get_tmp_dir(rel=''):
+    """
+    Importantly, for drone, this path must be in the same parent folder
+    as this mltsp source folder, so that it is visible through the
+    shared folder.
+    """
+    return os.path.join(os.path.dirname(__file__), '../../tmp/', rel)
+
 
 def docker_copy(docker_client, container_id, path, target="."):
     """Copy file from docker container to host machine.
@@ -109,8 +130,7 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
 
     """
     # Instantiate Docker client
-    client = Client(base_url='unix://var/run/docker.sock',
-                    version='1.14')
+    client = get_client()
     # Create container
     cont_id = client.create_container(
         image="mltsp/base_disco",
@@ -213,8 +233,8 @@ def featurize_in_docker_container(
         Human-readable success message.
 
     """
-    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(copied_data_dir)
+    copied_data_dir = get_tmp_dir(str(uuid.uuid4())[:10])
+    mkdir_p(copied_data_dir)
     args_dict = locals()
     tmp_files = copy_data_files_featurize_prep(args_dict)
     try:
@@ -270,8 +290,8 @@ def build_model_in_docker_container(
         Human-readable success message.
 
     """
-    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(copied_data_dir)
+    copied_data_dir = get_tmp_dir(str(uuid.uuid4())[:10])
+    mkdir_p(copied_data_dir)
     args_dict = locals()
 
     tmp_files = []
@@ -404,8 +424,9 @@ def predict_in_docker_container(
         Dictionary containing prediction results.
 
     """
-    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(copied_data_dir)
+    copied_data_dir = get_tmp_dir(str(uuid.uuid4())[:10])
+    mkdir_p(copied_data_dir)
+
     args_dict = locals()
     tmp_files = copy_data_files_predict_prep(args_dict)
     try:
@@ -444,8 +465,7 @@ def disco_test():
     """
     try:
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
+        client = get_client()
         # Create container
         cont_id = client.create_container(
             "disco_test",
