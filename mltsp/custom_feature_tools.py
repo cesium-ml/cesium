@@ -463,8 +463,7 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
                  binds={proj_mount_path: {"bind": "/home/mltsp/mltsp",
                                           "ro": True},
                         path_to_tmp_dir: {"bind": "/data",
-                                          "ro": True}},
-                 privileged=True)
+                                          "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)

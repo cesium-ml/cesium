@@ -121,10 +121,10 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
                  "/data": ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
+                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp",
+                                           "ro": True},
                         tmp_data_dir: {"bind": "/data",
-                                       "ro": True}},
-                 privileged=True)
+                                       "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -160,7 +160,7 @@ def copy_results_files_featurize(featureset_key, client, cont_id):
         docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
         print(
             os.path.join(
-                cfg.FEATURES_FOLDER,"%s_%s" % (featureset_key,
+                cfg.FEATURES_FOLDER, "%s_%s" % (featureset_key,
                                                file_suffix)),
             "copied to host machine.")
     # Move plot data file from features folder to Flask data folder
