@@ -8,6 +8,23 @@ except ImportError:
 
 
 def get_client(version='1.14'):
+    """Connect to Docker if available and return a client.
+
+    Parameters
+    ----------
+    version : str, optional
+        Protocol version.
+
+    Returns
+    -------
+    docker.Client
+        Docker client.
+
+    Raises
+    ------
+    RuntimeError
+        If Docker cannot be contacted or contains no images.
+    """
     docker_socks = ['/var/run/docker.sock', '/docker.sock']
 
     if not dockerpy_installed:
