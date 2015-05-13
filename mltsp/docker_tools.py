@@ -5,6 +5,7 @@ try:
     dockerpy_installed = True
 except ImportError:
     dockerpy_installed = False
+import requests
 
 
 def get_client(version='1.14'):
@@ -36,7 +37,7 @@ def get_client(version='1.14'):
                 cli = Client(base_url='unix://{}'.format(sock), version=version)
                 cli.info()
                 return cli
-            except ConnectionError:
+            except requests.exceptions.ConnectionError:
                 pass
 
     raise RuntimeError('Could not locate a usable docker socket')
