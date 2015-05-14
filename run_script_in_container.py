@@ -16,6 +16,8 @@ if __name__ == "__main__":
     parser.add_argument('--tmp_dir', dest='tmp_dir', action='store', type=str)
     args = parser.parse_args()
 
+    import sys
+    sys.path.append(args.tmp_dir)
     if args.extract_custom_feats:
         from mltsp.docker_scripts import docker_extract_custom_feats
         docker_extract_custom_feats.extract_custom_feats(args.tmp_dir)

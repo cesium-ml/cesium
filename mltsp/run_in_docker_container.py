@@ -28,7 +28,7 @@ def get_tmp_dir(rel=''):
     as this mltsp source folder, so that it is visible through the
     shared folder.
     """
-    return os.path.join(os.path.dirname(__file__), '../../tmp/', rel)
+    return os.path.join(cfg.PROJECT_PATH, 'tmp', rel)
 
 
 def docker_copy(docker_client, container_id, path, target="."):
@@ -137,8 +137,8 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
     # Create container
     cont_id = client.create_container(
         image="mltsp/base_disco",
-        command="python %s/run_script_in_container.py --%s --tmp_dir=%s" % \
-        (cfg.PROJECT_PATH, task_name, tmp_data_dir),
+        command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
+            cfg.PROJECT_PATH, task_name, tmp_data_dir),
         tty=True,
         volumes={cfg.PROJECT_PATH: ""})["Id"]
     # Start container

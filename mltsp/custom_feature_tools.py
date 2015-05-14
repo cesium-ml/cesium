@@ -193,8 +193,10 @@ def call_custom_functions(features_already_known_list, all_required_params,
     try:
         from .custom_feature_scripts import custom_feature_defs
     except ImportError:
-        sys.path.append("/data")
-        import custom_feature_defs
+        try:
+            import custom_feature_defs
+        except ImportError:
+            raise
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout
