@@ -398,8 +398,9 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
 def make_tmp_dir():
     """
     """
-    path_to_tmp_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(path_to_tmp_dir)
+    path_to_tmp_dir = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                   str(uuid.uuid4())[:10])
+    os.makedirs(path_to_tmp_dir)
     return path_to_tmp_dir
 
 
@@ -428,39 +429,43 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     from docker import Client
     from . import run_in_docker_container as ridc
-    # Spin up Docker contain and extract custom feats
-    # Instantiate Docker client
-    client = Client(base_url='unix://var/run/docker.sock',
-                    version='1.14')
-    # Create container
-    cont_id = client.create_container(
-        "mltsp/extract_custom_feats",
-        volumes={"/home/mltsp/mltsp": "",
-                 "/data": ""})["Id"]
-    # Start container
-    client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
-                        path_to_tmp_dir: {"bind": "/data",
-                                          "ro": True}},
-                 privileged=True)
-    # Wait for process to complete
-    client.wait(cont_id)
-    stdout = client.logs(container=cont_id, stdout=True)
-    stderr = client.logs(container=cont_id, stderr=True)
-    if str(stderr).strip() != "" and stderr != b'':
-        print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
-    # Copy pickled results data from Docker container to host
-
-    ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
-                     target=path_to_tmp_dir)
-    print("/tmp/results_list_of_dict.pkl copied to host machine.")
-    # Load pickled results data
-    with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
-              "rb") as f:
-        results_list_of_dict = pickle.load(f)
-    # Kill and remove the container
-    client.remove_container(container=cont_id, force=True)
-    return results_list_of_dict
+    tmp_data_dir = path_to_tmp_dir
+    try:
+        # Spin up Docker contain and extract custom feats
+        # Instantiate Docker client
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
+        # Create container
+        cont_id = client.create_container(
+            image="mltsp/base_disco",
+            command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
+                cfg.PROJECT_PATH, "extract_custom_feats", tmp_data_dir),
+            tty=True,
+            volumes={cfg.PROJECT_PATH: ""})["Id"]
+        # Start container
+        client.start(cont_id,
+                     binds={cfg.PROJECT_PATH: {"bind": cfg.PROJECT_PATH,
+                                           "ro": True}})
+        # Wait for process to complete
+        client.wait(cont_id)
+        stdout = client.logs(container=cont_id, stdout=True)
+        stderr = client.logs(container=cont_id, stderr=True)
+        if str(stderr).strip() != "" and stderr != b'':
+            print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
+        # Copy pickled results data from Docker container to host
+        ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
+                         target=path_to_tmp_dir)
+        print("/tmp/results_list_of_dict.pkl copied to host machine.")
+        # Load pickled results data
+        with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
+                  "rb") as f:
+            results_list_of_dict = pickle.load(f)
+    except:
+        pass
+    finally:
+        # Kill and remove the container
+        client.remove_container(container=cont_id, force=True)
+        return results_list_of_dict
 
 
 def remove_tmp_files(path_to_tmp_dir):
