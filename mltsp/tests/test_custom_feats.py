@@ -7,6 +7,7 @@ import os
 from os.path import join as pjoin
 from subprocess import call, PIPE
 import shutil
+import uuid
 try:
     import cPickle as pickle
 except:
@@ -175,7 +176,8 @@ def test_copy_data_to_tmp_dir():
 
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
-    tmp_dir_path = tempfile.mkdtemp()
+    tmp_dir_path = os.path.join(cfg.PROJECT_PATH, "tmp", str(uuid.uuid4())[:10])
+    os.makedirs(tmp_dir_path)
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
     ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
     cft.add_tsdata_to_feats_known_dict(feats_known_dict_list,
@@ -184,6 +186,7 @@ def test_extract_feats_in_docker_container():
                              pjoin(DATA_PATH, "testfeature1.py"),
                              feats_known_dict_list)
     results = cft.extract_feats_in_docker_container("test", tmp_dir_path)
+    shutil.rmtree(tmp_dir_path, ignore_errors=True)
     cft.remove_tmp_files(tmp_dir_path)
     npt.assert_equal(len(results), 1)
     assert(isinstance(results[0], dict))

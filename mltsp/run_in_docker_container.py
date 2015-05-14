@@ -28,7 +28,7 @@ def get_tmp_dir(rel=''):
     as this mltsp source folder, so that it is visible through the
     shared folder.
     """
-    return os.path.join(os.path.dirname(__file__), '../../tmp/', rel)
+    return os.path.join(cfg.PROJECT_PATH, 'tmp', rel)
 
 
 def docker_copy(docker_client, container_id, path, target="."):
@@ -71,6 +71,9 @@ def copy_data_files_featurize_prep(args_dict):
 
     """
     tmp_files = []
+    tmp_dir_cont_path = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                     ntpath.basename(
+                                         args_dict["copied_data_dir"]))
     if os.path.isfile(str(args_dict['headerfile_path'])):
         copied_headerfile_path = os.path.join(
             args_dict['copied_data_dir'],
@@ -78,7 +81,7 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_headerfile_path)
         shutil.copy(args_dict['headerfile_path'], copied_headerfile_path)
         args_dict["headerfile_path"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict['headerfile_path']))
     if os.path.isfile(str(args_dict['zipfile_path'])):
         copied_zipfile_path = os.path.join(
@@ -87,7 +90,7 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_zipfile_path)
         shutil.copy(args_dict['zipfile_path'], copied_zipfile_path)
         args_dict["zipfile_path"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict['zipfile_path']))
     if os.path.isfile(str(args_dict['custom_script_path'])):
         copied_custom_script_path = os.path.join(
@@ -95,12 +98,12 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_custom_script_path)
         shutil.copy(args_dict['custom_script_path'], copied_custom_script_path)
         args_dict["custom_script_path"] = os.path.join(
-            "/data", "custom_feature_defs.py")
+            tmp_dir_cont_path, "custom_feature_defs.py")
         # Create __init__.py file so that custom feats script can be imported
         open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
              "w").close()
     args_dict["path_map"] = {args_dict['copied_data_dir']:
-                             "/data"}
+                             tmp_dir_cont_path}
     function_args_path = os.path.join(args_dict['copied_data_dir'],
                                       "function_args.pkl")
     tmp_files.append(function_args_path)
@@ -134,17 +137,14 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
     # Create container
     cont_id = client.create_container(
         image="mltsp/base_disco",
-        command="python /home/mltsp/mltsp/run_script_in_container.py --%s" %\
-        task_name,
+        command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
+            cfg.PROJECT_PATH, task_name, tmp_data_dir),
         tty=True,
-        volumes={"/home/mltsp/mltsp": "",
-                 "/data": ""})["Id"]
+        volumes={cfg.PROJECT_PATH: ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp", "ro": True},
-                        tmp_data_dir: {"bind": "/data",
-                                       "ro": True}},
-                 privileged=False)
+                 binds={cfg.PROJECT_PATH: {"bind": cfg.PROJECT_PATH,
+                                           "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -295,7 +295,7 @@ def build_model_in_docker_container(
     args_dict = locals()
 
     tmp_files = []
-    args_dict["path_map"] = {copied_data_dir, "/data"}
+    args_dict["path_map"] = {copied_data_dir, copied_data_dir}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
@@ -343,6 +343,9 @@ def copy_data_files_predict_prep(args_dict):
 
     """
     tmp_files = []
+    tmp_dir_cont_path = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                     ntpath.basename(
+                                         args_dict["copied_data_dir"]))
     if os.path.isfile(str(args_dict["newpred_file_path"])):
         copied_newpred_file_path = os.path.join(
             args_dict["copied_data_dir"],
@@ -350,7 +353,7 @@ def copy_data_files_predict_prep(args_dict):
         tmp_files.append(copied_newpred_file_path)
         shutil.copy(args_dict["newpred_file_path"], copied_newpred_file_path)
         args_dict["newpred_file_path"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict["newpred_file_path"]))
     if os.path.isfile(str(args_dict["custom_features_script"])):
         copied_custom_script_path = os.path.join(
@@ -359,7 +362,7 @@ def copy_data_files_predict_prep(args_dict):
         shutil.copy(args_dict["custom_features_script"],
                     copied_custom_script_path)
         args_dict["custom_features_script"] = os.path.join(
-            "/data", "custom_feature_defs.py")
+            tmp_dir_cont_path, "custom_feature_defs.py")
         # Create __init__.py file so that custom feats script can be imported
         open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
              "w").close()
@@ -370,11 +373,11 @@ def copy_data_files_predict_prep(args_dict):
         tmp_files.append(copied_metadata_file_path)
         shutil.copy(args_dict["metadata_file"], copied_metadata_file_path)
         args_dict["metadata_file"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict["metadata_file"]))
 
     args_dict["path_map"] = {args_dict["copied_data_dir"]:
-                             "/data"}
+                             tmp_dir_cont_path}
     function_args_path = os.path.join(args_dict["copied_data_dir"],
                                       "function_args.pkl")
     tmp_files.append(function_args_path)
