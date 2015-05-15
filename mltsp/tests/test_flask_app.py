@@ -1293,12 +1293,12 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             d = fa.get_all_info_dict()
-            npt.assert_equal(d['list_of_current_projects'], [])
+            npt.assert_equal(len(d['list_of_current_projects']), 0)
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             d = fa.get_all_info_dict()
             r.table("projects").get("abc123").delete().run(conn)
-            npt.assert_equal(d['list_of_current_projects'], [])
+            npt.assert_equal(len(d['list_of_current_projects']), 0)
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("userauth").insert({"id": "abc123",
@@ -1308,7 +1308,7 @@ class FlaskAppTestCase(unittest.TestCase):
             d = fa.get_all_info_dict()
             r.table("projects").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123").delete().run(conn)
-            npt.assert_equal(d['list_of_current_projects'], ["abc123"])
+            npt.assert_array_equal(d['list_of_current_projects'], ["abc123"])
 
     def test_get_all_info_dict_unauthed(self):
         """Test get all info dict - unauthed"""
@@ -1554,3 +1554,413 @@ class FlaskAppTestCase(unittest.TestCase):
                     os.remove(fpath)
                 except Exception as e:
                     print(e)
+
+    def test_verify_new_script(self):
+        """Test verify new script"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            rv = self.app.post('/verifyNewScript',
+                               content_type='multipart/form-data',
+                               data={'custom_feat_script_file':
+                                     (open(pjoin(DATA_DIR, "testfeature1.py")),
+                                      "testfeature1.py")})
+            res_str = str(rv.data)
+            assert("The following features have successfully been tested:" in
+                   res_str)
+            assert("custom_feature_checkbox" in res_str)
+            assert("avg_mag" in res_str)
+
+    def test_verify_new_script_nofile(self):
+        """Test verify new script - no file"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            rv = self.app.post('/verifyNewScript',
+                               content_type='multipart/form-data',
+                               data={})
+            res_str = str(rv.data)
+            assert("No custom features script uploaded. Please try again" in
+                   res_str)
+
+    def test_edit_project_form(self):
+        """Test edit project form"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "TESTPROJ01",
+                                        "name": "TESTPROJ01"}).run(conn)
+            rv = self.app.post('/editProjectForm',
+                               content_type='multipart/form-data',
+                               data={'project_name_orig': 'TESTPROJ01',
+                                     'project_name_edit': 'TESTPROJ02',
+                                     'project_description_edit': 'new_desc',
+                                     'addl_authed_users_edit': ''})
+            res_str = str(rv.data)
+            entry = r.table("projects").get("TESTPROJ01").run(conn)
+            r.table("projects").get("TESTPROJ01").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            npt.assert_equal(entry["name"], "TESTPROJ02")
+            npt.assert_equal(entry["description"], "new_desc")
+
+    def test_edit_project_form_delete_featset(self):
+        """Test edit project form - delete single feature set"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            rv = self.app.post('/editProjectForm',
+                               content_type='multipart/form-data',
+                               data={'project_name_orig': 'abc123',
+                                     'project_name_edit': 'abc1234',
+                                     'project_description_edit': 'new_desc',
+                                     'addl_authed_users_edit': '',
+                                     'delete_features_key': 'abc123'})
+            res_str = str(rv.data)
+            entry = r.table("projects").get("abc123").run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            npt.assert_equal(entry["name"], "abc1234")
+            npt.assert_equal(entry["description"], "new_desc")
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_classes.npy"))
+
+    def test_edit_project_form_delete_featsets(self):
+        """Test edit project form - delete multiple feature sets"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            r.table("features").insert({"id": "abc1234", "projkey": "abc123",
+                                        "name": "abc1234", "created": "abc1234",
+                                        "headerfile_path": "HEADPATH4.dat",
+                                        "zipfile_path": "ZIPPATH4.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc1234_features.csv"),
+                 "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc1234_classes.npy"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc1234_features.csv"))
+            r.table("features").insert({"id": "abc1235", "projkey": "abc123",
+                                        "name": "abc1235", "created": "abc1235",
+                                        "headerfile_path": "HEADPATH5.dat",
+                                        "zipfile_path": "ZIPPATH5.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc1235_features.csv"),
+                 "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc1235_classes.npy"), "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc1235_features.csv"))
+            rv = self.app.post('/editProjectForm',
+                               content_type='multipart/form-data',
+                               data={'project_name_orig': 'abc123',
+                                     'project_name_edit': 'abc1234',
+                                     'project_description_edit': 'new_desc',
+                                     'addl_authed_users_edit': '',
+                                     'delete_features_key': ['abc123',
+                                                             'abc1234',
+                                                             'abc1235']})
+            res_str = str(rv.data)
+            entry = r.table("projects").get("abc123").run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            npt.assert_equal(entry["name"], "abc1234")
+            npt.assert_equal(entry["description"], "new_desc")
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_classes.npy"))
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc1234"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc1234_features.csv"))
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc1234_classes.npy"))
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc1235"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc1235_features.csv"))
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc1235_classes.npy"))
+
+    def test_edit_project_form_delete_models(self):
+        """Test edit project form - delete multiple models"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "headerfile_path": "HEADPATH.dat",
+                                      "zipfile_path": "ZIPPATH.tar.gz",
+                                      "featset_key": "abc123",
+                                      "type": "RF"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123",
+                                        "created": "",
+                                        "featlist": ["a", "b"]}).run(conn)
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            r.table("models").insert({"id": "abc1234", "projkey": "abc123",
+                                      "name": "abc1234", "created": "abc1234",
+                                      "headerfile_path": "HEADPATH4.dat",
+                                      "zipfile_path": "ZIPPATH4.tar.gz",
+                                      "featset_key": "abc1234",
+                                      "type": "RF"}).run(conn)
+            r.table("features").insert({"id": "abc1234", "projkey": "abc123",
+                                        "name": "abc1234",
+                                        "created": "",
+                                        "featlist": ["a", "b"]}).run(conn)
+            open(pjoin(cfg.MODELS_FOLDER, "abc1234_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1234_RF.pkl"))
+            r.table("models").insert({"id": "abc1235", "projkey": "abc123",
+                                      "name": "abc1235", "created": "abc1235",
+                                      "headerfile_path": "HEADPATH5.dat",
+                                      "zipfile_path": "ZIPPATH5.tar.gz",
+                                      "featset_key": "abc1235",
+                                      "type": "RF"}).run(conn)
+            r.table("features").insert({"id": "abc1235", "projkey": "abc123",
+                                        "name": "abc1235",
+                                        "created": "",
+                                        "featlist": ["a", "b"]}).run(conn)
+            open(pjoin(cfg.MODELS_FOLDER, "abc1235_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1235_RF.pkl"))
+            rv = self.app.post('/editProjectForm',
+                               content_type='multipart/form-data',
+                               data={'project_name_orig': 'abc123',
+                                     'project_name_edit': 'abc1234',
+                                     'project_description_edit': 'new_desc',
+                                     'addl_authed_users_edit': '',
+                                     'delete_model_key': ['abc123', 'abc1234',
+                                                          'abc1235']})
+            res_str = str(rv.data)
+            r.table("features").get_all("abc123", "abc1234", "abc1235")\
+                               .delete().run(conn)
+            entry = r.table("projects").get("abc123").run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            npt.assert_equal(entry["name"], "abc1234")
+            npt.assert_equal(entry["description"], "new_desc")
+            npt.assert_equal(
+                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            npt.assert_equal(
+                r.table("models").filter({"id": "abc1234"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                            "abc1234_RF.pkl"))
+            npt.assert_equal(
+                r.table("models").filter({"id": "abc1235"}).count().run(conn),
+                0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                            "abc1235_RF.pkl"))
+
+    def test_edit_project_form_delete_predictions(self):
+        """Test edit project form - delete multiple predictions"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "headerfile_path": "HEADPATH.dat",
+                                           "zipfile_path": "ZIPPATH.tar.gz",
+                                           "featset_key": "abc123",
+                                           "type": "RF"}).run(conn)
+            r.table("predictions").insert({"id": "abc1234",
+                                           "projkey": "abc1234",
+                                           "name": "abc1234",
+                                           "created": "",
+                                           "featlist": ["a", "b"]}).run(conn)
+            rv = self.app.post('/editProjectForm',
+                               content_type='multipart/form-data',
+                               data={'project_name_orig': 'abc123',
+                                     'project_name_edit': 'abc1234',
+                                     'project_description_edit': 'new_desc',
+                                     'addl_authed_users_edit': '',
+                                     'delete_prediction_key': ['abc123',
+                                                               'abc1234']})
+            res_str = str(rv.data)
+            entry = r.table("projects").get("abc123").run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            npt.assert_equal(entry["name"], "abc1234")
+            npt.assert_equal(entry["description"], "new_desc")
+            npt.assert_equal(
+                r.table("predictions").filter({"id": "abc123"}).count().run(conn),
+                0)
+            npt.assert_equal(
+                r.table("predictions").filter({"id": "abc1234"}).count().run(conn),
+                0)
+
+    def test_new_project(self):
+        """Test new project form submission"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            rv = self.app.post('/newProject',
+                               content_type='multipart/form-data',
+                               data={'new_project_name': 'abc123',
+                                     'project_description': 'desc',
+                                     'addl_authed_users': ''})
+            res_str = str(rv.data)
+            entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
+                                                                  .next()
+            r.table("projects").get("abc123").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            assert "New project successfully created" in res_str
+            npt.assert_equal(entry["name"], "abc123")
+            npt.assert_equal(entry["description"], "desc")
+
+    def test_new_project_url(self):
+        """### TO-DO ### Test new project form submission - url"""
+        '''with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            rv = self.app.post('/newProject?proj_name=abc123'
+                               '&proj_description=desc'
+                               '&addl_users=None'
+                               '&user_email=%s' % TEST_EMAIL)
+            res_str = str(rv.data)
+            print(res_str)
+            entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
+                                                                  .next()
+            r.table("projects").get("abc123").delete().run(conn)
+            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+                                        .run(conn):
+                r.table("userauth").get(e['id']).delete().run(conn)
+            assert "New project successfully created" in res_str
+            npt.assert_equal(entry["name"], "abc123")
+            npt.assert_equal(entry["description"], "desc")'''
+
+    def test_edit_or_delete_project_form_edit(self):
+        """Test edit or delete project form - edit"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            rv = self.app.post("/editOrDeleteProject",
+                               content_type='multipart/form-data',
+                               data={"PROJECT_NAME_TO_EDIT": "abc123",
+                                     'action': 'Edit'})
+            res_dict = json.loads(rv.data)
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict["name"], "abc123")
+            assert("featuresets" in res_dict)
+            assert("authed_users" in res_dict)
+
+    def test_edit_or_delete_project_form_delete(self):
+        """Test edit or delete project form - delete"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                      "name": "abc123", "created": "abc123",
+                                      "featset_key": "abc123",
+                                      "type": "RF",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+                                           "name": "abc123",
+                                           "created": "abc123",
+                                           "headerfile_path": "HEADPATH.dat",
+                                           "zipfile_path": "ZIPPATH.tar.gz",
+                                           "featlist":
+                                           ["a", "b", "c"]}).run(conn)
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
+                 "w").close()
+            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "abc123_features.csv"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            # Call the method being tested
+            rv = self.app.post("/editOrDeleteProject",
+                               content_type='multipart/form-data',
+                               data={"PROJECT_NAME_TO_EDIT": "abc123",
+                                     'action': 'Delete'})
+            res_dict = json.loads(rv.data)
+            npt.assert_equal(res_dict["result"], "Deleted 1 project(s).")
+            count = r.table("projects").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            count = r.table("features").filter({"id": "abc123"}).count()\
+                                                                .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "abc123_features.csv"))
+            count = r.table("models").filter({"id": "abc123"}).count()\
+                                                              .run(conn)
+            npt.assert_equal(count, 0)
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                            "abc123_RF.pkl"))
+            count = r.table("predictions").filter({"id": "abc123"}).count()\
+                                                                   .run(conn)
+            npt.assert_equal(count, 0)
+
+    def test_edit_or_delete_project_form_invalid(self):
+        """Test edit or delete project form - invalid action"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            rv = self.app.post("/editOrDeleteProject",
+                               content_type='multipart/form-data',
+                               data={"PROJECT_NAME_TO_EDIT": "abc123",
+                                     'action': 'Invalid action!'})
+            res_dict = json.loads(rv.data)
+            r.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict["error"], "Invalid request action.")
