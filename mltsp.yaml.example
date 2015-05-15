@@ -1,13 +1,14 @@
 flask:
-    secret-key:   # This secret key can be any random string of characters.
-                  # Typically ``os.urandom(24)`` is good enough.
+    secret-key: 01234  # This secret key can be any random string of
+                       # characters.  Typically ``os.urandom(24)`` is
+                       # good enough.
 
 authentication:
     # The Stormpath API keys can be downloaded from:
     # https://api.stormpath.com
 
-    stormpath_api_key_id:
-    stormpath_api_key_secret:
+    stormpath_api_key_id: 01234
+    stormpath_api_key_secret: 0124
     stormpath_application: mltsp
 
     # This section is optional.  If not filled in, Google Authentication
@@ -20,7 +21,10 @@ authentication:
     #
     # - Appliation type: Web
     # - Authorized JavaScript origins: blank
-    # - Authorized redirect URIs: http://localhost:8000/google
+    # - Authorized redirect URIs: http://localhost:5000/google
+    #                             http://your.hosted.server.com
+    #
+    # Always include the localhost:5000 for unit testing purposes.
 
-    google_client_id:
-    google_client_secret:
+    google_client_id: 01234
+    google_client_secret: 01234
