@@ -3,7 +3,7 @@ import pickle
 import shutil
 import os
 import ntpath
-from .docker_tools import get_client
+from .util import get_docker_client
 from . import cfg
 import io
 import tarfile
@@ -133,7 +133,7 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
 
     """
     # Instantiate Docker client
-    client = get_client()
+    client = get_docker_client()
     # Create container
     cont_id = client.create_container(
         image="mltsp/base_disco",
@@ -468,7 +468,7 @@ def disco_test():
     """
     try:
         # Instantiate Docker client
-        client = get_client()
+        client = get_docker_client()
         # Create container
         cont_id = client.create_container(
             "disco_test",

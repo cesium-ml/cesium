@@ -13,7 +13,8 @@ import shutil
 import numpy as np
 from . import cfg
 
-from .docker_tools import docker_images_available, is_running_in_docker
+from .util import docker_images_available, is_running_in_docker, \
+    get_docker_client
 
 class MissingRequiredParameterError(Exception):
 
@@ -429,14 +430,12 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
 def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     """
-    from docker import Client
     from . import run_in_docker_container as ridc
     tmp_data_dir = path_to_tmp_dir
     try:
         # Spin up Docker contain and extract custom feats
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
+        client = get_docker_client()
 
         # Use symlink if one was created (in which case this is probably
         # being run in a Disco worker)

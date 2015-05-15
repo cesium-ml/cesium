@@ -186,7 +186,7 @@ features_to_plot = [
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
     from . import util
-    if util.currently_running_in_docker_container() == False:
+    if util.is_running_in_docker() == False:
         sys.exit(-1)
 
 

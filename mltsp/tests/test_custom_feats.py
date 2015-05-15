@@ -1,6 +1,6 @@
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
-from mltsp import docker_tools
+from mltsp import util
 import numpy.testing as npt
 import numpy as np
 import os
@@ -89,7 +89,7 @@ def test_execute_functions_in_order():
 
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
-    assert(docker_tools.docker_images_available())
+    assert(util.docker_images_available())
 
 
 def test_parse_tsdata_to_lists():
