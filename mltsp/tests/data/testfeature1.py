@@ -3,7 +3,9 @@ try:
     from ..custom_feature_tools import *
 except:
     import sys
-    sys.path.append("/home/mltsp/mltsp")
+    import os
+    sys.path.append(os.path.dirname(__file__))
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
     from mltsp.custom_feature_tools import *
 
 @myFeature(requires=["t","m"], provides=['period','avg_mag'])
@@ -43,12 +45,4 @@ def test_feature6(e):
 
 
 if __name__ == "__main__":
-    #from . import lc_tools
-    #tmestr = lc_tools.dotAstro_to_csv(215156)
-    #all_lines = tmestr[0].strip().split("\n")
-    #t,m,e=[[],[],[]]
-    #for line in all_lines:
-    #    ti,mi,ei = line.split(",")
-    #    t.append(float(ti)); m.append(float(mi)); e.append(float(ei))
-    #print(feature(t=t,m=m,e=e))
     print("testfeature1.py called.")
