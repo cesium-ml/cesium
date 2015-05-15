@@ -1,7 +1,7 @@
 flask:
-    secret-key: 01234  # This secret key can be any random string of
-                       # characters.  Typically ``os.urandom(24)`` is
-                       # good enough.
+    secret-key: abc01234  # This secret key can be any random string of
+                          # characters.  Typically ``os.urandom(24)`` is
+                          # good enough.
 
 authentication:
     # The Stormpath API keys can be downloaded from:
