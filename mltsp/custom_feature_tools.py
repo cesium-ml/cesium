@@ -12,8 +12,8 @@ import uuid
 import shutil
 import numpy as np
 from . import cfg
-from . import util
 
+from .docker_tools import docker_images_available, is_running_in_docker
 
 class MissingRequiredParameterError(Exception):
 
@@ -192,8 +192,10 @@ def call_custom_functions(features_already_known_list, all_required_params,
     try:
         from .custom_feature_scripts import custom_feature_defs
     except ImportError:
-        sys.path.append("/data")
-        import custom_feature_defs
+        try:
+            import custom_feature_defs
+        except ImportError:
+            raise
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout
@@ -298,26 +300,6 @@ def execute_functions_in_order(
     return all_extracted_features_list
 
 
-def docker_installed():
-    """Return boolean indicating whether Docker images are present."""
-    try:
-        from docker import Client
-        from docker.errors import DockerException
-        import requests
-    except ImportError:
-        return False
-    try:
-        cli = Client(base_url='unix://var/run/docker.sock',
-                     version='1.14')
-        img_ids = cli.images(quiet=True)
-        if len(img_ids) > 0:
-            return True
-        else:
-            return False
-    except (DockerException, requests.ConnectionError):
-        return False
-
-
 def parse_tsdata_to_lists(ts_data):
     """
     """
@@ -414,8 +396,9 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
 def make_tmp_dir():
     """
     """
-    path_to_tmp_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(path_to_tmp_dir)
+    path_to_tmp_dir = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                   str(uuid.uuid4())[:10])
+    os.makedirs(path_to_tmp_dir)
     return path_to_tmp_dir
 
 
@@ -444,44 +427,43 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     from docker import Client
     from . import run_in_docker_container as ridc
-    # Spin up Docker contain and extract custom feats
-    # Instantiate Docker client
-    client = Client(base_url='unix://var/run/docker.sock',
-                    version='1.14')
-    # Create container
-    cont_id = client.create_container(
-        "mltsp/extract_custom_feats",
-        volumes={"/home/mltsp/mltsp": "",
-                 "/data": ""})["Id"]
-    # Use symlink if exists
-    if os.path.exists(cfg.PROJECT_PATH_LINK):
-        proj_mount_path = cfg.PROJECT_PATH_LINK
-    else:
-        proj_mount_path = cfg.PROJECT_PATH
-    # Start container
-    client.start(cont_id,
-                 binds={proj_mount_path: {"bind": "/home/mltsp/mltsp",
-                                          "ro": True},
-                        path_to_tmp_dir: {"bind": "/data",
-                                          "ro": True}})
-    # Wait for process to complete
-    client.wait(cont_id)
-    stdout = client.logs(container=cont_id, stdout=True)
-    stderr = client.logs(container=cont_id, stderr=True)
-    if str(stderr).strip() != "" and stderr != b'':
-        print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
-    # Copy pickled results data from Docker container to host
-
-    ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
-                     target=path_to_tmp_dir)
-    print("/tmp/results_list_of_dict.pkl copied to host machine.")
-    # Load pickled results data
-    with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
-              "rb") as f:
-        results_list_of_dict = pickle.load(f)
-    # Kill and remove the container
-    client.remove_container(container=cont_id, force=True)
-    return results_list_of_dict
+    tmp_data_dir = path_to_tmp_dir
+    try:
+        # Spin up Docker contain and extract custom feats
+        # Instantiate Docker client
+        client = Client(base_url='unix://var/run/docker.sock',
+                        version='1.14')
+        # Create container
+        cont_id = client.create_container(
+            image="mltsp/base_disco",
+            command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
+                cfg.PROJECT_PATH, "extract_custom_feats", tmp_data_dir),
+            tty=True,
+            volumes={cfg.PROJECT_PATH: ""})["Id"]
+        # Start container
+        client.start(cont_id,
+                     binds={cfg.PROJECT_PATH: {"bind": cfg.PROJECT_PATH,
+                                           "ro": True}})
+        # Wait for process to complete
+        client.wait(cont_id)
+        stdout = client.logs(container=cont_id, stdout=True)
+        stderr = client.logs(container=cont_id, stderr=True)
+        if str(stderr).strip() != "" and stderr != b'':
+            print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
+        # Copy pickled results data from Docker container to host
+        ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
+                         target=path_to_tmp_dir)
+        print("/tmp/results_list_of_dict.pkl copied to host machine.")
+        # Load pickled results data
+        with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
+                  "rb") as f:
+            results_list_of_dict = pickle.load(f)
+    except:
+        pass
+    finally:
+        # Kill and remove the container
+        client.remove_container(container=cont_id, force=True)
+        return results_list_of_dict
 
 
 def remove_tmp_files(path_to_tmp_dir):
@@ -607,7 +589,7 @@ def verify_new_script(script_fpath, docker_container=False):
     features_already_known_list = assemble_test_data()
 
     all_extracted_features_list = []
-    if docker_installed():
+    if docker_images_available():
         print("Extracting features inside docker container...")
         all_extracted_features_list = docker_extract_features(
             script_fpath=script_fpath,
@@ -707,18 +689,21 @@ def generate_custom_features(
         features_already_known['m'] = m
     if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
-    if util.currently_running_in_docker_container():
+
+    if is_running_in_docker():
         all_new_features = execute_functions_in_order(
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
     else:
-        if docker_installed():
+        if docker_images_available():
             print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
                 features_already_known_list=features_already_known)
         else:
-            print("Docker not installed - running custom features script could "
-                  "be unsafe. Skipping extraction of custom features.")
-            return []
+            print("Generating custom features WITHOUT docker container...")
+            all_new_features = execute_functions_in_order(
+                features_already_known=features_already_known,
+                script_fpath=custom_script_path)
+
     return all_new_features

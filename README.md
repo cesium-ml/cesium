@@ -68,6 +68,10 @@
 
    * Install nginx
 
+   * Install mltsp:
+
+     ``pip install -e .``
+
 
 ## Configuration
 
@@ -80,19 +84,18 @@
 
      ``MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER, ERR_LOG_PATH``
 
+   * Authentication information is currently stored in ``mltsp.yaml``.  This
+     configuration file will still be merged with ``cfg.py``.
+
 
 ## Starting the application
 
    First, initialize the database:
 
-   ``PYTHONPATH="." python flask/flask_app.py --db-init``
+   ``make init``
 
-   Invoke the app either in **standard** mode or in **debug mode**:
+   To launch:
 
-   ``PYTHONPATH="." python flask/flask_app.py``
+   ``make webapp``
 
-   or
-
-   ``PYTHONPATH="." python flask/flask_app.py --debug``
-
-   To specify host, port, etc., execute with ``--help`` for more information.
+   To specify host, port, etc., edit ``tools/launch_waitress.sh``.

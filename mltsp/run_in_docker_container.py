@@ -3,12 +3,33 @@ import pickle
 import shutil
 import os
 import ntpath
-from docker import Client
+from .docker_tools import get_client
 from . import cfg
 import io
 import tarfile
 import uuid
 import stat
+
+import errno
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
+
+def get_tmp_dir(rel=''):
+    """
+    Importantly, for drone, this path must be in the same parent folder
+    as this mltsp source folder, so that it is visible through the
+    shared folder.
+    """
+    return os.path.join(cfg.PROJECT_PATH, 'tmp', rel)
+
 
 def docker_copy(docker_client, container_id, path, target="."):
     """Copy file from docker container to host machine.
@@ -50,6 +71,9 @@ def copy_data_files_featurize_prep(args_dict):
 
     """
     tmp_files = []
+    tmp_dir_cont_path = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                     ntpath.basename(
+                                         args_dict["copied_data_dir"]))
     if os.path.isfile(str(args_dict['headerfile_path'])):
         copied_headerfile_path = os.path.join(
             args_dict['copied_data_dir'],
@@ -57,7 +81,7 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_headerfile_path)
         shutil.copy(args_dict['headerfile_path'], copied_headerfile_path)
         args_dict["headerfile_path"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict['headerfile_path']))
     if os.path.isfile(str(args_dict['zipfile_path'])):
         copied_zipfile_path = os.path.join(
@@ -66,7 +90,7 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_zipfile_path)
         shutil.copy(args_dict['zipfile_path'], copied_zipfile_path)
         args_dict["zipfile_path"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict['zipfile_path']))
     if os.path.isfile(str(args_dict['custom_script_path'])):
         copied_custom_script_path = os.path.join(
@@ -74,12 +98,12 @@ def copy_data_files_featurize_prep(args_dict):
         tmp_files.append(copied_custom_script_path)
         shutil.copy(args_dict['custom_script_path'], copied_custom_script_path)
         args_dict["custom_script_path"] = os.path.join(
-            "/data", "custom_feature_defs.py")
+            tmp_dir_cont_path, "custom_feature_defs.py")
         # Create __init__.py file so that custom feats script can be imported
         open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
              "w").close()
     args_dict["path_map"] = {args_dict['copied_data_dir']:
-                             "/data"}
+                             tmp_dir_cont_path}
     function_args_path = os.path.join(args_dict['copied_data_dir'],
                                       "function_args.pkl")
     tmp_files.append(function_args_path)
@@ -109,22 +133,18 @@ def spin_up_and_run_container(task_name, tmp_data_dir):
 
     """
     # Instantiate Docker client
-    client = Client(base_url='unix://var/run/docker.sock',
-                    version='1.14')
+    client = get_client()
     # Create container
     cont_id = client.create_container(
         image="mltsp/base_disco",
-        command="python /home/mltsp/mltsp/run_script_in_container.py --%s" %\
-        task_name,
+        command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
+            cfg.PROJECT_PATH, task_name, tmp_data_dir),
         tty=True,
-        volumes={"/home/mltsp/mltsp": "",
-                 "/data": ""})["Id"]
+        volumes={cfg.PROJECT_PATH: ""})["Id"]
     # Start container
     client.start(cont_id,
-                 binds={cfg.PROJECT_PATH: {"bind": "/home/mltsp/mltsp",
-                                           "ro": True},
-                        tmp_data_dir: {"bind": "/data",
-                                       "ro": True}})
+                 binds={cfg.PROJECT_PATH: {"bind": cfg.PROJECT_PATH,
+                                           "ro": True}})
     # Wait for process to complete
     client.wait(cont_id)
     stdout = client.logs(container=cont_id, stdout=True)
@@ -160,7 +180,7 @@ def copy_results_files_featurize(featureset_key, client, cont_id):
         docker_copy(client, cont_id, path, target=cfg.FEATURES_FOLDER)
         print(
             os.path.join(
-                cfg.FEATURES_FOLDER, "%s_%s" % (featureset_key,
+                cfg.FEATURES_FOLDER,"%s_%s" % (featureset_key,
                                                file_suffix)),
             "copied to host machine.")
     # Move plot data file from features folder to Flask data folder
@@ -213,8 +233,8 @@ def featurize_in_docker_container(
         Human-readable success message.
 
     """
-    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(copied_data_dir)
+    copied_data_dir = get_tmp_dir(str(uuid.uuid4())[:10])
+    mkdir_p(copied_data_dir)
     args_dict = locals()
     tmp_files = copy_data_files_featurize_prep(args_dict)
     try:
@@ -235,7 +255,6 @@ def featurize_in_docker_container(
         shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove Docker container
         try:
-            cont_id
             if cont_id is not None:
                 client.remove_container(container=cont_id, force=True)
             else:
@@ -271,12 +290,12 @@ def build_model_in_docker_container(
         Human-readable success message.
 
     """
-    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(copied_data_dir)
+    copied_data_dir = get_tmp_dir(str(uuid.uuid4())[:10])
+    mkdir_p(copied_data_dir)
     args_dict = locals()
 
     tmp_files = []
-    args_dict["path_map"] = {copied_data_dir, "/data"}
+    args_dict["path_map"] = {copied_data_dir, copied_data_dir}
     function_args_path = os.path.join(copied_data_dir, "function_args.pkl")
     tmp_files.append(function_args_path)
     with open(function_args_path, "wb") as f:
@@ -299,7 +318,10 @@ def build_model_in_docker_container(
                 print(e)
         shutil.rmtree(copied_data_dir, ignore_errors=True)
         # Kill and remove the container
-        client.remove_container(container=cont_id, force=True)
+        try:
+            client.remove_container(container=cont_id, force=True)
+        except:
+            print("Docker instance never started successfully")
 
     return "Model creation complete. Click the Predict tab to start using it."
 
@@ -321,6 +343,9 @@ def copy_data_files_predict_prep(args_dict):
 
     """
     tmp_files = []
+    tmp_dir_cont_path = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                     ntpath.basename(
+                                         args_dict["copied_data_dir"]))
     if os.path.isfile(str(args_dict["newpred_file_path"])):
         copied_newpred_file_path = os.path.join(
             args_dict["copied_data_dir"],
@@ -328,7 +353,7 @@ def copy_data_files_predict_prep(args_dict):
         tmp_files.append(copied_newpred_file_path)
         shutil.copy(args_dict["newpred_file_path"], copied_newpred_file_path)
         args_dict["newpred_file_path"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict["newpred_file_path"]))
     if os.path.isfile(str(args_dict["custom_features_script"])):
         copied_custom_script_path = os.path.join(
@@ -337,7 +362,7 @@ def copy_data_files_predict_prep(args_dict):
         shutil.copy(args_dict["custom_features_script"],
                     copied_custom_script_path)
         args_dict["custom_features_script"] = os.path.join(
-            "/data", "custom_feature_defs.py")
+            tmp_dir_cont_path, "custom_feature_defs.py")
         # Create __init__.py file so that custom feats script can be imported
         open(os.path.join(args_dict['copied_data_dir'], "__init__.py"),
              "w").close()
@@ -348,11 +373,11 @@ def copy_data_files_predict_prep(args_dict):
         tmp_files.append(copied_metadata_file_path)
         shutil.copy(args_dict["metadata_file"], copied_metadata_file_path)
         args_dict["metadata_file"] = os.path.join(
-            "/data",
+            tmp_dir_cont_path,
             ntpath.basename(args_dict["metadata_file"]))
 
     args_dict["path_map"] = {args_dict["copied_data_dir"]:
-                             "/data"}
+                             tmp_dir_cont_path}
     function_args_path = os.path.join(args_dict["copied_data_dir"],
                                       "function_args.pkl")
     tmp_files.append(function_args_path)
@@ -402,8 +427,9 @@ def predict_in_docker_container(
         Dictionary containing prediction results.
 
     """
-    copied_data_dir = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(copied_data_dir)
+    copied_data_dir = get_tmp_dir(str(uuid.uuid4())[:10])
+    mkdir_p(copied_data_dir)
+
     args_dict = locals()
     tmp_files = copy_data_files_predict_prep(args_dict)
     try:
@@ -442,8 +468,7 @@ def disco_test():
     """
     try:
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
+        client = get_client()
         # Create container
         cont_id = client.create_container(
             "disco_test",

@@ -1,6 +1,12 @@
-FROM jpetazzo/dind
+FROM ubuntu:latest
 
-## install requirements
+RUN apt-get install -y wget
+
+# Add RethinkDB repo
+RUN \
+  echo "deb http://download.rethinkdb.com/apt `lsb_release -cs` main" > /etc/apt/sources.list.d/rethinkdb.list && \
+  wget -O- http://download.rethinkdb.com/apt/pubkey.gpg | apt-key add -
+
 RUN apt-get update
 RUN apt-get install -y wget curl git make \
                        python-pip \
@@ -9,14 +15,6 @@ RUN apt-get install -y wget curl git make \
                        python-requests python-simplejson python-tables \
                        python-matplotlib python-nose python-yaml \
                        python-sklearn \
-                       cython
+                       cython \
+                       rethinkdb docker.io phantomjs
                        # Add python-docker when switching to utopic / vivid
-
-# Download MLTSP docker images
-RUN mkdir -p /tmp
-RUN cd /tmp
-RUN git clone --depth=1 https://github.com/mltsp/mltsp.git
-RUN cd mltsp
-RUN /usr/local/bin/wrapdocker & sleep 5
-RUN ./tools/docker_pull.sh
-RUN start-stop-daemon --stop --pidfile "/var/run/docker.pid"
