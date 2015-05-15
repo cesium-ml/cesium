@@ -491,9 +491,8 @@ def remove_tmp_files(path_to_tmp_dir):
                                   "__init__.pyc")):
         try:
             os.remove(tmp_file)
-        except Exception as e:
+        except OSError:
             pass
-
     return
 
 

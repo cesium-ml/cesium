@@ -1877,9 +1877,6 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        # results_str = run_in_docker_container.featurize_in_docker_container(
-        #     headerfile_path, zipfile_path, features_to_use, featureset_key,
-        #     is_test, already_featurized, custom_script_path)
         results_str = featurize.featurize(
             headerfile_path, zipfile_path, features_to_use=features_to_use,
             featureset_id=featureset_key, is_test=is_test,
@@ -2018,20 +2015,12 @@ def prediction_proc(
         "    </thead>"
         "    <tbody>")
     try:
-        # results_dict = run_in_docker_container.predict_in_docker_container(
-        #     newpred_file_path, model_name, model_type,
-        #     prediction_entry_key, featset_key, sep=sep,
-        #     n_cols_html_table=n_cols_html_table,
-        #     features_already_extracted=None, metadata_file=metadata_file,
-        #     custom_features_script=custom_features_script)
-
         results_dict = predict.predict(
             newpred_file_path=newpred_file_path, model_name=model_name,
             model_type=model_type, featset_key=featset_key, sepr=sep,
             n_cols_html_table=n_cols_html_table,
             custom_features_script=custom_features_script,
             metadata_file_path=metadata_file)
-
         try:
             os.remove(newpred_file_path)
             if metadata_file:
