@@ -25,4 +25,5 @@ pip install -e .
 
 cp mltsp.yaml.example mltsp.yaml
 
+make db && sleep 1 && make init
 make test
