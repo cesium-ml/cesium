@@ -15,6 +15,12 @@ authentication:
     #
     # These values can be obtained from
     #   https://console.developers.google.com/project
+    #
+    # When filling in the form for running on localhost:
+    #
+    # - Appliation type: Web
+    # - Authorized JavaScript origins: blank
+    # - Authorized redirect URIs: http://localhost:8000/google
 
     google_client_id:
     google_client_secret:
