@@ -29,8 +29,8 @@ all: py2
 clean:
 	find . -name "*.so" | xargs rm
 
-webapp: py2
-	tools/launch_waitress.py
+webapp: db py2
+	PYTHONPATH=. tools/launch_waitress.py
 
 init: py2 db
 	python start_mltsp.py --db-init --force
