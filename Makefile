@@ -32,7 +32,7 @@ clean:
 webapp: py2
 	tools/launch_waitress.py
 
-init: py2
+init: py2 db
 	python start_mltsp.py --db-init --force
 
 db:
