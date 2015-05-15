@@ -1850,7 +1850,7 @@ class FlaskAppTestCase(unittest.TestCase):
             res_str = str(rv.data)
             entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
                                                                   .next()
-            r.table("projects").get("abc123").delete().run(conn)
+            r.table("projects").get(entry["id"]).delete().run(conn)
             for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
                 r.table("userauth").get(e['id']).delete().run(conn)
