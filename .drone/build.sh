@@ -23,4 +23,6 @@ cd ${SHARED_PATH}/mltsp
 python setup.py build_ext -i
 pip install -e .
 
+cp mltsp.yaml.example mltsp.yaml
+
 make test
