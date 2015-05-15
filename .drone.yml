@@ -5,8 +5,6 @@ git:
 env:
 script:
   - ./.drone/build.sh
-services:
-  - library/rethinkdb
 notify:
   email:
     recipients:
