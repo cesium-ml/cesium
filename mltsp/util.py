@@ -1,3 +1,5 @@
+import subprocess
+from subprocess import Popen, PIPE
 import os
 
 try:
@@ -8,7 +10,7 @@ except ImportError:
 import requests
 
 
-def get_client(version='1.14'):
+def get_docker_client(version='1.14'):
     """Connect to Docker if available and return a client.
 
     Parameters
@@ -49,7 +51,7 @@ def docker_images_available():
         return False
 
     try:
-        cli = get_client()
+        cli = get_docker_client()
         img_ids = cli.images(quiet=True)
     except RuntimeError:
         return False
@@ -62,10 +64,19 @@ def is_running_in_docker():
     import subprocess
     proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
     output = proc.stdout.read()
-
     if "/docker/" in str(output):
         in_docker_container = True
     else:
         in_docker_container = False
-
     return in_docker_container
+
+
+def check_disco_running():
+    # Check if Disco is running
+    try:
+        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        disco_running = "running" in stdout
+    except OSError:
+        disco_running = False
+    return disco_running

@@ -38,6 +38,8 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import run_in_docker_container
+from .. import featurize
+from .. import predict_class as predict
 
 all_available_features_list = cfg.features_list + cfg.features_list_science
 
@@ -309,12 +311,6 @@ def check_user_table():
                        .count().run(g.rdb_conn) == 0:
 
         add_user()
-
-        print("User", stormpath.user.full_name, "with email",
-              stormpath.user.email, "added to users db.")
-    else:
-        print("User", stormpath.user.full_name, "with email",
-              stormpath.user.email, "already in users db.")
     return jsonify({})
 
 
@@ -1551,7 +1547,7 @@ def update_project_info(
     for fpath in delete_fpaths:
         try:
             os.remove(fpath)
-        except:
+        except Exception as e:
             pass
     new_proj_details = get_project_details(new_name)
     return new_proj_details
@@ -1881,14 +1877,11 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        results_str = run_in_docker_container.featurize_in_docker_container(
-            headerfile_path, zipfile_path, features_to_use, featureset_key,
-            is_test, already_featurized, custom_script_path)
-        # results_str = featurize.featurize(
-        #    headerfile_path, zipfile_path, features_to_use=features_to_use,
-        #    featureset_id=featureset_key, is_test=is_test,
-        #    already_featurized=already_featurized,
-        #    custom_script_path=custom_script_path, USE_DISCO=False)
+        results_str = featurize.featurize(
+            headerfile_path, zipfile_path, features_to_use=features_to_use,
+            featureset_id=featureset_key, is_test=is_test,
+            already_featurized=already_featurized,
+            custom_script_path=custom_script_path)
         if email_user not in (False, None, "False", "None"):
             emailUser(email_user)
     except Exception as theErr:
@@ -2015,26 +2008,19 @@ def prediction_proc(
     for i in range(n_cols_html_table):
         results_str += (
             "            <th class='pred_results'>Class%d</th>"
-            "            <th class='pred_results'>Class%d_Prob</th>") % (i + 1, i + 1)
+            "            <th class='pred_results'>Class%d_Prob</th>") % (i + 1,
+                                                                         i + 1)
     results_str += (
         "        </tr>"
         "    </thead>"
         "    <tbody>")
     try:
-        results_dict = run_in_docker_container.predict_in_docker_container(
-            newpred_file_path, model_name, model_type,
-            prediction_entry_key, featset_key, sep=sep,
+        results_dict = predict.predict(
+            newpred_file_path=newpred_file_path, model_name=model_name,
+            model_type=model_type, featset_key=featset_key, sepr=sep,
             n_cols_html_table=n_cols_html_table,
-            features_already_extracted=None, metadata_file=metadata_file,
-            custom_features_script=custom_features_script)
-
-        # results_dict = predict.predict(
-        #    newpred_file_path=newpred_file_path, model_name=model_name,
-        #    model_type=model_type, featset_key=featset_key, sepr=sep,
-        #    n_cols_html_table=n_cols_html_table,
-        #    custom_features_script=custom_features_script,
-        #    metadata_file_path=metadata_file)
-
+            custom_features_script=custom_features_script,
+            metadata_file_path=metadata_file)
         try:
             os.remove(newpred_file_path)
             if metadata_file:
@@ -2137,6 +2123,8 @@ def verifyNewScript():
 
     """
     if request.method == "POST":
+        if 'custom_feat_script_file' not in request.files:
+            return "No custom features script uploaded. Please try again."
         scriptfile = request.files['custom_feat_script_file']
         scriptfile_name = secure_filename(scriptfile.filename)
         scriptfile_path = os.path.join(
@@ -2161,7 +2149,9 @@ def verifyNewScript():
             print(theErr)
             logging.exception("verifyNewScript error.")
             return str(theErr)
-        os.remove(scriptfile_path)
+        finally:
+            if os.path.exists(scriptfile_path):
+                os.remove(scriptfile_path)
         return str(
             "The following features have successfully been tested: <br>"
             + res_str)
@@ -2264,7 +2254,7 @@ def newProject(
             })
         proj_description = str(request.form["project_description"]).strip()
         addl_users = str(request.form["addl_authed_users"]).strip().split(',')
-        if addl_users == [''] or addl_users == [' ']:
+        if addl_users in [[''], ["None"]]:
             addl_users = []
         if "user_email" in request.form:
             user_email = str(request.form["user_email"]).strip()
@@ -2311,8 +2301,8 @@ def editOrDeleteProject():
             # return Response(status=str(result))
         else:
             print ("###### ERROR - editOrDeleteProject() - 'action' not "
-                   "in ['Edit','Delete'] ########")
-            return Response()
+                   "in ['Edit', 'Delete'] ########")
+            return jsonify({"error": "Invalid request action."})
 
 
 @app.route(

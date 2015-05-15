@@ -1,6 +1,6 @@
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
-from mltsp import docker_tools
+from mltsp import util
 import numpy.testing as npt
 import numpy as np
 import os
@@ -89,7 +89,7 @@ def test_execute_functions_in_order():
 
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
-    assert(docker_tools.docker_images_available())
+    assert(util.docker_images_available())
 
 
 def test_parse_tsdata_to_lists():
@@ -176,8 +176,7 @@ def test_copy_data_to_tmp_dir():
 
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
-    tmp_dir_path = os.path.join(cfg.PROJECT_PATH, "tmp", str(uuid.uuid4())[:10])
-    os.makedirs(tmp_dir_path)
+    tmp_dir_path = cft.make_tmp_dir()
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
     ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
     cft.add_tsdata_to_feats_known_dict(feats_known_dict_list,

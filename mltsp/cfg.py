@@ -27,6 +27,8 @@ ERR_LOG_PATH = os.path.join(
 TCP_INGEST_TOOLS_PATH = os.path.join(MLTSP_PACKAGE_PATH,
                                      "TCP/Software/ingest_tools")
 
+PROJECT_PATH_LINK = "/tmp/mltsp_link"
+
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
 features_list = [
@@ -181,20 +183,10 @@ features_to_plot = [
     "freq1_harmonics_rel_phase_1"]
 
 
-def currently_running_in_docker_container():
-    import subprocess
-    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    if "/docker/" in str(output):
-        in_docker_container=True
-    else:
-        in_docker_container=False
-    return in_docker_container
-
-
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
-    if currently_running_in_docker_container() == False:
+    from . import util
+    if util.is_running_in_docker() == False:
         sys.exit(-1)
 
 

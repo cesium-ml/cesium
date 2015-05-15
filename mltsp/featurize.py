@@ -10,7 +10,6 @@ from random import shuffle
 import os
 import tarfile
 import ntpath
-from subprocess import Popen, PIPE
 import numpy as np
 try:
     from disco.core import Job, result_iterator
@@ -24,6 +23,7 @@ if DISCO_INSTALLED:
 from . import cfg
 from . import lc_tools
 from . import custom_feature_tools as cft
+from . import util
 
 
 def shorten_fname(fname):
@@ -140,13 +140,7 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
         (features_to_use, fname_class_dict, fname_class_science_features_dict,
          fname_metadata_dict) = parse_headerfile(headerfile_path,
                                                  features_to_use)
-        # Check if Disco is running
-        try:
-            process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-            stdout, stderr = process.communicate()
-            disco_running = "running" in stdout
-        except OSError:
-            disco_running = False
+        disco_running = util.check_disco_running()
         # Generate the features
         if DISCO_INSTALLED and USE_DISCO and disco_running:
             # Featurize in parallel

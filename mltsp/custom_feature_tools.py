@@ -13,7 +13,8 @@ import shutil
 import numpy as np
 from . import cfg
 
-from .docker_tools import docker_images_available, is_running_in_docker
+from .util import docker_images_available, is_running_in_docker, \
+    get_docker_client
 
 class MissingRequiredParameterError(Exception):
 
@@ -108,7 +109,6 @@ class DummyFile(object):
 
     def write(self, x):
         pass
-
 
 
 def parse_csv_file(fname, sep=',', skip_lines=0):
@@ -301,7 +301,6 @@ def execute_functions_in_order(
     return all_extracted_features_list
 
 
-
 def parse_tsdata_to_lists(ts_data):
     """
     """
@@ -398,7 +397,11 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
 def make_tmp_dir():
     """
     """
-    path_to_tmp_dir = os.path.join(cfg.PROJECT_PATH, "tmp",
+    if os.path.exists(cfg.PROJECT_PATH_LINK):
+        proj_path = cfg.PROJECT_PATH_LINK
+    else:
+        proj_path = cfg.PROJECT_PATH
+    path_to_tmp_dir = os.path.join(proj_path, "tmp",
                                    str(uuid.uuid4())[:10])
     os.makedirs(path_to_tmp_dir)
     return path_to_tmp_dir
@@ -427,25 +430,31 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
 def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     """
-    from docker import Client
     from . import run_in_docker_container as ridc
     tmp_data_dir = path_to_tmp_dir
     try:
         # Spin up Docker contain and extract custom feats
         # Instantiate Docker client
-        client = Client(base_url='unix://var/run/docker.sock',
-                        version='1.14')
+        client = get_docker_client()
+
+        # Use symlink if one was created (in which case this is probably
+        # being run in a Disco worker)
+        if os.path.exists(cfg.PROJECT_PATH_LINK):
+            proj_mount_path = cfg.PROJECT_PATH_LINK
+        else:
+            proj_mount_path = cfg.PROJECT_PATH
         # Create container
         cont_id = client.create_container(
             image="mltsp/base_disco",
             command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
-                cfg.PROJECT_PATH, "extract_custom_feats", tmp_data_dir),
+                proj_mount_path, "extract_custom_feats", tmp_data_dir),
             tty=True,
-            volumes={cfg.PROJECT_PATH: ""})["Id"]
+            volumes={proj_mount_path: ""})["Id"]
+
         # Start container
         client.start(cont_id,
-                     binds={cfg.PROJECT_PATH: {"bind": cfg.PROJECT_PATH,
-                                           "ro": True}})
+                     binds={proj_mount_path: {"bind": proj_mount_path,
+                                              "ro": True}})
         # Wait for process to complete
         client.wait(cont_id)
         stdout = client.logs(container=cont_id, stdout=True)
@@ -460,12 +469,12 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
                   "rb") as f:
             results_list_of_dict = pickle.load(f)
+            return results_list_of_dict
     except:
-        pass
+        raise
     finally:
         # Kill and remove the container
         client.remove_container(container=cont_id, force=True)
-        return results_list_of_dict
 
 
 def remove_tmp_files(path_to_tmp_dir):
@@ -481,9 +490,8 @@ def remove_tmp_files(path_to_tmp_dir):
                                   "__init__.pyc")):
         try:
             os.remove(tmp_file)
-        except Exception as e:
-            print(e)
-
+        except OSError:
+            pass
     return
 
 

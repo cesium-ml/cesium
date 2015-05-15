@@ -1,10 +1,10 @@
 from mltsp import parallel_processing as prl_proc
 from mltsp import cfg
 from mltsp import build_model
+from mltsp import util
 import os
 from os.path import join as pjoin
 import shutil
-from subprocess import Popen, PIPE
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -12,14 +12,7 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 def test_featurize_in_parallel():
     """Test main parallelized featurization function"""
-    # Check if Disco is running
-    try:
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        disco_running = "running" in stdout
-    except OSError:
-        disco_running = False
-    if not disco_running:
+    if not util.check_disco_running():
         print("Disco not running - aborting test.")
         return
     fname_features_dict = prl_proc.featurize_in_parallel(
@@ -48,13 +41,7 @@ def generate_model():
 
 def test_featurize_prediction_data_in_parallel():
     """Test parallel featurization of prediction TS data"""
-    # Check if Disco is running
-    try:
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        disco_running = "running" in stdout
-    except OSError:
-        disco_running = False
+    disco_running = util.check_disco_running()
     if not disco_running:
         print("Disco not running - aborting test.")
         return

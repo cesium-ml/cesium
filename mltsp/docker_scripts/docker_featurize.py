@@ -3,9 +3,9 @@
 from __future__ import print_function
 import os
 from .. import featurize
+from .. import util
 
 import pickle
-from subprocess import Popen, PIPE, call
 import time
 
 
@@ -51,13 +51,7 @@ def do_featurization(data_path):
     elif ("already_featurized" in function_args and
           function_args["already_featurized"] == True):
         pass
-    # Check if Disco is running
-    try:
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        disco_running = "running" in stdout
-    except OSError:
-        disco_running = False
+    disco_running = util.check_disco_running()
     results_str = featurize.featurize(
         function_args["headerfile_path"],
         function_args["zipfile_path"],

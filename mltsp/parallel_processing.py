@@ -6,23 +6,13 @@ import tarfile
 import uuid
 import ntpath
 from . import cfg
+from . import util
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
     DISCO_INSTALLED = True
 except Exception as theError:
     DISCO_INSTALLED = False
-
-
-def currently_running_in_docker_container():
-    import subprocess
-    proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
-    output = proc.stdout.read()
-    if "/docker/" in str(output):
-        in_docker_container = True
-    else:
-        in_docker_container = False
-    return in_docker_container
 
 
 def pred_map(fname, params):
@@ -213,6 +203,8 @@ def featurize_prediction_data_in_parallel(
     the_tarfile.extractall(path=tmp_dir_path)
     all_fnames = the_tarfile.getnames()
 
+    if not os.path.exists(cfg.PROJECT_PATH_LINK):
+        os.symlink(cfg.PROJECT_PATH, cfg.PROJECT_PATH_LINK)
     big_features_and_tsdata_dict = {}
 
     params = {"featset_key": featset_key, "sep": sep,
@@ -413,6 +405,8 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
     if len(features_to_use) == 0:
         features_to_use = all_features_list
 
+    if not os.path.exists(cfg.PROJECT_PATH_LINK):
+        os.symlink(cfg.PROJECT_PATH, cfg.PROJECT_PATH_LINK)
     fname_class_dict = {}
     line_no = 0
     with open(headerfile_path) as headerfile:
