@@ -3,14 +3,15 @@ flask
 Flask-Stormpath
 flask-mail
 flask-restful
+docker-py
 numpy
 numexpr>=2.0
 scipy
-scikit-learn
+scikit-learn==0.16.1  # also update version in dockerfiles/base/Dockerfile
 mpld3
 pandas
 parse
-psutil
+psutil>=2.2.1
 rethinkdb
 requests
 seaborn
@@ -22,4 +23,3 @@ matplotlib
 nose
 nose-exclude
 pyyaml
-docker-py

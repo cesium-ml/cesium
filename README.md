@@ -92,14 +92,10 @@
 
    First, initialize the database:
 
-   ``PYTHONPATH="." python flask/flask_app.py --db-init``
+   ``make init``
 
-   Invoke the app either in **standard** mode or in **debug mode**:
+   To launch:
 
-   ``PYTHONPATH="." python flask/flask_app.py``
+   ``make webapp``
 
-   or
-
-   ``PYTHONPATH="." python flask/flask_app.py --debug``
-
-   To specify host, port, etc., execute with ``--help`` for more information.
+   To specify host, port, etc., edit ``tools/launch_waitress.sh``.

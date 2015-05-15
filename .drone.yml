@@ -1,0 +1,15 @@
+image: mltsp/drone
+git:
+  depth: 1
+  path: github.com/mltsp/mltsp
+env:
+script:
+  - ./.drone/build.sh
+notify:
+  email:
+    recipients:
+      - stefanv@berkeley.edu
+  webhook:
+    on_started: false
+    on_success: true
+    on_failure: true

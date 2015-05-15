@@ -8,6 +8,7 @@ import pandas as pd
 import shutil
 from sklearn.externals import joblib
 import tempfile
+import uuid
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -74,7 +75,9 @@ def test_spin_up_and_run_container():
 
 def test_copy_results_files_featurize():
     """Test copy results files - featurize"""
-    copied_data_dir = tempfile.mkdtemp()
+    copied_data_dir = os.path.join(cfg.PROJECT_PATH, "tmp",
+                                   str(uuid.uuid4())[:10])
+    os.makedirs(copied_data_dir)
     featurize_setup()
     shutil.copy(
         pjoin(DATA_PATH, "testfeature1.py"),
@@ -94,6 +97,7 @@ def test_copy_results_files_featurize():
     client, cont_id = ridc.spin_up_and_run_container("featurize",
                                                      copied_data_dir)
     ridc.copy_results_files_featurize(featureset_key, client, cont_id)
+    shutil.rmtree(copied_data_dir, ignore_errors=True)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "TEST01_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,

@@ -29,10 +29,10 @@ all: py2
 clean:
 	find . -name "*.so" | xargs rm
 
-webapp: py2
-	tools/launch_waitress.py
+webapp: db py2
+	PYTHONPATH=. tools/launch_waitress.py
 
-init: py2
+init: py2 db
 	python start_mltsp.py --db-init --force
 
 db:
@@ -42,7 +42,7 @@ external/casperjs: py2
 	@tools/casper_install.sh
 
 test_backend: db py2
-	nosetests --exclude-dir=mltsp/Flask/src --nologcapture mltsp
+	nosetests -v mltsp
 
 test_frontend: external/casperjs py2 db
 	@PYTHONPATH="." tools/casper_tests.py

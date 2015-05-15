@@ -1,11 +1,13 @@
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
+from mltsp import docker_tools
 import numpy.testing as npt
 import numpy as np
 import os
 from os.path import join as pjoin
 from subprocess import call, PIPE
 import shutil
+import uuid
 try:
     import cPickle as pickle
 except:
@@ -87,14 +89,7 @@ def test_execute_functions_in_order():
 
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
-    docker_installed = cft.docker_installed()
-    assert(isinstance(docker_installed, bool))
-    try:
-        x = call(["docker"], stdout=PIPE, stderr=PIPE)
-        docker_really_installed = True
-    except OSError:
-        docker_really_installed = False
-    npt.assert_equal(docker_installed, docker_really_installed)
+    assert(docker_tools.docker_images_available())
 
 
 def test_parse_tsdata_to_lists():
@@ -181,7 +176,8 @@ def test_copy_data_to_tmp_dir():
 
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
-    tmp_dir_path = tempfile.mkdtemp()
+    tmp_dir_path = os.path.join(cfg.PROJECT_PATH, "tmp", str(uuid.uuid4())[:10])
+    os.makedirs(tmp_dir_path)
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
     ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
     cft.add_tsdata_to_feats_known_dict(feats_known_dict_list,
@@ -190,6 +186,7 @@ def test_extract_feats_in_docker_container():
                              pjoin(DATA_PATH, "testfeature1.py"),
                              feats_known_dict_list)
     results = cft.extract_feats_in_docker_container("test", tmp_dir_path)
+    shutil.rmtree(tmp_dir_path, ignore_errors=True)
     cft.remove_tmp_files(tmp_dir_path)
     npt.assert_equal(len(results), 1)
     assert(isinstance(results[0], dict))
@@ -250,13 +247,6 @@ def test_generate_custom_features():
                                          pjoin(DATA_PATH,
                                                "dotastro_215153.dat"))
     npt.assert_almost_equal(feats[0]["avg_mag"], 10.347417647058824)
-
-
-def test_running_in_docker_cont():
-    """Test running in Docker cont check"""
-    output = cft.is_running_in_docker_container()
-    assert(isinstance(output, bool))
-    npt.assert_equal(output, False)
 
 
 def teardown():

@@ -6,7 +6,7 @@ from .. import predict_class
 import pickle
 
 
-def predict():
+def predict(data_path):
     """Generate features and perform classification.
 
     Loads pickled parameters and calls predict_class.predict(),
@@ -22,7 +22,7 @@ def predict():
 
     """
     # load pickled ts_data and known features
-    with open("/data/function_args.pkl", "rb") as f:
+    with open(os.path.join(data_path, "function_args.pkl"), "rb") as f:
         function_args = pickle.load(f)
 
     # ensure required files successfully copied into container:
