@@ -251,9 +251,8 @@ def featurize_prediction_data_in_parallel(
 
     print("Feature generation complete.")
     disco_tools.delete_pushed_objects(session_key)
-    for key in big_features_and_tsdata_dict.keys():
-        big_features_and_tsdata_dict[orig_fnames_dict[key]] = \
-            big_features_and_tsdata_dict[key]
+    for key, val in big_features_and_tsdata_dict.items():
+        big_features_and_tsdata_dict[orig_fnames_dict[key]] = val
         del big_features_and_tsdata_dict[key]
     return big_features_and_tsdata_dict
 
@@ -499,8 +498,8 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
 
     print("Done generating features.")
     disco_tools.delete_pushed_objects(session_key)
-    for key in fname_features_dict.keys():
-        fname_features_dict[orig_fnames_dict[key]] = fname_features_dict[key]
+    for key, val in fname_features_dict.items():
+        fname_features_dict[orig_fnames_dict[key]] = val
         del fname_features_dict[key]
 
     return fname_features_dict
