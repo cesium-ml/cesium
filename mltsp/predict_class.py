@@ -98,7 +98,7 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
     """
     big_features_and_tsdata_dict = {}
     fname = newpred_file_path
-    short_fname = ntpath.basename(fname)
+    short_fname = ntpath.basename(fname).split("$")[0]
     if os.path.isfile(fname):
         filepath = fname
     elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
