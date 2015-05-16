@@ -467,7 +467,6 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
         if not os.path.isabs(all_fnames[i]):
             all_fnames[i] = os.path.join(tmp_dir_path, all_fnames[i])
     # Push all data files to DDFS
-    print(all_fnames)
     disco_tools.push_all_objects(all_fnames, tags)
 
     print("Generating science features...")
