@@ -1,0 +1,30 @@
+diff --git a/shared/build/build.go b/shared/build/build.go
+index cb2f60f..0cfee0b 100644
+--- a/shared/build/build.go
++++ b/shared/build/build.go
+@@ -327,6 +327,7 @@ func (b *Builder) run() error {
+ 	// configure if Docker should run in privileged mode
+ 	host := docker.HostConfig{
+ 		Privileged: (b.Privileged && len(b.Repo.PR) == 0),
++		Binds: []string{"/var/run/docker.sock:/var/run/docker.sock"},
+ 	}
+ 
+ 	if host.Privileged {
+@@ -386,7 +387,17 @@ func (b *Builder) run() error {
+ 
+ 		// debugging
+ 		log.Infof("mounting volume %s:%s", hostpath, volume)
++		}
++
++	// Stefan
++	tmpDir, err := ioutil.TempDir("", "drone_shared_")
++	if err != nil {
++		return fmt.Errorf("Error: Failed to create temporary Drone shared directory %s", err)
+ 	}
++	defer os.RemoveAll(tmpDir)
++
++	// Mount tmpDir in Drone container *to the same path* as on the server
++	host.Binds = append(host.Binds, tmpDir + ":" + tmpDir)
+ 
+ 	// create the container from the image
+ 	run, err := b.dockerClient.Containers.Create(&conf)

@@ -1,0 +1,4 @@
+- Build the image in this directory as `mltsp/drone` for the test server
+- Apply the patch to Drone v3.x and recompile
+- Sometimes Docker will cause an internal server error due to firewall issues
+  (seen on CentOS).  Restart Docker with `service docker restart`.
