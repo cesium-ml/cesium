@@ -57,9 +57,6 @@ def test_featurize_prediction_data_in_parallel():
         os.path.join(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
                      "TEMP_TEST01")
     print(features_and_tsdata_dict)
-
-    assert "std_err" in \
-        features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]
     for fname in (
             pjoin(cfg.UPLOAD_FOLDER,
                   "215153_215176_218272_218934.tar.gz"),
@@ -69,3 +66,5 @@ def test_featurize_prediction_data_in_parallel():
             pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py")):
         if os.path.exists(fname):
             os.remove(fname)
+    assert "std_err" in \
+        features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]

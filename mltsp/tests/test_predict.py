@@ -145,6 +145,10 @@ def test_do_model_predictions():
     assert("dotastro_215153.dat" in pred_results_dict)
     assert("std_err" in
            pred_results_dict["dotastro_215153.dat"]["features_dict"])
+    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                   for el in pred_results_dict[fname]\
+                   ["pred_results_list"]) for fname in pred_results_dict))
 
 
 def test_main_predict():
@@ -167,14 +171,16 @@ def test_main_predict():
                                  "TESTRUN_215153_metadata.dat"),
         custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                      "TESTRUN_CF.py"))
-
-    npt.assert_equal(
-        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
-        3)
-
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+    npt.assert_equal(
+        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
+        3)
+    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                   for el in pred_results_dict[fname]\
+                   ["pred_results_list"]) for fname in pred_results_dict))

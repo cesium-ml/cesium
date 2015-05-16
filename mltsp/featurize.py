@@ -142,7 +142,8 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
                                                  features_to_use)
         disco_running = util.check_disco_running()
         # Generate the features
-        if DISCO_INSTALLED and USE_DISCO and disco_running:
+        if DISCO_INSTALLED and USE_DISCO and disco_running and not \
+           in_docker_container:
             # Featurize in parallel
             print("FEATURIZING - USING DISCO")
             fname_features_data_dict = (

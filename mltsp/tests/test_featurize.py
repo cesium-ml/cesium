@@ -85,6 +85,9 @@ def test_generate_features_serial():
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
     assert(all("class" in d for d in objs))
+    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for d in objs))
 
 
 def test_generate_features_parallel():
@@ -98,8 +101,12 @@ def test_generate_features_parallel():
         None,  # Custom feats not working with Disco yet
         True, True, False, False)
     npt.assert_equal(len(objs), 3)
+    print(objs)
     assert(all("std_err" in d for d in objs))
     assert(all("class" in d for d in objs))
+    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for d in objs))
 
 
 def test_featurize_tsdata_object():
@@ -151,6 +158,9 @@ def test_extract_serial():
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in obj for obj in objs))
     assert(all("avg_mag" in obj for obj in objs))
+    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for d in objs))
 
 
 def test_determine_feats_to_plot2():
@@ -229,6 +239,7 @@ def test_main_featurize_function():
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_classes.npy")))
+    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
     df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                       "test_features.csv"))
@@ -240,6 +251,9 @@ def test_main_featurize_function():
                     "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
+    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for class_name in class_list))
 
 
 def test_main_featurize_function_disco():
@@ -263,6 +277,7 @@ def test_main_featurize_function_disco():
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_classes.npy")))
+    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
     df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv"))
@@ -274,6 +289,9 @@ def test_main_featurize_function_disco():
                     "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
+    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for class_name in class_list))
 
 
 def test_teardown():

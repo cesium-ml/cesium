@@ -73,7 +73,14 @@ def headerfile_to_fname_dict(headerfile_path):
 def url_to_class_and_meta_feats_dict(url, big_dict):
     """DDFS URL to class name and meta feats dict"""
     fname = url.split("/")[-1].split("$")[0]
-    return big_dict[fname]
+    if fname in big_dict:
+        return big_dict[fname]
+    elif fname.split("_")[0] in big_dict:
+        return big_dict[fname.split("_")[0]]
+    elif os.path.splitext(fname)[0] in big_dict:
+        return big_dict[os.path.splitext(fname)[0]]
+    else:
+        raise KeyError("{} not in fname_class_dict.".format(fname))
 
 
 def list_by_tag(tag):

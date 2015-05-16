@@ -170,7 +170,7 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
         disco_running = util.check_disco_running()
-        if DISCO_INSTALLED and disco_running:
+        if DISCO_INSTALLED and disco_running and not in_docker_container:
             big_features_and_tsdata_dict = (
                 parallel_processing.featurize_prediction_data_in_parallel(
                     newpred_file_path=newpred_file_path,

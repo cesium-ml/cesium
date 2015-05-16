@@ -16,7 +16,7 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 
-def map_reader(fd, size, url, params):
+def custom_reader(fd, size, url, params):
     """To override default disco.job.Job map reader."""
     from mltsp import disco_tools
     try:
@@ -161,7 +161,7 @@ def process_prediction_data_featurization_with_disco(input_list, params,
     job = Job('with_modules').run(
         input=input_list,
         map=pred_map,
-        map_reader=map_reader,
+        map_reader=custom_reader,
         reduce=pred_featurize_reduce,
         params=params,
         required_modules=[("mltsp",
@@ -324,16 +324,9 @@ def featurize_reduce(iter, params):
         if len(class_names) == 1:
             class_name = str(class_names[0])
         elif len(class_names) == 0:
-            print(("CLASS_NAMES: " + str(class_names) + "\n" +
-                   "CLASS_NAME: " + str(class_name)))
             yield "", ""
         else:
-            print(("CLASS_NAMES: " + str(class_names) + "\n" +
-                   "CLASS_NAME: " + str(class_name) +
-                   "  - Choosing first class name in list."))
             class_name = str(class_names[0])
-
-        print("fname: " + fname + ", class_name: " + class_name)
 
         short_fname = os.path.splitext(ntpath.basename(fname))[0].split("$")[0]
         path_to_csv = os.path.join(params['tmp_dir_path'], fname)
@@ -378,7 +371,7 @@ def process_featurization_with_disco(input_list, params, partitions=4):
     from disco.core import Job, result_iterator
     job = Job('with_modules').run(
         input=input_list,
-        map_reader=map_reader,
+        map_reader=custom_reader,
         map=map,
         partitions=partitions,
         reduce=featurize_reduce,
