@@ -58,7 +58,7 @@ def do_featurization(data_path):
         features_to_use=function_args["features_to_use"],
         featureset_id=function_args["featureset_key"],
         is_test=function_args["is_test"],
-        USE_DISCO=disco_running,
+        USE_DISCO=False,
         already_featurized=function_args["already_featurized"],
         custom_script_path=function_args["custom_script_path"],
         in_docker_container=True)

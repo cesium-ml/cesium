@@ -7,6 +7,7 @@ import uuid
 import ntpath
 from . import cfg
 from . import util
+from . import disco_tools
 try:
     from disco.core import Job, result_iterator
     from disco.util import kvgroup
@@ -15,7 +16,18 @@ except Exception as theError:
     DISCO_INSTALLED = False
 
 
-def pred_map(fname, params):
+def custom_reader(fd, size, url, params):
+    """To override default disco.job.Job map reader."""
+    from mltsp import disco_tools
+    try:
+        class_name = disco_tools.url_to_class_and_meta_feats_dict(
+            url, params["fname_class_dict_2"])["class"]
+    except KeyError:
+        class_name = "unknown"
+    yield url, class_name
+
+
+def pred_map(url_classname, params):
     """Map procedure for use in Disco's map-reduce implementation.
 
     Generator used for featurizing prediction data. Yields a
@@ -39,8 +51,8 @@ def pred_map(fname, params):
         (str).
 
     """
-    fname, junk = fname.strip("\n").strip().split(",")
-    yield fname, junk
+    url, junk = url_classname
+    yield url, junk
 
 
 def pred_featurize_reduce(iter, params):
@@ -82,6 +94,8 @@ def pred_featurize_reduce(iter, params):
     from disco.util import kvgroup
 
     for fname, junk in kvgroup(sorted(iter)):
+        if fname[:7] == "file://":
+            fname = fname.replace("file://", "")
         if os.path.isfile(fname):
             fpath = fname
         elif os.path.isfile(os.path.join(params["tmp_dir_path"], fname)):
@@ -110,7 +124,7 @@ def pred_featurize_reduce(iter, params):
             os.remove(fpath)
         except Exception as e:
             print(e)
-        short_fname = ntpath.basename(fpath)
+        short_fname = ntpath.basename(fpath).split("$")[0]
         all_features = big_feats_and_tsdata_dict[short_fname]["features_dict"]
         ts_data = big_feats_and_tsdata_dict[short_fname]["ts_data"]
         yield short_fname, [all_features, ts_data]
@@ -147,7 +161,7 @@ def process_prediction_data_featurization_with_disco(input_list, params,
     job = Job('with_modules').run(
         input=input_list,
         map=pred_map,
-        partitions=partitions,
+        map_reader=custom_reader,
         reduce=pred_featurize_reduce,
         params=params,
         required_modules=[("mltsp",
@@ -198,10 +212,23 @@ def featurize_prediction_data_in_parallel(
         of the features generated and a list of the time-series data.
 
     """
-
+    session_key = str(uuid.uuid4())[:8]
     the_tarfile = tarfile.open(newpred_file_path)
     the_tarfile.extractall(path=tmp_dir_path)
     all_fnames = the_tarfile.getnames()
+    all_fnames = [f for f in all_fnames if not os.path.isdir(f)]
+
+    orig_fnames_dict = {}
+    tags = []
+    for i in range(len(all_fnames)):
+        short_fname = ntpath.basename(all_fnames[i])
+        tags.append(str(session_key +
+                        short_fname.replace(".", "_")))
+        orig_fnames_dict[short_fname.replace(".", "_")] = short_fname
+        if not os.path.isabs(all_fnames[i]):
+            all_fnames[i] = os.path.join(tmp_dir_path, all_fnames[i])
+    # Push all data files to DDFS
+    disco_tools.push_all_objects(all_fnames, tags)
 
     if not os.path.exists(cfg.PROJECT_PATH_LINK):
         os.symlink(cfg.PROJECT_PATH, cfg.PROJECT_PATH_LINK)
@@ -212,12 +239,8 @@ def featurize_prediction_data_in_parallel(
               "meta_features": meta_features,
               "tmp_dir_path": tmp_dir_path}
 
-    with open("/tmp/%s_disco_tmp.txt" % str(uuid.uuid4()), "w") as f:
-        for fname in all_fnames:
-            f.write(fname + ",unknown\n")
-
     disco_iterator = process_prediction_data_featurization_with_disco(
-        input_list=[f.name], params=params, partitions=4)
+        input_list=tags, params=params)
 
     for k, v in disco_iterator:
         fname = k
@@ -227,7 +250,10 @@ def featurize_prediction_data_in_parallel(
                 "features_dict": features_dict, "ts_data": ts_data}
 
     print("Feature generation complete.")
-    os.remove(f.name)
+    disco_tools.delete_pushed_objects(session_key)
+    for key, val in big_features_and_tsdata_dict.items():
+        big_features_and_tsdata_dict[orig_fnames_dict[key]] = val
+        del big_features_and_tsdata_dict[key]
     return big_features_and_tsdata_dict
 
 
@@ -255,7 +281,7 @@ def map(fname_and_class, params):
         (str).
 
     """
-    fname, class_name = fname_and_class.strip("\n").strip().split(",")
+    fname, class_name = fname_and_class
     yield fname, class_name
 
 
@@ -290,30 +316,25 @@ def featurize_reduce(iter, params):
     from mltsp import cfg
 
     for fname, class_name in kvgroup(sorted(iter)):
+        if fname[:7] == "file://":
+            fname = fname.replace("file://", "")
         class_names = []
         for classname in class_name:
             class_names.append(classname)
         if len(class_names) == 1:
             class_name = str(class_names[0])
         elif len(class_names) == 0:
-            print(("CLASS_NAMES: " + str(class_names) + "\n" +
-                   "CLASS_NAME: " + str(class_name)))
             yield "", ""
         else:
-            print(("CLASS_NAMES: " + str(class_names) + "\n" +
-                   "CLASS_NAME: " + str(class_name) +
-                   "  - Choosing first class name in list."))
             class_name = str(class_names[0])
 
-        print("fname: " + fname + ", class_name: " + class_name)
-
-        short_fname = os.path.splitext(ntpath.basename(fname))[0]
+        short_fname = os.path.splitext(ntpath.basename(fname))[0].split("$")[0]
         path_to_csv = os.path.join(params['tmp_dir_path'], fname)
         if os.path.exists(path_to_csv):
             print("Extracting features for " + fname)
             all_features = featurize.featurize_tsdata_object(
                 path_to_csv, short_fname, params['custom_script_path'],
-                params['fname_class_dict'], params['features_to_use'])
+                params['fname_class_dict_2'], params['features_to_use'])
             all_features["class"] = class_name
             yield short_fname, all_features
         else:
@@ -350,6 +371,7 @@ def process_featurization_with_disco(input_list, params, partitions=4):
     from disco.core import Job, result_iterator
     job = Job('with_modules').run(
         input=input_list,
+        map_reader=custom_reader,
         map=map,
         partitions=partitions,
         reduce=featurize_reduce,
@@ -400,6 +422,7 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
         of the features generated and a list of the time-series data.
 
     """
+    session_key = str(uuid.uuid4())[:8]
     all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
 
     if len(features_to_use) == 0:
@@ -422,12 +445,25 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
     zipfile = tarfile.open(zipfile_path)
     zipfile.extractall(tmp_dir_path)
     all_fnames = zipfile.getnames()
+    all_fnames = [f for f in all_fnames if not os.path.isdir(f)]
+    if is_test:
+        all_fnames = all_fnames[:3]
+
+    orig_fnames_dict = {}
+    tags = []
+    for i in range(len(all_fnames)):
+        short_fname = ntpath.basename(all_fnames[i])
+        tags.append(str(session_key +
+                        short_fname.replace(".", "_")))
+        orig_fnames_dict[short_fname.replace(".", "_")] = short_fname
+        if not os.path.isabs(all_fnames[i]):
+            all_fnames[i] = os.path.join(tmp_dir_path, all_fnames[i])
+    # Push all data files to DDFS
+    disco_tools.push_all_objects(all_fnames, tags)
 
     print("Generating science features...")
 
     longfname_class_list = []
-    if is_test:
-        all_fnames = all_fnames[:3]
     for i in range(len(all_fnames)):
         short_fname = os.path.splitext(ntpath.basename(all_fnames[i]))[0]
         if short_fname in fname_class_dict:
@@ -436,9 +472,6 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
         elif all_fnames[i] in fname_class_dict:
             longfname_class_list.append([
                 all_fnames[i], fname_class_dict[all_fnames[i]]])
-    with open("/tmp/%s_disco_tmp.txt" % str(uuid.uuid4()), "w") as f:
-        for fname_classname in longfname_class_list:
-            f.write(",".join(fname_classname) + "\n")
 
     params = {}
     params['fname_class_dict'] = fname_class_dict
@@ -446,15 +479,20 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
     params['meta_features'] = meta_features
     params['custom_script_path'] = custom_script_path
     params['tmp_dir_path'] = tmp_dir_path
+    params['fname_class_dict_2'] = disco_tools.headerfile_to_fname_dict(
+        headerfile_path)
 
     disco_results = process_featurization_with_disco(
-        input_list=[f.name], params=params)
+        input_list=tags, params=params)
 
     fname_features_dict = {}
     for k, v in disco_results:
         fname_features_dict[k] = v
 
-    os.remove(f.name)
     print("Done generating features.")
+    disco_tools.delete_pushed_objects(session_key)
+    for key, val in fname_features_dict.items():
+        fname_features_dict[orig_fnames_dict[key]] = val
+        del fname_features_dict[key]
 
     return fname_features_dict

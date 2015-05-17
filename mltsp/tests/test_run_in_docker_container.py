@@ -2,6 +2,7 @@ from mltsp import run_in_docker_container as ridc
 from mltsp import cfg
 from mltsp import build_model
 import numpy.testing as npt
+import numpy as np
 import os
 from os.path import join as pjoin
 import pandas as pd
@@ -136,6 +137,7 @@ def test_featurize_in_docker_container():
     assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                       "Flask/static/data"),
                                 "TEST01_features_with_classes.csv")))
+    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "TEST01_classes.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_classes.npy"))
     df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                       "TEST01_features.csv"))
@@ -147,6 +149,9 @@ def test_featurize_in_docker_container():
                     "TEST01_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("freq1_harmonics_freq_0" in cols)
+    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for class_name in class_list))
     featurize_teardown()
 
 
@@ -218,16 +223,20 @@ def test_predict_in_docker_container():
         custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                      "TESTRUN_CF.py"))
 
-    npt.assert_equal(
-        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
-        3)
-
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+
+    npt.assert_equal(
+        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
+        3)
+    assert(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                         'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+               for el in pred_results_dict["TESTRUN_215153.dat"]\
+               ["pred_results_list"]))
 
 
 def test_predict_in_docker_container_multiple():
@@ -249,11 +258,6 @@ def test_predict_in_docker_container_multiple():
                             "215153_215176_218272_218934_metadata.dat"),
         custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                      "TESTRUN_CF.py"))
-
-    npt.assert_equal(
-        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
-        3)
-
     os.remove(pjoin(cfg.UPLOAD_FOLDER,
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"))
@@ -261,3 +265,11 @@ def test_predict_in_docker_container_multiple():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+
+    npt.assert_equal(
+        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        3)
+    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                   for el in pred_results_dict[fname]\
+                   ["pred_results_list"]) for fname in pred_results_dict))

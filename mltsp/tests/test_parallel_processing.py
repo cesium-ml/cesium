@@ -22,6 +22,7 @@ def test_featurize_in_parallel():
               "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_harmonics_freq_0"],
         is_test=True, custom_script_path=None)
+    print(fname_features_dict)
     assert isinstance(fname_features_dict, dict)
     for k, v in fname_features_dict.items():
         assert "std_err" in v and "freq1_harmonics_freq_0" in v
@@ -55,9 +56,7 @@ def test_featurize_prediction_data_in_parallel():
     features_and_tsdata_dict = prl_proc.featurize_prediction_data_in_parallel(
         os.path.join(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
                      "TEMP_TEST01")
-
-    assert "std_err" in \
-        features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]
+    print(features_and_tsdata_dict)
     for fname in (
             pjoin(cfg.UPLOAD_FOLDER,
                   "215153_215176_218272_218934.tar.gz"),
@@ -67,3 +66,5 @@ def test_featurize_prediction_data_in_parallel():
             pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py")):
         if os.path.exists(fname):
             os.remove(fname)
+    assert "std_err" in \
+        features_and_tsdata_dict["dotastro_218934.dat"]["features_dict"]

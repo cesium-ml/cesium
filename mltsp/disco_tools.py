@@ -9,17 +9,22 @@ def push_by_tag(file_paths, tag=None):
     if tag is None:
         for file_path in file_paths:
             tag = os.path.splitext(ntpath.basename(file_path))[0]
-            ddfs.push(tag, [file_path])
+            try:
+                ddfs.push(tag, [file_path])
+            except IOError:
+                print("Invalid file path specified.")
     else:
-        ddfs.push(tag, file_paths)
+        try:
+            ddfs.push(tag, file_paths)
+        except IOError:
+            print("Invalid file path specified.")
 
 
 def push_all_objects(file_paths, tags=None):
     '''
     '''
-    if tags != None:
+    if tags is not None:
         if len(file_paths) == len(tags):
-
             tags_to_fname_list_dict = {}
             for i in range(len(file_paths)):
                 if tags[i] not in tags_to_fname_list_dict:
@@ -32,7 +37,7 @@ def push_all_objects(file_paths, tags=None):
                     tag=tag_name)
         else:
             raise ValueError(
-                "file_paths and tags parameters are not of the same length!")
+                "file_paths and tags lists are not of the same length!")
     else:
         push_by_tag(file_paths)
     print("All files pushed to DDFS")
@@ -55,6 +60,8 @@ def headerfile_to_fname_dict(headerfile_path):
             for i in range(1, len(els)):
                 this_dict[column_titles[i]] = els[i]
             dict_of_dicts[els[0]] = this_dict
+            dict_of_dicts[els[0].replace(".", "_")] = this_dict
+            dict_of_dicts[os.path.splitext(els[0])[0]] = this_dict
         else:
             print(("Column titles (" + str(column_titles) +
                    ") and line elements (" + str(els) +
@@ -63,11 +70,30 @@ def headerfile_to_fname_dict(headerfile_path):
     return dict_of_dicts
 
 
-def delete_all():
+def url_to_class_and_meta_feats_dict(url, big_dict):
+    """DDFS URL to class name and meta feats dict"""
+    fname = url.split("/")[-1].split("$")[0]
+    if fname in big_dict:
+        return big_dict[fname]
+    elif fname.split("_")[0] in big_dict:
+        return big_dict[fname.split("_")[0]]
+    elif os.path.splitext(fname)[0] in big_dict:
+        return big_dict[os.path.splitext(fname)[0]]
+    else:
+        raise KeyError("{} not in fname_class_dict.".format(fname))
+
+
+def list_by_tag(tag):
+    """List all blobs pushed to DDFS by tag"""
+    ddfs = DDFS()
+    return ddfs.list(tag)
+
+
+def delete_pushed_objects(tag_prefix=""):
     '''
     Deletes all tags in DDFS, thus orphaning all blobs and making them
     subject to eventual removal by the garbage collector.
     '''
     ddfs = DDFS()
-    for tag in ddfs.list():
+    for tag in ddfs.list(tag_prefix):
         ddfs.delete(tag)

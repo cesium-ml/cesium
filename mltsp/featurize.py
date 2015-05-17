@@ -142,7 +142,8 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
                                                  features_to_use)
         disco_running = util.check_disco_running()
         # Generate the features
-        if DISCO_INSTALLED and USE_DISCO and disco_running:
+        if DISCO_INSTALLED and USE_DISCO and disco_running and not \
+           in_docker_container:
             # Featurize in parallel
             print("FEATURIZING - USING DISCO")
             fname_features_data_dict = (
@@ -174,6 +175,11 @@ def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
     """
 
     """
+    if short_fname not in fname_class_dict:
+        if short_fname.split("_")[0] in fname_class_dict:
+            short_fname = short_fname.split("_")[0]
+        elif short_fname.split(".")[0] in fname_class_dict:
+            short_fname = short_fname.split(".")[0]
     # Generate general/cadence-related TS features, if to be used
     if len(set(features_to_use) & set(cfg.features_list)) > 0:
         timeseries_features = (
