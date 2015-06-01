@@ -2129,7 +2129,7 @@ def verifyNewScript():
         scriptfile_name = secure_filename(scriptfile.filename)
         scriptfile_path = os.path.join(
             os.path.join(
-                app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
+                cfg.UPLOAD_FOLDER, "custom_feature_scripts"),
             str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
@@ -2420,7 +2420,7 @@ def get_list_of_models_by_project(project_name=None):
 @app.route('/uploadFeaturesForm', methods=['POST', 'GET'])
 @stormpath.login_required
 def uploadFeaturesForm():
-    """Save uploaded file(s) and begin featurization process.
+    """Save uploaded features file(s).
 
     Handles POST form submission.
 
@@ -2437,7 +2437,7 @@ def uploadFeaturesForm():
                         strip().split(" (created")[0])
         features_file_name = (str(uuid.uuid4()) +
                               str(secure_filename(features_file.filename)))
-        path = os.path.join(app.config['UPLOAD_FOLDER'], features_file_name)
+        path = os.path.join(cfg.UPLOAD_FOLDER, features_file_name)
         features_file.save(path)
         print("Saved", path)
         return featurizationPage(
@@ -2489,7 +2489,7 @@ def uploadDataFeaturize(
             print(customscript_fname, 'uploaded.')
             customscript_path = os.path.join(
                 os.path.join(
-                    app.config['UPLOAD_FOLDER'], "custom_feature_scripts"),
+                    cfg.UPLOAD_FOLDER, "custom_feature_scripts"),
                 str(uuid.uuid4()) + "_" + str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
@@ -2518,8 +2518,8 @@ def uploadDataFeaturize(
             print(filename, "uploaded but no sep info. Setting sep=,")
             sep = ","
         headerfile_path = os.path.join(
-            app.config['UPLOAD_FOLDER'], headerfile_name)
-        zipfile_path = os.path.join(app.config['UPLOAD_FOLDER'], zipfile_name)
+            cfg.UPLOAD_FOLDER, headerfile_name)
+        zipfile_path = os.path.join(cfg.UPLOAD_FOLDER, zipfile_name)
         headerfile.save(headerfile_path)
         zipfile.save(zipfile_path)
         print("Saved", headerfile_name, "and", zipfile_name)
@@ -2644,7 +2644,7 @@ def featurizationPage(
         # user is uploading pre-featurized data, without timeseries data
         features_filename = headerfile_name
         features_filepath = os.path.join(
-            app.config['UPLOAD_FOLDER'], features_filename)
+            cfg.UPLOAD_FOLDER, features_filename)
         with open(features_filepath) as f:
             featlist = f.readline().strip().split(',')[1:]
         meta_feats = []
@@ -2682,8 +2682,8 @@ def featurizationPage(
             "featureset_key": new_featset_key})
     else:  # user is uploading timeseries data to be featurized
         headerfile_path = os.path.join(
-            app.config['UPLOAD_FOLDER'], headerfile_name)
-        zipfile_path = os.path.join(app.config['UPLOAD_FOLDER'], zipfile_name)
+            cfg.UPLOAD_FOLDER, headerfile_name)
+        zipfile_path = os.path.join(cfg.UPLOAD_FOLDER, zipfile_name)
         with open(headerfile_path) as f:
             meta_feats = f.readline().strip().split(',')[2:]
         new_featset_key = add_featureset(
@@ -2710,6 +2710,341 @@ def featurizationPage(
             "project_name": project_name, "headerfile_name": headerfile_name,
             "zipfile_name": str(zipfile_name),
             "featureset_key": new_featset_key})
+
+
+@app.route('/buildModel/<project_name>/<featureset_name>/<model_type>',
+           methods=['POST'])
+@app.route('/buildModel', methods=['POST', 'GET'])
+@stormpath.login_required
+def buildModel(project_name=None, featureset_name=None, model_type=None):
+    """Build new model for specified feature set.
+
+    Handles 'buildModelForm' submission and starts model creation
+    process as a subprocess (by calling prediction_proc with the
+    multiprocessing.Process method). Returns JSONified dict with PID
+    and other details about the process.
+
+    Parameters
+    ----------
+    project_name : str
+        Name of parent project.
+    featureset_name : str
+        Name of feature set from which to create new model.
+    model_type : str
+        Abbreviation of type of model to create (e.g. "RF").
+
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object with JSONified dict containing model
+        building details.
+
+    """
+    if project_name is None:  # browser form submission
+        post_method = "browser"
+        project_name = (str(request.form['buildmodel_project_name_select'])
+                        .split(" (created")[0].strip())
+        featureset_name = (str(request.form['modelbuild_featset_name_select'])
+                           .split(" (created")[0].strip())
+        # new_model_name = str(request.form['new_model_name'])
+        model_type = str(request.form['model_type_select'])
+    else:
+        post_method = "http_api"
+    projkey = project_name_to_key(project_name)
+    featureset_key = featureset_name_to_key(
+        featureset_name=featureset_name,
+        project_id=projkey)
+    new_model_key = add_model(
+        featureset_name=featureset_name,
+        featureset_key=featureset_key,
+        model_type=model_type,
+        projkey=projkey, pid="None")
+    print("new model key =", new_model_key)
+    print("New model featureset_key =", featureset_key)
+    multiprocessing.log_to_stderr()
+    proc = multiprocessing.Process(
+        target=build_model_proc,
+        args=(featureset_name,
+              featureset_key,
+              model_type,
+              str(new_model_key).strip()))
+    proc.start()
+    PID = str(proc.pid)
+    print("PROCESS ID IS", PID)
+    session["PID"] = PID
+    update_model_entry_with_pid(new_model_key, PID)
+    return jsonify({
+        "message": "Model creation has begun (with process ID = %s)." % str(PID),
+        "PID": PID,
+        "project_name": project_name,
+        "new_model_key": new_model_key,
+        "model_name": featureset_name})
+
+
+@app.route('/buildingModel')
+@stormpath.login_required
+def buildingModel():
+    """Render template to check on model creation process in browser.
+
+    Browser redirects here after model creation process has
+    commenced. Renders browser template with process ID & other details,
+    which continually checks and reports progress.
+
+    Parameters described below are URL parameters.
+
+    Parameters
+    ----------
+    PID : str
+        ID of subprocess in which model is being built.
+    new_model_key : str
+        RethinkDB 'models' table entry key.
+    project_name : str
+        Name of parent project.
+    model_name : str
+        Name of model being created.
+
+    Returns
+    -------
+    Rendered Jinja2 template
+        Returns call to flask.render_template(...).
+
+    """
+    PID = request.args.get("PID")
+    new_model_key = request.args.get("new_model_key")
+    project_name = request.args.get("project_name")
+    model_name = request.args.get("model_name")
+    info_dict = get_all_info_dict()
+    return render_template(
+        'index.html',
+        ACTION="buildingModel",
+        PID=PID,
+        newpred_filename="",
+        FEATURES_AVAILABLE=[info_dict['features_available_set1'],
+                            info_dict['features_available_set2']],
+        CURRENT_PROJECTS=info_dict['list_of_current_projects'],
+        CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
+        CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
+        CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
+        CURRENT_MODELS=info_dict['list_of_current_models'],
+        CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
+        PROJECT_NAME=project_name,
+        headerfile_name="",
+        RESULTS=True,
+        features_str="",
+        new_model_key=new_model_key,
+        model_name=model_name)
+
+
+@app.route('/uploadPredictionData', methods=['POST', 'GET'])
+@stormpath.login_required
+def uploadPredictionData():
+    """Save uploaded files and begin prediction process.
+
+    Handles prediction form  submission. Saves uploaded files and
+    redirects to predictionPage, which begins the featurization/
+    prediction process.
+
+    Redirects to predictionPage - see that function's docstrings for
+    return value details.
+
+    """
+    if request.method == 'POST':
+        newpred_file = request.files["newpred_file"]
+        tmp_folder = "tmp_" + str(uuid.uuid4())
+        path_to_tmp_dir = os.path.join(cfg.UPLOAD_FOLDER, tmp_folder)
+        os.mkdir(path_to_tmp_dir)
+        if "prediction_files_metadata" in request.files:
+            prediction_files_metadata = request.files[
+                "prediction_files_metadata"]
+            if prediction_files_metadata.filename in ["", " "]:
+                print("prediction_files_metadata file not provided")
+                prediction_files_metadata = None
+                metadata_file_path = None
+            else:
+                metadata_filename = secure_filename(
+                    prediction_files_metadata.filename)
+                metadata_file_path = os.path.join(
+                    path_to_tmp_dir,
+                    metadata_filename)
+        else:
+            prediction_files_metadata = None
+            metadata_file_path = None
+        sep = str(request.form["newpred_file_sep"])
+        project_name = (str(request.form["prediction_project_name"])
+                        .split(" (created")[0])
+        model_name, model_type_and_time = str(
+            request.form["prediction_model_name_and_type"]).split(" - ")
+        model_type = model_type_and_time.split(" ")[0]
+        print(project_name, model_name, model_type)
+        newpred_filename = secure_filename(newpred_file.filename)
+        if not sep or sep == "":
+            print(filename, "uploaded but no sep info. Setting sep=','")
+            sep = ","
+        newpred_file_path = os.path.join(path_to_tmp_dir, newpred_filename)
+        # Save to disk
+        newpred_file.save(newpred_file_path)
+        print("Saved", newpred_filename)
+        if prediction_files_metadata is not None:
+            prediction_files_metadata.save(metadata_file_path)
+        try:
+            check_prediction_tsdata_format(
+                newpred_file_path,
+                metadata_file_path)
+        except custom_exceptions.DataFormatError as err:
+            print("DataFormatError")
+            print(err)
+            os.remove(newpred_file_path)
+            if metadata_file_path is not None:
+                os.remove(metadata_file_path)
+            print("Removed ", str(newpred_file_path), (
+                ("and" + str(metadata_file_path) if metadata_file_path is
+                 not None else "")))
+            return jsonify({"message": str(err), "type": "error"})
+        except Exception as err:
+            print("Uploaded Data Files Improperly Formatted.")
+            print(err)
+            os.remove(newpred_file_path)
+            if metadata_file_path is not None:
+                os.remove(metadata_file_path)
+            print("Removed ", str(newpred_file_path), (
+                ("and" + str(metadata_file_path) if metadata_file_path is not
+                 None else "")))
+            return jsonify({
+                "message": (
+                    "Uploaded data files improperly "
+                    "formatted. Please ensure that your data files meet the "
+                    "formatting guidelines and try again."),
+                "type": "error"})
+        return predictionPage(
+            newpred_file_path=newpred_file_path,
+            sep=sep,
+            project_name=project_name,
+            model_name=model_name,
+            model_type=model_type,
+            metadata_file_path=metadata_file_path,
+            path_to_tmp_dir=path_to_tmp_dir)
+
+
+@app.route('/predicting')
+@stormpath.login_required
+def predicting():
+    """Render template that checks on prediction process status.
+
+    Browser redirects here after featurization & prediction process
+    has commenced. Renders template with process ID, which
+    continually checks and reports progress.
+
+    Parameters
+    ----------
+    PID : str
+        Process ID.
+    prediction_entry_key : str
+        RethinkDB 'predictions' table entry key.
+    project_name : str
+        Name of parent project.
+    prediction_model_name : str
+        Name of prediction model.
+
+    Returns
+    -------
+    Rendered Jinja2 template
+        Returns flask.render_template(...).
+
+    """
+    PID = request.args.get("PID")
+    prediction_entry_key = request.args.get("prediction_entry_key")
+    project_name = request.args.get("project_name")
+    prediction_model_name = request.args.get("prediction_model_name")
+    model_type = request.args.get("model_type")
+    info_dict = get_all_info_dict()
+    return render_template(
+        'index.html', ACTION="predicting", PID=PID, newpred_filename="",
+        FEATURES_AVAILABLE=[info_dict['features_available_set1'],
+                            info_dict['features_available_set2']],
+        CURRENT_PROJECTS=info_dict['list_of_current_projects'],
+        CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
+        CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
+        CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
+        CURRENT_MODELS=info_dict['list_of_current_models'],
+        CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
+        PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
+        features_str="", prediction_entry_key=prediction_entry_key,
+        prediction_model_name=prediction_model_name, model_type=model_type)
+
+
+def predictionPage(
+        newpred_file_path, project_name, model_name, model_type,
+        sep=",", metadata_file_path=None, path_to_tmp_dir=None):
+    """Start featurization/prediction routine in a subprocess.
+
+    Starts featurization and prediction process as a subprocess
+    using the multiprocessing.Process method.
+    uploadPredictionData method redirects here after saving uploaded
+    files. Returns JSONified dict with PID and other details about the
+    process.
+
+    Parameters
+    ----------
+    newpred_file_path : str
+        Path to file containing time series data for featurization and
+        prediction.
+    project_name : str
+        Name of the project associated with the model to be used.
+    model_name : str
+        Name of the model to be used.
+    model_type : str
+        Abbreviation of the model type (e.g. "RF").
+    sep : str, optional
+        Delimiting character in time series data files. Defaults to
+        comma ",".
+    metadata_file : str, optional
+        Path to associated metadata file, if any. Defaults to None.
+
+    Returns
+    -------
+    flask.Response() object
+        flask.Response() object containing JSON dict with model details
+        and subprocess ID.
+
+    """
+    new_prediction_key = add_prediction(
+        project_name=project_name,
+        model_name=model_name,
+        model_type=model_type,
+        pred_filename=ntpath.basename(newpred_file_path),
+        pid="None",
+        metadata_file=(ntpath.basename(metadata_file_path) if
+                       metadata_file_path is not None else None))
+    #is_tarfile = tarfile.is_tarfile(newpred_file_path)
+    pred_file_name = ntpath.basename(newpred_file_path)
+    print("starting prediction_proc...")
+    multiprocessing.log_to_stderr()
+    proc = multiprocessing.Process(
+        target=prediction_proc,
+        args=(
+            newpred_file_path,
+            project_name,
+            model_name,
+            model_type,
+            new_prediction_key,
+            sep,
+            metadata_file_path,
+            path_to_tmp_dir))
+    proc.start()
+    PID = str(proc.pid)
+    print("PROCESS ID IS", PID)
+    session["PID"] = PID
+    update_prediction_entry_with_pid(new_prediction_key, PID)
+    return jsonify({
+        "message": ("New prediction files saved successfully, and "
+                    "featurization/model prediction has begun (with process ID = %s)."
+                    ) % str(PID),
+        "PID": PID,
+        "project_name": project_name,
+        "prediction_entry_key": new_prediction_key,
+        "model_name": model_name,
+        "model_type": model_type,
+        "pred_file_name": pred_file_name})
 
 
 @app.route(
@@ -2763,14 +3098,8 @@ def load_source_data(prediction_entry_key, source_fname):
         "pred_results", "features_dict", and "ts_data" as keys.
 
     """
-    entries = []
-    cursor = (r.table("predictions").filter({"id": prediction_entry_key})
-              .run(g.rdb_conn))
-    for entry in cursor:
-        entries.append(entry)
-    if len(entries) >= 1:
-        entry = entries[0]
-    else:
+    entry = r.table("predictions").get(prediction_entry_key).run(g.rdb_conn)
+    if entry is None:
         return jsonify({
             "ts_data": ("No entry found for prediction_entry_key = %s."
                         % prediction_entry_key),
@@ -2918,397 +3247,6 @@ def load_featurization_results(new_featset_key):
         })
 
 
-@app.route('/predicting')
-@stormpath.login_required
-def predicting():
-    """Render template that checks on prediction process status.
-
-    Browser redirects here after featurization & prediction process
-    has commenced. Renders template with process ID, which
-    continually checks and reports progress.
-
-    Parameters
-    ----------
-    PID : str
-        Process ID.
-    prediction_entry_key : str
-        RethinkDB 'predictions' table entry key.
-    project_name : str
-        Name of parent project.
-    prediction_model_name : str
-        Name of prediction model.
-
-    Returns
-    -------
-    Rendered Jinja2 template
-        Returns flask.render_template(...).
-
-    """
-    PID = request.args.get("PID")
-    prediction_entry_key = request.args.get("prediction_entry_key")
-    project_name = request.args.get("project_name")
-    prediction_model_name = request.args.get("prediction_model_name")
-    model_type = request.args.get("model_type")
-    info_dict = get_all_info_dict()
-    return render_template(
-        'index.html', ACTION="predicting", PID=PID, newpred_filename="",
-        FEATURES_AVAILABLE=[info_dict['features_available_set1'],
-                            info_dict['features_available_set2']],
-        CURRENT_PROJECTS=info_dict['list_of_current_projects'],
-        CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
-        CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
-        CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
-        CURRENT_MODELS=info_dict['list_of_current_models'],
-        CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
-        PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
-        features_str="", prediction_entry_key=prediction_entry_key,
-        prediction_model_name=prediction_model_name, model_type=model_type)
-
-
-def predictionPage(
-        newpred_file_path, project_name, model_name, model_type,
-        sep=",", metadata_file_path=None, path_to_tmp_dir=None):
-    """Start featurization/prediction routine in a subprocess.
-
-    Starts featurization and prediction process as a subprocess
-    using the multiprocessing.Process method.
-    uploadPredictionData method redirects here after saving uploaded
-    files. Returns JSONified dict with PID and other details about the
-    process.
-
-    Parameters
-    ----------
-    newpred_file_path : str
-        Path to file containing time series data for featurization and
-        prediction.
-    project_name : str
-        Name of the project associated with the model to be used.
-    model_name : str
-        Name of the model to be used.
-    model_type : str
-        Abbreviation of the model type (e.g. "RF").
-    sep : str, optional
-        Delimiting character in time series data files. Defaults to
-        comma ",".
-    metadata_file : str, optional
-        Path to associated metadata file, if any. Defaults to None.
-
-    Returns
-    -------
-    flask.Response() object
-        flask.Response() object containing JSON dict with model details
-        and subprocess ID.
-
-    """
-    new_prediction_key = add_prediction(
-        project_name=project_name,
-        model_name=model_name,
-        model_type=model_type,
-        pred_filename=ntpath.basename(newpred_file_path),
-        pid="None",
-        metadata_file=(ntpath.basename(metadata_file_path) if
-                       metadata_file_path is not None else None))
-    #is_tarfile = tarfile.is_tarfile(newpred_file_path)
-    pred_file_name = ntpath.basename(newpred_file_path)
-    print("starting prediction_proc...")
-    multiprocessing.log_to_stderr()
-    proc = multiprocessing.Process(
-        target=prediction_proc,
-        args=(
-            newpred_file_path,
-            project_name,
-            model_name,
-            model_type,
-            new_prediction_key,
-            sep,
-            metadata_file_path,
-            path_to_tmp_dir))
-    proc.start()
-    PID = str(proc.pid)
-    print("PROCESS ID IS", PID)
-    session["PID"] = PID
-    update_prediction_entry_with_pid(new_prediction_key, PID)
-    return jsonify({
-        "message": ("New prediction files saved successfully, and "
-                    "featurization/model prediction has begun (with process ID = %s)."
-                    ) % str(PID),
-        "PID": PID,
-        "project_name": project_name,
-        "prediction_entry_key": new_prediction_key,
-        "model_name": model_name,
-        "model_type": model_type,
-        "pred_file_name": pred_file_name})
-
-
-@app.route('/uploadPredictionData', methods=['POST', 'GET'])
-@stormpath.login_required
-def uploadPredictionData():
-    """Save uploaded files and begin prediction process.
-
-    Handles prediction form  submission. Saves uploaded files and
-    redirects to predictionPage, which begins the featurization/
-    prediction process.
-
-    Redirects to predictionPage - see that function's docstrings for
-    return value details.
-
-    """
-    if request.method == 'POST':
-        newpred_file = request.files["newpred_file"]
-        tmp_folder = "tmp_" + str(uuid.uuid4())
-        path_to_tmp_dir = os.path.join(app.config['UPLOAD_FOLDER'], tmp_folder)
-        os.mkdir(path_to_tmp_dir)
-        if "prediction_files_metadata" in request.files:
-            prediction_files_metadata = request.files[
-                "prediction_files_metadata"]
-            if prediction_files_metadata.filename in ["", " "]:
-                print("prediction_files_metadata file not provided")
-                prediction_files_metadata = None
-                metadata_file_path = None
-            else:
-                metadata_filename = secure_filename(
-                    prediction_files_metadata.filename)
-                metadata_file_path = os.path.join(
-                    path_to_tmp_dir,
-                    metadata_filename)
-        else:
-            prediction_files_metadata = None
-            metadata_file_path = None
-        sep = str(request.form["newpred_file_sep"])
-        project_name = (str(request.form["prediction_project_name"])
-                        .split(" (created")[0])
-        model_name, model_type_and_time = str(
-            request.form["prediction_model_name_and_type"]).split(" - ")
-        model_type = model_type_and_time.split(" ")[0]
-        print(project_name, model_name, model_type)
-        newpred_filename = secure_filename(newpred_file.filename)
-        if not sep or sep == "":
-            print(filename, "uploaded but no sep info. Setting sep=','")
-            sep = ","
-        newpred_file_path = os.path.join(path_to_tmp_dir, newpred_filename)
-        # CHECKING AGAINST EXISTING UPLOADED FILES:
-        # skipping this part for now - possibly re-implement in the future
-        if os.path.exists(newpred_file_path) and False:
-            # check to see if file is a dup, otherwise save it with a
-            # suffix of _2, _3, etc...
-            file_suffix = newpred_filename.split('.')[-1]
-            number_suffixes = ['']
-            number_suffixes.extend(list(range(1, 999)))
-            for number_suffix in number_suffixes:
-                number_suffix = str(number_suffix)
-                if number_suffix == '':
-                    filename_test = newpred_filename
-                else:
-                    filename_test = newpred_filename.replace(
-                        newpred_filename.split('.')[-2],
-                        newpred_filename.split('.')[-2] + '_' + number_suffix)
-                newpred_file_path = os.path.join(
-                    app.config['UPLOAD_FOLDER'],
-                    filename_test)
-                if os.path.exists(newpred_file_path):
-                    is_match = True
-                    f1 = open(newpred_file_path)
-                    local_lines = f1.readlines()
-                    f1.close()
-                    if abs(len(lcdata) - len(local_lines)) > 2:
-                        is_match = False
-                    else:
-                        num_lines = len(header_lines)
-                        if len(local_lines) < num_lines:
-                            num_lines = len(local_lines)
-                        for i in range(num_lines - 1):
-                            if (local_lines[i].replace("\n", "") !=
-                                    header_lines[i].replace("\n", "")):
-                                is_match = False
-                    if is_match:
-                        # filename_test exists and is the same as file
-                        # being uploaded
-                        print(filename_test, ": is_match = True.")
-                        session['newpred_filename'] = filename_test
-                        break
-                    else:
-                        # filename_test already exists but files don't match
-                        print(filename_test, ": is_match = False.")
-                else:
-                    # filename_test does not exist on disk and we now save it
-                    for i in range(len(header_lines)):
-                        header_lines[i] = header_lines[i].replace('\n', '')
-                    header_lines = '\n'.join(header_lines)
-                    f = open(headerfile_path, 'w')
-                    f.write(header_lines)
-                    f.close()
-                    del header_lines
-                    session['newpred_filename'] = filename_test
-                    print("no match found for", filename_test, ". Now saved.")
-                    break
-        else:
-            # filename doesn't exist on disk, we create it now:
-            newpred_file.save(newpred_file_path)
-            print("Saved", newpred_filename)
-            if prediction_files_metadata is not None:
-                prediction_files_metadata.save(metadata_file_path)
-        try:
-            check_prediction_tsdata_format(
-                newpred_file_path,
-                metadata_file_path)
-        except custom_exceptions.DataFormatError as err:
-            print("DataFormatError")
-            print(err)
-            os.remove(newpred_file_path)
-            if metadata_file_path is not None:
-                os.remove(metadata_file_path)
-            print("Removed ", str(newpred_file_path), (
-                ("and" + str(metadata_file_path) if metadata_file_path is
-                 not None else "")))
-            return jsonify({"message": str(err), "type": "error"})
-        except Exception as err:
-            print("Uploaded Data Files Improperly Formatted.")
-            print(err)
-            os.remove(newpred_file_path)
-            if metadata_file_path is not None:
-                os.remove(metadata_file_path)
-            print("Removed ", str(newpred_file_path), (
-                ("and" + str(metadata_file_path) if metadata_file_path is not
-                 None else "")))
-            return jsonify({
-                "message": (
-                    "Uploaded data files improperly "
-                    "formatted. Please ensure that your data files meet the "
-                    "formatting guidelines and try again."),
-                "type": "error"})
-        return predictionPage(
-            newpred_file_path=newpred_file_path,
-            sep=sep,
-            project_name=project_name,
-            model_name=model_name,
-            model_type=model_type,
-            metadata_file_path=metadata_file_path,
-            path_to_tmp_dir=path_to_tmp_dir)
-
-
-@app.route('/buildingModel')
-@stormpath.login_required
-def buildingModel():
-    """Render template to check on model creation process in browser.
-
-    Browser redirects here after model creation process has
-    commenced. Renders browser template with process ID & other details,
-    which continually checks and reports progress.
-
-    Parameters described below are URL parameters.
-
-    Parameters
-    ----------
-    PID : str
-        ID of subprocess in which model is being built.
-    new_model_key : str
-        RethinkDB 'models' table entry key.
-    project_name : str
-        Name of parent project.
-    model_name : str
-        Name of model being created.
-
-    Returns
-    -------
-    Rendered Jinja2 template
-        Returns call to flask.render_template(...).
-
-    """
-    PID = request.args.get("PID")
-    new_model_key = request.args.get("new_model_key")
-    project_name = request.args.get("project_name")
-    model_name = request.args.get("model_name")
-    info_dict = get_all_info_dict()
-    return render_template(
-        'index.html',
-        ACTION="buildingModel",
-        PID=PID,
-        newpred_filename="",
-        FEATURES_AVAILABLE=[info_dict['features_available_set1'],
-                            info_dict['features_available_set2']],
-        CURRENT_PROJECTS=info_dict['list_of_current_projects'],
-        CURRENT_PROJECTS_JSON=info_dict['list_of_current_projects_json'],
-        CURRENT_FEATURESETS=info_dict['list_of_current_featuresets'],
-        CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
-        CURRENT_MODELS=info_dict['list_of_current_models'],
-        CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
-        PROJECT_NAME=project_name,
-        headerfile_name="",
-        RESULTS=True,
-        features_str="",
-        new_model_key=new_model_key,
-        model_name=model_name)
-
-
-@app.route('/buildModel/<project_name>/<featureset_name>/<model_type>',
-           methods=['POST'])
-@app.route('/buildModel', methods=['POST', 'GET'])
-@stormpath.login_required
-def buildModel(project_name=None, featureset_name=None, model_type=None):
-    """Build new model for specified feature set.
-
-    Handles 'buildModelForm' submission and starts model creation
-    process as a subprocess (by calling prediction_proc with the
-    multiprocessing.Process method). Returns JSONified dict with PID
-    and other details about the process.
-
-    Parameters
-    ----------
-    project_name : str
-        Name of parent project.
-    featureset_name : str
-        Name of feature set from which to create new model.
-    model_type : str
-        Abbreviation of type of model to create (e.g. "RF").
-
-    Returns
-    -------
-    flask.Response() object
-        flask.Response() object with JSONified dict containing model
-        building details.
-
-    """
-    if project_name is None:  # browser form submission
-        post_method = "browser"
-        project_name = (str(request.form['buildmodel_project_name_select'])
-                        .split(" (created")[0].strip())
-        featureset_name = (str(request.form['modelbuild_featset_name_select'])
-                           .split(" (created")[0].strip())
-        # new_model_name = str(request.form['new_model_name'])
-        model_type = str(request.form['model_type_select'])
-    else:
-        post_method = "http_api"
-    projkey = project_name_to_key(project_name)
-    featureset_key = featureset_name_to_key(
-        featureset_name=featureset_name,
-        project_id=projkey)
-    new_model_key = add_model(
-        featureset_name=featureset_name,
-        featureset_key=featureset_key,
-        model_type=model_type,
-        projkey=projkey, pid="None")
-    print("new model key =", new_model_key)
-    print("New model featureset_key =", featureset_key)
-    multiprocessing.log_to_stderr()
-    proc = multiprocessing.Process(
-        target=build_model_proc,
-        args=(featureset_name,
-              featureset_key,
-              model_type,
-              str(new_model_key).strip()))
-    proc.start()
-    PID = str(proc.pid)
-    print("PROCESS ID IS", PID)
-    session["PID"] = PID
-    update_model_entry_with_pid(new_model_key, PID)
-    return jsonify({
-        "message": "Model creation has begun (with process ID = %s)." % str(PID),
-        "PID": PID,
-        "project_name": project_name,
-        "new_model_key": new_model_key,
-        "model_name": featureset_name})
-
-
 @app.route('/emailUser', methods=['POST', 'GET'])
 @stormpath.login_required
 def emailUser(user_email=None):
@@ -3333,8 +3271,8 @@ def emailUser(user_email=None):
     try:
         if user_email is None:
             user_email = str(get_current_userkey())
-        msg = MIMEText("Notification: Feature Generation Complete")
-        msg['Subject'] = 'ML Timeseries Platform - Feature Generation Complete'
+        msg = MIMEText("Notification: Job Complete")
+        msg['Subject'] = 'MLTSP - Job Complete'
         msg_from = 'MLTimeseriesPlatform@gmail.com'
         msg_from_passwd = 'Lotsa*Bits'
         msg_to = user_email
