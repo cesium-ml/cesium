@@ -93,7 +93,11 @@ logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
 # RethinkDB config:
 RDB_HOST = os.environ.get('RDB_HOST') or 'localhost'
 RDB_PORT = os.environ.get('RDB_PORT') or 28015
-MLTSP_DB = "mltsp_app"
+if os.getenv("MLTSP_TEST_DB") == "1":
+    MLTSP_DB = "mltsp_testing"
+else:
+    MLTSP_DB = "mltsp_app"
+
 rdb_conn = r.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
 
 ALLOWED_EXTENSIONS = set([

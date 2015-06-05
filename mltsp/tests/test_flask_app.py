@@ -1,5 +1,6 @@
 import os
 os.environ["DEBUG_LOGIN"] = "1"
+os.environ["MLTSP_TEST_DB"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 from mltsp import custom_exceptions
@@ -20,6 +21,7 @@ DATA_DIR = pjoin(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
 TEST_PASSWORD = "TestPass15"
 
+fa.db_init(force=True)
 
 def featurize_setup():
     fpaths = []
