@@ -3,9 +3,13 @@
 import multiprocessing
 import subprocess
 import glob
+import os
 
 
 if __name__ == "__main__":
+    os.environ["MLTSP_TEST_DB"] = "1"
+    from mltsp.Flask import flask_app
+    flask_app.db_init(force=True)
     from mltsp.Flask.flask_app import app
 
     p = multiprocessing.Process(target=app.run)
