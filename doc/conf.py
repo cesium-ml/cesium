@@ -57,6 +57,17 @@ author = 'The MLTSP Team'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
+
+setup_lines = open('../mltsp/__init__.py').readlines()
+version = 'vUndefined'
+for l in setup_lines:
+    if l.startswith('__version__'):
+        version = l.split("'")[1]
+        break
+
+# The full version, including alpha/beta/rc tags.
+release = version
+
 # The short X.Y version.
 version = '0.2'
 # The full version, including alpha/beta/rc tags.
