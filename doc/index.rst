@@ -1,22 +1,15 @@
-.. MLTSP documentation master file, created by
-   sphinx-quickstart on Thu Jul 23 13:00:45 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to MLTSP's documentation!
-=================================
-
-Contents:
+Machine Learning Time-Series Platform Documentation
+===================================================
 
 .. toctree::
    :maxdepth: 2
 
+   Installation <install.md>
 
+.. Indices and tables
+.. ==================
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
 
