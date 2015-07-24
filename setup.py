@@ -14,7 +14,7 @@ MAINTAINER_EMAIL    = 'stefanv@berkeley.edu'
 URL                 = 'http://mltsp.io'
 LICENSE             = 'Modified BSD'
 DOWNLOAD_URL        = 'https://github.com/mltsp/mltsp'
-VERSION             = '0.1dev'
+VERSION             = '0.2'
 PYTHON_VERSION      = (3, 4)
 
 import os
