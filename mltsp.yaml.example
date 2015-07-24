@@ -11,20 +11,20 @@ authentication:
     stormpath_api_key_secret: 0124
     stormpath_application: mltsp
 
-    # This section is optional.  If not filled in, Google Authentication
-    # will be disabled.
-    #
-    # These values can be obtained from
-    #   https://console.developers.google.com/project
-    #
-    # When filling in the form for running on localhost:
-    #
-    # - Appliation type: Web
-    # - Authorized JavaScript origins: blank
-    # - Authorized redirect URIs: http://localhost:5000/google
-    #                             http://your.hosted.server.com
-    #
-    # Always include the localhost:5000 for unit testing purposes.
+    ## This section is optional.  If not filled in, Google Authentication
+    ## will be disabled.
+    ##
+    ## These values can be obtained from
+    ##   https://console.developers.google.com/project
+    ##
+    ## When filling in the form for running on localhost:
+    ##
+    ## - Appliation type: Web
+    ## - Authorized JavaScript origins: blank
+    ## - Authorized redirect URIs: http://localhost:5000/google
+    ##                             http://your.hosted.server.com
+    ##
+    ## Always include the localhost:5000 for unit testing purposes.
 
-    google_client_id: 01234
-    google_client_secret: 01234
+    # google_client_id: 01234
+    # google_client_secret: 01234
