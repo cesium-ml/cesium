@@ -16,3 +16,6 @@ mltsp.egg-info
 data
 !mltsp/tests/data
 external
+doc/_build
+dist
+.eggs
