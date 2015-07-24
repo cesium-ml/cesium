@@ -5,7 +5,7 @@
 If you are using Anaconda, create your environment with packaged
 dependencies pre-installed to save time:
 
-``conda create -n mltsp scipy pandas matplotlib scikit-learn pytables pip``
+``conda create -n mltsp scipy pandas matplotlib scikit-learn pip``
 
 Then activate it:
 
