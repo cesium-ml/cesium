@@ -14,7 +14,6 @@ MAINTAINER_EMAIL    = 'stefanv@berkeley.edu'
 URL                 = 'http://mltsp.io'
 LICENSE             = 'Modified BSD'
 DOWNLOAD_URL        = 'https://github.com/mltsp/mltsp'
-VERSION             = '0.3dev'
 PYTHON_VERSION      = (3, 4)
 
 import os
@@ -103,7 +102,7 @@ if __name__ == "__main__":
             'Intended Audience :: Science/Research',
             'License :: OSI Approved :: BSD License',
             'Programming Language :: C',
-            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 2',
             'Topic :: Scientific/Engineering',
             'Operating System :: Microsoft :: Windows',
             'Operating System :: POSIX',
