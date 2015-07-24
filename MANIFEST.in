@@ -1,0 +1,17 @@
+include setup*.py
+include MANIFEST.in
+include *.txt
+include Makefile
+recursive-include mltsp *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt
+recursive-include mltsp/data *
+recursive-include dockerfiles
+recursive-include tools
+recursive-include mltsp/tests/data
+
+include doc/Makefile
+recursive-include doc/source *.txt
+recursive-include doc/tools *.txt
+recursive-include doc/source/_templates *.html
+recursive-include doc *.py
+prune doc/build
+prune doc/gh-pages

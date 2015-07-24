@@ -18,6 +18,7 @@ VERSION             = '0.3dev'
 PYTHON_VERSION      = (3, 4)
 
 import os
+import sys
 
 import setuptools
 from distutils.command.build_py import build_py
@@ -47,9 +48,43 @@ with open('mltsp/__init__.py') as fid:
             VERSION = line.strip().split()[-1][1:-1]
             break
 
+with open('requirements.txt') as fid:
+    INSTALL_REQUIRES = [l.split('#')[0].strip() for l in fid.readlines() if l]
+    INSTALL_REQUIRES = [pkg.replace('-', '_') for pkg in INSTALL_REQUIRES]
+
+
+# requirements for those browsing PyPI
+REQUIRES = [r.replace('>=', ' (>= ') + ')' if '=' in r else r
+            for r in INSTALL_REQUIRES]
+REQUIRES = [r.replace('==', ' (== ') for r in REQUIRES]
+
 
 if __name__ == "__main__":
-    from numpy.distutils.core import setup
+    try:
+        from numpy.distutils.core import setup
+        extra = {'configuration': configuration}
+        # do not risk updating numpy
+        INSTALL_REQUIRES = [r for r in INSTALL_REQUIRES if 'numpy' not in r]
+    except ImportError:
+        if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
+                                   sys.argv[1] in ('--help-commands',
+                                                   'egg_info', '--version',
+                                                   'clean')):
+            # For these actions, NumPy is not required.
+            #
+            # They are required to succeed without Numpy for example when
+            # pip is used to install scikit-image when Numpy is not yet
+            # present in the system.
+            pass
+        else:
+            print('To install mltsp from source, you will need numpy.\n' +
+                  'Install numpy with pip:\n' +
+                  'pip install numpy\n'
+                  'Or using conda:\n'
+                  'conda install numpy\n'
+                  'or use your operating system package manager.')
+            sys.exit(1)
+
     setup(
         name=DISTNAME,
         description=DESCRIPTION,
@@ -76,9 +111,17 @@ if __name__ == "__main__":
             'Operating System :: MacOS',
         ],
 
+        install_requires=INSTALL_REQUIRES,
+        setup_requires=['cython>=0.21'],
+        requires=REQUIRES,
         configuration=configuration,
-        packages=setuptools.find_packages(),
+        packages=setuptools.find_packages(exclude=['doc']),
         include_package_data=True,
         zip_safe=False,
         cmdclass={'build_py': build_py},
+
+        entry_points={
+            'console_scripts': ['mltsp = mltsp.Flask.flask_app:main'],
+        },
+
     )
