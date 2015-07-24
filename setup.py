@@ -7,11 +7,11 @@ https://github.com/mltsp
 """
 
 DISTNAME            = 'mltsp'
-DESCRIPTION         = 'Machine Learning Time Series Platform'
+DESCRIPTION         = 'Machine Learning Time-Series Platform'
 LONG_DESCRIPTION    = descr
 MAINTAINER          = 'MLTSP Team'
 MAINTAINER_EMAIL    = 'stefanv@berkeley.edu'
-URL                 = 'https://github.com/mltsp'
+URL                 = 'http://mltsp.io'
 LICENSE             = 'Modified BSD'
 DOWNLOAD_URL        = 'https://github.com/mltsp/mltsp'
 VERSION             = '0.1dev'
@@ -41,29 +41,14 @@ def configuration(parent_package='', top_path=None):
     return config
 
 
-def write_version_py(filename='mltsp/version.py'):
-    template = """# THIS FILE IS GENERATED FROM THE MLTSP SETUP.PY
-version='%s'
-"""
+with open('mltsp/__init__.py') as fid:
+    for line in fid:
+        if line.startswith('__version__'):
+            VERSION = line.strip().split()[-1][1:-1]
+            break
 
-    vfile = open(os.path.join(os.path.dirname(__file__),
-                              filename), 'w')
-
-    try:
-        vfile.write(template % VERSION)
-    finally:
-        vfile.close()
-
-
-def get_package_version(package):
-    for version_attr in ('__version__', 'VERSION', 'version'):
-        version_info = getattr(package, version_attr, None)
-        if version_info and str(version_attr) == version_attr:
-            return str(version_info)
 
 if __name__ == "__main__":
-    write_version_py()
-
     from numpy.distutils.core import setup
     setup(
         name=DISTNAME,
