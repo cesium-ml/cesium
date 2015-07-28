@@ -561,6 +561,41 @@ def get_authed_projkeys(this_userkey=None):
     return proj_keys
 
 
+def list_featsets_cursor_to_html_table(cursor):
+    """
+    """
+    authed_featuresets = (
+        "<table id='features_table' style='display:none;'>" +
+        "   <tr class='features_row'>" +
+        "       <th>Feature set name</th>" +
+        "       <th>Date created</th>" +
+        "       <th>Features used</th>" +
+        "       <th>Remove from database</th>" +
+        "   </tr>")
+    count = 0
+    for entry in cursor:
+        authed_featuresets += (
+            "<tr class='features_row'><td align='left'>" +
+            entry['name'] + "</td><td align='left'>" +
+            entry['created'][:-13] +
+            (
+                " PST</td><td align='center'>" +
+                "<a href='#' onclick=\"$('#feats_used_div_%d')" +
+                ".dialog('open');\">Show</a><div " +
+                "id='feats_used_div_%d' style='display:none;' " +
+                "class='feats_used_div' title='%s: Features used'>")
+            % (
+                count, count, (
+                    entry['name'] +
+                    ', '.join(entry['featlist']))) +
+            ("</div></td><td align='center'><input "
+             "type='checkbox' name='delete_features_key' "
+             "value='%s'></td></tr>") % entry['id'])
+        count += 1
+    authed_featuresets += "</table>"
+    return authed_featuresets
+
+
 def list_featuresets(
         auth_only=True, by_project=False, name_only=False,
         as_html_table_string=False):
@@ -594,43 +629,14 @@ def list_featuresets(
                                     .pluck("name", "created", "id", "featlist")\
                                     .run(g.rdb_conn)
         if as_html_table_string:
-            authed_featuresets = (
-                "<table id='features_table' style='display:none;'>" +
-                "   <tr class='features_row'>" +
-                "       <th>Feature set name</th>" +
-                "       <th>Date created</th>" +
-                "       <th>Features used</th>" +
-                "       <th>Remove from database</th>" +
-                "   </tr>")
-            count = 0
-            for entry in cursor:
-                authed_featuresets += (
-                    "<tr class='features_row'><td align='left'>" +
-                    entry['name'] + "</td><td align='left'>" +
-                    entry['created'][:-13] +
-                    (
-                        " PST</td><td align='center'>" +
-                        "<a href='#' onclick=\"$('#feats_used_div_%d')" +
-                        ".dialog('open');\">Show</a><div " +
-                        "id='feats_used_div_%d' style='display:none;' " +
-                        "class='feats_used_div' title='%s: Features used'>")
-                    % (
-                        count, count, (
-                            entry['name'] +
-                            ', '.join(entry['featlist']))) +
-                    ("</div></td><td align='center'><input "
-                     "type='checkbox' name='delete_features_key' "
-                     "value='%s'></td></tr>") % entry['id'])
-                count += 1
-            authed_featuresets += "</table>"
+            authed_featuresets = list_featsets_cursor_to_html_table(cursor)
         else:
             authed_featuresets = []
             for entry in cursor:
                 authed_featuresets.append(
-                    entry['name'] +
-                    (
-                        " (created %s PST)" % str(entry['created'])[:-13]
-                        if not name_only else ""))
+                    entry['name'] + \
+                    (" (created %s PST)" % str(entry['created'])[:-13]
+                     if not name_only else ""))
         return authed_featuresets
     else:
         if len(authed_proj_keys) == 0:
@@ -647,6 +653,33 @@ def list_featuresets(
                         if not name_only else ""))
 
         return authed_featuresets
+
+
+def list_models_cursor_to_html_table(cursor):
+    """
+    """
+    authed_models = (
+        "<table id='models_table' style='display:none;'>"
+        "<tr class='model_row'><th>Model name</th>"
+        "<th>Model type</th><th>Date created</th>"
+        "<th>Remove from database</th></tr>")
+    for entry in cursor:
+        authed_models += "<tr class='model_row'><td align='left'"
+        authed_models += (
+            " class='%s'" '&'.join(entry['meta_feats'])
+            if 'meta_feats' in entry and entry['meta_feats']
+            not in [False, [], "False", None, "None"] and
+            isinstance(entry['meta_feats'], list) else "")
+        authed_models += (
+            ">" + entry['name']
+            + "</td><td align='left'>" + entry['type']
+            + "</td><td align='left'>" + entry['created'][:-13]
+            + (
+                " PST</td><td align='center'><input type='checkbox' "
+                "name='delete_model_key' value='%s'></td></tr>")
+            % entry['id'])
+    authed_models += "</table>"
+    return authed_models
 
 
 def list_models(
@@ -689,27 +722,7 @@ def list_models(
                                   .run(g.rdb_conn)
 
         if as_html_table_string:
-            authed_models = (
-                "<table id='models_table' style='display:none;'>"
-                "<tr class='model_row'><th>Model name</th>"
-                "<th>Model type</th><th>Date created</th>"
-                "<th>Remove from database</th></tr>")
-            for entry in cursor:
-                authed_models += "<tr class='model_row'><td align='left'"
-                authed_models += (
-                    " class='%s'" '&'.join(entry['meta_feats'])
-                    if 'meta_feats' in entry and entry['meta_feats']
-                    not in [False, [], "False", None, "None"] and
-                    isinstance(entry['meta_feats'], list) else "")
-                authed_models += (
-                    ">" + entry['name']
-                    + "</td><td align='left'>" + entry['type']
-                    + "</td><td align='left'>" + entry['created'][:-13]
-                    + (
-                        " PST</td><td align='center'><input type='checkbox' "
-                        "name='delete_model_key' value='%s'></td></tr>")
-                    % entry['id'])
-            authed_models += "</table>"
+            authed_models = list_models_cursor_to_html_table(cursor)
         else:
             authed_models = []
             for entry in cursor:
@@ -746,6 +759,45 @@ def list_models(
         return authed_models
 
 
+def list_predictions_cursor_to_html_table(cursor):
+    """
+    """
+    predictions = (
+        "<table id='predictions_table' style='display:none;'>"
+        "<tr class='prediction_row'><th>Model/feature set name</th>"
+        "<th>Model type</th><th>Time-series filename</th>"
+        "<th>Date run</th><th>Results</th>"
+        "<th>Remove from database</th></tr>")
+    count = 0
+    for entry in cursor:
+        predictions += (
+            "<tr class='prediction_row'><td align='left'>"
+            + entry['model_name'] + "</td><td align='left'>"
+            + entry['model_type'] + "</td><td align='left'>"
+            + entry['filename'] + "</td><td align='left'>"
+            + entry['created'][:-13]
+            + (
+                " PST</td><td align='center'><a href='#' "
+                "onclick=\"$('#prediction_results_div_%d')"
+                ".dialog('open');\">Show</a>"
+                "<div id='prediction_results_div_%d' "
+                "style='display:none;' class='pred_results_dialog_div'"
+                " title='Prediction Results'>")
+            % (count, count))
+        try:
+            predictions += entry['results_str_html']
+        except KeyError:
+            predictions += (
+                "No prediction results saved for this entry.")
+        predictions += ((
+            "</div></td><td align='center'><input type='checkbox' "
+            "name='delete_prediction_key' value='%s'></td></tr>")
+            % entry['id'])
+        count += 1
+    predictions += "</table>"
+    return predictions
+
+
 def list_predictions(
         auth_only=False, by_project=False, detailed=True,
         as_html_table_string=False):
@@ -779,39 +831,7 @@ def list_predictions(
                 "created", "id", "results_str_html")
             .run(g.rdb_conn))
         if as_html_table_string:
-            predictions = (
-                "<table id='predictions_table' style='display:none;'>"
-                "<tr class='prediction_row'><th>Model/feature set name</th>"
-                "<th>Model type</th><th>Time-series filename</th>"
-                "<th>Date run</th><th>Results</th>"
-                "<th>Remove from database</th></tr>")
-            count = 0
-            for entry in cursor:
-                predictions += (
-                    "<tr class='prediction_row'><td align='left'>"
-                    + entry['model_name'] + "</td><td align='left'>"
-                    + entry['model_type'] + "</td><td align='left'>"
-                    + entry['filename'] + "</td><td align='left'>"
-                    + entry['created'][:-13]
-                    + (
-                        " PST</td><td align='center'><a href='#' "
-                        "onclick=\"$('#prediction_results_div_%d')"
-                        ".dialog('open');\">Show</a>"
-                        "<div id='prediction_results_div_%d' "
-                        "style='display:none;' class='pred_results_dialog_div'"
-                        " title='Prediction Results'>")
-                    % (count, count))
-                try:
-                    predictions += entry['results_str_html']
-                except KeyError:
-                    predictions += (
-                        "No prediction results saved for this entry.")
-                predictions += ((
-                    "</div></td><td align='center'><input type='checkbox' "
-                    "name='delete_prediction_key' value='%s'></td></tr>")
-                    % entry['id'])
-                count += 1
-            predictions += "</table>"
+            predictions = list_predictions_cursor_to_html_table(cursor)
         else:
             predictions = []
             for entry in cursor:
@@ -1616,6 +1636,14 @@ def allowed_file(filename):
             filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS)
 
 
+def list_filename_variants(file_name):
+    """Return list of possible matching file name variants.
+    """
+    return [file_name, ntpath.basename(file_name),
+            os.path.splitext(file_name)[0],
+            os.path.splitext(ntpath.basename(file_name))[0]]
+
+
 def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
     """Ensure uploaded files are correctly formatted.
 
@@ -1664,10 +1692,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
     for file_name in file_list:
         this_file = the_zipfile.getmember(file_name)
         if this_file.isfile():
-            file_name_variants = [
-                file_name, ntpath.basename(file_name),
-                os.path.splitext(file_name)[0],
-                os.path.splitext(ntpath.basename(file_name))[0]]
+            file_name_variants = list_filename_variants(file_name)
             all_fname_variants.extend(file_name_variants)
             if (len(list(set(file_name_variants) &
                          set(all_header_fnames))) == 0):
@@ -1748,10 +1773,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
             this_file = the_zipfile.getmember(file_name)
             if this_file.isfile():
 
-                file_name_variants = [
-                    file_name, ntpath.basename(file_name),
-                    os.path.splitext(file_name)[0],
-                    os.path.splitext(ntpath.basename(file_name))[0]]
+                file_name_variants = list_filename_variants(file_name)
                 all_fname_variants.extend(file_name_variants)
                 all_fname_variants_list_of_lists.append(file_name_variants)
 
@@ -2474,14 +2496,15 @@ def uploadDataFeaturize(
     # TODO: ADD MORE ROBUST EXCEPTION HANDLING (HERE AND ALL OTHER FUNCTIONS)
     if request.method == 'POST':
         post_method = "browser"
+        # Parse form fields
         featureset_name = str(request.form["featureset_name"]).strip()
+        headerfile = request.files["headerfile"]
+        zipfile = request.files["zipfile"]
         if featureset_name == "":
             return jsonify({
                 "message": ("Feature Set Title must contain non-whitespace "
                             "characters. Please try a different title."),
                 "type": "error"})
-        headerfile = request.files["headerfile"]
-        zipfile = request.files["zipfile"]
         sep = str(request.form["sep"])
         project_name = (str(request.form["featureset_project_name_select"]).
                         strip().split(" (created")[0])
@@ -2513,6 +2536,7 @@ def uploadDataFeaturize(
                 is_test = True
         except:  # unchecked
             is_test = False
+        # Create unique file names
         headerfile_name = (str(uuid.uuid4()) + "_" +
                            str(secure_filename(headerfile.filename)))
         zipfile_name = (str(uuid.uuid4()) + "_" +
@@ -2645,7 +2669,7 @@ def featurizationPage(
     """
     projkey = project_name_to_key(project_name)
     if already_featurized == True and zipfile_name is None:
-        # user is uploading pre-featurized data, without timeseries data
+        # User is uploading pre-featurized data, without time-series data
         features_filename = headerfile_name
         features_filepath = os.path.join(
             cfg.UPLOAD_FOLDER, features_filename)
@@ -2684,7 +2708,7 @@ def featurizationPage(
             "project_name": project_name, "headerfile_name": headerfile_name,
             "zipfile_name": str(zipfile_name),
             "featureset_key": new_featset_key})
-    else:  # user is uploading timeseries data to be featurized
+    else:  # User is uploading time-series data to be featurized
         headerfile_path = os.path.join(
             cfg.UPLOAD_FOLDER, headerfile_name)
         zipfile_path = os.path.join(cfg.UPLOAD_FOLDER, zipfile_name)
