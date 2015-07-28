@@ -17,10 +17,10 @@
                                 <BR>
                                 <div id='tabs' style='width:900px; display:inline-block;' class='centered'>
                                         <ul>
-                                                <li><a href="#projectsTab">Projects</a></li>
-                                                <li><a href="#featurizeTab">Featurize</a></li>
-                                                <li><a href="#buildModelTab">Build Model</a></li>
-                                                <li><a href="#predictTab">Predict</a></li>
+                                                <li><a href="#projectsTab" id="projectsTabButton" name="projectsTabButton">Projects</a></li>
+                                                <li><a href="#featurizeTab" id="featurizeTabButton" name="featurizeTabButton">Featurize</a></li>
+                                                <li><a href="#buildModelTab" id="buildModelTabButton" name="buildModelTabButton">Build Model</a></li>
+                                                <li><a href="#predictTab" id="predictTabButton" name="predictTabButton">Predict</a></li>
                                         </ul>
                                         
                                         <div id='projectsTab' align='center'>
@@ -116,7 +116,7 @@
                                                                 </tr>
                                                                 <tr>
                                                                         <td colspan=3 align='right'>
-                                                                                <input type="button" value="Submit" onclick="editOrDeleteProjectFormSubmit()">
+                                                                                <input type="button" value="Submit" name="editOrDeleteSubmit" id="editOrDeleteSubmit" onclick="editOrDeleteProjectFormSubmit()">
                                                                         </td>
                                                                 </tr>
                                                         

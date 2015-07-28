@@ -15,9 +15,11 @@ if __name__ == "__main__":
     p = multiprocessing.Process(target=app.run)
     p.start()
 
-    tests = glob.glob('mltsp/tests/frontend/*.js')
+    tests = sorted(glob.glob('mltsp/tests/frontend/*.js'))
     subprocess.call(['external/casperjs/bin/casperjs', '--verbose',
                      '--log-level=warning', 'test'] + tests)
 
     p.terminate()
+
+
 
