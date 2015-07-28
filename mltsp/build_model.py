@@ -126,6 +126,20 @@ def clean_up_data_dict(data_dict):
 def create_and_pickle_model(data_dict, featureset_key, model_type,
                             in_docker_container):
     """Create scikit-learn RFC model object and save it to disk.
+
+    Parameters
+    ----------
+    data_dict : dict
+        Dictionary containing features data (key 'features') and
+        class list (key 'classes').
+    featureset_key : str
+        RethinkDB ID of associated feature set.
+    model_type : str
+        Abbreviation of the type of classifier to be created.
+    in_docker_container : bool
+        Boolean indicating whether function is being called from within
+        a Docker container.
+
     """
     # Build the model:
     # Initialize
@@ -150,7 +164,21 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
 
 
 def read_features_data_from_disk(featureset_key):
-    """
+    """Read features & class data from local CSV and return it as dict.
+
+    Parameters
+    ----------
+    featureset_key : str
+        RethinkDB ID of associated feature set.
+
+    Returns
+    -------
+    dict
+        Dictionary with 'features' key whose value is a list of
+        lists containing features data, and 'classes' whose
+        associated value is a list of the classes associated with
+        each row of features data.
+
     """
     features_filename = os.path.join(
         cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
