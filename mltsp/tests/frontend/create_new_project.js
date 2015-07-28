@@ -10,7 +10,8 @@ casper.test.begin('add_new_project'
         }, true);
     });
     casper.then(function(){
-        test.assertTextExists('ML Time-Series', 'Loaded post-auth index page');
+        test.assertTextExists('ML Time-Series Platform',
+                              'Loaded post-auth index page');
     });
     casper.then(function(){
         this.fill('form#newProjectForm', {
