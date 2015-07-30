@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     tests = sorted(glob.glob('mltsp/tests/frontend/*.js'))
     subprocess.call(['external/casperjs/bin/casperjs', '--verbose',
-                     '--log-level=warning', 'test'] + tests)
+                     '--log-level=debug', 'test'] + tests)
 
     p.terminate()
 
