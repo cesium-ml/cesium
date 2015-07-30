@@ -2,6 +2,13 @@ casper.test.begin('create new project'
                   /*, planned nr of tests, */,  function suite(test) {
     casper.start('http://localhost:5000', function() {
 
+        if(this.exists('form.login-form')){
+            this.fill('form.login-form', {
+                'login': 'testhandle@test.com',
+                'password':  'TestPass15'
+            }, true);
+        }
+
         casper.then(function(){
             test.assertTextExists('ML Time-Series Platform',
                                   'Loaded post-auth index page');

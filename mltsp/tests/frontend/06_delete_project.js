@@ -2,6 +2,13 @@ casper.test.begin('delete project'
                   /*, planned nr of tests, */,  function suite(test) {
     casper.start('http://localhost:5000', function() {
 
+        if(this.exists('form.login-form')){
+            this.fill('form.login-form', {
+                'login': 'testhandle@test.com',
+                'password':  'TestPass15'
+            }, true);
+        }
+
         casper.setFilter("page.confirm", function(message) {
             this.echo(message);
             return message === "Delete selected project?" ? true : false;
@@ -20,7 +27,7 @@ casper.test.begin('delete project'
 
         casper.then(function(){
             casper.waitForSelector("#editDeleteResultsDialog-okbtn", function(){
-                test.assertTextExists('Deleted 1 project(s).',
+                test.assertTextExists('Deleted',
                                       'Got success message (in jQuery dialog)');
                 this.click("#editDeleteResultsDialog-okbtn");
             });
