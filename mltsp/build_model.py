@@ -123,6 +123,47 @@ def clean_up_data_dict(data_dict):
     print("\n\n")
 
 
+def reduce(iter, params):
+    """
+    """
+    from sklearn.ensemble import RandomForestClassifier as RFC
+
+    data_dict = params["data_dict"]
+    for x in range(1):
+        ntrees = 1000
+        njobs = -1
+        rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
+        print("Model initialized.")
+
+        # Fit the model to training data:
+        print("Fitting the model...")
+        rf_fit.fit(data_dict['features'], data_dict['classes'])
+        print("Done.")
+        yield rf_fit, "string"
+
+
+def fit_model_disco(data_dict, featureset_key, model_type):
+    """
+    """
+    from disco.core import Job, result_iterator
+    params = {"data_dict": data_dict,
+              "featureset_key": featureset_key,
+              "model_type": model_type}
+    input_list = [("placeholder")]
+    job = Job('with_modules').run(
+        input=input_list,
+        reduce=reduce,
+        params=params,
+        required_modules=[("mltsp",
+                           os.path.dirname(os.path.dirname(__file__))),
+                          "sklearn"])
+    result_iter = result_iterator(job.wait(show=True))
+    rf_fit = None
+    for rf_obj, dummy_str in result_iter:
+        rf_fit = rf_obj
+    return rf_fit
+
+
 def create_and_pickle_model(data_dict, featureset_key, model_type,
                             in_docker_container):
     """Create scikit-learn RFC model object and save it to disk.
@@ -141,17 +182,8 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
         a Docker container.
 
     """
-    # Build the model:
-    # Initialize
-    ntrees = 1000
-    njobs = -1
-    rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
-    print("Model initialized.")
-
-    # Fit the model to training data:
-    print("Fitting the model...")
-    rf_fit.fit(data_dict['features'], data_dict['classes'])
-    print("Done.")
+    # Push to Disco:
+    rf_fit = fit_model_disco(data_dict, featureset_key, model_type)
     del data_dict
 
     # Store the model:
@@ -191,6 +223,9 @@ def read_features_data_from_disk(featureset_key):
     data_dict = {}
     data_dict['features'] = all_data
     data_dict['classes'] = classes
+    # Modifies in-place:
+    clean_up_data_dict(data_dict)
+
     return data_dict
 
 
@@ -228,9 +263,7 @@ def build_model(
     """
     data_dict = read_features_data_from_disk(featureset_key)
 
-    class_count, sorted_class_list = count_classes(data_dict["classes"])
-
-    clean_up_data_dict(data_dict)
+    # class_count, sorted_class_list = count_classes(data_dict["classes"])
 
     create_and_pickle_model(data_dict, featureset_key, model_type,
                             in_docker_container)
