@@ -2,15 +2,15 @@
 
 CELERY_RESULT_BACKEND = "amqp"
 
-#CELERY_RETHINKDB_BACKEND_SETTINGS = {
-    # 'host': '127.0.0.1',
-    # 'port': 28015,
-    # 'db': 'celery_test',
+CELERY_RETHINKDB_BACKEND_SETTINGS = {
+    'host': '127.0.0.1',
+    'port': 28015,
+    'db': 'celery_test',
     # 'auth_key': '',
-    # 'timeout': 20,
-    # 'table': 'celery_taskmeta',
-    # 'options': {}
-#}
+    'timeout': 20,
+    'table': 'celery_taskmeta',
+    'options': {}
+}
 
 CELERY_RESULT_SERIALIZER = 'json'  # NOTE: MUST BE SET TO JSON
 
