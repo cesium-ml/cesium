@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pickle
 from . import cfg
-from mltsp.celery_fit import fit_model
+from mltsp.celery_tools import fit_model
 
 
 def read_data_from_csv_file(fname, sep=',', skip_lines=0):
