@@ -16,6 +16,7 @@ from . import custom_exceptions
 from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
+from .celery_tools import pred_featurize_single
 
 try:
     from disco.core import Job, result_iterator
@@ -96,7 +97,6 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
                      meta_features, tmp_dir_path="/tmp", sep=","):
     """
     """
-    big_features_and_tsdata_dict = {}
     fname = newpred_file_path
     short_fname = ntpath.basename(fname).split("$")[0]
     if os.path.isfile(fname):
@@ -112,47 +112,17 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
         return {}
     ts_data = parse_ts_data(filepath, sep)
 
-    # Generate features:
-    if len(list(set(features_to_use) & set(cfg.features_list))) > 0:
-        timeseries_features = lc_tools.generate_timeseries_features(
-            deepcopy(ts_data), sep=sep, ts_data_passed_directly=True)
-    else:
-        timeseries_features = {}
-    if len(list(set(features_to_use) &
-                set(cfg.features_list_science))) > 0:
-        from .TCP.Software.ingest_tools import generate_science_features
-        science_features = generate_science_features.generate(
-            ts_data=deepcopy(ts_data))
-    else:
-        science_features = {}
     if custom_features_script not in [None, "None", "none", False]:
-        custom_features = cft.generate_custom_features(
-            custom_script_path=custom_features_script, path_to_csv=None,
-            features_already_known=dict(
-                list(timeseries_features.items()) + list(science_features.items()) +
-                (
-                    list(meta_features[short_fname].items()) if short_fname in
-                    meta_features else list({}.items()))), ts_data=ts_data)
-        if (isinstance(custom_features, list) and
-                len(custom_features) == 1):
-            custom_features = custom_features[0]
-        elif (isinstance(custom_features, list) and
-              len(custom_features) == 0):
-            custom_features = {}
-        elif (isinstance(custom_features, list) and
-              len(custom_features) > 1):
-            raise("len(custom_features) > 1 for single TS data obj")
-        elif not isinstance(custom_features, (list, dict)):
-            raise("custom_features ret by cft module is of an invalid type")
+        with open(custom_features_script) as f:
+            custom_features_script = f.readlines()
     else:
-        custom_features = {}
-    features_dict = dict(
-        list(timeseries_features.items()) + list(science_features.items()) +
-        list(custom_features.items()) +
-        (list(meta_features[short_fname].items()) if short_fname
-         in meta_features else list({}.items())))
-    big_features_and_tsdata_dict[short_fname] = {
-        "features_dict": features_dict, "ts_data": ts_data}
+        custom_features_script = None
+
+    res = pred_featurize_single.delay(
+        ts_data, features_to_use, custom_features_script,
+        meta_features, short_fname, tmp_dir_path, sep)
+    big_features_and_tsdata_dict = res.get(timeout=10)
+
     return big_features_and_tsdata_dict
 
 

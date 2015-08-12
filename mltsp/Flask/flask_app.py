@@ -25,6 +25,7 @@ from werkzeug import secure_filename
 import uuid
 import ntpath
 
+import yaml
 if os.getenv("DEBUG_LOGIN") == "1":
     from ..ext import stormpath_mock as stormpath
 else:
@@ -49,6 +50,17 @@ app.static_folder = 'static'
 app.add_url_rule(
     '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
+
+
+# Load configuration
+config_file = os.path.join(os.path.dirname(__file__), '../../mltsp.yaml')
+try:
+    config = yaml.load(open(config_file))
+except IOError:
+    print("Error!  Could not load 'mltsp.yaml' configuration file.\n"
+          "Please rename 'mltsp.yaml.example' to 'mltsp.yaml' and \n"
+          "modify as necessary.")
+    sys.exit(-1)
 
 
 app.config['SECRET_KEY'] = config['flask']['secret-key']
