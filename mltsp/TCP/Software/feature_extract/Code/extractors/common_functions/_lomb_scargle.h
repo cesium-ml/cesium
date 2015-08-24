@@ -1,7 +1,7 @@
 #include <math.h>
 #include "_eigs.h"
 
-inline void copy_sincos (int numt, double sinx0[], double cosx0[], double sinx[], double cosx[]) {
+static inline void copy_sincos (int numt, double sinx0[], double cosx0[], double sinx[], double cosx[]) {
     int i;
     for (i=0;i<numt;i++) {
         sinx[i] = sinx0[i];
@@ -9,7 +9,7 @@ inline void copy_sincos (int numt, double sinx0[], double cosx0[], double sinx[]
     }
 }
 
-inline void update_sincos (int numt, double sinx0[], double cosx0[], double sinx[], double cosx[], int offset) {
+static inline void update_sincos (int numt, double sinx0[], double cosx0[], double sinx[], double cosx[], int offset) {
     int i1, i;
     double tmp;
     for (i=0;i<numt;i++) {
@@ -19,7 +19,7 @@ inline void update_sincos (int numt, double sinx0[], double cosx0[], double sinx
     }
 }
 
-inline double _lomb_scargle(int numt, double cn[], double sinx[], double cosx[], double st, double ct, double cst) {
+static inline double _lomb_scargle(int numt, double cn[], double sinx[], double cosx[], double st, double ct, double cst) {
   double cs=0.,s2=0.,c2=0.,sh=0.,ch=0.,px=0.,detm;
   int i;
   for (i=0;i<numt;i++) {
@@ -34,7 +34,7 @@ inline double _lomb_scargle(int numt, double cn[], double sinx[], double cosx[],
   return px;
 }
 
-inline void calc_dotprod(int numt, double sinx[], double cosx[], double wt[], int dord, double *st, double *ct) {
+static inline void calc_dotprod(int numt, double sinx[], double cosx[], double wt[], int dord, double *st, double *ct) {
     int i;
     unsigned long n2=numt*dord;
     for (*st=0,*ct=0,i=0;i<numt;i++) {
@@ -43,7 +43,7 @@ inline void calc_dotprod(int numt, double sinx[], double cosx[], double wt[], in
     }
 }
 
-inline double do_lomb(int numt, int detrend_order, double cn[], double sinx[], double cosx[], double wth[]) {
+static inline double do_lomb(int numt, int detrend_order, double cn[], double sinx[], double cosx[], double wth[]) {
     int i;
     double st,cst,ct,st0,ct0;
     for (i=0,ct=0,st=0,cst=0;i<=detrend_order;i++) {
@@ -53,7 +53,7 @@ inline double do_lomb(int numt, int detrend_order, double cn[], double sinx[], d
     return _lomb_scargle(numt,cn,sinx,cosx,st,ct,cst);
 }
 
-inline double do_lomb_zoom(int numt, int detrend_order, double *cn, double *sinx, double *cosx, double *sinx1, double *cosx1, double *sinx_back, double *cosx_back, double *sinx_smallstep, double *cosx_smallstep, double *wth, double freq_zoom, int *ifreq) {
+static inline double do_lomb_zoom(int numt, int detrend_order, double *cn, double *sinx, double *cosx, double *sinx1, double *cosx1, double *sinx_back, double *cosx_back, double *sinx_smallstep, double *cosx_smallstep, double *wth, double freq_zoom, int *ifreq) {
     int i;
     double px,pxmax=0.;
     copy_sincos(numt,sinx,cosx,sinx1,cosx1);
@@ -76,7 +76,7 @@ inline double do_lomb_zoom(int numt, int detrend_order, double *cn, double *sinx
     return px;
 }
 
-inline void def_hat(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double sinx[], double cosx[], double wt[], double cn[], double hat_hat[], double vec[], double lambda0) {
+static inline void def_hat(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double sinx[], double cosx[], double wt[], double cn[], double hat_hat[], double vec[], double lambda0) {
     int i,j=numt*nharm,k,j1,npar=2*nharm,dord1=detrend_order+1;
     double sx0[numt],cx0[numt],ct,st,sum;
     for (i=0;i<numt;i++) {
@@ -107,7 +107,7 @@ inline void def_hat(int numt, int nharm, int detrend_order, double hat_matr[], d
     }
 }
 
-inline double optimize_px(int n, int numt, double p[], double hat_hat[], double eigs[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Trace) {
+static inline double optimize_px(int n, int numt, double p[], double hat_hat[], double eigs[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Trace) {
     int i,j,k,niter=50;
     double px,lambda,dlambda,lambda_best,eigs1,px_max=0.,start=lambda0_range[0],stop=lambda0_range[1];
     double m[n][n],s1,s2,s3,sum,v[n],tcn=tc/numt,Tr,Tr0=(1-3./numt)/(1.+tcn);
@@ -151,7 +151,7 @@ inline double optimize_px(int n, int numt, double p[], double hat_hat[], double 
     return px_max;
 }
 
-inline void inv_hat(int n, double hat_hat[], double vec[], double vec1[], double eigs[], double lam0, double lam) {
+static inline void inv_hat(int n, double hat_hat[], double vec[], double vec1[], double eigs[], double lam0, double lam) {
     int i,j,k;
     double tmp[n][n], sum;
     for (i=0;i<n;i++) {
@@ -167,7 +167,7 @@ inline void inv_hat(int n, double hat_hat[], double vec[], double vec1[], double
     }
 }
 
-inline double refine_psd(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double hat_hat[], double sinx[], double cosx[], double wt[], double cn[], double vec1[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Tr, int inv) {
+static inline double refine_psd(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double hat_hat[], double sinx[], double cosx[], double wt[], double cn[], double vec1[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Tr, int inv) {
     int i,j,k,npar=2*nharm;
     double p[npar],vec[npar],eigs[npar],sum,px,lambda00=*lambda0;
     def_hat(numt,nharm,detrend_order,hat_matr,hat0,sinx,cosx,wt,cn,hat_hat,vec,*lambda0);
