@@ -75,18 +75,9 @@ Then activate it:
 
 ## Configuration
 
-* In the file ``cfg.py`, locate the following variables and set
-  them to reflect your system architecture:
+* Execute ``import mltsp; mltsp.install()``
 
-  ``PROJECT_PATH``
-
-  Optionally, also set
-
-  ``MODELS_FOLDER, UPLOAD_FOLDER, FEATURES_FOLDER, ERR_LOG_PATH``
-
-* Authentication information is currently stored in ``mltsp.yaml``
-  (an example is provided as ``mltsp.yaml.example``).  This
-  configuration file and ``cfg.py`` will eventually become one.
+* Locate ``~/.config/mltsp/mltsp.yaml`` and customize authentication tokens.
 
 
 ## Starting the application

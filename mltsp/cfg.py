@@ -5,10 +5,37 @@
 from __future__ import print_function
 import os, sys
 
+import yaml
+
+# Load configuration
+config_files = [
+    os.path.expanduser('~/.config/mltsp/mltsp.yaml'),
+    os.path.join(os.path.dirname(__file__), '../mltsp.yaml')
+    ]
+
+config_files = [os.path.abspath(cf) for cf in config_files]
+
+config = {}
+for cf in config_files:
+    try:
+        config = yaml.load(open(cf))
+        break
+    except IOError:
+        pass
+
+if not config:
+    print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
+          '\n '.join(config_files),
+          "\n\nPlease refer to the installation guide for further\n"
+          "instructions.\n\n"
+          "If you don't want to read the manual, do the following:\n"
+          "  import mltsp; mltsp.install()")
+    sys.exit(-1)
+
 # Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
-DATA_PATH = os.path.join(PROJECT_PATH, "data")
+DATA_PATH = os.path.expanduser('~/.local/mltsp/')
 SAMPLE_DATA_PATH = os.path.join(DATA_PATH, "sample_data")
 
 # Specify path to uploads, models, and feature folders:
@@ -200,3 +227,7 @@ for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
             os.makedirs(path)
         except Exception as e:
             print(e)
+
+del yaml, os, sys, print_function, config_files
+
+config['mltsp'] = locals()
