@@ -142,7 +142,7 @@ def parse_headerfile(headerfile_path, features_to_use):
 def generate_featurize_input_params_list(features_to_use, fname_class_dict,
                                          fname_class_science_features_dict,
                                          fname_metadata_dict, zipfile_path,
-                                         custom_script_path):
+                                         custom_script_path, is_test):
     """
     """
     input_params_list = []
@@ -161,6 +161,8 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
         custom_script_lines = False
 
     for fname in all_fnames:
+        if is_test and len(input_params_list) >= 3:
+            break
         short_fname = shorten_fname(fname)
         if os.path.isfile(fname):
             ts_path = fname
@@ -195,7 +197,7 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
         input_params_list = generate_featurize_input_params_list(
             features_to_use, fname_class_dict,
             fname_class_science_features_dict, fname_metadata_dict,
-            zipfile_path, custom_script_path)
+            zipfile_path, custom_script_path, is_test)
         # TO-DO: Determine number of cores in cluster:
         n_cores = 8
         res = featurize_celery_task.chunks(input_params_list, n_cores).delay()
