@@ -8,11 +8,10 @@ from mltsp import custom_feature_tools as cft
 from mltsp import cfg
 from mltsp import lc_tools
 from copy import deepcopy
-
+import uuid
 
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "ext"))
-
 os.environ['CELERY_CONFIG_MODULE'] = 'celeryconfig'
 celery_app = Celery('celery_fit', broker='amqp://guest@localhost//')
 
@@ -87,3 +86,58 @@ def pred_featurize_single(ts_data, features_to_use, custom_features_script,
     big_features_and_tsdata_dict[short_fname] = {
         "features_dict": features_dict, "ts_data": ts_data}
     return big_features_and_tsdata_dict
+
+
+@celery_app.task(name="celery_tools.featurize_ts_data")
+def featurize_ts_data(ts_data, short_fname, custom_script,
+                      object_class, features_to_use):
+    """
+
+    """
+    if custom_script:
+        custom_script_path = os.path.join(
+            "/tmp",
+            str(uuid.uuid4())[:10] + "_custom_feats.py")
+        with open(custom_script_path, "w") as f:
+            f.writelines(custom_script)
+    else:
+        custom_script_path = False
+
+    # Generate general/cadence-related TS features, if to be used
+    if len(set(features_to_use) & set(cfg.features_list)) > 0:
+        timeseries_features = (
+            lc_tools.generate_timeseries_features(
+                deepcopy(ts_data),
+                classname=object_class,
+                sep=',', ts_data_passed_directly=True))
+    else:
+        timeseries_features = {}
+    # Generate TCP TS features, if to be used
+    if len(
+            set(features_to_use) &
+            set(cfg.features_list_science)) > 0:
+        from mltsp.TCP.Software.ingest_tools import \
+            generate_science_features
+        science_features = generate_science_features.generate(
+            ts_data=ts_data)
+    else:
+        science_features = {}
+    # Generate custom features, if any
+    if custom_script_path:
+        custom_features = cft.generate_custom_features(
+            custom_script_path=custom_script_path,
+            path_to_csv=None,
+            features_already_known=dict(
+                list(timeseries_features.items()) +
+                list(science_features.items())),
+            ts_data=deepcopy(ts_data))[0]
+        os.remove(custom_script_path)
+    else:
+        custom_features = {}
+    # Combine all features into single dict
+    all_features = dict(
+        list(timeseries_features.items()) +
+        list(science_features.items()) +
+        list(custom_features.items()))
+    all_features['class'] = object_class
+    return (short_fname, all_features)
