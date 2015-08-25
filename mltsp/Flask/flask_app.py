@@ -9,6 +9,7 @@ import os
 sys_admin_emails = ['a.crellinquick@gmail.com']
 
 from .. import cfg
+from ..cfg import config
 
 import shutil
 import time
@@ -24,7 +25,6 @@ from werkzeug import secure_filename
 import uuid
 import ntpath
 
-import yaml
 if os.getenv("DEBUG_LOGIN") == "1":
     from ..ext import stormpath_mock as stormpath
 else:
@@ -51,17 +51,6 @@ app.add_url_rule(
     view_func=app.send_static_file)
 
 
-# Load configuration
-config_file = os.path.join(os.path.dirname(__file__), '../../mltsp.yaml')
-try:
-    config = yaml.load(open(config_file))
-except IOError:
-    print("Error!  Could not load 'mltsp.yaml' configuration file.\n"
-          "Please rename 'mltsp.yaml.example' to 'mltsp.yaml' and \n"
-          "modify as necessary.")
-    sys.exit(-1)
-
-
 app.config['SECRET_KEY'] = config['flask']['secret-key']
 app.config['STORMPATH_API_KEY_ID'] = \
     config['authentication']['stormpath_api_key_id']
@@ -78,7 +67,9 @@ if config['authentication']['google_client_id'] is not None:
             'client_secret': config['authentication']['google_client_secret'],
         }
     }
-
+else:
+    print('(!) No Google authentication token in configuration file.')
+    print('(!) Disabling Google logins.')
 
 # Authentication is done using Stormpath
 # http://flask-stormpath.readthedocs.org/
