@@ -40,6 +40,7 @@ from .. import custom_exceptions
 from .. import run_in_docker_container
 from .. import featurize
 from .. import predict_class as predict
+from .. import build_model
 
 all_available_features_list = cfg.features_list + cfg.features_list_science
 
@@ -1964,11 +1965,9 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     before_request()
     print("Building model...")
     try:
-        model_built_msg = (run_in_docker_container.
-                           build_model_in_docker_container(
-                               featureset_name=featureset_name,
-                               featureset_key=featureset_key,
-                               model_type=model_type))
+        model_built_msg = build_model.build_model(
+            featureset_name=featureset_name, featureset_key=featureset_key,
+            model_type=model_type)
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
