@@ -17,3 +17,4 @@ matplotlib
 nose
 nose-exclude
 pyyaml
+waitress
