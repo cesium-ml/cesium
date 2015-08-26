@@ -16,7 +16,7 @@ double pythag(double a, double b) {
         else return (absb == 0.0 ? 0.0 : absb*sqrt(1.0+SQR(absa/absb)));
 }
 
-inline void tred2(double a[], int n, double d[], double e[]) {
+static inline void tred2(double a[], int n, double d[], double e[]) {
         int l,k,j,i;
         double scale,hh,h,g,f;
 
@@ -131,7 +131,7 @@ void tqli(double d[], double e[], int n, double z[])
         }
 }
 
-inline void get_eigs(int np,double x[],double d[]) {
+static inline void get_eigs(int np,double x[],double d[]) {
       double e[np];
       tred2(x,np,d,e);
       tqli(d,e,np,x);

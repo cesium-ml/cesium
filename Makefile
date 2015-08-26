@@ -23,6 +23,8 @@ disco: py2
 		fi; \
 	fi
 
+.DEFAULT_GOAL := all
+
 all: py2
 	python setup.py build_ext -i
 
