@@ -239,9 +239,13 @@ def featurize_prediction_data_in_parallel(
               "meta_features": meta_features,
               "tmp_dir_path": tmp_dir_path}
 
-    disco_iterator = process_prediction_data_featurization_with_disco(
-        input_list=tags, params=params)
-
+    try:
+        disco_iterator = process_prediction_data_featurization_with_disco(
+            input_list=tags, params=params)
+    except:
+        raise
+    finally:
+        disco_tools.delete_pushed_objects(session_key)
     for k, v in disco_iterator:
         fname = k
         features_dict, ts_data = v
@@ -250,7 +254,6 @@ def featurize_prediction_data_in_parallel(
                 "features_dict": features_dict, "ts_data": ts_data}
 
     print("Feature generation complete.")
-    disco_tools.delete_pushed_objects(session_key)
     for key, val in big_features_and_tsdata_dict.items():
         big_features_and_tsdata_dict[orig_fnames_dict[key]] = val
         del big_features_and_tsdata_dict[key]
@@ -482,15 +485,18 @@ def featurize_in_parallel(headerfile_path, zipfile_path, features_to_use=[],
     params['fname_class_dict_2'] = disco_tools.headerfile_to_fname_dict(
         headerfile_path)
 
-    disco_results = process_featurization_with_disco(
-        input_list=tags, params=params)
-
+    try:
+        disco_results = process_featurization_with_disco(
+            input_list=tags, params=params)
+    except:
+        raise
+    finally:
+        disco_tools.delete_pushed_objects(session_key)
     fname_features_dict = {}
     for k, v in disco_results:
         fname_features_dict[k] = v
 
     print("Done generating features.")
-    disco_tools.delete_pushed_objects(session_key)
     for key, val in fname_features_dict.items():
         fname_features_dict[orig_fnames_dict[key]] = val
         del fname_features_dict[key]

@@ -1,16 +1,19 @@
 import os
 os.environ["DEBUG_LOGIN"] = "1"
+os.environ["MLTSP_TEST_DB"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg
 from mltsp import custom_exceptions
 from mltsp import build_model
 import numpy.testing as npt
+import numpy as np
 import os
 from os.path import join as pjoin
 import ntpath
 import uuid
 import rethinkdb as r
 import unittest
+import time
 import json
 import shutil
 import pandas as pd
@@ -20,15 +23,19 @@ DATA_DIR = pjoin(os.path.dirname(__file__), "data")
 TEST_EMAIL = "testhandle@test.com"
 TEST_PASSWORD = "TestPass15"
 
+fa.db_init(force=True)
 
 def featurize_setup():
     fpaths = []
+    dest_paths = []
     fnames = ["asas_training_subset_classes_with_metadata.dat",
               "asas_training_subset.tar.gz", "testfeature1.py"]
     for fname in fnames:
         fpaths.append(pjoin(DATA_DIR, fname))
     for fpath in fpaths:
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
+        dest_paths.append(pjoin(cfg.UPLOAD_FOLDER, ntpath.basename(fpath)))
+    return dest_paths
 
 
 def featurize_teardown():
@@ -53,6 +60,16 @@ def generate_model():
     build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
                                 "TEMP_TEST01_RF.pkl"))
+
+
+def teardown_model():
+    for path in (pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"),
+                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"),
+                 pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl")):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
 
 
 class FlaskAppTestCase(unittest.TestCase):
@@ -1207,6 +1224,8 @@ class FlaskAppTestCase(unittest.TestCase):
             proj_dets = fa.get_project_details("new_name")
             r.table("projects").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123").delete().run(conn)
+            for e in r.table("userauth").run(conn):
+                print(e)
             npt.assert_equal(
                 r.table("userauth").filter(
                     {"id": "abc123_2"}).count().run(conn),
@@ -1440,16 +1459,21 @@ class FlaskAppTestCase(unittest.TestCase):
             featurize_setup()
             r.table("features").insert({"id": "TEST01", "name": "TEST01"})\
                                .run(conn)
-            fa.featurize_proc(
-                headerfile_path=pjoin(
-                    cfg.UPLOAD_FOLDER,
-                    "asas_training_subset_classes_with_metadata.dat"),
-                zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
-                                   "asas_training_subset.tar.gz"),
-                features_to_use=["std_err"],
-                featureset_key="TEST01", is_test=True, email_user=False,
-                already_featurized=False,
-                custom_script_path=pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"))
+            try:
+                fa.featurize_proc(
+                    headerfile_path=pjoin(
+                        cfg.UPLOAD_FOLDER,
+                        "asas_training_subset_classes_with_metadata.dat"),
+                    zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
+                                       "asas_training_subset.tar.gz"),
+                    features_to_use=["std_err"],
+                    featureset_key="TEST01", is_test=True, email_user=False,
+                    already_featurized=False,
+                    custom_script_path=pjoin(cfg.UPLOAD_FOLDER,
+                                             "testfeature1.py"))
+            finally:
+                entry = r.table("features").get("TEST01").run(conn)
+                r.table("features").get("TEST01").delete().run(conn)
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "TEST01_features.csv")))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -1462,8 +1486,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "TEST01_features.csv"))
             cols = df.columns
             values = df.values
-            entry = r.table("features").get("TEST01").run(conn)
-            r.table("features").get("TEST01").delete().run(conn)
             assert "results_msg" in entry
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_features.csv"))
             os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
@@ -1854,19 +1876,16 @@ class FlaskAppTestCase(unittest.TestCase):
             for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
                 r.table("userauth").get(e['id']).delete().run(conn)
-            assert "New project successfully created" in res_str
+            assert "successfully created" in res_str
             npt.assert_equal(entry["name"], "abc123")
             npt.assert_equal(entry["description"], "desc")
 
     def test_new_project_url(self):
-        """### TO-DO ### Test new project form submission - url"""
-        '''with fa.app.test_request_context():
+        """Test new project form submission - url"""
+        with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            rv = self.app.post('/newProject?proj_name=abc123'
-                               '&proj_description=desc'
-                               '&addl_users=None'
-                               '&user_email=%s' % TEST_EMAIL)
+            rv = self.app.get('/newProject/abc123/desc/None/%s' % TEST_EMAIL)
             res_str = str(rv.data)
             print(res_str)
             entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
@@ -1875,9 +1894,9 @@ class FlaskAppTestCase(unittest.TestCase):
             for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
                 r.table("userauth").get(e['id']).delete().run(conn)
-            assert "New project successfully created" in res_str
+            assert "successfully created" in res_str
             npt.assert_equal(entry["name"], "abc123")
-            npt.assert_equal(entry["description"], "desc")'''
+            npt.assert_equal(entry["description"], "desc")
 
     def test_edit_or_delete_project_form_edit(self):
         """Test edit or delete project form - edit"""
@@ -1964,3 +1983,839 @@ class FlaskAppTestCase(unittest.TestCase):
             res_dict = json.loads(rv.data)
             r.table("projects").get("abc123").delete().run(conn)
             npt.assert_equal(res_dict["error"], "Invalid request action.")
+
+    def test_get_featureset_id_by_projname_and_featsetname(self):
+        """Test get feature set id by project name and feature set name"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            rv = self.app.get("/get_featureset_id_by_projname_and_featsetname"
+                              "/abc123/abc123")
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("features").get("abc123").delete().run(conn)
+            print(rv.data)
+            res_id = json.loads(rv.data)["featureset_id"]
+            npt.assert_equal(res_id, "abc123")
+
+    def test_get_list_of_featuresets_by_project(self):
+        """Test get list of feature sets by project"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("features").insert({"id": "abc123_2", "projkey": "abc123",
+                                        "name": "abc123_2", "created": "abc",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            rv = self.app.get("/get_list_of_featuresets_by_project/abc123")
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("features").get("abc123").delete().run(conn)
+            r.table("features").get("abc123_2").delete().run(conn)
+            featset_list = json.loads(rv.data)["featset_list"]
+            npt.assert_array_equal(sorted(featset_list), ["abc123", "abc123_2"])
+
+    def test_get_list_of_models_by_project(self):
+        """Test get list of models by project"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+                                        "name": "abc123", "created": "abc123",
+                                        "type": "RF",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "abc123_2", "projkey": "abc123",
+                                        "name": "abc123_2", "created": "abc",
+                                        "type": "RF",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            rv = self.app.get("/get_list_of_models_by_project/abc123")
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("models").get("abc123").delete().run(conn)
+            r.table("models").get("abc123_2").delete().run(conn)
+            model_list = [e.split(" (created")[0] for e in
+                          json.loads(rv.data)["model_list"]]
+            npt.assert_array_equal(sorted(model_list), ["abc123 - RF",
+                                                        "abc123_2 - RF"])
+
+    def test_upload_features_form(self):
+        """Test upload features form"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            rv = self.app.post('/uploadFeaturesForm',
+                               content_type='multipart/form-data',
+                               data={'features_file':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "test_features_with_classes.csv")),
+                                      "test_features_with_classes.csv"),
+                                     'featuresetname': 'abc123',
+                                     'featureset_projname_select': 'abc123'})
+            res_dict = json.loads(rv.data)
+            assert "PID" in res_dict
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict['featureset_key']
+            npt.assert_equal(res_dict["featureset_name"], "abc123")
+            npt.assert_equal(res_dict["zipfile_name"], "None")
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_features.csv" % new_key)))
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_classes.npy" % new_key)))
+            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_classes.npy" % new_key)))
+            assert(all(class_name in ["class1", "class2", "class3"] for
+                       class_name in classes))
+            assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                              "Flask/static/data"),
+                                        "%s_features_with_classes.csv" %
+                                        new_key)))
+            df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                              "%s_features.csv" % new_key))
+            cols = df.columns
+            values = df.values
+            npt.assert_array_equal(sorted(cols), ["meta1", "meta2", "meta3",
+                                                  "std_err"])
+            fpaths = []
+            for fpath in [
+                    pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                "Flask/static/data"),
+                          "%s_features_with_classes.csv" % new_key)]:
+                if os.path.exists(fpath):
+                    fpaths.append(fpath)
+            entry_dict = r.table("features").get(new_key).run(conn)
+            for key in ("headerfile_path", "zipfile_path",
+                        "custom_features_script"):
+                if entry_dict and key in entry_dict:
+                    if entry_dict[key]:
+                        fpaths.append(entry_dict[key])
+            for fpath in fpaths:
+                if os.path.exists(fpath):
+                    os.remove(fpath)
+            e = r.table('features').get(new_key).run(conn)
+            r.table('features').get(new_key).delete().run(conn)
+            npt.assert_equal(e["name"], "abc123")
+            r.table("features").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            count = r.table("features").filter({"id": new_key}).count()\
+                                                               .run(conn)
+            npt.assert_equal(count, 0)
+            assert "pid" in e
+            assert("New feature set files saved successfully" in
+                   res_dict["message"])
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "%s_features.csv" % new_key))
+
+    def test_upload_data_featurize(self):
+        """Test main upload data to featurize"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            rv = self.app.post('/uploadDataFeaturize',
+                               content_type='multipart/form-data',
+                               data={'headerfile':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "asas_training_subset_classes.dat")),
+                                      "asas_training_subset_classes.dat"),
+                                     'zipfile':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "asas_training_subset.tar.gz")),
+                                      "asas_training_subset.tar.gz"),
+                                     'featureset_name': 'abc123',
+                                     'featureset_project_name_select': 'abc123',
+                                     'sep': ',',
+                                     'features_selected': ['std_err'],
+                                     'custom_script_tested': 'yes',
+                                     'custom_feat_script_file':
+                                     (open(pjoin(DATA_DIR, "testfeature1.py")),
+                                      "testfeature1.py"),
+                                     'custom_feature_checkbox': ['avg_mag'],
+                                     'is_test': 'True'})
+            res_dict = json.loads(rv.data)
+            assert "PID" in res_dict
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict['featureset_key']
+            npt.assert_equal(res_dict["featureset_name"], "abc123")
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_features.csv" % new_key)))
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_classes.npy" % new_key)))
+            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_classes.npy" % new_key)))
+            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti']
+                       for class_name in classes))
+            assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                              "Flask/static/data"),
+                                        "%s_features_with_classes.csv" %
+                                        new_key)))
+            df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                              "%s_features.csv" % new_key))
+            cols = df.columns
+            values = df.values
+            npt.assert_array_equal(sorted(cols), ["avg_mag", "std_err"])
+            fpaths = []
+            for fpath in [
+                    pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                "Flask/static/data"),
+                          "%s_features_with_classes.csv" % new_key)]:
+                if os.path.exists(fpath):
+                    fpaths.append(fpath)
+            entry_dict = r.table("features").get(new_key).run(conn)
+            for key in ("headerfile_path", "zipfile_path",
+                        "custom_features_script"):
+                if entry_dict and key in entry_dict:
+                    if entry_dict[key]:
+                        fpaths.append(entry_dict[key])
+            for fpath in fpaths:
+                if os.path.exists(fpath):
+                    os.remove(fpath)
+            e = r.table('features').get(new_key).run(conn)
+            r.table('features').get(new_key).delete().run(conn)
+            r.table("features").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            count = r.table("features").filter({"id": new_key}).count()\
+                                                               .run(conn)
+            npt.assert_equal(count, 0)
+            assert "pid" in e
+            assert("New feature set files saved successfully" in
+                   res_dict["message"])
+            npt.assert_equal(e["name"], "abc123")
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "%s_features.csv" % new_key))
+
+    def test_upload_data_featurize_no_custom(self):
+        """Test main upload data to featurize - no custom feats"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            rv = self.app.post('/uploadDataFeaturize',
+                               content_type='multipart/form-data',
+                               data={'headerfile':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "asas_training_subset_classes.dat")),
+                                      "asas_training_subset_classes.dat"),
+                                     'zipfile':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "asas_training_subset.tar.gz")),
+                                      "asas_training_subset.tar.gz"),
+                                     'featureset_name': 'abc123',
+                                     'featureset_project_name_select': 'abc123',
+                                     'sep': ',',
+                                     'features_selected': ['std_err'],
+                                     'custom_script_tested': "no",
+                                     'is_test': 'True'})
+            res_dict = json.loads(rv.data)
+            assert "PID" in res_dict
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict['featureset_key']
+            npt.assert_equal(res_dict["featureset_name"], "abc123")
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_features.csv" % new_key)))
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_classes.npy" % new_key)))
+            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_classes.npy" % new_key)))
+            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti']
+                       for class_name in classes))
+            assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                              "Flask/static/data"),
+                                        "%s_features_with_classes.csv" %
+                                        new_key)))
+            df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                              "%s_features.csv" % new_key))
+            cols = df.columns
+            values = df.values
+            npt.assert_array_equal(sorted(cols), ["std_err"])
+            fpaths = []
+            for fpath in [
+                    pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                "Flask/static/data"),
+                          "%s_features_with_classes.csv" % new_key)]:
+                if os.path.exists(fpath):
+                    fpaths.append(fpath)
+            entry_dict = r.table("features").get(new_key).run(conn)
+            for key in ("headerfile_path", "zipfile_path",
+                        "custom_features_script"):
+                if entry_dict and key in entry_dict:
+                    if entry_dict[key]:
+                        fpaths.append(entry_dict[key])
+            for fpath in fpaths:
+                if os.path.exists(fpath):
+                    os.remove(fpath)
+            e = r.table('features').get(new_key).run(conn)
+            r.table('features').get(new_key).delete().run(conn)
+            r.table("features").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            count = r.table("features").filter({"id": new_key}).count()\
+                                                               .run(conn)
+            npt.assert_equal(count, 0)
+            assert "pid" in e
+            assert("New feature set files saved successfully" in
+                   res_dict["message"])
+            npt.assert_equal(e["name"], "abc123")
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "%s_features.csv" % new_key))
+
+    def test_featurization_page(self):
+        """Test main featurization function"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            headerfile_path, zipfile_path, custom_script_path = \
+                featurize_setup()
+            headerfile_name = ntpath.basename(headerfile_path)
+            zipfile_name = ntpath.basename(zipfile_path)
+            rv = fa.featurizationPage(
+                featureset_name="abc123", project_name="abc123",
+                headerfile_name=headerfile_name, zipfile_name=zipfile_name,
+                sep=",", featlist=["avg_mag", "std_err"], is_test=True,
+                email_user=False, already_featurized=False,
+                custom_script_path=custom_script_path)
+            res_dict = json.loads(rv.data)
+            assert "PID" in res_dict
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict['featureset_key']
+            npt.assert_equal(res_dict["featureset_name"], "abc123")
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_features.csv" % new_key)))
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_classes.npy" % new_key)))
+            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_classes.npy" % new_key)))
+            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti']
+                       for class_name in classes))
+            assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                              "Flask/static/data"),
+                                        "%s_features_with_classes.csv" %
+                                        new_key)))
+            df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                              "%s_features.csv" % new_key))
+            cols = df.columns
+            values = df.values
+            npt.assert_array_equal(sorted(cols), ["avg_mag", "std_err"])
+            fpaths = []
+            for fpath in [
+                    pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                "Flask/static/data"),
+                          "%s_features_with_classes.csv" % new_key)]:
+                if os.path.exists(fpath):
+                    fpaths.append(fpath)
+            entry_dict = r.table("features").get(new_key).run(conn)
+            for key in ("headerfile_path", "zipfile_path",
+                        "custom_features_script"):
+                if entry_dict and key in entry_dict:
+                    if entry_dict[key]:
+                        fpaths.append(entry_dict[key])
+            for fpath in fpaths:
+                if os.path.exists(fpath):
+                    os.remove(fpath)
+            featurize_teardown()
+            e = r.table('features').get(new_key).run(conn)
+            r.table('features').get(new_key).delete().run(conn)
+            r.table("features").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            count = r.table("features").filter({"id": new_key}).count()\
+                                                               .run(conn)
+            npt.assert_equal(count, 0)
+            assert "pid" in e
+            assert("New feature set files saved successfully" in
+                   res_dict["message"])
+            npt.assert_equal(e["name"], "abc123")
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "%s_features.csv" % new_key))
+
+    def test_featurization_page_already_featurized(self):
+        """Test main featurization function - pre-featurized data"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            shutil.copy(pjoin(DATA_DIR, "test_features_with_classes.csv"),
+                        cfg.UPLOAD_FOLDER)
+            headerfile_name = "test_features_with_classes.csv"
+            headerfile_path, zipfile_path, custom_script_path = \
+                featurize_setup()
+            rv = fa.featurizationPage(
+                featureset_name="abc123", project_name="abc123",
+                headerfile_name=headerfile_name, zipfile_name=None,
+                sep=",", featlist=["std_err"], is_test=True,
+                email_user=False, already_featurized=True,
+                custom_script_path=custom_script_path)
+            res_dict = json.loads(rv.data)
+            assert "PID" in res_dict
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict['featureset_key']
+            npt.assert_equal(res_dict["featureset_name"], "abc123")
+            npt.assert_equal(res_dict["zipfile_name"], "None")
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_features.csv" % new_key)))
+            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                        "%s_classes.npy" % new_key)))
+            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_classes.npy" % new_key)))
+            assert(all(class_name in ["class1", "class2", "class3"] for
+                       class_name in classes))
+            assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                              "Flask/static/data"),
+                                        "%s_features_with_classes.csv" %
+                                        new_key)))
+            df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                              "%s_features.csv" % new_key))
+            cols = df.columns
+            values = df.values
+            npt.assert_array_equal(sorted(cols), ["meta1", "meta2", "meta3",
+                                                  "std_err"])
+            fpaths = []
+            for fpath in [
+                    pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
+                                "Flask/static/data"),
+                          "%s_features_with_classes.csv" % new_key)]:
+                if os.path.exists(fpath):
+                    fpaths.append(fpath)
+            entry_dict = r.table("features").get(new_key).run(conn)
+            for key in ("headerfile_path", "zipfile_path",
+                        "custom_features_script"):
+                if entry_dict and key in entry_dict:
+                    if entry_dict[key]:
+                        fpaths.append(entry_dict[key])
+            for fpath in fpaths:
+                if os.path.exists(fpath):
+                    os.remove(fpath)
+            try:
+                os.remove(pjoin(cfg.UPLOAD_FOLDER,
+                                "test_features_with_classes.csv"))
+            except OSError:
+                pass
+            featurize_teardown()
+            e = r.table('features').get(new_key).run(conn)
+            r.table('features').get(new_key).delete().run(conn)
+            npt.assert_equal(e["name"], "abc123")
+            r.table("features").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            count = r.table("features").filter({"id": new_key}).count()\
+                                                               .run(conn)
+            npt.assert_equal(count, 0)
+            assert "pid" in e
+            assert("New feature set files saved successfully" in
+                   res_dict["message"])
+            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                            "%s_features.csv" % new_key))
+
+    def test_build_model(self):
+        """Test main model building function"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            shutil.copy(pjoin(DATA_DIR, "test_classes.npy"),
+                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
+                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "TEMP_TEST01",
+                                        "projkey": "abc123",
+                                        "name": "TEMP_TEST01",
+                                        "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            rv = fa.buildModel(project_name="abc123",
+                               featureset_name="TEMP_TEST01",
+                               model_type="RF")
+            res_dict = json.loads(rv.data)
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_model_key = res_dict["new_model_key"]
+            entry = r.table("models").get(new_model_key).run(conn)
+            r.table("models").get(new_model_key).delete().run(conn)
+            r.table("features").get("TEMP_TEST01").delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            assert "results_msg" in entry
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                        "TEMP_TEST01_RF.pkl"))
+            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+            assert hasattr(model, "predict_proba")
+            os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+
+    def test_upload_prediction_data(self):
+        """Test upload prediciton data"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            generate_model()
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "TEMP_TEST01",
+                                        "projkey": "abc123",
+                                        "name": "TEMP_TEST01",
+                                        "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "TEMP_TEST01",
+                                      "type": "RF",
+                                      "name": "TEMP_TEST01"}).run(conn)
+            rv = self.app.post('/uploadPredictionData',
+                               content_type='multipart/form-data',
+                               data={'newpred_file':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "dotastro_215153.dat")),
+                                      "dotastro_215153.dat"),
+                                     'prediction_files_metadata':
+                                     (open(pjoin(
+                                         DATA_DIR,
+                                         "215153_metadata.dat")),
+                                      "215153_metadata.dat"),
+                                     'newpred_file_sep': ',',
+                                     'prediction_project_name': 'abc123',
+                                     'prediction_model_name_and_type':
+                                     'TEMP_TEST01 - RF'})
+            res_dict = json.loads(rv.data)
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict["prediction_entry_key"]
+            entry = r.table('predictions').get(new_key).run(conn)
+            r.table("predictions").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("features").get("TEMP_TEST01").delete().run(conn)
+            r.table("models").get("TEMP_TEST01").delete().run(conn)
+            teardown_model()
+            pred_results = entry["pred_results_list_dict"]
+            feats_dict = entry["features_dict"]
+            assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                     'Classical_Cepheid', 'W_Ursae_Maj',
+                                     'Delta_Scuti']
+                           for el in pred_results[fname])
+                       for fname in pred_results))
+            assert("std_err" in feats_dict["dotastro_215153.dat"])
+
+    def test_prediction_page(self):
+        """Test main prediction function"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            generate_model()
+            r.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            r.table("features").insert({"id": "TEMP_TEST01",
+                                        "projkey": "abc123",
+                                        "name": "TEMP_TEST01",
+                                        "created": "abc123",
+                                        "headerfile_path": "HEADPATH.dat",
+                                        "zipfile_path": "ZIPPATH.tar.gz",
+                                        "featlist": ["a", "b", "c"]}).run(conn)
+            r.table("models").insert({"id": "TEMP_TEST01",
+                                      "type": "RF",
+                                      "name": "TEMP_TEST01"}).run(conn)
+            dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                    pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
+            for f in dsts:
+                shutil.copy(pjoin(DATA_DIR, ntpath.basename(f)), f)
+            rv = fa.predictionPage(newpred_file_path=dsts[0],
+                                   project_name="abc123",
+                                   model_name="TEMP_TEST01", model_type="RF",
+                                   metadata_file_path=dsts[1])
+            res_dict = json.loads(rv.data)
+            while "currently running" in fa.check_job_status(res_dict["PID"]):
+                time.sleep(1)
+            new_key = res_dict["prediction_entry_key"]
+            entry = r.table('predictions').get(new_key).run(conn)
+            r.table("predictions").get(new_key).delete().run(conn)
+            r.table("projects").get("abc123").delete().run(conn)
+            r.table("features").get("TEMP_TEST01").delete().run(conn)
+            r.table("models").get("TEMP_TEST01").delete().run(conn)
+            for f in dsts:
+                try:
+                    os.remove(f)
+                except OSError:
+                    pass
+            teardown_model()
+            pred_results = entry["pred_results_list_dict"]
+            feats_dict = entry["features_dict"]
+            assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                     'Classical_Cepheid', 'W_Ursae_Maj',
+                                     'Delta_Scuti']
+                           for el in pred_results[fname])
+                       for fname in pred_results))
+            assert("std_err" in feats_dict["dotastro_215153.dat"])
+
+    def test_load_source_data(self):
+        """Test load source data"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('predictions').insert({'id': 'abc123',
+                                          'pred_results_list_dict': {'a': 1},
+                                          'features_dict': {'a': 1},
+                                          'ts_data_dict': {'a': 1}}).run(conn)
+            rv = fa.load_source_data('abc123', 'a')
+            res_dict = json.loads(rv.data)
+            r.table("predictions").get("abc123").delete().run(conn)
+            for k in ["pred_results", "features_dict", "ts_data"]:
+                npt.assert_equal(res_dict[k], 1)
+
+    def test_load_source_data_url(self):
+        """Test load source data - url"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('predictions').insert({'id': 'abc123',
+                                          'pred_results_list_dict': {'a': 1},
+                                          'features_dict': {'a': 1},
+                                          'ts_data_dict': {'a': 1}}).run(conn)
+            rv = self.app.get("/load_source_data/abc123/a")
+            res_dict = json.loads(rv.data)
+            r.table("predictions").get("abc123").delete().run(conn)
+            for k in ["pred_results", "features_dict", "ts_data"]:
+                npt.assert_equal(res_dict[k], 1)
+
+    def test_load_prediction_results(self):
+        """Test load prediction results"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('predictions').insert({'id': 'abc123',
+                                           'pred_results_list_dict': {'a': 1},
+                                           'features_dict': {'a': 1},
+                                           'ts_data_dict': {'a': 1},
+                                           "results_str_html": "a"}).run(conn)
+            rv = fa.load_prediction_results('abc123')
+            res_dict = json.loads(rv.data)
+            r.table("predictions").get("abc123").delete().run(conn)
+            npt.assert_array_equal(res_dict, {'id': 'abc123',
+                                              'pred_results_list_dict': {'a': 1},
+                                              'features_dict': {'a': 1},
+                                              'ts_data_dict': {'a': 1},
+                                              "results_str_html": "a"})
+
+    def test_load_prediction_results_url(self):
+        """Test load prediction results - url"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('predictions').insert({'id': 'abc123',
+                                           'pred_results_list_dict': {'a': 1},
+                                           'features_dict': {'a': 1},
+                                           'ts_data_dict': {'a': 1},
+                                           "results_str_html": "a"}).run(conn)
+            rv = self.app.get("/load_prediction_results/abc123")
+            res_dict = json.loads(rv.data)
+            r.table("predictions").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict, {'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_str_html": "a"})
+
+    def test_load_model_build_results(self):
+        """Test load model build results"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('models').insert({'id': 'abc123',
+                                      'pred_results_list_dict': {'a': 1},
+                                      'features_dict': {'a': 1},
+                                      'ts_data_dict': {'a': 1},
+                                      "results_msg": "results_msg",
+                                      "results_str_html": "a"}).run(conn)
+            rv = fa.load_model_build_results("abc123")
+            res_dict = json.loads(rv.data)
+            r.table("models").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict, {'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_msg": "results_msg",
+                                        "results_str_html": "a"})
+
+    def test_load_model_build_results_no_match(self):
+        """Test load model build results - no matching entry"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            rv = fa.load_model_build_results("abc123")
+            res_dict = json.loads(rv.data)
+            npt.assert_equal(res_dict, {"results_msg":
+                                        ("No status message could be found for "
+                                         "this process.")})
+
+    def test_load_model_build_results_errmsg(self):
+        """Test load model build results - error message"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('models').insert({'id': 'abc123',
+                                      'pred_results_list_dict': {'a': 1},
+                                      'features_dict': {'a': 1},
+                                      'ts_data_dict': {'a': 1},
+                                      "results_msg": "Error occurred",
+                                      "results_str_html": "a"}).run(conn)
+            rv = fa.load_model_build_results("abc123")
+            res_dict = json.loads(rv.data)
+            npt.assert_equal(
+                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                0)
+            npt.assert_equal(res_dict, {'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_msg": "Error occurred",
+                                        "results_str_html": "a"})
+
+    def test_load_model_build_results_url(self):
+        """Test load model build results - url"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('models').insert({'id': 'abc123',
+                                      'pred_results_list_dict': {'a': 1},
+                                      'features_dict': {'a': 1},
+                                      'ts_data_dict': {'a': 1},
+                                      "results_msg": "results_msg",
+                                      "results_str_html": "a"}).run(conn)
+            rv = self.app.get("/load_model_build_results/abc123")
+            res_dict = json.loads(rv.data)
+            r.table("models").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict, {'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_msg": "results_msg",
+                                        "results_str_html": "a"})
+
+    def test_load_featurization_results(self):
+        """Test load featurization results"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('features').insert({'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_msg": "results_msg",
+                                        "results_str_html": "a"}).run(conn)
+            rv = fa.load_featurization_results("abc123")
+            res_dict = json.loads(rv.data)
+            r.table("features").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict, {'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_msg": "results_msg",
+                                        "results_str_html": "a"})
+
+    def test_load_featurization_results_no_status_msg(self):
+        """Test load featurization results - no status message"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            r.table('features').insert({'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        "results_str_html": "a"}).run(conn)
+            rv = fa.load_featurization_results("abc123")
+            res_dict = json.loads(rv.data)
+            r.table("features").get("abc123").delete().run(conn)
+            npt.assert_equal(res_dict, {"results_msg":
+                                        ("No status message could be found for "
+                                         "this process.")})
+
+    def test_load_featurization_results_no_matching_entry(self):
+        """Test load featurization results - no matching entry"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            rv = fa.load_featurization_results("abc123")
+            res_dict = json.loads(rv.data)
+            npt.assert_equal(res_dict, {"results_msg":
+                                        ("No status message could be found for "
+                                         "this process.")})
+
+    def test_load_featurization_results_error(self):
+        """Test load featurization results - error msg"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            conn = fa.g.rdb_conn
+            tmp_files = []
+            for i in range(3):
+                tmp_files.append(os.path.join("/tmp",
+                                              "%s.dat" % str(uuid.uuid4())[:8]))
+                open(tmp_files[-1], "w").close()
+            r.table('features').insert({'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        'headerfile_path': tmp_files[0],
+                                        'zipfile_path': tmp_files[1],
+                                        'custom_features_script': tmp_files[2],
+                                        "results_msg": "Error occurred",
+                                        "results_str_html": "a"}).run(conn)
+            rv = fa.load_featurization_results("abc123")
+            res_dict = json.loads(rv.data)
+            npt.assert_equal(
+                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                0)
+            npt.assert_equal(res_dict, {'id': 'abc123',
+                                        'pred_results_list_dict': {'a': 1},
+                                        'features_dict': {'a': 1},
+                                        'ts_data_dict': {'a': 1},
+                                        'headerfile_path': tmp_files[0],
+                                        'zipfile_path': tmp_files[1],
+                                        'custom_features_script': tmp_files[2],
+                                        "results_msg": "Error occurred",
+                                        "results_str_html": "a"})
+            assert(all(not os.path.exists(tmp_file) for tmp_file in tmp_files))

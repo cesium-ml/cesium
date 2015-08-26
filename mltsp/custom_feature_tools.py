@@ -474,7 +474,10 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         raise
     finally:
         # Kill and remove the container
-        client.remove_container(container=cont_id, force=True)
+        try:
+            client.remove_container(container=cont_id, force=True)
+        except UnboundLocalError:
+            print("Error occurred in running Docker container.")
 
 
 def remove_tmp_files(path_to_tmp_dir):
