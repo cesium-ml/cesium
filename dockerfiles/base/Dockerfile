@@ -10,7 +10,7 @@ RUN apt-get -y upgrade
 
 RUN apt-get install -y python-pip python-numpy python-scipy \
                        python-matplotlib python-beautifulsoup \
-                       python-parse
+                       python-parse python-yaml
 
 RUN pip install -U future cython
 RUN pip install scikit-learn==0.16.1
