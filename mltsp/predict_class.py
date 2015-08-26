@@ -62,11 +62,11 @@ def determine_feats_used(featset_key):
     return features_in_model
 
 
-def parse_ts_data(filepath, sep):
+def parse_ts_data(filepath, sep=","):
     """
     """
     with open(filepath) as f:
-        ts_data = np.loadtxt(f, delimiter=",")
+        ts_data = np.loadtxt(f, delimiter=sep)
     ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
     for row in ts_data:
         if len(row) < 2:
@@ -120,9 +120,54 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
 
     res = pred_featurize_single.delay(
         ts_data, features_to_use, custom_features_script,
-        meta_features, short_fname, tmp_dir_path, sep)
+        meta_features, short_fname, sep)
     big_features_and_tsdata_dict = res.get(timeout=10)
 
+    return big_features_and_tsdata_dict
+
+
+def generate_input_params_list(newpred_file_path, features_to_use,
+                               custom_features_script, meta_features,
+                               tmp_dir_path):
+    """
+    """
+    params_list = []
+    the_tarfile = tarfile.open(newpred_file_path)
+    all_fnames = the_tarfile.getnames()
+    the_tarfile.extractall(path=tmp_dir_path)
+    if custom_features_script:
+        with open(custom_features_script) as f:
+            custom_feats_lines = f.readlines()
+    for fname in all_fnames:
+        short_fname = ntpath.basename(fname)
+        if not os.path.isfile(fname):
+            if os.path.isfile(os.path.join(tmp_dir_path, fname)):
+                fname = os.path.join(tmp_dir_path, fname)
+            elif os.path.isdir(os.path.join(tmp_dir_path, fname)):
+                continue
+            else:
+                raise Exception("Specified TS data file not on disk - %s." %
+                                fname)
+        ts_data = parse_ts_data(fname)
+        params_list.append([ts_data, features_to_use, custom_feats_lines,
+                            meta_features, short_fname, ","])
+    return params_list
+
+
+def featurize_multiple(newpred_file_path, features_to_use,
+                       custom_features_script, meta_features, tmp_dir_path):
+    """
+    """
+    input_params_list = generate_input_params_list(
+        newpred_file_path, features_to_use, custom_features_script,
+        meta_features, tmp_dir_path)
+    n_cores = 8
+    res = pred_featurize_single.chunks(input_params_list, n_cores).delay()
+    res_list = res.get(timeout=40)
+    big_features_and_tsdata_dict = {}
+    for line in res_list:
+        for feats_and_tsdata_dict in line:
+                big_features_and_tsdata_dict.update(feats_and_tsdata_dict)
     return big_features_and_tsdata_dict
 
 
@@ -139,25 +184,9 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.mkdir(tmp_dir_path)
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
-        disco_running = util.check_disco_running()
-        if DISCO_INSTALLED and disco_running and not in_docker_container:
-            big_features_and_tsdata_dict = (
-                parallel_processing.featurize_prediction_data_in_parallel(
-                    newpred_file_path=newpred_file_path,
-                    featset_key=featset_key, sep=sep,
-                    custom_features_script=custom_features_script,
-                    meta_features=meta_features, tmp_dir_path=tmp_dir_path))
-            # Combine extracted features with provided meta features
-            for fname in list(big_features_and_tsdata_dict.keys()):
-                if fname in meta_features:
-                    big_features_and_tsdata_dict[fname]['features_dict'] = (
-                        dict(list(big_features_and_tsdata_dict[fname]
-                                  ['features_dict'].items())
-                             + list(meta_features[fname].items())))
-        else:
-            big_features_and_tsdata_dict = featurize_multiple_serially(
-                newpred_file_path, tmp_dir_path, features_to_use,
-                custom_features_script, meta_features)
+        big_features_and_tsdata_dict = featurize_multiple(
+            newpred_file_path, features_to_use,
+            custom_features_script, meta_features, tmp_dir_path)
     else:
         big_features_and_tsdata_dict = featurize_single(
             newpred_file_path, features_to_use, custom_features_script,
