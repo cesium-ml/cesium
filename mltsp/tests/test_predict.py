@@ -184,3 +184,40 @@ def test_main_predict():
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                    for el in pred_results_dict[fname]\
                    ["pred_results_list"]) for fname in pred_results_dict))
+
+
+def test_main_predict_tarball():
+    """Test main predict function - tarball"""
+
+    generate_model()
+
+    shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
+                cfg.UPLOAD_FOLDER)
+    shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat"),
+                cfg.UPLOAD_FOLDER)
+    shutil.copy(pjoin(DATA_PATH, "testfeature1.py"),
+                pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                      "TESTRUN_CF.py"))
+
+    pred_results_dict = pred.predict(
+        pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"),
+        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
+                                 "215153_215176_218272_218934_metadata.dat"),
+        custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                     "TESTRUN_CF.py"))
+    os.remove(pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"))
+    os.remove(pjoin(cfg.UPLOAD_FOLDER,
+                    "215153_215176_218272_218934_metadata.dat"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+    npt.assert_equal(
+        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        3)
+    npt.assert_equal(len(pred_results_dict), 4)
+    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                   for el in pred_results_dict[fname]\
+                   ["pred_results_list"]) for fname in pred_results_dict))

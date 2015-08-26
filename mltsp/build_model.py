@@ -204,7 +204,7 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
     """
     # Fit the model
     rf_fit_pkl = fit_model.delay(data_dict)
-    rf_fit_pkl = rf_fit_pkl.get(timeout=2)
+    rf_fit_pkl = rf_fit_pkl.get(timeout=20)
     rf_fit = pickle.loads(rf_fit_pkl)
 
     # Store the model:

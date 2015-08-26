@@ -36,7 +36,7 @@ def fit_model(data_dict):
 
 @celery_app.task(name="celery_tools.pred_featurize_single")
 def pred_featurize_single(ts_data, features_to_use, custom_features_script,
-                          meta_features, short_fname, tmp_dir_path, sep):
+                          meta_features, short_fname, sep):
     """
     """
     big_features_and_tsdata_dict = {}
