@@ -23,21 +23,15 @@ casper.test.begin('build model', function suite(test) {
         });
 
         casper.then(function(){
-            casper.waitForText("This process is currently running", function(){
-                test.assertTextExists("This process is currently running",
-                                      "Process started");
-            });
-        });
-        casper.then(function(){
             casper.waitForText(
-                "Model creation complete.",
+                "New model successfully created",
                 function(){
-                    test.assertTextExists("Model creation complete.",
-                                          "Model building completed");
+                    test.assertTextExists("New model successfully created",
+                                          "New model successfully created");
                 },
                 function(){
-                    test.assertTextExists("Model creation complete.",
-                                          "Model building completed");
+                    test.assertTextExists("New model successfully created",
+                                          "New model successfully created");
                 },
                 10000);
         });
