@@ -3,7 +3,7 @@ from subprocess import Popen, PIPE
 import os
 
 try:
-    from docker import Client
+    import docker
     dockerpy_installed = True
 except ImportError:
     dockerpy_installed = False
@@ -33,10 +33,20 @@ def get_docker_client(version='1.14'):
     if not dockerpy_installed:
         raise RuntimeError('docker-py required for docker operations')
 
+    # First try to auto detect docker parameters from environment
+    try:
+        args = docker.utils.kwargs_from_env(assert_hostname=False)
+        args.update(dict(version=version))
+        cli = docker.Client(**args)
+        cli.info()
+        return cli
+    except requests.exceptions.ConnectionError:
+        pass
+
     for sock in docker_socks:
         if os.path.exists(sock):
             try:
-                cli = Client(base_url='unix://{}'.format(sock), version=version)
+                cli = docker.Client(base_url='unix://{}'.format(sock), version=version)
                 cli.info()
                 return cli
             except requests.exceptions.ConnectionError:

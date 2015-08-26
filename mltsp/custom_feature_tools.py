@@ -449,7 +449,7 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
             command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
                 proj_mount_path, "extract_custom_feats", tmp_data_dir),
             tty=True,
-            volumes={proj_mount_path: ""})["Id"]
+            volumes="{}:{}".format("", proj_mount_path))["Id"]
 
         # Start container
         client.start(cont_id,
