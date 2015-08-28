@@ -59,7 +59,10 @@ app.config['STORMPATH_API_KEY_SECRET'] = \
     config['authentication']['stormpath_api_key_secret']
 app.config['STORMPATH_APPLICATION'] = \
     config['authentication']['stormpath_application']
-
+try:
+    config['authentication']['google_client_id']
+except KeyError:
+    config['authentication']['google_client_id'] = None
 if config['authentication']['google_client_id'] is not None:
     app.config['STORMPATH_ENABLE_GOOGLE'] = True
     app.config['STORMPATH_SOCIAL'] = {
