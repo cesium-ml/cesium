@@ -38,6 +38,12 @@ def featurize_setup():
     return dest_paths
 
 
+def delete_entries_by_table(table_name):
+    conn = fa.g.rdb_conn
+    for e in r.table(table_name).run(conn):
+        r.table(table_name).get(e['id']).delete().run(conn)
+
+
 def featurize_teardown():
     fpaths = [pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                     "testfeature1.py")]
@@ -1210,6 +1216,8 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
+            for table_name in ("userauth", "projects"):
+                delete_entries_by_table(table_name)
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("userauth").insert({"id": "abc123",
@@ -2336,7 +2344,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s_features.csv" % new_key))
             cols = df.columns
             values = df.values
-            npt.assert_array_equal(sorted(cols), ["avg_mag", "std_err"])
+            npt.assert_array_equal(sorted(cols), ['avg_mag', 'meta1', 'meta2',
+                                                  'meta3', 'std_err'])
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),

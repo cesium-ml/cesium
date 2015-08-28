@@ -11,14 +11,6 @@ import os
 import tarfile
 import ntpath
 import numpy as np
-try:
-    from disco.core import Job, result_iterator
-    from disco.util import kvgroup
-    DISCO_INSTALLED = True
-except ImportError as theError:
-    DISCO_INSTALLED = False
-if DISCO_INSTALLED:
-    from . import parallel_processing
 
 from . import cfg
 from . import lc_tools
@@ -388,14 +380,13 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
     features_to_plot = determine_feats_to_plot(features_extracted)
 
     with open(os.path.join(
-        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_features.csv" % featureset_id), 'w') as f, open(os.path.join(
-            ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-            "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
+            cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_id),
+              'w') as f, open(os.path.join(
+                  cfg.FEATURES_FOLDER,
+                  "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
         write_column_titles(f, f2, features_extracted, features_to_use,
                             features_to_plot)
         class_count, num_used, num_held_back = count_classes(objects)
-        print("class_count:", class_count)
         classes = []
         cv_objs = []
         numobjs = 0
