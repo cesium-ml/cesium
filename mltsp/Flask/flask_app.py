@@ -37,7 +37,6 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
-from .. import run_in_docker_container
 from .. import featurize
 from .. import predict_class as predict
 from .. import build_model
