@@ -9,6 +9,8 @@ try:
 except:
     import pickle
 import uuid
+import io
+import tarfile
 import shutil
 import numpy as np
 from . import cfg
@@ -427,10 +429,32 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
     return
 
 
+def docker_copy(docker_client, container_id, path, target="."):
+    """Copy file from docker container to host machine.
+
+    Parameters
+    ----------
+    docker_client : docker.Client object
+        The connected Docker client.
+    container_id : str
+        ID of the container to copy from.
+    path : str
+        Path to the file in the container.
+    target : str
+        Folder where to put the file.
+
+    """
+    response = docker_client.copy(container_id, path)
+    buffer = io.BytesIO()
+    buffer.write(response.data)
+    buffer.seek(0)
+    tar = tarfile.open(fileobj=buffer, mode='r|')
+    tar.extractall(path=target)
+
+
 def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     """
     """
-    from . import run_in_docker_container as ridc
     tmp_data_dir = path_to_tmp_dir
     try:
         # Spin up Docker contain and extract custom feats
@@ -462,8 +486,8 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         if str(stderr).strip() != "" and stderr != b'':
             print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
         # Copy pickled results data from Docker container to host
-        ridc.docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
-                         target=path_to_tmp_dir)
+        docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
+                    target=path_to_tmp_dir)
         print("/tmp/results_list_of_dict.pkl copied to host machine.")
         # Load pickled results data
         with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
