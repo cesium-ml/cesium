@@ -18,16 +18,6 @@ from . import custom_feature_tools as cft
 from . import util
 from .celery_tools import pred_featurize_single
 
-try:
-    from disco.core import Job, result_iterator
-    from disco.util import kvgroup
-    DISCO_INSTALLED = True
-except Exception as theError:
-    DISCO_INSTALLED = False
-
-if DISCO_INSTALLED:
-    from . import parallel_processing
-
 
 def parse_metadata_file(metadata_file_path):
     """
@@ -121,7 +111,7 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
     res = pred_featurize_single.delay(
         ts_data, features_to_use, custom_features_script,
         meta_features, short_fname, sep)
-    big_features_and_tsdata_dict = res.get(timeout=10)
+    big_features_and_tsdata_dict = res.get(timeout=30)
 
     return big_features_and_tsdata_dict
 
@@ -163,7 +153,7 @@ def featurize_multiple(newpred_file_path, features_to_use,
         meta_features, tmp_dir_path)
     n_cores = 8
     res = pred_featurize_single.chunks(input_params_list, n_cores).delay()
-    res_list = res.get(timeout=40)
+    res_list = res.get(timeout=100)
     big_features_and_tsdata_dict = {}
     for line in res_list:
         for feats_and_tsdata_dict in line:

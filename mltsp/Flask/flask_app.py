@@ -2102,6 +2102,9 @@ def prediction_proc(
                 prediction_entry_key, html_str=results_dict,
                 features_dict={}, ts_data_dict={},
                 pred_results_list_dict={})
+        else:
+            raise ValueError("predict_class.predict() returned object of "
+                             "invalid type - {}.".format(type(results_dict)))
         return True
     finally:
         if path_to_tmp_dir is not None:
