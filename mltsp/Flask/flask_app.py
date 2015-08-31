@@ -1454,7 +1454,7 @@ def project_name_to_key(projname):
     for entry in cursor:
         projkeys.append(entry['id'])
     if len(projkeys) >= 1:
-        return projkeys[0]
+        return projkeys[-1]
     else:
         raise Exception(
             "No matching project name! - projname=" + str(projname))
@@ -1479,6 +1479,7 @@ def featureset_name_to_key(
         provided.
 
     Returns
+    -------
     str
         RethinkDB ID/key of specified feature set.
 
@@ -2020,6 +2021,7 @@ def prediction_proc(
         Path to associated metadata file, if any. Defaults to None.
 
     """
+    sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
@@ -2027,8 +2029,7 @@ def prediction_proc(
         featureset_name=model_name, project_name=project_name)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script = None
-    cursor = r.table("features").get(featset_key).run(g.rdb_conn)
-    entry = cursor
+    entry = r.table("features").get(featset_key).run(g.rdb_conn)
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
