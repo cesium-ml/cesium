@@ -72,6 +72,8 @@ def docker_images_available():
 def is_running_in_docker():
     """Return bool indicating whether running in a Docker container."""
     import subprocess
+    if not os.path.exists("/proc/1/cgroup"):
+        return False
     proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
     output = proc.stdout.read()
     if "/docker/" in str(output):
