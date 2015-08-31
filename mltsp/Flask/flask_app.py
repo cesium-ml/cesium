@@ -239,7 +239,7 @@ def is_running(PID):
         given PID was started if it is running, otherwise "False".
 
     """
-    if os.path.exists("/proc/%s" % str(PID)):
+    if psutil.pid_exists(int(PID)):
         p = psutil.Process(int(PID))
         return time.strftime(
             "%Y-%m-%d %H:%M:%S", time.localtime(p.create_time()))
