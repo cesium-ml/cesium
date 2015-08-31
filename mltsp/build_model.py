@@ -8,8 +8,9 @@ from sklearn.externals import joblib
 # from sklearn.metrics import confusion_matrix
 import os
 import numpy as np
-
+import pickle
 from . import cfg
+from mltsp.celery_fit import fit_model
 
 
 def read_data_from_csv_file(fname, sep=',', skip_lines=0):
@@ -121,6 +122,25 @@ def clean_up_data_dict(data_dict):
         del data_dict['classes'][indices_for_deletion[0]]
     print(len(data_dict['features']))
     print("\n\n")
+    return
+
+
+#@celery_app.task
+def fit_model_orig(data_dict):
+    """
+    """
+    # Initialize
+    ntrees = 1000
+    njobs = -1
+    rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
+    print("Model initialized.")
+
+    # Fit the model to training data:
+    print("Fitting the model...")
+    rf_fit.fit(data_dict['features'], data_dict['classes'])
+    print("Done.")
+    del data_dict
+    return rf_fit
 
 
 def reduce(iter, params):
@@ -182,9 +202,10 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
         a Docker container.
 
     """
-    # Push to Disco:
-    rf_fit = fit_model_disco(data_dict, featureset_key, model_type)
-    del data_dict
+    # Fit the model
+    rf_fit_pkl = fit_model.delay(data_dict)
+    rf_fit_pkl = rf_fit_pkl.get(timeout=2)
+    rf_fit = pickle.loads(rf_fit_pkl)
 
     # Store the model:
     print("Pickling model...")
