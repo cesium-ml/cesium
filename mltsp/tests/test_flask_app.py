@@ -2559,6 +2559,8 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             generate_model()
+            delete_entries_by_table("projects")
+            delete_entries_by_table("features")
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("features").insert({"id": "TEMP_TEST01",
@@ -2571,6 +2573,15 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RF",
                                       "name": "TEMP_TEST01"}).run(conn)
+            print("featureset_name_to_key called from test ftn:",
+                  fa.featureset_name_to_key("TEMP_TEST01",
+                                            project_name="abc123"))
+            print("PROJECTS")
+            for e in r.table("projects").run(conn):
+                print(e)
+            print("FEATURES")
+            for e in r.table("features").run(conn):
+                print(e)
             dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                     pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
             for f in dsts:
@@ -2582,6 +2593,7 @@ class FlaskAppTestCase(unittest.TestCase):
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
+            time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
             entry = r.table('predictions').get(new_key).run(conn)
             r.table("predictions").get(new_key).delete().run(conn)
