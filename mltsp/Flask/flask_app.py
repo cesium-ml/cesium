@@ -1908,20 +1908,23 @@ def featurize_proc(
     # needed to establish database connection because we're now in a
     # subprocess that is separate from main app:
     before_request()
+    sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     try:
         results_str = featurize.featurize(
             headerfile_path, zipfile_path, features_to_use=features_to_use,
             featureset_id=featureset_key, is_test=is_test,
             already_featurized=already_featurized,
             custom_script_path=custom_script_path)
-        if email_user not in (False, None, "False", "None"):
-            emailUser(email_user)
+        # if email_user not in (False, None, "False", "None"):
+        #     emailUser(email_user)
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
                        "Please ensure that the header file and tarball of time series "
                        "data files conform to the formatting requirements.")
         print(("   #########      Error:    flask_app.featurize_proc: %s" %
                str(theErr)))
+        import traceback
+        print(traceback.format_exc())
         logging.exception(("Error occurred during featurize.featurize() "
                            "call."))
         try:
