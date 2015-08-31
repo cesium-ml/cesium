@@ -198,9 +198,12 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
         for line in res_list:
             for el in line:
                 short_fname, new_feats = el
-                all_features = dict(
-                    list(new_feats.items()) +
-                    list(fname_metadata_dict[short_fname].items()))
+                if short_fname in fname_metadata_dict:
+                    all_features = dict(
+                        list(new_feats.items()) +
+                        list(fname_metadata_dict[short_fname].items()))
+                else:
+                    all_features = new_feats
                 objects.append(all_features)
     return objects
 

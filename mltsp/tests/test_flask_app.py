@@ -2162,14 +2162,16 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'custom_feat_script_file':
                                      (open(pjoin(DATA_DIR, "testfeature1.py")),
                                       "testfeature1.py"),
-                                     'custom_feature_checkbox': ['avg_mag'],
+                                     'custom_feature_checkbox': ['f'],
                                      'is_test': 'True'})
             res_dict = json.loads(rv.data)
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
+            time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
+            print(new_key)
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -2188,7 +2190,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s_features.csv" % new_key))
             cols = df.columns
             values = df.values
-            npt.assert_array_equal(sorted(cols), ["avg_mag", "std_err"])
+            npt.assert_array_equal(sorted(cols), ["f", "std_err"])
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
