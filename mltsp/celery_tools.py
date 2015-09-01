@@ -105,11 +105,12 @@ def pred_featurize_single(ts_data, features_to_use, custom_features_script,
 
 
 @celery_app.task(name="celery_tools.featurize_ts_data")
-def featurize_ts_data(ts_data, short_fname, custom_script_path,
+def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
                       object_class, features_to_use):
     """
 
     """
+    ts_data = parse_ts_data(ts_data_file_path)
     # Generate general/cadence-related TS features, if to be used
     if len(set(features_to_use) & set(cfg.features_list)) > 0:
         timeseries_features = (
