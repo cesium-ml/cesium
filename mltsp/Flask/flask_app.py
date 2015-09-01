@@ -1909,7 +1909,7 @@ def featurize_proc(
     # needed to establish database connection because we're now in a
     # subprocess that is separate from main app:
     before_request()
-    sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
+    # sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     try:
         results_str = featurize.featurize(
             headerfile_path, zipfile_path, features_to_use=features_to_use,
@@ -2021,7 +2021,7 @@ def prediction_proc(
         Path to associated metadata file, if any. Defaults to None.
 
     """
-    sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
+    # sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()

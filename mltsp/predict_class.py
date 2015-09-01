@@ -128,6 +128,8 @@ def generate_input_params_list(newpred_file_path, features_to_use,
     if custom_features_script:
         with open(custom_features_script) as f:
             custom_feats_lines = f.readlines()
+    else:
+        custom_feats_lines = None
     for fname in all_fnames:
         short_fname = ntpath.basename(fname)
         if not os.path.isfile(fname):
