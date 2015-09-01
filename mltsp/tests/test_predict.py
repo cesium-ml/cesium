@@ -27,7 +27,8 @@ def test_determine_feats_used():
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     feats_used = pred.determine_feats_used("TEST001")
-    npt.assert_array_equal(feats_used, ["meta1", "meta2", "meta3", "std_err"])
+    npt.assert_array_equal(feats_used, ["meta1", "meta2", "meta3", "std_err",
+                                        "freq1_harmonics_amplitude_0"])
     for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
@@ -133,12 +134,14 @@ def test_do_model_predictions():
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     featset_key = "TEST001"
     model_type = "RF"
-    features_to_use = ["std_err", "avg_err", "med_err", "n_epochs"]
+    features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
+                       "freq1_harmonics_amplitude_0"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
         "TEST001",
         None, None, False,
-        cfg.features_list, False)
+        features_to_use, False)
+    print(data_dict)
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
                                                   model_type, features_to_use,
                                                   5)

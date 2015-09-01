@@ -1536,6 +1536,8 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
 
             generate_model()
+            delete_entries_by_table("projects")
+            delete_entries_by_table("features")
             shutil.copy(pjoin(DATA_DIR, "dotastro_215153.dat"),
                         pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
             shutil.copy(pjoin(DATA_DIR, "TESTRUN_215153_metadata.dat"),
@@ -1562,7 +1564,7 @@ class FlaskAppTestCase(unittest.TestCase):
             pred_results_list_dict = entry
             npt.assert_equal(pred_results_list_dict["pred_results_list_dict"]
                              ["TESTRUN_215153.dat"][0][0],
-                             'Herbig_AEBE')
+                             'Beta_Lyrae')
 
             assert all(key in pred_results_list_dict for key in ("ts_data_dict",
                                                                  "features_dict"))
@@ -2501,11 +2503,13 @@ class FlaskAppTestCase(unittest.TestCase):
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
 
     def test_upload_prediction_data(self):
-        """Test upload prediciton data"""
+        """Test upload prediction data"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             generate_model()
+            delete_entries_by_table("projects")
+            delete_entries_by_table("features")
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("features").insert({"id": "TEMP_TEST01",
