@@ -3,10 +3,12 @@ from celery import Celery
 import os
 import sys
 import pickle
+import numpy as np
 import uuid
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
 from mltsp import lc_tools
+from mltsp import custom_exceptions
 from copy import deepcopy
 import uuid
 
@@ -14,6 +16,20 @@ import uuid
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "ext"))
 os.environ['CELERY_CONFIG_MODULE'] = 'celeryconfig'
 celery_app = Celery('celery_fit', broker='amqp://guest@localhost//')
+
+
+def parse_ts_data(filepath, sep=","):
+    """
+    """
+    with open(filepath) as f:
+        ts_data = np.loadtxt(f, delimiter=sep)
+    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
+    for row in ts_data:
+        if len(row) < 2:
+            raise custom_exceptions.DataFormatError(
+                "Incomplete or improperly formatted time "
+                "series data file provided.")
+    return ts_data
 
 
 @celery_app.task(name='celery_tools.fit_model')
@@ -89,20 +105,11 @@ def pred_featurize_single(ts_data, features_to_use, custom_features_script,
 
 
 @celery_app.task(name="celery_tools.featurize_ts_data")
-def featurize_ts_data(ts_data, short_fname, custom_script,
+def featurize_ts_data(ts_data, short_fname, custom_script_path,
                       object_class, features_to_use):
     """
 
     """
-    if custom_script:
-        custom_script_path = os.path.join(
-            "/tmp",
-            str(uuid.uuid4())[:10] + "_custom_feats.py")
-        with open(custom_script_path, "w") as f:
-            f.writelines(custom_script)
-    else:
-        custom_script_path = False
-
     # Generate general/cadence-related TS features, if to be used
     if len(set(features_to_use) & set(cfg.features_list)) > 0:
         timeseries_features = (
@@ -131,7 +138,6 @@ def featurize_ts_data(ts_data, short_fname, custom_script,
                 list(timeseries_features.items()) +
                 list(science_features.items())),
             ts_data=deepcopy(ts_data))[0]
-        os.remove(custom_script_path)
     else:
         custom_features = {}
     # Combine all features into single dict
