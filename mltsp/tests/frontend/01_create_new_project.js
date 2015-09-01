@@ -24,16 +24,8 @@ casper.test.begin('create new project'
             this.click('#new_project_button');
         });
         casper.then(function(){
-            casper.waitForText("New project successfully created",
-                               function(){
             test.assertTextExists('New project successfully created',
                                   'Successfully created new project');
-                               },
-                               function(){
-            test.assertTextExists('New project successfully created',
-                                  'Successfully created new project');
-                               },
-                               5000);
         });
     });
     casper.run(function() {
