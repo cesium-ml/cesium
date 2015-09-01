@@ -145,13 +145,6 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
     all_fnames = zipfile.getnames()
     num_objs = len(fname_class_dict)
 
-    try:
-        with open(custom_script_path) as f:
-            custom_script_lines = f.readlines()
-    except Exception as e:
-        print(e)
-        custom_script_lines = False
-
     for fname in all_fnames:
         if is_test and len(input_params_list) >= 3:
             break
@@ -162,8 +155,7 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
             ts_path = os.path.join(unzip_dir, fname)
         else:
             continue
-        ts_data = parse_ts_data(ts_path)
-        input_params_list.append((ts_data, short_fname, custom_script_lines,
+        input_params_list.append((ts_path, short_fname, custom_script_path,
                                   fname_class_dict[short_fname],
                                   features_to_use))
     return input_params_list
@@ -193,7 +185,7 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
         # TO-DO: Determine number of cores in cluster:
         n_cores = 8
         res = featurize_celery_task.chunks(input_params_list, n_cores).delay()
-        res_list = res.get(timeout=40)
+        res_list = res.get(timeout=100)
         objects = []
         for line in res_list:
             for el in line:
