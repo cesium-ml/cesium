@@ -10,8 +10,10 @@ casper.test.begin('create new project'
         }
 
         casper.then(function(){
-            test.assertTextExists('ML Time-Series Platform',
-                                  'Loaded post-auth index page');
+            casper.waitForText("ML Time-Series Platform", function(){
+                test.assertTextExists('ML Time-Series Platform',
+                                      'Loaded post-auth index page');
+            });
         });
         casper.then(function(){
             this.fill('form#newProjectForm', {
