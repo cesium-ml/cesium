@@ -48,7 +48,7 @@ def pred_featurize_single(ts_data, features_to_use, custom_features_script,
         timeseries_features = {}
     if len(list(set(features_to_use) &
                 set(cfg.features_list_science))) > 0:
-        from .TCP.Software.ingest_tools import generate_science_features
+        from mltsp.TCP.Software.ingest_tools import generate_science_features
         science_features = generate_science_features.generate(
             ts_data=deepcopy(ts_data))
     else:
