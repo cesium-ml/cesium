@@ -89,27 +89,27 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
     """
     fname = newpred_file_path
     short_fname = ntpath.basename(fname).split("$")[0]
-    if os.path.isfile(fname):
+    if os.path.isfile(fname) and os.path.isabs(fname):
         filepath = fname
-    elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
+    elif os.path.isfile(os.path.join(tmp_dir_path, fname)) and \
+         os.path.isabs(os.path.join(tmp_dir_path, fname)):
         filepath = os.path.join(tmp_dir_path, fname)
     elif os.path.isfile(os.path.join(os.path.join(cfg.UPLOAD_FOLDER,
                                                   "unzipped"),
-                                     fname)):
+                                     fname)) and \
+         os.path.isabs(os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
+                                    fname)):
+        filepath = os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
+                                fname)
+    elif os.path.isfile(os.path.join(cfg.UPLOAD_FOLDER, fname)) and \
+         os.path.isabs(os.path.join(cfg.UPLOAD_FOLDER, fname)):
         filepath = os.path.join(cfg.UPLOAD_FOLDER, fname)
     else:
         print(fname + " is not a file...")
         return {}
-    ts_data = parse_ts_data(filepath, sep)
-
-    if custom_features_script not in [None, "None", "none", False]:
-        with open(custom_features_script) as f:
-            custom_features_script = f.readlines()
-    else:
-        custom_features_script = None
 
     res = pred_featurize_single.delay(
-        ts_data, features_to_use, custom_features_script,
+        filepath, features_to_use, custom_features_script,
         meta_features, short_fname, sep)
     big_features_and_tsdata_dict = res.get(timeout=30)
 
@@ -125,11 +125,6 @@ def generate_input_params_list(newpred_file_path, features_to_use,
     the_tarfile = tarfile.open(newpred_file_path)
     all_fnames = the_tarfile.getnames()
     the_tarfile.extractall(path=tmp_dir_path)
-    if custom_features_script:
-        with open(custom_features_script) as f:
-            custom_feats_lines = f.readlines()
-    else:
-        custom_feats_lines = None
     for fname in all_fnames:
         short_fname = ntpath.basename(fname)
         if not os.path.isfile(fname):
@@ -140,8 +135,7 @@ def generate_input_params_list(newpred_file_path, features_to_use,
             else:
                 raise Exception("Specified TS data file not on disk - %s." %
                                 fname)
-        ts_data = parse_ts_data(fname)
-        params_list.append([ts_data, features_to_use, custom_feats_lines,
+        params_list.append([fname, features_to_use, custom_features_script,
                             meta_features, short_fname, ","])
     return params_list
 
