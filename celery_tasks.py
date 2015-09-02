@@ -51,7 +51,7 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
             ts_data=deepcopy(ts_data))
     else:
         science_features = {}
-    if custom_features_script is not None:
+    if custom_features_script:
         custom_features = cft.generate_custom_features(
             custom_script_path=custom_features_script, path_to_csv=None,
             features_already_known=dict(
