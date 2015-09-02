@@ -25,5 +25,9 @@ pip install -e .
 
 cp mltsp.yaml.example mltsp.yaml
 
+python -c 'import mltsp; mltsp.install()'
+
+celery -A celery_tasks worker --loglevel=DEBUG
+
 make db && sleep 1 && make init
 make test
