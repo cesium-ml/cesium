@@ -12,8 +12,9 @@ from copy import deepcopy
 import uuid
 
 
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "ext"))
-os.environ['CELERY_CONFIG_MODULE'] = 'celeryconfig'
+#sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+#                             "mltsp/ext"))
+os.environ['CELERY_CONFIG_MODULE'] = 'mltsp.ext.celeryconfig'
 celery_app = Celery('celery_fit', broker='amqp://guest@localhost//')
 
 
@@ -30,10 +31,12 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
 
 
 @celery_app.task(name="celery_tasks.pred_featurize_single")
-def pred_featurize_single(ts_data, features_to_use, custom_features_script,
-                          meta_features, short_fname, sep):
+def pred_featurize_single(ts_data_file_path, features_to_use,
+                          custom_features_script, meta_features, short_fname,
+                          sep):
     """
     """
+    ts_data = ctt.parse_ts_data(ts_data_file_path)
     big_features_and_tsdata_dict = {}
     # Generate features:
     if len(list(set(features_to_use) & set(cfg.features_list))) > 0:
@@ -49,10 +52,6 @@ def pred_featurize_single(ts_data, features_to_use, custom_features_script,
     else:
         science_features = {}
     if custom_features_script is not None:
-        fname = os.path.join("/tmp", str(uuid.uuid4())[:10] + ".py")
-        with open(fname, "w") as f:
-            f.writelines(custom_features_script)
-        custom_features_script = fname
         custom_features = cft.generate_custom_features(
             custom_script_path=custom_features_script, path_to_csv=None,
             features_already_known=dict(

@@ -5,6 +5,7 @@ from mltsp import cfg
 from mltsp import custom_exceptions
 import numpy as np
 
+
 def create_and_pickle_model(data_dict, featureset_key, model_type,
                             in_docker_container):
     """Create scikit-learn RFC model object and save it to disk.
