@@ -4,6 +4,7 @@ import sys
 import pickle
 import numpy as np
 import uuid
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
 from mltsp import lc_tools
