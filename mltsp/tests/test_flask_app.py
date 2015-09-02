@@ -1562,12 +1562,12 @@ class FlaskAppTestCase(unittest.TestCase):
 
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
             pred_results_list_dict = entry
-            npt.assert_equal(pred_results_list_dict["pred_results_list_dict"]
-                             ["TESTRUN_215153.dat"][0][0],
-                             'Beta_Lyrae')
+            assert(pred_results_list_dict["pred_results_list_dict"]
+                   ["TESTRUN_215153.dat"][0][0] in ['Beta_Lyrae',
+                                                    'Herbig_AEBE'])
 
-            assert all(key in pred_results_list_dict for key in ("ts_data_dict",
-                                                                 "features_dict"))
+            assert all(key in pred_results_list_dict for key in \
+                       ("ts_data_dict", "features_dict"))
             r.table("models").get("TEMP_TEST01").delete().run(conn)
             r.table("projects").get("TEMP_TEST01").delete().run(conn)
             r.table("features").get("TEMP_TEST01").delete().run(conn)
