@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pickle
 from . import cfg
-from mltsp.celery_tools import fit_model
+from mltsp.celery_tools import fit_and_store_model
 
 
 def read_data_from_csv_file(fname, sep=',', skip_lines=0):
@@ -125,8 +125,7 @@ def clean_up_data_dict(data_dict):
     return
 
 
-#@celery_app.task
-def fit_model_orig(data_dict):
+def fit_model(data_dict):
     """
     """
     # Initialize
@@ -202,10 +201,18 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
         a Docker container.
 
     """
-    # Fit the model
-    rf_fit_pkl = fit_model.delay(data_dict)
-    rf_fit_pkl = rf_fit_pkl.get(timeout=20)
-    rf_fit = pickle.loads(rf_fit_pkl)
+    # Build the model:
+    # Initialize
+    ntrees = 1000
+    njobs = -1
+    rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
+    print("Model initialized.")
+
+    # Fit the model to training data:
+    print("Fitting the model...")
+    rf_fit.fit(data_dict['features'], data_dict['classes'])
+    print("Done.")
+    del data_dict
 
     # Store the model:
     print("Pickling model...")
@@ -214,6 +221,7 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
         "%s_%s.pkl" % (featureset_key, model_type))
     joblib.dump(rf_fit, foutname, compress=3)
     print(foutname, "created.")
+    return foutname
 
 
 def read_features_data_from_disk(featureset_key):
@@ -250,6 +258,18 @@ def read_features_data_from_disk(featureset_key):
     return data_dict
 
 
+def create_and_pickle_model_celery(featureset_name, featureset_key,
+                                   model_type="RF", in_docker_container=False):
+    """
+    """
+
+    res = fit_and_store_model.delay(featureset_name, featureset_key,
+                                    model_type, in_docker_container)
+    fout_name = res.get(timeout=200)
+
+    print(fout_name, "created!")
+
+
 def build_model(
         featureset_name, featureset_key, model_type="RF",
         in_docker_container=False):
@@ -282,13 +302,10 @@ def build_model(
         Human-readable message indicating successful completion.
 
     """
-    data_dict = read_features_data_from_disk(featureset_key)
 
-    # class_count, sorted_class_list = count_classes(data_dict["classes"])
+    create_and_pickle_model_celery(featureset_name, featureset_key,
+                                   model_type, in_docker_container)
 
-    create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container)
-
-    print("DONE!")
-    return ("New model successfully created. Click the Predict tab to "
-            "start using it.")
+    print("Done!")
+    return("New model successfully created. Click the Predict tab to "
+           "start using it.")
