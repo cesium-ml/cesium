@@ -123,6 +123,16 @@ def generate_model():
                                 "TEMP_TEST01_RF.pkl"))
 
 
+def generate_model_cust_feats():
+    shutil.copy(pjoin(DATA_PATH, "test_classes.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_RF.pkl"))
+
+
 def test_do_model_predictions():
     """Test model predictions"""
     generate_model()
@@ -163,6 +173,36 @@ def test_main_predict():
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     shutil.copy(pjoin(DATA_PATH, "TESTRUN_215153_metadata.dat"),
                 cfg.UPLOAD_FOLDER)
+
+    pred_results_dict = pred.predict(
+        pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
+        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
+                                 "TESTRUN_215153_metadata.dat"),
+        custom_features_script=None)
+    os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
+    os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    npt.assert_equal(
+        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
+        3)
+    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                   for el in pred_results_dict[fname]\
+                   ["pred_results_list"]) for fname in pred_results_dict))
+
+
+def test_main_predict_cust_feats():
+    """Test main predict function w/ custom feats"""
+
+    generate_model_cust_feats()
+
+    shutil.copy(pjoin(DATA_PATH, "dotastro_215153.dat"),
+                pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
+    shutil.copy(pjoin(DATA_PATH, "TESTRUN_215153_metadata.dat"),
+                cfg.UPLOAD_FOLDER)
     shutil.copy(pjoin(DATA_PATH, "testfeature1.py"),
                 pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                       "TESTRUN_CF.py"))
@@ -193,6 +233,38 @@ def test_main_predict_tarball():
     """Test main predict function - tarball"""
 
     generate_model()
+
+    shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
+                cfg.UPLOAD_FOLDER)
+    shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat"),
+                cfg.UPLOAD_FOLDER)
+
+    pred_results_dict = pred.predict(
+        pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"),
+        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
+                                 "215153_215176_218272_218934_metadata.dat"),
+        custom_features_script=None)
+    os.remove(pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"))
+    os.remove(pjoin(cfg.UPLOAD_FOLDER,
+                    "215153_215176_218272_218934_metadata.dat"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    npt.assert_equal(
+        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        3)
+    npt.assert_equal(len(pred_results_dict), 4)
+    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                   for el in pred_results_dict[fname]\
+                   ["pred_results_list"]) for fname in pred_results_dict))
+
+
+def test_main_predict_tarball_cust_feats():
+    """Test main predict function - tarball w/ custom feats"""
+
+    generate_model_cust_feats()
 
     shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
                 cfg.UPLOAD_FOLDER)
