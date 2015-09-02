@@ -17,7 +17,7 @@ from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
 from . import custom_exceptions
-from .celery_tools import featurize_ts_data as featurize_celery_task
+from .celery_tasks import featurize_ts_data as featurize_celery_task
 
 
 def shorten_fname(fname):
