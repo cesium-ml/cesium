@@ -20,4 +20,4 @@ CELERYD_LOG_LEVEL = "DEBUG"
 
 INSTALLED_APPS = ["mltsp"]
 
-CELERY_IMPORTS = ("mltsp", "celery_tools")
+CELERY_IMPORTS = ("mltsp", "celery_tasks")

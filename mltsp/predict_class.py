@@ -16,7 +16,7 @@ from . import custom_exceptions
 from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
-from .celery_tools import pred_featurize_single
+from .celery_tasks import pred_featurize_single
 
 
 def parse_metadata_file(metadata_file_path):

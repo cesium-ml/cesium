@@ -191,7 +191,7 @@ def parse_ts_data(filepath, sep=","):
     return ts_data
 
 
-@celery_app.task(name='celery_tools.fit_model')
+@celery_app.task(name='celery_tasks.fit_model')
 def fit_and_store_model(featureset_name, featureset_key, model_type,
                         in_docker_container):
     """
@@ -203,7 +203,7 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
     return created_file_name
 
 
-@celery_app.task(name="celery_tools.pred_featurize_single")
+@celery_app.task(name="celery_tasks.pred_featurize_single")
 def pred_featurize_single(ts_data, features_to_use, custom_features_script,
                           meta_features, short_fname, sep):
     """
@@ -257,7 +257,7 @@ def pred_featurize_single(ts_data, features_to_use, custom_features_script,
     return big_features_and_tsdata_dict
 
 
-@celery_app.task(name="celery_tools.featurize_ts_data")
+@celery_app.task(name="celery_tasks.featurize_ts_data")
 def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
                       object_class, features_to_use):
     """
