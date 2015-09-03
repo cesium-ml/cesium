@@ -28,8 +28,7 @@ cp mltsp.yaml.example mltsp.yaml
 python -c 'import mltsp; mltsp.install()'
 
 cd mltsp
-celery -A celery_tasks worker --loglevel=DEBUG
-
+celery -A celery_tasks worker --loglevel=DEBUG &
 cd ..
 
 make db && sleep 1 && make init
