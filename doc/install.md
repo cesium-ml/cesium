@@ -15,32 +15,13 @@ Then activate it:
 
   ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
 
-* Install and configure Disco
+* Install RabbitMQ
 
-  Requires: Erlang. If you see errors about `escript` below,
-  this is what you're missing.
+  For Debian / Ubuntu:
 
-  ```
-  git clone --depth 1 git://github.com/discoproject/disco.git disco
-  cd disco
-  make
-  cd lib && python setup.py install && cd ..
-  export DISCO_HOME=/path/to/disco/repository
-  ```
+  ``sudo apt-get install rabbitmq-server``
 
-  You also have to setup passwordless SSH authentication to the local
-  machine (this is required for running the test suite):
-
-  ```
-  ssh-keygen -N '' -f ~/.ssh/id_dsa
-  cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
-  ```
-
-  (Test that SSH is working with: ``ssh localhost erl``)
-
-  Navigate to ``localhost:8989``, click "configure" and ensure that
-  an entry for "localhost" exists under "Available nodes".  If not,
-  add one with the corresponding number of cores as the "workers" value.
+  Server will automatically run as a daemon (background process) upon install.
 
 * Install RethinkDB
 
@@ -89,6 +70,10 @@ Launch RethinkDB:
 Initialize the database:
 
 ``make init``
+
+Launch the Celery worker server:
+
+``PYTHONPATH="./mltsp" celery -A celery_tasks worker -l info``
 
 Launch:
 
