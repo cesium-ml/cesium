@@ -21,7 +21,26 @@ celery_app = Celery('celery_fit', broker='amqp://guest@localhost//')
 @celery_app.task(name='celery_tasks.fit_model')
 def fit_and_store_model(featureset_name, featureset_key, model_type,
                         in_docker_container):
-    """
+    """Read features, fit classifier & save it to disk.
+
+    This function is a Celery task.
+
+    Parameters
+    ----------
+    featureset_name : str
+        Name of the feature set on which to build the model.
+    featureset_key : str
+        Feature set ID/key.
+    model_type : str
+        Abbreviation of scikit-learn model type to build, e.g. "RF".
+    in_docker_container : bool
+        Boolean indicating whether currently running in Docker container.
+
+    Returns
+    -------
+    str
+        Path to serialized classifier object on disk.
+
     """
     data_dict = ctt.read_features_data_from_disk(featureset_key)
 
@@ -34,7 +53,31 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
 def pred_featurize_single(ts_data_file_path, features_to_use,
                           custom_features_script, meta_features, short_fname,
                           sep):
-    """
+    """Featurize unlabeled time-series data file for model prediciton.
+
+    This function is a Celery task.
+
+    Parameters
+    ----------
+    ts_data_file_path : str
+        Time-series data file disk location path.
+    features_to_use : list of str
+        List of feature names to be generated.
+    custom_features_script : str or None
+        Path to custom features script .py file, or None.
+    meta_features : dict
+        Dictionary of associated meta features.
+    short_fname : str
+        File name without full path or type suffix.
+    sep : str
+        Delimiting character in data file, e.g. ",".
+
+    Returns
+    -------
+    dict
+        Dictionary with file name as key, and feature-containing
+        dictionaries as value.
+
     """
     ts_data = ctt.parse_ts_data(ts_data_file_path)
     big_features_and_tsdata_dict = {}
@@ -85,7 +128,26 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
 @celery_app.task(name="celery_tasks.featurize_ts_data")
 def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
                       object_class, features_to_use):
-    """
+    """Featurize time-series data file.
+
+    Parameters
+    ----------
+    ts_data_file_path : str
+        Time-series data file disk location path.
+    short_fname : str
+        File name without full path or type suffix.
+    custom_script_path : str or None
+        Path to custom features script .py file, or None.
+    object_class : str
+        Class name.
+    features_to_use : list of str
+        List of feature names to be generated.
+
+    Returns
+    -------
+    tuple
+        Two-element tuple whose first element is the file name and
+        second element is a dictionary of features.
 
     """
     ts_data = ctt.parse_ts_data(ts_data_file_path)
