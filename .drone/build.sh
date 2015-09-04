@@ -27,9 +27,13 @@ cp mltsp.yaml.example mltsp.yaml
 
 python -c 'import mltsp; mltsp.install()'
 
-cd mltsp
-celery -A celery_tasks worker --loglevel=DEBUG &
-cd ..
+echo "Running RabbitMQ server..."
+rabbitmq-server -detached
+echo "Done."
+echo
+echo "Starting Celery..."
+PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info &
+echo "Done."
 
 make db && sleep 1 && make init
 make test
