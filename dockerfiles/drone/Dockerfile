@@ -16,5 +16,5 @@ RUN apt-get install -y wget curl git make \
                        python-matplotlib python-nose python-yaml \
                        python-sklearn \
                        cython \
-                       rethinkdb docker.io phantomjs
+                       rethinkdb docker.io phantomjs rabbitmq-server
                        # Add python-docker when switching to utopic / vivid
