@@ -65,13 +65,6 @@ casper.test.begin('featurize', function suite(test) {
         });
 
         casper.then(function(){
-            casper.waitForText("This process is currently running", function(){
-                test.assertTextExists("This process is currently running",
-                                      "Featurization process started");
-            });
-        });
-
-        casper.then(function(){
             casper.waitForText(
                 "Featurization of timeseries data complete.",
                 function(){

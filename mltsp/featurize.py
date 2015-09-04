@@ -11,19 +11,13 @@ import os
 import tarfile
 import ntpath
 import numpy as np
-try:
-    from disco.core import Job, result_iterator
-    from disco.util import kvgroup
-    DISCO_INSTALLED = True
-except ImportError as theError:
-    DISCO_INSTALLED = False
-if DISCO_INSTALLED:
-    from . import parallel_processing
 
 from . import cfg
 from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
+from . import custom_exceptions
+from .celery_tasks import featurize_ts_data as featurize_celery_task
 
 
 def shorten_fname(fname):
@@ -31,6 +25,20 @@ def shorten_fname(fname):
 
     """
     return os.path.splitext(ntpath.basename(fname))[0]
+
+
+def parse_ts_data(filepath, sep=","):
+    """
+    """
+    with open(filepath) as f:
+        ts_data = np.loadtxt(f, delimiter=sep)
+    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
+    for row in ts_data:
+        if len(row) < 2:
+            raise custom_exceptions.DataFormatError(
+                "Incomplete or improperly formatted time "
+                "series data file provided.")
+    return ts_data
 
 
 def parse_prefeaturized_csv_data(features_file_path):
@@ -123,6 +131,36 @@ def parse_headerfile(headerfile_path, features_to_use):
             fname_metadata_dict)
 
 
+def generate_featurize_input_params_list(features_to_use, fname_class_dict,
+                                         fname_class_science_features_dict,
+                                         fname_metadata_dict, zipfile_path,
+                                         custom_script_path, is_test):
+    """
+    """
+    input_params_list = []
+
+    zipfile = tarfile.open(zipfile_path)
+    unzip_dir = tempfile.mkdtemp()
+    zipfile.extractall(path=unzip_dir)
+    all_fnames = zipfile.getnames()
+    num_objs = len(fname_class_dict)
+
+    for fname in all_fnames:
+        if is_test and len(input_params_list) >= 3:
+            break
+        short_fname = shorten_fname(fname)
+        if os.path.isfile(fname):
+            ts_path = fname
+        elif os.path.isfile(os.path.join(unzip_dir, fname)):
+            ts_path = os.path.join(unzip_dir, fname)
+        else:
+            continue
+        input_params_list.append((ts_path, short_fname, custom_script_path,
+                                  fname_class_dict[short_fname],
+                                  features_to_use))
+    return input_params_list
+
+
 def generate_features(headerfile_path, zipfile_path, features_to_use,
                       custom_script_path, is_test, USE_DISCO,
                       already_featurized, in_docker_container):
@@ -140,33 +178,25 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
         (features_to_use, fname_class_dict, fname_class_science_features_dict,
          fname_metadata_dict) = parse_headerfile(headerfile_path,
                                                  features_to_use)
-        disco_running = util.check_disco_running()
-        # Generate the features
-        if DISCO_INSTALLED and USE_DISCO and disco_running and not \
-           in_docker_container:
-            # Featurize in parallel
-            print("FEATURIZING - USING DISCO")
-            fname_features_data_dict = (
-                parallel_processing.featurize_in_parallel(
-                    headerfile_path=headerfile_path, zipfile_path=zipfile_path,
-                    features_to_use=features_to_use, is_test=is_test,
-                    custom_script_path=custom_script_path,
-                    meta_features=fname_metadata_dict))
-            objects = []
-            for k, v in fname_features_data_dict.items():
-                if k in fname_metadata_dict:
-                    v = dict(list(v.items()) +
-                             list(fname_metadata_dict[k].items()))
-                objects.append(v)
-        else:
-            # Featurize serially
-            print("FEATURIZING - NOT USING DISCO")
-            objects = extract_serial(
-                headerfile_path, zipfile_path, features_to_use,
-                custom_script_path, is_test, USE_DISCO,
-                already_featurized, in_docker_container,
-                fname_class_dict, fname_class_science_features_dict,
-                fname_metadata_dict)
+        input_params_list = generate_featurize_input_params_list(
+            features_to_use, fname_class_dict,
+            fname_class_science_features_dict, fname_metadata_dict,
+            zipfile_path, custom_script_path, is_test)
+        # TO-DO: Determine number of cores in cluster:
+        n_cores = 8
+        res = featurize_celery_task.chunks(input_params_list, n_cores).delay()
+        res_list = res.get(timeout=100)
+        objects = []
+        for line in res_list:
+            for el in line:
+                short_fname, new_feats = el
+                if short_fname in fname_metadata_dict:
+                    all_features = dict(
+                        list(new_feats.items()) +
+                        list(fname_metadata_dict[short_fname].items()))
+                else:
+                    all_features = new_feats
+                objects.append(all_features)
     return objects
 
 
@@ -345,14 +375,13 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
     features_to_plot = determine_feats_to_plot(features_extracted)
 
     with open(os.path.join(
-        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_features.csv" % featureset_id), 'w') as f, open(os.path.join(
-            ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-            "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
+            cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_id),
+              'w') as f, open(os.path.join(
+                  cfg.FEATURES_FOLDER,
+                  "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
         write_column_titles(f, f2, features_extracted, features_to_use,
                             features_to_plot)
         class_count, num_used, num_held_back = count_classes(objects)
-        print("class_count:", class_count)
         classes = []
         cv_objs = []
         numobjs = 0

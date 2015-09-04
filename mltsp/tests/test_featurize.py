@@ -269,9 +269,10 @@ def test_main_featurize_function_disco():
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
                            "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "freq1_harmonics_freq_0"],
+        features_to_use=["std_err", "freq1_harmonics_freq_0", "f"],
         featureset_id="test", is_test=True,
-        custom_script_path=None,  # TODO: Doesn't work when using Disco!!!
+        custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                 "testfeature1.py"),
         USE_DISCO=True)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
@@ -287,7 +288,10 @@ def test_main_featurize_function_disco():
     os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                           "Flask/static/data"),
                     "test_features_with_classes.csv"))
+    print(cols)
+    print(values)
     assert("std_err" in cols)
+    assert("f" in cols)
     assert("freq1_harmonics_freq_0" in cols)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']

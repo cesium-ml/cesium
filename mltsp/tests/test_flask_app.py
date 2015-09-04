@@ -38,6 +38,12 @@ def featurize_setup():
     return dest_paths
 
 
+def delete_entries_by_table(table_name):
+    conn = fa.g.rdb_conn
+    for e in r.table(table_name).run(conn):
+        r.table(table_name).get(e['id']).delete().run(conn)
+
+
 def featurize_teardown():
     fpaths = [pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                     "testfeature1.py")]
@@ -1210,6 +1216,8 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
+            for table_name in ("userauth", "projects"):
+                delete_entries_by_table(table_name)
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("userauth").insert({"id": "abc123",
@@ -1528,6 +1536,8 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
 
             generate_model()
+            delete_entries_by_table("projects")
+            delete_entries_by_table("features")
             shutil.copy(pjoin(DATA_DIR, "dotastro_215153.dat"),
                         pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
             shutil.copy(pjoin(DATA_DIR, "TESTRUN_215153_metadata.dat"),
@@ -1552,12 +1562,12 @@ class FlaskAppTestCase(unittest.TestCase):
 
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
             pred_results_list_dict = entry
-            npt.assert_equal(pred_results_list_dict["pred_results_list_dict"]
-                             ["TESTRUN_215153.dat"][0][0],
-                             'Herbig_AEBE')
+            assert(pred_results_list_dict["pred_results_list_dict"]
+                   ["TESTRUN_215153.dat"][0][0] in ['Beta_Lyrae',
+                                                    'Herbig_AEBE'])
 
-            assert all(key in pred_results_list_dict for key in ("ts_data_dict",
-                                                                 "features_dict"))
+            assert all(key in pred_results_list_dict for key in \
+                       ("ts_data_dict", "features_dict"))
             r.table("models").get("TEMP_TEST01").delete().run(conn)
             r.table("projects").get("TEMP_TEST01").delete().run(conn)
             r.table("features").get("TEMP_TEST01").delete().run(conn)
@@ -2154,14 +2164,16 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'custom_feat_script_file':
                                      (open(pjoin(DATA_DIR, "testfeature1.py")),
                                       "testfeature1.py"),
-                                     'custom_feature_checkbox': ['avg_mag'],
+                                     'custom_feature_checkbox': ['f'],
                                      'is_test': 'True'})
             res_dict = json.loads(rv.data)
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
+            time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
+            print(new_key)
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -2180,7 +2192,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s_features.csv" % new_key))
             cols = df.columns
             values = df.values
-            npt.assert_array_equal(sorted(cols), ["avg_mag", "std_err"])
+            npt.assert_array_equal(sorted(cols), ["f", "std_err"])
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
@@ -2336,7 +2348,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s_features.csv" % new_key))
             cols = df.columns
             values = df.values
-            npt.assert_array_equal(sorted(cols), ["avg_mag", "std_err"])
+            npt.assert_array_equal(sorted(cols), ['avg_mag', 'meta1', 'meta2',
+                                                  'meta3', 'std_err'])
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
@@ -2490,11 +2503,13 @@ class FlaskAppTestCase(unittest.TestCase):
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
 
     def test_upload_prediction_data(self):
-        """Test upload prediciton data"""
+        """Test upload prediction data"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             generate_model()
+            delete_entries_by_table("projects")
+            delete_entries_by_table("features")
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("features").insert({"id": "TEMP_TEST01",
@@ -2548,6 +2563,8 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             generate_model()
+            delete_entries_by_table("projects")
+            delete_entries_by_table("features")
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("features").insert({"id": "TEMP_TEST01",
@@ -2560,6 +2577,15 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RF",
                                       "name": "TEMP_TEST01"}).run(conn)
+            print("featureset_name_to_key called from test ftn:",
+                  fa.featureset_name_to_key("TEMP_TEST01",
+                                            project_name="abc123"))
+            print("PROJECTS")
+            for e in r.table("projects").run(conn):
+                print(e)
+            print("FEATURES")
+            for e in r.table("features").run(conn):
+                print(e)
             dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                     pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
             for f in dsts:
@@ -2571,6 +2597,7 @@ class FlaskAppTestCase(unittest.TestCase):
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
+            time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
             entry = r.table('predictions').get(new_key).run(conn)
             r.table("predictions").get(new_key).delete().run(conn)

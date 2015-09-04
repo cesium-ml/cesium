@@ -25,6 +25,7 @@ from werkzeug import secure_filename
 import uuid
 import ntpath
 
+import yaml
 if os.getenv("DEBUG_LOGIN") == "1":
     from ..ext import stormpath_mock as stormpath
 else:
@@ -49,6 +50,17 @@ app.static_folder = 'static'
 app.add_url_rule(
     '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
+
+
+# Load configuration
+config_file = os.path.join(os.path.dirname(__file__), '../../mltsp.yaml')
+try:
+    config = yaml.load(open(config_file))
+except IOError:
+    print("Error!  Could not load 'mltsp.yaml' configuration file.\n"
+          "Please rename 'mltsp.yaml.example' to 'mltsp.yaml' and \n"
+          "modify as necessary.")
+    sys.exit(-1)
 
 
 app.config['SECRET_KEY'] = config['flask']['secret-key']
@@ -227,7 +239,7 @@ def is_running(PID):
         given PID was started if it is running, otherwise "False".
 
     """
-    if os.path.exists("/proc/%s" % str(PID)):
+    if psutil.pid_exists(int(PID)):
         p = psutil.Process(int(PID))
         return time.strftime(
             "%Y-%m-%d %H:%M:%S", time.localtime(p.create_time()))
@@ -1442,7 +1454,7 @@ def project_name_to_key(projname):
     for entry in cursor:
         projkeys.append(entry['id'])
     if len(projkeys) >= 1:
-        return projkeys[0]
+        return projkeys[-1]
     else:
         raise Exception(
             "No matching project name! - projname=" + str(projname))
@@ -1467,6 +1479,7 @@ def featureset_name_to_key(
         provided.
 
     Returns
+    -------
     str
         RethinkDB ID/key of specified feature set.
 
@@ -1896,20 +1909,23 @@ def featurize_proc(
     # needed to establish database connection because we're now in a
     # subprocess that is separate from main app:
     before_request()
+    # sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     try:
         results_str = featurize.featurize(
             headerfile_path, zipfile_path, features_to_use=features_to_use,
             featureset_id=featureset_key, is_test=is_test,
             already_featurized=already_featurized,
             custom_script_path=custom_script_path)
-        if email_user not in (False, None, "False", "None"):
-            emailUser(email_user)
+        # if email_user not in (False, None, "False", "None"):
+        #     emailUser(email_user)
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
                        "Please ensure that the header file and tarball of time series "
                        "data files conform to the formatting requirements.")
         print(("   #########      Error:    flask_app.featurize_proc: %s" %
                str(theErr)))
+        import traceback
+        print(traceback.format_exc())
         logging.exception(("Error occurred during featurize.featurize() "
                            "call."))
         try:
@@ -2005,6 +2021,7 @@ def prediction_proc(
         Path to associated metadata file, if any. Defaults to None.
 
     """
+    # sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
@@ -2012,8 +2029,7 @@ def prediction_proc(
         featureset_name=model_name, project_name=project_name)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script = None
-    cursor = r.table("features").get(featset_key).run(g.rdb_conn)
-    entry = cursor
+    entry = r.table("features").get(featset_key).run(g.rdb_conn)
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
@@ -2090,6 +2106,9 @@ def prediction_proc(
                 prediction_entry_key, html_str=results_dict,
                 features_dict={}, ts_data_dict={},
                 pred_results_list_dict={})
+        else:
+            raise ValueError("predict_class.predict() returned object of "
+                             "invalid type - {}.".format(type(results_dict)))
         return True
     finally:
         if path_to_tmp_dir is not None:

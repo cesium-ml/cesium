@@ -16,16 +16,7 @@ from . import custom_exceptions
 from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
-
-try:
-    from disco.core import Job, result_iterator
-    from disco.util import kvgroup
-    DISCO_INSTALLED = True
-except Exception as theError:
-    DISCO_INSTALLED = False
-
-if DISCO_INSTALLED:
-    from . import parallel_processing
+from .celery_tasks import pred_featurize_single
 
 
 def parse_metadata_file(metadata_file_path):
@@ -61,11 +52,11 @@ def determine_feats_used(featset_key):
     return features_in_model
 
 
-def parse_ts_data(filepath, sep):
+def parse_ts_data(filepath, sep=","):
     """
     """
     with open(filepath) as f:
-        ts_data = np.loadtxt(f, delimiter=",")
+        ts_data = np.loadtxt(f, delimiter=sep)
     ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
     for row in ts_data:
         if len(row) < 2:
@@ -96,63 +87,73 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
                      meta_features, tmp_dir_path="/tmp", sep=","):
     """
     """
-    big_features_and_tsdata_dict = {}
     fname = newpred_file_path
     short_fname = ntpath.basename(fname).split("$")[0]
-    if os.path.isfile(fname):
+    if os.path.isfile(fname) and os.path.isabs(fname):
         filepath = fname
-    elif os.path.isfile(os.path.join(tmp_dir_path, fname)):
+    elif os.path.isfile(os.path.join(tmp_dir_path, fname)) and \
+         os.path.isabs(os.path.join(tmp_dir_path, fname)):
         filepath = os.path.join(tmp_dir_path, fname)
     elif os.path.isfile(os.path.join(os.path.join(cfg.UPLOAD_FOLDER,
                                                   "unzipped"),
-                                     fname)):
+                                     fname)) and \
+         os.path.isabs(os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
+                                    fname)):
+        filepath = os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
+                                fname)
+    elif os.path.isfile(os.path.join(cfg.UPLOAD_FOLDER, fname)) and \
+         os.path.isabs(os.path.join(cfg.UPLOAD_FOLDER, fname)):
         filepath = os.path.join(cfg.UPLOAD_FOLDER, fname)
     else:
         print(fname + " is not a file...")
         return {}
-    ts_data = parse_ts_data(filepath, sep)
 
-    # Generate features:
-    if len(list(set(features_to_use) & set(cfg.features_list))) > 0:
-        timeseries_features = lc_tools.generate_timeseries_features(
-            deepcopy(ts_data), sep=sep, ts_data_passed_directly=True)
-    else:
-        timeseries_features = {}
-    if len(list(set(features_to_use) &
-                set(cfg.features_list_science))) > 0:
-        from .TCP.Software.ingest_tools import generate_science_features
-        science_features = generate_science_features.generate(
-            ts_data=deepcopy(ts_data))
-    else:
-        science_features = {}
-    if custom_features_script not in [None, "None", "none", False]:
-        custom_features = cft.generate_custom_features(
-            custom_script_path=custom_features_script, path_to_csv=None,
-            features_already_known=dict(
-                list(timeseries_features.items()) + list(science_features.items()) +
-                (
-                    list(meta_features[short_fname].items()) if short_fname in
-                    meta_features else list({}.items()))), ts_data=ts_data)
-        if (isinstance(custom_features, list) and
-                len(custom_features) == 1):
-            custom_features = custom_features[0]
-        elif (isinstance(custom_features, list) and
-              len(custom_features) == 0):
-            custom_features = {}
-        elif (isinstance(custom_features, list) and
-              len(custom_features) > 1):
-            raise("len(custom_features) > 1 for single TS data obj")
-        elif not isinstance(custom_features, (list, dict)):
-            raise("custom_features ret by cft module is of an invalid type")
-    else:
-        custom_features = {}
-    features_dict = dict(
-        list(timeseries_features.items()) + list(science_features.items()) +
-        list(custom_features.items()) +
-        (list(meta_features[short_fname].items()) if short_fname
-         in meta_features else list({}.items())))
-    big_features_and_tsdata_dict[short_fname] = {
-        "features_dict": features_dict, "ts_data": ts_data}
+    res = pred_featurize_single.delay(
+        filepath, features_to_use, custom_features_script,
+        meta_features, short_fname, sep)
+    big_features_and_tsdata_dict = res.get(timeout=30)
+
+    return big_features_and_tsdata_dict
+
+
+def generate_input_params_list(newpred_file_path, features_to_use,
+                               custom_features_script, meta_features,
+                               tmp_dir_path):
+    """
+    """
+    params_list = []
+    the_tarfile = tarfile.open(newpred_file_path)
+    all_fnames = the_tarfile.getnames()
+    the_tarfile.extractall(path=tmp_dir_path)
+    for fname in all_fnames:
+        short_fname = ntpath.basename(fname)
+        if not os.path.isfile(fname):
+            if os.path.isfile(os.path.join(tmp_dir_path, fname)):
+                fname = os.path.join(tmp_dir_path, fname)
+            elif os.path.isdir(os.path.join(tmp_dir_path, fname)):
+                continue
+            else:
+                raise Exception("Specified TS data file not on disk - %s." %
+                                fname)
+        params_list.append([fname, features_to_use, custom_features_script,
+                            meta_features, short_fname, ","])
+    return params_list
+
+
+def featurize_multiple(newpred_file_path, features_to_use,
+                       custom_features_script, meta_features, tmp_dir_path):
+    """
+    """
+    input_params_list = generate_input_params_list(
+        newpred_file_path, features_to_use, custom_features_script,
+        meta_features, tmp_dir_path)
+    n_cores = 8
+    res = pred_featurize_single.chunks(input_params_list, n_cores).delay()
+    res_list = res.get(timeout=100)
+    big_features_and_tsdata_dict = {}
+    for line in res_list:
+        for feats_and_tsdata_dict in line:
+                big_features_and_tsdata_dict.update(feats_and_tsdata_dict)
     return big_features_and_tsdata_dict
 
 
@@ -169,25 +170,9 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     os.mkdir(tmp_dir_path)
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
-        disco_running = util.check_disco_running()
-        if DISCO_INSTALLED and disco_running and not in_docker_container:
-            big_features_and_tsdata_dict = (
-                parallel_processing.featurize_prediction_data_in_parallel(
-                    newpred_file_path=newpred_file_path,
-                    featset_key=featset_key, sep=sep,
-                    custom_features_script=custom_features_script,
-                    meta_features=meta_features, tmp_dir_path=tmp_dir_path))
-            # Combine extracted features with provided meta features
-            for fname in list(big_features_and_tsdata_dict.keys()):
-                if fname in meta_features:
-                    big_features_and_tsdata_dict[fname]['features_dict'] = (
-                        dict(list(big_features_and_tsdata_dict[fname]
-                                  ['features_dict'].items())
-                             + list(meta_features[fname].items())))
-        else:
-            big_features_and_tsdata_dict = featurize_multiple_serially(
-                newpred_file_path, tmp_dir_path, features_to_use,
-                custom_features_script, meta_features)
+        big_features_and_tsdata_dict = featurize_multiple(
+            newpred_file_path, features_to_use,
+            custom_features_script, meta_features, tmp_dir_path)
     else:
         big_features_and_tsdata_dict = featurize_single(
             newpred_file_path, features_to_use, custom_features_script,
