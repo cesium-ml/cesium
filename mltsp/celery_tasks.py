@@ -10,7 +10,6 @@ from mltsp import cfg
 from mltsp import lc_tools
 from mltsp import celery_task_tools as ctt
 from copy import deepcopy
-import uuid
 
 
 #sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)),
