@@ -1,4 +1,4 @@
-FROM mltsp/base_disco
+FROM mltsp/base
 
 RUN apt-get install -y wget
 
