@@ -23,3 +23,5 @@ ADD rabbitmq.sh /etc/service/rabbitmq/run
 #                        python3-scipy python3-matplotlib
 # RUN pip3 install psutil future cython parse scikit-learn beautifulsoup4 \
 #                  simplejson flask requests
+
+ENTRYPOINT ["/sbin/my_init", "--"]
