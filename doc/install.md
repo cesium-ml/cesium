@@ -21,7 +21,8 @@ Then activate it:
 
   ``sudo apt-get install rabbitmq-server``
 
-  Server will automatically run as a daemon (background process) upon install.
+  Server will automatically run as a daemon (background process) upon install
+  on Ubuntu. On OS X, run ``rabbitmq-server -detached`` after install.
 
 * Install RethinkDB
 
@@ -37,6 +38,9 @@ Then activate it:
   Run ``rethinkdb`` in the MLTP directory.
 
 * Install Docker
+
+  See https://docs.docker.com/installation/ubuntulinux/ for installation and
+  configuration instructions.
 
   Pull down the required images:
 
