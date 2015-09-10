@@ -13,6 +13,7 @@ try:
 except:
     import pickle
 import tempfile
+from unittest import skipIf
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
@@ -87,10 +88,10 @@ def test_execute_functions_in_order():
     assert(all(x in feats_list[0] for x in ["a", "l", "o"]))
 
 
+@skipIf(os.getenv("MLTSP_NO_DOCKER") == "1",
+        "Skipping Docker-specific tests")
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
-    if os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
-        return
     assert(util.docker_images_available())
 
 
@@ -176,10 +177,10 @@ def test_copy_data_to_tmp_dir():
     shutil.rmtree(tmp_dir_path, ignore_errors=True)
 
 
+@skipIf(os.getenv("MLTSP_NO_DOCKER") == "1",
+        "Skipping Docker-specific tests")
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
-    if os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
-        return
     tmp_dir_path = cft.make_tmp_dir()
     feats_known_dict_list = [{"feat1": 0.215, "feat2": 0.311}]
     ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
@@ -209,10 +210,10 @@ def test_remove_tmp_files_and_container():
         assert(not os.path.exists(tmp_file))
 
 
+@skipIf(os.getenv("MLTSP_NO_DOCKER") == "1",
+        "Skipping Docker-specific tests")
 def test_docker_extract_features():
     """Test main Docker extract features method"""
-    if os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
-        return
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")
     ts_datafile_paths = [pjoin(DATA_PATH, "dotastro_215153.dat")]
     results = cft.docker_extract_features(script_fpath,
