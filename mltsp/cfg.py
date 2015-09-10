@@ -7,6 +7,10 @@ import os, sys
 
 import yaml
 
+
+os.environ["MLTSP_NO_DOCKER_TEST"] = "1"
+
+
 # Load configuration
 config_files = [
     os.path.expanduser('~/.config/mltsp/mltsp.yaml'),

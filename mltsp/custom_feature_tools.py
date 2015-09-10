@@ -626,15 +626,18 @@ def verify_new_script(script_fpath, docker_container=False):
     features_already_known_list = assemble_test_data()
 
     all_extracted_features_list = []
-    if docker_images_available():
+    if docker_images_available() and not os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
         print("Extracting features inside docker container...")
         all_extracted_features_list = docker_extract_features(
             script_fpath=script_fpath,
             features_already_known_list=features_already_known_list)
-    else:
-        print("Docker not installed - running custom features script could be "
-              "unsafe. Skipping generation of custom features.")
-        return []
+    elif os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
+        print("WARNING - generating custom features WITHOUT docker container...")
+        all_extracted_features_list = execute_functions_in_order(
+            features_already_known=features_already_known_list,
+            script_fpath=script_fpath)
+    elif not docker_images_available():
+        raise Exception("Docker image not available.")
     return all_extracted_features_list
 
 
@@ -732,15 +735,18 @@ def generate_custom_features(
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
     else:
-        if docker_images_available():
+        if docker_images_available() and not \
+           os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
             print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
                 features_already_known_list=features_already_known)
-        else:
-            print("Generating custom features WITHOUT docker container...")
+        elif os.getenv("MLTSP_NO_DOCKER_TEST") == "1":
+            print("WARNING - generating custom features WITHOUT docker container...")
             all_new_features = execute_functions_in_order(
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
+        elif not docker_images_available():
+            raise Exception("Docker image not available.")
 
     return all_new_features
