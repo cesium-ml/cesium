@@ -48,7 +48,7 @@ test_backend: db py2
 
 test_backend_no_docker: export MLTSP_NO_DOCKER=1
 test_backend_no_docker: db py2
-	nosetests -vs mltsp
+	nosetests -v mltsp
 
 test_frontend: external/casperjs py2 db
 	@PYTHONPATH="." tools/casper_tests.py
