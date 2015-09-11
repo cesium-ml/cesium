@@ -13,8 +13,11 @@ try:
 except:
     import pickle
 import tempfile
+from numpy.testing import decorators as dec
+
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
 
 
 def setup():
@@ -87,6 +90,7 @@ def test_execute_functions_in_order():
     assert(all(x in feats_list[0] for x in ["a", "l", "o"]))
 
 
+@dec.skipif(no_docker, "Docker testing turned off")
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
     assert(util.docker_images_available())
@@ -174,6 +178,7 @@ def test_copy_data_to_tmp_dir():
     shutil.rmtree(tmp_dir_path, ignore_errors=True)
 
 
+@dec.skipif(no_docker, "Docker testing turned off")
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
     tmp_dir_path = cft.make_tmp_dir()
@@ -205,6 +210,7 @@ def test_remove_tmp_files_and_container():
         assert(not os.path.exists(tmp_file))
 
 
+@dec.skipif(no_docker, "Docker testing turned off")
 def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")

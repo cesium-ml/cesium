@@ -46,10 +46,20 @@ external/casperjs: py2
 test_backend: db py2
 	nosetests -v mltsp
 
+test_backend_no_docker: export MLTSP_NO_DOCKER=1
+test_backend_no_docker: db py2
+	nosetests -v mltsp
+
 test_frontend: external/casperjs py2 db
 	@PYTHONPATH="." tools/casper_tests.py
 
+test_frontend_no_docker: export MLTSP_NO_DOCKER=1
+test_frontend_no_docker: external/casperjs py2 db
+	@PYTHONPATH="." tools/casper_tests.py
+
 test: test_backend test_frontend
+
+test_no_docker: test_backend_no_docker test_frontend_no_docker
 
 install: py2
 	pip install -r requirements.txt
