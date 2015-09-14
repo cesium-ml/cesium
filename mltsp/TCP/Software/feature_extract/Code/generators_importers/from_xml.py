@@ -31,7 +31,7 @@ class from_xml(gen_or_imp):
             for i in range(len(d['ucds'])):
                 if i == obs_ind:
                     continue
-                if type(d['ucds'][i]) == bytes and d['ucds'][i].find(ucd_obs) != -1:
+                if type(d['ucds'][i]) == str and d['ucds'][i].find(ucd_obs) != -1:
                     for e in ucd_error_values:
                         if d['ucds'][i].find(e) != -1:
                             return i
