@@ -81,14 +81,3 @@ def is_running_in_docker():
     else:
         in_docker_container = False
     return in_docker_container
-
-
-def check_disco_running():
-    # Check if Disco is running
-    try:
-        process = Popen(["disco", "status"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = process.communicate()
-        disco_running = "running" in stdout
-    except OSError:
-        disco_running = False
-    return disco_running
