@@ -27,7 +27,5 @@ cp mltsp.yaml.example mltsp.yaml
 
 python -c "import mltsp; mltsp.install()"
 
-PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info &
-
 make db && sleep 1 && make init
 make test_no_docker
