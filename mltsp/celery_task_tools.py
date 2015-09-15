@@ -4,6 +4,7 @@ import os
 from mltsp import cfg
 from mltsp import custom_exceptions
 import numpy as np
+import csv
 
 
 def create_and_pickle_model(data_dict, featureset_key, model_type,
@@ -61,42 +62,19 @@ def read_data_from_csv_file(fname, sep=',', skip_lines=0):
 
     Returns
     -------
-    list of list
-        Two-element list whose first element is a list of the column
+    tuple of list
+        Two-element tuple whose first element is a list of the column
         names in the file, and whose second element is a list of lists,
         each list containing the values in each row in the file.
 
     """
-    f = open(fname)
-    linecount = 0
-    data_rows = []
-    all_rows = []
-    for line in f:
-        if linecount >= skip_lines:
-            if linecount == 0:
-                colnames = line.strip('\n').split(sep)
-                all_rows.append(colnames)
-            else:
-                data_rows.append(line.strip('\n').split(sep))
-                all_rows.append(line.strip('\n').split(sep))
-                if "?" in line:
-                    # Replace missing values with 0.0
-                    data_rows[-1] = [el if el != "?" else "0.0"
-                                     for el in data_rows[-1]]
-                    all_rows[-1] = [el if el != "?" else "0.0"
-                                    for el in all_rows[-1]]
-        linecount += 1
-
-    try:
-        colnames
-    except NameError:
-        return [[], []]
-    for i in range(len(colnames)):
-        colnames[i] = colnames[i].strip('"')
-    print(linecount - 1, "lines of data successfully read.")
-    f.close()
-    # return all_rows
-    return [colnames, data_rows]
+    with open(fname) as f:
+        r = csv.reader(f)
+        all_rows = list(r)[skip_lines:]
+    colnames = all_rows[0]
+    data_rows = all_rows[1:]
+    data_rows = [[el if el != '?' else '0.0'for el in row] for row in data_rows]
+    return colnames, data_rows
 
 
 def clean_up_data_dict(data_dict):
@@ -108,7 +86,6 @@ def clean_up_data_dict(data_dict):
         Dictionary containing features data w/ key 'features'.
 
     """
-    print("\n\n")
     line_lens = []
     indices_for_deletion = []
     line_no = 0
@@ -119,13 +96,10 @@ def clean_up_data_dict(data_dict):
             if len(line) == 1:
                 indices_for_deletion.append(i)
         line_no += 1
-    print(line_no, "total lines in features csv.")
-    print(len(data_dict['features']))
-    if len(indices_for_deletion) == 1:
-        del data_dict['features'][indices_for_deletion[0]]
-        del data_dict['classes'][indices_for_deletion[0]]
-    print(len(data_dict['features']))
-    print("\n\n")
+    indices_for_deletion.sort(reverse=True)
+    for index in indices_for_deletion:
+        del data_dict['features'][index]
+        del data_dict['classes'][index]
     return
 
 
