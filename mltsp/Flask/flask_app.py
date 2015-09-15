@@ -1909,15 +1909,12 @@ def featurize_proc(
     # needed to establish database connection because we're now in a
     # subprocess that is separate from main app:
     before_request()
-    # sys.stdout = open("/tmp/proc_" + str(os.getpid()) + ".out", "w")
     try:
         results_str = featurize.featurize(
             headerfile_path, zipfile_path, features_to_use=features_to_use,
             featureset_id=featureset_key, is_test=is_test,
             already_featurized=already_featurized,
             custom_script_path=custom_script_path)
-        # if email_user not in (False, None, "False", "None"):
-        #     emailUser(email_user)
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
                        "Please ensure that the header file and tarball of time series "
@@ -2785,7 +2782,6 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
                         .split(" (created")[0].strip())
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
                            .split(" (created")[0].strip())
-        # new_model_name = str(request.form['new_model_name'])
         model_type = str(request.form['model_type_select'])
     else:
         post_method = "http_api"
