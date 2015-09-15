@@ -73,7 +73,7 @@ def test_count_classes():
 
 
 def test_generate_features_serial():
-    """Test generate_features - serial extraction"""
+    """Test generate_features"""
     objs = featurize.generate_features(
         pjoin(cfg.UPLOAD_FOLDER,
               "asas_training_subset_classes_with_metadata.dat"),
@@ -81,27 +81,8 @@ def test_generate_features_serial():
               "asas_training_subset.tar.gz"),
         ["std_err"],
         pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False, False)
+        True, False, False)
     npt.assert_equal(len(objs), 3)
-    assert(all("std_err" in d for d in objs))
-    assert(all("class" in d for d in objs))
-    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for d in objs))
-
-
-def test_generate_features_parallel():
-    """Test generate_features - parallelized extraction"""
-    objs = featurize.generate_features(
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset_classes_with_metadata.dat"),
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset.tar.gz"),
-        ["std_err"],
-        None,  # Custom feats not working with Disco yet
-        True, True, False, False)
-    npt.assert_equal(len(objs), 3)
-    print(objs)
     assert(all("std_err" in d for d in objs))
     assert(all("class" in d for d in objs))
     assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
@@ -147,7 +128,7 @@ def test_extract_serial():
         pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
         ["std_err"],
         pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False, False,
+        True, False, False,
         {"217801": "Mira", "219538": "Herbig_AEBE",
          "223592": "Beta_Lyrae"},
         {"217801": {"class": "Mira"},
@@ -220,44 +201,7 @@ def test_write_features_to_disk():
 
 
 def test_main_featurize_function():
-    """Test main featurize function - serial extraction"""
-    shutil.copy(
-        pjoin(DATA_PATH, "testfeature1.py"),
-        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
-    results_msg = featurize.featurize(
-        headerfile_path=pjoin(
-            cfg.UPLOAD_FOLDER,
-            "asas_training_subset_classes_with_metadata.dat"),
-        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
-                           "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "freq1_harmonics_freq_0"],
-        featureset_id="test", is_test=True,
-        custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
-                                 "testfeature1.py"),
-        USE_DISCO=False)
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_features.csv")))
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_classes.npy")))
-    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy")))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
-    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
-                                      "test_features.csv"))
-    cols = df.columns
-    values = df.values
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
-                          "Flask/static/data"),
-                    "test_features_with_classes.csv"))
-    assert("std_err" in cols)
-    assert("freq1_harmonics_freq_0" in cols)
-    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for class_name in class_list))
-
-
-def test_main_featurize_function_disco():
-    """Test main featurize function - using Disco"""
+    """Test main featurize function"""
     test_setup()
 
     shutil.copy(
@@ -272,8 +216,7 @@ def test_main_featurize_function_disco():
         features_to_use=["std_err", "freq1_harmonics_freq_0", "f"],
         featureset_id="test", is_test=True,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
-                                 "testfeature1.py"),
-        USE_DISCO=True)
+                                 "testfeature1.py"),)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -288,8 +231,6 @@ def test_main_featurize_function_disco():
     os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                           "Flask/static/data"),
                     "test_features_with_classes.csv"))
-    print(cols)
-    print(values)
     assert("std_err" in cols)
     assert("f" in cols)
     assert("freq1_harmonics_freq_0" in cols)

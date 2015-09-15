@@ -162,8 +162,8 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
 
 
 def generate_features(headerfile_path, zipfile_path, features_to_use,
-                      custom_script_path, is_test, USE_DISCO,
-                      already_featurized, in_docker_container):
+                      custom_script_path, is_test, already_featurized,
+                      in_docker_container):
     """Generate features for provided time-series data.
 
     """
@@ -263,10 +263,9 @@ def remove_unzipped_files(all_fnames):
 
 
 def extract_serial(headerfile_path, zipfile_path, features_to_use,
-                   custom_script_path, is_test, USE_DISCO,
-                   already_featurized, in_docker_container,
-                   fname_class_dict, fname_class_science_features_dict,
-                   fname_metadata_dict):
+                   custom_script_path, is_test, already_featurized,
+                   in_docker_container, fname_class_dict,
+                   fname_class_science_features_dict, fname_metadata_dict):
     """Generate TS features serially.
 
     """
@@ -437,9 +436,8 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
 
 def featurize(
         headerfile_path, zipfile_path, features_to_use=[],
-        featureset_id="unknown", is_test=False, USE_DISCO=True,
-        already_featurized=False, custom_script_path=None,
-        in_docker_container=False):
+        featureset_id="unknown", is_test=False, already_featurized=False,
+        custom_script_path=None, in_docker_container=False):
     """Generate features for labeled time series data.
 
     Features are saved to the file given by
@@ -466,9 +464,6 @@ def featurize(
     is_test : bool, optional
         Boolean indicating whether to do a test run of only the first
         five time-series files. Defaults to False.
-    USE_DISCO : bool, optional
-        Boolean indicating whether to featurize in parallel using Disco.
-        Defaults to True.
     already_featurized : bool, optional
         Boolean indicating whether `headerfile_path` points to a file
         containing pre-generated features, in which case `zipfile_path`
@@ -487,12 +482,11 @@ def featurize(
 
     """
     # Generate features for each TS object
-    objects = generate_features(
+    features = generate_features(
         headerfile_path, zipfile_path, features_to_use,
-        custom_script_path, is_test, USE_DISCO, already_featurized,
-        in_docker_container)
+        custom_script_path, is_test, already_featurized, in_docker_container)
 
-    write_features_to_disk(objects, featureset_id, features_to_use,
+    write_features_to_disk(features, featureset_id, features_to_use,
                            in_docker_container)
     # Clean up
     if not in_docker_container:
