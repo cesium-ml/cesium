@@ -75,10 +75,6 @@ Initialize the database:
 
 ``make init``
 
-Launch the Celery worker server:
-
-``PYTHONPATH="./mltsp" celery -A celery_tasks worker -l info``
-
 Launch:
 
 ``make webapp``
