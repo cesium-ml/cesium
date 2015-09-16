@@ -27,5 +27,7 @@ cp mltsp.yaml.example mltsp.yaml
 
 python -c "import mltsp; mltsp.install()"
 
+rabbitmq-server &
+
 make db && sleep 1 && make init
 make test_no_docker
