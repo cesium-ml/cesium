@@ -12,10 +12,8 @@ from mltsp import celery_task_tools as ctt
 from copy import deepcopy
 
 
-#sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-#                             "mltsp/ext"))
-os.environ['CELERY_CONFIG_MODULE'] = 'mltsp.ext.celeryconfig'
-celery_app = Celery('celery_fit', broker='amqp://guest@localhost//')
+os.environ['CELERY_CONFIG_MODULE'] = cfg.CELERY_CONFIG
+celery_app = Celery('celery_fit', broker=cfg.CELERY_BROKER)
 
 
 @celery_app.task(name='celery_tasks.fit_model')

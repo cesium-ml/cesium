@@ -39,6 +39,9 @@ except Exception as e:
     print("Using N_CORES = 8")
     N_CORES = 8
 
+CELERY_CONFIG = 'mltsp.ext.celeryconfig'
+CELERY_BROKER = 'amqp://guest@localhost//'
+
 # Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
