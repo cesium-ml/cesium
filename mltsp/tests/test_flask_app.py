@@ -104,7 +104,6 @@ class FlaskAppTestCase(unittest.TestCase):
     def test_check_job_status(self):
         """Test check job status"""
         rv = self.app.post('/check_job_status/?PID=999999')
-        print(rv.data)
         assert 'finished' in rv.data
         rv = self.app.post('/check_job_status/?PID=1')
         assert 'currently running' in rv.data
@@ -617,7 +616,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "results_str_html": "111HTML"})\
                 .run(conn)
             results = fa.list_predictions(auth_only=True)
-            print(results)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("predictions").get("abc123").delete().run(conn)
@@ -657,7 +655,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "results_str_html": "111HTML"})\
                 .run(conn)
             results = fa.list_predictions(auth_only=False, detailed=False)
-            print(results)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("projects").get("abc123").delete().run(conn)
             r.table("predictions").get("abc123").delete().run(conn)
@@ -723,7 +720,6 @@ class FlaskAppTestCase(unittest.TestCase):
         rv = self.app.get('/get_list_of_projects')
         r.table("projects").get("abc123").delete().run(conn)
         r.table("userauth").get("abc123").delete().run(conn)
-        print(rv.data)
         assert '{' in rv.data
         assert isinstance(eval(rv.data), dict)
         assert "abc123" in eval(rv.data)["list"]
@@ -935,7 +931,6 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = fa.featset_associated_files("abc123")
             r.table("features").get("abc123").delete().run(conn)
             short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
-            print(short_fnames)
             assert all(fname in short_fnames for fname in
                        ["ZIPPATH.tar.gz", "HEADPATH.dat"])
 
@@ -1092,7 +1087,6 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123_2").delete().run(conn)
-            print(proj_info)
             assert all(email in proj_info["authed_users"] for email in
                        [TEST_EMAIL, "abc@123.com"])
             assert "<table" in proj_info["featuresets"] and "abc123" in \
@@ -1232,8 +1226,6 @@ class FlaskAppTestCase(unittest.TestCase):
             proj_dets = fa.get_project_details("new_name")
             r.table("projects").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123").delete().run(conn)
-            for e in r.table("userauth").run(conn):
-                print(e)
             npt.assert_equal(
                 r.table("userauth").filter(
                     {"id": "abc123_2"}).count().run(conn),
@@ -1348,7 +1340,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             d = fa.get_all_info_dict(auth_only=False)
             r.table("projects").get("abc123").delete().run(conn)
-            print(d["list_of_current_projects"])
             assert len(d["list_of_current_projects"]) > 0
 
     def test_get_list_of_available_features(self):
@@ -1897,7 +1888,6 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             rv = self.app.get('/newProject/abc123/desc/None/%s' % TEST_EMAIL)
             res_str = str(rv.data)
-            print(res_str)
             entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
                                                                   .next()
             r.table("projects").get("abc123").delete().run(conn)
@@ -2010,7 +2000,6 @@ class FlaskAppTestCase(unittest.TestCase):
                               "/abc123/abc123")
             r.table("projects").get("abc123").delete().run(conn)
             r.table("features").get("abc123").delete().run(conn)
-            print(rv.data)
             res_id = json.loads(rv.data)["featureset_id"]
             npt.assert_equal(res_id, "abc123")
 
@@ -2173,7 +2162,6 @@ class FlaskAppTestCase(unittest.TestCase):
             time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            print(new_key)
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -2577,15 +2565,6 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RF",
                                       "name": "TEMP_TEST01"}).run(conn)
-            print("featureset_name_to_key called from test ftn:",
-                  fa.featureset_name_to_key("TEMP_TEST01",
-                                            project_name="abc123"))
-            print("PROJECTS")
-            for e in r.table("projects").run(conn):
-                print(e)
-            print("FEATURES")
-            for e in r.table("features").run(conn):
-                print(e)
             dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                     pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
             for f in dsts:
