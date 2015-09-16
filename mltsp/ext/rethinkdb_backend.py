@@ -1,3 +1,9 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 Pilwon Huh
+#
+# https://github.com/pilwon/celery-backends-rethinkdb
+
 # -*- coding: utf-8 -*-
 """
     celery.backends.rethinkdb
