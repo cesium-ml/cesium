@@ -1,11 +1,8 @@
 beautifulsoup4
 flask
 Flask-Stormpath
-flask-mail
-flask-restful
 docker-py
 numpy
-numexpr>=2.0
 scipy
 scikit-learn==0.16.1  # also update version in dockerfiles/base/Dockerfile
 pandas
@@ -15,7 +12,6 @@ rethinkdb
 requests
 simplejson
 colorlog
-future>=0.13
 matplotlib
 nose
 nose-exclude
