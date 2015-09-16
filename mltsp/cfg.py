@@ -4,7 +4,7 @@
 #
 from __future__ import print_function
 import os, sys
-
+import multiprocessing
 import yaml
 
 # Load configuration
@@ -31,6 +31,13 @@ if not config:
           "If you don't want to read the manual, do the following:\n"
           "  import mltsp; mltsp.install()")
     sys.exit(-1)
+
+try:
+    N_CORES = multiprocessing.cpu_count()
+except Exception as e:
+    print(e)
+    print("Using N_CORES = 8")
+    N_CORES = 8
 
 # Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -228,6 +235,6 @@ for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
         except Exception as e:
             print(e)
 
-del yaml, os, sys, print_function, config_files
+del yaml, os, sys, print_function, config_files, multiprocessing
 
 config['mltsp'] = locals()

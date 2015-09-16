@@ -183,8 +183,8 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
             fname_class_science_features_dict, fname_metadata_dict,
             zipfile_path, custom_script_path, is_test)
         # TO-DO: Determine number of cores in cluster:
-        n_cores = 8
-        res = featurize_celery_task.chunks(input_params_list, n_cores).delay()
+        res = featurize_celery_task.chunks(input_params_list,
+                                           cfg.N_CORES).delay()
         res_list = res.get(timeout=100)
         objects = []
         for line in res_list:

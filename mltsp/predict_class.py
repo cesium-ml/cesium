@@ -147,8 +147,7 @@ def featurize_multiple(newpred_file_path, features_to_use,
     input_params_list = generate_input_params_list(
         newpred_file_path, features_to_use, custom_features_script,
         meta_features, tmp_dir_path)
-    n_cores = 8
-    res = pred_featurize_single.chunks(input_params_list, n_cores).delay()
+    res = pred_featurize_single.chunks(input_params_list, cfg.N_CORES).delay()
     res_list = res.get(timeout=100)
     big_features_and_tsdata_dict = {}
     for line in res_list:
