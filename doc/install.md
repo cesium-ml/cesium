@@ -2,8 +2,9 @@
 
 ## System dependencies
 
-If you are using Anaconda, create your environment with packaged
-dependencies pre-installed to save time:
+If you are using Anaconda (install dependencies with
+`sudo apt-get install libsm6 libxrender1 libfontconfig1`),
+create your environment with packaged dependencies pre-installed to save time:
 
 ``conda create -n mltsp scipy pandas matplotlib scikit-learn pip``
 
@@ -24,6 +25,12 @@ Then activate it:
   Server will automatically run as a daemon (background process) upon install
   on Ubuntu. On OS X, run ``rabbitmq-server -detached`` after install.
 
+* Install PhantomJS
+
+  For Debian / Ubuntu:
+
+  ``sudo apt-get install phantomjs``
+
 * Install RethinkDB
 
   For Debian / Ubuntu:
@@ -34,8 +41,6 @@ Then activate it:
   sudo apt-get update
   sudo apt-get install rethinkdb
   ```
-
-  Run ``rethinkdb`` in the MLTP directory.
 
 * Install Docker
 
