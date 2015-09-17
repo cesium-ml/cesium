@@ -2,6 +2,10 @@
 
 ## System dependencies
 
+Install compiler dependecies with
+
+``sudo apt-get install build-essential python-dev``
+
 If you are using Anaconda (install dependencies with
 `sudo apt-get install libsm6 libxrender1 libfontconfig1`),
 create your environment with packaged dependencies pre-installed to save time:
