@@ -69,7 +69,7 @@ Then activate it:
 
 ## Configuration
 
-* Execute ``import mltsp; mltsp.install()``
+* Run ``python -c 'import mltsp; mltsp.install()'``
 
 * Locate ``~/.config/mltsp/mltsp.yaml`` and customize authentication tokens.
 
