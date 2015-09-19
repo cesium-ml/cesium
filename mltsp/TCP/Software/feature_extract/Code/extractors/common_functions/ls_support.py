@@ -1,3 +1,4 @@
+# TODO remove?
 lomb_scargle_support = """
   inline void copy_sincos (int numt, double sinx0[], double cosx0[], double sinx[], double cosx[]) {
       for (int i=0;i<numt;i++) {

@@ -7,6 +7,9 @@ class s_extractor(InterExtractor):
     active = True
     extname = 's' #extractor's name
     minpoints = 2 # minimum number of points for the extractor to run
+# TODO the quantity in the link is just std_extractor rescaled by sqrt(n/(n-1))
+# however, this uses the weighted average for x_bar, so maybe we want both versions?
+# but this is different from the "weighted standard deviation"...
     def extract(self):
         n = float(self.fetch_extr('n_points'))
         average = self.fetch_extr('weighted_average')

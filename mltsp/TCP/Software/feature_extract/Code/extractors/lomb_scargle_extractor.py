@@ -8,6 +8,7 @@ from ..FeatureExtractor import FeatureExtractor
 from ..FeatureExtractor import InterExtractor
 from .common_functions.pre_whiten import pre_whiten
 
+# TODO use namespace
 try:
     from pylab import *
 except:
@@ -22,6 +23,8 @@ class lomb_scargle_extractor(InterExtractor):
     internal_use_only = False
     active = True
     extname = 'lomb_scargle'
+    def __init__(self):
+        pass
 
     def extract(self):
         src_dict = {}
@@ -33,10 +36,11 @@ class lomb_scargle_extractor(InterExtractor):
             self.ex_error(text="self.time_data of len()==0")
 
         obs = lightcurve.observatory_source_interface()
+        # 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
         db_dictionary, cn_output = obs.lomb_code(src_dict['m'],
-                                       src_dict['m_err'],
-                                       src_dict['t'],
-                             srcid=self.dic['input'].get('srcid',0))# 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
+                                                 src_dict['m_err'],
+                                                 src_dict['t'],
+                                                 srcid=self.dic['input'].get('srcid',0))# 20110611 dstarr added just for lightcurve.py:lomb_code():<Plot the PSD(freq)> debug/allstars-plot use.
 
         out_dict = {}
         dstr_list = ['freq1','freq2','freq3']#,'freq4']
@@ -47,6 +51,7 @@ class lomb_scargle_extractor(InterExtractor):
             else:
                 n_harm_iters = 1 + 3 # includes primary component
 
+# TODO don't like this but is there a simpler way? where/how else could these be stored in general?
             out_dict["%s_harmonics_freq_0" % (dstr)] = lomb_dict['frequency']
             for i in range(n_harm_iters):
                 out_dict["%s_harmonics_amplitude_%d" % (dstr, i)] = \

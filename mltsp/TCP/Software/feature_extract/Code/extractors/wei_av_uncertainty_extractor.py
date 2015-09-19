@@ -1,5 +1,6 @@
 from ..FeatureExtractor import FeatureExtractor
 
+# TODO should just be a function
 class wei_av_uncertainty_extractor(FeatureExtractor): ### REDUNDANT
     active = False
     extname = 'wei_av_uncertainty' #extractor's name

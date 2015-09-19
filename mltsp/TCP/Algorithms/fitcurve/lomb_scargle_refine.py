@@ -1,3 +1,4 @@
+# TODO duplicate?
 from numpy import empty,pi,sqrt,sin,cos,dot,where,arange,arctan2,array,diag,ix_,log10,outer,hstack,log,round,zeros
 from scipy import weave
 from lomb_scargle import lprob2sigma

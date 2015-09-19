@@ -14,5 +14,7 @@ Note - Ive arbitrarily selected 3 percent here. It could be 5 percent or 10, we 
             medmag = median(self.flux_data)
             sortmag = sort(self.flux_data)
             three_per = int(round(0.03*len(self.flux_data)))
+# TODO don't love this name...
+# TODO this is just 2*np.median(x) - np.percentile(x, 98.5) - np.percentile(x, 1.5) w/ weird rounding of indices
             ghetto_skew = (medmag - median(sortmag[-three_per:])) + (medmag-median(sortmag[0:three_per]))
             return ghetto_skew

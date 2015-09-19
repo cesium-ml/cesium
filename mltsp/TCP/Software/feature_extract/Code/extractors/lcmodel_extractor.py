@@ -1,13 +1,13 @@
 from ..FeatureExtractor import FeatureExtractor, InterExtractor
 
-import numpy
+import numpy as np
 import scipy.integrate
 
 class lcmodel_extractor(InterExtractor):
     """ Base class for the unfolded lightcurve model features.
     dstarr coded 2012-07-20
 
-    Gaussian Kernel smoothing adapted from I.Shivvers' delta_hase_2minima_extractor.py
+    Gaussian Kernel smoothing adapted from I.Shivvers' delta_phase_2minima_extractor.py
     """
     internal_use_only = False # if set True, then seems to run all X code for each sub-feature
     active = True # if set False, then seems to run all X code for each sub-feature
@@ -20,12 +20,11 @@ class lcmodel_extractor(InterExtractor):
         For debugging only.
         """
         #####
-        import numpy as np
         from sklearn.gaussian_process import GaussianProcess
         from matplotlib import pyplot as pl
 
-        t_min = numpy.min(X)
-        t_max = numpy.max(X)
+        t_min = np.min(X)
+        t_max = np.max(X)
         x = np.atleast_2d(np.linspace(t_min, t_max, 10000)).T
 
         X = np.atleast_2d(X).T
@@ -50,8 +49,8 @@ class lcmodel_extractor(InterExtractor):
         rcParams.update({'legend.fontsize':8})
         ms = 4
         fig = pl.figure()
-        pl.plot(x, [numpy.median(y)]*len(x), 'c', label='median')
-        #pl.plot(x, [numpy.mean(y)]*len(x), 'm', label=u'mean')
+        pl.plot(x, [np.median(y)]*len(x), 'c', label='median')
+        #pl.plot(x, [np.mean(y)]*len(x), 'm', label=u'mean')
         #pl.plot(X, y, 'r:', label=u'orig $m(t)$')
         pl.errorbar(X.ravel(), y, dy, fmt='ro', ms=5, label='Observations')
         pl.plot(X, shivv_model, 'g', ms=ms, label='Shivvers model')
@@ -82,19 +81,20 @@ class lcmodel_extractor(InterExtractor):
         #print
         
 
+# TODO abomination
     def get_dmag_at_median_threshold(self, sign, normalized_model_mags):
         """
         """
         if sign == 'pos':
-            thresh_list = numpy.linspace(0,numpy.max(normalized_model_mags),20)
+            thresh_list = np.linspace(0,np.max(normalized_model_mags),20)
         elif sign == 'neg':
-            thresh_list = numpy.linspace(numpy.min(normalized_model_mags),0,20)
-        thresh_passthru = numpy.zeros(len(thresh_list), dtype=numpy.int)
+            thresh_list = np.linspace(np.min(normalized_model_mags),0,20)
+        thresh_passthru = np.zeros(len(thresh_list), dtype=np.int)
         for i_th, thresh in enumerate(thresh_list):
             if sign == 'pos':
-                past_thresh = numpy.where(normalized_model_mags > thresh)[0]
+                past_thresh = np.where(normalized_model_mags > thresh)[0]
             elif sign == 'neg':
-                past_thresh = numpy.where(normalized_model_mags < thresh)[0]#[::-1]
+                past_thresh = np.where(normalized_model_mags < thresh)[0]#[::-1]
             j_prev = -10 # some value < -1
             for j in past_thresh:
                 if j-1 == j_prev:
@@ -103,7 +103,7 @@ class lcmodel_extractor(InterExtractor):
                 thresh_passthru[i_th] += 1
                 j_prev = j
 
-        sum_n_passthru_2 = numpy.sum(thresh_passthru)/2.
+        sum_n_passthru_2 = np.sum(thresh_passthru)/2.
         cumul = 0
         delta_mag_median = 0. # This should always get a found value.
         for i, n in enumerate(thresh_passthru):
@@ -131,10 +131,11 @@ class lcmodel_extractor(InterExtractor):
                 'n_thresh_median':n}
                 
 
+# TODO off by 1?
     def get_n_passing_median(self, normalized_model_mags):
         """ Get number of positive slope intersections of delta_mag=0.0 median
         """
-        past_thresh = numpy.where(normalized_model_mags > 0.0)[0]
+        past_thresh = np.where(normalized_model_mags > 0.0)[0]
         n_thresh_at_median = 0
         j_prev = -10 # some value < -1
         for j in past_thresh:
@@ -154,9 +155,9 @@ class lcmodel_extractor(InterExtractor):
         over ( < median) gaps would skew the results.
         """
         if sign == 'pos':
-            past_thresh = numpy.where(m > 0.0)[0]
+            past_thresh = np.where(m > 0.0)[0]
         elif sign == 'neg':
-            past_thresh = numpy.where(m < 0.0)[0]
+            past_thresh = np.where(m < 0.0)[0]
         total_area = 0.
         t_segment = [t[past_thresh[0]]]
         m_segment = [m[past_thresh[0]]]
@@ -193,7 +194,7 @@ class lcmodel_extractor(InterExtractor):
             bandwidth = 500*float(optimal_window)/len(t) # 1000 too smooth, 100 is ok but a little too coupled to orig data.
             shivv_model = self.kernelSmooth(t, m, bandwidth)
 
-            m_median = numpy.median(m)
+            m_median = np.median(m)
             normalized_model_mags = shivv_model - m_median
 
             n_thresh_at_median = self.get_n_passing_median(normalized_model_mags)
@@ -208,7 +209,7 @@ class lcmodel_extractor(InterExtractor):
             #                                       neg_delta_mag=neg_dict['delta_mag_median'] + m_median)
 
             
-            delta_t = numpy.max(t) - numpy.min(t)
+            delta_t = np.max(t) - np.min(t)
 
             self.lc_feats = {'pos_mag_ratio': pos_dict['delta_mag_median']/(pos_dict['delta_mag_median'] + abs(neg_dict['delta_mag_median'])),
                     'pos_n_ratio': pos_dict['n_thresh_median']/float(pos_dict['n_thresh_median'] + neg_dict['n_thresh_median']),
@@ -229,46 +230,46 @@ class lcmodel_extractor(InterExtractor):
         return phase
 
     def rolling_window(self, b, window):
-        """ Call: numpy.mean(rolling_window(observations, n), 1)
+        """ Call: np.mean(rolling_window(observations, n), 1)
         """
         # perform smoothing using strides trick
         shape = b.shape[:-1] + (b.shape[-1] - window + 1, window)
         strides = b.strides + (b.strides[-1],)
-        return numpy.lib.stride_tricks.as_strided(b, shape=shape, strides=strides)
+        return np.lib.stride_tricks.as_strided(b, shape=shape, strides=strides)
 
     def GCV(self, window, X,Y):
         # put in proper order
         zpm = list(zip(X,Y))
         zpm.sort()
-        zpm_arr = numpy.array(zpm)
+        zpm_arr = np.array(zpm)
         phs = zpm_arr[:,0]
         mags = zpm_arr[:,1]
         # handle edges properly by extending array in both directions
         if window>1:
-            b = numpy.concatenate((mags[-window/2:], mags, mags[:window/2-1]))
+            b = np.concatenate((mags[-window/2:], mags, mags[:window/2-1]))
         else:
             b = mags
         # calculate smoothed model and corresponding smoothing matrix diagonal value
-        model = numpy.mean(self.rolling_window(b, window), 1)
+        model = np.mean(self.rolling_window(b, window), 1)
         Lii = 1./window
         # return the Generalized Cross-Validation criterion
-        GCV = 1./len(phs) * numpy.sum( ((mags-model)/(1.-Lii))**2 )
+        GCV = 1./len(phs) * np.sum( ((mags-model)/(1.-Lii))**2 )
         return GCV
 
     def minimize_GCV(self,X,Y, window_range=(10,50,2)):
         ''' quick way to pick best GCV value '''
-        windows = numpy.arange(*window_range)
-        GCVs = numpy.array( [self.GCV(window, X,Y) for window in windows] )
-        best_GCV = numpy.min(GCVs)
-        optimal_window = windows[ numpy.argmin(GCVs) ]
+        windows = np.arange(*window_range)
+        GCVs = np.array( [self.GCV(window, X,Y) for window in windows] )
+        best_GCV = np.min(GCVs)
+        optimal_window = windows[ np.argmin(GCVs) ]
         return best_GCV, optimal_window
 
     def GaussianKernel(self, x):
-        return (1./numpy.sqrt(2.*numpy.pi)) * numpy.exp(-x**2 / 2.)
+        return (1./np.sqrt(2.*np.pi)) * np.exp(-x**2 / 2.)
 
     def kernelSmooth(self, X, Y, bandwidth):
         ''' slow implementation of gaussian kernel smoothing '''
-        L = numpy.zeros([len(Y),len(X)])
+        L = np.zeros([len(Y),len(X)])
         diags = []
         for i in range(len(X)):
             diff = abs(X[i] - X)
@@ -279,17 +280,17 @@ class lcmodel_extractor(InterExtractor):
             # calculate the Gaussian for the values within 4sigma and plug it in
             # anything beyond 4sigma is basically zero
             tmp = self.GaussianKernel(l[l<4])
-            diags.append(numpy.max(tmp))
-            L[i,l<4] = tmp/numpy.sum(tmp)
+            diags.append(np.max(tmp))
+            L[i,l<4] = tmp/np.sum(tmp)
         # model is the smoothing matrix dotted into the data
-        return numpy.dot(L, Y.T)
+        return np.dot(L, Y.T)
 
     def find_peaks(self, x):
         """ find peaks in <x> """
         xmid = x[1:-1] # orig array with ends removed
         xm1 = x[2:] # orig array shifted one up
         xp1 = x[:-2] # orig array shifted one back
-        return numpy.where(numpy.logical_and(xmid > xm1, xmid > xp1))[0] + 1
+        return np.where(np.logical_and(xmid > xm1, xmid > xp1))[0] + 1
 
 
 
