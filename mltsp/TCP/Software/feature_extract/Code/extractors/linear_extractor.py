@@ -4,6 +4,7 @@ import numpy
 from scipy import optimize
 from .common_functions import ChiSquare
 
+# TODO just use weighted least squares, e.g. polyfit
 class linear_extractor(InterExtractor,ChiSquare): # fits ax+b	
 	''' produces a linear fit, returns in the format 'a(slope), b (y-intercept) '''
 	active = True

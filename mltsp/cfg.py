@@ -172,6 +172,7 @@ features_list_science = [
     "phase_dispersion_freq0"]
 
 # TCP science features being ignored:
+# TODO why ignore these?
 ignore_feats_list_science = [
     "source_id",
     "color_bv_extinction",

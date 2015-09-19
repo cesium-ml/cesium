@@ -50,6 +50,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     """
     numt = len(time)
 
+# TODO what is this?
     freq_zoom = round(freq_zoom/2.)*2.
 
     dord = detrend_order
@@ -67,6 +68,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     s0 = dot(wth0,wth0)
     wth0 /= sqrt(s0)
 
+# TODO what is this step
     cn = (signal*wth0).astype('float64')
     coef[0] = dot(cn,wth0); cn0 = coef[0]; norm[0] = 1.
     cn -= coef[0]*wth0
@@ -93,6 +95,8 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     else:
         wth = wth0
 
+# TODO can we just use polyfit from numpy
+# TODO not clear why this has to live inside lomb_scargle code, should be decoupled
     for i in range(detrend_order):
         f = wth[i,:]*tt/(2*pi)
         for j in range(i+1):
@@ -114,6 +118,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     lambda0_range = 10**array(lambda0_range,dtype='float64')/s0
 
 
+# TODO why?
     vars=['numt','numf','nharm','detrend_order','psd','cn','wth','sinx','cosx','sinx_step','cosx_step','sinx_back','cosx_back','sinx_smallstep','cosx_smallstep','hat_matr','hat_hat','hat0','soln','chi0','freq_zoom','psdmin','tone_control','lambda0','lambda0_range','Tr','ifreq']
 
     lomb_scargle(numt, numf, nharm, detrend_order, psd, cn, wth, sinx,
@@ -121,9 +126,10 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
                  sinx_smallstep, cosx_smallstep, hat_matr, hat_hat, hat0,
                  soln, chi0, freq_zoom, psdmin, tone_control, lambda0,
                  lambda0_range, Tr, ifreq)
-
+    
     hat_hat /= s0
     ii = arange(nharm,dtype='int32')
+# TODO why?
     soln[0:nharm] /= (1.+ii)**2; soln[nharm:] /= (1.+ii)**2
     if (detrend_order>=0):
         hat_matr0 = outer(hat0[:,0],wth0)
@@ -179,6 +185,7 @@ def lomb(time, signal, error, f1, df, numf, nharm=8, psdmin=6., detrend_order=0,
     rel_phase = phase - phase[0]*(1.+ii)
     rel_phase = arctan2( sin(rel_phase),cos(rel_phase) )
     dphase = 0.*rel_phase
+# TODO what is this
     for i in range(nharm-1):
         j=i+1
         v = array([-A0[0]*(1.+j)/amp[0]**2,B0[0]*(1.+j)/amp[0]**2,A0[j]/amp[j]**2,-B0[j]/amp[j]**2])

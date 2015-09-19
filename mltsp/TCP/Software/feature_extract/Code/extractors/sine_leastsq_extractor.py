@@ -9,6 +9,7 @@ except:
 	pass
 from .common_functions import *
 
+# TODO remove?
 class sine_leastsq_extractor(InterExtractor,ChiSquare):
 	active = True
 	extname = 'sine_leastsq' #extractor's name

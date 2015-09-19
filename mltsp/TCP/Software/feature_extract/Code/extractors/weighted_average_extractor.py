@@ -11,6 +11,8 @@ class weighted_average_extractor(plot_horizontal_line,FeatureExtractor):
 	active = True
 	extname = 'weighted_average' #extractor's name
 	def extract(self):
+# TODO do we compute these error weights a lot? could be a library function
+# cf. ChiSquare module
 		we_av = (self.flux_data / (self.rms_data)**2).sum()/((1/self.rms_data)**2).sum()
 		self.uncertainty = sqrt(1.0/(self.rms_data**(2)).sum())
 #		print 'weighted',we_av

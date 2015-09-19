@@ -6,6 +6,7 @@ try:
 except:
 	pass
 
+# TODO I think this is all pretty unnecessary, just use weighted least squares
 class ChiSquare(object): #gives extractors the ability to calculate chi squares
 	def chi_square_sum(self,y,f,x=None,rms=None):
 		""" inputs: [y]-data (array) [f]unction (function), [x]-axis [rms] noise (array)"""
