@@ -1,5 +1,6 @@
 from ..FeatureExtractor import FeatureExtractor
 
+# TODO simplify
 class beyond1std_extractor(FeatureExtractor):
     """ calculates the percentage of points that lie beyond one standard deviation from the weighted mean """
     active = True
@@ -16,5 +17,6 @@ class beyond1std_extractor(FeatureExtractor):
         except:
             self.ex_error(text="beyond1std_extractor")
         return ret_val
+# TODO why
     def x_devs(self): # how many deviations ?
         self.devs = 1.0

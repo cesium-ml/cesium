@@ -38,7 +38,8 @@ except:
     pass
 import pprint
 
-import numpy
+import numpy as np
+# TODO use namespace
 from numpy import *
 
 from scipy import random
@@ -172,7 +173,7 @@ class observatory_source_interface(object):
             try:
                 from matplotlib import pyplot as plt
                 ### Plot the PSD(freq)
-                psd_array = numpy.array(psd)
+                psd_array = np.array(psd)
                 #import matplotlib
                 #matplotlib.use('PNG')
                 #import matplotlib.pyplot as plt
@@ -181,7 +182,7 @@ class observatory_source_interface(object):
                 
                 fig = plt.figure(figsize=(5,3), dpi=100)
                 ax2 = fig.add_subplot(211)
-                ax2.plot(freqin, numpy.log10(psd_array))
+                ax2.plot(freqin, np.log10(psd_array))
                 ax2.set_ylim(0,3)
                 ax2.set_yticks([3,2,1,0])
                 ax2.set_ylabel("Log10(psd)")
@@ -191,7 +192,7 @@ class observatory_source_interface(object):
                             fontsize=10)
                 ax2.set_title(str(srcid) + " Non-prewhitened, Power Spectral Density", fontsize=9)
                 ax3 = fig.add_subplot(212)
-                ax3.plot(numpy.log10(freqin), numpy.log10(psd_array))
+                ax3.plot(np.log10(freqin), np.log10(psd_array))
                 ax3.set_ylim(-3,3)
                 ax3.set_xlim(-3,1)
                 ax3.set_yticks([3,2,1,0,-1,-2,-3])
@@ -251,6 +252,7 @@ class observatory_source_interface(object):
         max_4_a = fmin(model_f, min_3_a + 0.01)[0]
 
         try:
+# TODO is this wrong? seems like it should be a minus
             out_dict['model_phi1_phi2'] = (min_3_a - max_2_a) / (max_4_a / min_3_a)
             out_dict['model_min_delta_mags'] = abs(model_f(min_1_a) - model_f(min_3_a))
             out_dict['model_max_delta_mags'] = abs(model_f(max_2_a) - model_f(max_4_a))
@@ -269,8 +271,8 @@ class observatory_source_interface(object):
 
             ax2.plot(t_plot, modl, 'go')
 
-            ax2.plot([max_2_a, max_4_a], numpy.array([model_f(max_2_a), model_f(max_4_a)]) + y_median + 0.5, 'yo')
-            ax2.plot([min_1_a, min_3_a], numpy.array([model_f(min_1_a), model_f(min_3_a)]) + y_median + 0.5, 'ko')
+            ax2.plot([max_2_a, max_4_a], np.array([model_f(max_2_a), model_f(max_4_a)]) + y_median + 0.5, 'yo')
+            ax2.plot([min_1_a, min_3_a], np.array([model_f(min_1_a), model_f(min_3_a)]) + y_median + 0.5, 'ko')
             
             ax2.set_title("srcid=%d   P=%f min_1=%f   max_2=%f   min_3=%f   max_4=%f" % (srcid, 1. / freq1_freq, min_1_a, max_2_a, min_3_a, max_4_a), fontsize=9)
             plt.savefig("/tmp/ggg.png")
@@ -306,6 +308,7 @@ class observatory_source_interface(object):
         #alias_std = std( x-x.round() )
 
         Xmax = x.max()
+# TODO why? seems arbitrary; applies to this whole section...
         f0 = 1./Xmax
         df = 0.8/Xmax    # 20120202 :    0.1/Xmax
         fe = 33. #pre 20120126: 10. # 25
@@ -329,7 +332,7 @@ class observatory_source_interface(object):
         for i in range(num_freq_comps):
             if (i==0):
                 psd,res = lombr(x,ytest,dy0,f0,df,numf, tone_control=tone_control,
-                                lambda0_range=lambda0_range, nharm=nharm, detrend_order=1)                    
+                                lambda0_range=lambda0_range, nharm=nharm, detrend_order=1)
                 ### I think it still makes sense to set these here, even though freq1 may be replaced by another non-alias freq.  This is because these are parameters that are derived from the first prewhitening application:
                 out_dict['lambda'] = res['lambda0'] # 20120206 added
                 out_dict['chi0'] = res['chi0']
@@ -367,6 +370,7 @@ class observatory_source_interface(object):
             freq_dict['harmonics_time_offset'] = res['time0']
             freq_dict['harmonics_y_offset'] = res['cn0'] # 20110429: disable since it was previously mean subtracted and not useful, and not mean subtracted is avg-mag and essentially survey biased # out_dict['cn0']
 
+# TODO what is going on here? also, decouple
         ### Here we check for "1-day" aliases in ASAS / Deboss sources
         dstr_alias = []
         dstr_all = ["freq%i" % (i + 1) for i in range(num_freq_comps)]
@@ -374,7 +378,7 @@ class observatory_source_interface(object):
         #for dstr in dstr_all:
         #    period = 1./out_dict[dstr]['frequency']
         #    if (((period >= 0.93) and (period <= 1.07) and 
-        #         (out_dict[dstr]['signif'] < (3.771221/numpy.power(numpy.abs(period - 1.), 0.25) + 3.293027))) or
+        #         (out_dict[dstr]['signif'] < (3.771221/np.power(np.abs(period - 1.), 0.25) + 3.293027))) or
         #        ((period >= 0.485) and (period <= 0.515) and (out_dict[dstr]['signif'] < 10.0)) or
         #        ((period >= 0.325833333) and (period <= 0.340833333) and (out_dict[dstr]['signif'] < 8.0))):
         #        dstr_alias.append(dstr) # this frequency has a "1 day" alias (or 0.5 or 0.33
@@ -406,7 +410,7 @@ class observatory_source_interface(object):
             for a in alias:
                 if ((period >= a['p_low']) and 
                     (period <= a['p_high']) and 
-                    (out_dict[dstr]['signif'] < (a['alpha_1']/numpy.power(numpy.abs(period - a['per']), 0.25) + a['alpha_2']))):
+                    (out_dict[dstr]['signif'] < (a['alpha_1']/np.power(np.abs(period - a['per']), 0.25) + a['alpha_2']))):
                     dstr_alias.append(dstr) # this frequency has a "1 day" alias (or 0.5 or 0.33
                     break # only need to do this once per period, if an alias is found.
         
@@ -448,25 +452,25 @@ class observatory_source_interface(object):
         tups = list(zip(t_2per_fold, y))#, range(len(t_2per_fold)))
         tups.sort()
         t_2fold, m_2fold = zip(*tups) #So:  m_2fold[30] == y[i_fold[30]]
-        m_2fold_array = numpy.array(m_2fold)
-        sumsqr_diff_folded = numpy.sum((m_2fold_array[1:] - m_2fold_array[:-1])**2)
-        sumsqr_diff_unfold = numpy.sum((y[1:] - y[:-1])**2)
+        m_2fold_array = np.array(m_2fold)
+        sumsqr_diff_folded = np.sum((m_2fold_array[1:] - m_2fold_array[:-1])**2)
+        sumsqr_diff_unfold = np.sum((y[1:] - y[:-1])**2)
         p2p_scatter_2praw = sumsqr_diff_folded / sumsqr_diff_unfold
         out_dict['p2p_scatter_2praw'] = p2p_scatter_2praw
 
-        mad = numpy.median(numpy.abs(y - median(y)))
-        out_dict['p2p_scatter_over_mad'] = numpy.median(numpy.abs(y[1:] - y[:-1])) / mad
+        mad = np.median(np.abs(y - median(y)))
+        out_dict['p2p_scatter_over_mad'] = np.median(np.abs(y[1:] - y[:-1])) / mad
 
         ### eta feature from arXiv 1101.3316 Kim QSO paper:
-        out_dict['p2p_ssqr_diff_over_var'] = sumsqr_diff_unfold / ((len(y) - 1) * numpy.var(y))
+        out_dict['p2p_ssqr_diff_over_var'] = sumsqr_diff_unfold / ((len(y) - 1) * np.var(y))
 
         t_1per_fold = x % (1./out_dict['freq1']['frequency'])
         tups = list(zip(t_1per_fold, y))#, range(len(t_2per_fold)))
         tups.sort()
         t_1fold, m_1fold = zip(*tups) #So:  m_1fold[30] == y[i_fold[30]]
-        m_1fold_array = numpy.array(m_1fold)
+        m_1fold_array = np.array(m_1fold)
         out_dict['p2p_scatter_pfold_over_mad'] = \
-                           numpy.median(numpy.abs(m_1fold_array[1:] - m_1fold_array[:-1])) / mad
+                           np.median(np.abs(m_1fold_array[1:] - m_1fold_array[:-1])) / mad
 
         ######################## # # #
         ### This section is used to calculate Dubath (10. Percentile90:2P/P)
@@ -474,8 +478,8 @@ class observatory_source_interface(object):
         ### NOTE: this essentially runs everything a second time, so makes feature
         ###     generation take roughly twice as long.
 
-        model_vals = numpy.zeros(len(y))
-        #all_model_vals = numpy.zeros(len(y))
+        model_vals = np.zeros(len(y))
+        #all_model_vals = np.zeros(len(y))
         freq_2p = out_dict['freq1']['frequency'] * 0.5
         ytest_2p=1.*y # makes a copy of the array
 
@@ -496,8 +500,8 @@ class observatory_source_interface(object):
             #all_model_vals += res['model']
             ytest_2p -= res['model']
 
-        out_dict['medperc90_2p_p'] = scoreatpercentile(numpy.abs(ytest_2p), 90) / \
-                                             scoreatpercentile(numpy.abs(ytest), 90)
+        out_dict['medperc90_2p_p'] = scoreatpercentile(np.abs(ytest_2p), 90) / \
+                                             scoreatpercentile(np.abs(ytest), 90)
 
         some_feats = self.get_2P_modeled_features(x=x, y=y, freq1_freq=out_dict['freq1']['frequency'], srcid=srcid, ls_dict=out_dict)
         out_dict.update(some_feats)
@@ -516,11 +520,15 @@ class observatory_source_interface(object):
 
         t_2per_fold = x % (1/freq_2p)
         tups = list(zip(t_2per_fold, model_vals))
+# TODO why?
         tups.sort()
         t_2fold, m_2fold = zip(*tups)
-        t_2fold_array = numpy.array(t_2fold)
-        m_2fold_array = numpy.array(m_2fold)
+        t_2fold_array = np.array(t_2fold)
+        m_2fold_array = np.array(m_2fold)
         slopes = (m_2fold_array[1:] - m_2fold_array[:-1]) / (t_2fold_array[1:] - t_2fold_array[:-1])
+# TODO why not just get the (almost) steepest positive/negative slopes directly?
+# wrong for strictly increasing/decreasing
+# TODO why is this here instead of another extractor...
         out_dict['fold2P_slope_10percentile'] = scoreatpercentile(slopes,10) # this gets the steepest negative slope?
         out_dict['fold2P_slope_90percentile'] = scoreatpercentile(slopes,90) # this gets the steepest positive slope?
 
@@ -658,9 +666,9 @@ class GetPeriodFoldForWeb:
 
         src_dict = {}
         src_dict['src_id'] = results[0][0]
-        src_dict['t'] = numpy.array(t_list)
-        src_dict['m'] = numpy.array(m_list)
-        src_dict['m_err'] = numpy.array(merr_list)
+        src_dict['t'] = np.array(t_list)
+        src_dict['m'] = np.array(m_list)
+        src_dict['m_err'] = np.array(merr_list)
         #src_dict['m_err'] = []   #/@/ Justin changed 20090804
         return src_dict
 
@@ -722,9 +730,9 @@ class GetPeriodFoldForWeb:
 
         src_dict = {}
         src_dict['src_id'] = source_id
-        src_dict['t'] = numpy.array(t_list)
-        src_dict['m'] = numpy.array(m_list)
-        src_dict['m_err'] = numpy.array(merr_list)
+        src_dict['t'] = np.array(t_list)
+        src_dict['m'] = np.array(m_list)
+        src_dict['m_err'] = np.array(merr_list)
         #src_dict['m_err'] = []   #/@/ Justin changed 20090804
         return src_dict
 
@@ -814,9 +822,9 @@ class GetPeriodFoldForWeb:
         #    plot_period = 1.0 / freq_list[0]
         #    x_axis = arange(0,plot_period, .01)
         #
-        #    y_axis= amp_list[0]*sin(2*numpy.pi*freq_list[0]*(x_axis-rel_phase[0]))+\
-        #        amp_list[1]*sin(2*numpy.pi*freq_list[1]*(x_axis-rel_phase[1]))+\
-        #        amp_list[2]*sin(2*numpy.pi*freq_list[2]*(x_axis-rel_phase[2]))
+        #    y_axis= amp_list[0]*sin(2*np.pi*freq_list[0]*(x_axis-rel_phase[0]))+\
+        #        amp_list[1]*sin(2*np.pi*freq_list[1]*(x_axis-rel_phase[1]))+\
+        #        amp_list[2]*sin(2*np.pi*freq_list[2]*(x_axis-rel_phase[2]))
         #
         #    feature_resampled_dict = {'feature_resampled':{'t':x_axis, 'm':y_axis, 
         #                                               'color':self.pars['color_feature_resampled']}}
@@ -845,16 +853,16 @@ class GetPeriodFoldForWeb:
             m_offset_kludge = amp_kludge/2. + min(src_dict['m'])
 
             # 20090720: dstarr replaces the following with something 4-6 lines below
-            #y_axis= (amp_list[0]*sin(2*numpy.pi*freq_list[0]*(x_axis-rel_phase[0]))+\
-            #    amp_list[1]*sin(2*numpy.pi*freq_list[1]*(x_axis-rel_phase[1]))+\
-            #    amp_list[2]*sin(2*numpy.pi*freq_list[2]*(x_axis-rel_phase[2]))) 
-            y_axis= (amp_list[0]*sin(2*numpy.pi*freq_list[0]*(x_axis)))+\
-                amp_list[1]*sin(2*numpy.pi*freq_list[1]*(x_axis) + rel_phase[1])+\
-                amp_list[2]*sin(2*numpy.pi*freq_list[2]*(x_axis) + rel_phase[2]) 
+            #y_axis= (amp_list[0]*sin(2*np.pi*freq_list[0]*(x_axis-rel_phase[0]))+\
+            #    amp_list[1]*sin(2*np.pi*freq_list[1]*(x_axis-rel_phase[1]))+\
+            #    amp_list[2]*sin(2*np.pi*freq_list[2]*(x_axis-rel_phase[2])))
+            y_axis= (amp_list[0]*sin(2*np.pi*freq_list[0]*(x_axis)))+\
+                amp_list[1]*sin(2*np.pi*freq_list[1]*(x_axis) + rel_phase[1])+\
+                amp_list[2]*sin(2*np.pi*freq_list[2]*(x_axis) + rel_phase[2])
 
-            y_axis= (amp_list[0]*sin(2*numpy.pi*freq_list[0]*(x_axis) + rel_phase[0]))+\
-                amp_list[1]*sin(2*numpy.pi*freq_list[1]*(x_axis) + rel_phase[1])+\
-                amp_list[2]*sin(2*numpy.pi*freq_list[2]*(x_axis) + rel_phase[2]) 
+            y_axis= (amp_list[0]*sin(2*np.pi*freq_list[0]*(x_axis) + rel_phase[0]))+\
+                amp_list[1]*sin(2*np.pi*freq_list[1]*(x_axis) + rel_phase[1])+\
+                amp_list[2]*sin(2*np.pi*freq_list[2]*(x_axis) + rel_phase[2])
 
             amp_sampled_m = max(y_axis) - min(y_axis)
             amp_sampled_offset = amp_sampled_m / 2. + min(y_axis)

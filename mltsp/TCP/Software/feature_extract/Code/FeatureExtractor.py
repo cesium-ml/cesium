@@ -101,6 +101,7 @@ class GeneralExtractor(object):
         pass
     def extract(self): # delegates the actual implementation to subclasses
         pass
+# TODO why try / except KeyError?
     def set_names(self,where):
         """ prepares the most commonly used inputs for easy access """
         try:

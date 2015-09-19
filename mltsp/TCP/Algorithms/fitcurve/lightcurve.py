@@ -1,3 +1,4 @@
+# TODO remove?
 #!/usr/bin/env python
 
 ## Filename: lightcurve.py

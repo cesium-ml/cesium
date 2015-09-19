@@ -1,3 +1,4 @@
+# TODO what is this
 """ This module is an implementation of lomb_scargle using type( """
 from __future__ import print_function
 from __future__ import absolute_import

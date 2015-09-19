@@ -26,6 +26,8 @@ class ar_is_theta_extractor(FeatureExtractor):
             m = self.flux_data
             n = len(t)
             
+# TODO could be more flexible here; do we always want to subtract the full LS fit?
+# maybe just the polynomial fit? looks like that's what the paper does
             # get the LS model residuals (for principal frequency)
             lomb_dict = self.fetch_extr('lomb_scargle')
             model = lomb_dict.get('freq1_model',[])

@@ -4,6 +4,7 @@ from numpy import ones
 from scipy import stats
 from pylab import *
 
+# TODO remove?
 class old_dcextractor(FeatureExtractor):
     """ Old DC
     """

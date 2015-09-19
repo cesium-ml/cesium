@@ -9,6 +9,7 @@ except:
 	pass
 from .common_functions import ChiSquare
 
+# TODO remove?
 class sine_fit_extractor(InterExtractor,ChiSquare):
 	active = True
 	extname = 'sine_fit' #extractor's name
