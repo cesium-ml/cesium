@@ -6,6 +6,7 @@ from __future__ import print_function
 import os, sys
 import multiprocessing
 import yaml
+from . import util
 
 # Load configuration
 config_files = [
@@ -24,13 +25,14 @@ for cf in config_files:
         pass
 
 if not config:
-    print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
-          '\n '.join(config_files),
-          "\n\nPlease refer to the installation guide for further\n"
-          "instructions.\n\n"
-          "If you don't want to read the manual, do the following:\n"
-          "  import mltsp; mltsp.install()")
-    sys.exit(-1)
+    if not util.is_running_in_docker():
+        print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
+              '\n '.join(config_files),
+              "\n\nPlease refer to the installation guide for further\n"
+              "instructions.\n\n"
+              "If you don't want to read the manual, do the following:\n"
+              "  import mltsp; mltsp.install()")
+        sys.exit(-1)
 
 try:
     N_CORES = multiprocessing.cpu_count()
@@ -222,7 +224,6 @@ features_to_plot = [
 
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
-    from . import util
     if util.is_running_in_docker() == False:
         sys.exit(-1)
 
