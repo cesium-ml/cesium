@@ -72,7 +72,7 @@ def test_count_classes():
     npt.assert_equal(class_count["class2"], 1)
 
 
-def test_generate_features_serial():
+def test_generate_features():
     """Test generate_features"""
     objs = featurize.generate_features(
         pjoin(cfg.UPLOAD_FOLDER,
@@ -85,60 +85,6 @@ def test_generate_features_serial():
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
     assert(all("class" in d for d in objs))
-    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for d in objs))
-
-
-def test_featurize_tsdata_object():
-    """Test featurize TS data object function"""
-    path_to_csv = pjoin(DATA_PATH, "dotastro_215153.dat")
-    short_fname = featurize.shorten_fname(path_to_csv)
-    custom_script_path = pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py")
-    fname_class_dict = {"dotastro_215153": "Mira"}
-    features_to_use = ["std_err", "freq1_harmonics_freq_0"]
-    all_feats = featurize.featurize_tsdata_object(
-        path_to_csv, short_fname, custom_script_path, fname_class_dict,
-        features_to_use)
-    assert(isinstance(all_feats, dict))
-    assert("std_err" in all_feats)
-    assert("freq1_harmonics_freq_0" in all_feats)
-
-
-def test_remove_unzipped_files():
-    """Test removal of unzipped files"""
-    tarball_path = pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz")
-    unzip_path = pjoin(cfg.UPLOAD_FOLDER, "unzipped")
-    tarball_obj = tarfile.open(tarball_path)
-    tarball_obj.extractall(path=unzip_path)
-    all_fnames = tarball_obj.getnames()
-    for fname in all_fnames:
-        assert(os.path.exists(pjoin(unzip_path, fname)))
-
-    featurize.remove_unzipped_files(all_fnames)
-
-    for fname in all_fnames:
-        assert(not os.path.exists(pjoin(cfg.UPLOAD_FOLDER, fname)))
-
-
-def test_extract_serial():
-    """Test serial featurization of multiple TS data sources"""
-    objs = featurize.extract_serial(
-        pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset_with_metadata.dat"),
-        pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
-        ["std_err"],
-        pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False,
-        {"217801": "Mira", "219538": "Herbig_AEBE",
-         "223592": "Beta_Lyrae"},
-        {"217801": {"class": "Mira"},
-         "219538": {"class": "Herbig_AEBE"},
-         "223592": {"class": "Beta_Lyrae"}},
-        {"217801": {}, "219538": {},
-         "223592": {}})
-    npt.assert_equal(len(objs), 3)
-    assert(all("std_err" in obj for obj in objs))
-    assert(all("avg_mag" in obj for obj in objs))
     assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                for d in objs))

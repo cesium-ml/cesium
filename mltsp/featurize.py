@@ -27,20 +27,6 @@ def shorten_fname(fname):
     return os.path.splitext(ntpath.basename(fname))[0]
 
 
-def parse_ts_data(filepath, sep=","):
-    """
-    """
-    with open(filepath) as f:
-        ts_data = np.loadtxt(f, delimiter=sep)
-    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
-    for row in ts_data:
-        if len(row) < 2:
-            raise custom_exceptions.DataFormatError(
-                "Incomplete or improperly formatted time "
-                "series data file provided.")
-    return ts_data
-
-
 def parse_prefeaturized_csv_data(features_file_path):
     """Parse CSV file containing features.
 
@@ -197,116 +183,6 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
                 else:
                     all_features = new_feats
                 objects.append(all_features)
-    return objects
-
-
-def featurize_tsdata_object(path_to_csv, short_fname, custom_script_path,
-                            fname_class_dict, features_to_use):
-    """
-
-    """
-    if short_fname not in fname_class_dict:
-        if short_fname.split("_")[0] in fname_class_dict:
-            short_fname = short_fname.split("_")[0]
-        elif short_fname.split(".")[0] in fname_class_dict:
-            short_fname = short_fname.split(".")[0]
-    # Generate general/cadence-related TS features, if to be used
-    if len(set(features_to_use) & set(cfg.features_list)) > 0:
-        timeseries_features = (
-            lc_tools.generate_timeseries_features(
-                path_to_csv,
-                classname=fname_class_dict[short_fname],
-                sep=','))
-    else:
-        timeseries_features = {}
-    # Generate TCP TS features, if to be used
-    if len(
-            set(features_to_use) &
-            set(cfg.features_list_science)) > 0:
-        from .TCP.Software.ingest_tools import \
-            generate_science_features
-        science_features = generate_science_features.generate(
-            path_to_csv=path_to_csv)
-    else:
-        science_features = {}
-    # Generate custom features, if any
-    if custom_script_path not in (None, "None",
-                                  False, "False"):
-        custom_features = cft.generate_custom_features(
-            custom_script_path=custom_script_path,
-            path_to_csv=path_to_csv,
-            features_already_known=dict(
-                list(timeseries_features.items()) +
-                list(science_features.items())))[0]
-    else:
-        custom_features = {}
-    # Combine all features into single dict
-    all_features = dict(
-        list(timeseries_features.items()) +
-        list(science_features.items()) +
-        list(custom_features.items()))
-    return all_features
-
-
-def remove_unzipped_files(all_fnames):
-    """
-
-    """
-    for fname in all_fnames:
-        path_to_csv = os.path.join(
-            cfg.UPLOAD_FOLDER, os.path.join("unzipped", fname))
-        if os.path.isfile(path_to_csv):
-            try:
-                os.remove(path_to_csv)
-            except:
-                pass
-
-
-def extract_serial(headerfile_path, zipfile_path, features_to_use,
-                   custom_script_path, is_test, already_featurized,
-                   in_docker_container, fname_class_dict,
-                   fname_class_science_features_dict, fname_metadata_dict):
-    """Generate TS features serially.
-
-    """
-    objects = []
-    zipfile = tarfile.open(zipfile_path)
-    unzip_dir = tempfile.mkdtemp()
-    zipfile.extractall(path=unzip_dir)
-    all_fnames = zipfile.getnames()
-    num_objs = len(fname_class_dict)
-    zipfile_name = ntpath.basename(zipfile_path)
-    count = 0
-    print("Generating science features...")
-    # Loop through time-series files and generate features for each
-    for fname in sorted(all_fnames):
-        short_fname = shorten_fname(fname)
-        path_to_csv = os.path.join(unzip_dir, fname)
-        if os.path.isfile(path_to_csv):
-            print("Extracting features for", fname, "-", count,
-                  "of", num_objs)
-            all_features = featurize_tsdata_object(
-                path_to_csv, short_fname, custom_script_path, fname_class_dict,
-                features_to_use)
-            # Add any meta features from header file
-            if short_fname in fname_metadata_dict:
-                all_features = dict(
-                    list(all_features.items()) +
-                    list(fname_metadata_dict[short_fname].items()))
-            fname_class_science_features_dict[
-                short_fname]['features'] = all_features
-            objects.append(
-                fname_class_science_features_dict[
-                    short_fname]['features'])
-            objects[-1]['class'] = fname_class_dict[short_fname]
-            count += 1
-            if is_test and count > 2:
-                break
-        else:
-            pass
-    print("Done.")
-    # remove_unzipped_files(all_fnames)
-    shutil.rmtree(unzip_dir, ignore_errors=True)
     return objects
 
 
