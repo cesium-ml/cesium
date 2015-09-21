@@ -4,7 +4,7 @@
 
 Install compiler dependecies with
 
-``sudo apt-get install build-essential python-dev``
+``sudo apt-get install build-essential python-dev libgfortran3``
 
 If you are using Anaconda (install dependencies with
 `sudo apt-get install libsm6 libxrender1 libfontconfig1`),
