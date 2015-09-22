@@ -14,19 +14,21 @@ from mltsp.celery_tasks import fit_and_store_model
 
 
 def create_and_pickle_model_celery(featureset_name, featureset_key,
-                                   model_type="RF", in_docker_container=False):
+                                   model_type="RFC", model_options={},
+                                   in_docker_container=False):
     """
     """
 
     res = fit_and_store_model.delay(featureset_name, featureset_key,
-                                    model_type, in_docker_container)
+                                    model_type, model_options,
+                                    in_docker_container)
     fout_name = res.get(timeout=200)
 
     print(fout_name, "created!")
 
 
 def build_model(
-        featureset_name, featureset_key, model_type="RF",
+        featureset_name, featureset_key, model_type="RFC", model_options={},
         in_docker_container=False):
     """Build a `scikit-learn` classifier.
 
@@ -45,8 +47,10 @@ def build_model(
         RethinkDB ID of the associated feature set from which to build
         the model, which will also become the ID/key for the model.
     model_type : str
-        Abbreviation of the type of classifier to be created. Defaults
-        to "RF".
+        Abbreviation of the type of model to be created. Defaults
+        to "RFC".
+    model_options : dict, optional
+        Dictionary specifying `scikit-learn` model parameters to be used.
     in_docker_container : bool, optional
         Boolean indicating whether function is being called from within
         a Docker container.
@@ -59,7 +63,8 @@ def build_model(
     """
 
     create_and_pickle_model_celery(featureset_name, featureset_key,
-                                   model_type, in_docker_container)
+                                   model_type, model_options,
+                                   in_docker_container)
 
     print("Done!")
     return("New model successfully created. Click the Predict tab to "

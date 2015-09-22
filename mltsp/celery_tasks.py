@@ -19,7 +19,7 @@ celery_app = Celery('celery_fit', broker=cfg.CELERY_BROKER)
 
 @celery_app.task(name='celery_tasks.fit_model')
 def fit_and_store_model(featureset_name, featureset_key, model_type,
-                        in_docker_container):
+                        model_options, in_docker_container):
     """Read features, fit classifier & save it to disk.
 
     This function is a Celery task.
@@ -44,7 +44,8 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
     data_dict = ctt.read_features_data_from_disk(featureset_key)
 
     created_file_name = ctt.create_and_pickle_model(
-        data_dict, featureset_key, model_type, in_docker_container)
+        data_dict, featureset_key, model_type, model_options,
+        in_docker_container)
     return created_file_name
 
 

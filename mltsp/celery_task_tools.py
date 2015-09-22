@@ -1,4 +1,5 @@
-from sklearn.ensemble import RandomForestClassifier as RFC
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LinearRegression, SGDClassifier
 from sklearn.externals import joblib
 import os
 from mltsp import cfg
@@ -8,7 +9,7 @@ import csv
 
 
 def create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container):
+                            model_options, in_docker_container):
     """Create scikit-learn RFC model object and save it to disk.
 
     Parameters
@@ -19,22 +20,31 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
     featureset_key : str
         RethinkDB ID of associated feature set.
     model_type : str
-        Abbreviation of the type of classifier to be created.
+        Abbreviation of the type of model to be created.
+    model_options : dict, optional
+        Dictionary specifying `scikit-learn` model parameters to be used.
     in_docker_container : bool
         Boolean indicating whether function is being called from within
         a Docker container.
 
     """
-    # Build the model:
-    # Initialize
-    ntrees = 1000
-    njobs = -1
-    rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
+
+    if "RF" in model_type and "n_estimators" not in model_options:
+        model_options["n_estimators"] = 1000
+    if "n_jobs" not in model_options:
+        model_options["n_jobs"] = -1
+
+    models_type_dict = {"RFC": RandomForestClassifier,
+                        "RFR": RandomForestRegressor,
+                        "LR": LinearRegression,
+                        "LC": SGDClassifier}
+
+    model_obj = models_type_dict[model_type](**model_options)
     print("Model initialized.")
 
     # Fit the model to training data:
     print("Fitting the model...")
-    rf_fit.fit(data_dict['features'], data_dict['classes'])
+    model_obj.fit(data_dict['features'], data_dict['classes'])
     print("Done.")
     del data_dict
 
@@ -43,7 +53,7 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
     foutname = os.path.join(
         ("/tmp" if in_docker_container else cfg.MODELS_FOLDER),
         "%s_%s.pkl" % (featureset_key, model_type))
-    joblib.dump(rf_fit, foutname, compress=3)
+    joblib.dump(model_obj, foutname, compress=3)
     print(foutname, "created.")
     return foutname
 

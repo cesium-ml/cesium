@@ -36,19 +36,19 @@ def test_create_and_pickle_model():
     data_dict = {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
                  "classes": ['1', '2']}
     featset_key = "test"
-    model_type = "RF"
+    model_type = "RFC"
     ctt.create_and_pickle_model(
         {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
          "classes": ['1', '2']},
-        "test_build_model", "RF", False)
+        "test_build_model", "RFC", {}, False)
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "test_build_model_RF.pkl"))
+                                "test_build_model_RFC.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "test_build_model_RF.pkl"))
+                              "test_build_model_RFC.pkl"))
     assert hasattr(model, "predict_proba")
-    os.remove(pjoin(cfg.MODELS_FOLDER, "test_build_model_RF.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "test_build_model_RFC.pkl"))
     assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                    "test_build_model_RF.pkl"))
+                                    "test_build_model_RFC.pkl"))
 
 
 def test_read_features_data_from_disk():
@@ -72,10 +72,10 @@ def test_build_model():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RF.pkl"))
+                                "TEMP_TEST01_RFC.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "TEMP_TEST01_RF.pkl"))
+                              "TEMP_TEST01_RFC.pkl"))
     assert hasattr(model, "predict_proba")
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
