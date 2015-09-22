@@ -397,15 +397,15 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
                     T = [float(el) for el in T]
                     M = [float(el) for el in M]
                     E = [float(el) for el in E]
-                    features_already_known_list[i]["t"] = T
-                    features_already_known_list[i]["m"] = M
-                    features_already_known_list[i]["e"] = E
+                    features_already_known_list[i]["t"] = np.array(T)
+                    features_already_known_list[i]["m"] = np.array(M)
+                    features_already_known_list[i]["e"] = np.array(E)
                 elif all(len(this_tme) == 2 for this_tme in tme):
                     T, M = list(zip(*tme))
                     T = [float(el) for el in T]
                     M = [float(el) for el in M]
-                    features_already_known_list[i]["t"] = T
-                    features_already_known_list[i]["m"] = M
+                    features_already_known_list[i]["t"] = np.array(T)
+                    features_already_known_list[i]["m"] = np.array(M)
                 else:
                     raise Exception("custom_feature_tools.py - "
                                     "docker_extract_features() - not all elements "
@@ -747,6 +747,9 @@ def generate_custom_features(
         features_already_known['m'] = m
     if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
+    for k in ('t', 'm', 'e'):
+        if k in features_already_known:
+            features_already_known[k] = np.array(features_already_known[k])
 
     if is_running_in_docker():
         all_new_features = execute_functions_in_order(
