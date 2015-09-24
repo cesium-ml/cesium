@@ -1,4 +1,4 @@
-from mltsp import predict_class as pred
+from mltsp import predict as pred
 from mltsp import cfg
 from mltsp import build_model
 import numpy.testing as npt

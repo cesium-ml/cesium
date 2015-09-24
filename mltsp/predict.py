@@ -313,7 +313,7 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
                 of the most-probable classes and its probability.
 
     """
-    print("predict_class - predict() called.")
+    print("predict.predict() called.")
 
     features_to_use = determine_feats_used(featset_key)
 

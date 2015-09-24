@@ -39,7 +39,7 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import featurize
-from .. import predict_class as predict
+from .. import predict
 from .. import build_model
 from ..version import version
 
@@ -2072,7 +2072,7 @@ def prediction_proc(
             ts_data_dict={}, pred_results_list_dict=[], err=str(theErr))
         print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
-            "Error occurred during predict_class.predict() call.")
+            "Error occurred during predict.predict() call.")
     else:
         if isinstance(results_dict, dict):
             big_features_dict = {}
@@ -2101,7 +2101,7 @@ def prediction_proc(
                 features_dict={}, ts_data_dict={},
                 pred_results_list_dict={})
         else:
-            raise ValueError("predict_class.predict() returned object of "
+            raise ValueError("predict.predict() returned object of "
                              "invalid type - {}.".format(type(results_dict)))
         return True
     finally:
