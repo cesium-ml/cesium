@@ -10,7 +10,7 @@ py2:
 	fi
 
 celery: py2
-	@if [[ -z `pgrep celery` ]]; then \
+	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
 		PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
 	else \
 		echo "[Celery] is already running"; \
