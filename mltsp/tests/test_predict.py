@@ -22,7 +22,7 @@ def test_parse_metadata_file():
 
 def test_determine_feats_used():
     """Test determine_feats_used"""
-    for suffix in ["features.csv", "classes.npy"]:
+    for suffix in ["features.csv", "targets.npy"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
@@ -30,7 +30,7 @@ def test_determine_feats_used():
     npt.assert_array_equal(feats_used, ["meta1", "meta2", "meta3",
                                         "std_err","amplitude"])
                                         
-    for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
+    for fname in ["TEST001_features.csv", "TEST001_targets.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
 
@@ -91,7 +91,7 @@ def test_create_feat_dict_and_list():
 
 def test_add_to_predict_results_dict():
     """Test add data to predict results dict"""
-    for suffix in ["classes.npy", "features.csv"]:
+    for suffix in ["targets.npy", "features.csv"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
@@ -101,48 +101,47 @@ def test_add_to_predict_results_dict():
                                      "TEST001", 5)
     npt.assert_array_equal(results_dict["TT"]["ts_data"], [1, 2, 3])
     npt.assert_equal(len(results_dict["TT"]["pred_results_list"]), 3)
-    for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
+    for fname in ["TEST001_features.csv", "TEST001_targets.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
 
-def generate_model():
-    shutil.copy(pjoin(DATA_PATH, "test_classes.npy"),
-                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+def generate_model_rfc():
+    shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFC")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RF.pkl"))
+                                "TEMP_TEST01_RFC.pkl"))
 
 
-def generate_model_cust_feats():
-    shutil.copy(pjoin(DATA_PATH, "test_classes.npy"),
-                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+def generate_model_cust_feats_rfc():
+    shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFC")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RF.pkl"))
+                                "TEMP_TEST01_RFC.pkl"))
 
 
-def test_do_model_predictions():
-    """Test model predictions"""
-    generate_model()
-    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"),
-              pjoin(cfg.MODELS_FOLDER, "TEST001_RF.pkl"))
-    for suffix in ["classes.npy", "features.csv"]:
+def test_do_model_predictions_rfc():
+    """Test model predictions - RFC"""
+    generate_model_rfc()
+    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"),
+              pjoin(cfg.MODELS_FOLDER, "TEST001_RFC.pkl"))
+    for suffix in ["targets.npy", "features.csv"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
     featset_key = "TEST001"
-    model_type = "RF"
+    model_type = "RFC"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs", "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
         "TEST001",
         None, None, False,
         features_to_use, False)
-    print(data_dict)
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
                                                   model_type, features_to_use,
                                                   5)
@@ -150,15 +149,16 @@ def test_do_model_predictions():
     assert("std_err" in
            pred_results_dict["dotastro_215153"]["features_dict"])
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                             'RR_Lyrae']
                    for el in pred_results_dict[fname]\
                    ["pred_results_list"]) for fname in pred_results_dict))
 
 
-def test_main_predict():
-    """Test main predict function"""
+def test_main_predict_rfc():
+    """Test main predict function - RFC"""
 
-    generate_model()
+    generate_model_rfc()
 
     shutil.copy(pjoin(DATA_PATH, "dotastro_215153.dat"),
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
@@ -167,28 +167,26 @@ def test_main_predict():
 
     pred_results_dict = pred.predict(
         pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        "TEMP_TEST01", "RFC", "TEMP_TEST01",
         metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
                                  "TESTRUN_215153_metadata.dat"),
         custom_features_script=None)
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-    npt.assert_equal(
-        len(pred_results_dict["TESTRUN_215153"]["pred_results_list"]),
-        3)
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                             'RR_Lyrae']
                    for el in pred_results_dict[fname]\
                    ["pred_results_list"]) for fname in pred_results_dict))
 
 
-def test_main_predict_cust_feats():
-    """Test main predict function w/ custom feats"""
+def test_main_predict_cust_feats_rfc():
+    """Test main predict function w/ custom feats - RFC"""
 
-    generate_model_cust_feats()
+    generate_model_cust_feats_rfc()
 
     shutil.copy(pjoin(DATA_PATH, "dotastro_215153.dat"),
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
@@ -200,7 +198,7 @@ def test_main_predict_cust_feats():
 
     pred_results_dict = pred.predict(
         pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        "TEMP_TEST01", "RFC", "TEMP_TEST01",
         metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
                                  "TESTRUN_215153_metadata.dat"),
         custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
@@ -208,22 +206,20 @@ def test_main_predict_cust_feats():
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
-    npt.assert_equal(
-        len(pred_results_dict["TESTRUN_215153"]["pred_results_list"]),
-        3)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                             'RR_Lyrae']
                    for el in pred_results_dict[fname]\
                    ["pred_results_list"]) for fname in pred_results_dict))
 
 
-def test_main_predict_tarball():
-    """Test main predict function - tarball"""
+def test_main_predict_tarball_rfc():
+    """Test main predict function - tarball - RFC"""
 
-    generate_model()
+    generate_model_rfc()
 
     shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
                 cfg.UPLOAD_FOLDER)
@@ -232,7 +228,7 @@ def test_main_predict_tarball():
 
     pred_results_dict = pred.predict(
         pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"),
-        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        "TEMP_TEST01", "RFC", "TEMP_TEST01",
         metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
                                  "215153_215176_218272_218934_metadata.dat"),
         custom_features_script=None)
@@ -240,22 +236,20 @@ def test_main_predict_tarball():
     os.remove(pjoin(cfg.UPLOAD_FOLDER,
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-    npt.assert_equal(
-        len(pred_results_dict["dotastro_215153"]["pred_results_list"]),
-        3)
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
     npt.assert_equal(len(pred_results_dict), 4)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                             'RR_Lyrae']
                    for el in pred_results_dict[fname]\
                    ["pred_results_list"]) for fname in pred_results_dict))
 
 
-def test_main_predict_tarball_cust_feats():
-    """Test main predict function - tarball w/ custom feats"""
+def test_main_predict_tarball_cust_feats_rfc():
+    """Test main predict function - tarball w/ custom feats - RFC"""
 
-    generate_model_cust_feats()
+    generate_model_cust_feats_rfc()
 
     shutil.copy(pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz"),
                 cfg.UPLOAD_FOLDER)
@@ -267,7 +261,7 @@ def test_main_predict_tarball_cust_feats():
 
     pred_results_dict = pred.predict(
         pjoin(cfg.UPLOAD_FOLDER, "215153_215176_218272_218934.tar.gz"),
-        "TEMP_TEST01", "RF", "TEMP_TEST01",
+        "TEMP_TEST01", "RFC", "TEMP_TEST01",
         metadata_file_path=pjoin(cfg.UPLOAD_FOLDER,
                                  "215153_215176_218272_218934_metadata.dat"),
         custom_features_script=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
@@ -276,14 +270,15 @@ def test_main_predict_tarball_cust_feats():
     os.remove(pjoin(cfg.UPLOAD_FOLDER,
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     npt.assert_equal(
-        len(pred_results_dict["dotastro_215153"]["pred_results_list"]),
-        3)
+        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        4)
     npt.assert_equal(len(pred_results_dict), 4)
     for res_dict in pred_results_dict.values():
         assert(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                 'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-                       for el in res_dict["pred_results_list"]))
+                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                             'RR_Lyrae']
+                   for el in res_dict["pred_results_list"]))

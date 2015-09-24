@@ -194,7 +194,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
     """
     # Load model class list
     all_objs_class_list = list(np.load(
-        os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key)))
+        os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key)))
     sorted_class_list = []
     for i in sorted(all_objs_class_list):
         if i not in sorted_class_list:

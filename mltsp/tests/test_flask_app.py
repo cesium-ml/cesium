@@ -60,19 +60,19 @@ def featurize_teardown():
 
 
 def generate_model():
-    shutil.copy(pjoin(DATA_DIR, "test_classes.npy"),
-                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+    shutil.copy(pjoin(DATA_DIR, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     build_model.build_model("TEMP_TEST01", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RF.pkl"))
+                                "TEMP_TEST01_RFC.pkl"))
 
 
 def teardown_model():
-    for path in (pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"),
+    for path in (pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"),
                  pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"),
-                 pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl")):
+                 pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl")):
         try:
             os.remove(path)
         except OSError:
@@ -487,13 +487,13 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
-                                      "name": "abc123", "type": "RF",
+                                      "name": "abc123", "type": "RFC",
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             models = fa.list_models()
@@ -515,13 +515,13 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
-                                      "name": "abc123", "type": "RF",
+                                      "name": "abc123", "type": "RFC",
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=False, name_only=True)
@@ -547,13 +547,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
-                                      "name": "abc123", "type": "RF",
+                                      "name": "abc123", "type": "RFC",
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=True, by_project="abc123",
@@ -578,7 +578,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
-                                           "model_type": "RF",
+                                           "model_type": "RFC",
                                            "model_name": "MODEL_NAME",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -587,7 +587,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("predictions").insert({"id": "111", "projkey": "111",
-                                           "name": "111", "model_type": "RF",
+                                           "name": "111", "model_type": "RFC",
                                            "model_name": "MODEL_NAME",
                                            "created": "111",
                                            "filename": "111.txt",
@@ -613,7 +613,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
-                                           "model_type": "RF",
+                                           "model_type": "RFC",
                                            "model_name": "MODEL_NAME",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -622,7 +622,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("predictions").insert({"id": "111", "projkey": "111",
-                                           "name": "111", "model_type": "RF",
+                                           "name": "111", "model_type": "RFC",
                                            "model_name": "MODEL_NAME",
                                            "created": "111",
                                            "filename": "111.txt",
@@ -652,7 +652,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "active": "y"}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
-                                           "model_type": "RF",
+                                           "model_type": "RFC",
                                            "model_name": "MODEL_NAME",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -661,7 +661,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("predictions").insert({"id": "111", "projkey": "111",
-                                           "name": "111", "model_type": "RF",
+                                           "name": "111", "model_type": "RFC",
                                            "model_name": "MODEL_NAME",
                                            "created": "111",
                                            "filename": "111.txt",
@@ -781,7 +781,7 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             new_key = fa.add_model(featureset_name="TEST",
                                    featureset_key="123",
-                                   model_type="RF", projkey="ABC", pid="2")
+                                   model_type="RFC", projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['projkey'], "ABC")
@@ -795,7 +795,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "meta_feats": ['f1', 'f2']}).run(conn)
             new_key = fa.add_model(featureset_name="TEST",
                                    featureset_key="123",
-                                   model_type="RF", projkey="ABC", pid="2")
+                                   model_type="RFC", projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['projkey'], "ABC")
@@ -810,7 +810,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             new_key = fa.add_prediction(project_name="abc123",
                                         model_name="model_name",
-                                        model_type="RF",
+                                        model_type="RFC",
                                         pred_filename="test.dat",
                                         pid="2")
             entry = r.table("predictions").get(new_key).run(conn)
@@ -830,13 +830,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123", "created": "abc123",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
-                                      "name": "abc123", "type": "RF",
+                                      "name": "abc123", "type": "RFC",
                                       "created": "abc123",
                                       "featset_key": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
-                                           "model_type": "RF",
+                                           "model_type": "RFC",
                                            "model_name": "abc123",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -845,7 +845,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = fa.project_associated_files("abc123")
             short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
             assert all(fname in short_fnames for fname in
-                       ["abc123_RF.pkl"])
+                       ["abc123_RFC.pkl"])
 
     def test_get_models_associated_files(self):
         """Test get model's associated files"""
@@ -855,14 +855,14 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = fa.model_associated_files("abc123")
             npt.assert_equal(fpaths, [])
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
-                                      "name": "abc123", "type": "RF",
+                                      "name": "abc123", "type": "RFC",
                                       "created": "abc123",
                                       "featset_key": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             fpaths = fa.model_associated_files("abc123")
             short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
             assert all(fname in short_fnames for fname in
-                       ["abc123_RF.pkl"])
+                       ["abc123_RFC.pkl"])
 
     def test_get_featsets_associated_files(self):
         """Test get feature set's associated files"""
@@ -917,16 +917,16 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
             fa.delete_associated_project_data("models", "abc123")
             count = r.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                            "abc123_RF.pkl"))
+                                            "abc123_RFC.pkl"))
 
     def test_delete_associated_project_data_predictions(self):
         """Test delete associated project data - predictions"""
@@ -960,7 +960,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
@@ -973,8 +973,8 @@ class FlaskAppTestCase(unittest.TestCase):
                  "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc123_features.csv"))
-            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
             # Call the method being tested
             fa.delete_project("abc123")
             count = r.table("projects").filter({"id": "abc123"}).count()\
@@ -989,7 +989,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                                               .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                            "abc123_RF.pkl"))
+                                            "abc123_RFC.pkl"))
             count = r.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
@@ -1017,13 +1017,13 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "model_name": "abc123",
-                                           "model_type": "RF",
+                                           "model_type": "RFC",
                                            "filename": "FNAME.dat",
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
@@ -1037,7 +1037,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert "<table" in proj_info["models"] and "abc123" in \
                 proj_info["models"]
             assert all(x in proj_info["predictions"] for x in
-                       ["<table", "RF", "abc123", "FNAME.dat"])
+                       ["<table", "RFC", "abc123", "FNAME.dat"])
 
     def test_get_project_details_json(self):
         """Test get projects details as JSON"""
@@ -1062,13 +1062,13 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "model_name": "abc123",
-                                           "model_type": "RF",
+                                           "model_type": "RFC",
                                            "filename": "FNAME.dat",
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
@@ -1179,7 +1179,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
                  "w").close()
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_targets.npy"), "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc123_features.csv"))
             fa.update_project_info("abc123", "abc123", "", [],
@@ -1191,7 +1191,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                             "abc123_features.csv"))
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                            "abc123_classes.npy"))
+                                            "abc123_targets.npy"))
 
     def test_update_project_info_delete_models(self):
         """Test update project info - delete models"""
@@ -1202,22 +1202,22 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "featset_key": "abc123"}).run(conn)
             r.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
             fa.update_project_info("abc123", "abc123", "", [],
                                    delete_model_keys=["abc123"])
             npt.assert_equal(
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
             assert not os.path.exists(
-                pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+                pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
 
     def test_update_project_info_delete_predictions(self):
         """Test update project info - delete predictions"""
@@ -1401,14 +1401,15 @@ class FlaskAppTestCase(unittest.TestCase):
                                              "testfeature1.py"))
             finally:
                 entry = r.table("features").get("TEST01").run(conn)
+                r.table("features").get("TEST01").delete().run(conn)
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "TEST01_features.csv")))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                        "TEST01_classes.npy")))
+                                        "TEST01_targets.npy")))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
                                         "TEST01_features_with_classes.csv")))
-            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_classes.npy"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_targets.npy"))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "TEST01_features.csv"))
             cols = df.columns
@@ -1430,20 +1431,20 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "TEMP_TEST01"}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "name": "TEMP_TEST01"}).run(conn)
-            shutil.copy(pjoin(DATA_DIR, "test_classes.npy"),
-                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            shutil.copy(pjoin(DATA_DIR, "test_targets.npy"),
+                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
             shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
                         pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
             fa.build_model_proc("TEMP_TEST01", "TEMP_TEST01",
-                                "RF", "TEMP_TEST01")
+                                "RFC", "TEMP_TEST01")
             entry = r.table("models").get("TEMP_TEST01").run(conn)
             assert "results_msg" in entry
             assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                        "TEMP_TEST01_RF.pkl"))
-            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+                                        "TEMP_TEST01_RFC.pkl"))
+            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
             assert hasattr(model, "predict_proba")
-            os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
 
     def test_prediction_proc(self):
@@ -1473,7 +1474,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "TEMP_TEST01"}).run(conn)
             fa.prediction_proc(
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-                "TEMP_TEST01", "TEMP_TEST01", "RF", "TEMP_TEST01",
+                "TEMP_TEST01", "TEMP_TEST01", "RFC", "TEMP_TEST01",
                 "TEMP_TEST01",
                 metadata_file=pjoin(cfg.UPLOAD_FOLDER,
                                     "TESTRUN_215153_metadata.dat"))
@@ -1492,8 +1493,8 @@ class FlaskAppTestCase(unittest.TestCase):
                           pjoin(cfg.FEATURES_FOLDER,
                                 "TEMP_TEST01_features.csv"),
                           pjoin(
-                              cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"),
-                          pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"),
+                              cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"),
+                          pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"),
                           pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                 "TESTRUN_CF.py")]:
                 try:
@@ -1562,7 +1563,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
                  "w").close()
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_targets.npy"), "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc123_features.csv"))
             rv = self.app.post('/editProjectForm',
@@ -1585,7 +1586,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                             "abc123_features.csv"))
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                            "abc123_classes.npy"))
+                                            "abc123_targets.npy"))
 
     def test_edit_project_form_delete_featsets(self):
         """Test edit project form - delete multiple feature sets"""
@@ -1601,7 +1602,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
                  "w").close()
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_targets.npy"), "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc123_features.csv"))
             r.table("features").insert({"id": "abc1234", "projkey": "abc123",
@@ -1611,7 +1612,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.FEATURES_FOLDER, "abc1234_features.csv"),
                  "w").close()
-            open(pjoin(cfg.FEATURES_FOLDER, "abc1234_classes.npy"), "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc1234_targets.npy"), "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc1234_features.csv"))
             r.table("features").insert({"id": "abc1235", "projkey": "abc123",
@@ -1621,7 +1622,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.FEATURES_FOLDER, "abc1235_features.csv"),
                  "w").close()
-            open(pjoin(cfg.FEATURES_FOLDER, "abc1235_classes.npy"), "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc1235_targets.npy"), "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc1235_features.csv"))
             rv = self.app.post('/editProjectForm',
@@ -1647,21 +1648,21 @@ class FlaskAppTestCase(unittest.TestCase):
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                             "abc123_features.csv"))
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                            "abc123_classes.npy"))
+                                            "abc123_targets.npy"))
             npt.assert_equal(
                 r.table("features").filter({"id": "abc1234"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                             "abc1234_features.csv"))
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                            "abc1234_classes.npy"))
+                                            "abc1234_targets.npy"))
             npt.assert_equal(
                 r.table("features").filter({"id": "abc1235"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                             "abc1235_features.csv"))
             assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                            "abc1235_classes.npy"))
+                                            "abc1235_targets.npy"))
 
     def test_edit_project_form_delete_models(self):
         """Test edit project form - delete multiple models"""
@@ -1675,37 +1676,37 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "headerfile_path": "HEADPATH.dat",
                                       "zipfile_path": "ZIPPATH.tar.gz",
                                       "featset_key": "abc123",
-                                      "type": "RF"}).run(conn)
+                                      "type": "RFC"}).run(conn)
             r.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
             r.table("models").insert({"id": "abc1234", "projkey": "abc123",
                                       "name": "abc1234", "created": "abc1234",
                                       "headerfile_path": "HEADPATH4.dat",
                                       "zipfile_path": "ZIPPATH4.tar.gz",
                                       "featset_key": "abc1234",
-                                      "type": "RF"}).run(conn)
+                                      "type": "RFC"}).run(conn)
             r.table("features").insert({"id": "abc1234", "projkey": "abc123",
                                         "name": "abc1234",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc1234_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1234_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc1234_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1234_RFC.pkl"))
             r.table("models").insert({"id": "abc1235", "projkey": "abc123",
                                       "name": "abc1235", "created": "abc1235",
                                       "headerfile_path": "HEADPATH5.dat",
                                       "zipfile_path": "ZIPPATH5.tar.gz",
                                       "featset_key": "abc1235",
-                                      "type": "RF"}).run(conn)
+                                      "type": "RFC"}).run(conn)
             r.table("features").insert({"id": "abc1235", "projkey": "abc123",
                                         "name": "abc1235",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc1235_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1235_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc1235_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1235_RFC.pkl"))
             rv = self.app.post('/editProjectForm',
                                content_type='multipart/form-data',
                                data={'project_name_orig': 'abc123',
@@ -1727,17 +1728,17 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
             npt.assert_equal(
                 r.table("models").filter({"id": "abc1234"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                            "abc1234_RF.pkl"))
+                                            "abc1234_RFC.pkl"))
             npt.assert_equal(
                 r.table("models").filter({"id": "abc1235"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                            "abc1235_RF.pkl"))
+                                            "abc1235_RFC.pkl"))
 
     def test_edit_project_form_delete_predictions(self):
         """Test edit project form - delete multiple predictions"""
@@ -1752,7 +1753,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "headerfile_path": "HEADPATH.dat",
                                            "zipfile_path": "ZIPPATH.tar.gz",
                                            "featset_key": "abc123",
-                                           "type": "RF"}).run(conn)
+                                           "type": "RFC"}).run(conn)
             r.table("predictions").insert({"id": "abc1234",
                                            "projkey": "abc1234",
                                            "name": "abc1234",
@@ -1848,7 +1849,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
@@ -1861,8 +1862,8 @@ class FlaskAppTestCase(unittest.TestCase):
                  "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc123_features.csv"))
-            open(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RF.pkl"))
+            open(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"), "w").close()
+            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
             # Call the method being tested
             rv = self.app.post("/editOrDeleteProject",
                                content_type='multipart/form-data',
@@ -1882,7 +1883,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                                               .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                            "abc123_RF.pkl"))
+                                            "abc123_RFC.pkl"))
             count = r.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
@@ -1948,19 +1949,19 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "zipfile_path": "ZIPPATH.tar.gz",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123_2", "projkey": "abc123",
-                                      "name": "abc123_2", "created": "abc",
-                                      "type": "RF",
-                                      "zipfile_path": "ZIPPATH.tar.gz",
-                                      "featlist": ["a", "b", "c"]}).run(conn)
+                                       "name": "abc123_2", "created": "abc",
+                                       "type": "RFC",
+                                       "zipfile_path": "ZIPPATH.tar.gz",
+                                       "featlist": ["a", "b", "c"]}).run(conn)
             rv = self.app.get("/get_list_of_models_by_project/abc123")
             model_list = [e.split(" (created")[0] for e in
                           json.loads(rv.data)["model_list"]]
-            npt.assert_array_equal(sorted(model_list), ["abc123 - RF",
-                                                        "abc123_2 - RF"])
+            npt.assert_array_equal(sorted(model_list), ["abc123 - RFC",
+                                                        "abc123_2 - RFC"])
 
     def test_upload_features_form(self):
         """Test upload features form"""
@@ -1988,11 +1989,11 @@ class FlaskAppTestCase(unittest.TestCase):
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                        "%s_classes.npy" % new_key)))
-            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % new_key)))
+                                        "%s_targets.npy" % new_key)))
+            targets = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_targets.npy" % new_key)))
             assert(all(class_name in ["class1", "class2", "class3"] for
-                       class_name in classes))
+                       class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
                                         "%s_features_with_classes.csv" %
@@ -2006,7 +2007,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
                           "%s_features_with_classes.csv" % new_key)]:
@@ -2072,13 +2073,13 @@ class FlaskAppTestCase(unittest.TestCase):
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                        "%s_classes.npy" % new_key)))
-            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % new_key)))
+                                        "%s_targets.npy" % new_key)))
+            targets = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_targets.npy" % new_key)))
             assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                       'Classical_Cepheid', 'W_Ursae_Maj',
                                       'Delta_Scuti']
-                       for class_name in classes))
+                       for class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
                                         "%s_features_with_classes.csv" %
@@ -2091,7 +2092,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
                           "%s_features_with_classes.csv" % new_key)]:
@@ -2153,13 +2154,13 @@ class FlaskAppTestCase(unittest.TestCase):
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                        "%s_classes.npy" % new_key)))
-            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % new_key)))
+                                        "%s_targets.npy" % new_key)))
+            targets = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_targets.npy" % new_key)))
             assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                       'Classical_Cepheid', 'W_Ursae_Maj',
                                       'Delta_Scuti']
-                       for class_name in classes))
+                       for class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
                                         "%s_features_with_classes.csv" %
@@ -2172,7 +2173,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
                           "%s_features_with_classes.csv" % new_key)]:
@@ -2225,13 +2226,13 @@ class FlaskAppTestCase(unittest.TestCase):
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                        "%s_classes.npy" % new_key)))
-            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % new_key)))
+                                        "%s_targets.npy" % new_key)))
+            targets = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_targets.npy" % new_key)))
             assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                       'Classical_Cepheid', 'W_Ursae_Maj',
                                       'Delta_Scuti']
-                       for class_name in classes))
+                       for class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
                                         "%s_features_with_classes.csv" %
@@ -2245,7 +2246,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
                           "%s_features_with_classes.csv" % new_key)]:
@@ -2302,11 +2303,11 @@ class FlaskAppTestCase(unittest.TestCase):
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "%s_features.csv" % new_key)))
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                        "%s_classes.npy" % new_key)))
-            classes = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                   "%s_classes.npy" % new_key)))
+                                        "%s_targets.npy" % new_key)))
+            targets = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+                                    "%s_targets.npy" % new_key)))
             assert(all(class_name in ["class1", "class2", "class3"] for
-                       class_name in classes))
+                       class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
                                         "%s_features_with_classes.csv" %
@@ -2315,12 +2316,12 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s_features.csv" % new_key))
             cols = df.columns
             values = df.values
-            npt.assert_array_equal(sorted(cols), ["amplitude", "meta1", "meta2", "meta3",
+            npt.assert_array_equal(sorted(cols), ["meta1", "meta2", "meta3",
                                                   "std_err"])
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER, "%s_classes.npy" % new_key),
+                    pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
                           "%s_features_with_classes.csv" % new_key)]:
@@ -2358,8 +2359,8 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            shutil.copy(pjoin(DATA_DIR, "test_classes.npy"),
-                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            shutil.copy(pjoin(DATA_DIR, "test_targets.npy"),
+                        pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
             shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
                         pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
             r.table("projects").insert({"id": "abc123",
@@ -2373,7 +2374,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             rv = fa.buildModel(project_name="abc123",
                                featureset_name="TEMP_TEST01",
-                               model_type="RF")
+                               model_type="RFC")
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2381,11 +2382,11 @@ class FlaskAppTestCase(unittest.TestCase):
             entry = r.table("models").get(new_model_key).run(conn)
             assert "results_msg" in entry
             assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                        "TEMP_TEST01_RF.pkl"))
-            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
+                                        "TEMP_TEST01_RFC.pkl"))
+            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
             assert hasattr(model, "predict_proba")
-            os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
-            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
+            os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+            os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
 
     def test_upload_prediction_data(self):
@@ -2406,7 +2407,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "name": "TEMP_TEST01"}).run(conn)
             rv = self.app.post('/uploadPredictionData',
                                content_type='multipart/form-data',
@@ -2423,7 +2424,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'newpred_file_sep': ',',
                                      'prediction_project_name': 'abc123',
                                      'prediction_model_name_and_type':
-                                     'TEMP_TEST01 - RF'})
+                                     'TEMP_TEST01 - RFC'})
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2434,7 +2435,7 @@ class FlaskAppTestCase(unittest.TestCase):
             feats_dict = entry["features_dict"]
             assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                     'Delta_Scuti']
+                                     'Delta_Scuti', 'RR_Lyrae']
                            for el in pred_results[fname])
                        for fname in pred_results))
             assert("std_err" in feats_dict["dotastro_215153"])
@@ -2457,7 +2458,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
-                                      "type": "RF",
+                                      "type": "RFC",
                                       "name": "TEMP_TEST01"}).run(conn)
             dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                     pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
@@ -2465,7 +2466,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 shutil.copy(pjoin(DATA_DIR, ntpath.basename(f)), f)
             rv = fa.predictionPage(newpred_file_path=dsts[0],
                                    project_name="abc123",
-                                   model_name="TEMP_TEST01", model_type="RF",
+                                   model_name="TEMP_TEST01", model_type="RFC",
                                    metadata_file_path=dsts[1])
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
@@ -2483,7 +2484,7 @@ class FlaskAppTestCase(unittest.TestCase):
             feats_dict = entry["features_dict"]
             assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                     'Delta_Scuti']
+                                     'Delta_Scuti', 'RR_Lyrae']
                            for el in pred_results[fname])
                        for fname in pred_results))
             assert("std_err" in feats_dict["dotastro_215153"])

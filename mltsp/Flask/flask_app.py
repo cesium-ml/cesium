@@ -701,7 +701,7 @@ def list_models(
     name_only : bool, optional
         If True, does not include date/time created. Defaults to False.
     with_type : bool, optional
-        If True, includes model type (e.g. 'RF') in model description.
+        If True, includes model type (e.g. 'RFC') in model description.
         Defaults to True.
     as_html_table_string : bool, optional
         If True, returns the results as a single string of HTML markup
@@ -1025,7 +1025,7 @@ def add_model(
     featureset_key : str
         RethinkDB key/ID of associated feature set.
     model_type : str
-        Abbreviation of model/classifier type (e.g. "RF").
+        Abbreviation of model/classifier type (e.g. "RFC").
     projkey : str
         RethinkDB key/ID of parent project.
     pid : str
@@ -1068,7 +1068,7 @@ def add_prediction(
     model_name : str
         Name of associated model.
     model_type : str
-        Abbreviation of associated model/classifier type (e.g. "RF").
+        Abbreviation of associated model/classifier type (e.g. "RFC").
     pred_filename : str
         Name of time-series data file used in prediction.
     pid : str, optional
@@ -1198,7 +1198,7 @@ def featset_associated_files(featset_key):
     fpaths = []
     for fpath in [
             os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
-            os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key),
+            os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key),
             os.path.join(os.path.join(os.path.join(
                 os.path.dirname(__file__), "static"),
                 "data"),
@@ -1954,7 +1954,7 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     featureset_name : str
         Name of the feature set associated with the model to be created.
     model_type : str
-        Abbreviation of the model type to be created (e.g. "RF").
+        Abbreviation of the model type to be created (e.g. "RFC").
     featureset_key : str
         RethinkDB ID of the associated feature set.
 
@@ -2005,7 +2005,7 @@ def prediction_proc(
     model_name : str
         Name of the model to be used.
     model_type : str
-        Abbreviation of the model type (e.g. "RF").
+        Abbreviation of the model type (e.g. "RFC").
     prediction_entry_key : str
         Prediction entry RethinkDB key.
     sep : str, optional
@@ -2764,7 +2764,7 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
     featureset_name : str
         Name of feature set from which to create new model.
     model_type : str
-        Abbreviation of type of model to create (e.g. "RF").
+        Abbreviation of type of model to create (e.g. "RFC").
 
     Returns
     -------
@@ -3025,7 +3025,7 @@ def predictionPage(
     model_name : str
         Name of the model to be used.
     model_type : str
-        Abbreviation of the model type (e.g. "RF").
+        Abbreviation of the model type (e.g. "RFC").
     sep : str, optional
         Delimiting character in time series data files. Defaults to
         comma ",".

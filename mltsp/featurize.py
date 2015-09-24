@@ -295,7 +295,7 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
             f2.name, os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
     np.save(os.path.join(
         ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_classes.npy" % featureset_id), classes)
+        "%s_targets.npy" % featureset_id), classes)
     print("Done.")
 
 
@@ -308,7 +308,7 @@ def featurize(
     Features are saved to the file given by
     ``"%s_features.csv" % featureset_id``
     and a list of corresponding classes is saved to the file given by
-    ``"%s_classes.npy" % featureset_id``
+    ``"%s_targets.npy" % featureset_id``
     in the directory `cfg.FEATURES_FOLDER` (or is later copied there if
     generated inside a Docker container).
 

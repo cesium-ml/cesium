@@ -132,13 +132,13 @@ def test_write_features_to_disk():
                     "test_featset01_features_with_classes.csv")) as f:
         feat_class_cont = f.read()
     classes_list = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                      "test_featset01_classes.npy")))
+                                      "test_featset01_targets.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features_with_classes.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_classes.npy"))
+                    "test_featset01_targets.npy"))
     os.remove(pjoin(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data",
                     "test_featset01_features_with_classes.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
@@ -166,9 +166,9 @@ def test_main_featurize_function():
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_classes.npy")))
-    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy")))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
+                                "test_targets.npy")))
+    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy"))
     df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv"))
     cols = df.columns
