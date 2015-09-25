@@ -14,6 +14,7 @@ except:
     pass
 import scipy.stats as stats
 import heapq
+from copy import deepcopy
 from . import cfg
 
 
@@ -875,7 +876,7 @@ def getLocalLc(filename, classname='unknown', sep=',',
 
     """
     if ts_data_passed_directly:
-        lcdata = filename
+        lcdata = deepcopy(filename)
         for i in range(len(lcdata)):
             try:
                 if len(lcdata[i]) == 2 and add_errors:

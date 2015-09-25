@@ -13,6 +13,7 @@ import io
 import tarfile
 import shutil
 import numpy as np
+from importlib import import_module
 from . import cfg
 
 from .util import docker_images_available, is_running_in_docker, \
@@ -188,7 +189,8 @@ def listify_feats_known_dict(features_already_known):
 
 
 def call_custom_functions(features_already_known_list, all_required_params,
-                          all_provided_params, fnames_req_prov_dict):
+                          all_provided_params, fnames_req_prov_dict,
+                          script_fpath=None):
     """
     """
     # import the custom feature defs
@@ -198,7 +200,16 @@ def call_custom_functions(features_already_known_list, all_required_params,
         try:
             import custom_feature_defs
         except ImportError:
-            raise
+            if script_fpath:
+                script_name = str(uuid.uuid4())[:10] + ".py"
+                custom_feature_scripts_dir = os.path.join(
+                    os.path.dirname(__file__), "custom_feature_scripts")
+                copied_path = os.path.join(custom_feature_scripts_dir,
+                                           script_name)
+                shutil.copy(script_fpath, copied_path)
+                custom_feature_defs = import_module(".custom_feature_scripts." +
+                                                    script_name.replace(".py", ""),
+                                                    "mltsp")
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout
@@ -248,6 +259,11 @@ def call_custom_functions(features_already_known_list, all_required_params,
         all_extracted_features_list.append(all_extracted_features)
     # revert to original stdout
     sys.stdout = save_stdout
+    try:
+        os.remove(copied_path)
+        os.remove(copied_path.replace('.py', '.pyc'))
+    except:
+        pass
     return all_extracted_features_list
 
 
@@ -298,7 +314,7 @@ def execute_functions_in_order(
 
     all_extracted_features_list = call_custom_functions(
         features_already_known_list, all_required_params, all_required_params,
-        fnames_req_prov_dict)
+        fnames_req_prov_dict, script_fpath)
 
     return all_extracted_features_list
 
@@ -381,15 +397,15 @@ def add_tsdata_to_feats_known_dict(features_already_known_list,
                     T = [float(el) for el in T]
                     M = [float(el) for el in M]
                     E = [float(el) for el in E]
-                    features_already_known_list[i]["t"] = T
-                    features_already_known_list[i]["m"] = M
-                    features_already_known_list[i]["e"] = E
+                    features_already_known_list[i]["t"] = np.array(T)
+                    features_already_known_list[i]["m"] = np.array(M)
+                    features_already_known_list[i]["e"] = np.array(E)
                 elif all(len(this_tme) == 2 for this_tme in tme):
                     T, M = list(zip(*tme))
                     T = [float(el) for el in T]
                     M = [float(el) for el in M]
-                    features_already_known_list[i]["t"] = T
-                    features_already_known_list[i]["m"] = M
+                    features_already_known_list[i]["t"] = np.array(T)
+                    features_already_known_list[i]["m"] = np.array(M)
                 else:
                     raise Exception("custom_feature_tools.py - "
                                     "docker_extract_features() - not all elements "
@@ -469,7 +485,7 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
             proj_mount_path = cfg.PROJECT_PATH
         # Create container
         cont_id = client.create_container(
-            image="mltsp/base_disco",
+            image="mltsp/base",
             command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
                 proj_mount_path, "extract_custom_feats", tmp_data_dir),
             tty=True,
@@ -624,6 +640,7 @@ def verify_new_script(script_fpath, docker_container=False):
 
     """
     features_already_known_list = assemble_test_data()
+    print(script_fpath, os.path.isfile(script_fpath))
 
     all_extracted_features_list = []
     no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
@@ -730,6 +747,9 @@ def generate_custom_features(
         features_already_known['m'] = m
     if e and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
+    for k in ('t', 'm', 'e'):
+        if k in features_already_known:
+            features_already_known[k] = np.array(features_already_known[k])
 
     if is_running_in_docker():
         all_new_features = execute_functions_in_order(

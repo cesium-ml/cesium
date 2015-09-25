@@ -5,7 +5,6 @@ docker-py
 numpy
 scipy
 scikit-learn==0.16.1  # also update version in dockerfiles/base/Dockerfile
-mpld3
 pandas
 parse
 psutil>=2.2.1
@@ -18,3 +17,4 @@ nose
 nose-exclude
 pyyaml
 waitress
+celery

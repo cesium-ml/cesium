@@ -72,8 +72,8 @@ def test_count_classes():
     npt.assert_equal(class_count["class2"], 1)
 
 
-def test_generate_features_serial():
-    """Test generate_features - serial extraction"""
+def test_generate_features():
+    """Test generate_features"""
     objs = featurize.generate_features(
         pjoin(cfg.UPLOAD_FOLDER,
               "asas_training_subset_classes_with_metadata.dat"),
@@ -81,83 +81,10 @@ def test_generate_features_serial():
               "asas_training_subset.tar.gz"),
         ["std_err"],
         pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False, False)
+        True, False, False)
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
     assert(all("class" in d for d in objs))
-    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for d in objs))
-
-
-def test_generate_features_parallel():
-    """Test generate_features - parallelized extraction"""
-    objs = featurize.generate_features(
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset_classes_with_metadata.dat"),
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset.tar.gz"),
-        ["std_err"],
-        None,  # Custom feats not working with Disco yet
-        True, True, False, False)
-    npt.assert_equal(len(objs), 3)
-    print(objs)
-    assert(all("std_err" in d for d in objs))
-    assert(all("class" in d for d in objs))
-    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for d in objs))
-
-
-def test_featurize_tsdata_object():
-    """Test featurize TS data object function"""
-    path_to_csv = pjoin(DATA_PATH, "dotastro_215153.dat")
-    short_fname = featurize.shorten_fname(path_to_csv)
-    custom_script_path = pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py")
-    fname_class_dict = {"dotastro_215153": "Mira"}
-    features_to_use = ["std_err", "freq1_harmonics_freq_0"]
-    all_feats = featurize.featurize_tsdata_object(
-        path_to_csv, short_fname, custom_script_path, fname_class_dict,
-        features_to_use)
-    assert(isinstance(all_feats, dict))
-    assert("std_err" in all_feats)
-    assert("freq1_harmonics_freq_0" in all_feats)
-
-
-def test_remove_unzipped_files():
-    """Test removal of unzipped files"""
-    tarball_path = pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz")
-    unzip_path = pjoin(cfg.UPLOAD_FOLDER, "unzipped")
-    tarball_obj = tarfile.open(tarball_path)
-    tarball_obj.extractall(path=unzip_path)
-    all_fnames = tarball_obj.getnames()
-    for fname in all_fnames:
-        assert(os.path.exists(pjoin(unzip_path, fname)))
-
-    featurize.remove_unzipped_files(all_fnames)
-
-    for fname in all_fnames:
-        assert(not os.path.exists(pjoin(cfg.UPLOAD_FOLDER, fname)))
-
-
-def test_extract_serial():
-    """Test serial featurization of multiple TS data sources"""
-    objs = featurize.extract_serial(
-        pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset_with_metadata.dat"),
-        pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
-        ["std_err"],
-        pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False, False,
-        {"217801": "Mira", "219538": "Herbig_AEBE",
-         "223592": "Beta_Lyrae"},
-        {"217801": {"class": "Mira"},
-         "219538": {"class": "Herbig_AEBE"},
-         "223592": {"class": "Beta_Lyrae"}},
-        {"217801": {}, "219538": {},
-         "223592": {}})
-    npt.assert_equal(len(objs), 3)
-    assert(all("std_err" in obj for obj in objs))
-    assert(all("avg_mag" in obj for obj in objs))
     assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                for d in objs))
@@ -220,44 +147,7 @@ def test_write_features_to_disk():
 
 
 def test_main_featurize_function():
-    """Test main featurize function - serial extraction"""
-    shutil.copy(
-        pjoin(DATA_PATH, "testfeature1.py"),
-        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
-    results_msg = featurize.featurize(
-        headerfile_path=pjoin(
-            cfg.UPLOAD_FOLDER,
-            "asas_training_subset_classes_with_metadata.dat"),
-        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
-                           "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "freq1_harmonics_freq_0"],
-        featureset_id="test", is_test=True,
-        custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
-                                 "testfeature1.py"),
-        USE_DISCO=False)
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_features.csv")))
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_classes.npy")))
-    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy")))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_classes.npy"))
-    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
-                                      "test_features.csv"))
-    cols = df.columns
-    values = df.values
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
-                          "Flask/static/data"),
-                    "test_features_with_classes.csv"))
-    assert("std_err" in cols)
-    assert("freq1_harmonics_freq_0" in cols)
-    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for class_name in class_list))
-
-
-def test_main_featurize_function_disco():
-    """Test main featurize function - using Disco"""
+    """Test main featurize function"""
     test_setup()
 
     shutil.copy(
@@ -269,10 +159,10 @@ def test_main_featurize_function_disco():
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
                            "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "freq1_harmonics_freq_0"],
+        features_to_use=["std_err", "freq1_harmonics_freq_0", "f"],
         featureset_id="test", is_test=True,
-        custom_script_path=None,  # TODO: Doesn't work when using Disco!!!
-        USE_DISCO=True)
+        custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                                 "testfeature1.py"),)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -288,6 +178,7 @@ def test_main_featurize_function_disco():
                           "Flask/static/data"),
                     "test_features_with_classes.csv"))
     assert("std_err" in cols)
+    assert("f" in cols)
     assert("freq1_harmonics_freq_0" in cols)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']

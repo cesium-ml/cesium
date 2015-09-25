@@ -48,12 +48,6 @@ casper.test.begin('predict', function suite(test) {
         });
 
         casper.then(function(){
-            casper.waitForText("This process is currently running", function(){
-                test.assertTextExists("This process is currently running",
-                                      "Process started");
-            });
-        });
-        casper.then(function(){
             casper.waitForText(
                 "Featurization and prediction complete.",
                 function(){

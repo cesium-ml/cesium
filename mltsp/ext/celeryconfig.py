@@ -1,0 +1,9 @@
+CELERY_RESULT_BACKEND = "amqp"
+
+CELERY_RESULT_SERIALIZER = 'json'  # NOTE: MUST BE SET TO JSON
+
+CELERYD_LOG_LEVEL = "DEBUG"
+
+INSTALLED_APPS = ["mltsp"]
+
+CELERY_IMPORTS = ("mltsp", "celery_tasks")

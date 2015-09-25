@@ -1,4 +1,5 @@
 from mltsp import build_model
+from mltsp import celery_task_tools as ctt
 from mltsp import cfg
 import numpy.testing as npt
 import os
@@ -12,7 +13,7 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 def test_csv_parser():
     """Test CSV file parsing."""
-    colnames, data_rows = build_model.read_data_from_csv_file(
+    colnames, data_rows = ctt.read_data_from_csv_file(
         pjoin(DATA_PATH, "csv_test_data.csv"))
     npt.assert_equal(colnames[0], "col1")
     npt.assert_equal(colnames[-1], "col4")
@@ -21,21 +22,11 @@ def test_csv_parser():
     npt.assert_equal(data_rows[0][-1], "4")
 
 
-def test_count_classes():
-    """Test counting of class instances"""
-    class_list = ["c5", "c1", "c1", "c2", "c2", "c2", "c3"]
-    class_count, sorted_class_list = build_model.count_classes(class_list)
-    npt.assert_array_equal(sorted_class_list, ["c1", "c2", "c3", "c5"])
-    npt.assert_equal(class_count["c1"], 2)
-    npt.assert_equal(class_count["c2"], 3)
-    npt.assert_equal(class_count["c5"], 1)
-
-
 def test_clean_up_data_dict():
     """Test removal of empty lines from data"""
     data_dict = {"features": [[1, 2, 3], [1, 2, 3], [1]],
                  "classes": ['1', '2', '3']}
-    build_model.clean_up_data_dict(data_dict)
+    ctt.clean_up_data_dict(data_dict)
     npt.assert_array_equal(data_dict["classes"], ['1', '2'])
     npt.assert_array_equal(data_dict["features"], [[1, 2, 3], [1, 2, 3]])
 
@@ -46,7 +37,7 @@ def test_create_and_pickle_model():
                  "classes": ['1', '2']}
     featset_key = "test"
     model_type = "RF"
-    build_model.create_and_pickle_model(
+    ctt.create_and_pickle_model(
         {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
          "classes": ['1', '2']},
         "test_build_model", "RF", False)
@@ -61,11 +52,12 @@ def test_create_and_pickle_model():
 
 
 def test_read_features_data_from_disk():
+    """Test read features data from disk"""
     for suffix in ["features.csv", "classes.npy"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
-    data_dict = build_model.read_features_data_from_disk("TEST001")
+    data_dict = ctt.read_features_data_from_disk("TEST001")
     npt.assert_array_equal(data_dict["classes"], ["Mira", "Herbig_AEBE",
                                                   "Beta_Lyrae"])
     for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:

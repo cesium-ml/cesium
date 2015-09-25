@@ -4,8 +4,9 @@
 #
 from __future__ import print_function
 import os, sys
-
+import multiprocessing
 import yaml
+from . import util
 
 # Load configuration
 config_files = [
@@ -24,13 +25,24 @@ for cf in config_files:
         pass
 
 if not config:
-    print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
-          '\n '.join(config_files),
-          "\n\nPlease refer to the installation guide for further\n"
-          "instructions.\n\n"
-          "If you don't want to read the manual, do the following:\n"
-          "  import mltsp; mltsp.install()")
-    sys.exit(-1)
+    if not util.is_running_in_docker():
+        print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
+              '\n '.join(config_files),
+              "\n\nPlease refer to the installation guide for further\n"
+              "instructions.\n\n"
+              "If you don't want to read the manual, do the following:\n"
+              "  import mltsp; mltsp.install()")
+        sys.exit(-1)
+
+try:
+    N_CORES = multiprocessing.cpu_count()
+except Exception as e:
+    print(e)
+    print("Using N_CORES = 8")
+    N_CORES = 8
+
+CELERY_CONFIG = 'mltsp.ext.celeryconfig'
+CELERY_BROKER = 'amqp://guest@localhost//'
 
 # Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -212,7 +224,6 @@ features_to_plot = [
 
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
-    from . import util
     if util.is_running_in_docker() == False:
         sys.exit(-1)
 
@@ -228,6 +239,6 @@ for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
         except Exception as e:
             print(e)
 
-del yaml, os, sys, print_function, config_files
+del yaml, os, sys, print_function, config_files, multiprocessing
 
 config['mltsp'] = locals()

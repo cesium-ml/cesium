@@ -32,7 +32,7 @@ def test_feature_generation():
     featurize.featurize(
         os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset_classes.dat"),
         os.path.join(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
-        featureset_id="testfeatset", is_test=True, USE_DISCO=False,
+        featureset_id="testfeatset", is_test=True,
         features_to_use=cfg.features_list_science
     )
 

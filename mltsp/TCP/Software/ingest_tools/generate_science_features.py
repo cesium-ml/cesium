@@ -16,7 +16,10 @@ from __future__ import print_function
 
 def currently_running_in_docker_container():
     import subprocess
-    proc = subprocess.Popen(["cat","/proc/1/cgroup"],stdout=subprocess.PIPE)
+    import os
+    if not os.path.exists("/proc/1/cgroup"):
+        return False
+    proc = subprocess.Popen(["cat", "/proc/1/cgroup"],stdout=subprocess.PIPE)
     output = proc.stdout.read()
     if "/docker/" in str(output):
         in_docker_container=True
@@ -238,7 +241,7 @@ def generate(timeseries_url="",path_to_csv=False,ts_data=None):
         except Exception as theError:
             print("generate_science_features::generate():", theError, "... Returning {}...")
             return {}
-    elif ts_data != None and type(ts_data)==list:
+    elif ts_data is not None and isinstance(ts_data, list):
         t_list, m_list, merr_list = zip(*ts_data)
         t_list=list(t_list)
         m_list=list(m_list)

@@ -2,8 +2,13 @@
 
 ## System dependencies
 
-If you are using Anaconda, create your environment with packaged
-dependencies pre-installed to save time:
+Install compiler dependecies with
+
+``sudo apt-get install build-essential python-dev libgfortran3``
+
+If you are using Anaconda (install dependencies with
+`sudo apt-get install libsm6 libxrender1 libfontconfig1`),
+create your environment with packaged dependencies pre-installed to save time:
 
 ``conda create -n mltsp scipy pandas matplotlib scikit-learn pip``
 
@@ -15,32 +20,20 @@ Then activate it:
 
   ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
 
-* Install and configure Disco
+* Install RabbitMQ
 
-  Requires: Erlang. If you see errors about `escript` below,
-  this is what you're missing.
+  For Debian / Ubuntu:
 
-  ```
-  git clone --depth 1 git://github.com/discoproject/disco.git disco
-  cd disco
-  make
-  cd lib && python setup.py install && cd ..
-  export DISCO_HOME=/path/to/disco/repository
-  ```
+  ``sudo apt-get install rabbitmq-server``
 
-  You also have to setup passwordless SSH authentication to the local
-  machine (this is required for running the test suite):
+  Server will automatically run as a daemon (background process) upon install
+  on Ubuntu. On OS X, run ``rabbitmq-server -detached`` after install.
 
-  ```
-  ssh-keygen -N '' -f ~/.ssh/id_dsa
-  cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
-  ```
+* Install PhantomJS
 
-  (Test that SSH is working with: ``ssh localhost erl``)
+  For Debian / Ubuntu:
 
-  Navigate to ``localhost:8989``, click "configure" and ensure that
-  an entry for "localhost" exists under "Available nodes".  If not,
-  add one with the corresponding number of cores as the "workers" value.
+  ``sudo apt-get install phantomjs``
 
 * Install RethinkDB
 
@@ -53,9 +46,10 @@ Then activate it:
   sudo apt-get install rethinkdb
   ```
 
-  Run ``rethinkdb`` in the MLTP directory.
-
 * Install Docker
+
+  See https://docs.docker.com/installation/ubuntulinux/ for installation and
+  configuration instructions.
 
   Pull down the required images:
 
@@ -75,7 +69,7 @@ Then activate it:
 
 ## Configuration
 
-* Execute ``import mltsp; mltsp.install()``
+* Run ``python -c 'import mltsp; mltsp.install()'``
 
 * Locate ``~/.config/mltsp/mltsp.yaml`` and customize authentication tokens.
 

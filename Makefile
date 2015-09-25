@@ -2,7 +2,6 @@
 
 SHELL = /bin/bash
 PY_VER = $(shell python -c 'import sys; print(sys.version_info.major)')
-DISCO = $(DISCO_HOME)/bin/disco
 
 py2:
 	@if [[ $(PY_VER) != 2 ]]; then \
@@ -10,17 +9,11 @@ py2:
 		exit 1; \
 	fi
 
-disco: py2
-	@if [[ -z '$(DISCO_HOME)' ]]; then \
-		echo -e "\n** Error: DISCO_HOME is not set. **\n"; \
-		echo -e "Please follow the installation instructions in README.txt\n"; \
-		exit 1; \
+celery: py2
+	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
+		PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
 	else \
-		if [[ -z `$(DISCO) status | grep running` ]]; then \
-			$(DISCO) start ; \
-		else \
-		    echo "[Disco] is already running"; \
-		fi; \
+		echo "[Celery] is already running"; \
 	fi
 
 .DEFAULT_GOAL := all
@@ -31,10 +24,10 @@ all: py2
 clean:
 	find . -name "*.so" | xargs rm
 
-webapp: db py2
+webapp: db py2 celery
 	PYTHONPATH=. tools/launch_waitress.py
 
-init: py2 db
+init: py2 db celery
 	python start_mltsp.py --db-init --force
 
 db:
@@ -43,18 +36,18 @@ db:
 external/casperjs: py2
 	@tools/casper_install.sh
 
-test_backend: db py2
+test_backend: db py2 celery
 	nosetests -v mltsp
 
 test_backend_no_docker: export MLTSP_NO_DOCKER=1
-test_backend_no_docker: db py2
+test_backend_no_docker: db py2 celery
 	nosetests -v mltsp
 
-test_frontend: external/casperjs py2 db
+test_frontend: external/casperjs py2 db celery
 	@PYTHONPATH="." tools/casper_tests.py
 
 test_frontend_no_docker: export MLTSP_NO_DOCKER=1
-test_frontend_no_docker: external/casperjs py2 db
+test_frontend_no_docker: external/casperjs py2 db celery
 	@PYTHONPATH="." tools/casper_tests.py
 
 test: test_backend test_frontend
