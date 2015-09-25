@@ -2576,7 +2576,7 @@ class FlaskAppTestCase(unittest.TestCase):
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
-            time.sleep(1)
+            time.sleep(5)
             new_key = res_dict["prediction_entry_key"]
             entry = r.table('predictions').get(new_key).run(conn)
             r.table("predictions").get(new_key).delete().run(conn)

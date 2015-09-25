@@ -124,6 +124,7 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")
+# TODO can't short_fname be generated instead of passed in?
 def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
                       object_class, features_to_use):
     """Featurize time-series data file.

@@ -60,7 +60,7 @@ def test_determine_feats_to_plot1():
     assert("221a" in ftp)
     assert("median" not in ftp)
     ftp = featurize.determine_feats_to_plot(cfg.features_list_science)
-    assert("freq1_harmonics_amplitude_0" in ftp)
+    assert("freq1_amplitude1" in ftp)
     assert("median" in ftp)
 
 
@@ -159,7 +159,7 @@ def test_main_featurize_function():
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
                            "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "freq1_harmonics_freq_0", "f"],
+        features_to_use=["std_err", "f"],
         featureset_id="test", is_test=True,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                  "testfeature1.py"),)
@@ -179,7 +179,6 @@ def test_main_featurize_function():
                     "test_features_with_classes.csv"))
     assert("std_err" in cols)
     assert("f" in cols)
-    assert("freq1_harmonics_freq_0" in cols)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                for class_name in class_list))

@@ -3,6 +3,7 @@ def configuration(parent_package='', top_path=None):
 
     config = Configuration('mltsp', parent_package, top_path)
     config.add_subpackage('TCP')
+    config.add_subpackage('science_features')
     return config
 
 

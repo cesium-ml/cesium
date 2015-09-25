@@ -18,3 +18,4 @@ nose-exclude
 pyyaml
 waitress
 celery
+dask
