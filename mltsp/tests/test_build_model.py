@@ -116,8 +116,6 @@ def test_build_model_lin_class():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
-    assert "sklearn.linear_model.stochastic_gradient.SGDClassifier" in \
-        str(type(model))
 
 
 def test_build_model_lin_reg():

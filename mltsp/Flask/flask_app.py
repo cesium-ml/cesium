@@ -395,7 +395,7 @@ def update_prediction_entry_with_pid(prediction_key, pid):
 
 def update_prediction_entry_with_results(prediction_entry_key, html_str,
                                          features_dict, ts_data_dict,
-                                         pred_results_list_dict, err=None):
+                                         pred_results_dict, err=None):
     """Update RethinkDB prediction entry with results data.
 
     Add features generated, prediction results and ts data to entry in
@@ -413,7 +413,7 @@ def update_prediction_entry_with_results(prediction_entry_key, html_str,
         Dictionary containing time-series data, with their original
         file names as keys, and list of respective (t,m,e) values as
         each dict value.
-    pred_results_list_dict : dict
+    pred_results_dict : dict
         Dictionary with original time-series data file name as keys,
         list of respective classifier prediction results as values.
     err : str, optional
@@ -429,7 +429,7 @@ def update_prediction_entry_with_results(prediction_entry_key, html_str,
     info_dict = {"results_str_html": html_str,
                  "features_dict": features_dict,
                  "ts_data_dict": ts_data_dict,
-                 "pred_results_list_dict": pred_results_list_dict}
+                 "pred_results_dict": pred_results_dict}
     if err is not None:
         info_dict["err_msg"] = err
     rdb.table("predictions").get(prediction_entry_key)\
@@ -2049,6 +2049,7 @@ def prediction_proc(
             n_cols_html_table=n_cols_html_table,
             custom_features_script=custom_features_script,
             metadata_file_path=metadata_file)
+        print("RESULTS_DICT", results_dict)
         try:
             os.remove(newpred_file_path)
             if metadata_file:
@@ -2069,7 +2070,7 @@ def prediction_proc(
             " data file(s) conforms to the specified requirements.</font>")
         update_prediction_entry_with_results(
             prediction_entry_key, html_str=msg, features_dict={},
-            ts_data_dict={}, pred_results_list_dict=[], err=str(theErr))
+            ts_data_dict={}, pred_results_dict=[], err=str(theErr))
         print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
             "Error occurred during predict.predict() call.")
@@ -2077,29 +2078,27 @@ def prediction_proc(
         if isinstance(results_dict, dict):
             big_features_dict = {}
             ts_data_dict = {}
-            pred_results_list_dict = {}
+            pred_results_dict = {}
             for fname, data_dict in results_dict.items():
-                pred_results = data_dict['results_str']
+                pred_results_str = data_dict['results_str']
                 ts_data = data_dict['ts_data']
                 features_dict = data_dict['features_dict']
-                pred_results_list = data_dict['pred_results_list']
-
-                results_str += pred_results
+                results_str += pred_results_str
                 big_features_dict[fname] = features_dict
                 ts_data_dict[fname] = ts_data
-                pred_results_list_dict[fname] = pred_results_list
+                pred_results_dict[fname] = data_dict['pred_results']
             results_str += (
                 "   </tbody>"
                 "</table>")
             update_prediction_entry_with_results(
                 prediction_entry_key, html_str=results_str,
                 features_dict=big_features_dict, ts_data_dict=ts_data_dict,
-                pred_results_list_dict=pred_results_list_dict)
+                pred_results_dict=pred_results_dict)
         elif isinstance(results_dict, str):
             update_prediction_entry_with_results(
                 prediction_entry_key, html_str=results_dict,
                 features_dict={}, ts_data_dict={},
-                pred_results_list_dict={})
+                pred_results_dict={})
         else:
             raise ValueError("predict.predict() returned object of "
                              "invalid type - {}.".format(type(results_dict)))
@@ -3138,7 +3137,7 @@ def load_source_data(prediction_entry_key, source_fname):
             "features_dict": ("No entry found for prediction_entry_key = %s."
                               % prediction_entry_key),
             "pred_results": pred_results})
-    pred_results = entry['pred_results_list_dict'][source_fname]
+    pred_results = entry['pred_results_dict'][source_fname]
     features_dict = entry['features_dict'][source_fname]
     ts_data = entry['ts_data_dict'][source_fname]
     return jsonify({

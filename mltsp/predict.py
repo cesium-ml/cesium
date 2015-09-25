@@ -223,7 +223,7 @@ def add_to_predict_results_dict_classification(results_dict, estimator_preds,
     results_str += "</tr>"
     results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
         "results_str": results_str, "ts_data": ts_data,
-        "features_dict": features_dict, "pred_results_list": results_arr}
+        "features_dict": features_dict, "pred_results": results_arr}
     return
 
 
@@ -243,7 +243,7 @@ def add_to_predict_results_dict_regression(results_dict, estimator_preds,
     results_str += "</tr>"
     results_dict[ntpath.basename(fname)] = {
         "results_str": results_str, "ts_data": ts_data,
-        "features_dict": features_dict, "pred_results_list": estimator_preds}
+        "features_dict": features_dict, "pred_results": estimator_preds}
     return
 
 
@@ -295,7 +295,7 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
     table containing a list of the results, the time-series data itself
     used to generate features, and a dictionary of the features
     extracted. The respective dict keys of the above-mentioned values
-    are: "pred_results_list", "results_str", "ts_data", "features_dict".
+    are: "pred_results", "results_str", "ts_data", "features_dict".
 
     Parameters
     ----------
@@ -336,7 +336,7 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
             "ts_data": The original time-series data provided.
             "features_dict": A dictionary containing the generated
                 features.
-            "pred_results_list": A list of lists, each containing one
+            "pred_results": A list of lists, each containing one
                 of the most-probable targets and its probability.
 
     """

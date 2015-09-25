@@ -244,7 +244,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(entry_dict["results_str_html"], html_str)
             npt.assert_equal(entry_dict["features_dict"], features_dict)
             npt.assert_equal(entry_dict["ts_data_dict"], ts_data)
-            npt.assert_equal(entry_dict["pred_results_list_dict"], results)
+            npt.assert_equal(entry_dict["pred_results_dict"], results)
 
     def test_update_prediction_entry_with_results_err(self):
         """Test update prediction entry with results - w/ err msg"""
@@ -265,7 +265,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(entry_dict["results_str_html"], html_str)
             npt.assert_equal(entry_dict["features_dict"], features_dict)
             npt.assert_equal(entry_dict["ts_data_dict"], ts_data)
-            npt.assert_equal(entry_dict["pred_results_list_dict"], results)
+            npt.assert_equal(entry_dict["pred_results_dict"], results)
             npt.assert_equal(entry_dict["err_msg"], "err_msg")
 
     def test_update_model_entry_with_results_msg(self):
@@ -1480,12 +1480,12 @@ class FlaskAppTestCase(unittest.TestCase):
                                     "TESTRUN_215153_metadata.dat"))
 
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
-            pred_results_list_dict = entry
-            assert(pred_results_list_dict["pred_results_list_dict"]
+            pred_results_dict = entry
+            assert(pred_results_dict["pred_results_dict"]
                                          ["TESTRUN_215153"][0][0]
                    in ['Beta_Lyrae', 'Herbig_AEBE'])
 
-            assert all(key in pred_results_list_dict for key in
+            assert all(key in pred_results_list_dict for key in \
                        ("ts_data_dict", "features_dict"))
             for fpath in [pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
                           pjoin(cfg.UPLOAD_FOLDER,
@@ -2431,7 +2431,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = res_dict["prediction_entry_key"]
             entry = r.table('predictions').get(new_key).run(conn)
             teardown_model()
-            pred_results = entry["pred_results_list_dict"]
+            pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
             assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                      'Classical_Cepheid', 'W_Ursae_Maj',
@@ -2480,7 +2480,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 except OSError:
                     pass
             teardown_model()
-            pred_results = entry["pred_results_list_dict"]
+            pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
             assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                      'Classical_Cepheid', 'W_Ursae_Maj',
@@ -2495,7 +2495,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('predictions').insert({'id': 'abc123',
-                                           'pred_results_list_dict': {'a': 1},
+                                           'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1}}).run(conn)
             rv = fa.load_source_data('abc123', 'a')
@@ -2509,7 +2509,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('predictions').insert({'id': 'abc123',
-                                           'pred_results_list_dict': {'a': 1},
+                                           'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1}}).run(conn)
             rv = self.app.get("/load_source_data/abc123/a")
@@ -2523,14 +2523,14 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('predictions').insert({'id': 'abc123',
-                                           'pred_results_list_dict': {'a': 1},
+                                           'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1},
                                            "results_str_html": "a"}).run(conn)
             rv = fa.load_prediction_results('abc123')
             res_dict = json.loads(rv.data)
             npt.assert_array_equal(res_dict, {'id': 'abc123',
-                                              'pred_results_list_dict': {'a': 1},
+                                              'pred_results_dict': {'a': 1},
                                               'features_dict': {'a': 1},
                                               'ts_data_dict': {'a': 1},
                                               "results_str_html": "a"})
@@ -2541,14 +2541,14 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('predictions').insert({'id': 'abc123',
-                                           'pred_results_list_dict': {'a': 1},
+                                           'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1},
                                            "results_str_html": "a"}).run(conn)
             rv = self.app.get("/load_prediction_results/abc123")
             res_dict = json.loads(rv.data)
             npt.assert_equal(res_dict, {'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_str_html": "a"})
@@ -2559,7 +2559,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('models').insert({'id': 'abc123',
-                                      'pred_results_list_dict': {'a': 1},
+                                      'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
                                       "results_msg": "results_msg",
@@ -2567,7 +2567,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = fa.load_model_build_results("abc123")
             res_dict = json.loads(rv.data)
             npt.assert_equal(res_dict, {'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_msg": "results_msg",
@@ -2590,7 +2590,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('models').insert({'id': 'abc123',
-                                      'pred_results_list_dict': {'a': 1},
+                                      'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
                                       "results_msg": "Error occurred",
@@ -2601,7 +2601,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
             npt.assert_equal(res_dict, {'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_msg": "Error occurred",
@@ -2613,7 +2613,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('models').insert({'id': 'abc123',
-                                      'pred_results_list_dict': {'a': 1},
+                                      'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
                                       "results_msg": "results_msg",
@@ -2621,7 +2621,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = self.app.get("/load_model_build_results/abc123")
             res_dict = json.loads(rv.data)
             npt.assert_equal(res_dict, {'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_msg": "results_msg",
@@ -2633,7 +2633,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('features').insert({'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_msg": "results_msg",
@@ -2641,7 +2641,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = fa.load_featurization_results("abc123")
             res_dict = json.loads(rv.data)
             npt.assert_equal(res_dict, {'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_msg": "results_msg",
@@ -2653,7 +2653,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             r.table('features').insert({'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_str_html": "a"}).run(conn)
@@ -2685,7 +2685,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s.dat" % str(uuid.uuid4())[:8]))
                 open(tmp_files[-1], "w").close()
             r.table('features').insert({'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         'headerfile_path': tmp_files[0],
@@ -2699,7 +2699,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 r.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
             npt.assert_equal(res_dict, {'id': 'abc123',
-                                        'pred_results_list_dict': {'a': 1},
+                                        'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         'headerfile_path': tmp_files[0],
