@@ -1408,7 +1408,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "TEST01_targets.npy")))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
-                                        "TEST01_features_with_classes.csv")))
+                                        "TEST01_features_with_targets.csv")))
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_targets.npy"))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "TEST01_features.csv"))
@@ -1418,7 +1418,7 @@ class FlaskAppTestCase(unittest.TestCase):
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEST01_features.csv"))
             os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                   "Flask/static/data"),
-                            "TEST01_features_with_classes.csv"))
+                            "TEST01_features_with_targets.csv"))
             assert("std_err" in cols)
             featurize_teardown()
 
@@ -1975,8 +1975,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                data={'features_file':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "test_features_with_classes.csv")),
-                                      "test_features_with_classes.csv"),
+                                         "test_features_with_targets.csv")),
+                                      "test_features_with_targets.csv"),
                                      'featuresetname': 'abc123',
                                      'featureset_projname_select': 'abc123'})
             res_dict = json.loads(rv.data)
@@ -1996,7 +1996,7 @@ class FlaskAppTestCase(unittest.TestCase):
                        class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
-                                        "%s_features_with_classes.csv" %
+                                        "%s_features_with_targets.csv" %
                                         new_key)))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "%s_features.csv" % new_key))
@@ -2010,7 +2010,7 @@ class FlaskAppTestCase(unittest.TestCase):
                     pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
-                          "%s_features_with_classes.csv" % new_key)]:
+                          "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
             entry_dict = r.table("features").get(new_key).run(conn)
@@ -2082,7 +2082,7 @@ class FlaskAppTestCase(unittest.TestCase):
                        for class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
-                                        "%s_features_with_classes.csv" %
+                                        "%s_features_with_targets.csv" %
                                         new_key)))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "%s_features.csv" % new_key))
@@ -2095,7 +2095,7 @@ class FlaskAppTestCase(unittest.TestCase):
                     pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
-                          "%s_features_with_classes.csv" % new_key)]:
+                          "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
             entry_dict = r.table("features").get(new_key).run(conn)
@@ -2163,7 +2163,7 @@ class FlaskAppTestCase(unittest.TestCase):
                        for class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
-                                        "%s_features_with_classes.csv" %
+                                        "%s_features_with_targets.csv" %
                                         new_key)))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "%s_features.csv" % new_key))
@@ -2176,7 +2176,7 @@ class FlaskAppTestCase(unittest.TestCase):
                     pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
-                          "%s_features_with_classes.csv" % new_key)]:
+                          "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
             entry_dict = r.table("features").get(new_key).run(conn)
@@ -2235,7 +2235,7 @@ class FlaskAppTestCase(unittest.TestCase):
                        for class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
-                                        "%s_features_with_classes.csv" %
+                                        "%s_features_with_targets.csv" %
                                         new_key)))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "%s_features.csv" % new_key))
@@ -2249,7 +2249,7 @@ class FlaskAppTestCase(unittest.TestCase):
                     pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
-                          "%s_features_with_classes.csv" % new_key)]:
+                          "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
             entry_dict = r.table("features").get(new_key).run(conn)
@@ -2282,9 +2282,9 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            shutil.copy(pjoin(DATA_DIR, "test_features_with_classes.csv"),
+            shutil.copy(pjoin(DATA_DIR, "test_features_with_targets.csv"),
                         cfg.UPLOAD_FOLDER)
-            headerfile_name = "test_features_with_classes.csv"
+            headerfile_name = "test_features_with_targets.csv"
             headerfile_path, zipfile_path, custom_script_path = \
                 featurize_setup()
             rv = fa.featurizationPage(
@@ -2310,7 +2310,7 @@ class FlaskAppTestCase(unittest.TestCase):
                        class_name in targets))
             assert(os.path.exists(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                               "Flask/static/data"),
-                                        "%s_features_with_classes.csv" %
+                                        "%s_features_with_targets.csv" %
                                         new_key)))
             df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                               "%s_features.csv" % new_key))
@@ -2324,7 +2324,7 @@ class FlaskAppTestCase(unittest.TestCase):
                     pjoin(cfg.FEATURES_FOLDER, "%s_targets.npy" % new_key),
                     pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                                 "Flask/static/data"),
-                          "%s_features_with_classes.csv" % new_key)]:
+                          "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
             entry_dict = r.table("features").get(new_key).run(conn)
@@ -2338,7 +2338,7 @@ class FlaskAppTestCase(unittest.TestCase):
                     os.remove(fpath)
             try:
                 os.remove(pjoin(cfg.UPLOAD_FOLDER,
-                                "test_features_with_classes.csv"))
+                                "test_features_with_targets.csv"))
             except OSError:
                 pass
             featurize_teardown()

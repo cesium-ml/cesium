@@ -635,10 +635,10 @@ function featurizeFormSubmit(){
 
 function predictFormSubmit(){
 
-    $("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
+    $("#pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
 
     $("#model_build_results").hide();
-    $("#class_pred_results").show();
+    $("#pred_results").show();
 
     $("#predictForm").ajaxSubmit({
         /* error: function(response){
@@ -661,7 +661,7 @@ function predictFormSubmit(){
             if(is_error==true){
 
                 alert(response["message"]);
-                $("#class_pred_results").html(response["message"]);
+                $("#pred_results").html(response["message"]);
 
                 resetFormElement($("#newpred_file"));
                 resetFormElement($("#prediction_files_metadata"));
@@ -688,10 +688,10 @@ function predictFormSubmit(){
 
 
 function buildModelFormSubmit(){
-    $("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
+    $("#pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
 
     $("#model_build_results").hide();
-    $("#class_pred_results").show();
+    $("#pred_results").show();
 
     $("#buildModelForm").ajaxSubmit({
         success: function(response){
@@ -719,7 +719,7 @@ function plotFeaturesFormSubmit(){
     project_name = $( "#plot_feats_project_name_select" ).val();
     featureset_name = $( "#plot_features_featset_name_select" ).val();
     $.get("/get_featureset_id_by_projname_and_featsetname/"+project_name+"/"+featureset_name,function(data){
-        drawScatterplotMatrix("/static/data/" + data["featureset_id"] + "_features_with_classes.csv");
+        drawScatterplotMatrix("/static/data/" + data["featureset_id"] + "_features_with_targets.csv");
     });
     $('#tabs').tabs( "option", "active",  false);
 }
@@ -1648,7 +1648,7 @@ function drawScatterplotMatrix(datafilename){
 
     d3.csv(datafilename, function(error, dataset) {
         var domainByTrait = {},
-            traits = d3.keys(dataset[0]).filter(function(d) { return d !== "class"; }),
+            traits = d3.keys(dataset[0]).filter(function(d) { return d !== "target"; }),
             n = traits.length;
 
         traits.forEach(function(trait) {
@@ -1659,13 +1659,13 @@ function drawScatterplotMatrix(datafilename){
         yAxis.tickSize(-size * n);
 
 
-        var class_list = new Array();
+        var target_list = new Array();
         for(var i=0; i < dataset.length; i++){
-            if ( $.inArray(dataset[i].class, class_list) == -1 ){
-                class_list.push(dataset[i].class);
+            if ( $.inArray(dataset[i].target, target_list) == -1 ){
+                target_list.push(dataset[i].target);
             }
         }
-        console.log(class_list);
+        console.log(target_list);
 
 
         var brush = d3.svg.brush()
@@ -1730,8 +1730,8 @@ function drawScatterplotMatrix(datafilename){
                 .attr("cx", function(d) { return x(d[p.x]); })
                 .attr("cy", function(d) { return y(d[p.y]); })
                 .attr("r", 3)
-                .attr("class", function(d){ return String(d.class); })
-                .style("fill", function(d) { return color(String(d.class)); });
+                .attr("class", function(d){ return String(d.target); })
+                .style("fill", function(d) { return color(String(d.target)); });
         }
 
         var brushCell;
@@ -1780,7 +1780,7 @@ function drawScatterplotMatrix(datafilename){
                 .attr("height", 800)
                 .append("g");
 
-        var legendGroup = leg_svg.selectAll('.legend').data(class_list).enter().append('g')
+        var legendGroup = leg_svg.selectAll('.legend').data(target_list).enter().append('g')
                 .attr('class', 'legend')
                 .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 

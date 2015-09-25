@@ -5,6 +5,7 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
+import numpy as np
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -115,6 +116,36 @@ def generate_model_rfc():
                                 "TEMP_TEST01_RFC.pkl"))
 
 
+def generate_model_rfr():
+    shutil.copy(pjoin(DATA_PATH, "test_reg_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFR")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_RFR.pkl"))
+
+
+def generate_model_lc():
+    shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LC")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_LC.pkl"))
+
+
+def generate_model_lr():
+    shutil.copy(pjoin(DATA_PATH, "test_reg_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LR")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_LR.pkl"))
+
+
 def generate_model_cust_feats_rfc():
     shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
@@ -123,6 +154,36 @@ def generate_model_cust_feats_rfc():
     build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFC")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
                                 "TEMP_TEST01_RFC.pkl"))
+
+
+def generate_model_cust_feats_rfr():
+    shutil.copy(pjoin(DATA_PATH, "test_reg_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFR")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_RFR.pkl"))
+
+
+def generate_model_cust_feats_lc():
+    shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LC")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_LC.pkl"))
+
+
+def generate_model_cust_feats_lr():
+    shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LR")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01_LR.pkl"))
 
 
 def test_do_model_predictions_rfc():

@@ -20,7 +20,7 @@ celery_app = Celery('celery_fit', broker=cfg.CELERY_BROKER)
 @celery_app.task(name='celery_tasks.fit_model')
 def fit_and_store_model(featureset_name, featureset_key, model_type,
                         model_options, in_docker_container):
-    """Read features, fit classifier & save it to disk.
+    """Read features, fit model & save it to disk.
 
     This function is a Celery task.
 
@@ -38,7 +38,7 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
     Returns
     -------
     str
-        Path to serialized classifier object on disk.
+        Path to serialized model object on disk.
 
     """
     data_dict = ctt.read_features_data_from_disk(featureset_key)
@@ -96,7 +96,7 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
 
 # TODO de-dupe this code; remove above function?
 @celery_app.task(name="celery_tasks.featurize_ts_data")
-def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
+def featurize_ts_data(ts_data_file_path, custom_script_path, object_target,
                       features_to_use):
     """Featurize time-series data file.
 
@@ -106,8 +106,8 @@ def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
         Time-series data file disk location path.
     custom_script_path : str or None
         Path to custom features script .py file, or None.
-    object_class : str
-        Class name.
+    object_target : str or float
+        Target value/class name.
     features_to_use : list of str
         List of feature names to be generated.
 

@@ -309,7 +309,10 @@
                                                                         <td>
                                                                                 <div>
                                                                                         <select id="model_type_select" name="model_type_select">
-                                                                                                <option value="RF">Random Forest Classifier</option>
+                                                                                          <option value="RFC">Random Forest Classifier</option>
+                                                                                          <option value="RFR">Random Forest Regressor</option>
+                                                                                          <option value="LC">Linear Classifier</option>
+                                                                                          <option value="LR">Linear Regressor</option>
                                                                                         </select>
                                                                                 </div>
                                                                         </td>
@@ -475,7 +478,7 @@
                         </div>
                         
                         <BR><BR>
-                        <div id="class_pred_results" name="class_pred_results" style="float:center;display:inline-block;">
+                        <div id="pred_results" name="pred_results" style="float:center;display:inline-block;">
                         </div>
                         
                         <BR><BR>
@@ -661,9 +664,9 @@
                                         $("#results_header").html("<b>{{ PROJECT_NAME }}:</b>");
                                         
                                         $("#model_build_results").hide();
-                                        $("#class_pred_results").hide();
+                                        $("#pred_results").hide();
                                         
-                                        drawScatterplotMatrix("/static/data/{{ PROJECT_NAME }}_features_with_classes.csv");
+                                        drawScatterplotMatrix("/static/data/{{ PROJECT_NAME }}_features_with_targets.csv");
                                         
                                 });
                         
@@ -694,7 +697,7 @@
                                                                         
                                                                 });
                                                                 $('#tabs').tabs( "option", "active", false);
-                                                                drawScatterplotMatrix("/static/data/{{ new_featset_key }}_features_with_classes.csv");
+                                                                drawScatterplotMatrix("/static/data/{{ new_featset_key }}_features_with_targets.csv");
                                                                 clearInterval(checkStatus);
                                                         }
                                                 }
@@ -730,7 +733,7 @@
                                                                 
                                                                 $.get("/load_prediction_results/{{ prediction_entry_key }}", function(data){
                                                                         
-                                                                        $("#class_pred_results").html(data["results_str_html"]);
+                                                                        $("#pred_results").html(data["results_str_html"]);
                                                                         
                                                                         $("#pred_results_table").tablesorter();
                                                                         
@@ -761,11 +764,11 @@
                                         $('#tabs').tabs( "option", "active", 0);
                                         
                                         $("#survey_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing survey classification...");
-                                        $("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing science classification...");
+                                        $("#pred_results").html("<img src='/static/media/spinner_black.gif'> Processing science classification...");
                                         
                                         plot_light_curve();
                                         
-                                        $("#class_pred_results").load("/classPred", function(){
+                                        $("#pred_results").load("/classPred", function(){
                                                 $("#features").load("/features", function(){
                                                         $("#features_link_div").show();
                                                 });

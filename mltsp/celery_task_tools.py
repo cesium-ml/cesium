@@ -1,5 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.externals import joblib
 import os
 from mltsp import cfg
@@ -33,6 +34,8 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
         model_options["n_estimators"] = 1000
     if "n_jobs" not in model_options and model_type != "LR":
         model_options["n_jobs"] = -1
+    if "loss" not in model_options and model_type == "LC":
+        model_options["loss"] = "modified_huber"
 
     models_type_dict = {"RFC": RandomForestClassifier,
                         "RFR": RandomForestRegressor,
@@ -40,10 +43,12 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
                         "LC": SGDClassifier}
 
     model_obj = models_type_dict[model_type](**model_options)
-    print("Model initialized.")
+    # Multi-class capabilities for linear classifer:
+    if model_type == "LC":
+        model_obj = OneVsRestClassifier(model_obj)
 
     # Fit the model to training data:
-    print("Fitting the model...")
+    print("Model initialized. Fitting the model...")
     model_obj.fit(data_dict['features'], data_dict['targets'])
     print("Done.")
     del data_dict

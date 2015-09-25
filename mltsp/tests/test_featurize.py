@@ -41,7 +41,7 @@ def test_headerfile_parser():
     npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1",
                                              "meta2", "meta3"])
     npt.assert_equal(fname_class_dict["237022"], "W_Ursae_Maj")
-    npt.assert_equal(fname_class_science_features_dict["215153"]["class"],
+    npt.assert_equal(fname_class_science_features_dict["215153"]["target"],
                      "Mira")
     npt.assert_almost_equal(fname_metadata_dict["230395"]["meta1"],
                             0.270056761691)
@@ -64,10 +64,10 @@ def test_determine_feats_to_plot1():
     assert("median" in ftp)
 
 
-def test_count_classes():
-    """Test count_classes"""
-    objs = [{"class": "class1"}, {"class": "class1"}, {"class": "class2"}]
-    class_count, num_used, num_held_back = featurize.count_classes(objs)
+def test_count_targets():
+    """Test count_targets"""
+    objs = [{"target": "class1"}, {"target": "class1"}, {"target": "class2"}]
+    class_count, num_used, num_held_back = featurize.count_targets(objs)
     npt.assert_equal(class_count["class1"], 2)
     npt.assert_equal(class_count["class2"], 1)
 
@@ -84,8 +84,8 @@ def test_generate_features():
         True, False, False)
     npt.assert_equal(len(objs), 3)
     assert(all("std_err" in d for d in objs))
-    assert(all("class" in d for d in objs))
-    assert(all(d["class"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+    assert(all("target" in d for d in objs))
+    assert(all(d["target"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                for d in objs))
 
@@ -116,34 +116,34 @@ def test_write_column_titles():
     os.remove(f1.name)
     os.remove(f2.name)
     npt.assert_equal(f1_cont, "feat1,feat2,feat3\n")
-    npt.assert_equal(f2_cont, "class,feat1,feat2\n")
+    npt.assert_equal(f2_cont, "target,feat1,feat2\n")
 
 
 def test_write_features_to_disk():
     """Test writing features to disk"""
     featurize.write_features_to_disk(
-        [{"f1": 21.0, "f2": 0.15, "class": "c1"},
-         {"f1": 23.4, "f2": 2.31, "class": "c2"}],
+        [{"f1": 21.0, "f2": 0.15, "target": "c1"},
+         {"f1": 23.4, "f2": 2.31, "target": "c2"}],
         "test_featset01", ["f1", "f2"], False)
     with open(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features.csv")) as f:
         feat_cont = f.read()
     with open(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_features_with_classes.csv")) as f:
+                    "test_featset01_features_with_targets.csv")) as f:
         feat_class_cont = f.read()
-    classes_list = list(np.load(pjoin(cfg.FEATURES_FOLDER,
+    targets_list = list(np.load(pjoin(cfg.FEATURES_FOLDER,
                                       "test_featset01_targets.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_features_with_classes.csv"))
+                    "test_featset01_features_with_targets.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_targets.npy"))
     os.remove(pjoin(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data",
-                    "test_featset01_features_with_classes.csv"))
+                    "test_featset01_features_with_targets.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
     npt.assert_equal(feat_class_cont,
-                     "class,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
+                     "target,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
 
 
 def test_main_featurize_function():
@@ -167,7 +167,7 @@ def test_main_featurize_function():
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_targets.npy")))
-    class_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
+    target_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy"))
     df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv"))
@@ -176,12 +176,12 @@ def test_main_featurize_function():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
     os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
                           "Flask/static/data"),
-                    "test_features_with_classes.csv"))
+                    "test_features_with_targets.csv"))
     assert("std_err" in cols)
     assert("f" in cols)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for class_name in class_list))
+               for class_name in target_list))
 
 
 def test_teardown():

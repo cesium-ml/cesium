@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# build_model.py
-
 from __future__ import print_function
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
