@@ -62,10 +62,6 @@ TMP_CUSTOM_FEATS_FOLDER = os.path.join(MLTSP_PACKAGE_PATH,
 ERR_LOG_PATH = os.path.join(
     DATA_PATH, "logs/errors_and_warnings.txt")
 
-# Specify path to generate_science_features script in TCP:
-TCP_INGEST_TOOLS_PATH = os.path.join(MLTSP_PACKAGE_PATH,
-                                     "TCP/Software/ingest_tools")
-
 PROJECT_PATH_LINK = "/tmp/mltsp_link"
 
 # Specify list of general time-series features to be used (must
@@ -89,7 +85,7 @@ features_list = [
     "all_times_nhist_peak1_bin","all_times_nhist_peak2_bin",
     "all_times_nhist_peak3_bin","all_times_nhist_peak4_bin"]
 
-# List of features to be extracted by TCP script:
+# List of science features to be extracted (former TCP module):
 features_list_science = [
     "amplitude",
     "ar_is_sigma",
@@ -184,7 +180,6 @@ features_list_science = [
     "stetson_k",
     "weighted_average"]
 
-# TCP science features being ignored:
 # TODO why ignore these?
 ignore_feats_list_science = [
     "source_id",

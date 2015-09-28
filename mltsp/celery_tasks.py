@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import uuid
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
 from mltsp import lc_tools
@@ -87,9 +88,7 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
         timeseries_features = {}
     if len(list(set(features_to_use) &
                 set(cfg.features_list_science))) > 0:
-        from mltsp.TCP.Software.ingest_tools import generate_science_features
-        science_features = generate_science_features.generate(
-            ts_data=deepcopy(ts_data))
+        science_features = sft.generate_science_features(ts_data)
     else:
         science_features = {}
     if custom_features_script:
@@ -159,14 +158,11 @@ def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
                 sep=',', ts_data_passed_directly=True))
     else:
         timeseries_features = {}
-    # Generate TCP TS features, if to be used
+    # Generate TS science features, if to be used
     if len(
             set(features_to_use) &
             set(cfg.features_list_science)) > 0:
-        from mltsp.TCP.Software.ingest_tools import \
-            generate_science_features
-        science_features = generate_science_features.generate(
-            ts_data=ts_data)
+        science_features = sft.generate_science_features(ts_data)
     else:
         science_features = {}
     # Generate custom features, if any

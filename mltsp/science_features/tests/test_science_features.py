@@ -445,7 +445,7 @@ def test_max():
     npt.assert_equal(f.values()[0], max(values))
 
 
-# TODO this returns the index of the biggest slope...might be wrong
+# TODO this returns the index of the biggest slope...seems wrong
 def test_max_slope():
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['max_slope'])
