@@ -2049,7 +2049,6 @@ def prediction_proc(
             n_cols_html_table=n_cols_html_table,
             custom_features_script=custom_features_script,
             metadata_file_path=metadata_file)
-        print("RESULTS_DICT", results_dict)
         try:
             os.remove(newpred_file_path)
             if metadata_file:
