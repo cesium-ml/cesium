@@ -81,7 +81,7 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 
         }else{
             console.log("freq1_harmonics_freq_0 not in features_dict");
-            $('#ts_data_folded_plot_div').html("<h5>Period-folded time series data plot</h5><BR><BR><h4>freq1_harmonics_freq_0 (frequency) not computed for this feature set.</h4>");
+            $('#ts_data_folded_plot_div').html("<h5>Period-folded time series data plot</h5><BR><BR><h4>Period/frequency not computed for this feature set.</h4>");
         }
 
 
