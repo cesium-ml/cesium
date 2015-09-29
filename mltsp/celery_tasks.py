@@ -5,10 +5,10 @@ import pickle
 import numpy as np
 import uuid
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from mltsp import observation_feature_tools as oft
 from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
-from mltsp import lc_tools
 from mltsp import celery_task_tools as ctt
 from copy import deepcopy
 
@@ -82,7 +82,7 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
     big_features_and_tsdata_dict = {}
     # Generate features:
     if len(list(set(features_to_use) & set(cfg.features_list))) > 0:
-        timeseries_features = lc_tools.generate_timeseries_features(
+        timeseries_features = oft.generate_timeseries_features(
             deepcopy(ts_data), sep=sep, ts_data_passed_directly=True)
     else:
         timeseries_features = {}
@@ -151,11 +151,7 @@ def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
     ts_data = ctt.parse_ts_data(ts_data_file_path)
     # Generate general/cadence-related TS features, if to be used
     if len(set(features_to_use) & set(cfg.features_list)) > 0:
-        timeseries_features = (
-            lc_tools.generate_timeseries_features(
-                deepcopy(ts_data),
-                classname=object_class,
-                sep=',', ts_data_passed_directly=True))
+        timeseries_features = oft.generate_observation_features(ts_data)
     else:
         timeseries_features = {}
     # Generate TS science features, if to be used
