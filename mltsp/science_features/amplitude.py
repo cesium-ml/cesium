@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def amplitude(x):
     """Half the difference between the maximum and minimum magnitude."""
     return (np.max(x) - np.min(x)) / 2.0

@@ -5,6 +5,8 @@ from scipy import optimize
 # TODO what is this exactly?
 def periodic_model(lomb_model):
     """
+    Compute features related to the extreme points of the fitted Lomb Scargle
+    model.
     """
     out_dict = {}
 
@@ -37,12 +39,18 @@ def periodic_model(lomb_model):
 
 
 def get_max_delta_mags(model):
+    """Largest value minus second largest value of fitted Lomb Scargle model."""
     return model['max_delta_mags']
 
 
 def get_min_delta_mags(model):
+    """Second smallest value minus smallest value of fitted Lomb Scargle model."""
     return model['min_delta_mags']
 
 
 def get_model_phi1_phi2(model):
+    """
+    Ratio of distances between the second minimum and first maximum, and the
+    second minimum and second maximum, of the fitted Lomb-Scargle model.
+    """
     return model['phi1_phi2']

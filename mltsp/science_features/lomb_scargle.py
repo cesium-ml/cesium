@@ -3,41 +3,69 @@ import scipy.stats as stats
 from ._lomb_scargle import lomb_scargle
 
 
-def lomb_scargle_model(x, y, dy, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0):
-    """ This function is used for final psd and final L-S freqs which are used as features.
+def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0):
+    """Simultaneous fit of a sum of sinusoids by weighted least squares:
+           y(t) = Sum_k Ck*t^k + Sum_i Sum_j A_ij sin(2*pi*j*fi*(t-t0)+phi_j),
+           i=[1,nfreq], j=[1,nharm]
+
+    Parameters
+    ----------
+    time : array_like
+        Array containing time values.
+
+    signal : array_like
+        Array containing data values.
+
+    error : array_like
+        Array containing measurement error values.
+
+    nharm : int
+        Number of harmonics to fit for each frequency.
+
+    nfreq : int
+        Number of frequencies to fit.
+
+    Returns
+    -------
+    dict
+        Dictionary containing fitted parameter values. Parameters specific to
+        a specific fitted frequency are stored in a list of dicts at
+        model_dict['freq_fits'], each of which contains the output of
+        fit_lomb_scargle(...)
+
     """
 
-    dy0 = np.sqrt(dy**2 + sys_err**2)
+    dy0 = np.sqrt(error**2 + sys_err**2)
 
     wt = 1. / dy0**2
-    x = x.copy() - min(x) # speeds up lomb_scargle code to have min(x)==0
-    y = y.copy()
+    time = time.copy() - min(time) # speeds up lomb_scargle code to have min(time)==0
+    signal = signal.copy()
 
-    chi0 = np.dot(y**2, wt)
+    chi0 = np.dot(signal**2, wt)
 
 # TODO parametrize?
-    f0 = 1. / max(x)
-    df = 0.8 / max(x) # 20120202 :    0.1/Xmax
+    f0 = 1. / max(time)
+    df = 0.8 / max(time) # 20120202 :    0.1/Xmax
     fmax = 33. #pre 20120126: 10. # 25
     numf = int((fmax - f0) / df) # TODO !!! this is off by 1 point, fix?
 
     model_dict = {'freq_fits' : []}
-    lambda0_range = [-np.log10(len(x)), 8] # these numbers "fix" the strange-amplitude effect
+    lambda0_range = [-np.log10(len(time)), 8] # these numbers "fix" the strange-amplitude effect
     for i in range(nfreq):
         if i == 0:
-            fit = fit_lomb_scargle(x, y, dy0, f0, df, numf,
+            fit = fit_lomb_scargle(time, signal, dy0, f0, df, numf,
                     tone_control=tone_control, lambda0_range=lambda0_range,
                     nharm=nharm, detrend_order=1)
             model_dict['trend'] = fit['trend_coef'][1]
         else:
-            fit = fit_lomb_scargle(x, y, dy0, f0, df, numf,
+            fit = fit_lomb_scargle(time, signal, dy0, f0, df, numf,
                     tone_control=tone_control, lambda0_range=lambda0_range,
                     nharm=nharm, detrend_order=0)
         model_dict['freq_fits'].append(fit)
-        y -= fit['model']
-        model_dict['freq_fits'][-1]['resid'] = y.copy()
+        signal -= fit['model']
+        model_dict['freq_fits'][-1]['resid'] = signal.copy()
         if i == 0:
-            model_dict['varrat'] = np.dot(y**2, wt) / chi0
+            model_dict['varrat'] = np.dot(signal**2, wt) / chi0
 
     model_dict['nfreq'] = nfreq
     model_dict['nharm'] = nharm
@@ -50,7 +78,7 @@ def lomb_scargle_model(x, y, dy, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.
 
 
 def lprob2sigma(lprob):
-    """Translates a log_e(probability) to units of Gaussian sigmas"""
+    """Translate a log_e(probability) to units of Gaussian sigmas."""
     if lprob > -36.:
         sigma = stats.norm.ppf(1. - 0.5 * np.exp(lprob))
     else:
@@ -62,31 +90,53 @@ def lprob2sigma(lprob):
 
 def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detrend_order=0,
          freq_zoom=10., tone_control=5., lambda0=1., lambda0_range=[-8,6]):
-    """
-    Calls C version of lomb_scargle:
-    Simultaneous fit of a sum of sinusoids by weighted, linear least squares.
-          model(t) = Sum_k Ck*t^k + Sum_i Sum_j Aij np.sin(2*np.pi*j*fi*(t-t0)+phij), i=[1,nfreq], j=[1,nharm]
-           [t0 defined such that ph11=0]
+    """Calls C implementation of Lomb Scargle sinusoid fitting, which fits a
+    single frequency with nharm harmonics to the data. Called repeatedly by
+    lomb_scargle_model in order to produce a fit with multiple distinct
+    frequencies.
 
     Inputs:
-        time: time vector
-        signal: data vector
-        error: data uncertainty vector
-        df: frequency step
-        numf: number of frequencies to consider
+    time : array_like
+        Array containing time values.
 
-        detrend_order: order of polynomial detrending (Ck orthogonol polynomial terms above;
-            0 floating mean; <0 no detrending)
+    signal : array_like
+        Array containing data values.
 
-        psdmin: refine periodogram values with larger psd using multi-harmonic fit
-        nharm: number of harmonics to use in refinement
-        lambda0: typical value for regularization parameter (expert parameter)
-        lambda0_range: allowable range for log10 of regularization parameter
+    error : array_like
+        Array containing measurement error values.
 
-    Output:
-        psd: power spectrum on frequency grid: f0,f0+df,...,f0+numf*df
-        out_dict: dictionary describing various parameters of the multiharmonic fit at
-            the best-fit frequency
+    f0 : float
+        Smallest frequency value to consider.
+
+    df : float
+        Step size for frequency grid search.
+
+    numf : int
+        Number of frequencies for frequency grid search.
+
+    nharm : int
+        Number of harmonics to fit.
+
+    detrend_order : int
+        Order of polynomial detrending.
+
+    psdmin : int
+        Refine periodogram values with larger psd using multi-harmonic fit
+
+    nharm : int
+        Number of harmonics to use in refinement
+
+    lambda0 : float
+        Typical value for regularization parameter
+
+    lambda0_range : [float, float]
+        Allowable range for log10 of regularization parameter
+
+    Returns
+    -------
+    dict
+        Dictionary describing various parameters of the multiharmonic fit at
+        the best-fit frequency
     """
     ntime = len(time)
 
@@ -230,52 +280,81 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
 
     return out_dict
 
-# from lomb_scargle import lomb_scargle_model, get_lomb_freq, \
-#     get_lomb_amplitude, get_lomb_rel_phase, get_lomb_amplitude_ratio, \
-#     get_lomb_frequency_ratio, get_lomb_signif_ratio, get_lomb_lambda, \
-#     get_lomb_signif, get_lomb_varrat, get_lomb_trend, get_lomb_y_offset
+
 def get_lomb_frequency(lomb_model, i):
+    """Get the ith frequency from a fitted Lomb-Scargle model."""
     return lomb_model['freq_fits'][i-1]['freq']
 
 
 def get_lomb_amplitude(lomb_model, i, j):
+    """
+    Get the amplitude of the jth harmonic of the ith frequency from a fitted
+    Lomb-Scargle model.
+    """
     return lomb_model['freq_fits'][i-1]['amplitude'][j-1]
 
 
 def get_lomb_rel_phase(lomb_model, i, j):
+    """
+    Get the relative phase of the jth harmonic of the ith frequency from a
+    fitted Lomb-Scargle model.
+    """
     return lomb_model['freq_fits'][i-1]['rel_phase'][j-1]
 
 
 def get_lomb_amplitude_ratio(lomb_model, i):
+    """
+    Get the ratio of the amplitudes of the first harmonic for the ith and first
+    frequencies from a fitted Lomb-Scargle model.
+    """
     return (lomb_model['freq_fits'][i-1]['amplitude'][0] / 
             lomb_model['freq_fits'][0]['amplitude'][0])
 
 
 def get_lomb_frequency_ratio(lomb_model, i):
+    """
+    Get the ratio of the ith and first frequencies from a fitted Lomb-Scargle
+    model.
+    """
     return (lomb_model['freq_fits'][i-1]['freq'] / 
             lomb_model['freq_fits'][0]['freq'])
 
 
 def get_lomb_signif_ratio(lomb_model, i):
+    """
+    Get the ratio of the significances (in sigmas) of the ith and first
+    frequencies from a fitted Lomb-Scargle model.
+    """
     return (lomb_model['freq_fits'][i-1]['signif'] / 
             lomb_model['freq_fits'][0]['signif'])
 
 
 def get_lomb_lambda(lomb_model):
+    """Get the regularization parameter of a fitted Lomb-Scargle model."""
     return lomb_model['freq_fits'][0]['lambda']
 
 
 def get_lomb_signif(lomb_model):
+    """
+    Get the significance (in sigmas) of the first frequency from a fitted
+    Lomb-Scargle model.
+    """
     return lomb_model['freq_fits'][0]['signif']
 
 
 def get_lomb_varrat(lomb_model):
+    """
+    Get the fraction of the variance explained by the first frequency of a
+    fitted Lomb-Scargle model.
+    """
     return lomb_model['varrat']
 
 
 def get_lomb_trend(lomb_model):
+    """Get the linear trend of a fitted Lomb-Scargle model."""
     return lomb_model['trend']
 
 
 def get_lomb_y_offset(lomb_model):
+    """Get the y-intercept of a fitted Lomb-Scargle model."""
     return lomb_model['freq_fits'][0]['y_offset']

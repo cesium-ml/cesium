@@ -1,8 +1,8 @@
 import numpy as np
 
-# TODO minpoints = 2?
+
 def stetson_mean(x, weight=100., alpha=2., beta=2., tol=1.e-6, nmax=20):
-    """An iteratively weighted mean"""
+    """An iteratively weighted mean used in the Stetson variability index"""
     mu = np.median(x)
     for i in range(nmax):
         resid = x - mu
@@ -18,9 +18,11 @@ def stetson_mean(x, weight=100., alpha=2., beta=2., tol=1.e-6, nmax=20):
 
 
 def stetson_j(x, y=[], dx=0.1, dy=0.1):
-    """Robust covariance statistic between pairs of observations x,y
-       whose uncertainties are dx,dy.  if y is not given, calculates
-       a robust variance for x."""
+    """
+    Robust covariance statistic between pairs of observations x,y
+    whose uncertainties are dx,dy. If y is not given, calculates a robust
+    variance for x.
+    """
     n = len(x)
     x0 = stetson_mean(x, 1./dx**2)
     delta_x = np.sqrt(n / (n - 1.)) * (x - x0) / dx

@@ -3,7 +3,9 @@ from scipy import stats
 
 
 # TODO !!! is this really supposed to return index instead of slope?
+# TODO !!! should this actually be greatest absolute slope?
 def max_slope(t, x):
+    """Compute the INDEX of the largest rate of change in the observed data."""
     slopes = np.diff(x) / np.diff(t)
     return np.argmax(slopes)
 

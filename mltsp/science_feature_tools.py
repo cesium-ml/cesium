@@ -5,23 +5,28 @@ from dask.multiprocessing import get as dget
 
 
 def generate_science_features(t, m, e, features_to_compute):
-    """Generate custom features for provided TS data and script.
+    """Generate science features for provided time series data.
 
     Parameters
     ----------
-    ts_data : list OR tuple
-        List (or tuple) of lists (or tuples) containing time,
-        measurement (and optionally associated error values) data.
+    t : array_like
+        Array containing time values.
+
+    m : array_like
+        Array containing data values.
+
+    e : array_like
+        Array containing measurement error values.
 
     Returns
     -------
     dict
-        Dictionaries containing newly-generated features. Keys are
+        Dictionary containing newly-generated features. Keys are
         feature names, values are feature values (floats).
 
     """
     feature_graph = {
-# Standalone features (disconnected nodes)
+        # Standalone features (disconnected nodes)
        'amplitude': (sf.amplitude, m),
        'flux_percentile_ratio_mid20': (sf.flux_percentile_ratio, m, 20),
        'flux_percentile_ratio_mid35': (sf.flux_percentile_ratio, m, 35),
@@ -43,15 +48,15 @@ def generate_science_features(t, m, e, features_to_compute):
        'stetson_k': (sf.stetson_k, m),
        'weighted_average': (sf.weighted_average, m, e),
 
-# QSO model features
+        # QSO model features
        'qso_model': (sf.qso_fit, t, m, e),
        'qso_log_chi2_qsonu': (sf.get_qso_log_chi2_qsonu, 'qso_model'),
        'qso_log_chi2nuNULL_chi2nu': (sf.get_qso_log_chi2nuNULL_chi2nu,
            'qso_model'),
 
-# Lomb-Scargle features
+        # Lomb-Scargle features
         'lomb_model': (sf.lomb_scargle_model, t, m, e),
-# These could easily be programmatically generated, but this is more readable
+        # These could easily be programmatically generated, but this is more readable
         'freq1_freq': (sf.get_lomb_frequency, 'lomb_model', 1),
         'freq2_freq': (sf.get_lomb_frequency, 'lomb_model', 2),
         'freq3_freq': (sf.get_lomb_frequency, 'lomb_model', 3),
@@ -91,7 +96,7 @@ def generate_science_features(t, m, e, features_to_compute):
         'linear_trend': (sf.get_lomb_trend, 'lomb_model'),
         'freq_y_offset': (sf.get_lomb_y_offset, 'lomb_model'),
 
-# Other features that operate on Lomb-Scargle residuals
+        # Other features that operate on Lomb-Scargle residuals
         'freq_n_alias': (sf.num_alias, 'lomb_model'),
         'scatter_res_raw': (sf.scatter_res_raw, t, m, e, 'lomb_model'),
         'periodic_model': (sf.periodic_model, 'lomb_model'),
@@ -111,5 +116,8 @@ def generate_science_features(t, m, e, features_to_compute):
         'p2p_ssqr_diff_over_var': (sf.get_p2p_ssqr_diff_over_var, 'p2p_model'),
    }
 
+    # Do not execute in parallel; parallelization has already taken place at
+    # the level of time series, so we compute features for a single time series
+    # in serial.
     values = dget(feature_graph, features_to_compute, num_workers=1)
     return dict(zip(features_to_compute, values))

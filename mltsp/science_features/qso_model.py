@@ -6,7 +6,7 @@ from scipy.special import gammaln, betainc, gammaincc
 
 # TODO duplicate
 def lprob2sigma(lprob):
-    """ translates a log_e(probability) to units of Gaussian sigmas """
+    """Translates a log_e(probability) to units of Gaussian sigmas."""
     if lprob>-36.:
       sigma = norm.ppf(1.-0.5*np.exp(1.*lprob))
     else:
@@ -15,9 +15,11 @@ def lprob2sigma(lprob):
 
 
 def chol_inverse_diag(t):
-    """ Computes inverse of matrix given its Cholesky upper Triangular decomposition t.
+    """
+    Computes inverse of matrix given its Cholesky upper Triangular decomposition t.
     matrix form: ab[u + i - j, j] == a[i,j] (here u=1)
-    (quick version: only calculates diagonal and neighboring elements) """
+    (quick version: only calculates diagonal and neighboring elements)
+    """
     (uu,nrows) = t.shape
     B = np.zeros((uu,nrows),dtype='float64')
     B[1,nrows-1] = 1.0/t[1,nrows-1]**2
@@ -30,7 +32,8 @@ def chol_inverse_diag(t):
 
 
 def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
-    """Calculates the fit quality of a damped random walk to a qso lightcurve.
+    """
+    Calculates the fit quality of a damped random walk to a qso lightcurve.
     The formalism is from Rybicki & Press (1994; arXiv:comp-gas/9405004)
 
     Data are modelled with a covariance function
@@ -60,8 +63,8 @@ def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
         T = L^(-1)
         Data variance is D
         Full covariance C^(-1) = (L+D)^(-1) = T [T+D^(-1)]^(-1) D^(-1)
-        Code takes advantage of the tridiagonality of T and T+D^(-1)."""
-
+        Code takes advantage of the tridiagonality of T and T+D^(-1).
+    """
 
     out_dict = {}
     out_dict['chi2_qso/nu']=999; out_dict['chi2_qso/nu_extra']=0.;
@@ -198,8 +201,9 @@ def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
 
 
 def qso_fit(time, data, error, filter='g', mag0=19., sys_err=0.0, return_model=False):
-    """ Best-fit qso model determined for Sesar Strip82, ugriz-bands (default r).
-        See additional notes for underlying code qso_engine.
+    """
+    Best-fit qso model determined for Sesar Strip82, ugriz-bands (default r).
+    See additional notes for underlying code qso_engine.
 
     Input:
         time - measurement times [days]
@@ -223,7 +227,8 @@ def qso_fit(time, data, error, filter='g', mag0=19., sys_err=0.0, return_model=F
 
           (0) signif_vary < 3: ambiguous, else
           (1) signif_qso > 3: qso, else
-          (2) signif_not_qso > 3: not_qso"""
+          (2) signif_not_qso > 3: not_qso
+    """
 
     data = data.copy() - np.median(data) + mag0
     pars={}
