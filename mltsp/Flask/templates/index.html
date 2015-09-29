@@ -181,18 +181,13 @@
                                         
                                     </td>
                                 </tr>
-                                
-                                
                                 <tr>
                                     <td align='left'>
                                         <input type='checkbox' name='email_user' id='email_user' value="True"><label>Notification email<span class='small'>Check to receive an email notification upon featurization completion. </span></label>
                                     </td>
                                     <td>
-                                        
                                     </td>
-                                    
                                 </tr>
-                                
                                 <tr>
                                     <td colspan=3 align='center'>
                                         <div align='center'><input type='button' id='featurize_button' name='featurize_button' value='Generate features' class='submit_button' onclick="featurizeFormSubmit();" ></div>
@@ -289,7 +284,72 @@
                                         </div>
                                     </td>
                                 </tr>
-                                
+                                <tr align='left'>
+                                    <td align='left'>
+                                        <input type="checkbox" name="model_use_default_params_checkbox" id="model_use_default_params_checkbox" checked>Use default model parameters</input>
+                                    </td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_RFC" style="display: none;" align='left'>
+                                    <td colspan=3>Please see <a target="_blank" href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html">http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html</a> for parameter descriptions.</td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_RFR" style="display: none;" align='left'>
+                                    <td colspan=3>Please see <a target="_blank" href="http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html">http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html</a> for parameter descriptions.</td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_RFC model_params_tr_RFR" style="display: none;" align='left'>
+                                    <td><strong>n_estimators: </strong><input type="text" name="n_estimators" id="n_estimators" value="10" size=6></input></td>
+                                    <td><strong>criterion: </strong><input type="text" name="criterion" id="criterion" value="gini" size=6></input></td>
+                                    <td><strong>max_features: </strong><input type="text" name="max_features" id="max_features" value="auto" size=6></input></td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_RFC model_params_tr_RFR" style="display: none;" align='left'>
+                                    <td><strong>max_depth: </strong><input type="text" name="max_depth" id="max_depth" value="None" size=6></input></td>
+                                    <td><strong>min_samples_split: </strong><input type="text" name="min_samples_split" id="min_samples_split" value="2" size=6></input></td> 
+                                    <td><strong>min_samples_leaf: </strong><input type="text" name="min_samples_leaf" id="min_samples_leaf" value="1" size=6></input></td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_RFC model_params_tr_RFR" style="display: none;" align='left'>
+                                    <td><strong>min_weight_fraction_leaf: </strong><input type="text" name="min_weight_fraction_leaf" id="min_weight_fraction_leaf" value="0.0" size=6></input></td>
+                                    <td><strong>max_leaf_nodes: </strong><input type="text" name="max_leaf_nodes" id="max_leaf_nodes" value="None" size=6></input></td> 
+                                    <td><strong>bootstrap: </strong><input type="text" name="bootstrap" id="bootstrap" value="True" size=6></input></td>
+                                </tr>
+
+
+                                <tr class="model_params_tr model_params_tr_LC" style="display: none;" align='left'>
+                                    <td colspan=3>Please see <a target="_blank" href="http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html">http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html</a> for parameter descriptions.</td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_LC" style="display: none;" align='left'>
+                                    <td><strong>loss: </strong><input type="text" name="loss" id="loss" value="modified_huber" size=6></input></td>
+                                    <td><strong>penalty: </strong><input type="text" name="penalty" id="penalty" value="l2" size=6></input></td>
+                                    <td><strong>alpha: </strong><input type="text" name="alpha" id="alpha" value="0.0001" size=6></input></td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_LC" style="display: none;" align='left'>
+                                    <td><strong>l1_ratio: </strong><input type="text" name="l1_ratio" id="l1_ratio" value="0.15" size=6></input></td>
+                                    <td><strong>fit_intercept: </strong><input type="text" name="fit_intercept" id="fit_intercept" value="True" size=6></input></td> 
+                                    <td><strong>n_iter: </strong><input type="text" name="n_iter" id="n_iter" value="5" size=6></input></td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_LC" style="display: none;" align='left'>
+                                    <td><strong>shuffle: </strong><input type="text" name="shuffle" id="shuffle" value="True" size=6></input></td>
+                                    <td><strong>epsilon: </strong><input type="text" name="epsilon" id="epsilon" value="" size=6></input></td> 
+                                    <td><strong>learning_rate: </strong><input type="text" name="learning_rate" id="learning_rate" value="optimal" size=6></input></td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_LC" style="display: none;" align='left'>
+                                    <td><strong>eta0: </strong><input type="text" name="eta0" id="eta0" value="0.0" size=6></input></td>
+                                    <td><strong>power_t: </strong><input type="text" name="power_t" id="power_t" value="0.5" size=6></input></td> 
+                                </tr>
+
+
+                                <tr class="model_params_tr model_params_tr_RFC model_params_tr_LC" style="display: none;" align='left'>
+                                    <td colspan=3 class="valign_top"><strong><label for="class_weight">class_weight: </label></strong><textarea name="class_weight" id="class_weight" rows="1" cols="50">None</textarea></td>
+                                </tr>
+
+
+                                <tr class="model_params_tr model_params_tr_LR" style="display: none;" align='left'>
+                                    <td colspan=3>Please see <a target="_blank" href="http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html">http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html</a> for parameter descriptions.</td>
+                                </tr>
+                                <tr class="model_params_tr model_params_tr_LR" style="display: none;" align='left'>
+                                    <td><strong>fit_intercept: </strong><input type="text" name="fit_intercept" id="fit_intercept" value="True" size=6></input></td>
+                                    <td><strong>normalize: </strong><input type="text" name="normalize" id="normalize" value="False" size=6></input></td>
+                                </tr>
+
+
                                 <!--
                                 <tr>
                                     <td align='left'>
@@ -298,10 +358,10 @@
                                     <td>
                                         <div style='border:1px solid #BBB;'><input type='text' name='new_model_name' id='new_model_name' class="stylized_input"></div><div id='model_name_okay_div' name='model_name_okay_div'></div>
                                     </td>
-                                    
+
                                 </tr>
                                 -->
-                                
+
                                 <TR><BR></TR>
                                 <tr>
                                     <td colspan=3 align='center'>
@@ -503,26 +563,49 @@
 
 
     <script type="text/javascript">
-        
+
         $(document).ready(function() {
-            
+
             $(function() {
                 $( document ).tooltip();
             }); 
-            
+
             $("#plot_features_form_table").width($("#upload_features_data_table").width());
-            
+
             init_dialogs();
-            
+
             form_validations();
-            
+
             enforce_unique_name('new_project_button','new_project_name','new_proj_name_okay_div',{{ CURRENT_PROJECTS_JSON|safe }});
-            
-            
+
+
             populate_select_options_multiple();
-            
-            
-            
+
+
+            $('#model_type_select').change(function(){
+                var x = this.value;
+                $(".model_params_tr").removeClass("currently_selected");
+                $(".model_params_tr_" + x).addClass("currently_selected");
+                $(".model_params_tr").hide();
+                if(!document.getElementById('model_use_default_params_checkbox').checked){
+                    $(".model_params_tr.currently_selected").show(); }
+                if(x == "RFR" && $("#criterion").val() == "gini"){
+                    $("#criterion").val("mse");
+                }else if(x == "RFC" && $("#criterion").val() == "mse"){
+                    $("#criterion").val("gini");
+                }
+            });
+            $('#model_type_select').trigger("change");
+
+
+            $('#model_use_default_params_checkbox').change(function(){
+                if(this.checked){
+                    $(".model_params_tr.currently_selected").hide();
+                }else{
+                    $(".model_params_tr.currently_selected").show();
+                }
+            });
+
             var feature_selection_html_str = "<div id='feature_selection_dialog_tabs'> \
                 <ul> \
                     <li><a href='#featureset1tab'>Feature set 1</a></li> \
@@ -536,15 +619,15 @@
                 <div id='uploadcustomtab'> \
                 </div> \
             </div> ";
-            
+
             $('#feature_selection_dialog').html(feature_selection_html_str);
-            
+
             var featureset1_html_str = "<a href='#' onclick='select_deselect_all_feats1();'>Click here to select/deselect all</a><br><br>";
             {% for FEAT in FEATURES_AVAILABLE[0] %}
                 featureset1_html_str += "<input type='checkbox' class='feat1_checkbox' id='features_selected' name='features_selected' value='{{ FEAT }}' checked>{{ FEAT }}<br>"
             {% endfor %}
             $('#featureset1tab').html(featureset1_html_str);
-            
+
             var featureset2_html_str = "<a href='#' onclick='select_deselect_all_feats2();'>Click here to select/deselect all</a><br><br>";
             {% for FEAT in FEATURES_AVAILABLE[1] %}
                 featureset2_html_str += "<input type='checkbox' class='feat2_checkbox' id='features_selected' name='features_selected' value='{{ FEAT }}' checked>{{ FEAT }}<br>"

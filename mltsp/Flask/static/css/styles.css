@@ -12,62 +12,61 @@
 
 
 @font-face {
-    font-family: 'FFTisa'; 
+    font-family: 'FFTisa';
     src: url('/static/fonts/FFTisa/TisaPro-Regular.otf');
 }
 
+​textarea { vertical-align: middle; }​
 
+​.valign_top { vertical-align: top; }​
 
 th{
-	padding-right: 8px;
-	padding-left: 8px;
-	padding-bottom: 8px;
-	padding-top: 8px;
+    padding-right: 8px;
+    padding-left: 8px;
+    padding-bottom: 8px;
+    padding-top: 8px;
 }
 
 .small{
-	display:block;
-	font-size:0.8em;
-	font-weight:normal;
-	text-align:left;
+    display:block;
+    font-size:0.8em;
+    font-weight:normal;
+    text-align:left;
 }
 
 
 .small-inline{
-	display:inline-block;
-	font-size:0.8em;
-	font-weight:normal;
-	text-align:left;
+    display:inline-block;
+    font-size:0.8em;
+    font-weight:normal;
+    text-align:left;
 }
 
 
 .features_dialog{
-	overflow-y:auto;
-	height:500px;
-	margin-top:20px;
+    overflow-y:auto;
+    height:500px;
+    margin-top:20px;
 }
 
 
 .feature_selection_dialog{
-	overflow-y:auto;
-	height:500px;
-	margin-top:20px;
+    overflow-y:auto;
+    height:500px;
+    margin-top:20px;
 }
 
 .editDeleteResultsDialog{
-	font-size:1.0em
+    font-size:1.0em
 }
 
 body{
-	font-family: Verdana,FFTisa,sans-serif,Arial !important; 
-	font-size: 9pt; 
+    font-family: Verdana,FFTisa,sans-serif,Arial !important;
+    font-size: 9pt;
 }
 
 h2{
-	
-	
-	color: #555;
-	
+    color: #555;
 }
 
 
@@ -123,23 +122,19 @@ circle.hidden-temp {
 
 
 table.pred_results{
-	
-	
+
 }
 
 tr.pred_results{
-	
-	
-	
+
 }
 
 td.pred_results{
-	
-	
+
 }
 
 th.pred_results{
-	padding: 5px;
+    padding: 5px;
 }
 
 
@@ -151,25 +146,23 @@ th.pred_results{
 
 
 td.source_details{
-	width:500px; 
-	text-align:center;
-	vertical-align:top;
-	padding-bottom:50px;
+    width:500px;
+    text-align:center;
+    vertical-align:top;
+    padding-bottom:50px;
 }
 
 
 
 div.source_details{
 
-	margin: 0px auto;
-	
+    margin: 0px auto;
 }
 
 
 table.source_details{
 
-	margin: 0px auto;
-	
+    margin: 0px auto;
 }
 
 
@@ -181,24 +174,24 @@ table.source_details{
 
 #wrap
 {
-  min-height: 100%;  
+  min-height: 100%;
 }
 
 #main
 {
     overflow:auto;
-    padding-bottom:150px; 
+    padding-bottom:150px;
 }
 
-.footer 
+.footer
 {
     position: relative;
-	margin-top: -140px; 
-	height: 140px;
-	clear:both;
+    margin-top: -140px;
+    height: 140px;
+    clear:both;
     padding-top:20px;
     color:#fff;
-} 
+}
 */
 
 
@@ -211,23 +204,23 @@ html,body
 
 #content
 {
-	 overflow:auto;
-	 min-height:75%;
+     overflow:auto;
+     min-height:75%;
      height:auto !important;
 }
 
-.footer 
+.footer
 {
     height:20%;
     position:relative;
 }
 
 .hover_bgcolor_div{
-	background:white;
+    background:white;
 }
 
 .hover_bgcolor_div:hover{
-	background:#BBBBBB;
+    background:#BBBBBB;
 }
 
 
