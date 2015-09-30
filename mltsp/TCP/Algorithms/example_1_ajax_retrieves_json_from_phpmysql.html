@@ -1,0 +1,30 @@
+<html>
+ <head>
+  <!-- This HTML/JS script passes a variable to a php script via POST, and retrieves a JSON output from that script, which has an element printed in this script.  The called PHP code queries a mysql database, forms several arrays, encodes them to JSON and print/echos them for this script to parse. -->
+  <script language="javascript" type="text/javascript" src="/tutor/js/jquery.js"></script>
+  <script language="javascript" type="text/javascript" src="http://lyra.berkeley.edu/~jbloom/sorttable.js"></script>
+ </head>
+ <body>
+   <div id="test_tag"></div>
+
+<script id="source" language="javascript" type="text/javascript">
+  $.ajax({
+    url: 'example_1_givenpost_mysqlqueries_returnsjson.php',
+    type: 'POST',
+    data: {'srcid':"xxx"},
+    dataType: 'json',
+    timeout: 60000,
+    error: function(){
+        alert('Error/Timeout during user_classification_script');
+    },
+    success: function(output_str){
+      $("#test_tag").html(output_str.col_names[0]);
+    }
+  });
+
+//$("#test_tag").html("blahblahblah");
+
+
+</script>
+</body>
+</html>
