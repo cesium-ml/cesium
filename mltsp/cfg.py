@@ -66,7 +66,7 @@ PROJECT_PATH_LINK = "/tmp/mltsp_link"
 
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
-features_list = [
+features_list_obs = [
     "n_epochs","avg_err","med_err","std_err",
     "total_time","avgt","cads_std","avg_mag",
     "cads_avg","cads_med","cad_probs_1",
@@ -155,7 +155,7 @@ features_list_science = [
     "lcmodel_pos_n_ratio",
     "linear_trend",
     "maximum",
-# TODO fix, restore
+# TODO fix max_slope
 #    "max_slope",
     "median",
     "median_absolute_deviation",

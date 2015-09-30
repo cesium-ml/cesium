@@ -1356,7 +1356,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             featlist = fa.get_list_of_available_features_set2()
-            expected = sorted([x for x in cfg.features_list if x not in
+            expected = sorted([x for x in cfg.features_list_obs if x not in
                                cfg.ignore_feats_list_science])
             npt.assert_array_equal(featlist, expected)
 
@@ -1554,7 +1554,7 @@ class FlaskAppTestCase(unittest.TestCase):
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
             pred_results_list_dict = entry
             assert(pred_results_list_dict["pred_results_list_dict"]
-                   ["TESTRUN_215153.dat"][0][0] in ['Beta_Lyrae',
+                   ["TESTRUN_215153"][0][0] in ['Beta_Lyrae',
                                                     'Herbig_AEBE'])
 
             assert all(key in pred_results_list_dict for key in \
@@ -2543,7 +2543,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'Delta_Scuti']
                            for el in pred_results[fname])
                        for fname in pred_results))
-            assert("std_err" in feats_dict["dotastro_215153.dat"])
+            assert("std_err" in feats_dict["dotastro_215153"])
 
     def test_prediction_page(self):
         """Test main prediction function"""
@@ -2576,7 +2576,7 @@ class FlaskAppTestCase(unittest.TestCase):
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
-            time.sleep(5)
+            time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
             entry = r.table('predictions').get(new_key).run(conn)
             r.table("predictions").get(new_key).delete().run(conn)
@@ -2596,7 +2596,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'Delta_Scuti']
                            for el in pred_results[fname])
                        for fname in pred_results))
-            assert("std_err" in feats_dict["dotastro_215153.dat"])
+            assert("std_err" in feats_dict["dotastro_215153"])
 
     def test_load_source_data(self):
         """Test load source data"""

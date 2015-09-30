@@ -33,15 +33,6 @@ def test_determine_feats_used():
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
 
-def test_parse_ts_data():
-    """Test parsing of TS data"""
-    ts_data = pred.parse_ts_data(pjoin(DATA_PATH, "dotastro_215153.dat"),
-                                 ",")
-    npt.assert_array_almost_equal(ts_data[0], [2629.52836, 9.511, 0.042])
-    npt.assert_array_almost_equal(ts_data[-1], [5145.57672, 9.755, 0.06])
-    npt.assert_equal(len(ts_data), 170)
-
-
 def test_featurize_multiple_serially():
     """Test serial featurization"""
     meta_feats = pred.parse_metadata_file(
@@ -107,8 +98,8 @@ def test_add_to_predict_results_dict():
     pred.add_to_predict_results_dict(results_dict, [[0.2, 0.5, 0.3]], "TT.dat",
                                      [1, 2, 3], {'f1': 2},
                                      "TEST001", 5)
-    npt.assert_array_equal(results_dict["TT.dat"]["ts_data"], [1, 2, 3])
-    npt.assert_equal(len(results_dict["TT.dat"]["pred_results_list"]), 3)
+    npt.assert_array_equal(results_dict["TT"]["ts_data"], [1, 2, 3])
+    npt.assert_equal(len(results_dict["TT"]["pred_results_list"]), 3)
     for fname in ["TEST001_features.csv", "TEST001_classes.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
@@ -154,9 +145,9 @@ def test_do_model_predictions():
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
                                                   model_type, features_to_use,
                                                   5)
-    assert("dotastro_215153.dat" in pred_results_dict)
+    assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
-           pred_results_dict["dotastro_215153.dat"]["features_dict"])
+           pred_results_dict["dotastro_215153"]["features_dict"])
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                    for el in pred_results_dict[fname]\
@@ -185,7 +176,7 @@ def test_main_predict():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     npt.assert_equal(
-        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
+        len(pred_results_dict["TESTRUN_215153"]["pred_results_list"]),
         3)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
@@ -220,7 +211,7 @@ def test_main_predict_cust_feats():
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     npt.assert_equal(
-        len(pred_results_dict["TESTRUN_215153.dat"]["pred_results_list"]),
+        len(pred_results_dict["TESTRUN_215153"]["pred_results_list"]),
         3)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
@@ -251,7 +242,7 @@ def test_main_predict_tarball():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_classes.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     npt.assert_equal(
-        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        len(pred_results_dict["dotastro_215153"]["pred_results_list"]),
         3)
     npt.assert_equal(len(pred_results_dict), 4)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
@@ -288,10 +279,10 @@ def test_main_predict_tarball_cust_feats():
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RF.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     npt.assert_equal(
-        len(pred_results_dict["dotastro_215153.dat"]["pred_results_list"]),
+        len(pred_results_dict["dotastro_215153"]["pred_results_list"]),
         3)
     npt.assert_equal(len(pred_results_dict), 4)
-    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-                   for el in pred_results_dict[fname]\
-                   ["pred_results_list"]) for fname in pred_results_dict))
+    for res_dict in pred_results_dict.values():
+        assert(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                 'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
+                       for el in res_dict["pred_results_list"]))

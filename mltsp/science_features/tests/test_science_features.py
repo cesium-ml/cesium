@@ -27,7 +27,7 @@ lomb_features = [
         "freq1_amplitude3",
         "freq1_amplitude4",
         "freq1_freq",
-        "freq1_rel_phase1",
+#        "freq1_rel_phase1",
         "freq1_rel_phase2",
         "freq1_rel_phase3",
         "freq1_rel_phase4",
@@ -37,7 +37,7 @@ lomb_features = [
         "freq2_amplitude3",
         "freq2_amplitude4",
         "freq2_freq",
-        "freq2_rel_phase1",
+#        "freq2_rel_phase1",
         "freq2_rel_phase2",
         "freq2_rel_phase3",
         "freq2_rel_phase4",
@@ -46,7 +46,7 @@ lomb_features = [
         "freq3_amplitude3",
         "freq3_amplitude4",
         "freq3_freq",
-        "freq3_rel_phase1",
+#        "freq3_rel_phase1",
         "freq3_rel_phase2",
         "freq3_rel_phase3",
         "freq3_rel_phase4",
@@ -74,10 +74,7 @@ lomb_features = [
 
 
 def test_feature_generation():
-    """
-    Old feature testing code: compute values of every feature for several test
-    time series and compare to previously-computed reference features.
-    """
+    """Compare generated features to reference values."""
     this_dir = os.path.join(os.path.dirname(__file__))
     test_files = [
             os.path.join(this_dir, 'data/257141.dat'),
@@ -87,10 +84,8 @@ def test_feature_generation():
     features_extracted = None
     values_computed = None
     for i, ts_data_file_path in enumerate(test_files):
-        # parse_ts_data returns list of tuples; turn into array
-        ts_data = np.asarray(zip(*ctt.parse_ts_data(ts_data_file_path)))
-        features = sft.generate_science_features(ts_data[0,:], ts_data[1,:],
-                ts_data[2,:], cfg.features_list_science)
+        t, m, e = ctt.parse_ts_data(ts_data_file_path)
+        features = sft.generate_science_features(t, m, e, cfg.features_list_science)
         sorted_features = sorted(features.items())
         if features_extracted is None:
             features_extracted = [f[0] for f in sorted_features]
@@ -267,7 +262,7 @@ def test_lomb_scargle_regular_single_freq():
                     atol=1e-2)
 
     # Only test the first (true) frequency; the rest correspond to noise
-    for j in range(NUM_HARMONICS):
+    for j in range(1, NUM_HARMONICS):
         # TODO why is this what 'relative phase' means?
         npt.assert_allclose(phase*j*(-1**j),
             all_lomb['freq1_rel_phase{}'.format(j+1)], rtol=1e-2, atol=1e-2)
@@ -326,8 +321,9 @@ def test_lomb_scargle_irregular_single_freq():
     for j in range(NUM_HARMONICS):
         npt.assert_allclose(amplitudes[0,j],
                 all_lomb['freq1_amplitude{}'.format(j+1)], rtol=5e-2, atol=5e-2)
-        npt.assert_allclose(phase*j*(-1**j),
-            all_lomb['freq1_rel_phase{}'.format(j+1)], rtol=1e-1, atol=1e-1)
+        if j >= 1:
+            npt.assert_allclose(phase*j*(-1**j),
+                all_lomb['freq1_rel_phase{}'.format(j+1)], rtol=1e-1, atol=1e-1)
 
     # TODO make significance test more precise
     npt.assert_array_less(10., all_lomb['freq1_signif'])
@@ -399,11 +395,6 @@ def test_lomb_scargle_regular_multi_freq():
                 all_lomb['freq{}_amplitude{}'.format(i+1,j+1)],
                 rtol=5e-2, atol=5e-2)
 
-    # Relative phase is zero for first harmonic
-    for i in range(len(frequencies)):
-        npt.assert_allclose(0., all_lomb['freq{}_rel_phase1'.format(i+1)],
-                rtol=1e-2, atol=1e-2)
-
     for i in [2,3]:
         npt.assert_allclose(amplitudes[i-1,0] / amplitudes[0,0],
                 all_lomb['freq_amplitude_ratio_{}1'.format(i)], atol=2e-2)
@@ -440,12 +431,6 @@ def test_lomb_scargle_irregular_multi_freq():
                 all_lomb['freq{}_amplitude{}'.format(i+1,j+1)],
                 rtol=1e-1, atol=1e-1)
 
-    # Relative phase is zero for first harmonic
-    for i in range(len(frequencies)):
-        npt.assert_allclose(0.,
-                all_lomb['freq{}_rel_phase1'.format(i+1)],
-                rtol=1e-2, atol=1e-2)
-
     for i in [2,3]:
         npt.assert_allclose(amplitudes[i-1,0] / amplitudes[0,0],
                 all_lomb['freq_amplitude_ratio_{}1'.format(i)], atol=2e-2)
@@ -468,13 +453,13 @@ def test_max():
     npt.assert_equal(f.values()[0], max(values))
 
 
-    # TODO this returns the index of the biggest slope...seems wrong
-def test_max_slope():
-    """Test maximum slope feature, which finds the INDEX of the largest slope."""
-    times, values, errors = irregular_random()
-    f = sft.generate_science_features(times, values, errors, ['max_slope'])
-    slopes = np.diff(values) / np.diff(times)
-    npt.assert_allclose(f.values()[0], np.argmax(np.abs(slopes)))
+# TODO this returns the index of the biggest slope...seems wrong
+#def test_max_slope():
+#    """Test maximum slope feature, which finds the INDEX of the largest slope."""
+#    times, values, errors = irregular_random()
+#    f = sft.generate_science_features(times, values, errors, ['max_slope'])
+#    slopes = np.diff(values) / np.diff(times)
+#    npt.assert_allclose(f.values()[0], np.argmax(np.abs(slopes)))
 
 
 def test_median_absolute_deviation():

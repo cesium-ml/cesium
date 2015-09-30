@@ -42,7 +42,7 @@ from .. import featurize
 from .. import predict_class as predict
 from .. import build_model
 
-all_available_features_list = cfg.features_list + cfg.features_list_science
+all_available_features_list = cfg.features_list_obs + cfg.features_list_science
 
 # Flask initialization
 app = Flask(__name__, static_folder=None)
@@ -1621,7 +1621,7 @@ def get_list_of_available_features():
 
 def get_list_of_available_features_set2():
     """Return list of additional built-in time-series features."""
-    return sorted([feat for feat in cfg.features_list if feat not in
+    return sorted([feat for feat in cfg.features_list_obs if feat not in
                    cfg.ignore_feats_list_science])
 
 
@@ -2157,10 +2157,10 @@ def verifyNewScript():
         try:
             test_results = cft.verify_new_script(script_fpath=scriptfile_path)
             ks = []
-            for thisone in test_results:
-                for k, v in thisone.items():
-                    if k not in ks:
-                        ks.append(k)
+#            for thisone in test_results:
+            for k, v in test_results.items():
+                if k not in ks:
+                    ks.append(k)
             res_str = ""
             for k in ks:
                 res_str += (("<input type='checkbox' value='%s' "
@@ -2664,7 +2664,7 @@ def featurizationPage(
 
     """
     projkey = project_name_to_key(project_name)
-    if already_featurized == True and zipfile_name is None:
+    if already_featurized and zipfile_name is None:
         # User is uploading pre-featurized data, without time-series data
         features_filename = headerfile_name
         features_filepath = os.path.join(

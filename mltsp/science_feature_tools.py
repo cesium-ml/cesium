@@ -1,10 +1,10 @@
 import numpy as np
 import cfg
 import science_features as sf
-from dask.multiprocessing import get as dget
+from dask.async import get_sync as dget
 
 
-def generate_science_features(t, m, e, features_to_compute):
+def generate_science_features(t, m, e, features_to_compute=cfg.features_list_science):
     """Generate science features for provided time series data.
 
     Parameters
@@ -25,6 +25,8 @@ def generate_science_features(t, m, e, features_to_compute):
         feature names, values are feature values (floats).
 
     """
+    features_to_compute = [f for f in features_to_compute if f in
+                           cfg.features_list_science]
     feature_graph = {
         # Standalone features (disconnected nodes)
        'amplitude': (sf.amplitude, m),
@@ -119,5 +121,5 @@ def generate_science_features(t, m, e, features_to_compute):
     # Do not execute in parallel; parallelization has already taken place at
     # the level of time series, so we compute features for a single time series
     # in serial.
-    values = dget(feature_graph, features_to_compute, num_workers=1)
+    values = dget(feature_graph, features_to_compute)
     return dict(zip(features_to_compute, values))

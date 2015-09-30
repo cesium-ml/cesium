@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 import uuid
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from mltsp import observation_feature_tools as oft
+from mltsp import obs_feature_tools as oft
 from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
@@ -50,8 +50,7 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
 
 @celery_app.task(name="celery_tasks.pred_featurize_single")
 def pred_featurize_single(ts_data_file_path, features_to_use,
-                          custom_features_script, meta_features, short_fname,
-                          sep):
+                          custom_features_script, meta_features={}):
     """Featurize unlabeled time-series data file for model prediciton.
 
     This function is a Celery task.
@@ -66,10 +65,6 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
         Path to custom features script .py file, or None.
     meta_features : dict
         Dictionary of associated meta features.
-    short_fname : str
-        File name without full path or type suffix.
-    sep : str
-        Delimiting character in data file, e.g. ",".
 
     Returns
     -------
@@ -78,62 +73,36 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
         dictionaries as value.
 
     """
-    ts_data = ctt.parse_ts_data(ts_data_file_path)
+    short_fname = os.path.splitext(os.path.basename(ts_data_file_path))[0]
+    t, m, e = ctt.parse_ts_data(ts_data_file_path)
     big_features_and_tsdata_dict = {}
-    # Generate features:
-    if len(list(set(features_to_use) & set(cfg.features_list))) > 0:
-        timeseries_features = oft.generate_timeseries_features(
-            deepcopy(ts_data), sep=sep, ts_data_passed_directly=True)
-    else:
-        timeseries_features = {}
-    if len(list(set(features_to_use) &
-                set(cfg.features_list_science))) > 0:
-        science_features = sft.generate_science_features(ts_data)
-    else:
-        science_features = {}
+    obs_features = oft.generate_obs_features(t, m, e, features_to_use)
+    science_features = sft.generate_science_features(t, m, e, features_to_use)
     if custom_features_script:
         custom_features = cft.generate_custom_features(
-            custom_script_path=custom_features_script, path_to_csv=None,
-            features_already_known=dict(
-                list(timeseries_features.items()) + list(science_features.items()) +
-                (
-                    list(meta_features[short_fname].items()) if short_fname in
-                    meta_features else list({}.items()))), ts_data=ts_data)
-        if (isinstance(custom_features, list) and
-                len(custom_features) == 1):
-            custom_features = custom_features[0]
-        elif (isinstance(custom_features, list) and
-              len(custom_features) == 0):
-            custom_features = {}
-        elif (isinstance(custom_features, list) and
-              len(custom_features) > 1):
-            raise("len(custom_features) > 1 for single TS data obj")
-        elif not isinstance(custom_features, (list, dict)):
-            raise("custom_features ret by cft module is of an invalid type")
+            custom_features_script, t, m, e,
+            features_already_known=dict(obs_features.items() +
+                                        science_features.items() +
+                                        meta_features.items()))
     else:
         custom_features = {}
-    features_dict = dict(
-        list(timeseries_features.items()) + list(science_features.items()) +
-        list(custom_features.items()) +
-        (list(meta_features[short_fname].items()) if short_fname
-         in meta_features else list({}.items())))
+    features_dict = dict(obs_features.items() + science_features.items() +
+                         custom_features.items() + meta_features.items())
     big_features_and_tsdata_dict[short_fname] = {
-        "features_dict": features_dict, "ts_data": ts_data}
+        "features_dict": features_dict, "ts_data": zip(t, m, e)}
     return big_features_and_tsdata_dict
 
 
+# TODO de-dupe this code; remove above function?
 @celery_app.task(name="celery_tasks.featurize_ts_data")
-# TODO can't short_fname be generated instead of passed in?
-def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
-                      object_class, features_to_use):
+def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
+                      features_to_use):
     """Featurize time-series data file.
 
     Parameters
     ----------
     ts_data_file_path : str
         Time-series data file disk location path.
-    short_fname : str
-        File name without full path or type suffix.
     custom_script_path : str or None
         Path to custom features script .py file, or None.
     object_class : str
@@ -148,34 +117,17 @@ def featurize_ts_data(ts_data_file_path, short_fname, custom_script_path,
         second element is a dictionary of features.
 
     """
-    ts_data = ctt.parse_ts_data(ts_data_file_path)
-    # Generate general/cadence-related TS features, if to be used
-    if len(set(features_to_use) & set(cfg.features_list)) > 0:
-        timeseries_features = oft.generate_observation_features(ts_data)
-    else:
-        timeseries_features = {}
-    # Generate TS science features, if to be used
-    if len(
-            set(features_to_use) &
-            set(cfg.features_list_science)) > 0:
-        science_features = sft.generate_science_features(ts_data)
-    else:
-        science_features = {}
-    # Generate custom features, if any
+    short_fname = os.path.splitext(os.path.basename(ts_data_file_path))[0]
+    t, m, e = ctt.parse_ts_data(ts_data_file_path)
+    obs_features = oft.generate_obs_features(t, m, e, features_to_use)
+    science_features = sft.generate_science_features(t, m, e, features_to_use)
     if custom_script_path:
-        custom_features = cft.generate_custom_features(
-            custom_script_path=custom_script_path,
-            path_to_csv=None,
-            features_already_known=dict(
-                list(timeseries_features.items()) +
-                list(science_features.items())),
-            ts_data=deepcopy(ts_data))[0]
+        custom_features = cft.generate_custom_features(custom_script_path, t,
+            m, e, features_already_known=dict(obs_features.items() +
+            science_features.items()))
     else:
         custom_features = {}
-    # Combine all features into single dict
-    all_features = dict(
-        list(timeseries_features.items()) +
-        list(science_features.items()) +
-        list(custom_features.items()))
+    all_features = dict(obs_features.items() + science_features.items() +
+                        custom_features.items())
     all_features['class'] = object_class
     return (short_fname, all_features)

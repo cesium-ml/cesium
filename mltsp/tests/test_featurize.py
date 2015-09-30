@@ -96,9 +96,9 @@ def test_determine_feats_to_plot2():
     npt.assert_array_equal(ftpl, cfg.features_to_plot)
     ftpl = featurize.determine_feats_to_plot(cfg.features_list_science)
     npt.assert_array_equal(ftpl, cfg.features_to_plot)
-    ftpl = featurize.determine_feats_to_plot(cfg.features_list)
+    ftpl = featurize.determine_feats_to_plot(cfg.features_list_obs)
     npt.assert_equal(len(ftpl), 5)
-    assert(all(f in cfg.features_list for f in ftpl))
+    assert(all(f in cfg.features_list_obs for f in ftpl))
     ftpl = featurize.determine_feats_to_plot(["f1"])
     npt.assert_array_equal(ftpl, ["f1"])
 

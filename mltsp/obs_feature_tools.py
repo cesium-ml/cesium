@@ -1,7 +1,8 @@
+import copy
 import numpy as np
 import scipy.stats as stats
 from . import cfg
-from dask.multiprocessing import get as dget
+from dask.async import get_sync as dget
 
 
 def double_to_single_step(cads):
@@ -77,7 +78,7 @@ def peak_bin(peaks, i):
         return None
 
 
-def generate_observation_feature(t, m, e, features_to_compute):
+def generate_obs_features(t, m, e, features_to_compute=cfg.features_list_obs):
     """Generate features dict from given time-series data.
 
     Parameters
@@ -89,7 +90,8 @@ def generate_observation_feature(t, m, e, features_to_compute):
         Dictionary containing generated time series features.
 
     """
-
+    features_to_compute = [f for f in features_to_compute if f in
+                           cfg.features_list_obs]
     feature_graph = {
         'n_epochs': (len, t),
         'avg_err': (np.mean, e),
@@ -142,5 +144,8 @@ def generate_observation_feature(t, m, e, features_to_compute):
         'all_times_nhist_peak4_bin': (peak_bin, 'nhist_peaks', 4)
     }
 
-    values = dget(feature_graph, features_to_compute, num_workers=1)
+    # Do not execute in parallel; parallelization has already taken place at
+    # the level of time series, so we compute features for a single time series
+    # in serial.
+    values = dget(feature_graph, features_to_compute)
     return dict(zip(features_to_compute, values))
