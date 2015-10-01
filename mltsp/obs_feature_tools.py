@@ -1,8 +1,7 @@
-import copy
 import numpy as np
 import scipy.stats as stats
 from . import cfg
-from dask.async import get_sync as dget
+import dask.async
 
 
 def double_to_single_step(cads):
@@ -83,12 +82,22 @@ def generate_obs_features(t, m, e, features_to_compute=cfg.features_list_obs):
 
     Parameters
     ----------
+    t : array_like
+        Array containing time values.
+
+    m : array_like
+        Array containing data values.
+
+    e : array_like
+        Array containing measurement error values.
+
+    features_to_compute : list
+        Optional list containing names of desired features.
 
     Returns
     -------
     dict
         Dictionary containing generated time series features.
-
     """
     features_to_compute = [f for f in features_to_compute if f in
                            cfg.features_list_obs]
@@ -147,5 +156,5 @@ def generate_obs_features(t, m, e, features_to_compute=cfg.features_list_obs):
     # Do not execute in parallel; parallelization has already taken place at
     # the level of time series, so we compute features for a single time series
     # in serial.
-    values = dget(feature_graph, features_to_compute)
+    values = dask.async.get_sync(feature_graph, features_to_compute)
     return dict(zip(features_to_compute, values))

@@ -263,7 +263,6 @@ def test_lomb_scargle_regular_single_freq():
 
     # Only test the first (true) frequency; the rest correspond to noise
     for j in range(1, NUM_HARMONICS):
-        # TODO why is this what 'relative phase' means?
         npt.assert_allclose(phase*j*(-1**j),
             all_lomb['freq1_rel_phase{}'.format(j+1)], rtol=1e-2, atol=1e-2)
 
@@ -271,7 +270,6 @@ def test_lomb_scargle_regular_single_freq():
     for i in [2,3]:
         npt.assert_allclose(0., all_lomb['freq_amplitude_ratio_{}1'.format(i)], atol=1e-3)
 
-    # TODO make significance test more precise
     npt.assert_array_less(10., all_lomb['freq1_signif'])
 
     # Only one frequency, so this should explain basically all the variance
@@ -325,7 +323,6 @@ def test_lomb_scargle_irregular_single_freq():
             npt.assert_allclose(phase*j*(-1**j),
                 all_lomb['freq1_rel_phase{}'.format(j+1)], rtol=1e-1, atol=1e-1)
 
-    # TODO make significance test more precise
     npt.assert_array_less(10., all_lomb['freq1_signif'])
 
     # Only one frequency, so this should explain basically all the variance
@@ -399,13 +396,7 @@ def test_lomb_scargle_regular_multi_freq():
         npt.assert_allclose(amplitudes[i-1,0] / amplitudes[0,0],
                 all_lomb['freq_amplitude_ratio_{}1'.format(i)], atol=2e-2)
 
-    # TODO make significance test more precise
     npt.assert_array_less(10., all_lomb['freq1_signif'])
-    """
-    e_name = 'freq_signif_ratio_{}1_extractor'.format(i)
-    e = getattr(extractors, e_name)()
-    npt.assert_allclose(0., all_lomb, atol=1e-3)
-    """
 
 
 def test_lomb_scargle_irregular_multi_freq():
@@ -437,13 +428,7 @@ def test_lomb_scargle_irregular_multi_freq():
         npt.assert_allclose(frequencies[i-1] / frequencies[0],
                 all_lomb['freq_frequency_ratio_{}1'.format(i)], atol=5e-2)
 
-    # TODO make significance test more precise
     npt.assert_array_less(10., all_lomb['freq1_signif'])
-"""
-    e_name = 'freq_signif_ratio_{}1_extractor'.format(i)
-    e = getattr(extractors, e_name)()
-    npt.assert_allclose(0., all_lomb, atol=1e-3)
-"""
 
 
 def test_max():
@@ -453,7 +438,7 @@ def test_max():
     npt.assert_equal(f.values()[0], max(values))
 
 
-# TODO this returns the index of the biggest slope...seems wrong
+# TODO uncomment when feature is fixed
 #def test_max_slope():
 #    """Test maximum slope feature, which finds the INDEX of the largest slope."""
 #    times, values, errors = irregular_random()
@@ -470,7 +455,7 @@ def test_median_absolute_deviation():
         np.median(values))))
 
 
-    # TODO should replace with commented version once sign problems fixed
+# TODO should replace with commented version once sign problems fixed
 def test_percent_close_to_median():
     """Test feature which finds the percentage of points near the median value."""
     times, values, errors = irregular_random()

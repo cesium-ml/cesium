@@ -12,9 +12,7 @@ import uuid
 
 from . import cfg
 from . import custom_exceptions
-from . import lc_tools
 from . import custom_feature_tools as cft
-from . import util
 from .celery_tasks import pred_featurize_single
 
 

@@ -1,10 +1,11 @@
 import numpy as np
 import cfg
 import science_features as sf
-from dask.async import get_sync as dget
+import dask.async
 
 
-def generate_science_features(t, m, e, features_to_compute=cfg.features_list_science):
+def generate_science_features(t, m, e,
+                              features_to_compute=cfg.features_list_science):
     """Generate science features for provided time series data.
 
     Parameters
@@ -18,12 +19,14 @@ def generate_science_features(t, m, e, features_to_compute=cfg.features_list_sci
     e : array_like
         Array containing measurement error values.
 
+    features_to_compute : list
+        Optional list containing names of desired features.
+
     Returns
     -------
     dict
         Dictionary containing newly-generated features. Keys are
         feature names, values are feature values (floats).
-
     """
     features_to_compute = [f for f in features_to_compute if f in
                            cfg.features_list_science]
@@ -43,7 +46,8 @@ def generate_science_features(t, m, e, features_to_compute=cfg.features_list_sci
        'percent_amplitude': (sf.percent_amplitude, m),
        'percent_beyond_1_std': (sf.percent_beyond_1_std, m, e),
        'percent_close_to_median': (sf.percent_close_to_median, m),
-       'percent_difference_flux_percentile': (sf.percent_difference_flux_percentile, m),
+       'percent_difference_flux_percentile': (
+           sf.percent_difference_flux_percentile, m),
        'skew': (sf.skew, m),
        'std': (sf.std, m),
        'stetson_j': (sf.stetson_j, m),
@@ -114,12 +118,13 @@ def generate_science_features(t, m, e, features_to_compute=cfg.features_list_sci
         'p2p_model': (sf.p2p_model, t, m, 'freq1_freq'),
         'p2p_scatter_2praw': (sf.get_p2p_scatter_2praw, 'p2p_model'),
         'p2p_scatter_over_mad': (sf.get_p2p_scatter_over_mad, 'p2p_model'),
-        'p2p_scatter_pfold_over_mad': (sf.get_p2p_scatter_pfold_over_mad, 'p2p_model'),
+        'p2p_scatter_pfold_over_mad': (sf.get_p2p_scatter_pfold_over_mad,
+                                       'p2p_model'),
         'p2p_ssqr_diff_over_var': (sf.get_p2p_ssqr_diff_over_var, 'p2p_model'),
    }
 
     # Do not execute in parallel; parallelization has already taken place at
     # the level of time series, so we compute features for a single time series
     # in serial.
-    values = dget(feature_graph, features_to_compute)
+    values = dask.async.get_sync(feature_graph, features_to_compute)
     return dict(zip(features_to_compute, values))

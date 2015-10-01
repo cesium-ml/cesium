@@ -12,7 +12,6 @@ import tarfile
 import numpy as np
 
 from . import cfg
-from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
 from . import custom_exceptions
@@ -146,7 +145,6 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
                       custom_script_path, is_test, already_featurized,
                       in_docker_container):
     """Generate features for provided time-series data."""
-    all_features_list = cfg.features_list_obs[:] + cfg.features_list_science[:]
     if already_featurized:
         # Read in features from CSV file
         objects = parse_prefeaturized_csv_data(headerfile_path)

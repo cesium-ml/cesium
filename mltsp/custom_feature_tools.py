@@ -541,22 +541,26 @@ def generate_custom_features(custom_script_path, t, m, e,
 
     Parameters
     ----------
+    t : array_like
+        Array containing time values.
+
+    m : array_like
+        Array containing data values.
+
+    e : array_like
+        Array containing measurement error values.
+
     custom_script_path : str
         Path to custom features script.
-    ts_data : list OR tuple, optional
-        List (or tuple) of lists (or tuples) containing time,
-        measurement (and optionally associated error values) data.
-        Defaults to None. If None, path_to_csv must not be None,
-        otherwise raises an Exception.
+
     features_already_known : dict, optional
-        List of dicts containing any meta-features associated with
-        provided time-series data. Defaults to [].
+        Dict containing any meta-features associated with provided time-series
+        data. Defaults to {}.
 
     Returns
     -------
-    list of dict
-        List of dictionaries containing newly-generated features.
-
+    dict
+        Dictionary containing newly-generated features.
     """
     if "t" not in features_already_known:
         features_already_known['t'] = t
