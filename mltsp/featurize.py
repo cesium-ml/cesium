@@ -21,7 +21,7 @@ from .celery_tasks import featurize_ts_data as featurize_celery_task
 # TODO use this everywhere?
 def shorten_fname(file_path):
     return os.path.splitext(os.path.basename(file_path))[0]
-    
+
 def parse_prefeaturized_csv_data(features_file_path):
     """Parse CSV file containing features.
 
