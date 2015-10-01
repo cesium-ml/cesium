@@ -7,6 +7,7 @@ from scipy import fftpack, stats, optimize
 from pylab import *
 from .common_functions import *
 
+# TODO this should def. be a function, not an extractor
 class watt_per_m2_flux_extractor(InterExtractor):
 	""" Convert the magnitudes to SI units"""
 	active = True

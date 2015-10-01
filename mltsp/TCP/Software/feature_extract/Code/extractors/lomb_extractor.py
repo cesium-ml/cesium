@@ -4,6 +4,7 @@ from .common_functions import lomb_scargle
 from .common_functions.plot_methods import plot_vs_frequencies
 from numpy import arange
 
+# TODO what is this
 class lomb_extractor(plot_vs_frequencies,InterExtractor):
 	"""extracts a lomb scargle periodogram from the data"""
 	active = True

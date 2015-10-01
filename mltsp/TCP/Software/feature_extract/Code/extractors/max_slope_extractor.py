@@ -6,6 +6,8 @@ class max_slope_extractor(FeatureExtractor):
     def extract(self):
         max_slope = 0
         max_slope_i = 0
+# TODO np.diff
+# TODO is this really supposed to return max_slope_i instead of max_slope...?
         for i in range(len(self.time_data)-1):
             ydiff = self.flux_data[i+1]-self.flux_data[i]
             xdiff = self.time_data[i+1]-self.time_data[i]

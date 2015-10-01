@@ -35,7 +35,7 @@ from .weighted_average_extractor  import weighted_average_extractor
 # # # 20100912 disabled due to lomb() call# from second_lomb_extractor import second_lomb_extractor
 # # # 20100912 disabled due to lomb() call# from frequency_ratio_extractor import ratio21, ratio31, ratio32
 #from example_extractor  import example_extractor
-#from n_points_extractor import n_points_extractor
+from .n_points_extractor import n_points_extractor
 
 #from position_intermediate_extractor import position_intermediate_extractor
 #20101207#from galb_extractor import galb_extractor

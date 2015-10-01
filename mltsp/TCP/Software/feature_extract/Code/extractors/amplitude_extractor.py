@@ -12,6 +12,7 @@ import sys
 from scipy import stats
 import numpy
 
+# TODO scipy.stats.scoreatpercentile is deprecated; should use numpy.percentile
 class amplitude_extractor(FeatureExtractor):
     """ Returns the half the difference between the maximum magnitude and the minimum magnitude.
     Note this will also work for data that is given in terms of flux. So in a sense, it's
@@ -33,6 +34,8 @@ class amplitude_extractor(FeatureExtractor):
         
         return amplitude/2.0
 
+# TODO what is up with this assumed_unit stuff? this seems well-defined for any units
+# in general, should we assume things are log-scale?
 class percent_amplitude_extractor(FeatureExtractor):
         """ Returns the largest percentage difference between the maximum 
         magnitude and the minimum magnitude relative to the median.
@@ -43,6 +46,7 @@ class percent_amplitude_extractor(FeatureExtractor):
         extname = 'percent_amplitude' #extractor's name
         assumed_unit = "mag" # 20100518: actually, I think a unitless percentage is returned.
         def extract(self):
+# TODO is there really any reason to call these extractors instead of just Python functions...
             maxm = self.fetch_extr('max') # maximum magnitude
             minm = self.fetch_extr('min') # minimum magnitude
             medd = self.fetch_extr("median")

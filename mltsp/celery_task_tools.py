@@ -142,10 +142,10 @@ def parse_ts_data(filepath, sep=","):
     """
     with open(filepath) as f:
         ts_data = np.loadtxt(f, delimiter=sep)
-    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
+    ts_data = ts_data[:,:3] # Only using T, M, E
     for row in ts_data:
         if len(row) < 2:
             raise custom_exceptions.DataFormatError(
                 "Incomplete or improperly formatted time "
                 "series data file provided.")
-    return ts_data
+    return ts_data.T

@@ -9,24 +9,19 @@ import tempfile
 from random import shuffle
 import os
 import tarfile
-import ntpath
 import numpy as np
 
 from . import cfg
-from . import lc_tools
 from . import custom_feature_tools as cft
 from . import util
 from . import custom_exceptions
 from .celery_tasks import featurize_ts_data as featurize_celery_task
 
 
-def shorten_fname(fname):
-    """Return shortened file name without full path and suffix.
-
-    """
-    return os.path.splitext(ntpath.basename(fname))[0]
-
-
+# TODO use this everywhere?
+def shorten_fname(file_path):
+    return os.path.splitext(os.path.basename(file_path))[0]
+    
 def parse_prefeaturized_csv_data(features_file_path):
     """Parse CSV file containing features.
 
@@ -66,8 +61,7 @@ def parse_headerfile(headerfile_path, features_to_use):
         Path to header file.
 
     features_to_use : list of str
-        List of feature names to be generated. Defaults to an empty
-        list, which results in all available features being used.
+        List of feature names to be generated.
 
     Returns
     -------
@@ -141,7 +135,7 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
             ts_path = os.path.join(unzip_dir, fname)
         else:
             continue
-        input_params_list.append((ts_path, short_fname, custom_script_path,
+        input_params_list.append((ts_path, custom_script_path,
                                   fname_class_dict[short_fname],
                                   features_to_use))
     return input_params_list
@@ -150,12 +144,7 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
 def generate_features(headerfile_path, zipfile_path, features_to_use,
                       custom_script_path, is_test, already_featurized,
                       in_docker_container):
-    """Generate features for provided time-series data.
-
-    """
-    all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
-    if len(features_to_use) == 0:
-        features_to_use = all_features_list
+    """Generate features for provided time-series data."""
     if already_featurized:
         # Read in features from CSV file
         objects = parse_prefeaturized_csv_data(headerfile_path)

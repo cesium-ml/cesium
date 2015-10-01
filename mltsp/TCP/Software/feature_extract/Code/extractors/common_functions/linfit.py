@@ -1,5 +1,6 @@
 from numpy import ones,sqrt
 
+# TODO don't see any reason to use this instead of polyfit from numpy
 def linfit(x,y,dy=[]):
     """
     m = a+b*x

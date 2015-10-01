@@ -23,21 +23,20 @@ def extract_custom_feats(data_path):
 
     """
     # load pickled ts_data and known features
-    with open(
-            os.path.join(data_path, "features_already_known_list.pkl"), "rb") \
+    with open(os.path.join(data_path, "features_already_known.pkl"), "rb") \
             as f:
-        features_already_known_list = pickle.load(f)
+        features_already_known = pickle.load(f)
 
     script_fpath = os.path.join(data_path, "custom_feature_defs.py")
     # extract features
     all_feats = cft.execute_functions_in_order(
-        features_already_known=features_already_known_list,
+        features_already_known=features_already_known,
         script_fpath=script_fpath)
 
-    with open("/tmp/results_list_of_dict.pkl", "wb") as f:
+    with open("/tmp/results_dict.pkl", "wb") as f:
         pickle.dump(all_feats, f, protocol=2)
 
-    print("Created /tmp/results_list_of_dict.pkl in docker container.")
+    print("Created /tmp/results_dict.pkl in docker container.")
     return 0
 
 

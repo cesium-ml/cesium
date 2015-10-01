@@ -15,6 +15,7 @@ import shutil
 import numpy as np
 from importlib import import_module
 from . import cfg
+from . import celery_task_tools as ctt
 
 from .util import docker_images_available, is_running_in_docker, \
     get_docker_client
@@ -114,40 +115,6 @@ class DummyFile(object):
         pass
 
 
-def parse_csv_file(fname, sep=',', skip_lines=0):
-    """Parse 2- or 3-column CSV file and return a list of its columns.
-
-    Parameters
-    ----------
-    fname : str
-        Absolute path to the CSV file.
-    sep : str, optional
-        Delimiter in TS data file, defaults to ",".
-    skip_lines : int, optional
-        Number of leading lines to skip in file, defaults to 0.
-
-    Returns
-    -------
-    list of list
-        Two- or three-element list of lists of each of the columns. If
-        `fname` is not a 2- or 3-column CSV file, returns list of three
-        empty lists.
-
-    """
-    with open(fname, "r") as f:
-        ts_data = np.loadtxt(f, delimiter=",", skiprows=skip_lines)
-    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
-    for row in ts_data:
-        if len(row) < 2:
-            raise custom_exceptions.DataFormatError(
-                "Incomplete or improperly formatted time "
-                "series data file provided.")
-    tme = list(map(list, zip(*ts_data)))  # Need t, m, and e in separate lists
-    if len(tme) == 2:
-        tme.append([])  # Add empty err col
-    return tme
-
-
 def parse_for_req_prov_params(script_fpath):
     """
     """
@@ -175,20 +142,7 @@ def parse_for_req_prov_params(script_fpath):
     return (fnames_req_prov_dict, all_required_params, all_provided_params)
 
 
-def listify_feats_known_dict(features_already_known):
-    """
-    """
-    if isinstance(features_already_known, dict):
-        return [features_already_known]
-    elif isinstance(features_already_known, list):
-        return features_already_known
-    else:
-        raise ValueError("custom_feature_tools.py - features_already_known"
-                         " is of an invalid type (%s)." %
-                         str(type(features_already_known)))
-
-
-def call_custom_functions(features_already_known_list, all_required_params,
+def call_custom_functions(features_already_known, all_required_params,
                           all_provided_params, fnames_req_prov_dict,
                           script_fpath=None):
     """
@@ -215,48 +169,45 @@ def call_custom_functions(features_already_known_list, all_required_params,
     save_stdout = sys.stdout
     sys.stdout = DummyFile()
 
-    all_extracted_features_list = []
-    for features_already_known in features_already_known_list:
-        all_required_params_copy = [x for x in all_required_params
-                                    if x not in features_already_known]
-        for reqd_param in all_required_params_copy:
-            if reqd_param not in all_provided_params:
-                raise Exception((
-                    "Not all of the required parameters are provided by the "
-                    "functions in this script (required parameter '%s').") %
-                    str(reqd_param))
-        funcs_round_1 = []
-        func_queue = []
-        funcnames = list(fnames_req_prov_dict.keys())
-        i = 0
-        func_rounds = {}
-        all_extracted_features = {}
-        while len(funcnames) > 0:
-            func_rounds[str(i)] = []
-            for funcname in funcnames:
-                reqs_provs_dict = fnames_req_prov_dict[funcname]
-                reqs = reqs_provs_dict['requires']
-                provs = reqs_provs_dict['provides']
-                if len(set(all_required_params_copy) & set(reqs)) > 0:
-                    func_queue.append(funcname)
-                else:
-                    func_rounds[str(i)].append(funcname)
-                    all_required_params_copy = [x for x in all_required_params_copy
-                                                if x not in provs]
-                    arguments = {}
-                    for req in reqs:
-                        if req in features_already_known:
-                            arguments[req] = features_already_known[req]
-                        elif req in all_extracted_features:
-                            arguments[req] = all_extracted_features[req]
-                    func_result = getattr(
-                        custom_feature_defs, funcname)(**arguments)
-                    all_extracted_features = dict(
-                        list(all_extracted_features.items()) +
-                        list(func_result.items()))
-                    funcnames.remove(funcname)
-            i += 1
-        all_extracted_features_list.append(all_extracted_features)
+    all_required_params_copy = [x for x in all_required_params
+                                if x not in features_already_known]
+    for reqd_param in all_required_params_copy:
+        if reqd_param not in all_provided_params:
+            raise Exception((
+                "Not all of the required parameters are provided by the "
+                "functions in this script (required parameter '%s').") %
+                str(reqd_param))
+    funcs_round_1 = []
+    func_queue = []
+    funcnames = list(fnames_req_prov_dict.keys())
+    i = 0
+    func_rounds = {}
+    all_extracted_features = {}
+    while len(funcnames) > 0:
+        func_rounds[str(i)] = []
+        for funcname in funcnames:
+            reqs_provs_dict = fnames_req_prov_dict[funcname]
+            reqs = reqs_provs_dict['requires']
+            provs = reqs_provs_dict['provides']
+            if len(set(all_required_params_copy) & set(reqs)) > 0:
+                func_queue.append(funcname)
+            else:
+                func_rounds[str(i)].append(funcname)
+                all_required_params_copy = [x for x in all_required_params_copy
+                                            if x not in provs]
+                arguments = {}
+                for req in reqs:
+                    if req in features_already_known:
+                        arguments[req] = features_already_known[req]
+                    elif req in all_extracted_features:
+                        arguments[req] = all_extracted_features[req]
+                func_result = getattr(
+                    custom_feature_defs, funcname)(**arguments)
+                all_extracted_features = dict(
+                    list(all_extracted_features.items()) +
+                    list(func_result.items()))
+                funcnames.remove(funcname)
+        i += 1
     # revert to original stdout
     sys.stdout = save_stdout
     try:
@@ -264,7 +215,7 @@ def call_custom_functions(features_already_known_list, all_required_params,
         os.remove(copied_path.replace('.py', '.pyc'))
     except:
         pass
-    return all_extracted_features_list
+    return all_extracted_features
 
 
 def execute_functions_in_order(
@@ -309,107 +260,12 @@ def execute_functions_in_order(
 
     fnames_req_prov_dict, all_required_params, all_provided_params = \
         parse_for_req_prov_params(script_fpath)
-    features_already_known_list = listify_feats_known_dict(
-        features_already_known)
 
-    all_extracted_features_list = call_custom_functions(
-        features_already_known_list, all_required_params, all_required_params,
+    all_extracted_features = call_custom_functions(
+        features_already_known, all_required_params, all_required_params,
         fnames_req_prov_dict, script_fpath)
 
-    return all_extracted_features_list
-
-
-def parse_tsdata_to_lists(ts_data):
-    """
-    """
-    tme = []
-    if isinstance(ts_data, list):
-        if len(ts_data) > 0:
-            if isinstance(ts_data[0], (list, tuple)):
-                # ts_data already in desired format
-                tme = ts_data
-            elif isinstance(ts_data[0], (str, type(u''))) and \
-                    "," in ts_data[0]:
-                for el in ts_data:
-                    if str(el) not in ["\n", ""]:
-                        tme.append(el.split(","))
-        else:
-            raise ValueError("ts_data is an empty list")
-    elif isinstance(ts_data, (str, unicode)):
-        all_lines = str(ts_data).strip().split("\n")
-        for i in range(len(all_lines)):
-            if all_lines[i].strip() == "":
-                continue
-            else:
-                tme.append([x.strip()
-                            for x in all_lines[i].strip().split(",")])
-    else:
-        try:
-            all_lines = str(ts_data).strip().split("\n")
-            for i in range(len(all_lines)):
-                if all_lines[i].strip() == "":
-                    continue
-                else:
-                    tme.append([x.strip()
-                                for x in all_lines[i].strip().split(",")])
-        except:
-            pass
-    return tme
-
-
-def parse_tsdata_from_file(ts_datafile_path):
-    """
-    """
-    with open(ts_datafile_path, "r") as f:
-        ts_data = np.loadtxt(f, delimiter=",")
-    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
-    for row in ts_data:
-        if len(row) < 2:
-            raise custom_exceptions.DataFormatError(
-                "Incomplete or improperly formatted time "
-                "series data file provided.")
-    return ts_data
-
-
-def add_tsdata_to_feats_known_dict(features_already_known_list,
-                                   ts_datafile_paths, ts_data_list):
-    """
-    """
-    if ts_datafile_paths is None:
-        ts_datafile_paths = [None] * len(features_already_known_list)
-    elif ts_data_list is None:
-        ts_data_list = [None] * len(features_already_known_list)
-    for i in range(len(features_already_known_list)):
-        if "t" not in features_already_known_list[i] or \
-           "m" not in features_already_known_list[i]:
-            # Get TS data and put into features_already_known_list
-            if ts_datafile_paths[i] is None and ts_data_list[i] is None:
-                raise ValueError("No time series data provided! ts_datafile_paths "
-                                 "is None and ts_data_list is None  !!")
-            if ts_datafile_paths[i] is not None:  # path to ts data file
-                # parse ts data and put t,m(,e) into features_already_known
-                tme = parse_tsdata_from_file(ts_datafile_paths[i])
-            else:  # ts_data passed directly
-                tme = parse_tsdata_to_lists(ts_data_list[i])
-            if len(tme) > 0:
-                if all(len(this_tme) == 3 for this_tme in tme):
-                    T, M, E = list(zip(*tme))
-                    T = [float(el) for el in T]
-                    M = [float(el) for el in M]
-                    E = [float(el) for el in E]
-                    features_already_known_list[i]["t"] = np.array(T)
-                    features_already_known_list[i]["m"] = np.array(M)
-                    features_already_known_list[i]["e"] = np.array(E)
-                elif all(len(this_tme) == 2 for this_tme in tme):
-                    T, M = list(zip(*tme))
-                    T = [float(el) for el in T]
-                    M = [float(el) for el in M]
-                    features_already_known_list[i]["t"] = np.array(T)
-                    features_already_known_list[i]["m"] = np.array(M)
-                else:
-                    raise Exception("custom_feature_tools.py - "
-                                    "docker_extract_features() - not all elements "
-                                    "of tme are the same length.")
+    return all_extracted_features
 
 
 def make_tmp_dir():
@@ -432,14 +288,14 @@ def generate_random_str():
 
 
 def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
-                         features_already_known_list):
+                         features_already_known):
     """
     """
     shutil.copy(script_fpath,
                 os.path.join(path_to_tmp_dir, "custom_feature_defs.py"))
-    with open(os.path.join(path_to_tmp_dir, "features_already_known_list.pkl"),
+    with open(os.path.join(path_to_tmp_dir, "features_already_known.pkl"),
               "wb") as f:
-        pickle.dump(features_already_known_list, f, protocol=2)
+        pickle.dump(features_already_known, f, protocol=2)
     # Create __init__.py file so that custom feats script can be imported
     open(os.path.join(path_to_tmp_dir, "__init__.py"), "w").close()
     return
@@ -502,14 +358,13 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         if str(stderr).strip() != "" and stderr != b'':
             print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
         # Copy pickled results data from Docker container to host
-        docker_copy(client, cont_id, "/tmp/results_list_of_dict.pkl",
+        docker_copy(client, cont_id, "/tmp/results_dict.pkl",
                     target=path_to_tmp_dir)
-        print("/tmp/results_list_of_dict.pkl copied to host machine.")
+        print("/tmp/results_dict.pkl copied to host machine.")
         # Load pickled results data
-        with open(os.path.join(path_to_tmp_dir, "results_list_of_dict.pkl"),
+        with open(os.path.join(path_to_tmp_dir, "results_dict.pkl"),
                   "rb") as f:
-            results_list_of_dict = pickle.load(f)
-            return results_list_of_dict
+            return pickle.load(f)
     except:
         raise
     finally:
@@ -538,9 +393,7 @@ def remove_tmp_files(path_to_tmp_dir):
     return
 
 
-def docker_extract_features(
-        script_fpath, features_already_known_list=[{}],
-        ts_datafile_paths=None, ts_data_list=None):
+def docker_extract_features(script_fpath, features_already_known):
     """Extract custom features in a Docker container.
 
     Spins up a docker container in which custom script
@@ -551,28 +404,21 @@ def docker_extract_features(
     ----------
     script_fpath : str
         Path to script containing custom feature definitions.
-    features_already_known_list : list of dict, optional
+    features_already_known : dict
         List of dictionaries containing time series data (t,m,e) and
         any meta-features to be used in generating custom features.
         Defaults to []. NOTE: If omitted, or if "t" or "m" are not
-        among contained dict keys, either (a) respective element of
-        `ts_datafile_paths` or (b) `ts_data_list` (see below) MUST not
+        among contained dict keys, (a) respective element of
+        `ts_datafile_paths` or (b) `ts_data` (see below) MUST not
         be None, otherwise raises ValueError.
-    ts_datafile_paths : list of str, optional
-        List of paths to time-series CSV files. Defaults to None. NOTE:
-        If None, either (a) corresponding element of
-        `features_already_known_list` (see above) must contain "t"
-        (time) and "m" (magnitude, or the measurement at each time)
-        among its keys, OR (b) `ts_data_list` (see below) must be
-        provided, otherwise raises ValueError.
-    ts_data_list : list of list OR str, optional
+    ts_data: list of list OR str, optional
         List of either (a) list of lists/tuples each containing t,m(,e)
         for each epoch, or (b) string containing equivalent comma-
         separated lines, each line being separated by a newline
         character ("\n"). Defaults to None. NOTE: If None, either
         `ts_datafile_paths` must not be None or "t" (time) and "m"
         (magnitude/measurement) must be among the keys of
-        respective element of `features_already_known_list` (see
+        respective element of `features_already_known` (see
         above), otherwise raisesValueError.
 
     Returns
@@ -581,40 +427,28 @@ def docker_extract_features(
         List of dictionaries of all generated features.
 
     """
-    if isinstance(features_already_known_list, dict):
-        features_already_known_list = [features_already_known_list]
-    add_tsdata_to_feats_known_dict(features_already_known_list,
-                                   ts_datafile_paths, ts_data_list)
     container_name = generate_random_str()
     path_to_tmp_dir = make_tmp_dir()
 
-    copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
-                         features_already_known_list)
+    copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath, features_already_known)
 
     try:
-        results_list_of_dict = extract_feats_in_docker_container(
+        results_dict = extract_feats_in_docker_container(
             container_name, path_to_tmp_dir)
     except:
         raise
     finally:
         remove_tmp_files(path_to_tmp_dir)
-    return results_list_of_dict
+    return results_dict
 
 
 def assemble_test_data():
     """
     """
-    features_already_known_list = []
     fname = os.path.join(cfg.SAMPLE_DATA_PATH, "dotastro_215153.dat")
-    t, m, e = parse_csv_file(fname)
-    features_already_known_list.append(
-        {"t": t, "m": m, "e": e, "coords": [0, 0]})
-    features_already_known_list.append(
-        {"t": [1, 2, 3], "m": [50, 51, 52], "e": [0.3, 0.2, 0.4],
-         "coords": [-11, -55]})
-    features_already_known_list.append(
-        {"t": [1], "m": [50], "e": [0.3], "coords": 2})
-    return features_already_known_list
+    t, m, e = ctt.parse_ts_data(fname)
+    features_already_known = {'t': t, 'm': m, 'e': e}
+    return features_already_known
 
 
 def verify_new_script(script_fpath, docker_container=False):
@@ -639,24 +473,24 @@ def verify_new_script(script_fpath, docker_container=False):
         time-series data sets.
 
     """
-    features_already_known_list = assemble_test_data()
+    features_already_known = assemble_test_data()
     print(script_fpath, os.path.isfile(script_fpath))
 
-    all_extracted_features_list = []
+    all_extracted_features = {}
     no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
     if docker_images_available() and not no_docker:
         print("Extracting features inside docker container...")
-        all_extracted_features_list = docker_extract_features(
+        all_extracted_features = docker_extract_features(
             script_fpath=script_fpath,
-            features_already_known_list=features_already_known_list)
+            features_already_known=features_already_known)
     elif no_docker:
         print("WARNING - generating custom features WITHOUT docker container...")
-        all_extracted_features_list = execute_functions_in_order(
-            features_already_known=features_already_known_list,
+        all_extracted_features = execute_functions_in_order(
+            features_already_known=features_already_known,
             script_fpath=script_fpath)
     elif not docker_images_available():
         raise Exception("Docker image not available.")
-    return all_extracted_features_list
+    return all_extracted_features
 
 
 def list_features_provided(script_fpath):
@@ -701,51 +535,38 @@ def list_features_provided(script_fpath):
     return all_provided_params
 
 
-def generate_custom_features(
-        custom_script_path, path_to_csv=None, features_already_known={},
-        ts_data=None):
+def generate_custom_features(custom_script_path, t, m, e,
+                             features_already_known={}):
     """Generate custom features for provided TS data and script.
 
     Parameters
     ----------
+    t : array_like
+        Array containing time values.
+
+    m : array_like
+        Array containing data values.
+
+    e : array_like
+        Array containing measurement error values.
+
     custom_script_path : str
         Path to custom features script.
-    path_to_csv : str, optional
-        Path to CSV file containing time-series data. Defaults to None.
-        If None, ts_data (see below) must not be None, otherwise
-        raises an Exception.
+
     features_already_known : dict, optional
-        List of dicts containing any meta-features associated with
-        provided time-series data. Defaults to [].
-    ts_data : list OR tuple, optional
-        List (or tuple) of lists (or tuples) containing time,
-        measurement (and optionally associated error values) data.
-        Defaults to None. If None, path_to_csv must not be None,
-        otherwise raises an Exception.
+        Dict containing any meta-features associated with provided time-series
+        data. Defaults to {}.
 
     Returns
     -------
-    list of dict
-        List of dictionaries containing newly-generated features.
-
+    dict
+        Dictionary containing newly-generated features.
     """
-    if path_to_csv:
-        t, m, e = parse_csv_file(path_to_csv)
-    elif ts_data:
-        if len(ts_data[0]) == 3:
-            t, m, e = list(zip(*ts_data))
-        if len(ts_data[0]) == 2:
-            t, m = list(zip(*ts_data))
-    elif "t" not in features_already_known or "m" not in features_already_known:
-        print("predict_class.predict:")
-        print("path_to_csv:", path_to_csv)
-        print("ts_data:", ts_data)
-        raise Exception("Neither path_to_csv nor ts_data provided...")
     if "t" not in features_already_known:
         features_already_known['t'] = t
     if "m" not in features_already_known:
         features_already_known['m'] = m
-    if e and len(e) == len(m) and "e" not in features_already_known:
+    if e is not None and len(e) == len(m) and "e" not in features_already_known:
         features_already_known['e'] = e
     for k in ('t', 'm', 'e'):
         if k in features_already_known:
@@ -761,7 +582,7 @@ def generate_custom_features(
             print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
-                features_already_known_list=features_already_known)
+                features_already_known=features_already_known)
         elif no_docker:
             print("WARNING - generating custom features WITHOUT docker container...")
             all_new_features = execute_functions_in_order(

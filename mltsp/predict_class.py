@@ -8,14 +8,11 @@ import tempfile
 import numpy as np
 import tarfile
 from copy import deepcopy
-import ntpath
 import uuid
 
 from . import cfg
 from . import custom_exceptions
-from . import lc_tools
 from . import custom_feature_tools as cft
-from . import util
 from .celery_tasks import pred_featurize_single
 
 
@@ -52,23 +49,9 @@ def determine_feats_used(featset_key):
     return features_in_model
 
 
-def parse_ts_data(filepath, sep=","):
-    """
-    """
-    with open(filepath) as f:
-        ts_data = np.loadtxt(f, delimiter=sep)
-    ts_data = ts_data[:, :3].tolist()  # Only using T, M, E; convert to list
-    for row in ts_data:
-        if len(row) < 2:
-            raise custom_exceptions.DataFormatError(
-                "Incomplete or improperly formatted time "
-                "series data file provided.")
-    return ts_data
-
-
 def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
                                 features_to_use, custom_features_script,
-                                meta_features, sep=","):
+                                all_meta_features, sep=","):
     """
     """
     the_tarfile = tarfile.open(newpred_file_path)
@@ -76,10 +59,10 @@ def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
     the_tarfile.extractall(path=tmp_dir_path)
     big_features_and_tsdata_dict = {}
     for fname in all_fnames:
-        short_fname = ntpath.basename(fname)
-        big_features_and_tsdata_dict[short_fname] = featurize_single(
+        meta_features = all_meta_features.get(os.path.basename(fname), {})
+        big_features_and_tsdata_dict.update(featurize_single(
             fname, features_to_use, custom_features_script, meta_features,
-            tmp_dir_path=tmp_dir_path, sep=sep)[short_fname]
+            tmp_dir_path=tmp_dir_path, sep=sep))
     return big_features_and_tsdata_dict
 
 
@@ -88,7 +71,6 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
     """
     """
     fname = newpred_file_path
-    short_fname = ntpath.basename(fname).split("$")[0]
     if os.path.isfile(fname) and os.path.isabs(fname):
         filepath = fname
     elif os.path.isfile(os.path.join(tmp_dir_path, fname)) and \
@@ -110,14 +92,14 @@ def featurize_single(newpred_file_path, features_to_use, custom_features_script,
 
     res = pred_featurize_single.delay(
         filepath, features_to_use, custom_features_script,
-        meta_features, short_fname, sep)
+        meta_features)
     big_features_and_tsdata_dict = res.get(timeout=30)
 
     return big_features_and_tsdata_dict
 
 
 def generate_input_params_list(newpred_file_path, features_to_use,
-                               custom_features_script, meta_features,
+                               custom_features_script, all_meta_features,
                                tmp_dir_path):
     """
     """
@@ -126,7 +108,6 @@ def generate_input_params_list(newpred_file_path, features_to_use,
     all_fnames = the_tarfile.getnames()
     the_tarfile.extractall(path=tmp_dir_path)
     for fname in all_fnames:
-        short_fname = ntpath.basename(fname)
         if not os.path.isfile(fname):
             if os.path.isfile(os.path.join(tmp_dir_path, fname)):
                 fname = os.path.join(tmp_dir_path, fname)
@@ -135,8 +116,9 @@ def generate_input_params_list(newpred_file_path, features_to_use,
             else:
                 raise Exception("Specified TS data file not on disk - %s." %
                                 fname)
+        meta_features = all_meta_features.get(os.path.basename(fname), {})
         params_list.append([fname, features_to_use, custom_features_script,
-                            meta_features, short_fname, ","])
+                            meta_features])
     return params_list
 
 
@@ -152,7 +134,7 @@ def featurize_multiple(newpred_file_path, features_to_use,
     big_features_and_tsdata_dict = {}
     for line in res_list:
         for feats_and_tsdata_dict in line:
-                big_features_and_tsdata_dict.update(feats_and_tsdata_dict)
+            big_features_and_tsdata_dict.update(feats_and_tsdata_dict)
     return big_features_and_tsdata_dict
 
 
@@ -161,18 +143,19 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
                      features_to_use, in_docker_container):
     """
     """
-    meta_features = parse_metadata_file(metadata_file_path)
+    all_meta_features = parse_metadata_file(metadata_file_path)
     sep = sepr = ","
 
-    all_features_list = cfg.features_list[:] + cfg.features_list_science[:]
+    all_features_list = cfg.features_list_obs[:] + cfg.features_list_science[:]
     tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
     os.mkdir(tmp_dir_path)
     os.chmod(tmp_dir_path, 0777)
     if tarfile.is_tarfile(newpred_file_path):
         big_features_and_tsdata_dict = featurize_multiple(
             newpred_file_path, features_to_use,
-            custom_features_script, meta_features, tmp_dir_path)
+            custom_features_script, all_meta_features, tmp_dir_path)
     else:
+        meta_features = all_meta_features.get(os.path.basename(newpred_file_path), {})
         big_features_and_tsdata_dict = featurize_single(
             newpred_file_path, features_to_use, custom_features_script,
             meta_features)
@@ -221,7 +204,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
 
     results_str = ("<tr class='pred_results'>"
                    "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % ntpath.basename(fname)
+                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
     results_arr = []
 
     for i in range(len(class_probs)):
@@ -237,7 +220,7 @@ def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
             """ % (str(results_arr[i][0]), str(results_arr[i][1]))
 
     results_str += "</tr>"
-    results_dict[ntpath.basename(fname)] = {
+    results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results_list": results_arr}
     return

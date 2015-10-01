@@ -5,12 +5,15 @@ class median_buffer_range_percentage_extractor(FeatureExtractor):
     the median """
     active = True
     extname = 'median_buffer_range_percentage' #extractor's name
+# TODO simplify logic
     def extract(self):
         magic_number = 1/10.0 #defines size of buffer range with respect to abs(max) - abs(min)
         max = self.fetch_extr('max')
         min = self.fetch_extr('min')
         median = self.fetch_extr('median')
+        # TODO lots of this try/except -> return None...
         try:
+# TODO almost certainly wrong for inputs w/ different signs
             buffer_range = (abs(max) - abs(min))*(magic_number)
             points_within_buffer_range_of_median = 0
             for n in self.flux_data:
