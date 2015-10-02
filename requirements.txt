@@ -18,4 +18,5 @@ nose-exclude
 pyyaml
 waitress
 celery
-dask[complete]
+toolz
+dask
