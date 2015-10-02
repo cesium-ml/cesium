@@ -1,5 +1,5 @@
 import os
-os.environ["DEBUG_LOGIN"] = "1"
+os.environ["MLTSP_DEBUG_LOGIN"] = "1"
 os.environ["MLTSP_TEST_DB"] = "1"
 from mltsp.Flask import flask_app as fa
 from mltsp import cfg

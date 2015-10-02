@@ -26,7 +26,7 @@ import uuid
 import ntpath
 
 import yaml
-if os.getenv("DEBUG_LOGIN") == "1":
+if os.getenv("MLTSP_DEBUG_LOGIN") == "1":
     from ..ext import stormpath_mock as stormpath
 else:
     from flask.ext import stormpath
