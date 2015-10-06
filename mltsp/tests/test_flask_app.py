@@ -9,7 +9,6 @@ import numpy.testing as npt
 import numpy as np
 import os
 from os.path import join as pjoin
-import ntpath
 import uuid
 import rethinkdb as r
 import unittest
@@ -35,7 +34,7 @@ def featurize_setup():
         fpaths.append(pjoin(DATA_DIR, fname))
     for fpath in fpaths:
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
-        dest_paths.append(pjoin(cfg.UPLOAD_FOLDER, ntpath.basename(fpath)))
+        dest_paths.append(pjoin(cfg.UPLOAD_FOLDER, os.path.basename(fpath)))
     return dest_paths
 
 
@@ -843,7 +842,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "results_str_html": "abcHTML"})\
                 .run(conn)
             fpaths = fa.project_associated_files("abc123")
-            short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
+            short_fnames = [os.path.basename(fpath) for fpath in fpaths]
             assert all(fname in short_fnames for fname in
                        ["abc123_RFC.pkl"])
 
@@ -860,7 +859,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featset_key": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             fpaths = fa.model_associated_files("abc123")
-            short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
+            short_fnames = [os.path.basename(fpath) for fpath in fpaths]
             assert all(fname in short_fnames for fname in
                        ["abc123_RFC.pkl"])
 
@@ -877,7 +876,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             fpaths = fa.featset_associated_files("abc123")
-            short_fnames = [ntpath.basename(fpath) for fpath in fpaths]
+            short_fnames = [os.path.basename(fpath) for fpath in fpaths]
             assert all(fname in short_fnames for fname in
                        ["ZIPPATH.tar.gz", "HEADPATH.dat"])
 
@@ -1483,9 +1482,9 @@ class FlaskAppTestCase(unittest.TestCase):
             pred_results_dict = entry
             assert(pred_results_dict["pred_results_dict"]
                                          ["TESTRUN_215153"][0][0]
-                   in ['Beta_Lyrae', 'Herbig_AEBE'])
+                   in ['Beta_Lyrae', 'Herbig_AEBE', 'Mira'])
 
-            assert all(key in pred_results_list_dict for key in \
+            assert all(key in pred_results_dict for key in \
                        ("ts_data_dict", "features_dict"))
             for fpath in [pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
                           pjoin(cfg.UPLOAD_FOLDER,
@@ -2209,8 +2208,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             headerfile_path, zipfile_path, custom_script_path = \
                 featurize_setup()
-            headerfile_name = ntpath.basename(headerfile_path)
-            zipfile_name = ntpath.basename(zipfile_path)
+            headerfile_name = os.path.basename(headerfile_path)
+            zipfile_name = os.path.basename(zipfile_path)
             rv = fa.featurizationPage(
                 featureset_name="abc123", project_name="abc123",
                 headerfile_name=headerfile_name, zipfile_name=zipfile_name,
@@ -2316,8 +2315,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                               "%s_features.csv" % new_key))
             cols = df.columns
             values = df.values
-            npt.assert_array_equal(sorted(cols), ["meta1", "meta2", "meta3",
-                                                  "std_err"])
+            npt.assert_array_equal(sorted(cols), ["amplitude", "meta1", "meta2",
+                                                  "meta3", "std_err"])
             fpaths = []
             for fpath in [
                     pjoin(cfg.FEATURES_FOLDER, "%s_features.csv" % new_key),
@@ -2463,7 +2462,7 @@ class FlaskAppTestCase(unittest.TestCase):
             dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                     pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
             for f in dsts:
-                shutil.copy(pjoin(DATA_DIR, ntpath.basename(f)), f)
+                shutil.copy(pjoin(DATA_DIR, os.path.basename(f)), f)
             rv = fa.predictionPage(newpred_file_path=dsts[0],
                                    project_name="abc123",
                                    model_name="TEMP_TEST01", model_type="RFC",

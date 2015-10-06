@@ -130,5 +130,5 @@ def featurize_ts_data(ts_data_file_path, custom_script_path, object_target,
         custom_features = {}
     all_features = dict(obs_features.items() + science_features.items() +
                         custom_features.items())
-    all_features['class'] = object_class
+    all_features['target'] = object_target
     return (short_fname, all_features)

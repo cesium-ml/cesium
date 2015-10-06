@@ -23,7 +23,6 @@ from flask import (
     session, Response, jsonify, g)
 from werkzeug import secure_filename
 import uuid
-import ntpath
 
 import yaml
 if os.getenv("MLTSP_DEBUG_LOGIN") == "1" or '--disable-auth' in sys.argv:
@@ -1643,9 +1642,9 @@ def allowed_file(filename):
 def list_filename_variants(file_name):
     """Return list of possible matching file name variants.
     """
-    return [file_name, ntpath.basename(file_name),
+    return [file_name, os.path.basename(file_name),
             os.path.splitext(file_name)[0],
-            os.path.splitext(ntpath.basename(file_name))[0]]
+            os.path.splitext(os.path.basename(file_name))[0]]
 
 
 def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
@@ -1812,9 +1811,9 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
             all_lines = [str(line).strip() for line in
                          f.readlines() if str(line).strip() != '']
         file_name_variants = [
-            f.name, ntpath.basename(f.name),
+            f.name, os.path.basename(f.name),
             os.path.splitext(f.name)[0],
-            os.path.splitext(ntpath.basename(f.name))[0]]
+            os.path.splitext(os.path.basename(f.name))[0]]
         all_fname_variants.extend(file_name_variants)
         all_fname_variants_list_of_lists.append(file_name_variants)
 
@@ -1828,7 +1827,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
                         "file improperly formatted; at least two "
                         "comma-separated columns (time,measurement) are "
                         "required. Error occurred processing file %s.") %
-                        ntpath.basename(newpred_file_path)))
+                        os.path.basename(newpred_file_path)))
             else:
                 if len(line.split(',')) != num_labels:
                     raise custom_exceptions.DataFormatError(((
@@ -1836,7 +1835,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
                         "%s line number %s has %s columns while the first "
                         "line has %s columns.") %
                         (
-                            ntpath.basename(newpred_file_path),
+                            os.path.basename(newpred_file_path),
                             str(line_no), str(len(line.split(","))),
                             str(num_labels))))
             line_no += 1
@@ -3041,12 +3040,12 @@ def predictionPage(
         project_name=project_name,
         model_name=model_name,
         model_type=model_type,
-        pred_filename=ntpath.basename(newpred_file_path),
+        pred_filename=os.path.basename(newpred_file_path),
         pid="None",
-        metadata_file=(ntpath.basename(metadata_file_path) if
+        metadata_file=(os.path.basename(metadata_file_path) if
                        metadata_file_path is not None else None))
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
-    pred_file_name = ntpath.basename(newpred_file_path)
+    pred_file_name = os.path.basename(newpred_file_path)
     print("starting prediction_proc...")
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(

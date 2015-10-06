@@ -30,7 +30,7 @@ def test_determine_feats_used():
     feats_used = pred.determine_feats_used("TEST001")
     npt.assert_array_equal(feats_used, ["meta1", "meta2", "meta3",
                                         "std_err","amplitude"])
-                                        
+
     for fname in ["TEST001_features.csv", "TEST001_targets.npy"]:
         os.remove(pjoin(cfg.FEATURES_FOLDER, fname))
 
@@ -335,7 +335,7 @@ def test_main_predict_tarball_cust_feats_rfc():
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     npt.assert_equal(
-        len(pred_results_dict["dotastro_215153.dat"]["pred_results"]),
+        len(pred_results_dict["dotastro_215153"]["pred_results"]),
         4)
     npt.assert_equal(len(pred_results_dict), 4)
     for res_dict in pred_results_dict.values():
@@ -343,7 +343,7 @@ def test_main_predict_tarball_cust_feats_rfc():
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
                              'RR_Lyrae']
                    for el in pred_results_dict[fname]\
-                   ["pred_results"]) for fname in pred_results_dict))
+                   ["pred_results"]) for fname in pred_results_dict)
 
 
 def test_do_model_predictions_rfr():
@@ -358,7 +358,7 @@ def test_do_model_predictions_rfr():
     featset_key = "TEST001"
     model_type = "RFR"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
-                       "freq1_harmonics_amplitude_0"]
+                       "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
         "TEST001",
@@ -367,9 +367,9 @@ def test_do_model_predictions_rfr():
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
                                                   model_type, features_to_use,
                                                   5)
-    assert("dotastro_215153.dat" in pred_results_dict)
+    assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
-           pred_results_dict["dotastro_215153.dat"]["features_dict"])
+           pred_results_dict["dotastro_215153"]["features_dict"])
     assert(all(isinstance(pred_results_dict[fname]["pred_results"],
                           (float, np.float)) for fname in pred_results_dict))
 
@@ -438,7 +438,7 @@ def test_do_model_predictions_lc():
     featset_key = "TEST001"
     model_type = "LC"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
-                       "freq1_harmonics_amplitude_0"]
+                       "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
         "TEST001",
@@ -447,9 +447,9 @@ def test_do_model_predictions_lc():
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
                                                   model_type, features_to_use,
                                                   5)
-    assert("dotastro_215153.dat" in pred_results_dict)
+    assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
-           pred_results_dict["dotastro_215153.dat"]["features_dict"])
+           pred_results_dict["dotastro_215153"]["features_dict"])
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
                              'RR_Lyrae']
@@ -527,7 +527,7 @@ def test_do_model_predictions_lr():
     featset_key = "TEST001"
     model_type = "LR"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
-                       "freq1_harmonics_amplitude_0"]
+                       "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
         "TEST001",
@@ -536,9 +536,9 @@ def test_do_model_predictions_lr():
     pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
                                                   model_type, features_to_use,
                                                   5)
-    assert("dotastro_215153.dat" in pred_results_dict)
+    assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
-           pred_results_dict["dotastro_215153.dat"]["features_dict"])
+           pred_results_dict["dotastro_215153"]["features_dict"])
     assert(all(isinstance(pred_results_dict[fname]["pred_results"],
                           (float, np.float)) for fname in pred_results_dict))
 

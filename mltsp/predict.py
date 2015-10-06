@@ -234,14 +234,14 @@ def add_to_predict_results_dict_regression(results_dict, estimator_preds,
     """
     results_str = ("<tr class='pred_results'>"
                    "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % ntpath.basename(fname)
+                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
     if isinstance(estimator_preds, (list, np.ndarray)):
         estimator_preds = estimator_preds[0]
 
     results_str += "<td class='pred_results'>%s</td>" % str(estimator_preds)
 
     results_str += "</tr>"
-    results_dict[ntpath.basename(fname)] = {
+    results_dict[os.path.basename(fname)] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": estimator_preds}
     return
