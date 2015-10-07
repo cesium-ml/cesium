@@ -19,3 +19,4 @@ external
 doc/_build
 dist
 .eggs
+.coverage
