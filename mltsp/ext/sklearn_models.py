@@ -61,7 +61,7 @@ LR = {"name": "LinearRegression",
 
 RC = {"name": "RidgeClassifierCV",
       "params": [
-          {"name": "alphas", "type": "numpy array",
+          {"name": "alphas", "type": "array-like",
            "default": "array([ 0.1, 1., 10. ])"},
           {"name": "fit_intercept", "type": "bool", "default": True},
           {"name": "normalize", "type": "bool", "default": False},
@@ -71,3 +71,31 @@ RC = {"name": "RidgeClassifierCV",
       "abbr": "RC",
       "type": "classifier"}
 
+BARDR = {"name": "BayesianARDRegression",
+         "params": [
+             {"name": "n_inter", "type": "int", "default": 300},
+             {"name": "tol", "type": "float", "default": 0.001},
+             {"name": "alpha_1", "type": "float", "default": 1.e-06},
+             {"name": "alpha_2", "type": "float", "default": 1.e-06},
+             {"name": "lambda_1", "type": "float", "default": 1.e-06},
+             {"name": "lambda_2", "type": "float", "default": 1.e-06},
+             {"name": "compute_score", "type": "bool", "default": False},
+             {"name": "threshold_lambda", "type": "float", "default": 10000.},
+             {"name": "fit_intercept", "type": "bool", "default": True},
+             {"name": "normalize", "type": "bool", "default": False}],
+         "abbr": "ARDR",
+         "type": "regressor"}
+
+BRR = {"name": "BayesianRidgeRegression",
+         "params": [
+             {"name": "n_inter", "type": "int", "default": 300},
+             {"name": "tol", "type": "float", "default": 0.001},
+             {"name": "alpha_1", "type": "float", "default": 1.e-06},
+             {"name": "alpha_2", "type": "float", "default": 1.e-06},
+             {"name": "lambda_1", "type": "float", "default": 1.e-06},
+             {"name": "lambda_2", "type": "float", "default": 1.e-06},
+             {"name": "compute_score", "type": "bool", "default": False},
+             {"name": "fit_intercept", "type": "bool", "default": True},
+             {"name": "normalize", "type": "bool", "default": False}],
+         "abbr": "BRR",
+         "type": "regressor"}
