@@ -41,6 +41,7 @@ from .. import custom_exceptions
 from .. import featurize
 from .. import predict_class as predict
 from .. import build_model
+from ..version import version
 
 all_available_features_list = cfg.features_list_obs + cfg.features_list_science
 
@@ -3328,7 +3329,12 @@ def run_main(args=None):
         parser.add_argument('--db-init', action='store_true',
                             help='Initialize the database')
         parser.add_argument('--force', action='store_true')
+        parser.add_argument('--version', action='store_true')
         args = parser.parse_args()
+
+    if args.version:
+        print(version)
+        sys.exit(0)
 
     if args.db_init:
         db_init(force=args.force)
