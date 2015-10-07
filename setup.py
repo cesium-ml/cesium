@@ -120,7 +120,7 @@ if __name__ == "__main__":
         cmdclass={'build_py': build_py},
 
         entry_points={
-            'console_scripts': ['mltsp = mltsp.Flask.flask_app:main'],
+            'console_scripts': ['mltsp = mltsp.Flask.flask_app:run_main'],
         },
 
     )
