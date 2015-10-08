@@ -41,10 +41,10 @@ def configuration(parent_package='', top_path=None):
     return config
 
 
-with open('mltsp/__init__.py') as fid:
+with open('mltsp/version.py') as fid:
     for line in fid:
-        if line.startswith('__version__'):
-            VERSION = line.strip().split()[-1][1:-1]
+        if line.startswith('version'):
+            VERSION = line.strip().split('=')[-1][1:-1]
             break
 
 with open('requirements.txt') as fid:

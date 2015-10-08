@@ -3,7 +3,7 @@
 See http://mltsp.io for more information.
 """
 
-__version__ = '0.3dev'
+from .version import version as __version__
 
 
 def install():
