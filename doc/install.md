@@ -12,13 +12,13 @@ create your environment with packaged dependencies pre-installed to save time:
 
 ``conda create -n mltsp scipy pandas matplotlib scikit-learn pip``
 
-Then activate it:
+Then activate the environment:
 
-``source activate mltsp``
+  ``source activate mltsp``
 
-* Dependencies are listed in ``requirements.txt``.  Install them using:
+* Install MLTSP
 
-  ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
+  ``pip install mltsp``
 
 * Install RabbitMQ
 
@@ -26,14 +26,20 @@ Then activate it:
 
   ``sudo apt-get install rabbitmq-server``
 
-  Server will automatically run as a daemon (background process) upon install
-  on Ubuntu. On OS X, run ``rabbitmq-server -detached`` after install.
+  The server will automatically run as a daemon (background process)
+  upon install on Ubuntu.
+
+  Downloads for Mac OS X are
+  [here](https://www.rabbitmq.com/install-standalone-mac.html).
+  Launch via ``rabbitmq-server -detached``  after install.
 
 * Install PhantomJS
 
   For Debian / Ubuntu:
 
   ``sudo apt-get install phantomjs``
+
+  Downloads for Mac OS X are [here](http://phantomjs.org/download.html).
 
 * Install RethinkDB
 
@@ -46,7 +52,12 @@ Then activate it:
   sudo apt-get install rethinkdb
   ```
 
-* Install Docker
+  Instructions for Mac OS X are [here](https://rethinkdb.com/docs/install/osx/).
+
+* Install Docker (optional)
+
+  *This step is only required if you want to support the execution of
+  user-specified feature extractors.*
 
   See https://docs.docker.com/installation/ubuntulinux/ for installation and
   configuration instructions.
@@ -60,32 +71,48 @@ Then activate it:
 
   ``tools/build_docker_images.sh``
 
-* Install nginx
+## Configuration
 
-* Install mltsp:
+* Run ``mltsp --install``.
+
+* Optionally: locate ``~/.config/mltsp/mltsp.yaml`` and customize
+  authentication tokens.
+
+## Running MLTSP
+
+Create the MLTSP database:
+
+  ``mltsp --db-init``
+
+Then, launch the web platform:
+
+  ``mltsp --disable-auth``  # Without user authentication
+  ``mltsp``                 # With user authentication
+
+Connect with a web browser to ``http://localhost:5000``.
+
+## Developer installation
+
+Dependencies are listed in ``requirements.txt``.  Install them using:
+
+  ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
+
+Then do a local installation from the MLTSP directory:
 
   ``pip install -e .``
 
+## Developer Makefile targets
 
-## Configuration
-
-* Run ``python -c 'import mltsp; mltsp.install()'``
-
-* Locate ``~/.config/mltsp/mltsp.yaml`` and customize authentication tokens.
-
-
-## Starting the application
-
-Launch RethinkDB:
+* Launch RethinkDB:
 
 ``make db``
 
-Initialize the database:
+* Initialize the database:
 
 ``make init``
 
-Launch:
+* Launch:
 
 ``make webapp``
 
-To specify host, port, etc., edit ``tools/launch_waitress.sh``.
+* To specify host, port, etc., edit ``tools/launch_waitress.sh``.

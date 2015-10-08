@@ -26,5 +26,5 @@ authentication:
     ##
     ## Always include the localhost:5000 for unit testing purposes.
 
-    # google_client_id: 01234
-    # google_client_secret: 01234
+    google_client_id:
+    google_client_secret:

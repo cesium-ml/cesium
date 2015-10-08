@@ -5,7 +5,6 @@
 **/build
 *.gch
 *.so
-mltsp/version.py
 *.c
 *#
 .#*
@@ -19,3 +18,4 @@ external
 doc/_build
 dist
 .eggs
+.coverage

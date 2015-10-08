@@ -16,7 +16,10 @@ config_files = [
 
 config_files = [os.path.abspath(cf) for cf in config_files]
 
-config = {}
+# Load example config file as default template
+config = yaml.load(open(os.path.join(os.path.dirname(__file__),
+                        'mltsp.yaml.example')))
+
 for cf in config_files:
     try:
         config = yaml.load(open(cf))
@@ -24,14 +27,14 @@ for cf in config_files:
     except IOError:
         pass
 
-if not config:
+if not config and not sys.argv[0].endswith('mltsp'):
     if not util.is_running_in_docker():
         print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
               '\n '.join(config_files),
               "\n\nPlease refer to the installation guide for further\n"
               "instructions.\n\n"
-              "If you don't want to read the manual, do the following:\n"
-              "  import mltsp; mltsp.install()")
+              "You probably want to execute:\n"
+              "  mltsp --install")
         sys.exit(-1)
 
 try:
