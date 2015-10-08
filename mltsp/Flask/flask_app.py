@@ -94,7 +94,7 @@ if os.getenv("MLTSP_TEST_DB") == "1":
 else:
     MLTSP_DB = "mltsp_app"
 
-if not '--help' in sys.argv:
+if not ('--help' in sys.argv or '--install' in sys.argv):
 
     try:
         rdb_conn = rdb.connect(host=RDB_HOST, port=RDB_PORT, db=MLTSP_DB)
