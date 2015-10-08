@@ -5,7 +5,6 @@
 **/build
 *.gch
 *.so
-mltsp/version.py
 *.c
 *#
 .#*
