@@ -7,7 +7,6 @@ recursive-include mltsp/data *
 recursive-include dockerfiles Dockerfile *.config *.conf *.py *.sh *.txt *.patch *.md
 recursive-include tools
 recursive-include mltsp/tests/data
-include mltsp/mltsp.yaml.example
 
 include doc/Makefile
 recursive-include doc/source *.txt
