@@ -15,7 +15,8 @@ docker -H unix:///var/run/docker.sock info
 echo
 echo "----------------------------------------------------"
 
-pip install --upgrade -r requirements.txt
+pip install --upgrade requests six python-dateutil
+pip install -r requirements.txt
 
 mv ${REPO_PATH} ${SHARED_PATH}
 cd ${SHARED_PATH}/mltsp
