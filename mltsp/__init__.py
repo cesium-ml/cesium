@@ -31,7 +31,7 @@ def install():
     if not os.path.exists(cfg_dir):
         os.makedirs(cfg_dir)
 
-    shutil.copyfile(os.path.join(os.path.dirname(os.path.dirname(__file__)),
+    shutil.copyfile(os.path.join(os.path.dirname(__file__),
                                  'mltsp.yaml.example'),
                     cfg)
 
