@@ -38,7 +38,7 @@ echo "[Drone] Launch RethinkDB"
 make db && sleep 1
 
 echo "[Drone] Initialize database"
-mltsp --init-db
+mltsp --db-init
 
 echo "[Drone] Run test suite"
 make test_no_docker
