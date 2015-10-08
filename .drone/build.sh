@@ -15,7 +15,7 @@ docker -H unix:///var/run/docker.sock info
 echo
 echo "----------------------------------------------------"
 
-pip install -r requirements.txt
+pip install --upgrade -r requirements.txt
 
 mv ${REPO_PATH} ${SHARED_PATH}
 cd ${SHARED_PATH}/mltsp
@@ -23,11 +23,11 @@ cd ${SHARED_PATH}/mltsp
 python setup.py build_ext -i
 pip install -e .
 
-cp mltsp.yaml.example mltsp.yaml
-
-python -c "import mltsp; mltsp.install()"
+mltsp --install
 
 rabbitmq-server &
 
-make db && sleep 1 && make init
+make db && sleep 1
+mltsp --init-db
+
 make test_no_docker
