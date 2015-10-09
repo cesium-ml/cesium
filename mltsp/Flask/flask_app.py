@@ -41,6 +41,7 @@ from .. import featurize
 from .. import predict
 from .. import build_model
 from ..version import version
+from ..ext import sklearn_models
 
 all_available_features_list = cfg.features_list_obs + cfg.features_list_science
 
@@ -2129,7 +2130,8 @@ def index():
         CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
         CURRENT_MODELS=info_dict['list_of_current_models'],
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
-        PROJECT_NAME=info_dict['PROJECT_NAME'])
+        PROJECT_NAME=info_dict['PROJECT_NAME'],
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 @app.route('/verifyNewScript', methods=['POST', 'GET'])
@@ -2615,7 +2617,8 @@ def featurizing():
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
         PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
         features_str="", new_featset_key=featureset_key,
-        featureset_name=featureset_name)
+        featureset_name=featureset_name,
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 @app.route('/featurizationPage', methods=['POST', 'GET'])
@@ -2861,7 +2864,8 @@ def buildingModel():
         RESULTS=True,
         features_str="",
         new_model_key=new_model_key,
-        model_name=model_name)
+        model_name=model_name,
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 @app.route('/uploadPredictionData', methods=['POST', 'GET'])
@@ -2998,7 +3002,8 @@ def predicting():
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
         PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
         features_str="", prediction_entry_key=prediction_entry_key,
-        prediction_model_name=prediction_model_name, model_type=model_type)
+        prediction_model_name=prediction_model_name, model_type=model_type,
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 def predictionPage(
