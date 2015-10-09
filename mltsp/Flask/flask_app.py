@@ -2792,7 +2792,6 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
             if k.startswith(model_type + "_"):
                 model_params[k.replace(model_type + "_", "")] = request.form[k]
         util.cast_model_params(model_type, model_params)
-        print(model_params) ## DEBUG
     else:
         post_method = "http_api"
     projkey = project_name_to_key(project_name)

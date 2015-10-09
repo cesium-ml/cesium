@@ -296,7 +296,7 @@
                                   </tr>
                                   <tr class="model_params_tr model_params_tr_{{ model.abbr }}" style="display: none;" align='left'>
                                   {% for param in model.params %}
-                                      <td><strong>{{ param.name }} ({{ param.type }}): </strong><input type="text" name="{{ model.abbr }}_{{ param.name }}" id="{{ model.abbr }}_{{ param.name }}" value="{{ param.default }}" size=6></input></td>
+                                      <td><strong>{{ param.name }} {{ param.type|string }}: </strong><input type="text" name="{{ model.abbr }}_{{ param.name }}" id="{{ model.abbr }}_{{ param.name }}" value="{{ param.default }}" size=6></input></td>
                                     {% if loop.index is divisibleby 3 %}
                                       </tr>
                                       <tr class="model_params_tr model_params_tr_{{ model.abbr }}" style="display: none;" align='left'>
