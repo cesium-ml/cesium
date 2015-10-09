@@ -41,6 +41,7 @@ from .. import featurize
 from .. import predict
 from .. import build_model
 from ..version import version
+from .. import util
 from ..ext import sklearn_models
 
 all_available_features_list = cfg.features_list_obs + cfg.features_list_science
@@ -1941,7 +1942,8 @@ def featurize_proc(
     update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
-def build_model_proc(featureset_name, featureset_key, model_type, model_key):
+def build_model_proc(featureset_name, featureset_key, model_type, model_params,
+                     model_key):
     """Build a model based on given features.
 
     Begins the model building process by calling
@@ -1953,15 +1955,20 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     ----------
     featureset_name : str
         Name of the feature set associated with the model to be created.
-    model_type : str
-        Abbreviation of the model type to be created (e.g. "RFC").
     featureset_key : str
         RethinkDB ID of the associated feature set.
+    model_type : str
+        Abbreviation of the model type to be created (e.g. "RFC").
+    model_params : dict
+        Dictionary specifying sklearn model parameters to be used.
+    model_key : str
+        Key/ID associated with model.
 
     Returns
     -------
     bool
         Returns True.
+
     """
     # needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
@@ -1970,7 +1977,7 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     try:
         model_built_msg = build_model.build_model(
             featureset_name=featureset_name, featureset_key=featureset_key,
-            model_type=model_type)
+            model_type=model_type, model_options=model_params)
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -2780,6 +2787,12 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
                            .split(" (created")[0].strip())
         model_type = str(request.form['model_type_select'])
+        model_params = {}
+        for k in request.form:
+            if k.startswith(model_type + "_"):
+                model_params[k.replace(model_type + "_", "")] = request.form[k]
+        util.cast_model_params(model_type, model_params)
+        print(model_params) ## DEBUG
     else:
         post_method = "http_api"
     projkey = project_name_to_key(project_name)
@@ -2799,6 +2812,7 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
         args=(featureset_name,
               featureset_key,
               model_type,
+              model_params,
               str(new_model_key).strip()))
     proc.start()
     PID = str(proc.pid)

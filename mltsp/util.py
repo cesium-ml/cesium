@@ -1,6 +1,7 @@
 import subprocess
 from subprocess import Popen, PIPE
 import os
+import numpy as np
 
 try:
     import docker
@@ -81,3 +82,35 @@ def is_running_in_docker():
     else:
         in_docker_container = False
     return in_docker_container
+
+
+def cast_model_params(model_type, model_params):
+    """Attempt to cast model parameters strings to expected types."""
+    from .ext.sklearn_models import model_descriptions
+    for entry in model_descriptions:
+        if entry["abbr"] == model_type:
+            params_list = entry["params"]
+            break
+    for k, v in model_params.items():
+        if v == "None":
+            model_params[k] = None
+            continue
+        for p in params_list:
+            if p["name"] == k:
+                param_entry = p
+                break
+        if type(param_entry["type"]) == type or param_entry["type"] == np.array:
+            dest_type = param_entry["type"]
+            model_params[k] = dest_type(v)
+        elif type(param_entry["type"]) == list:
+            dest_types_list = param_entry["type"]
+            for dest_type in dest_types_list:
+                if dest_type != str:
+                    try:
+                        model_params[k] = dest_type(v)
+                        break
+                    except:
+                        continue
+            if type(model_params[k]) == str and str not in dest_types_list:
+                raise(ValueError("Model parameter cannot be cast to expected "
+                                 "type."))
