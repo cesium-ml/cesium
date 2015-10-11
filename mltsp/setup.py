@@ -4,6 +4,7 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('mltsp', parent_package, top_path)
     config.add_subpackage('science_features')
     config.add_data_files('mltsp.yaml.example')
+    config.add_data_dir('data')
     return config
 
 
