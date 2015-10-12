@@ -67,7 +67,7 @@ if __name__ == "__main__":
     except ImportError:
         if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
                                    sys.argv[1] in ('--help-commands',
-                                                   'egg_info', '--version',
+                                                   '--version',
                                                    'clean')):
             # For these actions, NumPy is not required.
             #
@@ -78,9 +78,9 @@ if __name__ == "__main__":
         else:
             print('To install mltsp from source, you will need numpy.\n' +
                   'Install numpy with pip:\n' +
-                  'pip install numpy\n'
+                  '  pip install numpy\n'
                   'Or using conda:\n'
-                  'conda install numpy\n'
+                  '  conda install numpy\n'
                   'or use your operating system package manager.')
             sys.exit(1)
 
