@@ -2,7 +2,7 @@ include setup*.py
 include MANIFEST.in
 include *.txt
 include Makefile
-recursive-include mltsp *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt *.yaml
+recursive-include mltsp *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt *.yaml .example
 recursive-include mltsp/data *
 recursive-include dockerfiles Dockerfile *.config *.conf *.py *.sh *.txt *.patch *.md
 recursive-include tools
