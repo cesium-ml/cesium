@@ -1300,7 +1300,7 @@ function form_validations(){
 
     featurize_form_validation();
 
-    build_model_form_validation();
+    // build_model_form_validation();
 
 }
 

@@ -664,7 +664,7 @@ def list_models_cursor_to_html_table(cursor):
     """
     authed_models = (
         "<table id='models_table' style='display:none;'>"
-        "<tr class='model_row'><th>Model name</th>"
+        "<tr class='model_row'><th>Model name</th><th>Feature set name</th>"
         "<th>Model type</th><th>Date created</th>"
         "<th>Remove from database</th></tr>")
     for entry in cursor:
@@ -676,6 +676,7 @@ def list_models_cursor_to_html_table(cursor):
             isinstance(entry['meta_feats'], list) else "")
         authed_models += (
             ">" + entry['name']
+            + "</td><td align='left'>" + entry['featureset_name']
             + "</td><td align='left'>" + entry['type']
             + "</td><td align='left'>" + entry['created'][:-13]
             + (
@@ -721,8 +722,8 @@ def list_models(
         this_projkey = project_name_to_key(by_project)
 
         cursor = rdb.table("models").filter({"projkey": this_projkey})\
-                                  .pluck("name", "created", "type", "id",
-                                         "meta_feats")\
+                                  .pluck("name", "featureset_name", "created",
+                                         "type", "id", "meta_feats")\
                                   .run(g.rdb_conn)
 
         if as_html_table_string:
@@ -733,6 +734,7 @@ def list_models(
                 authed_models.append(
                     entry['name']
                     + (" - %s" % str(entry['type']) if with_type else "")
+                    + " (" + entry['featureset_name'] + ") "
                     + (" (created %s PST)" % str(entry['created'])[:-13]
                        if not name_only else "")
                     + (" meta_feats=%s" % ",".join(entry['meta_feats'])
@@ -1015,18 +1017,22 @@ def add_featureset(
 
 
 def add_model(
-        featureset_name, featureset_key, model_type, projkey, pid,
-        meta_feats=False):
+        model_name, featureset_name, featureset_key, model_type, model_params,
+        projkey, pid, meta_feats=False):
     """Add a new entry to the rethinkDB 'models' table.
 
     Parameters
     ----------
-    name : str
-        New feature set name.
+    model_name : str
+        New model name.
+    featureset_name : str
+        Name of associated feature set.
     featureset_key : str
         RethinkDB key/ID of associated feature set.
     model_type : str
         Abbreviation of model/classifier type (e.g. "RFC").
+    model_params : dict
+        Dictionary describing model parameters.
     projkey : str
         RethinkDB key/ID of parent project.
     pid : str
@@ -1045,7 +1051,8 @@ def add_model(
     if entry is not None and 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
     new_model_key = rdb.table("models").insert({
-        "name": featureset_name,
+        "name": model_name,
+        "featureset_name": featureset_name,
         "featset_key": featureset_key,
         "type": model_type,
         "projkey": projkey,
@@ -2782,6 +2789,7 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
     """
     if project_name is None:  # browser form submission
         post_method = "browser"
+        model_name = str(request.form['new_model_name'])
         project_name = (str(request.form['buildmodel_project_name_select'])
                         .split(" (created")[0].strip())
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
@@ -2799,9 +2807,11 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
         featureset_name=featureset_name,
         project_id=projkey)
     new_model_key = add_model(
+        model_name=model_name,
         featureset_name=featureset_name,
         featureset_key=featureset_key,
         model_type=model_type,
+        model_params=model_params,
         projkey=projkey, pid="None")
     print("new model key =", new_model_key)
     print("New model featureset_key =", featureset_key)
