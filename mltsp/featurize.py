@@ -21,7 +21,7 @@ from .celery_tasks import featurize_ts_data as featurize_celery_task
 # TODO use this everywhere?
 def shorten_fname(file_path):
     return os.path.splitext(os.path.basename(file_path))[0]
-    
+
 def parse_prefeaturized_csv_data(features_file_path):
     """Parse CSV file containing features.
 
@@ -290,9 +290,6 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
                 cv_objs.append(obj)
                 num_held_back[str(obj['class'])] += 1
             numobjs += 1
-    if not in_docker_container:
-        shutil.copy2(
-            f2.name, os.path.join(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data"))
     np.save(os.path.join(
         ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
         "%s_classes.npy" % featureset_id), classes)
@@ -355,8 +352,6 @@ def featurize(
                            in_docker_container)
     # Clean up
     if not in_docker_container:
-        os.remove(os.path.join(
-            cfg.FEATURES_FOLDER, "%s_features_with_classes.csv" % featureset_id))
         os.remove(headerfile_path)
         if zipfile_path is not None:
             os.remove(zipfile_path)
