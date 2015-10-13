@@ -16,10 +16,6 @@ Then activate the environment:
 
   ``source activate mltsp``
 
-* Install MLTSP
-
-  ``pip install mltsp``
-
 * Install RabbitMQ
 
   For Debian / Ubuntu:
@@ -71,6 +67,16 @@ Then activate the environment:
 
   ``tools/build_docker_images.sh``
 
+## Installation
+
+Dependencies are listed in ``requirements.txt``.  Install them using:
+
+  ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
+
+Then do a local installation from the MLTSP source directory:
+
+  ``pip install -e .``
+
 ## Configuration
 
 * Run ``mltsp --install``.
@@ -90,16 +96,6 @@ Then, launch the web platform:
   ``mltsp``                 # With user authentication
 
 Connect with a web browser to ``http://localhost:5000``.
-
-## Developer installation
-
-Dependencies are listed in ``requirements.txt``.  Install them using:
-
-  ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
-
-Then do a local installation from the MLTSP directory:
-
-  ``pip install -e .``
 
 ## Developer Makefile targets
 
