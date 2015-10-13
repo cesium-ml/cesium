@@ -43,6 +43,7 @@ test_backend_no_docker: export MLTSP_NO_DOCKER=1
 test_backend_no_docker: db py2 celery
 	nosetests -v mltsp
 
+test_frontend: export MLTSP_DEBUG_LOGIN=1
 test_frontend: external/casperjs py2 db celery
 	@PYTHONPATH="." tools/casper_tests.py
 
