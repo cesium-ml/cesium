@@ -109,10 +109,22 @@ ALLOWED_EXTENSIONS = set([
     'XML', 'JSON'])
 
 
+def user_can_access_features_file(filename):
+    authed_projkeys = get_authed_projkeys()
+    featureset_key = filename.split("_")[0]
+    projkey = rdb.table("features").get(featureset_key)\
+                                   .run(g.rdb_conn)['projkey']
+    return projkey in authed_projkeys
+
+
 # Data read from features directory
 @app.route('/features_data/<path:filename>')
+@stormpath.login_required
 def custom_static_features_data(filename):
-    return send_from_directory(cfg.FEATURES_FOLDER, filename)
+    if user_can_access_features_file(filename):
+        return send_from_directory(cfg.FEATURES_FOLDER, filename)
+    else:
+        return None
 
 
 @app.before_request
