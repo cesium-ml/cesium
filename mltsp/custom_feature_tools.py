@@ -342,7 +342,7 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         # Create container
         cont_id = client.create_container(
             image="mltsp/base",
-            command="python {}/run_script_in_container.py --{} --tmp_dir={}".format(
+            command="python {}/mltsp/run_script_in_container.py --{} --tmp_dir={}".format(
                 proj_mount_path, "extract_custom_feats", tmp_data_dir),
             tty=True,
             volumes="{}:{}".format("", proj_mount_path))["Id"]

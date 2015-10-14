@@ -663,7 +663,7 @@
                                         $("#model_build_results").hide();
                                         $("#class_pred_results").hide();
                                         
-                                        drawScatterplotMatrix("/static/data/{{ PROJECT_NAME }}_features_with_classes.csv");
+                                        drawScatterplotMatrix("/features_data/{{ PROJECT_NAME }}_features_with_classes.csv");
                                         
                                 });
                         
@@ -694,7 +694,7 @@
                                                                         
                                                                 });
                                                                 $('#tabs').tabs( "option", "active", false);
-                                                                drawScatterplotMatrix("/static/data/{{ new_featset_key }}_features_with_classes.csv");
+                                                                drawScatterplotMatrix("/features_data/{{ new_featset_key }}_features_with_classes.csv");
                                                                 clearInterval(checkStatus);
                                                         }
                                                 }
