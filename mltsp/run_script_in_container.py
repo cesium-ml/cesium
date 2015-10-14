@@ -17,7 +17,7 @@ if __name__ == "__main__":
     import sys
     import os
     sys.path.append(args.tmp_dir)
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
     if args.extract_custom_feats:
         from mltsp.docker_scripts import docker_extract_custom_feats
         docker_extract_custom_feats.extract_custom_feats(args.tmp_dir)
