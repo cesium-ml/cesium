@@ -28,7 +28,7 @@ webapp: db py2 celery
 	PYTHONPATH=. tools/launch_waitress.py
 
 init: py2 db celery
-	python start_mltsp.py --db-init --force
+	mltsp --db-init --force
 
 db:
 	@if [[ -n `rethinkdb --daemon 2>&1 | grep "already in use"` ]]; then echo "[RethinkDB] is (probably) already running"; fi
