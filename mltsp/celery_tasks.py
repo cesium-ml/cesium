@@ -123,11 +123,11 @@ def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
     science_features = sft.generate_science_features(t, m, e, features_to_use)
     if custom_script_path:
         custom_features = cft.generate_custom_features(custom_script_path, t,
-            m, e, features_already_known=dict(obs_features.items() +
-            science_features.items()))
+            m, e, features_already_known=dict(list(obs_features.items()) +
+            list(science_features.items())))
     else:
         custom_features = {}
-    all_features = dict(obs_features.items() + science_features.items() +
-                        custom_features.items())
+    all_features = dict(list(obs_features.items()) +
+            list(science_features.items()) + list(custom_features.items()))
     all_features['class'] = object_class
     return (short_fname, all_features)

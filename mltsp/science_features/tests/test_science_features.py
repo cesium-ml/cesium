@@ -149,7 +149,7 @@ def test_amplitude():
     """Test features related to amplitude/magnitude percentiles."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['amplitude'])
-    npt.assert_allclose(f.values()[0], (max(values) - min(values)) /2.)
+    npt.assert_allclose(f['amplitude'], (max(values) - min(values)) /2.)
 
     f = sft.generate_science_features(times, values, errors, ['percent_amplitude'])
     max_scaled = 10**(-0.4 * max(values))
@@ -157,36 +157,36 @@ def test_amplitude():
     med_scaled = 10**(-0.4 * np.median(values))
     peak_from_median = max(abs((max_scaled - med_scaled) / med_scaled),
             abs((min_scaled - med_scaled)) / med_scaled)
-    npt.assert_allclose(f.values()[0], peak_from_median, rtol=5e-4)
+    npt.assert_allclose(f['percent_amplitude'], peak_from_median, rtol=5e-4)
 
     f = sft.generate_science_features(times, values, errors, ['percent_difference_flux_percentile'])
     band_offset = 13.72
     w_m2 = 10**(-0.4*(values+band_offset)-3)  # 1 erg/s/cm^2 = 10^-3 w/m^2
-    npt.assert_allclose(f.values()[0], np.diff(
+    npt.assert_allclose(f['percent_difference_flux_percentile'], np.diff(
         np.percentile(w_m2, [5, 95])) / np.median(w_m2))
 
     f = sft.generate_science_features(times, values, errors, ['flux_percentile_ratio_mid20'])
-    npt.assert_allclose(f.values()[0],
+    npt.assert_allclose(f['flux_percentile_ratio_mid20'],
                             np.diff(np.percentile(w_m2, [40, 60])) /
                             np.diff(np.percentile(w_m2, [5, 95])))
 
     f = sft.generate_science_features(times, values, errors, ['flux_percentile_ratio_mid35'])
-    npt.assert_allclose(f.values()[0],
+    npt.assert_allclose(f['flux_percentile_ratio_mid35'],
                             np.diff(np.percentile(w_m2, [32.5, 67.5])) /
                             np.diff(np.percentile(w_m2, [5, 95])))
 
     f = sft.generate_science_features(times, values, errors, ['flux_percentile_ratio_mid50'])
-    npt.assert_allclose(f.values()[0],
+    npt.assert_allclose(f['flux_percentile_ratio_mid50'],
                             np.diff(np.percentile(w_m2, [25, 75])) /
                             np.diff(np.percentile(w_m2, [5, 95])))
 
     f = sft.generate_science_features(times, values, errors, ['flux_percentile_ratio_mid65'])
-    npt.assert_allclose(f.values()[0],
+    npt.assert_allclose(f['flux_percentile_ratio_mid65'],
                             np.diff(np.percentile(w_m2, [17.5, 82.5])) /
                             np.diff(np.percentile(w_m2, [5, 95])))
 
     f = sft.generate_science_features(times, values, errors, ['flux_percentile_ratio_mid80'])
-    npt.assert_allclose(f.values()[0],
+    npt.assert_allclose(f['flux_percentile_ratio_mid80'],
                             np.diff(np.percentile(w_m2, [10, 90])) /
                             np.diff(np.percentile(w_m2, [5, 95])))
 
@@ -201,17 +201,17 @@ def test_ar_is():
     errors = 1e-4*np.ones(len(times))
 
     f = sft.generate_science_features(times, values, errors, ['ar_is_theta'])
-    npt.assert_allclose(f.values()[0], theta, atol=3e-2)
+    npt.assert_allclose(f['ar_is_theta'], theta, atol=3e-2)
 
     f = sft.generate_science_features(times, values, errors, ['ar_is_sigma'])
-    npt.assert_allclose(f.values()[0], sigma, atol=1e-5)
+    npt.assert_allclose(f['ar_is_sigma'], sigma, atol=1e-5)
 
 # Hard-coded values from reference data set
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['ar_is_theta'])
-    npt.assert_allclose(f.values()[0], 5.9608609865491405e-06, rtol=1e-3)
+    npt.assert_allclose(f['ar_is_theta'], 5.9608609865491405e-06, rtol=1e-3)
     f = sft.generate_science_features(times, values, errors, ['ar_is_sigma'])
-    npt.assert_allclose(f.values()[0], 1.6427095072108497, rtol=1e-3)
+    npt.assert_allclose(f['ar_is_sigma'], 1.6427095072108497, rtol=1e-3)
 """
 
 
@@ -226,7 +226,7 @@ def test_lcmodel():
     times, values, errors = regular_periodic(frequencies, amplitudes, phase)
 
     f = sft.generate_science_features(times, values, errors, ['lcmodel'])
-    lc_feats = f.values()[0]
+    lc_feats = f['lcmodel']
 
     # Median is zero for this data, so crossing median = changing sign
     incr_median_crosses = sum((np.abs(np.diff(np.sign(values))) > 1) &
@@ -435,7 +435,7 @@ def test_max():
     """Test maximum value feature."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['maximum'])
-    npt.assert_equal(f.values()[0], max(values))
+    npt.assert_equal(f['maximum'], max(values))
 
 
 # TODO uncomment when feature is fixed
@@ -444,14 +444,14 @@ def test_max():
 #    times, values, errors = irregular_random()
 #    f = sft.generate_science_features(times, values, errors, ['max_slope'])
 #    slopes = np.diff(values) / np.diff(times)
-#    npt.assert_allclose(f.values()[0], np.argmax(np.abs(slopes)))
+#    npt.assert_allclose(f['max_slope'], np.argmax(np.abs(slopes)))
 
 
 def test_median_absolute_deviation():
     """Test median absolute deviation (from the median) feature."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['median_absolute_deviation'])
-    npt.assert_allclose(f.values()[0], np.median(np.abs(values -
+    npt.assert_allclose(f['median_absolute_deviation'], np.median(np.abs(values -
         np.median(values))))
 
 
@@ -464,21 +464,21 @@ def test_percent_close_to_median():
     amplitude = (np.abs(max(values)) - np.abs(min(values))) / 2.
     #amplitude = (max(values) - min(values)) / 2.
     within_buffer = np.abs(values - np.median(values)) < 0.2*amplitude
-    npt.assert_allclose(f.values()[0], np.mean(within_buffer))
+    npt.assert_allclose(f['percent_close_to_median'], np.mean(within_buffer))
 
 
 def test_median():
     """Test median value feature."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['median'])
-    npt.assert_allclose(f.values()[0], np.median(values))
+    npt.assert_allclose(f['median'], np.median(values))
 
 
 def test_min():
     """Test minimum value feature."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['minimum'])
-    npt.assert_equal(f.values()[0], min(values))
+    npt.assert_equal(f['minimum'], min(values))
 
 
 # These features are currently ignored
@@ -491,12 +491,12 @@ def test_phase_dispersion():
     phase = 0.1
     times, values, errors = regular_periodic(frequencies, amplitudes, phase)
     f = sft.generate_science_features(times, values, errors, ['phase_dispersion_freq0'])
-    npt.assert_allclose(f.values()[0], frequencies[0])
+    npt.assert_allclose(f['phase_dispersion_freq0'], frequencies[0])
 
     f = sft.generate_science_features(times, values, errors, ['freq1_freq'])
-    lomb_freq = f.values()[0]
+    lomb_freq = f['freq1_freq']
     f = sft.generate_science_features(times, values, errors, ['ratio_PDM_LS_freq0'])
-    npt.assert_allclose(f.values()[0], frequencies[0]/lomb_freq)
+    npt.assert_allclose(f['ratio_PDM_LS_freq0'], frequencies[0]/lomb_freq)
 """
 
 
@@ -530,14 +530,14 @@ def test_skew():
     from scipy import stats
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['skew'])
-    npt.assert_allclose(f.values()[0], stats.skew(values))
+    npt.assert_allclose(f['skew'], stats.skew(values))
 
 
 def test_std():
     """Test standard deviation feature."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['std'])
-    npt.assert_allclose(f.values()[0], np.std(values))
+    npt.assert_allclose(f['std'], np.std(values))
 
 
 def test_stetson():
@@ -546,18 +546,18 @@ def test_stetson():
     f = sft.generate_science_features(times, values, errors, ['stetson_j'])
     # Stetson mean approximately equal to standard mean for large inputs
     dists = np.sqrt(float(len(values)) / (len(values) - 1.)) * (values - np.mean(values)) / 0.1
-    npt.assert_allclose(f.values()[0],
+    npt.assert_allclose(f['stetson_j'],
                         np.mean(np.sign(dists**2-1)*np.sqrt(np.abs(dists**2-1))),
                         rtol=1e-2)
     # Stetson_j should be somewhat close to (scaled) variance for normal data
-    npt.assert_allclose(f.values()[0]*0.1, np.var(values), rtol=2e-1)
+    npt.assert_allclose(f['stetson_j']*0.1, np.var(values), rtol=2e-1)
     # Hard-coded original value
-    npt.assert_allclose(f.values()[0], 7.591347175195703)
+    npt.assert_allclose(f['stetson_j'], 7.591347175195703)
 
     f = sft.generate_science_features(times, values, errors, ['stetson_k'])
-    npt.assert_allclose(f.values()[0], 1./0.798 * np.mean(np.abs(dists)) / np.sqrt(np.mean(dists**2)), rtol=5e-4)
+    npt.assert_allclose(f['stetson_k'], 1./0.798 * np.mean(np.abs(dists)) / np.sqrt(np.mean(dists**2)), rtol=5e-4)
     # Hard-coded original value
-    npt.assert_allclose(f.values()[0], 1.0087218792719013)
+    npt.assert_allclose(f['stetson_k'], 1.0087218792719013)
 
 
 def test_weighted_average():
@@ -567,7 +567,7 @@ def test_weighted_average():
     weighted_std_err = 1. / sum(errors**2)
     error_weights = 1. / (errors)**2 / weighted_std_err
     weighted_avg = np.average(values, weights=error_weights)
-    npt.assert_allclose(f.values()[0], weighted_avg)
+    npt.assert_allclose(f['weighted_average'], weighted_avg)
 
     dists_from_weighted_avg = values - weighted_avg
     stds_from_weighted_avg = (dists_from_weighted_avg /
@@ -576,4 +576,4 @@ def test_weighted_average():
     # TODO broken feature
     f = sft.generate_science_features(times, values, errors,
             ['percent_beyond_1_std'])
-    npt.assert_equal(f.values()[0], np.mean(stds_from_weighted_avg > 1.))
+    npt.assert_equal(f['percent_beyond_1_std'], np.mean(stds_from_weighted_avg > 1.))

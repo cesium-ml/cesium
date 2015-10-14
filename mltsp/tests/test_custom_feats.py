@@ -80,7 +80,7 @@ def test_docker_installed():
 def test_generate_random_str():
     """Test generate random string"""
     rs = cft.generate_random_str()
-    assert(isinstance(rs, (str, unicode)))
+    assert(isinstance(rs, str))
     npt.assert_equal(len(rs), 10)
 
 
