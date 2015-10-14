@@ -124,7 +124,7 @@ def custom_static_features_data(filename):
     if user_can_access_features_file(filename):
         return send_from_directory(cfg.FEATURES_FOLDER, filename)
     else:
-        return None
+        abort(403)
 
 
 @app.before_request
