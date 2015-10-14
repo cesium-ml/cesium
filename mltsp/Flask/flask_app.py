@@ -20,7 +20,7 @@ import logging
 import simplejson
 from flask import (
     Flask, request, abort, render_template,
-    session, Response, jsonify, g)
+    session, Response, jsonify, g, send_from_directory)
 from werkzeug import secure_filename
 import uuid
 import ntpath
@@ -107,6 +107,12 @@ ALLOWED_EXTENSIONS = set([
     'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml',
     'json', 'TXT', 'DAT', 'CSV', 'FITS', 'JPEG', 'GIF', 'BMP', 'DOC', 'ODT',
     'XML', 'JSON'])
+
+
+# Data read from features directory
+@app.route('/features_data/<path:filename>')
+def custom_static_features_data(filename):
+    return send_from_directory(cfg.FEATURES_FOLDER, filename)
 
 
 @app.before_request
