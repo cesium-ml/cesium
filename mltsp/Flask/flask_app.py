@@ -734,7 +734,7 @@ def list_models(
                 authed_models.append(
                     entry['name']
                     + (" - %s" % str(entry['type']) if with_type else "")
-                    + " (" + entry['featureset_name'] + ") "
+                    + " (" + entry['featureset_name'] + ")"
                     + (" (created %s PST)" % str(entry['created'])[:-13]
                        if not name_only else "")
                     + (" meta_feats=%s" % ",".join(entry['meta_feats'])
@@ -749,19 +749,19 @@ def list_models(
         for this_projkey in authed_proj_keys:
             cursor = (
                 rdb.table("models").filter({"projkey": this_projkey})
-                .pluck("name", "created", "type", "meta_feats").run(g.rdb_conn))
+                .pluck("name", "featureset_name", "created", "type",
+                       "meta_feats").run(g.rdb_conn))
             for entry in cursor:
                 authed_models.append(
                     entry['name']
                     + (" - %s" % str(entry['type']) if with_type else "")
-                    + (
-                        " (created %s PST)" % str(entry['created'])[:-13]
-                        if not name_only else "")
-                    + (
-                        " meta_feats=%s" % ",".join(entry['meta_feats'])
-                        if 'meta_feats' in entry and entry['meta_feats']
-                        not in [False, [], "False", None, "None"]
-                        and isinstance(entry['meta_feats'], list) else ""))
+                    + " (" + entry['featureset_name'] + ") "
+                    + (" (created %s PST)" % str(entry['created'])[:-13]
+                       if not name_only else "")
+                    + (" meta_feats=%s" % ",".join(entry['meta_feats'])
+                       if 'meta_feats' in entry and entry['meta_feats']
+                       not in [False, [], "False", None, "None"] and
+                       isinstance(entry['meta_feats'], list) else ""))
         return authed_models
 
 
@@ -968,9 +968,8 @@ def add_project(name, desc="", addl_authed_users=[], user_email="auto"):
     return new_projkey
 
 
-def add_featureset(
-        name, projkey, pid, featlist, custom_features_script=None,
-        meta_feats=[], headerfile_path=None, zipfile_path=None):
+def add_featureset(name, projkey, pid, featlist, custom_features_script=None,
+                   meta_feats=[], headerfile_path=None, zipfile_path=None):
     """Add a new entry to the rethinkDB 'features' table.
 
     Parameters
@@ -1016,9 +1015,8 @@ def add_featureset(
     return new_featset_key
 
 
-def add_model(
-        model_name, featureset_name, featureset_key, model_type, model_params,
-        projkey, pid, meta_feats=False):
+def add_model(model_name, featureset_name, featureset_key, model_type,
+              model_params, projkey, pid, meta_feats=False):
     """Add a new entry to the rethinkDB 'models' table.
 
     Parameters
@@ -1055,6 +1053,7 @@ def add_model(
         "featureset_name": featureset_name,
         "featset_key": featureset_key,
         "type": model_type,
+        "parameters": model_params,
         "projkey": projkey,
         "created": str(rdb.now().in_timezone('-08:00').run(g.rdb_conn)),
         "pid": pid,
@@ -1064,9 +1063,8 @@ def add_model(
     return new_model_key
 
 
-def add_prediction(
-        project_name, model_name, model_type, pred_filename,
-        pid="None", metadata_file="None"):
+def add_prediction(project_name, model_name, model_type, pred_filename,
+                   pid="None", metadata_file="None"):
     """Add a new entry to the rethinkDB 'predictions' table.
 
     Parameters
@@ -1949,8 +1947,8 @@ def featurize_proc(
     update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
-def build_model_proc(featureset_name, featureset_key, model_type, model_params,
-                     model_key):
+def build_model_proc(model_name, featureset_name, featureset_key, model_type,
+                     model_params, model_key):
     """Build a model based on given features.
 
     Begins the model building process by calling
@@ -2763,7 +2761,8 @@ def featurizationPage(
            methods=['POST'])
 @app.route('/buildModel', methods=['POST', 'GET'])
 @stormpath.login_required
-def buildModel(project_name=None, featureset_name=None, model_type=None):
+def buildModel(model_name=None, project_name=None, featureset_name=None,
+               model_type=None, model_params=None):
     """Build new model for specified feature set.
 
     Handles 'buildModelForm' submission and starts model creation
@@ -2818,7 +2817,8 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target=build_model_proc,
-        args=(featureset_name,
+        args=(model_name,
+              featureset_name,
               featureset_key,
               model_type,
               model_params,

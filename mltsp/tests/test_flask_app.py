@@ -487,12 +487,16 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             models = fa.list_models()
@@ -515,12 +519,16 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=False, name_only=True)
@@ -547,12 +555,16 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "active": "y"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=True, by_project="abc123",
@@ -778,12 +790,15 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            new_key = fa.add_model(featureset_name="TEST",
+            new_key = fa.add_model(model_name="TEST_NAME",
+                                   featureset_name="TEST",
                                    featureset_key="123",
-                                   model_type="RFC", projkey="ABC", pid="2")
+                                   model_type="RFC", model_params={},
+                                   projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
-            npt.assert_equal(entry['name'], "TEST")
+            npt.assert_equal(entry['name'], "TEST_NAME")
             npt.assert_equal(entry['projkey'], "ABC")
+            r.table("models").get(new_key).delete().run(conn)
 
     def test_add_model_meta_feats(self):
         """Test add model - with meta features"""
@@ -792,13 +807,16 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             r.table("features").insert({"id": "123",
                                         "meta_feats": ['f1', 'f2']}).run(conn)
-            new_key = fa.add_model(featureset_name="TEST",
+            new_key = fa.add_model(model_name="TEST_NAME",
+                                   featureset_name="TEST",
                                    featureset_key="123",
-                                   model_type="RFC", projkey="ABC", pid="2")
+                                   model_type="RFC", model_params={},
+                                   projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
-            npt.assert_equal(entry['name'], "TEST")
+            npt.assert_equal(entry['name'], "TEST_NAME")
             npt.assert_equal(entry['projkey'], "ABC")
             npt.assert_equal(entry['meta_feats'], ['f1', 'f2'])
+            r.table("models").get(new_key).delete().run(conn)
 
     def test_add_prediction(self):
         """Test add prediction entry"""
@@ -830,6 +848,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "created": "abc123",
                                       "featset_key": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
@@ -855,6 +875,8 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(fpaths, [])
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "created": "abc123",
                                       "featset_key": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
@@ -917,6 +939,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"), "w").close()
             assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123_RFC.pkl"))
@@ -960,6 +984,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
@@ -1017,6 +1043,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
@@ -1062,6 +1090,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
@@ -1202,6 +1232,8 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "featset_key": "abc123"}).run(conn)
             r.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
@@ -1429,13 +1461,15 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("features").insert({"id": "TEMP_TEST01",
                                         "name": "TEMP_TEST01"}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
-                                      "name": "TEMP_TEST01"}).run(conn)
+                                      "name": "TEMP_TEST01",
+                                      "featureset_name": "abc123",
+                                      "parameters": {}}).run(conn)
             shutil.copy(pjoin(DATA_DIR, "test_targets.npy"),
                         pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
             shutil.copy(pjoin(DATA_DIR, "test_features.csv"),
                         pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-            fa.build_model_proc("TEMP_TEST01", "TEMP_TEST01",
-                                "RFC", "TEMP_TEST01")
+            fa.build_model_proc("TEMP_TEST01", "TEMP_TEST01", "TEMP_TEST01",
+                                "RFC", {}, "TEMP_TEST01")
             entry = r.table("models").get("TEMP_TEST01").run(conn)
             assert "results_msg" in entry
             assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
@@ -1675,6 +1709,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "headerfile_path": "HEADPATH.dat",
                                       "zipfile_path": "ZIPPATH.tar.gz",
                                       "featset_key": "abc123",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "type": "RFC"}).run(conn)
             r.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123",
@@ -1687,6 +1723,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "headerfile_path": "HEADPATH4.dat",
                                       "zipfile_path": "ZIPPATH4.tar.gz",
                                       "featset_key": "abc1234",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "type": "RFC"}).run(conn)
             r.table("features").insert({"id": "abc1234", "projkey": "abc123",
                                         "name": "abc1234",
@@ -1699,6 +1737,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "headerfile_path": "HEADPATH5.dat",
                                       "zipfile_path": "ZIPPATH5.tar.gz",
                                       "featset_key": "abc1235",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "type": "RFC"}).run(conn)
             r.table("features").insert({"id": "abc1235", "projkey": "abc123",
                                         "name": "abc1235",
@@ -1849,6 +1889,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
@@ -1947,20 +1989,25 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
-                                      "name": "abc123", "created": "abc123",
+                                      "name": "model_1", "created": "abc123",
                                       "type": "RFC",
+                                      "featureset_name": "featset1",
+                                      "parameters": {},
                                       "zipfile_path": "ZIPPATH.tar.gz",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123_2", "projkey": "abc123",
-                                       "name": "abc123_2", "created": "abc",
-                                       "type": "RFC",
-                                       "zipfile_path": "ZIPPATH.tar.gz",
-                                       "featlist": ["a", "b", "c"]}).run(conn)
+                                      "name": "model_2", "created": "abc",
+                                      "type": "RFC",
+                                      "featureset_name": "featset1",
+                                      "parameters": {},
+                                      "zipfile_path": "ZIPPATH.tar.gz",
+                                      "featlist": ["a", "b", "c"]}).run(conn)
             rv = self.app.get("/get_list_of_models_by_project/abc123")
             model_list = [e.split(" (created")[0] for e in
                           json.loads(rv.data)["model_list"]]
-            npt.assert_array_equal(sorted(model_list), ["abc123 - RFC",
-                                                        "abc123_2 - RFC"])
+            npt.assert_array_equal(sorted(model_list),
+                                   ["model_1 - RFC (featset1)",
+                                    "model_2 - RFC (featset1)"])
 
     def test_upload_features_form(self):
         """Test upload features form"""
@@ -2371,9 +2418,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            rv = fa.buildModel(project_name="abc123",
-                               featureset_name="TEMP_TEST01",
-                               model_type="RFC")
+            rv = fa.buildModel(model_name="abc123", project_name="abc123",
+                               featureset_name="TEMP_TEST01", model_type="RFC",
+                               model_params={})
             res_dict = json.loads(rv.data)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2387,6 +2434,7 @@ class FlaskAppTestCase(unittest.TestCase):
             os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
             os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+            r.table("models").get(new_model_key).delete().run(conn)
 
     def test_upload_prediction_data(self):
         """Test upload prediction data"""
@@ -2407,6 +2455,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "name": "TEMP_TEST01"}).run(conn)
             rv = self.app.post('/uploadPredictionData',
                                content_type='multipart/form-data',
@@ -2458,6 +2508,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RFC",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "name": "TEMP_TEST01"}).run(conn)
             dsts = [pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                     pjoin(cfg.UPLOAD_FOLDER, "215153_metadata.dat")]
@@ -2562,6 +2614,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
                                       "results_msg": "results_msg",
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "results_str_html": "a"}).run(conn)
             rv = fa.load_model_build_results("abc123")
             res_dict = json.loads(rv.data)
@@ -2570,6 +2624,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
                                         "results_msg": "results_msg",
+                                        "featureset_name": "abc123",
+                                        "parameters": {},
                                         "results_str_html": "a"})
 
     def test_load_model_build_results_no_match(self):
@@ -2592,6 +2648,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "results_msg": "Error occurred",
                                       "results_str_html": "a"}).run(conn)
             rv = fa.load_model_build_results("abc123")
@@ -2603,6 +2661,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
+                                        "featureset_name": "abc123",
+                                        "parameters": {},
                                         "results_msg": "Error occurred",
                                         "results_str_html": "a"})
 
@@ -2615,6 +2675,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
+                                      "featureset_name": "abc123",
+                                      "parameters": {},
                                       "results_msg": "results_msg",
                                       "results_str_html": "a"}).run(conn)
             rv = self.app.get("/load_model_build_results/abc123")
@@ -2623,6 +2685,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
+                                        "featureset_name": "abc123",
+                                        "parameters": {},
                                         "results_msg": "results_msg",
                                         "results_str_html": "a"})
 
