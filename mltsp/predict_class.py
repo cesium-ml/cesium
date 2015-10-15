@@ -149,7 +149,7 @@ def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
     all_features_list = cfg.features_list_obs[:] + cfg.features_list_science[:]
     tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
     os.mkdir(tmp_dir_path)
-    os.chmod(tmp_dir_path, 0777)
+    os.chmod(tmp_dir_path, 0o777)
     if tarfile.is_tarfile(newpred_file_path):
         big_features_and_tsdata_dict = featurize_multiple(
             newpred_file_path, features_to_use,
