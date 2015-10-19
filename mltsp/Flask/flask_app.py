@@ -1175,9 +1175,7 @@ def model_associated_files(model_key):
     try:
         entry_dict = rdb.table("models").get(model_key).run(g.rdb_conn)
         featset_key = entry_dict["featset_key"]
-        model_type = entry_dict["type"]
-        fpaths = [os.path.join(cfg.MODELS_FOLDER,
-                               "%s_%s.pkl" % (featset_key, model_type))]
+        fpaths = [os.path.join(cfg.MODELS_FOLDER, "{}.pkl".format(model_key))]
         fpaths += featset_associated_files(featset_key)
     except:
         try:
@@ -1947,8 +1945,7 @@ def featurize_proc(
     update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
-def build_model_proc(model_name, featureset_name, featureset_key, model_type,
-                     model_params, model_key):
+def build_model_proc(model_key, model_type, model_params, featureset_key):
     """Build a model based on given features.
 
     Begins the model building process by calling
@@ -1981,8 +1978,8 @@ def build_model_proc(model_name, featureset_name, featureset_key, model_type,
     print("Building model...")
     try:
         model_built_msg = build_model.build_model(
-            featureset_name=featureset_name, featureset_key=featureset_key,
-            model_type=model_type, model_options=model_params)
+            model_key=model_key, model_type=model_type,
+            model_options=model_params, featureset_key=featureset_key)
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -2817,12 +2814,10 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target=build_model_proc,
-        args=(model_name,
-              featureset_name,
-              featureset_key,
+        args=(new_model_key,
               model_type,
               model_params,
-              str(new_model_key).strip()))
+              featureset_key))
     proc.start()
     PID = str(proc.pid)
     print("PROCESS ID IS", PID)

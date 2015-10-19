@@ -9,8 +9,8 @@ import numpy as np
 import csv
 
 
-def create_and_pickle_model(data_dict, featureset_key, model_type,
-                            model_options, in_docker_container):
+def create_and_pickle_model(data_dict, model_key, model_type,
+                            model_options):
     """Create scikit-learn RFC model object and save it to disk.
 
     Parameters
@@ -24,9 +24,6 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
         Abbreviation of the type of model to be created.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
-    in_docker_container : bool
-        Boolean indicating whether function is being called from within
-        a Docker container.
 
     """
 
@@ -55,9 +52,7 @@ def create_and_pickle_model(data_dict, featureset_key, model_type,
 
     # Store the model:
     print("Pickling model...")
-    foutname = os.path.join(
-        ("/tmp" if in_docker_container else cfg.MODELS_FOLDER),
-        "%s_%s.pkl" % (featureset_key, model_type))
+    foutname = os.path.join(cfg.MODELS_FOLDER, "{}.pkl".format(model_key))
     joblib.dump(model_obj, foutname, compress=3)
     print(foutname, "created.")
     return foutname

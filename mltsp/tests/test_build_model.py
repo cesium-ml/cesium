@@ -35,12 +35,10 @@ def test_create_and_pickle_model():
     """Test creation and storage of model"""
     data_dict = {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
                  "targets": ['1', '2']}
-    featset_key = "test"
-    model_type = "RFC"
     ctt.create_and_pickle_model(
         {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
          "targets": ['1', '2']},
-        "test_build_model", "RFC", {}, False)
+        "NEW_MODEL_KEY", "RFC", {}, False)
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
                                 "test_build_model_RFC.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,

@@ -138,7 +138,7 @@ def featurize_multiple(newpred_file_path, features_to_use,
     return big_features_and_tsdata_dict
 
 
-def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
+def featurize_tsdata(newpred_file_path, custom_features_script,
                      metadata_file_path, features_already_extracted,
                      features_to_use, in_docker_container):
     """
@@ -229,7 +229,7 @@ def add_to_predict_results_dict_classification(results_dict, estimator_preds,
 
 def add_to_predict_results_dict_regression(results_dict, estimator_preds,
                                            fname, ts_data, features_dict,
-                                           featset_key, n_cols_html_table):
+                                           n_cols_html_table):
     """
     """
     results_str = ("<tr class='pred_results'>"
@@ -247,8 +247,8 @@ def add_to_predict_results_dict_regression(results_dict, estimator_preds,
     return
 
 
-def do_model_predictions(big_features_and_tsdata_dict, featset_key, model_type,
-                         features_to_use, n_cols_html_table):
+def do_model_predictions(big_features_and_tsdata_dict, model_key, model_type,
+                         featset_key, features_to_use, n_cols_html_table):
     """
 
     """
@@ -265,7 +265,7 @@ def do_model_predictions(big_features_and_tsdata_dict, featset_key, model_type,
 
         # Load model
         rfc_model = joblib.load(os.path.join(
-            cfg.MODELS_FOLDER, "%s_%s.pkl" % (featset_key, model_type)))
+            cfg.MODELS_FOLDER, "{}.pkl".format(model_key)))
 
         # Do probabilistic model prediction when possible
         if model_type[-1] == "C":
@@ -277,12 +277,12 @@ def do_model_predictions(big_features_and_tsdata_dict, featset_key, model_type,
             estimator_preds = rfc_model.predict(np.array(newFeatures))
             add_to_predict_results_dict_regression(
                 results_dict, estimator_preds, fname, ts_data, features_dict,
-                featset_key, n_cols_html_table)
+                n_cols_html_table)
 
     return results_dict
 
 
-def predict(newpred_file_path, model_name, model_type, featset_key,
+def predict(newpred_file_path, model_key, model_type, featset_key,
             sepr=',', n_cols_html_table=5, features_already_extracted=False,
             custom_features_script=None, metadata_file_path=None,
             in_docker_container=False):
@@ -301,8 +301,8 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
     ----------
     newpred_file_path : str
         Path to time series data file to be used in prediction.
-    model_name : str
-        Name of the model to be used.
+    model_key : str
+        ID of the model to be used.
     model_type : str
         Type (abbreviation, e.g. "RF") of the model to be used.
     featset_key : str
@@ -345,12 +345,12 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
     features_to_use = determine_feats_used(featset_key)
 
     big_features_and_tsdata_dict = featurize_tsdata(
-        newpred_file_path, featset_key, custom_features_script,
+        newpred_file_path, custom_features_script,
         metadata_file_path, features_already_extracted,
         features_to_use, in_docker_container)
 
     pred_results_dict = do_model_predictions(
-        big_features_and_tsdata_dict, featset_key, model_type, features_to_use,
-        n_cols_html_table)
+        big_features_and_tsdata_dict, model_key, model_type, featset_key,
+        features_to_use, n_cols_html_table)
 
     return pred_results_dict
