@@ -140,7 +140,7 @@ def featurize_multiple(newpred_file_path, features_to_use,
 
 def featurize_tsdata(newpred_file_path, custom_features_script,
                      metadata_file_path, features_already_extracted,
-                     features_to_use, in_docker_container):
+                     features_to_use):
     """
     """
     all_meta_features = parse_metadata_file(metadata_file_path)
@@ -284,8 +284,7 @@ def do_model_predictions(big_features_and_tsdata_dict, model_key, model_type,
 
 def predict(newpred_file_path, model_key, model_type, featset_key,
             sepr=',', n_cols_html_table=5, features_already_extracted=False,
-            custom_features_script=None, metadata_file_path=None,
-            in_docker_container=False):
+            custom_features_script=None, metadata_file_path=None):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
@@ -347,7 +346,7 @@ def predict(newpred_file_path, model_key, model_type, featset_key,
     big_features_and_tsdata_dict = featurize_tsdata(
         newpred_file_path, custom_features_script,
         metadata_file_path, features_already_extracted,
-        features_to_use, in_docker_container)
+        features_to_use)
 
     pred_results_dict = do_model_predictions(
         big_features_and_tsdata_dict, model_key, model_type, featset_key,

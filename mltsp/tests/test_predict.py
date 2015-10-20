@@ -67,9 +67,7 @@ def test_featurize_tsdata():
     """Test featurize_tsdata"""
     res_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
-        "TEMP_TEST01",
-        None, None, False,
-        ['std_err'], False)
+        None, None, False, ['amplitude', 'std_err'])
     assert all("std_err" in d["features_dict"]
                for fname, d in res_dict.items())
     assert all("ts_data" in d for fname, d in res_dict.items())
@@ -111,9 +109,9 @@ def generate_model_rfc():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFC")
+    build_model.build_model("TEMP_TEST01", "RFC", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RFC.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_rfr():
@@ -121,9 +119,9 @@ def generate_model_rfr():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFR")
+    build_model.build_model("TEMP_TEST01", "RFR", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RFR.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_lc():
@@ -131,9 +129,9 @@ def generate_model_lc():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LC")
+    build_model.build_model("TEMP_TEST01", "LC", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_LC.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_lr():
@@ -141,9 +139,9 @@ def generate_model_lr():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LR")
+    build_model.build_model("TEMP_TEST01", "LR", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_LR.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_cust_feats_rfc():
@@ -151,9 +149,9 @@ def generate_model_cust_feats_rfc():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFC")
+    build_model.build_model("TEMP_TEST01", "RFC", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RFC.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_cust_feats_rfr():
@@ -161,9 +159,9 @@ def generate_model_cust_feats_rfr():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFR")
+    build_model.build_model("TEMP_TEST01", "RFR", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RFR.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_cust_feats_lc():
@@ -171,9 +169,9 @@ def generate_model_cust_feats_lc():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LC")
+    build_model.build_model("TEMP_TEST01", "LC", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_LC.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def generate_model_cust_feats_lr():
@@ -181,31 +179,29 @@ def generate_model_cust_feats_lr():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features_wcust.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LR")
+    build_model.build_model("TEMP_TEST01", "LR", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_LR.pkl"))
+                                "TEMP_TEST01.pkl"))
 
 
 def test_do_model_predictions_rfc():
     """Test model predictions - RFC"""
     generate_model_rfc()
-    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"),
-              pjoin(cfg.MODELS_FOLDER, "TEST001_RFC.pkl"))
+    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"),
+              pjoin(cfg.MODELS_FOLDER, "TEST001.pkl"))
     for suffix in ["targets.npy", "features.csv"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
-    featset_key = "TEST001"
+    featset_key = model_key = "TEST001"
     model_type = "RFC"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs", "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
-        "TEST001",
-        None, None, False,
-        features_to_use, False)
-    pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
-                                                  model_type, features_to_use,
-                                                  5)
+        None, None, False, features_to_use)
+    pred_results_dict = pred.do_model_predictions(data_dict, model_key,
+                                                  model_type, featset_key,
+                                                  features_to_use, 5)
     assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
            pred_results_dict["dotastro_215153"]["features_dict"])
@@ -236,7 +232,7 @@ def test_main_predict_rfc():
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
                              'RR_Lyrae']
@@ -268,7 +264,7 @@ def test_main_predict_cust_feats_rfc():
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
@@ -298,7 +294,7 @@ def test_main_predict_tarball_rfc():
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     npt.assert_equal(len(pred_results_dict), 4)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
@@ -332,7 +328,7 @@ def test_main_predict_tarball_cust_feats_rfc():
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     os.remove(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     npt.assert_equal(
         len(pred_results_dict["dotastro_215153"]["pred_results"]),
@@ -349,24 +345,22 @@ def test_main_predict_tarball_cust_feats_rfc():
 def test_do_model_predictions_rfr():
     """Test model predictions - RFR"""
     generate_model_rfr()
-    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFR.pkl"),
-              pjoin(cfg.MODELS_FOLDER, "TEST001_RFR.pkl"))
+    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"),
+              pjoin(cfg.MODELS_FOLDER, "TEST001.pkl"))
     for suffix in ["targets.npy", "features.csv"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
-    featset_key = "TEST001"
+    featset_key = model_key = "TEST001"
     model_type = "RFR"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
                        "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
-        "TEST001",
-        None, None, False,
-        features_to_use, False)
-    pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
-                                                  model_type, features_to_use,
-                                                  5)
+        None, None, False, features_to_use)
+    pred_results_dict = pred.do_model_predictions(data_dict, model_key,
+                                                  model_type, featset_key,
+                                                  features_to_use, 5)
     assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
            pred_results_dict["dotastro_215153"]["features_dict"])
@@ -394,7 +388,7 @@ def test_main_predict_rfr():
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFR.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     assert(all(isinstance(pred_results_dict[fname]["pred_results"],
                           (float, np.float)) for fname in pred_results_dict))
 
@@ -420,7 +414,7 @@ def test_main_predict_tarball_rfr():
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFR.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     npt.assert_equal(len(pred_results_dict), 4)
     assert(all(isinstance(pred_results_dict[fname]["pred_results"],
                           (float, np.float)) for fname in pred_results_dict))
@@ -429,24 +423,22 @@ def test_main_predict_tarball_rfr():
 def test_do_model_predictions_lc():
     """Test model predictions - LC"""
     generate_model_lc()
-    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LC.pkl"),
-              pjoin(cfg.MODELS_FOLDER, "TEST001_LC.pkl"))
+    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"),
+              pjoin(cfg.MODELS_FOLDER, "TEST001.pkl"))
     for suffix in ["targets.npy", "features.csv"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
-    featset_key = "TEST001"
+    featset_key = model_key = "TEST001"
     model_type = "LC"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
                        "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
-        "TEST001",
-        None, None, False,
-        features_to_use, False)
-    pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
-                                                  model_type, features_to_use,
-                                                  5)
+        None, None, False, features_to_use)
+    pred_results_dict = pred.do_model_predictions(data_dict, model_key,
+                                                  model_type, featset_key,
+                                                  features_to_use, 5)
     assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
            pred_results_dict["dotastro_215153"]["features_dict"])
@@ -477,7 +469,7 @@ def test_main_predict_lc():
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
                              'RR_Lyrae']
@@ -506,7 +498,7 @@ def test_main_predict_tarball_lc():
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     npt.assert_equal(len(pred_results_dict), 4)
     assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
@@ -518,24 +510,22 @@ def test_main_predict_tarball_lc():
 def test_do_model_predictions_lr():
     """Test model predictions - LR"""
     generate_model_lr()
-    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LR.pkl"),
-              pjoin(cfg.MODELS_FOLDER, "TEST001_LR.pkl"))
+    os.rename(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"),
+              pjoin(cfg.MODELS_FOLDER, "TEST001.pkl"))
     for suffix in ["targets.npy", "features.csv"]:
         shutil.copy(
             pjoin(DATA_PATH, "test_%s" % suffix),
             pjoin(cfg.FEATURES_FOLDER, "TEST001_%s" % suffix))
-    featset_key = "TEST001"
+    featset_key = model_key = "TEST001"
     model_type = "LR"
     features_to_use = ["std_err", "avg_err", "med_err", "n_epochs",
                        "amplitude"]
     data_dict = pred.featurize_tsdata(
         pjoin(DATA_PATH, "dotastro_215153.dat"),
-        "TEST001",
-        None, None, False,
-        features_to_use, False)
-    pred_results_dict = pred.do_model_predictions(data_dict, featset_key,
-                                                  model_type, features_to_use,
-                                                  5)
+        None, None, False, features_to_use)
+    pred_results_dict = pred.do_model_predictions(data_dict, model_key,
+                                                  model_type, featset_key,
+                                                  features_to_use, 5)
     assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
            pred_results_dict["dotastro_215153"]["features_dict"])
@@ -563,7 +553,7 @@ def test_main_predict_lr():
     os.remove(pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LR.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     assert(all(isinstance(pred_results_dict[fname]["pred_results"],
                           (float, np.float)) for fname in pred_results_dict))
 
@@ -589,7 +579,7 @@ def test_main_predict_tarball_lr():
                     "215153_215176_218272_218934_metadata.dat"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LR.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     npt.assert_equal(len(pred_results_dict), 4)
     assert(all(isinstance(pred_results_dict[fname]["pred_results"],
                           (float, np.float)) for fname in pred_results_dict))
