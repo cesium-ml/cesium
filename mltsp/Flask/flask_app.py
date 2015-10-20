@@ -1475,7 +1475,7 @@ def featureset_name_to_key(featureset_name, project_name=None, project_id=None):
         Defaults to None. If None, `project_id` (see below) must be
         provided.
     project_id : str, optional
-        ID of project to wuich feature set in question belongs.
+        ID of project to which feature set in question belongs.
         Defaults to None. If None, `project_name` (see above) must be
         provided.
 
@@ -1521,11 +1521,11 @@ def model_name_to_key(model_name, project_name=None, project_id=None):
     model_name : str
         Name of the model.
     project_name : str, optional
-        Name of project to which feature set in question belongs.
+        Name of project to which model in question belongs.
         Defaults to None. If None, `project_id` (see below) must be
         provided.
     project_id : str, optional
-        ID of project to wuich feature set in question belongs.
+        ID of project to which model in question belongs.
         Defaults to None. If None, `project_name` (see above) must be
         provided.
 

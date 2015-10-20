@@ -1,5 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import LinearRegression, SGDClassifier
+from sklearn.linear_model import LinearRegression, SGDClassifier,\
+    RidgeClassifierCV, ARDRegression, BayesianRidge
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.externals import joblib
 import os
@@ -36,8 +37,11 @@ def create_and_pickle_model(data_dict, model_key, model_type,
 
     models_type_dict = {"RFC": RandomForestClassifier,
                         "RFR": RandomForestRegressor,
+                        "LC": SGDClassifier,
                         "LR": LinearRegression,
-                        "LC": SGDClassifier}
+                        "RC": RidgeClassifierCV,
+                        "ARDR": ARDRegression,
+                        "BRR": BayesianRidge}
 
     model_obj = models_type_dict[model_type](**model_options)
     # Multi-class capabilities for linear classifer:
