@@ -69,8 +69,8 @@ model_descriptions = [
 
     {"name": "RidgeClassifierCV",
      "params": [
-         {"name": "alphas", "type": np.array,
-          "default": np.array([ 0.1, 1., 10. ])},
+         {"name": "alphas", "type": list,
+          "default": [0.1, 1., 10.]},
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False},
          {"name": "scoring", "type": [str, "callable"], "default": None},
