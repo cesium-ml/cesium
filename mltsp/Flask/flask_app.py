@@ -1063,8 +1063,8 @@ def add_model(model_name, featureset_name, featureset_key, model_type,
     return new_model_key
 
 
-def add_prediction(project_name, model_name, model_type, pred_filename,
-                   pid="None", metadata_file="None"):
+def add_prediction(project_name, model_key, model_name, model_type,
+                   pred_filename, pid="None", metadata_file="None"):
     """Add a new entry to the rethinkDB 'predictions' table.
 
     Parameters
@@ -1094,6 +1094,7 @@ def add_prediction(project_name, model_name, model_type, pred_filename,
         "project_name": project_name,
         "filename": pred_filename,
         "projkey": project_key,
+        "model_key": model_key,
         "model_name": model_name,
         "model_type": model_type,
         "created": str(rdb.now().in_timezone('-08:00').run(g.rdb_conn)),
@@ -1462,8 +1463,7 @@ def project_name_to_key(projname):
         return False
 
 
-def featureset_name_to_key(
-        featureset_name, project_name=None, project_id=None):
+def featureset_name_to_key(featureset_name, project_name=None, project_id=None):
     """Return RethinkDB key associated with given feature set details.
 
     Parameters
@@ -1506,6 +1506,56 @@ def featureset_name_to_key(
             print(theError)
             return False
         return featureset_key
+
+
+def model_key_to_featset_key(model_key):
+    return rdb.table("models").get(model_key)\
+                              .run(g.rdb_conn)["featset_key"]
+
+
+def model_name_to_key(model_name, project_name=None, project_id=None):
+    """Return RethinkDB key associated with given model details.
+
+    Parameters
+    ----------
+    model_name : str
+        Name of the model.
+    project_name : str, optional
+        Name of project to which feature set in question belongs.
+        Defaults to None. If None, `project_id` (see below) must be
+        provided.
+    project_id : str, optional
+        ID of project to wuich feature set in question belongs.
+        Defaults to None. If None, `project_name` (see above) must be
+        provided.
+
+    Returns
+    -------
+    str
+        RethinkDB ID/key of specified model.
+
+    """
+    if project_name is None and project_id is None:
+        logging.exception("model_name_to_key() - Neither project name nor id "
+               "provided - returning false.")
+        return False
+    else:
+        if project_id is None:
+            project_id = project_name_to_key(project_name)
+
+        model_key = []
+        cursor = (
+            rdb.table("models")
+            .filter({"projkey": project_id, "name": model_name})
+            .pluck("id").run(g.rdb_conn))
+        for entry in cursor:
+            model_key.append(entry["id"])
+        try:
+            model_key = model_key[0]
+        except Exception as theError:
+            logging.exception(theError)
+            return False
+        return model_key
 
 
 def update_project_info(
@@ -1994,10 +2044,9 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
     return True
 
 
-def prediction_proc(
-        newpred_file_path, project_name, model_name, model_type,
-        prediction_entry_key, sep=",", metadata_file=None,
-        path_to_tmp_dir=None):
+def prediction_proc(newpred_file_path, project_name, model_key, model_type,
+                    prediction_entry_key, sep=",", metadata_file=None,
+                    path_to_tmp_dir=None):
     """Generate features for new TS data and perform model prediction.
 
     Begins the featurization and prediction process. To be executed
@@ -2011,8 +2060,8 @@ def prediction_proc(
         prediction.
     project_name : str
         Name of the project associated with the model to be used.
-    model_name : str
-        Name of the model to be used.
+    model_key : str
+        Key/ID of the model to be used.
     model_type : str
         Abbreviation of the model type (e.g. "RFC").
     prediction_entry_key : str
@@ -2028,8 +2077,7 @@ def prediction_proc(
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
-    featset_key = featureset_name_to_key(
-        featureset_name=model_name, project_name=project_name)
+    featset_key = model_key_to_featset_key(model_key)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script = None
     entry = rdb.table("features").get(featset_key).run(g.rdb_conn)
@@ -2053,7 +2101,7 @@ def prediction_proc(
         "    <tbody>")
     try:
         results_dict = predict.predict(
-            newpred_file_path=newpred_file_path, model_name=model_name,
+            newpred_file_path=newpred_file_path, model_key=model_key,
             model_type=model_type, featset_key=featset_key, sepr=sep,
             n_cols_html_table=n_cols_html_table,
             custom_features_script=custom_features_script,
@@ -2763,8 +2811,7 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
     """Build new model for specified feature set.
 
     Handles 'buildModelForm' submission and starts model creation
-    process as a subprocess (by calling prediction_proc with the
-    multiprocessing.Process method). Returns JSONified dict with PID
+    process as a subprocess. Returns JSONified dict with PID
     and other details about the process.
 
     Parameters
@@ -2925,6 +2972,15 @@ def uploadPredictionData():
                         .split(" (created")[0])
         model_name, model_type_and_time = str(
             request.form["prediction_model_name_and_type"]).split(" - ")
+        model_key = model_name_to_key(model_name, project_name=project_name)
+        if not model_key:
+            logging.exception("Model key could not be determined from model "
+                              "name and project name.")
+            return jsonify({
+                "message": (
+                    "Model key could not be determined from model name and "
+                    "project name."),
+                "type": "error"})
         model_type = model_type_and_time.split(" ")[0]
         print(project_name, model_name, model_type)
         newpred_filename = secure_filename(newpred_file.filename)
@@ -2970,6 +3026,7 @@ def uploadPredictionData():
             newpred_file_path=newpred_file_path,
             sep=sep,
             project_name=project_name,
+            model_key=model_key,
             model_name=model_name,
             model_type=model_type,
             metadata_file_path=metadata_file_path,
@@ -3025,7 +3082,7 @@ def predicting():
 
 
 def predictionPage(
-        newpred_file_path, project_name, model_name, model_type,
+        newpred_file_path, project_name, model_key, model_name, model_type,
         sep=",", metadata_file_path=None, path_to_tmp_dir=None):
     """Start featurization/prediction routine in a subprocess.
 
@@ -3061,6 +3118,7 @@ def predictionPage(
     """
     new_prediction_key = add_prediction(
         project_name=project_name,
+        model_key=model_key,
         model_name=model_name,
         model_type=model_type,
         pred_filename=os.path.basename(newpred_file_path),
@@ -3076,7 +3134,7 @@ def predictionPage(
         args=(
             newpred_file_path,
             project_name,
-            model_name,
+            model_key,
             model_type,
             new_prediction_key,
             sep,

@@ -826,6 +826,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             new_key = fa.add_prediction(project_name="abc123",
+                                        model_key="model_key",
                                         model_name="model_name",
                                         model_type="RFC",
                                         pred_filename="test.dat",
@@ -1488,6 +1489,7 @@ class FlaskAppTestCase(unittest.TestCase):
             generate_model()
             delete_entries_by_table("projects")
             delete_entries_by_table("features")
+            delete_entries_by_table("models")
             shutil.copy(pjoin(DATA_DIR, "dotastro_215153.dat"),
                         pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
             shutil.copy(pjoin(DATA_DIR, "TESTRUN_215153_metadata.dat"),
@@ -1501,13 +1503,18 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "projkey": "TEMP_TEST01",
                                         "featlist": ["std_err",
                                                      "amplitude"]}).run(conn)
+            r.table("models").insert({"id": "TEMP_TEST01",
+                                      "featset_key": "TEMP_TEST01",
+                                      "projkey": "TEMP_TEST01",
+                                      "name": "TEMP_TEST01",
+                                      "type": "RFC"}).run(conn)
             r.table("projects").insert({"id": "TEMP_TEST01", "name":
                                         "TEMP_TEST01"}).run(conn)
             r.table("predictions").insert({"id": "TEMP_TEST01"}).run(conn)
             fa.prediction_proc(
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-                "TEMP_TEST01", "TEMP_TEST01", "RFC", "TEMP_TEST01",
-                "TEMP_TEST01",
+                "TEMP_TEST01", "TEMP_TEST01", "RFC",
+                "TEMP_TEST01", "TEMP_TEST01",
                 metadata_file=pjoin(cfg.UPLOAD_FOLDER,
                                     "TESTRUN_215153_metadata.dat"))
 
@@ -2455,6 +2462,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RFC",
+                                      "featset_key": "TEMP_TEST01",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "TEMP_TEST01"}).run(conn)
@@ -2508,6 +2516,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
                                       "type": "RFC",
+                                      "featset_key": "TEMP_TEST01",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "TEMP_TEST01"}).run(conn)
@@ -2517,6 +2526,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 shutil.copy(pjoin(DATA_DIR, os.path.basename(f)), f)
             rv = fa.predictionPage(newpred_file_path=dsts[0],
                                    project_name="abc123",
+                                   model_key="TEMP_TEST01",
                                    model_name="TEMP_TEST01", model_type="RFC",
                                    metadata_file_path=dsts[1])
             res_dict = json.loads(rv.data)
