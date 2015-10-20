@@ -2484,7 +2484,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'prediction_model_name_and_type':
                                      'TEMP_TEST01 - RFC'})
             res_dict = json.loads(rv.data)
-            print(res_dict)
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
@@ -2498,7 +2497,6 @@ class FlaskAppTestCase(unittest.TestCase):
                            for el in pred_results[fname])
                        for fname in pred_results))
             assert("std_err" in feats_dict["dotastro_215153"])
-
 
     def test_prediction_page(self):
         """Test main prediction function"""

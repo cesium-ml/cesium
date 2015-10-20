@@ -38,15 +38,15 @@ def test_create_and_pickle_model():
     ctt.create_and_pickle_model(
         {"features": [[1.1, 2.2, 3.1], [1.2, 2.1, 3.2]],
          "targets": ['1', '2']},
-        "NEW_MODEL_KEY", "RFC", {}, False)
+        "NEW_MODEL_KEY", "RFC", {})
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "test_build_model_RFC.pkl"))
+                                "NEW_MODEL_KEY.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "test_build_model_RFC.pkl"))
+                              "NEW_MODEL_KEY.pkl"))
     assert hasattr(model, "predict_proba")
-    os.remove(pjoin(cfg.MODELS_FOLDER, "test_build_model_RFC.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "NEW_MODEL_KEY.pkl"))
     assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                    "test_build_model_RFC.pkl"))
+                                    "NEW_MODEL_KEY.pkl"))
 
 
 def test_read_features_data_from_disk():
@@ -69,12 +69,12 @@ def test_build_model_rfc():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFC")
+    build_model.build_model("TEMP_TEST01", "RFC", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RFC.pkl"))
+                                "TEMP_TEST01.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "TEMP_TEST01_RFC.pkl"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFC.pkl"))
+                              "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict_proba")
@@ -87,12 +87,12 @@ def test_build_model_rfr():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="RFR")
+    build_model.build_model("TEMP_TEST01", "RFR", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_RFR.pkl"))
+                                "TEMP_TEST01.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "TEMP_TEST01_RFR.pkl"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_RFR.pkl"))
+                              "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
@@ -105,12 +105,12 @@ def test_build_model_lin_class():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LC")
+    build_model.build_model("TEMP_TEST01", "LC", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_LC.pkl"))
+                                "TEMP_TEST01.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "TEMP_TEST01_LC.pkl"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LC.pkl"))
+                              "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
@@ -122,12 +122,12 @@ def test_build_model_lin_reg():
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
-    build_model.build_model("TEMP_TEST01", "TEMP_TEST01", model_type="LR")
+    build_model.build_model("TEMP_TEST01", "LR", "TEMP_TEST01")
     assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
-                                "TEMP_TEST01_LR.pkl"))
+                                "TEMP_TEST01.pkl"))
     model = joblib.load(pjoin(cfg.MODELS_FOLDER,
-                              "TEMP_TEST01_LR.pkl"))
-    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01_LR.pkl"))
+                              "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
