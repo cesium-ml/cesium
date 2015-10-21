@@ -114,6 +114,7 @@ def test_build_model_lin_class():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
+    assert hasattr(model, "predict_proba")
 
 
 def test_build_model_lin_reg():
@@ -132,3 +133,39 @@ def test_build_model_lin_reg():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
     assert "LinearRegression" in str(type(model))
+
+
+def test_build_model_ridge_cv():
+    """Test main model building method - Ridge Classifer CV"""
+    shutil.copy(pjoin(DATA_PATH, "test_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "RC", "TEMP_TEST01")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01.pkl"))
+    model = joblib.load(pjoin(cfg.MODELS_FOLDER,
+                              "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    assert hasattr(model, "predict")
+    assert hasattr(model, "predict_proba")
+
+
+def test_build_model_ard_reg():
+    """Test main model building method - ARD Regression"""
+    shutil.copy(pjoin(DATA_PATH, "test_reg_targets.npy"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    shutil.copy(pjoin(DATA_PATH, "test_features.csv"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    build_model.build_model("TEMP_TEST01", "ARDR", "TEMP_TEST01")
+    assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+                                "TEMP_TEST01.pkl"))
+    model = joblib.load(pjoin(cfg.MODELS_FOLDER,
+                              "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
+    assert hasattr(model, "predict")
+    assert "ARDRegression" in str(type(model))

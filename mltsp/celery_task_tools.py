@@ -43,7 +43,7 @@ def create_and_pickle_model(data_dict, model_key, model_type,
 
     model_obj = models_type_dict[model_type](**model_options)
     # Multi-class capabilities for linear classifer:
-    if model_type == "LC":
+    if model_type in ["LC", "RC"]:
         model_obj = OneVsRestClassifier(model_obj)
 
     # Fit the model to training data:
