@@ -23,6 +23,7 @@ from flask import (
     session, Response, jsonify, g)
 from werkzeug import secure_filename
 import uuid
+import numpy as np
 
 import yaml
 if os.getenv("MLTSP_DEBUG_LOGIN") == "1" or '--disable-auth' in sys.argv:
@@ -2077,6 +2078,11 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
+    n_cols_html_table = 5
+    results_str = (
+        "<table id='pred_results_table' class='tablesorter'>"
+        "<thead><tr class='pred_results'>"
+        "<th class='pred_results'>File</th>")
     featset_key = model_key_to_featset_key(model_key)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script = None
@@ -2084,21 +2090,6 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
-    n_cols_html_table = 5
-    results_str = (
-        "<table id='pred_results_table' class='tablesorter'>"
-        "    <thead>"
-        "        <tr class='pred_results'>"
-        "            <th class='pred_results'>File</th>")
-    for i in range(n_cols_html_table):
-        results_str += (
-            "            <th class='pred_results'>Class%d</th>"
-            "            <th class='pred_results'>Class%d_Prob</th>") % (i + 1,
-                                                                         i + 1)
-    results_str += (
-        "        </tr>"
-        "    </thead>"
-        "    <tbody>")
     try:
         results_dict = predict.predict(
             newpred_file_path=newpred_file_path, model_key=model_key,
@@ -2132,6 +2123,21 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
             "Error occurred during predict.predict() call.")
     else:
         if isinstance(results_dict, dict):
+            x = results_dict[results_dict.keys()[0]]["pred_results"]
+            if isinstance(x, list) and isinstance(x[0], (list, np.ndarray)):
+                # Probabilistic classification
+                for i in range(n_cols_html_table):
+                    results_str += (
+                        "<th class='pred_results'>Class%d</th>"
+                        "<th class='pred_results'>Class%d_Prob</th>") % (i + 1,
+                                                                         i + 1)
+            else:
+                # Non-probabilistic prediction
+                results_str += "<th class='pred_results'>Predicted Target</th>"
+            results_str += (
+                "</tr>"
+                "</thead>"
+                "<tbody>")
             big_features_dict = {}
             ts_data_dict = {}
             pred_results_dict = {}
