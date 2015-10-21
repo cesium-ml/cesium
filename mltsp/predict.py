@@ -188,9 +188,9 @@ def create_feat_dict_and_list(new_obj, features_to_use, features_extracted):
     return (newFeatures, features_dict)
 
 
-def add_to_predict_results_dict_classification(results_dict, estimator_preds,
-                                               fname, ts_data, features_dict,
-                                               featset_key, n_cols_html_table):
+def add_to_predict_results_dict_classification_proba(
+        results_dict, estimator_preds, fname, ts_data, features_dict,
+        featset_key, n_cols_html_table):
     """
     """
     # Load model target list
@@ -224,6 +224,26 @@ def add_to_predict_results_dict_classification(results_dict, estimator_preds,
     results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": results_arr}
+    return
+
+
+def add_to_predict_results_dict_classification(
+        results_dict, estimator_preds, fname, ts_data, features_dict,
+        featset_key, n_cols_html_table):
+    """
+    """
+    results_str = ("<tr class='pred_results'>"
+                   "<td class='pred_results pred_results_fname_cell'>"
+                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
+    if isinstance(estimator_preds, (list, np.ndarray)):
+        estimator_preds = estimator_preds[0]
+
+    results_str += "<td class='pred_results'>%s</td>" % str(estimator_preds)
+
+    results_str += "</tr>"
+    results_dict[os.path.basename(fname)] = {
+        "results_str": results_str, "ts_data": ts_data,
+        "features_dict": features_dict, "pred_results": estimator_preds}
     return
 
 
@@ -264,17 +284,23 @@ def do_model_predictions(big_features_and_tsdata_dict, model_key, model_type,
             new_obj, features_to_use, features_extracted)
 
         # Load model
-        rfc_model = joblib.load(os.path.join(
+        model = joblib.load(os.path.join(
             cfg.MODELS_FOLDER, "{}.pkl".format(model_key)))
 
         # Do probabilistic model prediction when possible
         if model_type[-1] == "C":
-            estimator_preds = rfc_model.predict_proba(np.array(newFeatures))
-            add_to_predict_results_dict_classification(
-                results_dict, estimator_preds, fname, ts_data, features_dict,
-                featset_key, n_cols_html_table)
+            try:
+                estimator_preds = model.predict_proba(np.array(newFeatures))
+                add_to_predict_results_dict_classification_proba(
+                    results_dict, estimator_preds, fname, ts_data,
+                    features_dict, featset_key, n_cols_html_table)
+            except AttributeError:
+                estimator_preds = model.predict(np.array(newFeatures))
+                add_to_predict_results_dict_classification(
+                    results_dict, estimator_preds, fname, ts_data,
+                    features_dict, featset_key, n_cols_html_table)
         elif model_type[-1] == "R":
-            estimator_preds = rfc_model.predict(np.array(newFeatures))
+            estimator_preds = model.predict(np.array(newFeatures))
             add_to_predict_results_dict_regression(
                 results_dict, estimator_preds, fname, ts_data, features_dict,
                 n_cols_html_table)
