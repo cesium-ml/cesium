@@ -85,7 +85,7 @@ def is_running_in_docker():
 
 
 def cast_model_params(model_type, model_params):
-    """Attempt to cast model parameters strings to expected types."""
+    """Cast model parameter strings to expected types."""
     from .ext.sklearn_models import model_descriptions
     for entry in model_descriptions:
         if entry["abbr"] == model_type:
@@ -99,9 +99,18 @@ def cast_model_params(model_type, model_params):
             if p["name"] == k:
                 param_entry = p
                 break
-        if type(param_entry["type"]) == type or param_entry["type"] == np.array:
+        if type(param_entry["type"]) == type and param_entry["type"] != list:
             dest_type = param_entry["type"]
             model_params[k] = dest_type(v)
+        elif param_entry["type"] == list:
+            model_params[k] = model_params[k].replace("[", "").replace("]", "")\
+                                                              .replace(" ", "")\
+                                                              .split(",")
+            for i in range(len(model_params[k])):
+                if "." in model_params[k][i]:
+                    model_params[k][i] = float(model_params[k][i])
+                elif model_params[k][i].isdigit():
+                    model_params[k][i] = int(model_params[k][i])
         elif type(param_entry["type"]) == list:
             dest_types_list = param_entry["type"]
             for dest_type in dest_types_list:

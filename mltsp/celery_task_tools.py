@@ -30,8 +30,6 @@ def create_and_pickle_model(data_dict, model_key, model_type,
 
     if "RF" in model_type and "n_estimators" not in model_options:
         model_options["n_estimators"] = 1000
-    if "n_jobs" not in model_options and model_type != "LR":
-        model_options["n_jobs"] = -1
     if "loss" not in model_options and model_type == "LC":
         model_options["loss"] = "modified_huber"
 
@@ -138,8 +136,8 @@ def read_features_data_from_disk(featureset_key):
         cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
     # Read in feature data and target value list
     features_extracted, all_data = read_data_from_csv_file(features_filename)
-    targets = list(np.load(features_filename.replace("_features.csv",
-                                                     "_targets.npy")))
+    targets = np.load(features_filename.replace("_features.csv",
+                                                "_targets.npy"))
 
     # Put data and target list into dictionary
     data_dict = {}
