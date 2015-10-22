@@ -2,13 +2,6 @@ casper.test.begin('predict', function suite(test) {
     casper.start('http://localhost:5000', function() {
         this.page.viewportSize = { width: 1920, height: 1080 };
 
-        if(this.exists('form.login-form')){
-            this.fill('form.login-form', {
-                'login': 'testhandle@test.com',
-                'password':  'TestPass15'
-            }, true);
-        }
-
         // Predict
         casper.then(function(){
             this.click("#predictTabButton");
