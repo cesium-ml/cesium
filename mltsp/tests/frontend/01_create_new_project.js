@@ -20,7 +20,7 @@ casper.test.begin('create new project'
                 'new_project_name': 'test_name',
                 'project_description': 'desc',
                 'addl_authed_users': ''
-            }, true);
+            }, false);
             this.click('#new_project_button');
         });
         casper.then(function(){
