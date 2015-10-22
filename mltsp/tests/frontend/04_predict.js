@@ -42,7 +42,6 @@ casper.test.begin('predict', function suite(test) {
             }else{
                 this.echo("button not disabled");
             }
-            //this.page.render("/tmp/test.jpeg", {format: "jpeg"});
 
             this.click('#predict_form_submit_button');
         });

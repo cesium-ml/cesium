@@ -2,12 +2,6 @@ casper.test.begin('featurize', function suite(test) {
     casper.start('http://localhost:5000', function() {
         this.page.viewportSize = { width: 1920, height: 1080 };
 
-        if(this.exists('form.login-form')){
-            this.fill('form.login-form', {
-                'login': 'testhandle@test.com',
-                'password':  'TestPass15'
-            }, true);
-        }
 
         casper.setFilter("page.confirm", function(message) {
             this.echo(message);
@@ -51,15 +45,10 @@ casper.test.begin('featurize', function suite(test) {
             }else{
                 this.echo("button not disabled");
             }
-            //this.page.render("/tmp/test.jpeg", {format: "jpeg"});
 
             this.wait(1000, function(){
                 this.click("#featurize_button");
                 this.echo("Clicked #featurize_button");
-
-                this.evaluate(function(){
-                    featurizeFormSubmit();
-                });
             });
 
         });
