@@ -16,7 +16,6 @@ casper.test.begin('build model', function suite(test) {
                 document.querySelector('#buildmodel_project_name_select').selectedIndex = 0;
                 document.querySelector('#modelbuild_featset_name_select').selectedIndex = 0;
                 document.querySelector('#model_type_select').selectedIndex = 0;
-                build_model_form_validation();
                 return true;
             });
             this.click('#model_build_submit_button');
