@@ -92,7 +92,7 @@ def cast_model_params(model_type, model_params):
             params_list = entry["params"]
             break
     for k, v in model_params.items():
-        if v == "None":
+        if v in ["None", ""]:
             model_params[k] = None
             continue
         for p in params_list:
