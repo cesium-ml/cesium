@@ -1224,7 +1224,7 @@ def featset_associated_files(featset_key):
             os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
             os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key),
             os.path.join(cfg.FEATURES_FOLDER,
-                         "%s_features_with_classes.csv" % featset_key)]:
+                         "%s_features_with_targets.csv" % featset_key)]:
         if os.path.exists(fpath):
             fpaths.append(fpath)
     entry_dict = rdb.table("features").get(featset_key).run(g.rdb_conn)
