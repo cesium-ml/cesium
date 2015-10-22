@@ -285,7 +285,10 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
                 f.write(','.join(line) + '\n')
                 if numobjs < 300:
                     f2.write(','.join(line2) + '\n')
-                targets.append(str(obj['target']))
+                if "." in str(obj["target"]) and \
+                   str(obj["target"]).replace(".", "").isdigit():
+                    obj["target"] = float(obj["target"])
+                targets.append(obj['target'])
                 num_used[str(obj['target'])] += 1
             else:
                 cv_objs.append(obj)

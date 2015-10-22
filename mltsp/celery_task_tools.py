@@ -1,7 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
-from sklearn.multiclass import OneVsRestClassifier
 from sklearn.externals import joblib
 import os
 from mltsp import cfg
