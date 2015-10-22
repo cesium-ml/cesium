@@ -453,7 +453,7 @@ def update_prediction_entry_with_results(prediction_entry_key, html_str,
     if err is not None:
         info_dict["err_msg"] = err
     rdb.table("predictions").get(prediction_entry_key)\
-                          .update(info_dict).run(g.rdb_conn)
+                            .update(info_dict).run(g.rdb_conn)
     return True
 
 
@@ -2135,7 +2135,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
             "Error occurred during predict.predict() call.")
     else:
         if isinstance(results_dict, dict):
-            x = results_dict[results_dict.keys()[0]]["pred_results"]
+            x = results_dict.values()[0]["pred_results"]
             if isinstance(x, list) and isinstance(x[0], (list, np.ndarray)):
                 # Probabilistic classification
                 for i in range(n_cols_html_table):

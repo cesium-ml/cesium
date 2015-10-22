@@ -27,11 +27,6 @@ def create_and_pickle_model(data_dict, model_key, model_type,
 
     """
 
-    if "RF" in model_type and "n_estimators" not in model_options:
-        model_options["n_estimators"] = 1000
-    if "loss" not in model_options and model_type == "LC":
-        model_options["loss"] = "modified_huber"
-
     models_type_dict = {"RFC": RandomForestClassifier,
                         "RFR": RandomForestRegressor,
                         "LC": SGDClassifier,

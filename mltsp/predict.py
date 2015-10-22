@@ -196,21 +196,16 @@ def add_to_predict_results_dict_classification_proba(
     # Load model target list
     all_objs_target_list = list(np.load(
         os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key)))
-    sorted_target_list = []
-    for i in sorted(all_objs_target_list):
-        if i not in sorted_target_list:
-            sorted_target_list.append(i)
+    sorted_target_list = sorted(set(all_objs_target_list))
     target_probs = estimator_preds[0]
-    target_names = sorted_target_list
 
     results_str = ("<tr target='pred_results'>"
                    "<td target='pred_results pred_results_fname_cell'>"
                    "<a href='#'>%s</a></td>") % os.path.basename(fname)
-    results_arr = []
 
+    results_arr = []
     for i in range(len(target_probs)):
-        results_arr.append(
-            [sorted_target_list[i], float(target_probs[i])])
+        results_arr.append([sorted_target_list[i], target_probs[i]])
     results_arr.sort(key=itemgetter(1), reverse=True)
 
     for i in range(len(results_arr)):
