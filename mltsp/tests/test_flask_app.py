@@ -1209,7 +1209,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(cfg.FEATURES_FOLDER, "abc123_features.csv"),
                  "w").close()
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_classes.npy"), "w").close()
+            open(pjoin(cfg.FEATURES_FOLDER, "abc123_targets.npy"), "w").close()
             assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "abc123_features.csv"))
             fa.update_project_info("abc123", "abc123", "", [],
