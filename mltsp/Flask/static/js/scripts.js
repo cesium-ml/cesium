@@ -41,9 +41,9 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 
         // compute and plot phase-folded ts data if period has been computed:
         var period = 0;
-        if("freq1_harmonics_freq_0" in features_dict){
-            console.log("period = " + String(1.0/parseFloat(features_dict["freq1_harmonics_freq_0"])));
-            period=1.0/parseFloat(features_dict["freq1_harmonics_freq_0"]);
+        if("freq1_freq" in features_dict){
+            console.log("period = " + String(1.0/parseFloat(features_dict["freq1_freq"])));
+            period=1.0/parseFloat(features_dict["freq1_freq"]);
             var phase_mag = [];
             for (var i=0; i < data['ts_data'].length; i++){
 
@@ -80,7 +80,7 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
             chart.draw(folded_ts_data, folded_ts_data_plot_options);
 
         }else{
-            console.log("freq1_harmonics_freq_0 not in features_dict");
+            console.log("freq1_freq not in features_dict");
             $('#ts_data_folded_plot_div').html("<h5>Period-folded time series data plot</h5><BR><BR><h4>Period/frequency not computed for this feature set.</h4>");
         }
 
