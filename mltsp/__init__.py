@@ -14,8 +14,7 @@ def install():
     import shutil
     from distutils.dir_util import copy_tree
 
-    data_src = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                            "data")
+    data_src = os.path.join(os.path.dirname(__file__), "data")
     data_dst = os.path.expanduser('~/.local/mltsp/')
     copy_tree(data_src, data_dst, update=1)
     print("Created data directory at {} and copied sample data.".format(

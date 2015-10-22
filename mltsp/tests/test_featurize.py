@@ -139,8 +139,6 @@ def test_write_features_to_disk():
                     "test_featset01_features_with_targets.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_targets.npy"))
-    os.remove(pjoin(cfg.MLTSP_PACKAGE_PATH, "Flask/static/data",
-                    "test_featset01_features_with_targets.csv"))
     npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
     npt.assert_equal(feat_class_cont,
                      "target,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
@@ -174,8 +172,7 @@ def test_main_featurize_function():
     cols = df.columns
     values = df.values
     os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(pjoin(pjoin(cfg.MLTSP_PACKAGE_PATH,
-                          "Flask/static/data"),
+    os.remove(pjoin(cfg.FEATURES_FOLDER,
                     "test_features_with_targets.csv"))
     assert("std_err" in cols)
     assert("f" in cols)

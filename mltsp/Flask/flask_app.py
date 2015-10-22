@@ -20,7 +20,7 @@ import logging
 import simplejson
 from flask import (
     Flask, request, abort, render_template,
-    session, Response, jsonify, g)
+    session, Response, jsonify, g, send_from_directory)
 from werkzeug import secure_filename
 import uuid
 import numpy as np
@@ -109,6 +109,24 @@ ALLOWED_EXTENSIONS = set([
     'txt', 'dat', 'csv', 'fits', 'jpeg', 'gif', 'bmp', 'doc', 'odt', 'xml',
     'json', 'TXT', 'DAT', 'CSV', 'FITS', 'JPEG', 'GIF', 'BMP', 'DOC', 'ODT',
     'XML', 'JSON'])
+
+
+def user_can_access_features_file(filename):
+    authed_projkeys = get_authed_projkeys()
+    featureset_key = filename.split("_")[0]
+    projkey = rdb.table("features").get(featureset_key)\
+                                   .run(g.rdb_conn)['projkey']
+    return projkey in authed_projkeys
+
+
+# Data read from features directory
+@app.route('/features_data/<path:filename>')
+@stormpath.login_required
+def custom_static_features_data(filename):
+    if user_can_access_features_file(filename):
+        return send_from_directory(cfg.FEATURES_FOLDER, filename)
+    else:
+        abort(403)
 
 
 @app.before_request
@@ -1205,10 +1223,8 @@ def featset_associated_files(featset_key):
     for fpath in [
             os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
             os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key),
-            os.path.join(os.path.join(os.path.join(
-                os.path.dirname(__file__), "static"),
-                "data"),
-                "%s_features_with_classes.csv" % featset_key)]:
+            os.path.join(cfg.FEATURES_FOLDER,
+                         "%s_features_with_classes.csv" % featset_key)]:
         if os.path.exists(fpath):
             fpaths.append(fpath)
     entry_dict = rdb.table("features").get(featset_key).run(g.rdb_conn)
@@ -2006,10 +2022,6 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
 
     Parameters
     ----------
-    featureset_name : str
-        Name of the feature set associated with the model to be created.
-    featureset_key : str
-        RethinkDB ID of the associated feature set.
     model_type : str
         Abbreviation of the model type to be created (e.g. "RFC").
     model_params : dict

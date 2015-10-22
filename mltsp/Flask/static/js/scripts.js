@@ -719,7 +719,7 @@ function plotFeaturesFormSubmit(){
     project_name = $( "#plot_feats_project_name_select" ).val();
     featureset_name = $( "#plot_features_featset_name_select" ).val();
     $.get("/get_featureset_id_by_projname_and_featsetname/"+project_name+"/"+featureset_name,function(data){
-        drawScatterplotMatrix("/static/data/" + data["featureset_id"] + "_features_with_targets.csv");
+        drawScatterplotMatrix("/features_data/" + data["featureset_id"] + "_features_with_classes.csv");
     });
     $('#tabs').tabs( "option", "active",  false);
 }
