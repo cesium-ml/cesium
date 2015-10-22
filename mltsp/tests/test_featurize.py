@@ -22,6 +22,16 @@ def test_setup():
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
 
 
+def test_setup_regression():
+    fpaths = []
+    fnames = ["asas_training_subset_targets.dat",
+              "asas_training_subset.tar.gz", "testfeature1.py"]
+    for fname in fnames:
+        fpaths.append(pjoin(DATA_PATH, fname))
+    for fpath in fpaths:
+        shutil.copy(fpath, cfg.UPLOAD_FOLDER)
+
+
 def test_features_file_parser():
     """Test features file parsing."""
     objects = featurize.parse_prefeaturized_csv_data(
@@ -160,7 +170,7 @@ def test_main_featurize_function():
         features_to_use=["std_err", "f"],
         featureset_id="test", is_test=True,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
-                                 "testfeature1.py"),)
+                                 "testfeature1.py"))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -181,9 +191,41 @@ def test_main_featurize_function():
                for class_name in target_list))
 
 
+def test_main_featurize_function_regression_data():
+    """Test main featurize function - regression data"""
+    test_setup_regression()
+
+    results_msg = featurize.featurize(
+        headerfile_path=pjoin(
+            cfg.UPLOAD_FOLDER,
+            "asas_training_subset_targets.dat"),
+        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
+                           "asas_training_subset.tar.gz"),
+        features_to_use=["std_err", "freq1_freq", "amplitude"],
+        featureset_id="test", is_test=True,
+        custom_script_path=None)
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv")))
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_targets.npy")))
+    target_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy"))
+    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv"))
+    cols = df.columns
+    values = df.values
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER,
+                    "test_features_with_targets.csv"))
+    npt.assert_array_equal(sorted(cols), ["amplitude", "freq1_freq", "std_err"])
+    assert(all(isinstance(target, (float, np.float))
+               for target in target_list))
+
+
 def test_teardown():
     fpaths = []
     for fname in ["asas_training_subset_classes_with_metadata.dat",
+                  "asas_training_subset_targets.dat",
                   "asas_training_subset.tar.gz", "testfeature1.py"]:
         fpaths.append(pjoin(cfg.UPLOAD_FOLDER, fname))
     for fpath in fpaths:
