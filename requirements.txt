@@ -19,4 +19,4 @@ pyyaml
 waitress
 celery
 toolz
-dask
+dask==0.7.3
