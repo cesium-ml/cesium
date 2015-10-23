@@ -205,7 +205,7 @@ def add_to_predict_results_dict_classification_proba(
 
     results_arr = []
     for i in range(len(target_probs)):
-        results_arr.append([sorted_target_list[i], target_probs[i]])
+        results_arr.append([sorted_target_list[i], float(target_probs[i])])
     results_arr.sort(key=itemgetter(1), reverse=True)
 
     for i in range(len(results_arr)):

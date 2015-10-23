@@ -472,11 +472,10 @@ def test_do_model_predictions_lc():
     assert("dotastro_215153" in pred_results_dict)
     assert("std_err" in
            pred_results_dict["dotastro_215153"]["features_dict"])
-    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
-                             'RR_Lyrae']
-                   for el in pred_results_dict[fname]\
-                   ["pred_results"]) for fname in pred_results_dict))
+    assert(all(pred_results_dict[fname]["pred_results"] in
+               ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                'RR_Lyrae'] for fname in pred_results_dict))
 
 
 def test_main_predict_lc():
@@ -500,11 +499,10 @@ def test_main_predict_lc():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
-    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
-                             'RR_Lyrae']
-                   for el in pred_results_dict[fname]\
-                   ["pred_results"]) for fname in pred_results_dict))
+    assert(all(pred_results_dict[fname]["pred_results"] in
+               ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                'RR_Lyrae'] for fname in pred_results_dict))
 
 
 def test_main_predict_tarball_lc():
@@ -530,11 +528,10 @@ def test_main_predict_tarball_lc():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
     npt.assert_equal(len(pred_results_dict), 4)
-    assert(all(all(el[0] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                             'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
-                             'RR_Lyrae']
-                   for el in pred_results_dict[fname]\
-                   ["pred_results"]) for fname in pred_results_dict))
+    assert(all(pred_results_dict[fname]["pred_results"] in
+               ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti',
+                'RR_Lyrae'] for fname in pred_results_dict))
 
 
 def test_do_model_predictions_lr():

@@ -114,7 +114,7 @@ def test_build_model_lin_class():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
-    assert hasattr(model, "predict_proba")
+    assert "SGDClassifier" in str(type(model))
 
 
 def test_build_model_lin_reg():
@@ -150,6 +150,7 @@ def test_build_model_ridge_cv():
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_targets.npy"))
     os.remove(pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_features.csv"))
     assert hasattr(model, "predict")
+    assert "RidgeClassifierCV" in str(type(model))
 
 
 def test_build_model_ard_reg():
