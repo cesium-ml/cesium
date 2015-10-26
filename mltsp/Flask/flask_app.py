@@ -1049,7 +1049,8 @@ def add_model(model_name, featureset_name, featureset_key, model_type,
     model_type : str
         Abbreviation of model/classifier type (e.g. "RFC").
     model_params : dict
-        Dictionary describing model parameters.
+        Dictionary containing names of scikit-learn model parameters and
+        their values. Values can be strings, ints floats, lists or dicts.
     projkey : str
         RethinkDB key/ID of parent project.
     pid : str
@@ -1569,8 +1570,8 @@ def model_name_to_key(model_name, project_name=None, project_id=None):
             model_key.append(entry["id"])
         try:
             model_key = model_key[0]
-        except Exception as theError:
-            logging.exception(theError)
+        except IndexError as err:
+            logging.exception(err)
             return False
         return model_key
 
