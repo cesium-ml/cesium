@@ -24,7 +24,7 @@ model_descriptions = [
     {"name": "RandomForestRegressor",
      "params": [
          {"name": "n_estimators", "type": int, "default": 10},
-     {"name": "criterion", "type": str, "default": "mse"},
+         {"name": "criterion", "type": str, "default": "mse"},
          {"name": "max_features", "type": [int, float, str],
           "default": "auto"},
          {"name": "max_depth", "type": int, "default": None},
@@ -42,7 +42,7 @@ model_descriptions = [
     {"name": "LinearSGDClassifier",
      "params": [
          {"name": "loss", "type": str, "default": "hinge"},
-     {"name": "penalty", "type": str, "default": "l2"},
+         {"name": "penalty", "type": str, "default": "l2"},
          {"name": "alpha", "type": float, "default": 0.0001},
          {"name": "l1_ratio", "type": float, "default": 0.15},
          {"name": "fit_intercept", "type": bool, "default": True},
