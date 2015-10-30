@@ -1,11 +1,6 @@
 from __future__ import print_function
-from sklearn.ensemble import RandomForestClassifier as RFC
-from sklearn.externals import joblib
-# from sklearn.cross_validation import train_test_split
-# from sklearn.metrics import confusion_matrix
 import os
 import numpy as np
-import pickle
 from . import cfg
 from mltsp.celery_tasks import fit_and_store_model
 

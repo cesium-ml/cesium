@@ -7,12 +7,9 @@ import numpy as np
 import os
 from os.path import join as pjoin
 from subprocess import call, PIPE
+import json
 import shutil
 import uuid
-try:
-    import cPickle as pickle
-except:
-    import pickle
 import tempfile
 from numpy.testing import decorators as dec
 
@@ -98,14 +95,14 @@ def test_copy_data_to_tmp_dir():
     copied_file_path1 = pjoin(tmp_dir_path,
                               "custom_feature_defs.py")
     copied_file_path2 = pjoin(tmp_dir_path,
-                              "features_already_known.pkl")
+                              "features_already_known.json")
 
     feats_known_dict = {"feat1": 0.215, "feat2": 0.311}
     ts_datafile = pjoin(DATA_PATH, "dotastro_215153.dat")
     t, m, e = ctt.parse_ts_data(ts_datafile)
-    feats_known_dict['t'] = t
-    feats_known_dict['m'] = m
-    feats_known_dict['e'] = e
+    feats_known_dict['t'] = list(t)
+    feats_known_dict['m'] = list(m)
+    feats_known_dict['e'] = list(e)
 
     for fpath in [copied_file_path1, copied_file_path2]:
         if os.path.exists(fpath):
@@ -115,9 +112,9 @@ def test_copy_data_to_tmp_dir():
                              feats_known_dict)
     assert(os.path.exists(copied_file_path1))
     assert(os.path.exists(copied_file_path2))
-    with open(copied_file_path2, "rb") as f:
-        unpickled_dict = pickle.load(f)
-    npt.assert_equal(unpickled_dict, feats_known_dict)
+    with open(copied_file_path2, "r") as f:
+        loaded_dict = json.load(f)
+    npt.assert_equal(loaded_dict, feats_known_dict)
     shutil.rmtree(tmp_dir_path, ignore_errors=True)
 
 
@@ -128,9 +125,9 @@ def test_extract_feats_in_docker_container():
     feats_known_dict = {"feat1": 0.215, "feat2": 0.311}
     ts_datafile = pjoin(DATA_PATH, "dotastro_215153.dat")
     t, m, e = ctt.parse_ts_data(ts_datafile)
-    feats_known_dict['t'] = t
-    feats_known_dict['m'] = m
-    feats_known_dict['e'] = e
+    feats_known_dict['t'] = list(t)
+    feats_known_dict['m'] = list(m)
+    feats_known_dict['e'] = list(e)
     cft.copy_data_to_tmp_dir(tmp_dir_path,
                              pjoin(DATA_PATH, "testfeature1.py"),
                              feats_known_dict)
@@ -160,7 +157,7 @@ def test_docker_extract_features():
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")
     ts_datafile = pjoin(DATA_PATH, "dotastro_215153.dat")
     t, m, e = ctt.parse_ts_data(ts_datafile)
-    feats_known_dict = {'t': t, 'm': m, 'e': e}
+    feats_known_dict = {'t': list(t), 'm': list(m), 'e': list(e)}
     results = cft.docker_extract_features(script_fpath, feats_known_dict)
     assert(isinstance(results, dict))
     npt.assert_almost_equal(results["avg_mag"], 10.347417647058824)

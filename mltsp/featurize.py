@@ -33,12 +33,12 @@ def parse_prefeaturized_csv_data(features_file_path):
 
     Returns
     -------
-    list of dict
-        Returns list of dictionaries containing features - feature
+    dict
+        Returns dictionary containing features - feature
         names as keys, corresponding values as dict values.
 
     """
-    objects = []
+    features = []
     with open(features_file_path) as f:
         # First line contains column titles
         keys = f.readline().strip().split(',')
@@ -47,10 +47,10 @@ def parse_prefeaturized_csv_data(features_file_path):
             if len(vals) != len(keys):
                 continue
             else:
-                objects.append({})
+                features.append({})
                 for i in range(len(keys)):
-                    objects[-1][keys[i]] = vals[i]
-    return objects
+                    features[-1][keys[i]] = vals[i]
+    return features
 
 
 def parse_headerfile(headerfile_path, features_to_use):
@@ -140,40 +140,6 @@ def generate_featurize_input_params_list(features_to_use, fname_target_dict,
                                   fname_target_dict[short_fname],
                                   features_to_use))
     return input_params_list
-
-
-def generate_features(headerfile_path, zipfile_path, features_to_use,
-                      custom_script_path, is_test, already_featurized,
-                      in_docker_container):
-    """Generate features for provided time-series data."""
-    if already_featurized:
-        # Read in features from CSV file
-        objects = parse_prefeaturized_csv_data(headerfile_path)
-    else:
-        # Parse header file
-        (features_to_use, fname_target_dict, fname_target_science_features_dict,
-         fname_metadata_dict) = parse_headerfile(headerfile_path,
-                                                 features_to_use)
-        input_params_list = generate_featurize_input_params_list(
-            features_to_use, fname_target_dict,
-            fname_target_science_features_dict, fname_metadata_dict,
-            zipfile_path, custom_script_path, is_test)
-        # TO-DO: Determine number of cores in cluster:
-        res = featurize_celery_task.chunks(input_params_list,
-                                           cfg.N_CORES).delay()
-        res_list = res.get(timeout=100)
-        objects = []
-        for line in res_list:
-            for el in line:
-                short_fname, new_feats = el
-                if short_fname in fname_metadata_dict:
-                    all_features = dict(
-                        list(new_feats.items()) +
-                        list(fname_metadata_dict[short_fname].items()))
-                else:
-                    all_features = new_feats
-                objects.append(all_features)
-    return objects
 
 
 def determine_feats_to_plot(features_extracted):
@@ -318,7 +284,7 @@ def featurize(
     headerfile_path : str
         Path to header file containing file names, target names, and
         metadata.
-    zipfile_path : str
+    zipfile_path : str, optional
         Path to the tarball of individual time series files to be used
         for feature generation.
     features_to_use : list of str, optional
@@ -348,9 +314,26 @@ def featurize(
 
     """
     # Generate features for each TS object
-    features = generate_features(
-        headerfile_path, zipfile_path, features_to_use,
-        custom_script_path, is_test, already_featurized, in_docker_container)
+    if already_featurized:
+        # Read in features from CSV file
+        features = parse_prefeaturized_csv_data(headerfile_path)
+    else:
+        # Parse header file
+        (features_to_use, fname_target_dict, fname_target_science_features_dict,
+         fname_metadata_dict) = parse_headerfile(headerfile_path,
+                                                 features_to_use)
+        input_params_list = generate_featurize_input_params_list(
+            features_to_use, fname_target_dict,
+            fname_target_science_features_dict, fname_metadata_dict,
+            zipfile_path, custom_script_path, is_test)
+        # TO-DO: Determine number of cores in cluster:
+        res = featurize_celery_task.chunks(input_params_list,
+                                           cfg.N_CORES).delay()
+        res_list = res.get(timeout=100) # list of list of [fname, features]
+        feature_dict = dict([tuple(res) for chunk in res_list for res in chunk])
+        for fname in feature_dict.keys():
+            feature_dict[fname].update(fname_metadata_dict.get(fname, {}))
+        features = feature_dict.values()
 
     write_features_to_disk(features, featureset_id, features_to_use,
                            in_docker_container)

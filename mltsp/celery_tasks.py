@@ -1,16 +1,13 @@
 from celery import Celery
 import os
 import sys
-import pickle
 import numpy as np
-import uuid
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from mltsp import obs_feature_tools as oft
 from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 from mltsp import cfg
 from mltsp import celery_task_tools as ctt
-from copy import deepcopy
 
 
 os.environ['CELERY_CONFIG_MODULE'] = cfg.CELERY_CONFIG

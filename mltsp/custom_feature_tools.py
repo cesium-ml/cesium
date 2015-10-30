@@ -4,10 +4,7 @@ from __future__ import print_function
 from parse import parse
 import sys
 import os
-try:
-    import cPickle as pickle
-except:
-    import pickle
+import json
 import uuid
 import io
 import tarfile
@@ -218,12 +215,7 @@ def call_custom_functions(features_already_known, all_required_params,
     return all_extracted_features
 
 
-def execute_functions_in_order(
-        script_fpath,
-        features_already_known={
-            "t": [1, 2, 3], "m": [1, 23, 2], "e": [0.2, 0.3, 0.2],
-            "coords": [22, 33]},
-        multiple_sources=False):
+def execute_functions_in_order(script_fpath, features_already_known):
     """Generate custom features defined in script_fpath.
 
     Parses the script (which must have function definitions with
@@ -293,9 +285,9 @@ def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
     """
     shutil.copy(script_fpath,
                 os.path.join(path_to_tmp_dir, "custom_feature_defs.py"))
-    with open(os.path.join(path_to_tmp_dir, "features_already_known.pkl"),
-              "wb") as f:
-        pickle.dump(features_already_known, f, protocol=2)
+    with open(os.path.join(path_to_tmp_dir, "features_already_known.json"),
+              "w") as f:
+        json.dump(features_already_known, f)
     # Create __init__.py file so that custom feats script can be imported
     open(os.path.join(path_to_tmp_dir, "__init__.py"), "w").close()
     return
@@ -357,14 +349,14 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
         stderr = client.logs(container=cont_id, stderr=True)
         if str(stderr).strip() != "" and stderr != b'':
             print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
-        # Copy pickled results data from Docker container to host
-        docker_copy(client, cont_id, "/tmp/results_dict.pkl",
+        # Copy JSON results data from Docker container to host
+        docker_copy(client, cont_id, "/tmp/results_dict.json",
                     target=path_to_tmp_dir)
-        print("/tmp/results_dict.pkl copied to host machine.")
-        # Load pickled results data
-        with open(os.path.join(path_to_tmp_dir, "results_dict.pkl"),
-                  "rb") as f:
-            return pickle.load(f)
+        print("/tmp/results_dict.json copied to host machine.")
+        # Load results data
+        with open(os.path.join(path_to_tmp_dir, "results_dict.json"),
+                  "r") as f:
+            return json.load(f)
     except:
         raise
     finally:
@@ -447,7 +439,7 @@ def assemble_test_data():
     """
     fname = os.path.join(cfg.SAMPLE_DATA_PATH, "dotastro_215153.dat")
     t, m, e = ctt.parse_ts_data(fname)
-    features_already_known = {'t': t, 'm': m, 'e': e}
+    features_already_known = {'t': list(t), 'm': list(m), 'e': list(e)}
     return features_already_known
 
 
@@ -562,15 +554,9 @@ def generate_custom_features(custom_script_path, t, m, e,
     dict
         Dictionary containing newly-generated features.
     """
-    if "t" not in features_already_known:
-        features_already_known['t'] = t
-    if "m" not in features_already_known:
-        features_already_known['m'] = m
-    if e is not None and len(e) == len(m) and "e" not in features_already_known:
-        features_already_known['e'] = e
-    for k in ('t', 'm', 'e'):
-        if k in features_already_known:
-            features_already_known[k] = np.array(features_already_known[k])
+    features_already_known['t'] = list(t)
+    features_already_known['m'] = list(m)
+    features_already_known['e'] = list(e)
 
     if is_running_in_docker():
         all_new_features = execute_functions_in_order(

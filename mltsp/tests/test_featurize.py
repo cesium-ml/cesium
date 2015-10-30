@@ -15,7 +15,8 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 def test_setup():
     fpaths = []
     fnames = ["asas_training_subset_classes_with_metadata.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
+              "asas_training_subset.tar.gz", "testfeature1.py",
+              "test_features_with_targets.csv"]
     for fname in fnames:
         fpaths.append(pjoin(DATA_PATH, fname))
     for fpath in fpaths:
@@ -80,24 +81,6 @@ def test_count_targets():
     class_count, num_used, num_held_back = featurize.count_targets(objs)
     npt.assert_equal(class_count["class1"], 2)
     npt.assert_equal(class_count["class2"], 1)
-
-
-def test_generate_features():
-    """Test generate_features"""
-    objs = featurize.generate_features(
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset_classes_with_metadata.dat"),
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset.tar.gz"),
-        ["std_err"],
-        pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False)
-    npt.assert_equal(len(objs), 3)
-    assert(all("std_err" in d for d in objs))
-    assert(all("target" in d for d in objs))
-    assert(all(d["target"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for d in objs))
 
 
 def test_determine_feats_to_plot2():
@@ -189,6 +172,38 @@ def test_main_featurize_function():
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
                for class_name in target_list))
+
+
+def test_already_featurized_data():
+    """Test featurize function for pre-featurized data"""
+    test_setup()
+
+    results_msg = featurize.featurize(
+        headerfile_path=pjoin(
+            cfg.UPLOAD_FOLDER,
+            "test_features_with_targets.csv"),
+        zipfile_path=None,
+        already_featurized=True,
+        features_to_use=["std_err", "amplitude"],
+        featureset_id="test", is_test=True,
+        custom_script_path=None)
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv")))
+    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+                                "test_targets.npy")))
+    target_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy"))
+    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
+                                "test_features.csv"))
+    cols = df.columns
+    values = df.values
+    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
+    os.remove(pjoin(cfg.FEATURES_FOLDER,
+                    "test_features_with_targets.csv"))
+    assert("std_err" in cols)
+    assert("amplitude" in cols)
+    assert(all(class_name in ['class1', 'class2','class3'] for class_name in
+        target_list))
 
 
 def test_main_featurize_function_regression_data():
