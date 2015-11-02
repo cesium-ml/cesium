@@ -199,25 +199,13 @@ def add_to_predict_results_dict_classification_proba(
     sorted_target_list = sorted(set(all_objs_target_list))
     target_probs = estimator_preds[0]
 
-    results_str = ("<tr target='pred_results'>"
-                   "<td target='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
-
     results_arr = []
     for i in range(len(target_probs)):
         results_arr.append([sorted_target_list[i], float(target_probs[i])])
     results_arr.sort(key=itemgetter(1), reverse=True)
 
-    for i in range(len(results_arr)):
-        if i < n_cols_html_table:
-            results_str += """
-                <td target='pred_results'>%s</td>
-                <td target='pred_results'>%s</td>
-            """ % (str(results_arr[i][0]), str(results_arr[i][1]))
-
-    results_str += "</tr>"
     results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
-        "results_str": results_str, "ts_data": ts_data,
+        "results_str": "", "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": results_arr}
     return
 
@@ -227,17 +215,11 @@ def add_to_predict_results_dict_classification(
         featset_key, n_cols_html_table):
     """
     """
-    results_str = ("<tr class='pred_results'>"
-                   "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
     if isinstance(estimator_preds, (list, np.ndarray)):
         estimator_preds = estimator_preds[0]
 
-    results_str += "<td class='pred_results'>%s</td>" % str(estimator_preds)
-
-    results_str += "</tr>"
     results_dict[os.path.basename(fname)] = {
-        "results_str": results_str, "ts_data": ts_data,
+        "results_str": "", "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": estimator_preds}
     return
 
@@ -247,17 +229,11 @@ def add_to_predict_results_dict_regression(results_dict, estimator_preds,
                                            n_cols_html_table):
     """
     """
-    results_str = ("<tr class='pred_results'>"
-                   "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
     if isinstance(estimator_preds, (list, np.ndarray)):
         estimator_preds = estimator_preds[0]
 
-    results_str += "<td class='pred_results'>%s</td>" % str(estimator_preds)
-
-    results_str += "</tr>"
     results_dict[os.path.basename(fname)] = {
-        "results_str": results_str, "ts_data": ts_data,
+        "results_str": "", "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": estimator_preds}
     return
 

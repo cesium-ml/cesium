@@ -2092,10 +2092,6 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
     # that is separate from main app:
     before_request()
     n_cols_html_table = 5
-    results_str = (
-        "<table id='pred_results_table' class='tablesorter'>"
-        "<thead><tr class='pred_results'>"
-        "<th class='pred_results'>File</th>")
     featset_key = model_key_to_featset_key(model_key)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script = None
@@ -2125,32 +2121,17 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
                 "metadata file)."))
     except Exception as theErr:
         msg = (
-            "<font color='red'>An error occurred while processing your "
+            "An error occurred while processing your "
             "request. Please ensure the formatting of the provided time series"
-            " data file(s) conforms to the specified requirements.</font>")
+            " data file(s) conforms to the specified requirements.")
         update_prediction_entry_with_results(
             prediction_entry_key, html_str=msg, features_dict={},
             ts_data_dict={}, pred_results_dict=[], err=str(theErr))
         print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
-            "Error occurred during predict.predict() call.")
+            "Error occurred during predict.predict() call. " + str(theErr))
     else:
         if isinstance(results_dict, dict):
-            x = results_dict.values()[0]["pred_results"]
-            if isinstance(x, list) and isinstance(x[0], (list, np.ndarray)):
-                # Probabilistic classification
-                for i in range(n_cols_html_table):
-                    results_str += (
-                        "<th class='pred_results'>Class%d</th>"
-                        "<th class='pred_results'>Class%d_Prob</th>") % (i + 1,
-                                                                         i + 1)
-            else:
-                # Non-probabilistic prediction
-                results_str += "<th class='pred_results'>Predicted Target</th>"
-            results_str += (
-                "</tr>"
-                "</thead>"
-                "<tbody>")
             big_features_dict = {}
             ts_data_dict = {}
             pred_results_dict = {}
@@ -2158,20 +2139,17 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
                 pred_results_str = data_dict['results_str']
                 ts_data = data_dict['ts_data']
                 features_dict = data_dict['features_dict']
-                results_str += pred_results_str
+                results_str = pred_results_str
                 big_features_dict[fname] = features_dict
                 ts_data_dict[fname] = ts_data
                 pred_results_dict[fname] = data_dict['pred_results']
-            results_str += (
-                "   </tbody>"
-                "</table>")
             update_prediction_entry_with_results(
-                prediction_entry_key, html_str=results_str,
+                prediction_entry_key, html_str="",
                 features_dict=big_features_dict, ts_data_dict=ts_data_dict,
                 pred_results_dict=pred_results_dict)
         elif isinstance(results_dict, str):
             update_prediction_entry_with_results(
-                prediction_entry_key, html_str=results_dict,
+                prediction_entry_key, html_str="",
                 features_dict={}, ts_data_dict={},
                 pred_results_dict={})
         else:
@@ -3272,8 +3250,8 @@ def load_prediction_results(prediction_key):
         return jsonify(results_dict)
     else:
         return jsonify({
-            "results_str_html": ("<font color='red'>An error occurred while "
-                                 "processing your request.</font>")})
+            "results_str_html": ("An error occurred while "
+                                 "processing your request.")})
 
 
 @app.route('/load_model_build_results/<model_key>', methods=['POST', 'GET'])
