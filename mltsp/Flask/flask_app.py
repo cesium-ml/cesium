@@ -23,7 +23,7 @@ from flask import (
     session, Response, jsonify, g, send_from_directory)
 from werkzeug import secure_filename
 import uuid
-import ntpath
+import numpy as np
 
 import yaml
 if os.getenv("MLTSP_DEBUG_LOGIN") == "1" or '--disable-auth' in sys.argv:
@@ -39,9 +39,11 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import featurize
-from .. import predict_class as predict
+from .. import predict
 from .. import build_model
 from ..version import version
+from .. import util
+from ..ext import sklearn_models
 
 all_available_features_list = cfg.features_list_obs + cfg.features_list_science
 
@@ -413,7 +415,7 @@ def update_prediction_entry_with_pid(prediction_key, pid):
 
 def update_prediction_entry_with_results(prediction_entry_key, html_str,
                                          features_dict, ts_data_dict,
-                                         pred_results_list_dict, err=None):
+                                         pred_results_dict, err=None):
     """Update RethinkDB prediction entry with results data.
 
     Add features generated, prediction results and ts data to entry in
@@ -431,7 +433,7 @@ def update_prediction_entry_with_results(prediction_entry_key, html_str,
         Dictionary containing time-series data, with their original
         file names as keys, and list of respective (t,m,e) values as
         each dict value.
-    pred_results_list_dict : dict
+    pred_results_dict : dict
         Dictionary with original time-series data file name as keys,
         list of respective classifier prediction results as values.
     err : str, optional
@@ -447,11 +449,11 @@ def update_prediction_entry_with_results(prediction_entry_key, html_str,
     info_dict = {"results_str_html": html_str,
                  "features_dict": features_dict,
                  "ts_data_dict": ts_data_dict,
-                 "pred_results_list_dict": pred_results_list_dict}
+                 "pred_results_dict": pred_results_dict}
     if err is not None:
         info_dict["err_msg"] = err
     rdb.table("predictions").get(prediction_entry_key)\
-                          .update(info_dict).run(g.rdb_conn)
+                            .update(info_dict).run(g.rdb_conn)
     return True
 
 
@@ -681,7 +683,7 @@ def list_models_cursor_to_html_table(cursor):
     """
     authed_models = (
         "<table id='models_table' style='display:none;'>"
-        "<tr class='model_row'><th>Model name</th>"
+        "<tr class='model_row'><th>Model name</th><th>Feature set name</th>"
         "<th>Model type</th><th>Date created</th>"
         "<th>Remove from database</th></tr>")
     for entry in cursor:
@@ -693,6 +695,7 @@ def list_models_cursor_to_html_table(cursor):
             isinstance(entry['meta_feats'], list) else "")
         authed_models += (
             ">" + entry['name']
+            + "</td><td align='left'>" + entry['featureset_name']
             + "</td><td align='left'>" + entry['type']
             + "</td><td align='left'>" + entry['created'][:-13]
             + (
@@ -719,7 +722,7 @@ def list_models(
     name_only : bool, optional
         If True, does not include date/time created. Defaults to False.
     with_type : bool, optional
-        If True, includes model type (e.g. 'RF') in model description.
+        If True, includes model type (e.g. 'RFC') in model description.
         Defaults to True.
     as_html_table_string : bool, optional
         If True, returns the results as a single string of HTML markup
@@ -738,8 +741,8 @@ def list_models(
         this_projkey = project_name_to_key(by_project)
 
         cursor = rdb.table("models").filter({"projkey": this_projkey})\
-                                  .pluck("name", "created", "type", "id",
-                                         "meta_feats")\
+                                  .pluck("name", "featureset_name", "created",
+                                         "type", "id", "meta_feats")\
                                   .run(g.rdb_conn)
 
         if as_html_table_string:
@@ -750,6 +753,7 @@ def list_models(
                 authed_models.append(
                     entry['name']
                     + (" - %s" % str(entry['type']) if with_type else "")
+                    + " (" + entry['featureset_name'] + ")"
                     + (" (created %s PST)" % str(entry['created'])[:-13]
                        if not name_only else "")
                     + (" meta_feats=%s" % ",".join(entry['meta_feats'])
@@ -764,19 +768,19 @@ def list_models(
         for this_projkey in authed_proj_keys:
             cursor = (
                 rdb.table("models").filter({"projkey": this_projkey})
-                .pluck("name", "created", "type", "meta_feats").run(g.rdb_conn))
+                .pluck("name", "featureset_name", "created", "type",
+                       "meta_feats").run(g.rdb_conn))
             for entry in cursor:
                 authed_models.append(
                     entry['name']
                     + (" - %s" % str(entry['type']) if with_type else "")
-                    + (
-                        " (created %s PST)" % str(entry['created'])[:-13]
-                        if not name_only else "")
-                    + (
-                        " meta_feats=%s" % ",".join(entry['meta_feats'])
-                        if 'meta_feats' in entry and entry['meta_feats']
-                        not in [False, [], "False", None, "None"]
-                        and isinstance(entry['meta_feats'], list) else ""))
+                    + " (" + entry['featureset_name'] + ") "
+                    + (" (created %s PST)" % str(entry['created'])[:-13]
+                       if not name_only else "")
+                    + (" meta_feats=%s" % ",".join(entry['meta_feats'])
+                       if 'meta_feats' in entry and entry['meta_feats']
+                       not in [False, [], "False", None, "None"] and
+                       isinstance(entry['meta_feats'], list) else ""))
         return authed_models
 
 
@@ -983,9 +987,8 @@ def add_project(name, desc="", addl_authed_users=[], user_email="auto"):
     return new_projkey
 
 
-def add_featureset(
-        name, projkey, pid, featlist, custom_features_script=None,
-        meta_feats=[], headerfile_path=None, zipfile_path=None):
+def add_featureset(name, projkey, pid, featlist, custom_features_script=None,
+                   meta_feats=[], headerfile_path=None, zipfile_path=None):
     """Add a new entry to the rethinkDB 'features' table.
 
     Parameters
@@ -1031,19 +1034,23 @@ def add_featureset(
     return new_featset_key
 
 
-def add_model(
-        featureset_name, featureset_key, model_type, projkey, pid,
-        meta_feats=False):
+def add_model(model_name, featureset_name, featureset_key, model_type,
+              model_params, projkey, pid, meta_feats=False):
     """Add a new entry to the rethinkDB 'models' table.
 
     Parameters
     ----------
-    name : str
-        New feature set name.
+    model_name : str
+        New model name.
+    featureset_name : str
+        Name of associated feature set.
     featureset_key : str
         RethinkDB key/ID of associated feature set.
     model_type : str
-        Abbreviation of model/classifier type (e.g. "RF").
+        Abbreviation of model/classifier type (e.g. "RFC").
+    model_params : dict
+        Dictionary containing names of scikit-learn model parameters and
+        their values. Values can be strings, ints floats, lists or dicts.
     projkey : str
         RethinkDB key/ID of parent project.
     pid : str
@@ -1062,9 +1069,11 @@ def add_model(
     if entry is not None and 'meta_feats' in entry:
         meta_feats = entry['meta_feats']
     new_model_key = rdb.table("models").insert({
-        "name": featureset_name,
+        "name": model_name,
+        "featureset_name": featureset_name,
         "featset_key": featureset_key,
         "type": model_type,
+        "parameters": model_params,
         "projkey": projkey,
         "created": str(rdb.now().in_timezone('-08:00').run(g.rdb_conn)),
         "pid": pid,
@@ -1074,9 +1083,8 @@ def add_model(
     return new_model_key
 
 
-def add_prediction(
-        project_name, model_name, model_type, pred_filename,
-        pid="None", metadata_file="None"):
+def add_prediction(project_name, model_key, model_name, model_type,
+                   pred_filename, pid="None", metadata_file="None"):
     """Add a new entry to the rethinkDB 'predictions' table.
 
     Parameters
@@ -1086,7 +1094,7 @@ def add_prediction(
     model_name : str
         Name of associated model.
     model_type : str
-        Abbreviation of associated model/classifier type (e.g. "RF").
+        Abbreviation of associated model/classifier type (e.g. "RFC").
     pred_filename : str
         Name of time-series data file used in prediction.
     pid : str, optional
@@ -1106,6 +1114,7 @@ def add_prediction(
         "project_name": project_name,
         "filename": pred_filename,
         "projkey": project_key,
+        "model_key": model_key,
         "model_name": model_name,
         "model_type": model_type,
         "created": str(rdb.now().in_timezone('-08:00').run(g.rdb_conn)),
@@ -1187,9 +1196,7 @@ def model_associated_files(model_key):
     try:
         entry_dict = rdb.table("models").get(model_key).run(g.rdb_conn)
         featset_key = entry_dict["featset_key"]
-        model_type = entry_dict["type"]
-        fpaths = [os.path.join(cfg.MODELS_FOLDER,
-                               "%s_%s.pkl" % (featset_key, model_type))]
+        fpaths = [os.path.join(cfg.MODELS_FOLDER, "{}.pkl".format(model_key))]
         fpaths += featset_associated_files(featset_key)
     except:
         try:
@@ -1216,9 +1223,9 @@ def featset_associated_files(featset_key):
     fpaths = []
     for fpath in [
             os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
-            os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key),
+            os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key),
             os.path.join(cfg.FEATURES_FOLDER,
-                         "%s_features_with_classes.csv" % featset_key)]:
+                         "%s_features_with_targets.csv" % featset_key)]:
         if os.path.exists(fpath):
             fpaths.append(fpath)
     entry_dict = rdb.table("features").get(featset_key).run(g.rdb_conn)
@@ -1474,8 +1481,7 @@ def project_name_to_key(projname):
         return False
 
 
-def featureset_name_to_key(
-        featureset_name, project_name=None, project_id=None):
+def featureset_name_to_key(featureset_name, project_name=None, project_id=None):
     """Return RethinkDB key associated with given feature set details.
 
     Parameters
@@ -1487,7 +1493,7 @@ def featureset_name_to_key(
         Defaults to None. If None, `project_id` (see below) must be
         provided.
     project_id : str, optional
-        ID of project to wuich feature set in question belongs.
+        ID of project to which feature set in question belongs.
         Defaults to None. If None, `project_name` (see above) must be
         provided.
 
@@ -1518,6 +1524,56 @@ def featureset_name_to_key(
             print(theError)
             return False
         return featureset_key
+
+
+def model_key_to_featset_key(model_key):
+    return rdb.table("models").get(model_key)\
+                              .run(g.rdb_conn)["featset_key"]
+
+
+def model_name_to_key(model_name, project_name=None, project_id=None):
+    """Return RethinkDB key associated with given model details.
+
+    Parameters
+    ----------
+    model_name : str
+        Name of the model.
+    project_name : str, optional
+        Name of project to which model in question belongs.
+        Defaults to None. If None, `project_id` (see below) must be
+        provided.
+    project_id : str, optional
+        ID of project to which model in question belongs.
+        Defaults to None. If None, `project_name` (see above) must be
+        provided.
+
+    Returns
+    -------
+    str
+        RethinkDB ID/key of specified model.
+
+    """
+    if project_name is None and project_id is None:
+        logging.exception("model_name_to_key() - Neither project name nor id "
+               "provided - returning false.")
+        return False
+    else:
+        if project_id is None:
+            project_id = project_name_to_key(project_name)
+
+        model_key = []
+        cursor = (
+            rdb.table("models")
+            .filter({"projkey": project_id, "name": model_name})
+            .pluck("id").run(g.rdb_conn))
+        for entry in cursor:
+            model_key.append(entry["id"])
+        try:
+            model_key = model_key[0]
+        except IndexError as err:
+            logging.exception(err)
+            return False
+        return model_key
 
 
 def update_project_info(
@@ -1659,9 +1715,9 @@ def allowed_file(filename):
 def list_filename_variants(file_name):
     """Return list of possible matching file name variants.
     """
-    return [file_name, ntpath.basename(file_name),
+    return [file_name, os.path.basename(file_name),
             os.path.splitext(file_name)[0],
-            os.path.splitext(ntpath.basename(file_name))[0]]
+            os.path.splitext(os.path.basename(file_name))[0]]
 
 
 def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
@@ -1828,9 +1884,9 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
             all_lines = [str(line).strip() for line in
                          f.readlines() if str(line).strip() != '']
         file_name_variants = [
-            f.name, ntpath.basename(f.name),
+            f.name, os.path.basename(f.name),
             os.path.splitext(f.name)[0],
-            os.path.splitext(ntpath.basename(f.name))[0]]
+            os.path.splitext(os.path.basename(f.name))[0]]
         all_fname_variants.extend(file_name_variants)
         all_fname_variants_list_of_lists.append(file_name_variants)
 
@@ -1844,7 +1900,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
                         "file improperly formatted; at least two "
                         "comma-separated columns (time,measurement) are "
                         "required. Error occurred processing file %s.") %
-                        ntpath.basename(newpred_file_path)))
+                        os.path.basename(newpred_file_path)))
             else:
                 if len(line.split(',')) != num_labels:
                     raise custom_exceptions.DataFormatError(((
@@ -1852,7 +1908,7 @@ def check_prediction_tsdata_format(newpred_file_path, metadata_file_path=None):
                         "%s line number %s has %s columns while the first "
                         "line has %s columns.") %
                         (
-                            ntpath.basename(newpred_file_path),
+                            os.path.basename(newpred_file_path),
                             str(line_no), str(len(line.split(","))),
                             str(num_labels))))
             line_no += 1
@@ -1957,7 +2013,7 @@ def featurize_proc(
     update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
-def build_model_proc(featureset_name, featureset_key, model_type, model_key):
+def build_model_proc(model_key, model_type, model_params, featureset_key):
     """Build a model based on given features.
 
     Begins the model building process by calling
@@ -1967,17 +2023,18 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
 
     Parameters
     ----------
-    featureset_name : str
-        Name of the feature set associated with the model to be created.
     model_type : str
-        Abbreviation of the model type to be created (e.g. "RF").
-    featureset_key : str
-        RethinkDB ID of the associated feature set.
+        Abbreviation of the model type to be created (e.g. "RFC").
+    model_params : dict
+        Dictionary specifying sklearn model parameters to be used.
+    model_key : str
+        Key/ID associated with model.
 
     Returns
     -------
     bool
         Returns True.
+
     """
     # needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
@@ -1985,8 +2042,8 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     print("Building model...")
     try:
         model_built_msg = build_model.build_model(
-            featureset_name=featureset_name, featureset_key=featureset_key,
-            model_type=model_type)
+            model_key=model_key, model_type=model_type,
+            model_options=model_params, featureset_key=featureset_key)
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -2001,10 +2058,9 @@ def build_model_proc(featureset_name, featureset_key, model_type, model_key):
     return True
 
 
-def prediction_proc(
-        newpred_file_path, project_name, model_name, model_type,
-        prediction_entry_key, sep=",", metadata_file=None,
-        path_to_tmp_dir=None):
+def prediction_proc(newpred_file_path, project_name, model_key, model_type,
+                    prediction_entry_key, sep=",", metadata_file=None,
+                    path_to_tmp_dir=None):
     """Generate features for new TS data and perform model prediction.
 
     Begins the featurization and prediction process. To be executed
@@ -2018,10 +2074,10 @@ def prediction_proc(
         prediction.
     project_name : str
         Name of the project associated with the model to be used.
-    model_name : str
-        Name of the model to be used.
+    model_key : str
+        Key/ID of the model to be used.
     model_type : str
-        Abbreviation of the model type (e.g. "RF").
+        Abbreviation of the model type (e.g. "RFC").
     prediction_entry_key : str
         Prediction entry RethinkDB key.
     sep : str, optional
@@ -2035,32 +2091,17 @@ def prediction_proc(
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
-    featset_key = featureset_name_to_key(
-        featureset_name=model_name, project_name=project_name)
+    n_cols_html_table = 5
+    featset_key = model_key_to_featset_key(model_key)
     is_tarfile = tarfile.is_tarfile(newpred_file_path)
     custom_features_script = None
     entry = rdb.table("features").get(featset_key).run(g.rdb_conn)
     features_to_use = list(entry['featlist'])
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
-    n_cols_html_table = 5
-    results_str = (
-        "<table id='pred_results_table' class='tablesorter'>"
-        "    <thead>"
-        "        <tr class='pred_results'>"
-        "            <th class='pred_results'>File</th>")
-    for i in range(n_cols_html_table):
-        results_str += (
-            "            <th class='pred_results'>Class%d</th>"
-            "            <th class='pred_results'>Class%d_Prob</th>") % (i + 1,
-                                                                         i + 1)
-    results_str += (
-        "        </tr>"
-        "    </thead>"
-        "    <tbody>")
     try:
         results_dict = predict.predict(
-            newpred_file_path=newpred_file_path, model_name=model_name,
+            newpred_file_path=newpred_file_path, model_key=model_key,
             model_type=model_type, featset_key=featset_key, sepr=sep,
             n_cols_html_table=n_cols_html_table,
             custom_features_script=custom_features_script,
@@ -2080,44 +2121,39 @@ def prediction_proc(
                 "metadata file)."))
     except Exception as theErr:
         msg = (
-            "<font color='red'>An error occurred while processing your "
+            "An error occurred while processing your "
             "request. Please ensure the formatting of the provided time series"
-            " data file(s) conforms to the specified requirements.</font>")
+            " data file(s) conforms to the specified requirements.")
         update_prediction_entry_with_results(
             prediction_entry_key, html_str=msg, features_dict={},
-            ts_data_dict={}, pred_results_list_dict=[], err=str(theErr))
+            ts_data_dict={}, pred_results_dict=[], err=str(theErr))
         print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
-            "Error occurred during predict_class.predict() call.")
+            "Error occurred during predict.predict() call. " + str(theErr))
     else:
         if isinstance(results_dict, dict):
             big_features_dict = {}
             ts_data_dict = {}
-            pred_results_list_dict = {}
+            pred_results_dict = {}
             for fname, data_dict in results_dict.items():
-                pred_results = data_dict['results_str']
+                pred_results_str = data_dict['results_str']
                 ts_data = data_dict['ts_data']
                 features_dict = data_dict['features_dict']
-                pred_results_list = data_dict['pred_results_list']
-
-                results_str += pred_results
+                results_str = pred_results_str
                 big_features_dict[fname] = features_dict
                 ts_data_dict[fname] = ts_data
-                pred_results_list_dict[fname] = pred_results_list
-            results_str += (
-                "   </tbody>"
-                "</table>")
+                pred_results_dict[fname] = data_dict['pred_results']
             update_prediction_entry_with_results(
-                prediction_entry_key, html_str=results_str,
+                prediction_entry_key, html_str="",
                 features_dict=big_features_dict, ts_data_dict=ts_data_dict,
-                pred_results_list_dict=pred_results_list_dict)
+                pred_results_dict=pred_results_dict)
         elif isinstance(results_dict, str):
             update_prediction_entry_with_results(
-                prediction_entry_key, html_str=results_dict,
+                prediction_entry_key, html_str="",
                 features_dict={}, ts_data_dict={},
-                pred_results_list_dict={})
+                pred_results_dict={})
         else:
-            raise ValueError("predict_class.predict() returned object of "
+            raise ValueError("predict.predict() returned object of "
                              "invalid type - {}.".format(type(results_dict)))
         return True
     finally:
@@ -2148,7 +2184,8 @@ def index():
         CURRENT_FEATURESETS_JSON=info_dict['list_of_current_featuresets_json'],
         CURRENT_MODELS=info_dict['list_of_current_models'],
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
-        PROJECT_NAME=info_dict['PROJECT_NAME'])
+        PROJECT_NAME=info_dict['PROJECT_NAME'],
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 @app.route('/verifyNewScript', methods=['POST', 'GET'])
@@ -2634,7 +2671,8 @@ def featurizing():
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
         PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
         features_str="", new_featset_key=featureset_key,
-        featureset_name=featureset_name)
+        featureset_name=featureset_name,
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 @app.route('/featurizationPage', methods=['POST', 'GET'])
@@ -2765,12 +2803,12 @@ def featurizationPage(
            methods=['POST'])
 @app.route('/buildModel', methods=['POST', 'GET'])
 @stormpath.login_required
-def buildModel(project_name=None, featureset_name=None, model_type=None):
+def buildModel(model_name=None, project_name=None, featureset_name=None,
+               model_type=None, model_params=None):
     """Build new model for specified feature set.
 
     Handles 'buildModelForm' submission and starts model creation
-    process as a subprocess (by calling prediction_proc with the
-    multiprocessing.Process method). Returns JSONified dict with PID
+    process as a subprocess. Returns JSONified dict with PID
     and other details about the process.
 
     Parameters
@@ -2780,7 +2818,7 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
     featureset_name : str
         Name of feature set from which to create new model.
     model_type : str
-        Abbreviation of type of model to create (e.g. "RF").
+        Abbreviation of type of model to create (e.g. "RFC").
 
     Returns
     -------
@@ -2791,11 +2829,17 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
     """
     if project_name is None:  # browser form submission
         post_method = "browser"
+        model_name = str(request.form['new_model_name'])
         project_name = (str(request.form['buildmodel_project_name_select'])
                         .split(" (created")[0].strip())
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
                            .split(" (created")[0].strip())
         model_type = str(request.form['model_type_select'])
+        model_params = {}
+        for k in request.form:
+            if k.startswith(model_type + "_"):
+                model_params[k.replace(model_type + "_", "")] = request.form[k]
+        util.cast_model_params(model_type, model_params)
     else:
         post_method = "http_api"
     projkey = project_name_to_key(project_name)
@@ -2803,19 +2847,21 @@ def buildModel(project_name=None, featureset_name=None, model_type=None):
         featureset_name=featureset_name,
         project_id=projkey)
     new_model_key = add_model(
+        model_name=model_name,
         featureset_name=featureset_name,
         featureset_key=featureset_key,
         model_type=model_type,
+        model_params=model_params,
         projkey=projkey, pid="None")
     print("new model key =", new_model_key)
     print("New model featureset_key =", featureset_key)
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target=build_model_proc,
-        args=(featureset_name,
-              featureset_key,
+        args=(new_model_key,
               model_type,
-              str(new_model_key).strip()))
+              model_params,
+              featureset_key))
     proc.start()
     PID = str(proc.pid)
     print("PROCESS ID IS", PID)
@@ -2880,7 +2926,8 @@ def buildingModel():
         RESULTS=True,
         features_str="",
         new_model_key=new_model_key,
-        model_name=model_name)
+        model_name=model_name,
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 @app.route('/uploadPredictionData', methods=['POST', 'GET'])
@@ -2922,6 +2969,15 @@ def uploadPredictionData():
                         .split(" (created")[0])
         model_name, model_type_and_time = str(
             request.form["prediction_model_name_and_type"]).split(" - ")
+        model_key = model_name_to_key(model_name, project_name=project_name)
+        if not model_key:
+            logging.exception("Model key could not be determined from model "
+                              "name and project name.")
+            return jsonify({
+                "message": (
+                    "Model key could not be determined from model name and "
+                    "project name."),
+                "type": "error"})
         model_type = model_type_and_time.split(" ")[0]
         print(project_name, model_name, model_type)
         newpred_filename = secure_filename(newpred_file.filename)
@@ -2967,6 +3023,7 @@ def uploadPredictionData():
             newpred_file_path=newpred_file_path,
             sep=sep,
             project_name=project_name,
+            model_key=model_key,
             model_name=model_name,
             model_type=model_type,
             metadata_file_path=metadata_file_path,
@@ -3017,11 +3074,12 @@ def predicting():
         CURRENT_MODELS_JSON=info_dict['list_of_current_models_json'],
         PROJECT_NAME=project_name, headerfile_name="", RESULTS=True,
         features_str="", prediction_entry_key=prediction_entry_key,
-        prediction_model_name=prediction_model_name, model_type=model_type)
+        prediction_model_name=prediction_model_name, model_type=model_type,
+        MODEL_DESCRIPTIONS=sklearn_models.model_descriptions)
 
 
 def predictionPage(
-        newpred_file_path, project_name, model_name, model_type,
+        newpred_file_path, project_name, model_key, model_name, model_type,
         sep=",", metadata_file_path=None, path_to_tmp_dir=None):
     """Start featurization/prediction routine in a subprocess.
 
@@ -3041,7 +3099,7 @@ def predictionPage(
     model_name : str
         Name of the model to be used.
     model_type : str
-        Abbreviation of the model type (e.g. "RF").
+        Abbreviation of the model type (e.g. "RFC").
     sep : str, optional
         Delimiting character in time series data files. Defaults to
         comma ",".
@@ -3057,14 +3115,15 @@ def predictionPage(
     """
     new_prediction_key = add_prediction(
         project_name=project_name,
+        model_key=model_key,
         model_name=model_name,
         model_type=model_type,
-        pred_filename=ntpath.basename(newpred_file_path),
+        pred_filename=os.path.basename(newpred_file_path),
         pid="None",
-        metadata_file=(ntpath.basename(metadata_file_path) if
+        metadata_file=(os.path.basename(metadata_file_path) if
                        metadata_file_path is not None else None))
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
-    pred_file_name = ntpath.basename(newpred_file_path)
+    pred_file_name = os.path.basename(newpred_file_path)
     print("starting prediction_proc...")
     multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
@@ -3072,7 +3131,7 @@ def predictionPage(
         args=(
             newpred_file_path,
             project_name,
-            model_name,
+            model_key,
             model_type,
             new_prediction_key,
             sep,
@@ -3154,7 +3213,7 @@ def load_source_data(prediction_entry_key, source_fname):
             "features_dict": ("No entry found for prediction_entry_key = %s."
                               % prediction_entry_key),
             "pred_results": pred_results})
-    pred_results = entry['pred_results_list_dict'][source_fname]
+    pred_results = entry['pred_results_dict'][source_fname]
     features_dict = entry['features_dict'][source_fname]
     ts_data = entry['ts_data_dict'][source_fname]
     return jsonify({
@@ -3191,8 +3250,8 @@ def load_prediction_results(prediction_key):
         return jsonify(results_dict)
     else:
         return jsonify({
-            "results_str_html": ("<font color='red'>An error occurred while "
-                                 "processing your request.</font>")})
+            "results_str_html": ("An error occurred while "
+                                 "processing your request.")})
 
 
 @app.route('/load_model_build_results/<model_key>', methods=['POST', 'GET'])

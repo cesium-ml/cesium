@@ -1,4 +1,6 @@
-from sklearn.ensemble import RandomForestClassifier as RFC
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LinearRegression, SGDClassifier,\
+    RidgeClassifierCV, ARDRegression, BayesianRidge
 from sklearn.externals import joblib
 import os
 from mltsp import cfg
@@ -7,43 +9,44 @@ import numpy as np
 import csv
 
 
-def create_and_pickle_model(data_dict, featureset_key, model_type,
-                            in_docker_container):
+def create_and_pickle_model(data_dict, model_key, model_type,
+                            model_options):
     """Create scikit-learn RFC model object and save it to disk.
 
     Parameters
     ----------
     data_dict : dict
         Dictionary containing features data (key 'features') and
-        class list (key 'classes').
+        targets list (key 'targets').
     featureset_key : str
         RethinkDB ID of associated feature set.
     model_type : str
-        Abbreviation of the type of classifier to be created.
-    in_docker_container : bool
-        Boolean indicating whether function is being called from within
-        a Docker container.
+        Abbreviation of the type of model to be created.
+    model_options : dict, optional
+        Dictionary specifying `scikit-learn` model parameters to be used.
 
     """
-    # Build the model:
-    # Initialize
-    ntrees = 1000
-    njobs = -1
-    rf_fit = RFC(n_estimators=ntrees, max_features='auto', n_jobs=njobs)
-    print("Model initialized.")
+
+    models_type_dict = {"RFC": RandomForestClassifier,
+                        "RFR": RandomForestRegressor,
+                        "LC": SGDClassifier,
+                        "LR": LinearRegression,
+                        "RC": RidgeClassifierCV,
+                        "ARDR": ARDRegression,
+                        "BRR": BayesianRidge}
+
+    model_obj = models_type_dict[model_type](**model_options)
 
     # Fit the model to training data:
-    print("Fitting the model...")
-    rf_fit.fit(data_dict['features'], data_dict['classes'])
+    print("Model initialized. Fitting the model...")
+    model_obj.fit(data_dict['features'], data_dict['targets'])
     print("Done.")
     del data_dict
 
     # Store the model:
     print("Pickling model...")
-    foutname = os.path.join(
-        ("/tmp" if in_docker_container else cfg.MODELS_FOLDER),
-        "%s_%s.pkl" % (featureset_key, model_type))
-    joblib.dump(rf_fit, foutname, compress=3)
+    foutname = os.path.join(cfg.MODELS_FOLDER, "{}.pkl".format(model_key))
+    joblib.dump(model_obj, foutname, compress=3)
     print(foutname, "created.")
     return foutname
 
@@ -99,12 +102,12 @@ def clean_up_data_dict(data_dict):
     indices_for_deletion.sort(reverse=True)
     for index in indices_for_deletion:
         del data_dict['features'][index]
-        del data_dict['classes'][index]
+        del data_dict['targets'][index]
     return
 
 
 def read_features_data_from_disk(featureset_key):
-    """Read features & class data from local CSV and return it as dict.
+    """Read features & target data from local CSV and return it as dict.
 
     Parameters
     ----------
@@ -115,22 +118,22 @@ def read_features_data_from_disk(featureset_key):
     -------
     dict
         Dictionary with 'features' key whose value is a list of
-        lists containing features data, and 'classes' whose
-        associated value is a list of the classes associated with
+        lists containing features data, and 'targets' whose
+        associated value is a list of the targets associated with
         each row of features data.
 
     """
     features_filename = os.path.join(
         cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_key)
-    # Read in feature data and class list
+    # Read in feature data and target value list
     features_extracted, all_data = read_data_from_csv_file(features_filename)
-    classes = list(np.load(features_filename.replace("_features.csv",
-                                                     "_classes.npy")))
+    targets = np.load(features_filename.replace("_features.csv",
+                                                "_targets.npy"))
 
-    # Put data and class list into dictionary
+    # Put data and target list into dictionary
     data_dict = {}
     data_dict['features'] = all_data
-    data_dict['classes'] = classes
+    data_dict['targets'] = targets
     # Modifies in-place:
     clean_up_data_dict(data_dict)
 

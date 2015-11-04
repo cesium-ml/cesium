@@ -18,16 +18,13 @@ celery_app = Celery('celery_fit', broker=cfg.CELERY_BROKER)
 
 
 @celery_app.task(name='celery_tasks.fit_model')
-def fit_and_store_model(featureset_name, featureset_key, model_type,
-                        in_docker_container):
-    """Read features, fit classifier & save it to disk.
+def fit_and_store_model(model_key, model_type, featureset_key, model_options):
+    """Read features, fit model & save it to disk.
 
     This function is a Celery task.
 
     Parameters
     ----------
-    featureset_name : str
-        Name of the feature set on which to build the model.
     featureset_key : str
         Feature set ID/key.
     model_type : str
@@ -38,13 +35,13 @@ def fit_and_store_model(featureset_name, featureset_key, model_type,
     Returns
     -------
     str
-        Path to serialized classifier object on disk.
+        Path to serialized model object on disk.
 
     """
     data_dict = ctt.read_features_data_from_disk(featureset_key)
 
     created_file_name = ctt.create_and_pickle_model(
-        data_dict, featureset_key, model_type, in_docker_container)
+        data_dict, model_key, model_type, model_options)
     return created_file_name
 
 
@@ -95,7 +92,7 @@ def pred_featurize_single(ts_data_file_path, features_to_use,
 
 # TODO de-dupe this code; remove above function?
 @celery_app.task(name="celery_tasks.featurize_ts_data")
-def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
+def featurize_ts_data(ts_data_file_path, custom_script_path, object_target,
                       features_to_use):
     """Featurize time-series data file.
 
@@ -105,8 +102,8 @@ def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
         Time-series data file disk location path.
     custom_script_path : str or None
         Path to custom features script .py file, or None.
-    object_class : str
-        Class name.
+    object_target : str or float
+        Target value/class name.
     features_to_use : list of str
         List of feature names to be generated.
 
@@ -129,5 +126,5 @@ def featurize_ts_data(ts_data_file_path, custom_script_path, object_class,
         custom_features = {}
     all_features = dict(obs_features.items() + science_features.items() +
                         custom_features.items())
-    all_features['class'] = object_class
+    all_features['target'] = object_target
     return (short_fname, all_features)

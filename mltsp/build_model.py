@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# build_model.py
-
 from __future__ import print_function
 from sklearn.ensemble import RandomForestClassifier as RFC
 from sklearn.externals import joblib
@@ -13,22 +10,20 @@ from . import cfg
 from mltsp.celery_tasks import fit_and_store_model
 
 
-def create_and_pickle_model_celery(featureset_name, featureset_key,
-                                   model_type="RF", in_docker_container=False):
+def create_and_pickle_model_celery(model_key, model_type, featureset_key,
+                                   model_options={}):
     """
     """
 
-    res = fit_and_store_model.delay(featureset_name, featureset_key,
-                                    model_type, in_docker_container)
+    res = fit_and_store_model.delay(model_key, model_type, featureset_key,
+                                    model_options)
     fout_name = res.get(timeout=200)
 
     print(fout_name, "created!")
 
 
-def build_model(
-        featureset_name, featureset_key, model_type="RF",
-        in_docker_container=False):
-    """Build a `scikit-learn` classifier.
+def build_model(model_key, model_type, featureset_key, model_options={}):
+    """Build a `scikit-learn` model.
 
     Builds the specified model and pickles it in the file
     whose name is given by
@@ -38,18 +33,16 @@ def build_model(
 
     Parameters
     ----------
-    featureset_name : str
-        Name of the feature set to build the model upon (will also
-        become the model name).
+    model_key : str
+        Unique model ID.
     featureset_key: str
         RethinkDB ID of the associated feature set from which to build
         the model, which will also become the ID/key for the model.
     model_type : str
-        Abbreviation of the type of classifier to be created. Defaults
-        to "RF".
-    in_docker_container : bool, optional
-        Boolean indicating whether function is being called from within
-        a Docker container.
+        Abbreviation of the type of model to be created. Defaults
+        to "RFC".
+    model_options : dict, optional
+        Dictionary specifying `scikit-learn` model parameters to be used.
 
     Returns
     -------
@@ -58,8 +51,8 @@ def build_model(
 
     """
 
-    create_and_pickle_model_celery(featureset_name, featureset_key,
-                                   model_type, in_docker_container)
+    create_and_pickle_model_celery(model_key, model_type, featureset_key,
+                                   model_options)
 
     print("Done!")
     return("New model successfully created. Click the Predict tab to "

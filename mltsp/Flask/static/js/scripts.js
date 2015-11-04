@@ -6,7 +6,6 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 
         // plot ts data:
         var tmag = [];
-        console.log(data['ts_data'][0].length);
         if(data['ts_data'][0].length==3) {
             var plot_errs = true;
         }else{
@@ -41,9 +40,8 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
 
         // compute and plot phase-folded ts data if period has been computed:
         var period = 0;
-        if("freq1_harmonics_freq_0" in features_dict){
-            console.log("period = " + String(1.0/parseFloat(features_dict["freq1_harmonics_freq_0"])));
-            period=1.0/parseFloat(features_dict["freq1_harmonics_freq_0"]);
+        if("freq1_freq" in features_dict){
+            period=1.0/parseFloat(features_dict["freq1_freq"]);
             var phase_mag = [];
             for (var i=0; i < data['ts_data'].length; i++){
 
@@ -80,8 +78,7 @@ function draw_charts_and_plots(prediction_entry_key, source_fname){
             chart.draw(folded_ts_data, folded_ts_data_plot_options);
 
         }else{
-            console.log("freq1_harmonics_freq_0 not in features_dict");
-            $('#ts_data_folded_plot_div').html("<h5>Period-folded time series data plot</h5><BR><BR><h4>freq1_harmonics_freq_0 (frequency) not computed for this feature set.</h4>");
+            $('#ts_data_folded_plot_div').html("<h5>Period-folded time series data plot</h5><BR><BR><h4>Period/frequency not computed for this feature set.</h4>");
         }
 
 
@@ -635,10 +632,10 @@ function featurizeFormSubmit(){
 
 function predictFormSubmit(){
 
-    $("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
+    $("#pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
 
     $("#model_build_results").hide();
-    $("#class_pred_results").show();
+    $("#pred_results").show();
 
     $("#predictForm").ajaxSubmit({
         /* error: function(response){
@@ -661,7 +658,7 @@ function predictFormSubmit(){
             if(is_error==true){
 
                 alert(response["message"]);
-                $("#class_pred_results").html(response["message"]);
+                $("#pred_results").html(response["message"]);
 
                 resetFormElement($("#newpred_file"));
                 resetFormElement($("#prediction_files_metadata"));
@@ -688,10 +685,10 @@ function predictFormSubmit(){
 
 
 function buildModelFormSubmit(){
-    $("#class_pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
+    $("#pred_results").html("<img src='/static/media/spinner_black.gif'> Processing your request...");
 
     $("#model_build_results").hide();
-    $("#class_pred_results").show();
+    $("#pred_results").show();
 
     $("#buildModelForm").ajaxSubmit({
         success: function(response){
@@ -719,7 +716,7 @@ function plotFeaturesFormSubmit(){
     project_name = $( "#plot_feats_project_name_select" ).val();
     featureset_name = $( "#plot_features_featset_name_select" ).val();
     $.get("/get_featureset_id_by_projname_and_featsetname/"+project_name+"/"+featureset_name,function(data){
-        drawScatterplotMatrix("/features_data/" + data["featureset_id"] + "_features_with_classes.csv");
+        drawScatterplotMatrix("/features_data/" + data["featureset_id"] + "_features_with_targets.csv");
     });
     $('#tabs').tabs( "option", "active",  false);
 }
@@ -1300,7 +1297,7 @@ function form_validations(){
 
     featurize_form_validation();
 
-    build_model_form_validation();
+    // build_model_form_validation();
 
 }
 
@@ -1312,13 +1309,11 @@ function test_custom_feature_script(){
     /*
      $('body').append('<div style="display:none;"><form id="verify_new_script_form" name="verify_new_script_form" action="/verifyNewScript" enctype="multipart/form-data" method="post"></form></div>');
      $("#custom_feat_script_file").appendTo($('#verify_new_script_form'));
-     console.log($("#custom_feat_script_file").val());
      */
     $("#featurizeForm").attr('action', '/verifyNewScript');
     fileUpload(document.getElementById('featurizeForm'), "/verifyNewScript", "file_upload_message_div");
 
 
-    console.log("Done");
 
 
     /*
@@ -1648,7 +1643,7 @@ function drawScatterplotMatrix(datafilename){
 
     d3.csv(datafilename, function(error, dataset) {
         var domainByTrait = {},
-            traits = d3.keys(dataset[0]).filter(function(d) { return d !== "class"; }),
+            traits = d3.keys(dataset[0]).filter(function(d) { return d !== "target"; }),
             n = traits.length;
 
         traits.forEach(function(trait) {
@@ -1659,13 +1654,12 @@ function drawScatterplotMatrix(datafilename){
         yAxis.tickSize(-size * n);
 
 
-        var class_list = new Array();
+        var target_list = new Array();
         for(var i=0; i < dataset.length; i++){
-            if ( $.inArray(dataset[i].class, class_list) == -1 ){
-                class_list.push(dataset[i].class);
+            if ( $.inArray(dataset[i].target, target_list) == -1 ){
+                target_list.push(dataset[i].target);
             }
         }
-        console.log(class_list);
 
 
         var brush = d3.svg.brush()
@@ -1730,8 +1724,8 @@ function drawScatterplotMatrix(datafilename){
                 .attr("cx", function(d) { return x(d[p.x]); })
                 .attr("cy", function(d) { return y(d[p.y]); })
                 .attr("r", 3)
-                .attr("class", function(d){ return String(d.class); })
-                .style("fill", function(d) { return color(String(d.class)); });
+                .attr("class", function(d){ return String(d.target); })
+                .style("fill", function(d) { return color(String(d.target)); });
         }
 
         var brushCell;
@@ -1780,7 +1774,7 @@ function drawScatterplotMatrix(datafilename){
                 .attr("height", 800)
                 .append("g");
 
-        var legendGroup = leg_svg.selectAll('.legend').data(class_list).enter().append('g')
+        var legendGroup = leg_svg.selectAll('.legend').data(target_list).enter().append('g')
                 .attr('class', 'legend')
                 .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
@@ -1826,5 +1820,52 @@ function drawScatterplotMatrix(datafilename){
          */
 
     });
+
+}
+
+
+
+function generate_pred_results_table(div_id, results_dict){
+
+    var thead_str = "<table id='pred_results_table' class='tablesorter'>";
+    thead_str += "<thead><tr class='pred_results'><th class='pred_results'>File</th>";
+    var tbody_str = "<tbody>";
+    var pred_col_names = "";
+
+    for (var key in results_dict){
+        if (results_dict.hasOwnProperty(key)){
+            tbody_str += "<tr class='pred_results'>";
+            tbody_str += "<td class='pred_results pred_results_fname_cell'><a href='#'>" + key + "</a></td>";
+            if (results_dict[key].constructor === Array){
+                pred_col_names = "";
+                for (var i = 0; i < results_dict[key].length; i++){
+                    var el = results_dict[key][i];
+                    if (el.constructor === Array){
+                        for (var j = 0; j < el.length; j++){
+                            tbody_str += "<td class='pred_results'>" + el[j] + "</td>";
+                            if (j === 0){
+                                pred_col_names += "<th class='pred_results'>Class_" + String(i) + "</th>";
+                            } else if (j === 1){
+                                pred_col_names += "<th class='pred_results'>Prob_Class_" + String(i) + "</th>";
+                            }
+                        }
+                    } else {
+                        tbody_str += "<td class='pred_results'>" + el + "</td>";
+                        pred_col_names += "<th class='pred_results'>Class_" + String(i) + "</th>";
+                    }
+                }
+            } else {
+                tbody_str += "<td class='pred_results'>" + results_dict[key] + "</td>";
+                pred_col_names = "<th class='pred_results'>Target</th>";
+            }
+            tbody_str += "</tr>";
+        }
+    }
+    thead_str += pred_col_names + "</tr></thead>";
+    var html_str = thead_str + tbody_str + "</tbody></table>";
+
+
+
+    $(div_id).html(html_str);
 
 }

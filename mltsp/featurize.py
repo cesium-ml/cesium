@@ -70,28 +70,28 @@ def parse_headerfile(headerfile_path, features_to_use):
 
     """
     with open(headerfile_path, 'r') as headerfile:
-        fname_class_dict = {}
-        fname_class_science_features_dict = {}
+        fname_target_dict = {}
+        fname_target_science_features_dict = {}
         fname_metadata_dict = {}
-        # Write IDs and classnames to dict
+        # Write IDs and target names to dict
         line_no = 0
         other_metadata_labels = []
         for line in headerfile:
             if line_no == 0:
                 els = line.strip().split(',')
-                fname, class_name = els[:2]
+                fname, target_value = els[:2]
                 other_metadata_labels = els[2:]
                 features_to_use += other_metadata_labels
             else:
                 if len(line) > 1 and line[0] not in ["#", "\n"]:
                     if len(line.split(',')) == 2:
-                        fname, class_name = line.strip('\n').split(',')
-                        fname_class_dict[fname] = class_name
-                        fname_class_science_features_dict[fname] = {
-                            'class': class_name}
+                        fname, target_value = line.strip('\n').split(',')
+                        fname_target_dict[fname] = target_value
+                        fname_target_science_features_dict[fname] = {
+                            'target': target_value}
                     elif len(line.split(',')) > 2:
                         els = line.strip().split(',')
-                        fname, class_name = els[:2]
+                        fname, target_value = els[:2]
                         other_metadata = els[2:]
                         # Convert to floats, if applicable:
                         for i in range(len(other_metadata)):
@@ -100,20 +100,20 @@ def parse_headerfile(headerfile_path, features_to_use):
                                     other_metadata[i])
                             except ValueError:
                                 pass
-                        fname_class_dict[fname] = class_name
-                        fname_class_science_features_dict[fname] = {
-                            'class': class_name}
+                        fname_target_dict[fname] = target_value
+                        fname_target_science_features_dict[fname] = {
+                            'target': target_value}
                         fname_metadata_dict[fname] = dict(
                             list(zip(other_metadata_labels,
                                      other_metadata)))
             line_no += 1
-    return (features_to_use, fname_class_dict,
-            fname_class_science_features_dict,
+    return (features_to_use, fname_target_dict,
+            fname_target_science_features_dict,
             fname_metadata_dict)
 
 
-def generate_featurize_input_params_list(features_to_use, fname_class_dict,
-                                         fname_class_science_features_dict,
+def generate_featurize_input_params_list(features_to_use, fname_target_dict,
+                                         fname_target_science_features_dict,
                                          fname_metadata_dict, zipfile_path,
                                          custom_script_path, is_test):
     """
@@ -124,7 +124,7 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
     unzip_dir = tempfile.mkdtemp()
     zipfile.extractall(path=unzip_dir)
     all_fnames = zipfile.getnames()
-    num_objs = len(fname_class_dict)
+    num_objs = len(fname_target_dict)
 
     for fname in all_fnames:
         if is_test and len(input_params_list) >= 3:
@@ -137,7 +137,7 @@ def generate_featurize_input_params_list(features_to_use, fname_class_dict,
         else:
             continue
         input_params_list.append((ts_path, custom_script_path,
-                                  fname_class_dict[short_fname],
+                                  fname_target_dict[short_fname],
                                   features_to_use))
     return input_params_list
 
@@ -151,12 +151,12 @@ def generate_features(headerfile_path, zipfile_path, features_to_use,
         objects = parse_prefeaturized_csv_data(headerfile_path)
     else:
         # Parse header file
-        (features_to_use, fname_class_dict, fname_class_science_features_dict,
+        (features_to_use, fname_target_dict, fname_target_science_features_dict,
          fname_metadata_dict) = parse_headerfile(headerfile_path,
                                                  features_to_use)
         input_params_list = generate_featurize_input_params_list(
-            features_to_use, fname_class_dict,
-            fname_class_science_features_dict, fname_metadata_dict,
+            features_to_use, fname_target_dict,
+            fname_target_science_features_dict, fname_metadata_dict,
             zipfile_path, custom_script_path, is_test)
         # TO-DO: Determine number of cores in cluster:
         res = featurize_celery_task.chunks(input_params_list,
@@ -194,7 +194,7 @@ def write_column_titles(f, f2, features_extracted, features_to_use,
 
     """
     line = []
-    line2 = ['class']
+    line2 = ['target']
     for feat in sorted(features_extracted):
         if feat in features_to_use:
             print("Using feature", feat)
@@ -205,22 +205,22 @@ def write_column_titles(f, f2, features_extracted, features_to_use,
     f2.write(','.join(line2) + '\n')
 
 
-def count_classes(objects):
+def count_targets(objects):
     """
 
     """
-    class_count = {}
+    target_count = {}
     num_used = {}
     num_held_back = {}
-    # count up total num of objects per class
+    # count up total num of objects per target
     for obj in objects:
-        if str(obj['class']) not in class_count:
-            class_count[str(obj['class'])] = 1
-            num_used[str(obj['class'])] = 0
-            num_held_back[str(obj['class'])] = 0
+        if str(obj['target']) not in target_count:
+            target_count[str(obj['target'])] = 1
+            num_used[str(obj['target'])] = 0
+            num_held_back[str(obj['target'])] = 0
         else:
-            class_count[str(obj['class'])] += 1
-    return (class_count, num_used, num_held_back)
+            target_count[str(obj['target'])] += 1
+    return (target_count, num_used, num_held_back)
 
 
 def write_features_to_disk(objects, featureset_id, features_to_use,
@@ -235,31 +235,31 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
     else:
         features_extracted = []
         return
-    if "class" in features_extracted:
-        features_extracted.remove("class")
+    if "target" in features_extracted:
+        features_extracted.remove("target")
     features_to_plot = determine_feats_to_plot(features_extracted)
 
     with open(os.path.join(
             cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_id),
               'w') as f, open(os.path.join(
                   cfg.FEATURES_FOLDER,
-                  "%s_features_with_classes.csv" % featureset_id), 'w') as f2:
+                  "%s_features_with_targets.csv" % featureset_id), 'w') as f2:
         write_column_titles(f, f2, features_extracted, features_to_use,
                             features_to_plot)
-        class_count, num_used, num_held_back = count_classes(objects)
-        classes = []
+        target_count, num_used, num_held_back = count_targets(objects)
+        targets = []
         cv_objs = []
         numobjs = 0
         print("Writing object features to file...")
         for obj in objects:
-            # total number of lcs for given class encountered < 70% total num lcs
-            # if (num_used[str(obj['class'])] + num_held_back[str(obj['class'])]
-            #   < 0.7*class_count[str(obj['class'])]):
+            # total number of lcs for given target encountered < 70% total num lcs
+            # if (num_used[str(obj['target'])] + num_held_back[str(obj['target'])]
+            #   < 0.7*target_count[str(obj['target'])]):
             # overriding above line that held back 30% of objects from model
             # creation for CV purposes :
             if 1:
                 line = []
-                line2 = [obj['class']]
+                line2 = [obj['target']]
                 for feat in sorted(features_extracted):
                     if feat in features_to_use:
                         try:
@@ -285,15 +285,18 @@ def write_features_to_disk(objects, featureset_id, features_to_use,
                 f.write(','.join(line) + '\n')
                 if numobjs < 300:
                     f2.write(','.join(line2) + '\n')
-                classes.append(str(obj['class']))
-                num_used[str(obj['class'])] += 1
+                if "." in str(obj["target"]) and \
+                   str(obj["target"]).replace(".", "").isdigit():
+                    obj["target"] = float(obj["target"])
+                targets.append(obj['target'])
+                num_used[str(obj['target'])] += 1
             else:
                 cv_objs.append(obj)
-                num_held_back[str(obj['class'])] += 1
+                num_held_back[str(obj['target'])] += 1
             numobjs += 1
     np.save(os.path.join(
         ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_classes.npy" % featureset_id), classes)
+        "%s_targets.npy" % featureset_id), targets)
     print("Done.")
 
 
@@ -305,15 +308,15 @@ def featurize(
 
     Features are saved to the file given by
     ``"%s_features.csv" % featureset_id``
-    and a list of corresponding classes is saved to the file given by
-    ``"%s_classes.npy" % featureset_id``
+    and a list of corresponding targets is saved to the file given by
+    ``"%s_targets.npy" % featureset_id``
     in the directory `cfg.FEATURES_FOLDER` (or is later copied there if
     generated inside a Docker container).
 
     Parameters
     ----------
     headerfile_path : str
-        Path to header file containing file names, class names, and
+        Path to header file containing file names, target names, and
         metadata.
     zipfile_path : str
         Path to the tarball of individual time series files to be used

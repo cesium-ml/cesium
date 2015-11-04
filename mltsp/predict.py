@@ -138,9 +138,9 @@ def featurize_multiple(newpred_file_path, features_to_use,
     return big_features_and_tsdata_dict
 
 
-def featurize_tsdata(newpred_file_path, featset_key, custom_features_script,
+def featurize_tsdata(newpred_file_path, custom_features_script,
                      metadata_file_path, features_already_extracted,
-                     features_to_use, in_docker_container):
+                     features_to_use):
     """
     """
     all_meta_features = parse_metadata_file(metadata_file_path)
@@ -170,7 +170,7 @@ def create_feat_dict_and_list(new_obj, features_to_use, features_extracted):
     features_dict = {}
     newFeatures = []
     for feat in sorted(features_extracted):
-        if feat != 'class' and feat in new_obj and feat in features_to_use:
+        if feat != 'target' and feat in new_obj and feat in features_to_use:
             try:
                 if type(new_obj[feat]) != type(None):
                     try:
@@ -188,46 +188,58 @@ def create_feat_dict_and_list(new_obj, features_to_use, features_extracted):
     return (newFeatures, features_dict)
 
 
-def add_to_predict_results_dict(results_dict, classifier_preds, fname, ts_data,
-                                features_dict, featset_key, n_cols_html_table):
+def add_to_predict_results_dict_classification_proba(
+        results_dict, estimator_preds, fname, ts_data, features_dict,
+        featset_key, n_cols_html_table):
     """
     """
-    # Load model class list
-    all_objs_class_list = list(np.load(
-        os.path.join(cfg.FEATURES_FOLDER, "%s_classes.npy" % featset_key)))
-    sorted_class_list = []
-    for i in sorted(all_objs_class_list):
-        if i not in sorted_class_list:
-            sorted_class_list.append(i)
-    class_probs = classifier_preds[0]
-    class_names = sorted_class_list
+    # Load model target list
+    all_objs_target_list = list(np.load(
+        os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key)))
+    sorted_target_list = sorted(set(all_objs_target_list))
+    target_probs = estimator_preds[0]
 
-    results_str = ("<tr class='pred_results'>"
-                   "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
     results_arr = []
-
-    for i in range(len(class_probs)):
-        results_arr.append(
-            [sorted_class_list[i], float(class_probs[i])])
+    for i in range(len(target_probs)):
+        results_arr.append([sorted_target_list[i], float(target_probs[i])])
     results_arr.sort(key=itemgetter(1), reverse=True)
 
-    for i in range(len(results_arr)):
-        if i < n_cols_html_table:
-            results_str += """
-                <td class='pred_results'>%s</td>
-                <td class='pred_results'>%s</td>
-            """ % (str(results_arr[i][0]), str(results_arr[i][1]))
-
-    results_str += "</tr>"
     results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
-        "results_str": results_str, "ts_data": ts_data,
-        "features_dict": features_dict, "pred_results_list": results_arr}
+        "results_str": "", "ts_data": ts_data,
+        "features_dict": features_dict, "pred_results": results_arr}
     return
 
 
-def do_model_predictions(big_features_and_tsdata_dict, featset_key, model_type,
-                         features_to_use, n_cols_html_table):
+def add_to_predict_results_dict_classification(
+        results_dict, estimator_preds, fname, ts_data, features_dict,
+        featset_key, n_cols_html_table):
+    """
+    """
+    if isinstance(estimator_preds, (list, np.ndarray)):
+        estimator_preds = estimator_preds[0]
+
+    results_dict[os.path.basename(fname)] = {
+        "results_str": "", "ts_data": ts_data,
+        "features_dict": features_dict, "pred_results": estimator_preds}
+    return
+
+
+def add_to_predict_results_dict_regression(results_dict, estimator_preds,
+                                           fname, ts_data, features_dict,
+                                           n_cols_html_table):
+    """
+    """
+    if isinstance(estimator_preds, (list, np.ndarray)):
+        estimator_preds = estimator_preds[0]
+
+    results_dict[os.path.basename(fname)] = {
+        "results_str": "", "ts_data": ts_data,
+        "features_dict": features_dict, "pred_results": estimator_preds}
+    return
+
+
+def do_model_predictions(big_features_and_tsdata_dict, model_key, model_type,
+                         featset_key, features_to_use, n_cols_html_table):
     """
 
     """
@@ -243,39 +255,50 @@ def do_model_predictions(big_features_and_tsdata_dict, featset_key, model_type,
             new_obj, features_to_use, features_extracted)
 
         # Load model
-        rfc_model = joblib.load(os.path.join(
-            cfg.MODELS_FOLDER, "%s_%s.pkl" % (featset_key, model_type)))
+        model = joblib.load(os.path.join(
+            cfg.MODELS_FOLDER, "{}.pkl".format(model_key)))
 
-        # Do probabilistic model prediction
-        classifier_preds = rfc_model.predict_proba(np.array(newFeatures))
-        add_to_predict_results_dict(
-            results_dict, classifier_preds, fname, ts_data, features_dict,
-            featset_key, n_cols_html_table)
+        # Do probabilistic model prediction when possible
+        if model_type[-1] == "C":
+            try:
+                estimator_preds = model.predict_proba(np.array(newFeatures))
+                add_to_predict_results_dict_classification_proba(
+                    results_dict, estimator_preds, fname, ts_data,
+                    features_dict, featset_key, n_cols_html_table)
+            except AttributeError:
+                estimator_preds = model.predict(np.array(newFeatures))
+                add_to_predict_results_dict_classification(
+                    results_dict, estimator_preds, fname, ts_data,
+                    features_dict, featset_key, n_cols_html_table)
+        elif model_type[-1] == "R":
+            estimator_preds = model.predict(np.array(newFeatures))
+            add_to_predict_results_dict_regression(
+                results_dict, estimator_preds, fname, ts_data, features_dict,
+                n_cols_html_table)
 
     return results_dict
 
 
-def predict(newpred_file_path, model_name, model_type, featset_key,
+def predict(newpred_file_path, model_key, model_type, featset_key,
             sepr=',', n_cols_html_table=5, features_already_extracted=False,
-            custom_features_script=None, metadata_file_path=None,
-            in_docker_container=False):
+            custom_features_script=None, metadata_file_path=None):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
-    classifier model, calculates class predictions with extracted
-    features, and returns a dictionary containing a list of class
+    estimator model, calculates target predictions with extracted
+    features, and returns a dictionary containing a list of target
     prediction probabilities, a string containing HTML markup for a
     table containing a list of the results, the time-series data itself
     used to generate features, and a dictionary of the features
     extracted. The respective dict keys of the above-mentioned values
-    are: "pred_results_list", "results_str", "ts_data", "features_dict".
+    are: "pred_results", "results_str", "ts_data", "features_dict".
 
     Parameters
     ----------
     newpred_file_path : str
         Path to time series data file to be used in prediction.
-    model_name : str
-        Name of the model to be used.
+    model_key : str
+        ID of the model to be used.
     model_type : str
         Type (abbreviation, e.g. "RF") of the model to be used.
     featset_key : str
@@ -285,7 +308,7 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
         Delimiting character in time series data file. Default is comma
         (",").
     n_cols_html_table : int, optional
-        The number of highest-probability classes to include (one per
+        The number of highest-probability targets to include (one per
         column) in the generated HTML table.
     features_already_extracted : dict, optional
         Dictionary of any features already extracted associated with
@@ -309,21 +332,21 @@ def predict(newpred_file_path, model_name, model_type, featset_key,
             "ts_data": The original time-series data provided.
             "features_dict": A dictionary containing the generated
                 features.
-            "pred_results_list": A list of lists, each containing one
-                of the most-probable classes and its probability.
+            "pred_results": A list of lists, each containing one
+                of the most-probable targets and its probability.
 
     """
-    print("predict_class - predict() called.")
+    print("predict.predict() called.")
 
     features_to_use = determine_feats_used(featset_key)
 
     big_features_and_tsdata_dict = featurize_tsdata(
-        newpred_file_path, featset_key, custom_features_script,
+        newpred_file_path, custom_features_script,
         metadata_file_path, features_already_extracted,
-        features_to_use, in_docker_container)
+        features_to_use)
 
     pred_results_dict = do_model_predictions(
-        big_features_and_tsdata_dict, featset_key, model_type, features_to_use,
-        n_cols_html_table)
+        big_features_and_tsdata_dict, model_key, model_type, featset_key,
+        features_to_use, n_cols_html_table)
 
     return pred_results_dict
