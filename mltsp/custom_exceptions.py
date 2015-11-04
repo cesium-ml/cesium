@@ -1,6 +1,6 @@
 class DataFormatError(Exception):
 
-    """TS data file or header file does not improperly formatted.
+    """TS data file or header file improperly formatted.
 
     Attributes
     ----------
