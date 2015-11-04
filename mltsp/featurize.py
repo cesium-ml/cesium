@@ -43,9 +43,14 @@ def parse_prefeaturized_csv_data(features_file_path):
         # First line contains column titles
         keys = f.readline().strip().split(',')
         for line in f:
+            if line == "" or line == "\n":
+                continue
             vals = line.strip().split(",")
             if len(vals) != len(keys):
-                continue
+                raise custom_exceptions.DataFormatError(
+                    "Improperly formatted features data file {} - the number "
+                    "of data columns does not match the number of column "
+                    "titles".format(features_file_path))
             else:
                 objects.append({})
                 for i in range(len(keys)):
