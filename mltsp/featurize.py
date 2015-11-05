@@ -10,266 +10,68 @@ from random import shuffle
 import os
 import tarfile
 import numpy as np
+import pandas as pd
 
 from . import cfg
-from . import custom_feature_tools as cft
 from . import util
 from . import custom_exceptions
-from .celery_tasks import featurize_ts_data as featurize_celery_task
+from .celery_tasks import featurize_ts_file as featurize_celery_task
+from . import featurize_tools as ft
 
 
-# TODO use this everywhere?
-def shorten_fname(file_path):
-    return os.path.splitext(os.path.basename(file_path))[0]
-
-
-def parse_prefeaturized_csv_data(features_file_path):
-    """Parse CSV file containing features.
-
-    Parameters
-    ----------
-    features_file_path : str
-        Path to CSV file containing features.
-
-    Returns
-    -------
-    dict
-        Returns dictionary containing features - feature
-        names as keys, corresponding values as dict values.
-
-    """
-    features = []
-    with open(features_file_path) as f:
-        # First line contains column titles
-        keys = f.readline().strip().split(',')
-        for line in f:
-            vals = line.strip().split(",")
-            if len(vals) != len(keys):
-                continue
-            else:
-                features.append({})
-                for i in range(len(keys)):
-                    features[-1][keys[i]] = vals[i]
-    return features
-
-
-def parse_headerfile(headerfile_path, features_to_use):
-    """Parse header file.
-
-    Parameters
-    ----------
-    headerfile_path : str
-        Path to header file.
-
-    features_to_use : list of str
-        List of feature names to be generated.
-
-    Returns
-    -------
-    tuple
-
-    """
-    with open(headerfile_path, 'r') as headerfile:
-        fname_target_dict = {}
-        fname_target_science_features_dict = {}
-        fname_metadata_dict = {}
-        # Write IDs and target names to dict
-        line_no = 0
-        other_metadata_labels = []
-        for line in headerfile:
-            if line_no == 0:
-                els = line.strip().split(',')
-                fname, target_value = els[:2]
-                other_metadata_labels = els[2:]
-                features_to_use += other_metadata_labels
-            else:
-                if len(line) > 1 and line[0] not in ["#", "\n"]:
-                    if len(line.split(',')) == 2:
-                        fname, target_value = line.strip('\n').split(',')
-                        fname_target_dict[fname] = target_value
-                        fname_target_science_features_dict[fname] = {
-                            'target': target_value}
-                    elif len(line.split(',')) > 2:
-                        els = line.strip().split(',')
-                        fname, target_value = els[:2]
-                        other_metadata = els[2:]
-                        # Convert to floats, if applicable:
-                        for i in range(len(other_metadata)):
-                            try:
-                                other_metadata[i] = float(
-                                    other_metadata[i])
-                            except ValueError:
-                                pass
-                        fname_target_dict[fname] = target_value
-                        fname_target_science_features_dict[fname] = {
-                            'target': target_value}
-                        fname_metadata_dict[fname] = dict(
-                            list(zip(other_metadata_labels,
-                                     other_metadata)))
-            line_no += 1
-    return (features_to_use, fname_target_dict,
-            fname_target_science_features_dict,
-            fname_metadata_dict)
-
-
-def generate_featurize_input_params_list(features_to_use, fname_target_dict,
-                                         fname_target_science_features_dict,
-                                         fname_metadata_dict, zipfile_path,
-                                         custom_script_path, is_test):
+def generate_featurize_params_list(features_to_use, targets, ts_paths,
+        custom_script_path, first_N=None):
     """
     """
-    input_params_list = []
-
-    zipfile = tarfile.open(zipfile_path)
-    unzip_dir = tempfile.mkdtemp()
-    zipfile.extractall(path=unzip_dir)
-    all_fnames = zipfile.getnames()
-    num_objs = len(fname_target_dict)
-
-    for fname in all_fnames:
-        if is_test and len(input_params_list) >= 3:
-            break
-        short_fname = shorten_fname(fname)
-        if os.path.isfile(fname):
-            ts_path = fname
-        elif os.path.isfile(os.path.join(unzip_dir, fname)):
-            ts_path = os.path.join(unzip_dir, fname)
-        else:
-            continue
-        input_params_list.append((ts_path, custom_script_path,
-                                  fname_target_dict[short_fname],
-                                  features_to_use))
-    return input_params_list
+    params_list = []
+    for ts_path in ts_paths:
+        short_fname = util.shorten_fname(ts_path)
+        target = targets[targets.filename == short_fname].target.values[0]
+        params_list.append((ts_path, custom_script_path, target,
+            features_to_use))
+    if first_N:
+        params_list = params_list[:first_N]
+    return params_list
 
 
-def determine_feats_to_plot(features_extracted):
-    """
-    """
-    if len(set(cfg.features_to_plot) & set(features_extracted)) < 4:
-        features_extracted_copy = features_extracted[:]
-        shuffle(features_extracted_copy)
-        features_to_plot = features_extracted_copy[:5]
-    else:
-        features_to_plot = cfg.features_to_plot
-    return features_to_plot
-
-
-def write_column_titles(f, f2, features_extracted, features_to_use,
-                        features_to_plot):
+def write_features_to_disk(features_df, featureset_id, in_docker_container):
     """
 
     """
-    line = []
-    line2 = ['target']
-    for feat in sorted(features_extracted):
-        if feat in features_to_use:
-            print("Using feature", feat)
-            line.append(feat)
-            if feat in features_to_plot:
-                line2.append(feat)
-    f.write(','.join(line) + '\n')
-    f2.write(','.join(line2) + '\n')
+    features_path = os.path.join(cfg.FEATURES_FOLDER,
+            "%s_features.csv" % featureset_id)
+    features_cols = [f for f in sorted(features_df.columns) if f != 'target']
+    features_df.to_csv(features_path, index=False, columns=features_cols)
+
+    features_targets_path = os.path.join(cfg.FEATURES_FOLDER,
+            "%s_features_with_targets.csv" % featureset_id)
+    features_targets_cols = ['target'] + [f for f in sorted(features_df.columns)
+            if f in cfg.features_to_plot]
+    if len(features_targets_cols) < 5: # add more features until we get to 5
+        additional_features = [f for f in features_cols if f not in
+                cfg.features_to_plot]
+        features_targets_cols += additional_features[:(5-len(features_targets_cols))]
+    features_df.to_csv(features_targets_path, index=False,
+            columns=features_targets_cols)
+
+    np.save(os.path.join(("/tmp" if in_docker_container else
+        cfg.FEATURES_FOLDER), "%s_targets.npy" % featureset_id), features_df.target)
 
 
-def count_targets(objects):
-    """
-
-    """
-    target_count = {}
-    num_used = {}
-    num_held_back = {}
-    # count up total num of objects per target
-    for obj in objects:
-        if str(obj['target']) not in target_count:
-            target_count[str(obj['target'])] = 1
-            num_used[str(obj['target'])] = 0
-            num_held_back[str(obj['target'])] = 0
-        else:
-            target_count[str(obj['target'])] += 1
-    return (target_count, num_used, num_held_back)
+def load_and_store_feature_data(features_path, featureset_id="unknown",
+        in_docker_container=False, first_N=None):
+    features = pd.read_csv(features_path, comment='#', skipinitialspace=True)
+    if first_N:
+        features = features[:first_N]
+    write_features_to_disk(features, featureset_id, in_docker_container)
+    if not in_docker_container:
+        os.remove(features_path)
+    return "Featurization of timeseries data complete."
 
 
-def write_features_to_disk(objects, featureset_id, features_to_use,
-                           in_docker_container):
-    """
-
-    """
-    if objects is None:
-        raise Exception("featurize.write_features_to_disk - `objects` is None")
-    if len(objects) > 0:
-        features_extracted = list(objects[-1].keys())
-    else:
-        features_extracted = []
-        return
-    if "target" in features_extracted:
-        features_extracted.remove("target")
-    features_to_plot = determine_feats_to_plot(features_extracted)
-
-    with open(os.path.join(
-            cfg.FEATURES_FOLDER, "%s_features.csv" % featureset_id),
-              'w') as f, open(os.path.join(
-                  cfg.FEATURES_FOLDER,
-                  "%s_features_with_targets.csv" % featureset_id), 'w') as f2:
-        write_column_titles(f, f2, features_extracted, features_to_use,
-                            features_to_plot)
-        target_count, num_used, num_held_back = count_targets(objects)
-        targets = []
-        cv_objs = []
-        numobjs = 0
-        print("Writing object features to file...")
-        for obj in objects:
-            # total number of lcs for given target encountered < 70% total num lcs
-            # if (num_used[str(obj['target'])] + num_held_back[str(obj['target'])]
-            #   < 0.7*target_count[str(obj['target'])]):
-            # overriding above line that held back 30% of objects from model
-            # creation for CV purposes :
-            if 1:
-                line = []
-                line2 = [obj['target']]
-                for feat in sorted(features_extracted):
-                    if feat in features_to_use:
-                        try:
-                            if isinstance(obj[feat], (str, type(u''))) and \
-                               obj[feat] not in ["None", u"None"]:
-                                line.append(str(obj[feat]))
-                            elif obj[feat] is None or obj[feat] in ["None",
-                                                                    u"None"]:
-                                line.append(str(0.0))
-                            else:
-                                line.append(str(obj[feat]))
-                            if feat in features_to_plot and numobjs < 300:
-                                if isinstance(obj[feat], (str, type(u''))) and \
-                                   obj[feat] not in ["None", u"None"]:
-                                    line2.append(str(obj[feat]))
-                                elif (obj[feat] is None
-                                      or obj[feat] in ["None", u"None"]):
-                                    line2.append(str(0.0))
-                                else:
-                                    line2.append(str(obj[feat]))
-                        except KeyError:
-                            print(feat, "NOT IN DICT KEYS!!!! SKIPPING...")
-                f.write(','.join(line) + '\n')
-                if numobjs < 300:
-                    f2.write(','.join(line2) + '\n')
-                if "." in str(obj["target"]) and \
-                   str(obj["target"]).replace(".", "").isdigit():
-                    obj["target"] = float(obj["target"])
-                targets.append(obj['target'])
-                num_used[str(obj['target'])] += 1
-            else:
-                cv_objs.append(obj)
-                num_held_back[str(obj['target'])] += 1
-            numobjs += 1
-    np.save(os.path.join(
-        ("/tmp" if in_docker_container else cfg.FEATURES_FOLDER),
-        "%s_targets.npy" % featureset_id), targets)
-    print("Done.")
-
-
-def featurize(
-        headerfile_path, zipfile_path, features_to_use=[],
-        featureset_id="unknown", is_test=False, already_featurized=False,
-        custom_script_path=None, in_docker_container=False):
+def featurize_data_archive(headerfile_path, zipfile_path, features_to_use=[],
+        featureset_id="unknown", first_N=None, custom_script_path=None,
+        in_docker_container=False):
     """Generate features for labeled time series data.
 
     Features are saved to the file given by
@@ -284,7 +86,7 @@ def featurize(
     headerfile_path : str
         Path to header file containing file names, target names, and
         metadata.
-    zipfile_path : str, optional
+    zipfile_path : str
         Path to the tarball of individual time series files to be used
         for feature generation.
     features_to_use : list of str, optional
@@ -293,13 +95,10 @@ def featurize(
     featureset_id : str, optional
         RethinkDB ID of the new feature set entry. Defaults to
         "unknown".
-    is_test : bool, optional
-        Boolean indicating whether to do a test run of only the first
-        five time-series files. Defaults to False.
-    already_featurized : bool, optional
-        Boolean indicating whether `headerfile_path` points to a file
-        containing pre-generated features, in which case `zipfile_path`
-        must be None. Defaults to False.
+    first_N : int, optional
+        Integer indicating the maximum number of time series to featurize.
+        Can be used to reduce the number of files for testing purposes. If
+        `first_N` is None then all time series will be featurized.
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
@@ -313,33 +112,24 @@ def featurize(
         Human-readable message indicating successful completion.
 
     """
-    # Generate features for each TS object
-    if already_featurized:
-        # Read in features from CSV file
-        features = parse_prefeaturized_csv_data(headerfile_path)
-    else:
-        # Parse header file
-        (features_to_use, fname_target_dict, fname_target_science_features_dict,
-         fname_metadata_dict) = parse_headerfile(headerfile_path,
-                                                 features_to_use)
-        input_params_list = generate_featurize_input_params_list(
-            features_to_use, fname_target_dict,
-            fname_target_science_features_dict, fname_metadata_dict,
-            zipfile_path, custom_script_path, is_test)
-        # TO-DO: Determine number of cores in cluster:
-        res = featurize_celery_task.chunks(input_params_list,
-                                           cfg.N_CORES).delay()
-        res_list = res.get(timeout=100) # list of list of [fname, features]
-        feature_dict = dict([tuple(res) for chunk in res_list for res in chunk])
-        for fname in feature_dict.keys():
-            feature_dict[fname].update(fname_metadata_dict.get(fname, {}))
-        features = feature_dict.values()
-
-    write_features_to_disk(features, featureset_id, features_to_use,
-                           in_docker_container)
-    # Clean up
+    # Parse header file
+    targets, metadata = ft.parse_headerfile(headerfile_path)
+#    if len(metadata_dict) > 0:
+#        features_to_use += list(metadata_dict.values()[0].keys())
+    ts_paths = ft.extract_data_archive(zipfile_path)
+    params_list = generate_featurize_params_list(features_to_use, targets,
+            ts_paths, custom_script_path, first_N)
+    # TO-DO: Determine number of cores in cluster:
+    res = featurize_celery_task.chunks(params_list, cfg.N_CORES).delay()
+    res_list = res.get(timeout=100) # list of list of [fname, features]
+    res_list_flat = [res for chunk in res_list for res in chunk]
+    for fname, feature_dict in res_list_flat:
+        feature_dict['filename'] = fname
+    features = pd.DataFrame([feat_dict for fname, feat_dict in res_list_flat])
+    features = pd.merge(features, metadata, on='filename')
+    features = features.drop('filename', axis=1)
+    write_features_to_disk(features, featureset_id, in_docker_container)
     if not in_docker_container:
         os.remove(headerfile_path)
-        if zipfile_path is not None:
-            os.remove(zipfile_path)
+        os.remove(zipfile_path)
     return "Featurization of timeseries data complete."

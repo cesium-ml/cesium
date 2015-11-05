@@ -1979,11 +1979,15 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        results_str = featurize.featurize(
-            headerfile_path, zipfile_path, features_to_use=features_to_use,
-            featureset_id=featureset_key, is_test=is_test,
-            already_featurized=already_featurized,
-            custom_script_path=custom_script_path)
+        first_N = 5 if is_test else None
+        if already_featurized:
+            results_str = featurize.load_and_store_feature_data(
+                headerfile_path, featureset_id=featureset_key, first_N=first_N)
+        else:
+            results_str = featurize.featurize_data_archive(
+                headerfile_path, zipfile_path, features_to_use=features_to_use,
+                featureset_id=featureset_key, first_N=first_N,
+                custom_script_path=custom_script_path)
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
                        "Please ensure that the header file and tarball of time series "

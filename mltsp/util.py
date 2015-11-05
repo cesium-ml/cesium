@@ -11,6 +11,11 @@ except ImportError:
 import requests
 
 
+
+def shorten_fname(file_path):
+    return os.path.splitext(os.path.basename(file_path))[0]
+
+
 def get_docker_client(version='1.14'):
     """Connect to Docker if available and return a client.
 

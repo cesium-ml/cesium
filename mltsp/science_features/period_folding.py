@@ -1,6 +1,6 @@
 import numpy as np
-import lomb_scargle as ls
-import common_functions as cf
+from . import lomb_scargle as ls
+from . import common_functions as cf
 
 
 # TODO is this worth it since it doubles running time?

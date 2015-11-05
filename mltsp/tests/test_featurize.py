@@ -1,4 +1,5 @@
 from mltsp import featurize
+from mltsp import featurize_tools
 from mltsp import cfg
 import numpy.testing as npt
 import os
@@ -6,6 +7,7 @@ from os.path import join as pjoin
 import pandas as pd
 import tarfile
 import numpy as np
+import pandas as pd
 import shutil
 
 
@@ -33,91 +35,24 @@ def test_setup_regression():
         shutil.copy(fpath, cfg.UPLOAD_FOLDER)
 
 
-def test_features_file_parser():
-    """Test features file parsing."""
-    objects = featurize.parse_prefeaturized_csv_data(
-        pjoin(DATA_PATH, "csv_test_data.csv"))
-    npt.assert_array_equal(sorted(list(objects[0].keys())), ["col1", "col2",
-                                                             "col3", "col4"])
-    npt.assert_equal(objects[1]['col1'], ".1")
-    npt.assert_equal(objects[-1]['col4'], "221")
-
-
 def test_headerfile_parser():
     """Test header file parsing."""
-    (features_to_use, fname_class_dict, fname_class_science_features_dict,
-     fname_metadata_dict) = featurize.parse_headerfile(
-         pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"),
-         features_to_use=["dummy_featname"])
-    npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1",
-                                             "meta2", "meta3"])
-    npt.assert_equal(fname_class_dict["237022"], "W_Ursae_Maj")
-    npt.assert_equal(fname_class_science_features_dict["215153"]["target"],
-                     "Mira")
-    npt.assert_almost_equal(fname_metadata_dict["230395"]["meta1"],
-                            0.270056761691)
-
-
-def test_shorten_fname():
-    """Test shorten_fname."""
-    npt.assert_equal(featurize.shorten_fname("path/to/filename.sfx"),
-                     "filename")
-    npt.assert_equal(featurize.shorten_fname("/home/path/abc.dat"), "abc")
-
-
-def test_determine_feats_to_plot1():
-    """Test determine feats to plot - 1"""
-    ftp = featurize.determine_feats_to_plot(["abc", "221a", "22d"])
-    assert("221a" in ftp)
-    assert("median" not in ftp)
-    ftp = featurize.determine_feats_to_plot(cfg.features_list_science)
-    assert("freq1_amplitude1" in ftp)
-    assert("median" in ftp)
-
-
-def test_count_targets():
-    """Test count_targets"""
-    objs = [{"target": "class1"}, {"target": "class1"}, {"target": "class2"}]
-    class_count, num_used, num_held_back = featurize.count_targets(objs)
-    npt.assert_equal(class_count["class1"], 2)
-    npt.assert_equal(class_count["class2"], 1)
-
-
-def test_determine_feats_to_plot2():
-    """Test determine features to plot - 2"""
-    ftpl = featurize.determine_feats_to_plot(cfg.features_to_plot)
-    npt.assert_array_equal(ftpl, cfg.features_to_plot)
-    ftpl = featurize.determine_feats_to_plot(cfg.features_list_science)
-    npt.assert_array_equal(ftpl, cfg.features_to_plot)
-    ftpl = featurize.determine_feats_to_plot(cfg.features_list_obs)
-    npt.assert_equal(len(ftpl), 5)
-    assert(all(f in cfg.features_list_obs for f in ftpl))
-    ftpl = featurize.determine_feats_to_plot(["f1"])
-    npt.assert_array_equal(ftpl, ["f1"])
-
-
-def test_write_column_titles():
-    """Test write column titles to files"""
-    with open("test_file1.txt", "w") as f1, open("test_file2.txt", "w") as f2:
-        featurize.write_column_titles(f1, f2, ["feat1", "feat2", "feat3",
-                                               "feat4"],
-                                      ["feat1", "feat2", "feat3"],
-                                      ["feat1", "feat2"])
-    with open("test_file1.txt", "r") as f1, open("test_file2.txt", "r") as f2:
-        f1_cont = f1.read()
-        f2_cont = f2.read()
-    os.remove(f1.name)
-    os.remove(f2.name)
-    npt.assert_equal(f1_cont, "feat1,feat2,feat3\n")
-    npt.assert_equal(f2_cont, "target,feat1,feat2\n")
+    targets, metadata = featurize_tools.parse_headerfile(
+             pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"))
+    npt.assert_array_equal(metadata.columns, ["filename", "meta1", "meta2",
+        "meta3"])
+    npt.assert_equal(targets[targets.filename=="237022"].target.values[0],
+            "W_Ursae_Maj")
+    npt.assert_almost_equal(metadata[metadata.filename=="230395"].meta1.values[0],
+            0.270056761691)
 
 
 def test_write_features_to_disk():
     """Test writing features to disk"""
     featurize.write_features_to_disk(
-        [{"f1": 21.0, "f2": 0.15, "target": "c1"},
-         {"f1": 23.4, "f2": 2.31, "target": "c2"}],
-        "test_featset01", ["f1", "f2"], False)
+        pd.DataFrame([{"f1": 21.0, "f2": 0.15, "target": "c1"},
+         {"f1": 23.4, "f2": 2.31, "target": "c2"}]),
+        "test_featset01", False)
     with open(pjoin(cfg.FEATURES_FOLDER,
                     "test_featset01_features.csv")) as f:
         feat_cont = f.read()
@@ -144,14 +79,14 @@ def test_main_featurize_function():
     shutil.copy(
         pjoin(DATA_PATH, "testfeature1.py"),
         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
-    results_msg = featurize.featurize(
+    results_msg = featurize.featurize_data_archive(
         headerfile_path=pjoin(
             cfg.UPLOAD_FOLDER,
             "asas_training_subset_classes_with_metadata.dat"),
         zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
                            "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "f"],
-        featureset_id="test", is_test=True,
+        featureset_id="test", first_N=5,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                  "testfeature1.py"))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -178,15 +113,9 @@ def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
     test_setup()
 
-    results_msg = featurize.featurize(
-        headerfile_path=pjoin(
-            cfg.UPLOAD_FOLDER,
-            "test_features_with_targets.csv"),
-        zipfile_path=None,
-        already_featurized=True,
-        features_to_use=["std_err", "amplitude"],
-        featureset_id="test", is_test=True,
-        custom_script_path=None)
+    results_msg = featurize.load_and_store_feature_data(
+        pjoin(cfg.UPLOAD_FOLDER, "test_features_with_targets.csv"),
+        featureset_id="test", first_N=5)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
@@ -210,14 +139,13 @@ def test_main_featurize_function_regression_data():
     """Test main featurize function - regression data"""
     test_setup_regression()
 
-    results_msg = featurize.featurize(
-        headerfile_path=pjoin(
-            cfg.UPLOAD_FOLDER,
+    results_msg = featurize.featurize_data_archive(
+        headerfile_path=pjoin(cfg.UPLOAD_FOLDER,
             "asas_training_subset_targets.dat"),
         zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
                            "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_freq", "amplitude"],
-        featureset_id="test", is_test=True,
+        featureset_id="test", first_N=5,
         custom_script_path=None)
     assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                 "test_features.csv")))

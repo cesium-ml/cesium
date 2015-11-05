@@ -13,40 +13,15 @@ import uuid
 from . import cfg
 from . import custom_exceptions
 from . import custom_feature_tools as cft
-from .celery_tasks import pred_featurize_single
-
-
-def parse_metadata_file(metadata_file_path):
-    """
-    """
-    if metadata_file_path is not None:
-        meta_features = {}
-        with open(metadata_file_path) as f:
-            meta_feat_names = f.readline().strip().split(",")[1:]
-            for line in f:
-                if line != "\n" and len(line.split(",")) > 1:
-                    els = line.strip().split(",")
-                    fname = els[0]
-                    meta_feats = els[1:]
-                    for i in range(len(meta_feats)):
-                        try:
-                            meta_feats[i] = float(meta_feats[i])
-                        except ValueError:
-                            pass
-                    meta_features[fname] = dict(
-                        list(zip(meta_feat_names, meta_feats)))
-    else:
-        meta_features = {}
-    return meta_features
+from . import featurize_tools as ft
+from .celery_tasks import featurize_ts_file
 
 
 def determine_feats_used(featset_key):
     """
     """
-    with open(os.path.join(
-            cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key)) as f:
-        features_in_model = f.readline().strip().split(',')
-    return features_in_model
+    features = pd.read_csv(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key)
+    return features.columns
 
 
 def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
@@ -143,13 +118,14 @@ def featurize_tsdata(newpred_file_path, custom_features_script,
                      features_to_use):
     """
     """
+    target_dict, metadata_dict = parse_headerfile(headerfile_path)
     all_meta_features = parse_metadata_file(metadata_file_path)
     sep = sepr = ","
 
     all_features_list = cfg.features_list_obs[:] + cfg.features_list_science[:]
     tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
     os.mkdir(tmp_dir_path)
-    os.chmod(tmp_dir_path, 0777)
+    os.chmod(tmp_dir_path, 0o777)
     if tarfile.is_tarfile(newpred_file_path):
         big_features_and_tsdata_dict = featurize_multiple(
             newpred_file_path, features_to_use,

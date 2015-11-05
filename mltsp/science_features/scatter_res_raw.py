@@ -1,4 +1,4 @@
-import common_functions as cf
+from . import common_functions as cf
 
 
 def scatter_res_raw(t, m, e, lomb_model):

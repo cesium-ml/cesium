@@ -1,6 +1,6 @@
 import numpy as np
-import cfg
-import science_features as sf
+from mltsp import cfg
+from mltsp import science_features as sf
 import dask.async
 
 

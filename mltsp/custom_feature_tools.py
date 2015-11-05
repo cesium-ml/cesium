@@ -12,7 +12,6 @@ import shutil
 import numpy as np
 from importlib import import_module
 from . import cfg
-from . import celery_task_tools as ctt
 
 from .util import docker_images_available, is_running_in_docker, \
     get_docker_client
@@ -438,7 +437,8 @@ def assemble_test_data():
     """
     """
     fname = os.path.join(cfg.SAMPLE_DATA_PATH, "dotastro_215153.dat")
-    t, m, e = ctt.parse_ts_data(fname)
+    t, m, e = np.loadtxt(fname, delimiter=',').T
+    ts_data = ts_data[:,:3] # Only using T, M, E
     features_already_known = {'t': list(t), 'm': list(m), 'e': list(e)}
     return features_already_known
 
