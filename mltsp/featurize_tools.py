@@ -67,7 +67,7 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
     return all_feature_lists
 
 
-def assemble_featureset(feature_dicts, targets=None, metadata=None):
+def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
     feature_names = feature_dicts[0].keys() if len(feature_dicts) > 0 else []
     combined_feature_dict = {feature: (['name', 'channel'],
                                        [d[feature] for d in feature_dicts])
@@ -76,8 +76,9 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None):
         combined_feature_dict.update({feature: (['name'], metadata[feature].values) 
                                       for feature in metadata.columns})
     featureset = xray.Dataset(combined_feature_dict)
+    if names is not None:
+        featureset['name'].values = names
     if targets is not None:
-        featureset['name'].values = targets.index
         featureset['target'] = targets
     return featureset
 

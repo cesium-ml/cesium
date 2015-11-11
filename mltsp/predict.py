@@ -16,14 +16,12 @@ from . import util
 
 def add_to_predict_results_dict_classification_proba(
         results_dict, estimator_preds, fname, ts_data, features_dict,
-        featset_key, n_cols_html_table):
+        featureset_key, n_cols_html_table):
     """
     """
     # Load model target list
-    all_objs_target_list = list(np.load(
-        os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key)))
-    sorted_target_list = sorted(set(all_objs_target_list))
-    target_probs = estimator_preds[0]
+    sorted_target_list = list(estimator_preds.index)
+    target_probs = estimator_preds
 
     results_str = ("<tr target='pred_results'>"
                    "<td target='pred_results pred_results_fname_cell'>"
@@ -49,7 +47,7 @@ def add_to_predict_results_dict_classification_proba(
 
 def add_to_predict_results_dict_classification(
         results_dict, estimator_preds, fname, ts_data, features_dict,
-        featset_key, n_cols_html_table):
+        featureset_key, n_cols_html_table):
     """
     """
     results_str = ("<tr class='pred_results'>"
@@ -96,7 +94,7 @@ def do_model_predictions(featureset, model):
             preds = model.predict_proba(feature_df)
         except AttributeError:
             preds = model.predict(feature_df)
-    elif issubclass(type(model), ClassifierMixin):
+    elif issubclass(type(model), RegressorMixin):
         preds = model.predict(feature_df)
     else:
         raise ValueError("Invalid model type: must be classifier or regressor.")
@@ -108,7 +106,7 @@ def do_model_predictions(featureset, model):
     return preds_df
 
 
-def predict(newpred_path, model_key, model_type, featset_key,
+def predict(newpred_path, model_key, model_type, featureset_key,
             sepr=',', n_cols_html_table=5, 
             custom_features_script=None, metadata_path=None):
     """Generate features from new TS data and perform model prediction.
@@ -130,7 +128,7 @@ def predict(newpred_path, model_key, model_type, featset_key,
         ID of the model to be used.
     model_type : str
         Type (abbreviation, e.g. "RF") of the model to be used.
-    featset_key : str
+    featureset_key : str
         RethinkDB ID of the feature set used to create the
         above-specified model.
     sepr : str, optional
@@ -173,7 +171,7 @@ def predict(newpred_path, model_key, model_type, featset_key,
                                    '{}_featureset.nc'.format(featureset_key))
     featureset = xray.open_dataset(featureset_path)
     features_to_use = list(featureset.data_vars)
-    new_featureset = featurize.featurize_data_file(newpred_path,
+    new_featureset = featurize.featurize_data_file(newpred_path, metadata_path,
                                                    features_to_use=features_to_use,
                                                    custom_script_path=custom_features_script)
 
@@ -191,14 +189,14 @@ def predict(newpred_path, model_key, model_type, featset_key,
         if len(row) > 1:
             add_to_predict_results_dict_classification_proba(
                 results_dict, row, fname, ts_data, features_dict,
-                featset_key, n_cols_html_table)
+                featureset_key, n_cols_html_table)
         elif issubclass(type(model), ClassifierMixin):
             add_to_predict_results_dict_classification(
                 results_dict, row, fname, ts_data, features_dict,
-                featset_key, n_cols_html_table)
+                featureset_key, n_cols_html_table)
         else:
             add_to_predict_results_dict_regression(results_dict, row,
                                                    fname, ts_data, features_dict,
                                                    n_cols_html_table)
 
-    return pred_results_dict
+    return results_dict

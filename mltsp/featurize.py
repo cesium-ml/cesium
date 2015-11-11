@@ -115,13 +115,16 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     res_flat = [res for chunk in res_list for res in chunk]
     fnames, feature_dicts = zip(*res_flat)
 
-    if header_path:
+    if targets is not None:
         fname_targets = targets.loc[list(fnames)]
+    else:
+        fname_targets = None
+    if metadata is not None:
         fname_metadata = metadata.loc[list(fnames)]
     else:
-        fname_targets, fname_metadata = None, None
+        fname_metadata = None, None
     featureset = ft.assemble_featureset(feature_dicts, fname_targets,
-                                        fname_metadata)
+                                        fname_metadata, fnames)
 
     if featureset_id:
         write_features_to_disk(featureset, featureset_id, in_docker_container)
