@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
+import xray
 import os
 import tarfile
 import tempfile
+import zipfile
 from mltsp import cfg
 from mltsp import custom_exceptions
 from mltsp import util
@@ -11,7 +13,8 @@ from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 
 
-def featurize_single_ts(t, m, e, custom_script_path, features_to_use):
+def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
+                        meta_features):
     """Compute feature values for a given single time-series.
 
     Parameters
@@ -19,9 +22,12 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use):
     t : array-like
         Array of time values for a single time series.
     m : array-like
-        Array of measurement values for a single time series.
+        ndarray of measurement values for a single time series; multiple
+        columns correspond to multiple channels of measurements (i.e.,
+        vector-valued time series measurements).
     e : array-like
-        Array of measurement errors for a single time series.
+        ndarray of measurement errors for a single time series; multiple
+        columns correspond to errors from multiple channels.
     custom_script_path : str or None
         Path to custom features script .py file, or None.
     features_to_use : list of str
@@ -30,22 +36,50 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use):
     Returns
     -------
     dict
-        Dictionary with feature names as keys.
+        Dictionary with feature names as keys, lists of feature values (one per
+        channel) as values.
 
     """
-    obs_features = oft.generate_obs_features(t, m, e, features_to_use)
-    science_features = sft.generate_science_features(t, m, e, features_to_use)
-    if custom_script_path:
-        custom_features = cft.generate_custom_features(custom_script_path, t,
-            m, e, features_already_known=dict(list(obs_features.items()) +
-            list(science_features.items())))
-        custom_features = {key: custom_features[key] for key in
-            custom_features.keys() if key in features_to_use}
-    else:
-        custom_features = {}
-    all_features = dict(list(obs_features.items()) +
-            list(science_features.items()) + list(custom_features.items()))
-    return all_features
+    if len(m.shape) == 1:
+        m = np.reshape(m, (-1, 1))
+        e = np.reshape(m, (-1, 1))
+    all_feature_lists = {f: [] for f in features_to_use}
+    for i in range(m.shape[1]): # featurize each channel
+        obs_features = oft.generate_obs_features(t, m[:,i], e[:,i], features_to_use)
+        science_features = sft.generate_science_features(t, m[:,i], e[:,i],
+                                                         features_to_use)
+        if custom_script_path:
+            custom_features = cft.generate_custom_features(custom_script_path,
+                t, m[:,i], e[:,i], features_already_known=dict(
+                list(obs_features.items()) + list(science_features.items()) + 
+                list(meta_features.items())))
+            custom_features = {key: custom_features[key] for key in
+                               custom_features.keys() if key in features_to_use}
+        else:
+            custom_features = {}
+
+        for feature, value in obs_features.items():
+            all_feature_lists.get(feature, []).append(value)
+        for feature, value in science_features.items():
+            all_feature_lists.get(feature, []).append(value)
+        for feature, value in custom_features.items():
+            all_feature_lists.get(feature, []).append(value)
+    return all_feature_lists
+
+
+def assemble_featureset(feature_dicts, targets=None, metadata=None):
+    feature_names = feature_dicts[0].keys() if len(feature_dicts) > 0 else []
+    combined_feature_dict = {feature: (['name', 'channel'],
+                                       [d[feature] for d in feature_dicts])
+                             for feature in feature_names}
+    if metadata is not None:
+        combined_feature_dict.update({feature: (['name'], metadata[feature].values) 
+                                      for feature in metadata.columns})
+    featureset = xray.Dataset(combined_feature_dict)
+    if targets is not None:
+        featureset['name'].values = targets.index
+        featureset['target'] = targets
+    return featureset
 
 
 def parse_ts_data(filepath, sep=","):
@@ -62,36 +96,51 @@ def parse_ts_data(filepath, sep=","):
     return ts_data.T
 
 
-def parse_headerfile(headerfile_path):
+def parse_headerfile(headerfile_path, files_to_include=None):
     """Parse header file.
 
     Parameters
     ----------
     headerfile_path : str
         Path to header file.
+
+    files_to_include : list, optional
+        If provided, only return the subset of rows from the header
+        corresponding to the given filenames.
     
     Returns
     -------
-    tuple
+    list
 
     """
 # TODO throw exception for missing values; can Pandas do this?
     header = pd.read_csv(headerfile_path, comment='#')
-    header.filename = header.filename.astype(str)
-    header.filename = [util.shorten_fname(f) for f in header.filename]
-    if 'class' in header:
-        header.rename(columns={'class': 'target'}, inplace=True)
-    if 'target' not in header:
-        header['target'] = None
-    targets = header[['filename', 'target']]
-    metadata = header.drop(['target', 'class'], axis=1, errors='ignore')
-    return targets, metadata
+    if 'filename' in header:
+        header.index = [util.shorten_fname(str(f)) for f in header['filename']]
+        header.drop('filename', axis=1, inplace=True)
+    if files_to_include:
+        short_fnames_to_include = [util.shorten_fname(str(f)) for f in
+                files_to_include]
+        header = header.loc[short_fnames_to_include]
+    if 'target' in header:
+        targets = header['target']
+    elif 'class' in header:
+        targets = header['class']
+    else:
+        targets = None
+    feature_data = header.drop(['target', 'class'], axis=1, errors='ignore')
+    return targets, feature_data
 
 
-def extract_data_archive(zipfile_path):
-    zipfile = tarfile.open(zipfile_path)
-    unzip_dir = tempfile.mkdtemp()
-    zipfile.extractall(path=unzip_dir)
-    all_paths = [os.path.join(unzip_dir, f) for f in zipfile.getnames()]
+def extract_data_archive(archive_path):
+    if tarfile.is_tarfile(archive_path):
+        archive = tarfile.open(archive_path)
+    elif zipfile.is_zipfile(archive_path):
+        archive = zipfile.open(archive_path)
+    else:
+        raise ValueError('{} is not a valid zip- or tarfile.'.format(archive_path))
+    extract_dir = tempfile.mkdtemp()
+    archive.extractall(path=extract_dir)
+    all_paths = [os.path.join(extract_dir, f) for f in archive.getnames()]
     file_paths = [f for f in all_paths if not os.path.isdir(f)]
     return file_paths

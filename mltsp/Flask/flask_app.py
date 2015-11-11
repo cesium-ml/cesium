@@ -1984,8 +1984,8 @@ def featurize_proc(
             results_str = featurize.load_and_store_feature_data(
                 headerfile_path, featureset_id=featureset_key, first_N=first_N)
         else:
-            results_str = featurize.featurize_data_archive(
-                headerfile_path, zipfile_path, features_to_use=features_to_use,
+            results_str = featurize.featurize_data_file(
+                zipfile_path, headerfile_path, features_to_use=features_to_use,
                 featureset_id=featureset_key, first_N=first_N,
                 custom_script_path=custom_script_path)
     except Exception as theErr:

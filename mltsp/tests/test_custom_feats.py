@@ -7,7 +7,7 @@ import numpy as np
 import os
 from os.path import join as pjoin
 from subprocess import call, PIPE
-import json
+import simplejson
 import shutil
 import uuid
 import tempfile
@@ -113,7 +113,7 @@ def test_copy_data_to_tmp_dir():
     assert(os.path.exists(copied_file_path1))
     assert(os.path.exists(copied_file_path2))
     with open(copied_file_path2, "r") as f:
-        loaded_dict = json.load(f)
+        loaded_dict = simplejson.load(f)
     npt.assert_equal(loaded_dict, feats_known_dict)
     shutil.rmtree(tmp_dir_path, ignore_errors=True)
 

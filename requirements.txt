@@ -20,3 +20,4 @@ waitress
 celery
 toolz
 dask==0.7.3
+xray

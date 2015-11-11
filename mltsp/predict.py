@@ -1,167 +1,17 @@
-from __future__ import print_function
 from sklearn.externals import joblib
-
+from sklearn.base import ClassifierMixin, RegressorMixin
 from operator import itemgetter
 import os
-import shutil
-import tempfile
 import numpy as np
+import pandas as pd
+import xray
 import tarfile
-from copy import deepcopy
-import uuid
-
+import zipfile
+from . import build_model
 from . import cfg
-from . import custom_exceptions
-from . import custom_feature_tools as cft
+from . import featurize
 from . import featurize_tools as ft
-from .celery_tasks import featurize_ts_file
-
-
-def determine_feats_used(featset_key):
-    """
-    """
-    features = pd.read_csv(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key)
-    return features.columns
-
-
-def featurize_multiple_serially(newpred_file_path, tmp_dir_path,
-                                features_to_use, custom_features_script,
-                                all_meta_features, sep=","):
-    """
-    """
-    the_tarfile = tarfile.open(newpred_file_path)
-    all_fnames = the_tarfile.getnames()
-    the_tarfile.extractall(path=tmp_dir_path)
-    big_features_and_tsdata_dict = {}
-    for fname in all_fnames:
-        meta_features = all_meta_features.get(os.path.basename(fname), {})
-        big_features_and_tsdata_dict.update(featurize_single(
-            fname, features_to_use, custom_features_script, meta_features,
-            tmp_dir_path=tmp_dir_path, sep=sep))
-    return big_features_and_tsdata_dict
-
-
-def featurize_single(newpred_file_path, features_to_use, custom_features_script,
-                     meta_features, tmp_dir_path="/tmp", sep=","):
-    """
-    """
-    fname = newpred_file_path
-    if os.path.isfile(fname) and os.path.isabs(fname):
-        filepath = fname
-    elif os.path.isfile(os.path.join(tmp_dir_path, fname)) and \
-         os.path.isabs(os.path.join(tmp_dir_path, fname)):
-        filepath = os.path.join(tmp_dir_path, fname)
-    elif os.path.isfile(os.path.join(os.path.join(cfg.UPLOAD_FOLDER,
-                                                  "unzipped"),
-                                     fname)) and \
-         os.path.isabs(os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
-                                    fname)):
-        filepath = os.path.join(os.path.join(cfg.UPLOAD_FOLDER, "unzipped"),
-                                fname)
-    elif os.path.isfile(os.path.join(cfg.UPLOAD_FOLDER, fname)) and \
-         os.path.isabs(os.path.join(cfg.UPLOAD_FOLDER, fname)):
-        filepath = os.path.join(cfg.UPLOAD_FOLDER, fname)
-    else:
-        print(fname + " is not a file...")
-        return {}
-
-    res = pred_featurize_single.delay(
-        filepath, features_to_use, custom_features_script,
-        meta_features)
-    big_features_and_tsdata_dict = res.get(timeout=30)
-
-    return big_features_and_tsdata_dict
-
-
-def generate_input_params_list(newpred_file_path, features_to_use,
-                               custom_features_script, all_meta_features,
-                               tmp_dir_path):
-    """
-    """
-    params_list = []
-    the_tarfile = tarfile.open(newpred_file_path)
-    all_fnames = the_tarfile.getnames()
-    the_tarfile.extractall(path=tmp_dir_path)
-    for fname in all_fnames:
-        if not os.path.isfile(fname):
-            if os.path.isfile(os.path.join(tmp_dir_path, fname)):
-                fname = os.path.join(tmp_dir_path, fname)
-            elif os.path.isdir(os.path.join(tmp_dir_path, fname)):
-                continue
-            else:
-                raise Exception("Specified TS data file not on disk - %s." %
-                                fname)
-        meta_features = all_meta_features.get(os.path.basename(fname), {})
-        params_list.append([fname, features_to_use, custom_features_script,
-                            meta_features])
-    return params_list
-
-
-def featurize_multiple(newpred_file_path, features_to_use,
-                       custom_features_script, meta_features, tmp_dir_path):
-    """
-    """
-    input_params_list = generate_input_params_list(
-        newpred_file_path, features_to_use, custom_features_script,
-        meta_features, tmp_dir_path)
-    res = pred_featurize_single.chunks(input_params_list, cfg.N_CORES).delay()
-    res_list = res.get(timeout=100)
-    big_features_and_tsdata_dict = {}
-    for line in res_list:
-        for feats_and_tsdata_dict in line:
-            big_features_and_tsdata_dict.update(feats_and_tsdata_dict)
-    return big_features_and_tsdata_dict
-
-
-def featurize_tsdata(newpred_file_path, custom_features_script,
-                     metadata_file_path, features_already_extracted,
-                     features_to_use):
-    """
-    """
-    target_dict, metadata_dict = parse_headerfile(headerfile_path)
-    all_meta_features = parse_metadata_file(metadata_file_path)
-    sep = sepr = ","
-
-    all_features_list = cfg.features_list_obs[:] + cfg.features_list_science[:]
-    tmp_dir_path = os.path.join("/tmp", str(uuid.uuid4())[:10])
-    os.mkdir(tmp_dir_path)
-    os.chmod(tmp_dir_path, 0o777)
-    if tarfile.is_tarfile(newpred_file_path):
-        big_features_and_tsdata_dict = featurize_multiple(
-            newpred_file_path, features_to_use,
-            custom_features_script, all_meta_features, tmp_dir_path)
-    else:
-        meta_features = all_meta_features.get(os.path.basename(newpred_file_path), {})
-        big_features_and_tsdata_dict = featurize_single(
-            newpred_file_path, features_to_use, custom_features_script,
-            meta_features)
-
-    shutil.rmtree(tmp_dir_path, ignore_errors=True)
-    return big_features_and_tsdata_dict
-
-
-def create_feat_dict_and_list(new_obj, features_to_use, features_extracted):
-    """
-    """
-    features_dict = {}
-    newFeatures = []
-    for feat in sorted(features_extracted):
-        if feat != 'target' and feat in new_obj and feat in features_to_use:
-            try:
-                if type(new_obj[feat]) != type(None):
-                    try:
-                        newFeatures.append(float(new_obj[feat]))
-                    except ValueError:
-                        newFeatures.append(0.0)
-                else:
-                    newFeatures.append(0.0)
-                features_dict[feat] = newFeatures[-1]
-            except KeyError as theError:
-                print(theError)
-                pass
-        else:
-            pass
-    return (newFeatures, features_dict)
+from . import util
 
 
 def add_to_predict_results_dict_classification_proba(
@@ -195,7 +45,6 @@ def add_to_predict_results_dict_classification_proba(
     results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": results_arr}
-    return
 
 
 def add_to_predict_results_dict_classification(
@@ -215,7 +64,6 @@ def add_to_predict_results_dict_classification(
     results_dict[os.path.basename(fname)] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": estimator_preds}
-    return
 
 
 def add_to_predict_results_dict_regression(results_dict, estimator_preds,
@@ -235,53 +83,34 @@ def add_to_predict_results_dict_regression(results_dict, estimator_preds,
     results_dict[os.path.basename(fname)] = {
         "results_str": results_str, "ts_data": ts_data,
         "features_dict": features_dict, "pred_results": estimator_preds}
-    return
 
 
-def do_model_predictions(big_features_and_tsdata_dict, model_key, model_type,
-                         featset_key, features_to_use, n_cols_html_table):
+def do_model_predictions(featureset, model):
     """
 
     """
-    features_extracted = list(big_features_and_tsdata_dict[
-        list(big_features_and_tsdata_dict.keys())[0]]["features_dict"].keys())
-
-    results_dict = {}
-    for fname, features_and_tsdata_dict in \
-            big_features_and_tsdata_dict.items():
-        ts_data = features_and_tsdata_dict['ts_data']
-        new_obj = features_and_tsdata_dict['features_dict']
-        newFeatures, features_dict = create_feat_dict_and_list(
-            new_obj, features_to_use, features_extracted)
-
-        # Load model
-        model = joblib.load(os.path.join(
-            cfg.MODELS_FOLDER, "{}.pkl".format(model_key)))
-
-        # Do probabilistic model prediction when possible
-        if model_type[-1] == "C":
-            try:
-                estimator_preds = model.predict_proba(np.array(newFeatures))
-                add_to_predict_results_dict_classification_proba(
-                    results_dict, estimator_preds, fname, ts_data,
-                    features_dict, featset_key, n_cols_html_table)
-            except AttributeError:
-                estimator_preds = model.predict(np.array(newFeatures))
-                add_to_predict_results_dict_classification(
-                    results_dict, estimator_preds, fname, ts_data,
-                    features_dict, featset_key, n_cols_html_table)
-        elif model_type[-1] == "R":
-            estimator_preds = model.predict(np.array(newFeatures))
-            add_to_predict_results_dict_regression(
-                results_dict, estimator_preds, fname, ts_data, features_dict,
-                n_cols_html_table)
-
-    return results_dict
+    # Do probabilistic model prediction when possible
+    feature_df = build_model.rectangularize_featureset(featureset)
+    if issubclass(type(model), ClassifierMixin):
+        try:
+            preds = model.predict_proba(feature_df)
+        except AttributeError:
+            preds = model.predict(feature_df)
+    elif issubclass(type(model), ClassifierMixin):
+        preds = model.predict(feature_df)
+    else:
+        raise ValueError("Invalid model type: must be classifier or regressor.")
+    preds_df = pd.DataFrame(preds, index=featureset.name)
+    if preds_df.shape[1] == 1:
+        preds_df.columns = ['prediction']
+    else:
+        preds_df.columns = model.classes_
+    return preds_df
 
 
-def predict(newpred_file_path, model_key, model_type, featset_key,
-            sepr=',', n_cols_html_table=5, features_already_extracted=False,
-            custom_features_script=None, metadata_file_path=None):
+def predict(newpred_path, model_key, model_type, featset_key,
+            sepr=',', n_cols_html_table=5, 
+            custom_features_script=None, metadata_path=None):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
@@ -295,7 +124,7 @@ def predict(newpred_file_path, model_key, model_type, featset_key,
 
     Parameters
     ----------
-    newpred_file_path : str
+    newpred_path : str
         Path to time series data file to be used in prediction.
     model_key : str
         ID of the model to be used.
@@ -310,13 +139,10 @@ def predict(newpred_file_path, model_key, model_type, featset_key,
     n_cols_html_table : int, optional
         The number of highest-probability targets to include (one per
         column) in the generated HTML table.
-    features_already_extracted : dict, optional
-        Dictionary of any features already extracted associated with
-        the time series data provided. Defaults to False.
     custom_features_script : str, optional
         Path to custom features script to be used in feature
         generation, defaults to None.
-    metadata_file_path : str, optional
+    metadata_path : str, optional
         Path to meta data file associated with provided time series
         data. Defaults to None.
 
@@ -336,17 +162,43 @@ def predict(newpred_file_path, model_key, model_type, featset_key,
                 of the most-probable targets and its probability.
 
     """
-    print("predict.predict() called.")
+    if tarfile.is_tarfile(newpred_path) or zipfile.is_zipfile(newpred_path):
+        ts_paths = ft.extract_data_archive(newpred_path)
+    else:
+        ts_paths = [newpred_path]
+    all_ts_data = {util.shorten_fname(ts_path): ft.parse_ts_data(ts_path) 
+                   for ts_path in ts_paths}
+    
+    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
+                                   '{}_featureset.nc'.format(featureset_key))
+    featureset = xray.open_dataset(featureset_path)
+    features_to_use = list(featureset.data_vars)
+    new_featureset = featurize.featurize_data_file(newpred_path,
+                                                   features_to_use=features_to_use,
+                                                   custom_script_path=custom_features_script)
 
-    features_to_use = determine_feats_used(featset_key)
-
-    big_features_and_tsdata_dict = featurize_tsdata(
-        newpred_file_path, custom_features_script,
-        metadata_file_path, features_already_extracted,
-        features_to_use)
-
-    pred_results_dict = do_model_predictions(
-        big_features_and_tsdata_dict, model_key, model_type, featset_key,
-        features_to_use, n_cols_html_table)
+    model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
+                                     "{}.pkl".format(model_key)))
+    preds_df = do_model_predictions(new_featureset, model)
+    
+    # TODO this code will go away when we stop producing HTML here; for now,
+    # just separating it so that it can be more easily taken out
+    results_dict = {}
+    for fname, row in preds_df.iterrows():
+        ts_data = all_ts_data[fname]
+        featureset_row = build_model.rectangularize_featureset(new_featureset).loc[fname]
+        features_dict = featureset_row.to_dict()
+        if len(row) > 1:
+            add_to_predict_results_dict_classification_proba(
+                results_dict, row, fname, ts_data, features_dict,
+                featset_key, n_cols_html_table)
+        elif issubclass(type(model), ClassifierMixin):
+            add_to_predict_results_dict_classification(
+                results_dict, row, fname, ts_data, features_dict,
+                featset_key, n_cols_html_table)
+        else:
+            add_to_predict_results_dict_regression(results_dict, row,
+                                                   fname, ts_data, features_dict,
+                                                   n_cols_html_table)
 
     return pred_results_dict

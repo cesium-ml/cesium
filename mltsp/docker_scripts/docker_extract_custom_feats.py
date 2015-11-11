@@ -19,8 +19,7 @@ def extract_custom_feats(data_path):
 
     """
     # load ts_data and known features
-    with open(os.path.join(data_path, "features_already_known.json"), "r") \
-            as f:
+    with open(os.path.join(data_path, "features_already_known.json"), "r") as f:
         features_already_known = json.load(f)
 
     script_fpath = os.path.join(data_path, "custom_feature_defs.py")

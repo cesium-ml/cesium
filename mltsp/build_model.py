@@ -1,7 +1,6 @@
-from __future__ import print_function
 import os
 import numpy as np
-import pandas as pd
+import xray
 from . import cfg
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
@@ -9,12 +8,41 @@ from sklearn.linear_model import LinearRegression, SGDClassifier,\
 from sklearn.externals import joblib
 
 
+MODELS_TYPE_DICT = {'RFC': RandomForestClassifier,
+                    'RFR': RandomForestRegressor,
+                    'LC': SGDClassifier,
+                    'LR': LinearRegression,
+                    'RC': RidgeClassifierCV,
+                    'ARDR': ARDRegression,
+                    'BRR': BayesianRidge}
+
+
+def rectangularize_featureset(featureset):
+    featureset = featureset.drop([coord for coord in ['target', 'class']
+                                  if coord in featureset])
+    feature_df = featureset.to_dataframe()
+    if 'channel' in feature_df.index.names:
+        feature_df = feature_df.unstack(level='channel')
+    return feature_df
+
+
+def build_model_from_featureset(featureset, model=None, model_type=None,
+                                model_options={}):
+    if model is None and model_type:
+        model = MODELS_TYPE_DICT[model_type](**model_options)
+    else:
+        raise ValueError("If model is None, model_type must be specified")
+    feature_df = rectangularize_featureset(featureset)
+    model.fit(feature_df, featureset['target'])
+    return model
+
+
 def create_and_pickle_model(model_key, model_type, featureset_key, model_options={}):
     """Build a `scikit-learn` model.
 
     Builds the specified model and pickles it in the file
     whose name is given by
-    ``"%s_%s.pkl" % (featureset_key, model_type)``
+    ``'%s_%s.pkl' % (featureset_key, model_type)``
     in the directory `cfg.MODELS_FOLDER` (or is later copied there
     from within the Docker container if `in_docker_container` is True.
 
@@ -26,8 +54,7 @@ def create_and_pickle_model(model_key, model_type, featureset_key, model_options
         RethinkDB ID of the associated feature set from which to build
         the model, which will also become the ID/key for the model.
     model_type : str
-        Abbreviation of the type of model to be created. Defaults
-        to "RFC".
+        Abbreviation of the type of model to be created.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
 
@@ -37,25 +64,16 @@ def create_and_pickle_model(model_key, model_type, featureset_key, model_options
         Human-readable message indicating successful completion.
 
     """
-    features_filename = os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" %
-                                     featureset_key)
-    features = pd.read_csv(features_filename)
-    targets = np.load(features_filename.replace("_features.csv",
-                                                "_targets.npy"))
-    
-    models_type_dict = {"RFC": RandomForestClassifier,
-                        "RFR": RandomForestRegressor,
-                        "LC": SGDClassifier,
-                        "LR": LinearRegression,
-                        "RC": RidgeClassifierCV,
-                        "ARDR": ARDRegression,
-                        "BRR": BayesianRidge}
 
-    model_obj = models_type_dict[model_type](**model_options)
-    model_obj.fit(features, targets)
+    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
+                                   '{}_featureset.nc'.format(featureset_key))
+    featureset = xray.open_dataset(featureset_path)
+
+    model = build_model_from_featureset(featureset, model_type=model_type,
+                                        model_options=model_options)
 
     # Store the model:
-    foutname = os.path.join(cfg.MODELS_FOLDER, "{}.pkl".format(model_key))
-    joblib.dump(model_obj, foutname, compress=3)
+    foutname = os.path.join(cfg.MODELS_FOLDER, '{}.pkl'.format(model_key))
+    joblib.dump(model, foutname, compress=3)
     return("New model successfully created. Click the Predict tab to "
            "start using it.")
