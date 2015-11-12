@@ -43,11 +43,8 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
     if len(m.shape) == 1:
         m = np.reshape(m, (-1, 1))
         e = np.reshape(m, (-1, 1))
-    # These lists are assembled separately in case any custom features have the
-    # same name as an MLTSP feature, in which case we use the custom features
-    obs_feature_lists = {}
-    science_feature_lists = {}
-    custom_feature_lists = {}
+
+    all_feature_lists = {feature: m.shape[1] * [0.] for feature in features_to_use}
     for i in range(m.shape[1]): # featurize each channel
         obs_features = oft.generate_obs_features(t, m[:,i], e[:,i], features_to_use)
         science_features = sft.generate_science_features(t, m[:,i], e[:,i],
@@ -62,16 +59,13 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
         else:
             custom_features = {}
 
-        for feature, value in obs_features.items():
-            obs_feature_lists.get(feature, []).append(value)
-        for feature, value in science_features.items():
-            science_feature_lists.get(feature, []).append(value)
-        for feature, value in custom_features.items():
-            custom_feature_lists.get(feature, []).append(value)
+        # We set values in this order so that custom features take priority
+        # over MLTSP features in the case of name conflicts
+        for feature, value in (list(obs_features.items()) +
+                               list(science_features.items()) +
+                               list(custom_features.items())):
+            all_feature_lists[feature][i] = value
 
-    all_feature_lists = obs_feature_lists
-    all_feature_lists.update(science_feature_lists)
-    all_feature_lists.update(custom_feature_lists)
     return all_feature_lists
 
 
