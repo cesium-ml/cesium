@@ -48,7 +48,7 @@ def featurize_task_params_list(ts_paths, custom_script_path, features_to_use,
             ts_metadata = {}
         params_list.append((ts_path, custom_script_path, features_to_use,
                             ts_metadata))
-        return params_list
+    return params_list
 
 
 def featurize_data_file(data_path, header_path=None, features_to_use=[],
