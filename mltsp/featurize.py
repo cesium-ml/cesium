@@ -16,25 +16,21 @@ from .celery_tasks import featurize_ts_file as featurize_celery_task
 from . import featurize_tools as ft
 
 
-def write_features_to_disk(featureset, featureset_id,
-                             in_docker_container=False):
-    featureset_dir = "/tmp" if in_docker_container else cfg.FEATURES_FOLDER
-    featureset_path = os.path.join(featureset_dir,
+def write_features_to_disk(featureset, featureset_id):
+    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
                                    "{}_featureset.nc".format(featureset_id))
     featureset.to_netcdf(featureset_path)
 
 
 def load_and_store_feature_data(features_path, featureset_id="unknown",
-                                in_docker_container=False, first_N=None):
+                                first_N=None):
     targets, metadata = ft.parse_headerfile(features_path)
     if first_N:
         metadata = metadata[:first_N]
         if targets is not None:
             targets = targets[:first_N]
     featureset = ft.assemble_featureset([], targets, metadata)
-    write_features_to_disk(featureset, featureset_id, in_docker_container)
-#    if not in_docker_container:
-#        os.remove(features_path)
+    write_features_to_disk(featureset, featureset_id)
     return featureset
 
 
@@ -53,7 +49,7 @@ def featurize_task_params_list(ts_paths, custom_script_path, features_to_use,
 
 def featurize_data_file(data_path, header_path=None, features_to_use=[],
                         featureset_id=None, first_N=None,
-                        custom_script_path=None, in_docker_container=False):
+                        custom_script_path=None):
     """Generate features for labeled time series data.
 
     Features are saved to the file given by
@@ -84,9 +80,6 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
-    in_docker_container : bool, optional
-        Boolean indicating whether function is being called from inside
-        a Docker container. Defaults to False.
 
     Returns
     -------
@@ -127,7 +120,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
                                         fname_metadata, fnames)
 
     if featureset_id:
-        write_features_to_disk(featureset, featureset_id, in_docker_container)
+        write_features_to_disk(featureset, featureset_id)
 #    if not in_docker_container:
 #        os.remove(header_path)
 #        os.remove(data_path)

@@ -68,7 +68,7 @@ def sample_dataset():
 
 def test_write_features_to_disk():
     """Test writing features to disk"""
-    featurize.write_features_to_disk(sample_dataset(), "test", False)
+    featurize.write_features_to_disk(sample_dataset(), "test")
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_featureset.nc"))
     npt.assert_equal(list(featureset.data_vars), ['f1', 'f2'])
