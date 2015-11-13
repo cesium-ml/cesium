@@ -12,12 +12,17 @@ import xray
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+CLASSIFICATION_TEST_FILES = ["asas_training_subset_classes_with_metadata.dat",
+                              "asas_training_subset.tar.gz", "testfeature1.py",
+                              "test_features_with_targets.csv",
+                              "test_features_with_targets.csv",
+                              "247327.dat"]
+REGRESSION_TEST_FILES = ["asas_training_subset_targets.dat",
+                         "asas_training_subset.tar.gz", "testfeature1.py"]
 
 
 def copy_classification_test_data():
-    fnames = ["asas_training_subset_classes_with_metadata.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py",
-              "test_features_with_targets.csv", "test_features_with_targets.csv"]
+    fnames = CLASSIFICATION_TEST_FILES
     for fname in fnames:
         if fname.endswith('.py'):
             shutil.copy(pjoin(DATA_PATH, fname),
@@ -27,8 +32,7 @@ def copy_classification_test_data():
 
 
 def copy_regression_test_data():
-    fnames = ["asas_training_subset_targets.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
+    fnames = REGRESSION_TEST_FILES
     for fname in fnames:
         if fname.endswith('.py'):
             shutil.copy(pjoin(DATA_PATH, fname),
@@ -38,9 +42,7 @@ def copy_regression_test_data():
 
 
 def remove_test_data():
-    fnames = ["asas_training_subset_classes_with_metadata.dat",
-              "asas_training_subset_targets.dat","test_featureset.nc",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
+    fnames = CLASSIFICATION_TEST_FILES + REGRESSION_TEST_FILES
     for fname in fnames:
         for data_dir in [cfg.UPLOAD_FOLDER, cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                          cfg.FEATURES_FOLDER]:
@@ -94,7 +96,21 @@ def test_main_featurize_function():
                               'Delta_Scuti'] 
                for class_name in featureset['target'].values))
 
-# TODO test for single ts file
+
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_main_featurize_function_single_ts():
+    """Test main featurize function for single time series"""
+    featureset = featurize.featurize_data_file(header_path=pjoin(
+        cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
+        data_path=pjoin(cfg.UPLOAD_FOLDER, "247327.dat"),
+        features_to_use=["std_err", "f"], featureset_id="test", first_N=5)
+    assert("std_err" in featureset.data_vars)
+    assert("f" in featureset.data_vars)
+    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj',
+                              'Delta_Scuti'] 
+               for class_name in featureset['target'].values))
+
 
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_already_featurized_data():
