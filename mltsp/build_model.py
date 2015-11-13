@@ -21,8 +21,12 @@ def rectangularize_featureset(featureset):
     featureset = featureset.drop([coord for coord in ['target', 'class']
                                   if coord in featureset])
     feature_df = featureset.to_dataframe()
-    if 'channel' in feature_df.index.names:
+    if 'channel' in featureset:
         feature_df = feature_df.unstack(level='channel')
+        if len(featureset.channel) == 1:
+            feature_df.columns = [pair[0] for pair in feature_df.columns]
+        else:
+            feature_df.columns = ['_'.join(pair) for pair in feature_df.columns]
     return feature_df
 
 

@@ -1822,3 +1822,50 @@ function drawScatterplotMatrix(datafilename){
     });
 
 }
+
+
+
+function generate_pred_results_table(div_id, results_dict){
+
+    var thead_str = "<table id='pred_results_table' class='tablesorter'>";
+    thead_str += "<thead><tr class='pred_results'><th class='pred_results'>File</th>";
+    var tbody_str = "<tbody>";
+    var pred_col_names = "";
+
+    for (var key in results_dict){
+        if (results_dict.hasOwnProperty(key)){
+            tbody_str += "<tr class='pred_results'>";
+            tbody_str += "<td class='pred_results pred_results_fname_cell'><a href='#'>" + key + "</a></td>";
+            if (results_dict[key].constructor === Array){
+                pred_col_names = "";
+                for (var i = 0; i < results_dict[key].length; i++){
+                    var el = results_dict[key][i];
+                    if (el.constructor === Array){
+                        for (var j = 0; j < el.length; j++){
+                            tbody_str += "<td class='pred_results'>" + el[j] + "</td>";
+                            if (j === 0){
+                                pred_col_names += "<th class='pred_results'>Class_" + String(i) + "</th>";
+                            } else if (j === 1){
+                                pred_col_names += "<th class='pred_results'>Prob_Class_" + String(i) + "</th>";
+                            }
+                        }
+                    } else {
+                        tbody_str += "<td class='pred_results'>" + el + "</td>";
+                        pred_col_names += "<th class='pred_results'>Class_" + String(i) + "</th>";
+                    }
+                }
+            } else {
+                tbody_str += "<td class='pred_results'>" + results_dict[key] + "</td>";
+                pred_col_names = "<th class='pred_results'>Target</th>";
+            }
+            tbody_str += "</tr>";
+        }
+    }
+    thead_str += pred_col_names + "</tr></thead>";
+    var html_str = thead_str + tbody_str + "</tbody></table>";
+
+
+
+    $(div_id).html(html_str);
+
+}

@@ -725,8 +725,8 @@
                                 $("#model_build_results").html("Featurization and prediction complete.").show();
                                 
                                 $.get("/load_prediction_results/{{ prediction_entry_key }}", function(data){
-                                    
-                                    $("#pred_results").html(data["results_str_html"]);
+                                    console.log(data["pred_results_dict"]);
+                                    generate_pred_results_table("#pred_results", data["pred_results_dict"]);
                                     
                                     $("#pred_results_table").tablesorter();
                                     

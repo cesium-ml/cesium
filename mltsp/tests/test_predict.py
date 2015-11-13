@@ -52,19 +52,6 @@ def remove_test_data():
                 pass
 
 
-# TODO remove the logic that this is testing
-def test_add_to_predict_results_dict():
-    """Test add data to predict results dict"""
-    results_dict = {}
-    preds = pd.Series({'class1': 0.2, 'class2': 0.5, 'class3': 0.3}, name=0)
-    ts_data = np.array([[1., 2., 3.], [4., 5., 6.]])
-    predict.add_to_predict_results_dict_classification_proba(
-        results_dict, preds, "TT.dat",
-        ts_data, {'f1': 2}, "TEST001", 5)
-    npt.assert_array_equal(results_dict["TT"]["ts_data"], ts_data)
-    npt.assert_equal(len(results_dict["TT"]["pred_results"]), 3)
-
-
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_do_model_predictions():
     """Test inner model prediction function"""

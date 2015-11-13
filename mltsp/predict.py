@@ -14,75 +14,6 @@ from . import featurize_tools as ft
 from . import util
 
 
-def add_to_predict_results_dict_classification_proba(
-        results_dict, estimator_preds, fname, ts_data, features_dict,
-        featureset_key, n_cols_html_table):
-    """
-    """
-    # Load model target list
-    sorted_target_list = list(estimator_preds.index)
-    target_probs = estimator_preds
-
-    results_str = ("<tr target='pred_results'>"
-                   "<td target='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
-
-    results_arr = []
-    for i in range(len(target_probs)):
-        results_arr.append([sorted_target_list[i], float(target_probs[i])])
-    results_arr.sort(key=itemgetter(1), reverse=True)
-
-    for i in range(len(results_arr)):
-        if i < n_cols_html_table:
-            results_str += """
-                <td target='pred_results'>%s</td>
-                <td target='pred_results'>%s</td>
-            """ % (str(results_arr[i][0]), str(results_arr[i][1]))
-
-    results_str += "</tr>"
-    results_dict[os.path.splitext(os.path.basename(fname))[0]] = {
-        "results_str": results_str, "ts_data": ts_data,
-        "features_dict": features_dict, "pred_results": results_arr}
-
-
-def add_to_predict_results_dict_classification(
-        results_dict, estimator_preds, fname, ts_data, features_dict,
-        featureset_key, n_cols_html_table):
-    """
-    """
-    results_str = ("<tr class='pred_results'>"
-                   "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
-    if isinstance(estimator_preds, (list, np.ndarray, pd.core.series.Series)):
-        estimator_preds = estimator_preds[0]
-
-    results_str += "<td class='pred_results'>%s</td>" % str(estimator_preds)
-
-    results_str += "</tr>"
-    results_dict[os.path.basename(fname)] = {
-        "results_str": results_str, "ts_data": ts_data,
-        "features_dict": features_dict, "pred_results": [estimator_preds]}
-
-
-def add_to_predict_results_dict_regression(results_dict, estimator_preds,
-                                           fname, ts_data, features_dict,
-                                           n_cols_html_table):
-    """
-    """
-    results_str = ("<tr class='pred_results'>"
-                   "<td class='pred_results pred_results_fname_cell'>"
-                   "<a href='#'>%s</a></td>") % os.path.basename(fname)
-    if isinstance(estimator_preds, (list, np.ndarray, pd.core.series.Series)):
-        estimator_preds = estimator_preds[0]
-
-    results_str += "<td class='pred_results'>%s</td>" % str(estimator_preds)
-
-    results_str += "</tr>"
-    results_dict[os.path.basename(fname)] = {
-        "results_str": results_str, "ts_data": ts_data,
-        "features_dict": features_dict, "pred_results": [estimator_preds]}
-
-
 def do_model_predictions(featureset, model):
     """
 
@@ -179,33 +110,16 @@ def predict(newpred_path, model_key, model_type, featureset_key,
                                      "{}.pkl".format(model_key)))
     preds_df = do_model_predictions(new_featureset, model)
     
-    # TODO this code will go away when we stop producing HTML here; for now,
-    # just separating it so that it can be more easily taken out
+    # TODO this code will go away when we stop returning all the data here,
+    # which will happen when we develop a file management system.
     results_dict = {}
-    for fname, row in preds_df.iterrows():
-        ts_data = all_ts_data[fname]
-        featureset_row = build_model.rectangularize_featureset(new_featureset).loc[fname]
-        features_dict = featureset_row.to_dict()
-        # TODO this will also go away when we stop storing features in the DB;
-        # labels all have to be strings, but multichannel data they are tuples
-        for key in features_dict.keys():
-            if isinstance(key, str):
-                new_key = key
-            elif 'channel' in new_featureset and len(new_featureset.channel) <= 1:
-                new_key = key[0]
-            else:
-                new_key = '_'.join([str(el) for el in key])
-            features_dict[new_key] = features_dict.pop(key)
-        if len(row) > 1:
-            add_to_predict_results_dict_classification_proba(
-                results_dict, row, fname, ts_data, features_dict,
-                featureset_key, n_cols_html_table)
-        elif issubclass(type(model), ClassifierMixin):
-            add_to_predict_results_dict_classification(
-                results_dict, row, fname, ts_data, features_dict,
-                featureset_key, n_cols_html_table)
-        else:
-            add_to_predict_results_dict_regression(results_dict, row,
-                                                   fname, ts_data, features_dict,
-                                                   n_cols_html_table)
+    new_feature_df = build_model.rectangularize_featureset(new_featureset)
+    results_dict = {fname: {"results_str": "",
+                            "ts_data": all_ts_data[fname],
+                            "features_dict": new_feature_df.loc[fname].to_dict(),
+                            "pred_results": list(row.sort(inplace=False,
+                                                 ascending=False).iteritems())
+                                            if len(row) > 1 else row}
+                    for fname, row in preds_df.iterrows()}
+
     return results_dict
