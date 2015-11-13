@@ -224,6 +224,10 @@ features_to_plot = [
     "freq1_rel_phase2"]
 
 
+# Specify number of time series to featurize as part of a "test run"
+TEST_N = 5
+
+
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
     if util.is_running_in_docker() == False:

@@ -1975,7 +1975,7 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        first_N = 5 if is_test else None
+        first_N = cfg.TEST_N if is_test else None
         if already_featurized:
             featurize.load_and_store_feature_data(
                 headerfile_path, featureset_id=featureset_key, first_N=first_N)

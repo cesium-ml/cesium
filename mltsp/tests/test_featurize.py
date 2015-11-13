@@ -86,7 +86,7 @@ def test_main_featurize_function():
     featureset = featurize.featurize_data_file(header_path=pjoin(
         cfg.UPLOAD_FOLDER,"asas_training_subset_classes_with_metadata.dat"),
         data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "f"], featureset_id="test", first_N=5,
+        features_to_use=["std_err", "f"], featureset_id="test", first_N=cfg.TEST_N,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                  "testfeature1.py"))
     assert("std_err" in featureset.data_vars)
@@ -103,7 +103,7 @@ def test_main_featurize_function_single_ts():
     featureset = featurize.featurize_data_file(header_path=pjoin(
         cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
         data_path=pjoin(cfg.UPLOAD_FOLDER, "247327.dat"),
-        features_to_use=["std_err", "f"], featureset_id="test", first_N=5)
+        features_to_use=["std_err", "f"], featureset_id="test", first_N=cfg.TEST_N)
     assert("std_err" in featureset.data_vars)
     assert("f" in featureset.data_vars)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
@@ -117,7 +117,7 @@ def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
     featureset = featurize.load_and_store_feature_data(
         pjoin(cfg.UPLOAD_FOLDER, "test_features_with_targets.csv"),
-        featureset_id="test", first_N=5)
+        featureset_id="test", first_N=cfg.TEST_N)
     assert("std_err" in featureset)
     assert("amplitude" in featureset)
     assert(all(class_name in ['class1', 'class2','class3'] for class_name in
@@ -132,7 +132,7 @@ def test_main_featurize_function_regression_data():
                           "asas_training_subset_targets.dat"),
         data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_freq", "amplitude"],
-        featureset_id="test", first_N=5, custom_script_path=None)
+        featureset_id="test", first_N=cfg.TEST_N, custom_script_path=None)
     npt.assert_array_equal(sorted(featureset.data_vars), 
                            ["amplitude", "freq1_freq", "std_err"])
     assert(all(isinstance(target, (float, np.float))
