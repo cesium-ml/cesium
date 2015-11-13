@@ -18,6 +18,7 @@ MODELS_TYPE_DICT = {'RFC': RandomForestClassifier,
 
 
 def rectangularize_featureset(featureset):
+    """Convert xray.Dataset into (2d) Pandas.Dataframe for use with sklearn."""
     featureset = featureset.drop([coord for coord in ['target', 'class']
                                   if coord in featureset])
     feature_df = featureset.to_dataframe()
@@ -32,6 +33,7 @@ def rectangularize_featureset(featureset):
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
                                 model_options={}):
+    """Build model from (non-rectangular) xray.Dataset of features."""
     if model is None and model_type:
         model = MODELS_TYPE_DICT[model_type](**model_options)
     else:
@@ -47,8 +49,8 @@ def create_and_pickle_model(model_key, model_type, featureset_key, model_options
     Builds the specified model and pickles it in the file
     whose name is given by
     ``'%s_%s.pkl' % (featureset_key, model_type)``
-    in the directory `cfg.MODELS_FOLDER` (or is later copied there
-    from within the Docker container if `in_docker_container` is True.
+    in the directory `cfg.MODELS_FOLDER`.
+    
 
     Parameters
     ----------

@@ -17,6 +17,7 @@ from . import featurize_tools as ft
 
 
 def write_features_to_disk(featureset, featureset_id):
+    """Store xray.Dataset of features as netCDF using given featureset key."""
     featureset_path = os.path.join(cfg.FEATURES_FOLDER,
                                    "{}_featureset.nc".format(featureset_id))
     featureset.to_netcdf(featureset_path)
@@ -24,6 +25,7 @@ def write_features_to_disk(featureset, featureset_id):
 
 def load_and_store_feature_data(features_path, featureset_id="unknown",
                                 first_N=None):
+    """Read features from CSV file and store as xray.Dataset."""
     targets, metadata = ft.parse_headerfile(features_path)
     if first_N:
         metadata = metadata[:first_N]
@@ -36,6 +38,7 @@ def load_and_store_feature_data(features_path, featureset_id="unknown",
 
 def featurize_task_params_list(ts_paths, custom_script_path, features_to_use,
                                metadata=None):
+    """Create list of tuples containing params for `featurize_celery_task`."""
     params_list = []
     for ts_path in ts_paths:
         if metadata is not None:
@@ -52,12 +55,9 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
                         custom_script_path=None):
     """Generate features for labeled time series data.
 
-    Features are saved to the file given by
-    ``"%s_features.csv" % featureset_id``
-    and a list of corresponding targets is saved to the file given by
-    ``"%s_targets.npy" % featureset_id``
-    in the directory `cfg.FEATURES_FOLDER` (or is later copied there if
-    generated inside a Docker container).
+    If `featureset_id` is provided, Features are saved as an xray.Dataset in
+    netCDF format to the file ``"%s_featureset.nc" % featureset_id`` in the
+    directory `cfg.FEATURES_FOLDER`.
 
     Parameters
     ----------
@@ -69,7 +69,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
         metadata.
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty
-        list, which results in all available features being used.
+        list, which will result in only metadata features being stored.
     featureset_id : str, optional
         RethinkDB ID of the new feature set entry. If provided, the feature set
         will be saved to a file with prefix `featureset_id`.
@@ -83,8 +83,9 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     Returns
     -------
-    str
-        Human-readable message indicating successful completion.
+    xray.Dataset
+        Featureset with `data_vars` containing feature values, and `coords` containing
+        filenames and targets (if applicable).
 
     """
     if tarfile.is_tarfile(data_path) or zipfile.is_zipfile(data_path):

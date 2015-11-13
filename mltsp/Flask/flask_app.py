@@ -2103,8 +2103,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
     try:
         results_dict = predict.predict(
             newpred_file_path, model_key=model_key,
-            model_type=model_type, featureset_key=featset_key, sepr=sep,
-            n_cols_html_table=n_cols_html_table,
+            model_type=model_type, featureset_key=featset_key,
             custom_features_script=custom_features_script,
             metadata_path=metadata_file)
         try:

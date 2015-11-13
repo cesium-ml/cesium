@@ -15,9 +15,7 @@ from . import util
 
 
 def do_model_predictions(featureset, model):
-    """
-
-    """
+    """Construct a pandas.DataFrame of model predictions for a given featureset."""
     # Do probabilistic model prediction when possible
     feature_df = build_model.rectangularize_featureset(featureset)
     if issubclass(type(model), ClassifierMixin):
@@ -38,7 +36,6 @@ def do_model_predictions(featureset, model):
 
 
 def predict(newpred_path, model_key, model_type, featureset_key,
-            sepr=',', n_cols_html_table=5, 
             custom_features_script=None, metadata_path=None):
     """Generate features from new TS data and perform model prediction.
 
@@ -62,12 +59,6 @@ def predict(newpred_path, model_key, model_type, featureset_key,
     featureset_key : str
         RethinkDB ID of the feature set used to create the
         above-specified model.
-    sepr : str, optional
-        Delimiting character in time series data file. Default is comma
-        (",").
-    n_cols_html_table : int, optional
-        The number of highest-probability targets to include (one per
-        column) in the generated HTML table.
     custom_features_script : str, optional
         Path to custom features script to be used in feature
         generation, defaults to None.
@@ -111,7 +102,7 @@ def predict(newpred_path, model_key, model_type, featureset_key,
     preds_df = do_model_predictions(new_featureset, model)
     
     # TODO this code will go away when we stop returning all the data here,
-    # which will happen when we develop a file management system.
+    # which should happen when we develop a file management system.
     results_dict = {}
     new_feature_df = build_model.rectangularize_featureset(new_featureset)
     results_dict = {fname: {"results_str": "",

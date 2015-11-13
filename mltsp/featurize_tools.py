@@ -15,7 +15,10 @@ from mltsp import custom_feature_tools as cft
 
 def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
                         meta_features):
-    """Compute feature values for a given single time-series.
+    """Compute feature values for a given single time-series. Data is
+    manipulated as dictionaries/lists of lists (as opposed to a more
+    conveient DataFrame/DataSet) since it will be serialized as part of
+    `celery_tasks.featurize_ts_file`.
 
     Parameters
     ----------
@@ -32,6 +35,9 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
         Path to custom features script .py file, or None.
     features_to_use : list of str
         List of feature names to be generated.
+    meta_features : dict
+        Dictionary of metafeature information to potentially be consumed by
+        custom feature scripts.
 
     Returns
     -------
@@ -70,6 +76,31 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
 
 
 def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
+    """Transforms raw feature data (as returned by `featurize_single_ts`) into 
+    an xray.Dataset.
+
+    Parameters
+    ----------
+    feature_dicts : list
+        List of dicts (one per time series file) with feature names as keys and
+        lists of feature values (one per channel) as values.
+
+    targets : list or pandas.Series, optional
+        If provided, the `target` coordinate of the featureset xray.Dataset
+        will be set accordingly.
+
+    metadata : pandas.DataFrame, optional
+        If provided, the columns of `metadata` will be added as data variables
+        to the featureset xray.Dataset.
+    
+    Returns
+    -------
+    xray.Dataset
+        Featureset with `data_vars` containing feature values, and `coords` containing
+        filenames and targets (if applicable).
+
+    """
+
     feature_names = feature_dicts[0].keys() if len(feature_dicts) > 0 else []
     combined_feature_dict = {feature: (['name', 'channel'],
                                        [d[feature] for d in feature_dicts])
@@ -86,8 +117,7 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
 
 
 def parse_ts_data(filepath, sep=","):
-    """
-    """
+    """Parses time series data file and returns np.ndarray with 1-3 columns."""
     with open(filepath) as f:
         ts_data = np.loadtxt(f, delimiter=sep)
     ts_data = ts_data[:,:3] # Only using T, M, E
@@ -113,10 +143,12 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     
     Returns
     -------
-    list
+    pandas.Series or None
+        Target column from header file (if present)
 
+    pandas.DataFrame
+        Feature data from other columns besides filename, target (can be empty)
     """
-# TODO throw exception for missing values; can Pandas do this?
     header = pd.read_csv(headerfile_path, comment='#')
     if 'filename' in header:
         header.index = [util.shorten_fname(str(f)) for f in header['filename']]
@@ -136,6 +168,7 @@ def parse_headerfile(headerfile_path, files_to_include=None):
 
 
 def extract_data_archive(archive_path):
+    """Extract zip- or tarfile of time series file and return file paths."""
     if tarfile.is_tarfile(archive_path):
         archive = tarfile.open(archive_path)
     elif zipfile.is_zipfile(archive_path):
