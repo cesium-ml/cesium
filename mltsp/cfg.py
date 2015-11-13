@@ -227,6 +227,9 @@ features_to_plot = [
 # Specify number of time series to featurize as part of a "test run"
 TEST_N = 5
 
+# Specify default measurement error value (for measurements without errors)
+ERROR_VALUE = 1e-4
+
 
 if not os.path.exists(PROJECT_PATH):
     print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)

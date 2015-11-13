@@ -48,7 +48,7 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
     """
     if len(m.shape) == 1:
         m = np.reshape(m, (-1, 1))
-        e = np.reshape(m, (-1, 1))
+        e = np.reshape(e, (-1, 1))
 
     all_feature_lists = {feature: m.shape[1] * [0.] for feature in features_to_use}
     for i in range(m.shape[1]): # featurize each channel

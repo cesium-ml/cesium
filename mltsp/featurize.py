@@ -126,3 +126,91 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 #        os.remove(header_path)
 #        os.remove(data_path)
     return featureset
+
+
+def featurize_time_series(times, values, errors=None, features_to_use=[],
+                          targets=None, meta_features=None,
+                          custom_script_path=None, labels=None):
+    """Versatile feature generation function for one or more time series
+
+    Time series data can be provided either as single arrays or as lists of
+    arrays; time arrays must be one-dimensional, while value and error arrays
+    can be one-dimensional or multivariate (with each column corresponding to a
+    different channel of measurements). In the case of multivariate measurement
+    values, each channel will be featurized separately, and the data variables of
+    the output `xray.Dataset` will be indexed by a `channel` coordinate.
+
+    Parameters
+    ----------
+    times : array-like or list of array-like
+        1d array containing time values for a single time series, or a list of
+        1d arrays each containing time values for a single time series
+    values : array-like or list of array-like
+        ndarray of measurement values for a single time series, or a list of
+        ndarrays each containing measurement values for a single time series.
+        Multiple columns correspond to multiple channels of measurements (i.e.,
+        vector-valued time series measurements).
+    errors : array-like or list of array-like, optional
+        ndarray of measurement error values for a single time series, or a list of
+        ndarrays each containing measurement error values for a single time
+        series (if applicable). Multiple columns correspond to multiple
+        channels of measurements (i.e., vector-valued time series measurements).
+    features_to_use : list of str, optional
+        List of feature names to be generated. Defaults to an empty
+        list, which will result in only metadata features being stored.
+    targets : str/float or array-like/list, optional
+        Target or list/array of targets, one per time series (if
+        applicable); will be stored in the `target` coordinate of the resulting
+        `xray.Dataset`.
+    meta_features : dict/Pandas.Series or list of dicts/Pandas.DataFrame
+        dict/Series (for a single time series) or DataFrame (for multiple time
+        series) of metafeature information; features are added to the output
+        featureset, and their values are consumable by custom feature scripts.
+    custom_script_path : str, optional
+        Path to Python script containing function definitions for the
+        generation of any custom features. Defaults to None.
+    labels : str or list of str, optional
+        Label or list of labels for each time series, if applicable; will be
+        stored in the `name` coordinate of the resulting `xray.Dataset`.
+
+    Returns
+    -------
+    xray.Dataset
+        Featureset with `data_vars` containing feature values and `coords`
+        containing labels (`name`) and targets (`target`), if applicable.
+    """ 
+    if errors is None:
+        errors = values.copy()
+        if isinstance(errors, list):
+            for e in errors:
+                e[:] = cfg.DEFAULT_ERROR_VALUE
+        else:
+            errors[:] = cfg.DEFAULT_ERROR_VALUE
+
+    if labels is None:
+        if isinstance(times, list):
+            labels = np.arange(len(times)).astype('str')
+        else:
+            labels = np.array(['0'])
+
+    if all([isinstance(x, np.ndarray) for x in (times, values, errors)]): 
+        times, values, errors = ([times], [values], [errors])
+        if isinstance(meta_features, pd.Series):
+            meta_features = meta_features.to_dict()
+        if not isinstance(targets, (list, np.ndarray)):
+            targets = [targets]
+
+    if not all([isinstance(x, list) for x in (times, values, errors)]):
+        raise TypeError("times, values, and errors all have the same type "
+                        "either (ndarray or list)")
+
+    meta_features = pd.DataFrame(meta_features, index=labels)
+    feature_dicts = []
+    for t, m, e, label in zip(times, values, errors, labels):
+        meta_feature_dict = meta_features.loc[label].to_dict()
+        features = ft.featurize_single_ts(t, m, e, features_to_use,
+                                       meta_features=meta_features,
+                                       custom_script_path=custom_script_path)
+        feature_dicts.append(features)
+    return ft.assemble_featureset(feature_dicts, targets, meta_features,
+                                  labels)
