@@ -36,8 +36,8 @@ def load_and_store_feature_data(features_path, featureset_id="unknown",
     return featureset
 
 
-def featurize_task_params_list(ts_paths, custom_script_path, features_to_use,
-                               metadata=None):
+def featurize_task_params_list(ts_paths, features_to_use, metadata=None,
+                               custom_script_path=None):
     """Create list of tuples containing params for `featurize_celery_task`."""
     params_list = []
     for ts_path in ts_paths:
@@ -45,8 +45,8 @@ def featurize_task_params_list(ts_paths, custom_script_path, features_to_use,
             ts_metadata = metadata.loc[util.shorten_fname(ts_path)].to_dict()
         else:
             ts_metadata = {}
-        params_list.append((ts_path, custom_script_path, features_to_use,
-                            ts_metadata))
+        params_list.append((ts_path, features_to_use, ts_metadata,
+                            custom_script_path))
     return params_list
 
 
@@ -99,8 +99,8 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
         targets, metadata = ft.parse_headerfile(header_path, ts_paths)
     else:
         targets, metadata = None, None
-    params_list = featurize_task_params_list(ts_paths, custom_script_path,
-                                             features_to_use, metadata)
+    params_list = featurize_task_params_list(ts_paths, features_to_use,
+                                             metadata, custom_script_path)
 
     # TODO: Determine number of cores in cluster:
     res = featurize_celery_task.chunks(params_list, cfg.N_CORES).delay()

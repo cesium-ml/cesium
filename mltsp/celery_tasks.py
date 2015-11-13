@@ -17,18 +17,21 @@ celery_app = Celery('celery_fit', broker=cfg.CELERY_BROKER)
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")
-def featurize_ts_file(ts_data_file_path, custom_script_path, features_to_use,
-                      metadata):
+def featurize_ts_file(ts_data_file_path, features_to_use, metadata={},
+                      custom_script_path=None):
     """Featurize time-series data file.
 
     Parameters
     ----------
     ts_data_file_path : str
         Time-series data file disk location path.
-    custom_script_path : str or None
-        Path to custom features script .py file, or None.
     features_to_use : list of str
-        List of feature names to be generated.
+        List of names of features to be generated.
+    metadata : dict, optional
+        Dictionary containing metafeature names and values for the given time
+        series, if applicable.
+    custom_script_path : str, optional
+        Path to custom features script .py file, if applicable.
 
     Returns
     -------
@@ -39,6 +42,6 @@ def featurize_ts_file(ts_data_file_path, custom_script_path, features_to_use,
     """
     short_fname = util.shorten_fname(ts_data_file_path)
     t, m, e = ft.parse_ts_data(ts_data_file_path)
-    all_features = ft.featurize_single_ts(t, m, e, custom_script_path,
-                                          features_to_use, metadata)
+    all_features = ft.featurize_single_ts(t, m, e, features_to_use, metadata,
+                                          custom_script_path)
     return (short_fname, all_features)

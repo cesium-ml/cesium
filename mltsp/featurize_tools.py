@@ -13,8 +13,8 @@ from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 
 
-def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
-                        meta_features):
+def featurize_single_ts(t, m, e, features_to_use, meta_features={},
+                        custom_script_path=None):
     """Compute feature values for a given single time-series. Data is
     manipulated as dictionaries/lists of lists (as opposed to a more
     conveient DataFrame/DataSet) since it will be serialized as part of
@@ -31,13 +31,13 @@ def featurize_single_ts(t, m, e, custom_script_path, features_to_use,
     e : array-like
         ndarray of measurement errors for a single time series; multiple
         columns correspond to errors from multiple channels.
-    custom_script_path : str or None
-        Path to custom features script .py file, or None.
     features_to_use : list of str
         List of feature names to be generated.
     meta_features : dict
         Dictionary of metafeature information to potentially be consumed by
         custom feature scripts.
+    custom_script_path : str, optional
+        Path to custom features script .py file, if applicable.
 
     Returns
     -------

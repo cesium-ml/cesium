@@ -1,7 +1,7 @@
 import numpy as np
+import dask.async
 import scipy.stats as stats
 from . import cfg
-import dask.async
 
 
 def double_to_single_step(cads):

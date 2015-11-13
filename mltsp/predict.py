@@ -14,7 +14,7 @@ from . import featurize_tools as ft
 from . import util
 
 
-def do_model_predictions(featureset, model):
+def model_predictions(featureset, model):
     """Construct a pandas.DataFrame of model predictions for a given featureset."""
     # Do probabilistic model prediction when possible
     feature_df = build_model.rectangularize_featureset(featureset)
@@ -35,8 +35,8 @@ def do_model_predictions(featureset, model):
     return preds_df
 
 
-def predict(newpred_path, model_key, model_type, featureset_key,
-            custom_features_script=None, metadata_path=None):
+def predict_data_file(newpred_path, model_key, model_type, featureset_key,
+                      custom_features_script=None, metadata_path=None):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
@@ -99,7 +99,7 @@ def predict(newpred_path, model_key, model_type, featureset_key,
 
     model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
                                      "{}.pkl".format(model_key)))
-    preds_df = do_model_predictions(new_featureset, model)
+    preds_df = model_predictions(new_featureset, model)
     
     # TODO this code will go away when we stop returning all the data here,
     # which should happen when we develop a file management system.

@@ -6,6 +6,7 @@ import os
 from os.path import join as pjoin
 from sklearn.externals import joblib
 import shutil
+import xray
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -85,3 +86,15 @@ def test_build_model_ard_reg():
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
     assert "ARDRegression" in str(type(model))
+
+
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_fit_existing_model():
+    """Test model building helper function."""
+    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+                                         "test_featureset.nc")) 
+    model = build_model.MODELS_TYPE_DICT['RFC']()
+    model = build_model.build_model_from_featureset(featureset, model)
+    assert hasattr(model, "n_features_")
+    assert hasattr(model, "predict_proba")
+    assert "sklearn.ensemble.forest.RandomForestClassifier" in str(type(model))

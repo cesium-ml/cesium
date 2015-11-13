@@ -53,12 +53,12 @@ def remove_test_data():
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
-def test_do_model_predictions():
+def test_model_predictions():
     """Test inner model prediction function"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          'test_featureset.nc'))
     model = build_model.build_model_from_featureset(featureset, model_type='RFC')
-    preds = predict.do_model_predictions(featureset, model)
+    preds = predict.model_predictions(featureset, model)
     assert(preds.shape[0] == len(featureset.name))
     assert(preds.shape[1] == len(np.unique(featureset.target.values)))
     assert(preds.values.dtype == np.dtype('float'))
@@ -72,11 +72,11 @@ def test_single_predict_classification():
                         if issubclass(model_class, sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
         model = build_model.create_and_pickle_model('test', model_type, 'test')
-        pred_results_dict = predict.predict(pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
-                                         'test', model_type, 'test',
-                                         metadata_path=pjoin(cfg.UPLOAD_FOLDER,
-                                                             "215153_metadata.dat"),
-                                         custom_features_script=None)
+        pred_results_dict = predict.predict_data_file(
+                                pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                                'test', model_type, 'test',
+                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                "215153_metadata.dat"), custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(el[0] in ['class1', 'class2', 'class3']
@@ -91,13 +91,12 @@ def test_single_predict_classification_with_custom():
                         if issubclass(model_class, sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
         model = build_model.create_and_pickle_model('test', model_type, 'test_cust')
-        pred_results_dict = predict.predict(pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
-                                         'test', model_type, "test_cust",
-                                         metadata_path=pjoin(cfg.UPLOAD_FOLDER,
-                                                             "215153_metadata.dat"),
-                                         custom_features_script=pjoin(
-                                         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
-                                        "testfeature1.py"))
+        pred_results_dict = predict.predict_data_file(
+                                pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                                'test', model_type, "test_cust",
+                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                "215153_metadata.dat"), custom_features_script=pjoin(
+                                cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "testfeature1.py"))
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(el[0] in ['class1', 'class2', 'class3']
@@ -112,12 +111,13 @@ def test_multiple_predict_classification():
                         if issubclass(model_class, sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
         model = build_model.create_and_pickle_model('test', model_type, 'test')
-        pred_results_dict = predict.predict(pjoin(cfg.UPLOAD_FOLDER,
-                                         "215153_215176_218272_218934.tar.gz"),
-                                         'test', model_type, 'test',
-                                         metadata_path=pjoin(cfg.UPLOAD_FOLDER,
-                                         "215153_215176_218272_218934_metadata.dat"),
-                                         custom_features_script=None)
+        pred_results_dict = predict.predict_data_file(
+                                pjoin(cfg.UPLOAD_FOLDER,
+                                      "215153_215176_218272_218934.tar.gz"),
+                                'test', model_type, 'test',
+                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                "215153_215176_218272_218934_metadata.dat"),
+                                custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(el[0] in ['class1', 'class2', 'class3']
@@ -132,11 +132,11 @@ def test_single_predict_regression():
                        if issubclass(model_class, sklearn.base.RegressorMixin)]
     for model_type in regressor_types:
         model = build_model.create_and_pickle_model('test', model_type, 'test_reg')
-        pred_results_dict = predict.predict(pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
-                                         'test', model_type, 'test_reg',
-                                         metadata_path=pjoin(cfg.UPLOAD_FOLDER,
-                                                             "215153_metadata.dat"),
-                                         custom_features_script=None)
+        pred_results_dict = predict.predict_data_file(
+                                pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                                'test', model_type, 'test_reg',
+                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                "215153_metadata.dat"), custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(isinstance(el, float))
@@ -150,12 +150,12 @@ def test_multiple_predict_regression():
                        if issubclass(model_class, sklearn.base.RegressorMixin)]
     for model_type in regressor_types:
         model = build_model.create_and_pickle_model('test', model_type, 'test_reg')
-        pred_results_dict = predict.predict(pjoin(cfg.UPLOAD_FOLDER,
-                                         "215153_215176_218272_218934.tar.gz"),
-                                         'test', model_type, 'test_reg',
-                                         metadata_path=pjoin(cfg.UPLOAD_FOLDER,
-                                         "215153_215176_218272_218934_metadata.dat"),
-                                         custom_features_script=None)
+        pred_results_dict = predict.predict_data_file(pjoin(cfg.UPLOAD_FOLDER,
+                                "215153_215176_218272_218934.tar.gz"),
+                                'test', model_type, 'test_reg',
+                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                "215153_215176_218272_218934_metadata.dat"),
+                                custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(isinstance(el, float))

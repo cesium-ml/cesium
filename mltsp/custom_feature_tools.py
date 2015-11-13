@@ -12,9 +12,7 @@ import shutil
 import numpy as np
 from importlib import import_module
 from . import cfg
-
-from .util import docker_images_available, is_running_in_docker, \
-    get_docker_client
+from . import util
 
 class MissingRequiredParameterError(Exception):
 
@@ -322,7 +320,7 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
     try:
         # Spin up Docker contain and extract custom feats
         # Instantiate Docker client
-        client = get_docker_client()
+        client = util.get_docker_client()
 
         # Use symlink if one was created (in which case this is probably
         # being run in a Disco worker)
@@ -469,7 +467,7 @@ def verify_new_script(script_fpath, docker_container=False):
 
     all_extracted_features = {}
     no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
-    if docker_images_available() and not no_docker:
+    if util.docker_images_available() and not no_docker:
         print("Extracting features inside docker container...")
         all_extracted_features = docker_extract_features(
             script_fpath=script_fpath,
@@ -479,7 +477,7 @@ def verify_new_script(script_fpath, docker_container=False):
         all_extracted_features = execute_functions_in_order(
             features_already_known=features_already_known,
             script_fpath=script_fpath)
-    elif not docker_images_available():
+    elif not util.docker_images_available():
         raise Exception("Docker image not available.")
     return all_extracted_features
 
@@ -557,13 +555,13 @@ def generate_custom_features(custom_script_path, t, m, e,
     features_already_known['m'] = list(m)
     features_already_known['e'] = list(e)
 
-    if is_running_in_docker():
+    if util.is_running_in_docker():
         all_new_features = execute_functions_in_order(
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
     else:
         no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
-        if docker_images_available() and not no_docker:
+        if util.docker_images_available() and not no_docker:
             print("Generating custom features inside docker container...")
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
@@ -573,7 +571,7 @@ def generate_custom_features(custom_script_path, t, m, e,
             all_new_features = execute_functions_in_order(
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
-        elif not docker_images_available():
+        elif not util.docker_images_available():
             raise Exception("Docker image not available.")
 
     return all_new_features

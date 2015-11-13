@@ -1,7 +1,7 @@
 import numpy as np
-from mltsp import cfg
-from mltsp import science_features as sf
 import dask.async
+from . import cfg
+from . import science_features as sf
 
 
 def generate_science_features(t, m, e,

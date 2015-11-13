@@ -18,7 +18,7 @@ MODELS_TYPE_DICT = {'RFC': RandomForestClassifier,
 
 
 def rectangularize_featureset(featureset):
-    """Convert xray.Dataset into (2d) Pandas.Dataframe for use with sklearn."""
+    """Convert xray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
     featureset = featureset.drop([coord for coord in ['target', 'class']
                                   if coord in featureset])
     feature_df = featureset.to_dataframe()
@@ -34,10 +34,11 @@ def rectangularize_featureset(featureset):
 def build_model_from_featureset(featureset, model=None, model_type=None,
                                 model_options={}):
     """Build model from (non-rectangular) xray.Dataset of features."""
-    if model is None and model_type:
-        model = MODELS_TYPE_DICT[model_type](**model_options)
-    else:
-        raise ValueError("If model is None, model_type must be specified")
+    if model is None:
+        if model_type:
+            model = MODELS_TYPE_DICT[model_type](**model_options)
+        else:
+            raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
     model.fit(feature_df, featureset['target'])
     return model

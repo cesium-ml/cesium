@@ -2101,7 +2101,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
     try:
-        results_dict = predict.predict(
+        results_dict = predict.predict_data_file(
             newpred_file_path, model_key=model_key,
             model_type=model_type, featureset_key=featset_key,
             custom_features_script=custom_features_script,
@@ -2129,7 +2129,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
             ts_data_dict={}, pred_results_dict=[], err=str(theErr))
         print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
-            "Error occurred during predict.predict() call. " + str(theErr))
+            "Error occurred during predict.predict_data_file() call. " + str(theErr))
     else:
         if isinstance(results_dict, dict):
             big_features_dict = {}
@@ -2153,7 +2153,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
                 features_dict={}, ts_data_dict={},
                 pred_results_dict={})
         else:
-            raise ValueError("predict.predict() returned object of "
+            raise ValueError("predict.predict_data_file() returned object of "
                              "invalid type - {}.".format(type(results_dict)))
         return True
     finally:
