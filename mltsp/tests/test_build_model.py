@@ -1,7 +1,6 @@
 from mltsp import build_model
 from mltsp import cfg
 from nose.tools import with_setup
-import numpy.testing as npt
 import os
 from os.path import join as pjoin
 from sklearn.externals import joblib
@@ -92,7 +91,7 @@ def test_build_model_ard_reg():
 def test_fit_existing_model():
     """Test model building helper function."""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
-                                         "test_featureset.nc")) 
+                                         "test_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['RFC']()
     model = build_model.build_model_from_featureset(featureset, model)
     assert hasattr(model, "n_features_")

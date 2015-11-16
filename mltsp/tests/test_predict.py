@@ -2,12 +2,10 @@ from mltsp import predict
 from mltsp import cfg
 from mltsp import build_model
 from nose.tools import with_setup
-import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
 import numpy as np
-import pandas as pd
 import xray
 import sklearn.base
 
@@ -16,14 +14,16 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 
 def copy_classification_test_data():
-    fnames = ["test_featureset.nc", "test_cust_featureset.nc", "dotastro_215153.dat",
-              "215153_metadata.dat", "215153_215176_218272_218934_metadata.dat",
+    fnames = ["test_featureset.nc", "test_cust_featureset.nc",
+              "dotastro_215153.dat", "215153_metadata.dat",
+              "215153_215176_218272_218934_metadata.dat",
               "215153_215176_218272_218934.tar.gz", "testfeature1.py"]
     for fname in fnames:
         if fname.endswith('.nc'):
             shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
         elif fname.endswith('.py'):
-            shutil.copy(pjoin(DATA_PATH, fname), cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
+            shutil.copy(pjoin(DATA_PATH, fname),
+                        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
         else:
             shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
 
@@ -39,10 +39,11 @@ def copy_regression_test_data():
 
 
 def remove_test_data():
-    fnames = ["test_featureset.nc", "test_reg_featureset.nc", "test_cust_featureset.nc",
+    fnames = ["test_featureset.nc", "test_reg_featureset.nc",
+              "test_cust_featureset.nc", "testfeature1.py",
               "dotastro_215153.dat", "215153_metadata.dat",
               "215153_215176_218272_218934_metadata.dat",
-              "215153_215176_218272_218934.tar.gz", "testfeature1.py"]
+              "215153_215176_218272_218934.tar.gz"]
     for fname in fnames:
         for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER,
                          cfg.CUSTOM_FEATURE_SCRIPT_FOLDER]:
@@ -57,7 +58,8 @@ def test_model_predictions():
     """Test inner model prediction function"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          'test_featureset.nc'))
-    model = build_model.build_model_from_featureset(featureset, model_type='RFC')
+    model = build_model.build_model_from_featureset(featureset,
+                                                    model_type='RFC')
     preds = predict.model_predictions(featureset, model)
     assert(preds.shape[0] == len(featureset.name))
     assert(preds.shape[1] == len(np.unique(featureset.target.values)))
@@ -68,10 +70,11 @@ def test_model_predictions():
 def test_single_predict_classification():
     """Test main predict function on single file (classification)"""
     classifier_types = [model_type for model_type, model_class
-                        in build_model.MODELS_TYPE_DICT.items() 
-                        if issubclass(model_class, sklearn.base.ClassifierMixin)]
+                        in build_model.MODELS_TYPE_DICT.items()
+                        if issubclass(model_class,
+                                      sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
-        model = build_model.create_and_pickle_model('test', model_type, 'test')
+        build_model.create_and_pickle_model('test', model_type, 'test')
         pred_results_dict = predict.predict_data_file(
                                 pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                                 'test', model_type, 'test',
@@ -85,12 +88,13 @@ def test_single_predict_classification():
 
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_single_predict_classification_with_custom():
-    """Test main predict function with custom features on single file (classification)"""
+    """Test predict function w/ custom feat. on single file (classification)"""
     classifier_types = [model_type for model_type, model_class
-                        in build_model.MODELS_TYPE_DICT.items() 
-                        if issubclass(model_class, sklearn.base.ClassifierMixin)]
+                        in build_model.MODELS_TYPE_DICT.items()
+                        if issubclass(model_class,
+                                      sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
-        model = build_model.create_and_pickle_model('test', model_type, 'test_cust')
+        build_model.create_and_pickle_model('test', model_type, 'test_cust')
         pred_results_dict = predict.predict_data_file(
                                 pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                                 'test', model_type, "test_cust",
@@ -107,10 +111,10 @@ def test_single_predict_classification_with_custom():
 def test_multiple_predict_classification():
     """Test main predict function on multiple files (classification)"""
     classifier_types = [model_type for model_type, model_class
-                        in build_model.MODELS_TYPE_DICT.items() 
+                        in build_model.MODELS_TYPE_DICT.items()
                         if issubclass(model_class, sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
-        model = build_model.create_and_pickle_model('test', model_type, 'test')
+        build_model.create_and_pickle_model('test', model_type, 'test')
         pred_results_dict = predict.predict_data_file(
                                 pjoin(cfg.UPLOAD_FOLDER,
                                       "215153_215176_218272_218934.tar.gz"),
@@ -128,10 +132,10 @@ def test_multiple_predict_classification():
 def test_single_predict_regression():
     """Test main predict function on single file (regression)"""
     regressor_types = [model_type for model_type, model_class
-                       in build_model.MODELS_TYPE_DICT.items() 
+                       in build_model.MODELS_TYPE_DICT.items()
                        if issubclass(model_class, sklearn.base.RegressorMixin)]
     for model_type in regressor_types:
-        model = build_model.create_and_pickle_model('test', model_type, 'test_reg')
+        build_model.create_and_pickle_model('test', model_type, 'test_reg')
         pred_results_dict = predict.predict_data_file(
                                 pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                                 'test', model_type, 'test_reg',
@@ -146,10 +150,10 @@ def test_single_predict_regression():
 def test_multiple_predict_regression():
     """Test main predict function on multiple files (regression)"""
     regressor_types = [model_type for model_type, model_class
-                       in build_model.MODELS_TYPE_DICT.items() 
+                       in build_model.MODELS_TYPE_DICT.items()
                        if issubclass(model_class, sklearn.base.RegressorMixin)]
     for model_type in regressor_types:
-        model = build_model.create_and_pickle_model('test', model_type, 'test_reg')
+        build_model.create_and_pickle_model('test', model_type, 'test_reg')
         pred_results_dict = predict.predict_data_file(pjoin(cfg.UPLOAD_FOLDER,
                                 "215153_215176_218272_218934.tar.gz"),
                                 'test', model_type, 'test_reg',

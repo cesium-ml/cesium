@@ -1,8 +1,6 @@
 from sklearn.externals import joblib
 from sklearn.base import ClassifierMixin, RegressorMixin
-from operator import itemgetter
 import os
-import numpy as np
 import pandas as pd
 import xray
 import tarfile
@@ -15,18 +13,13 @@ from . import util
 
 
 def model_predictions(featureset, model):
-    """Construct a pandas.DataFrame of model predictions for a given featureset."""
+    """Construct a DataFrame of model predictions for given featureset."""
     # Do probabilistic model prediction when possible
     feature_df = build_model.rectangularize_featureset(featureset)
-    if issubclass(type(model), ClassifierMixin):
-        try:
-            preds = model.predict_proba(feature_df)
-        except AttributeError:
-            preds = model.predict(feature_df)
-    elif issubclass(type(model), RegressorMixin):
+    try:
+        preds = model.predict_proba(feature_df)
+    except AttributeError:
         preds = model.predict(feature_df)
-    else:
-        raise ValueError("Invalid model type: must be classifier or regressor.")
     preds_df = pd.DataFrame(preds, index=featureset.name)
     if preds_df.shape[1] == 1:
         preds_df.columns = ['prediction']
@@ -86,9 +79,9 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
         ts_paths = ft.extract_data_archive(newpred_path)
     else:
         ts_paths = [newpred_path]
-    all_ts_data = {util.shorten_fname(ts_path): ft.parse_ts_data(ts_path) 
+    all_ts_data = {util.shorten_fname(ts_path): ft.parse_ts_data(ts_path)
                    for ts_path in ts_paths}
-    
+
     featureset_path = os.path.join(cfg.FEATURES_FOLDER,
                                    '{}_featureset.nc'.format(featureset_key))
     featureset = xray.open_dataset(featureset_path)
@@ -100,7 +93,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
     model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
                                      "{}.pkl".format(model_key)))
     preds_df = model_predictions(new_featureset, model)
-    
+
     # TODO this code will go away when we stop returning all the data here,
     # which should happen when we develop a file management system.
     results_dict = {}

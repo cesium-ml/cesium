@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import xray
 from . import cfg
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -27,7 +26,8 @@ def rectangularize_featureset(featureset):
         if len(featureset.channel) == 1:
             feature_df.columns = [pair[0] for pair in feature_df.columns]
         else:
-            feature_df.columns = ['_'.join(pair) for pair in feature_df.columns]
+            feature_df.columns = ['_'.join(pair)
+                                  for pair in feature_df.columns]
     return feature_df
 
 
@@ -44,14 +44,15 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
     return model
 
 
-def create_and_pickle_model(model_key, model_type, featureset_key, model_options={}):
+def create_and_pickle_model(model_key, model_type, featureset_key,
+                            model_options={}):
     """Build a `scikit-learn` model.
 
     Builds the specified model and pickles it in the file
     whose name is given by
     ``'%s_%s.pkl' % (featureset_key, model_type)``
     in the directory `cfg.MODELS_FOLDER`.
-    
+
 
     Parameters
     ----------
