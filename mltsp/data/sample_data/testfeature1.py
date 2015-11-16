@@ -11,7 +11,7 @@ except:
 @myFeature(requires=["t","m"], provides=['period','avg_mag'])
 def test_feature(t,m):
     print("test_feature executing.")
-    return {'avg_mag': np.average(m), 'period':0}
+    return {'avg_mag': np.average(np.array(m)), 'period':0}
 
 
 @myFeature(requires=["t","m","e","period"], provides=['a','b','c'])

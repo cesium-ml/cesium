@@ -1221,13 +1221,9 @@ def featset_associated_files(featset_key):
 
     """
     fpaths = []
-    for fpath in [
-            os.path.join(cfg.FEATURES_FOLDER, "%s_features.csv" % featset_key),
-            os.path.join(cfg.FEATURES_FOLDER, "%s_targets.npy" % featset_key),
-            os.path.join(cfg.FEATURES_FOLDER,
-                         "%s_features_with_targets.csv" % featset_key)]:
-        if os.path.exists(fpath):
-            fpaths.append(fpath)
+    fpath = os.path.join(cfg.FEATURES_FOLDER, "%s_featureset.nc" % featset_key)
+    if os.path.exists(fpath):
+        fpaths.append(fpath)
     entry_dict = rdb.table("features").get(featset_key).run(g.rdb_conn)
     for key in ("headerfile_path", "zipfile_path", "custom_features_script"):
         if entry_dict and key in entry_dict:
@@ -1979,11 +1975,16 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        results_str = featurize.featurize(
-            headerfile_path, zipfile_path, features_to_use=features_to_use,
-            featureset_id=featureset_key, is_test=is_test,
-            already_featurized=already_featurized,
-            custom_script_path=custom_script_path)
+        first_N = cfg.TEST_N if is_test else None
+        if already_featurized:
+            featurize.load_and_store_feature_data(
+                headerfile_path, featureset_id=featureset_key, first_N=first_N)
+        else:
+            featurize.featurize_data_file(
+                zipfile_path, headerfile_path, features_to_use=features_to_use,
+                featureset_id=featureset_key, first_N=first_N,
+                custom_script_path=custom_script_path)
+        results_str = "Featurization of timeseries data complete."
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
                        "Please ensure that the header file and tarball of time series "
@@ -2041,7 +2042,7 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
     before_request()
     print("Building model...")
     try:
-        model_built_msg = build_model.build_model(
+        model_built_msg = build_model.create_and_pickle_model(
             model_key=model_key, model_type=model_type,
             model_options=model_params, featureset_key=featureset_key)
         print("Done!")
@@ -2100,12 +2101,11 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
     if "custom_features_script" in entry:
         custom_features_script = entry['custom_features_script']
     try:
-        results_dict = predict.predict(
-            newpred_file_path=newpred_file_path, model_key=model_key,
-            model_type=model_type, featset_key=featset_key, sepr=sep,
-            n_cols_html_table=n_cols_html_table,
+        results_dict = predict.predict_data_file(
+            newpred_file_path, model_key=model_key,
+            model_type=model_type, featureset_key=featset_key,
             custom_features_script=custom_features_script,
-            metadata_file_path=metadata_file)
+            metadata_path=metadata_file)
         try:
             os.remove(newpred_file_path)
             if metadata_file:
@@ -2129,7 +2129,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
             ts_data_dict={}, pred_results_dict=[], err=str(theErr))
         print("   #########      Error:   flask_app.prediction_proc:", theErr)
         logging.exception(
-            "Error occurred during predict.predict() call. " + str(theErr))
+            "Error occurred during predict.predict_data_file() call. " + str(theErr))
     else:
         if isinstance(results_dict, dict):
             big_features_dict = {}
@@ -2153,7 +2153,7 @@ def prediction_proc(newpred_file_path, project_name, model_key, model_type,
                 features_dict={}, ts_data_dict={},
                 pred_results_dict={})
         else:
-            raise ValueError("predict.predict() returned object of "
+            raise ValueError("predict.predict_data_file() returned object of "
                              "invalid type - {}.".format(type(results_dict)))
         return True
     finally:
@@ -3020,7 +3020,7 @@ def uploadPredictionData():
                     "formatting guidelines and try again."),
                 "type": "error"})
         return predictionPage(
-            newpred_file_path=newpred_file_path,
+            newpred_file_path,
             sep=sep,
             project_name=project_name,
             model_key=model_key,

@@ -5,7 +5,7 @@ docker-py
 numpy>=1.8
 scipy>=0.13
 scikit-learn==0.16.1  # also update version in dockerfiles/base/Dockerfile
-pandas>=0.13
+pandas>=0.15
 parse
 psutil>=2.2.1
 rethinkdb
@@ -19,4 +19,5 @@ pyyaml
 waitress
 celery
 toolz
-dask==0.7.3
+dask>=0.7.5
+xray

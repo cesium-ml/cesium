@@ -1,233 +1,234 @@
 from mltsp import featurize
+from mltsp import featurize_tools
 from mltsp import cfg
+from nose.tools import with_setup
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
-import pandas as pd
-import tarfile
-import numpy as np
 import shutil
+import numpy as np
+import xray
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+CLASSIFICATION_TEST_FILES = ["asas_training_subset_classes_with_metadata.dat",
+                             "asas_training_subset.tar.gz", "testfeature1.py",
+                             "test_features_with_targets.csv",
+                             "test_features_with_targets.csv",
+                             "247327.dat"]
+REGRESSION_TEST_FILES = ["asas_training_subset_targets.dat",
+                         "asas_training_subset.tar.gz", "testfeature1.py"]
 
 
-def test_setup():
-    fpaths = []
-    fnames = ["asas_training_subset_classes_with_metadata.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
+def copy_classification_test_data():
+    fnames = CLASSIFICATION_TEST_FILES
     for fname in fnames:
-        fpaths.append(pjoin(DATA_PATH, fname))
-    for fpath in fpaths:
-        shutil.copy(fpath, cfg.UPLOAD_FOLDER)
+        if fname.endswith('.py'):
+            shutil.copy(pjoin(DATA_PATH, fname),
+                        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
+        else:
+            shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
 
 
-def test_setup_regression():
-    fpaths = []
-    fnames = ["asas_training_subset_targets.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
+def copy_regression_test_data():
+    fnames = REGRESSION_TEST_FILES
     for fname in fnames:
-        fpaths.append(pjoin(DATA_PATH, fname))
-    for fpath in fpaths:
-        shutil.copy(fpath, cfg.UPLOAD_FOLDER)
+        if fname.endswith('.py'):
+            shutil.copy(pjoin(DATA_PATH, fname),
+                        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
+        else:
+            shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
 
 
-def test_features_file_parser():
-    """Test features file parsing."""
-    objects = featurize.parse_prefeaturized_csv_data(
-        pjoin(DATA_PATH, "csv_test_data.csv"))
-    npt.assert_array_equal(sorted(list(objects[0].keys())), ["col1", "col2",
-                                                             "col3", "col4"])
-    npt.assert_equal(objects[1]['col1'], ".1")
-    npt.assert_equal(objects[-1]['col4'], "221")
+def remove_test_data():
+    fnames = CLASSIFICATION_TEST_FILES + REGRESSION_TEST_FILES
+    for fname in fnames:
+        for data_dir in [cfg.UPLOAD_FOLDER, cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                         cfg.FEATURES_FOLDER]:
+            try:
+                os.remove(pjoin(data_dir, fname))
+            except OSError:
+                pass
 
 
 def test_headerfile_parser():
     """Test header file parsing."""
-    (features_to_use, fname_class_dict, fname_class_science_features_dict,
-     fname_metadata_dict) = featurize.parse_headerfile(
-         pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"),
-         features_to_use=["dummy_featname"])
-    npt.assert_array_equal(features_to_use, ["dummy_featname", "meta1",
-                                             "meta2", "meta3"])
-    npt.assert_equal(fname_class_dict["237022"], "W_Ursae_Maj")
-    npt.assert_equal(fname_class_science_features_dict["215153"]["target"],
-                     "Mira")
-    npt.assert_almost_equal(fname_metadata_dict["230395"]["meta1"],
-                            0.270056761691)
+    targets, metadata = featurize_tools.parse_headerfile(
+        pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"))
+    npt.assert_array_equal(metadata.keys(), ["meta1", "meta2", "meta3"])
+    npt.assert_equal(targets.loc["237022"], "W_Ursae_Maj")
+    npt.assert_almost_equal(metadata.loc["230395"].meta1, 0.270056761691)
 
 
-def test_shorten_fname():
-    """Test shorten_fname."""
-    npt.assert_equal(featurize.shorten_fname("path/to/filename.sfx"),
-                     "filename")
-    npt.assert_equal(featurize.shorten_fname("/home/path/abc.dat"), "abc")
+def sample_featureset():
+    ds = xray.Dataset({'f1': ('name', [21.0, 23.4]),
+                       'f2': ('name', [0.15, 2.31])},
+                      coords={'target': ['c1', 'c2']})
+    return ds
 
 
-def test_determine_feats_to_plot1():
-    """Test determine feats to plot - 1"""
-    ftp = featurize.determine_feats_to_plot(["abc", "221a", "22d"])
-    assert("221a" in ftp)
-    assert("median" not in ftp)
-    ftp = featurize.determine_feats_to_plot(cfg.features_list_science)
-    assert("freq1_amplitude1" in ftp)
-    assert("median" in ftp)
-
-
-def test_count_targets():
-    """Test count_targets"""
-    objs = [{"target": "class1"}, {"target": "class1"}, {"target": "class2"}]
-    class_count, num_used, num_held_back = featurize.count_targets(objs)
-    npt.assert_equal(class_count["class1"], 2)
-    npt.assert_equal(class_count["class2"], 1)
-
-
-def test_generate_features():
-    """Test generate_features"""
-    objs = featurize.generate_features(
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset_classes_with_metadata.dat"),
-        pjoin(cfg.UPLOAD_FOLDER,
-              "asas_training_subset.tar.gz"),
-        ["std_err"],
-        pjoin(cfg.UPLOAD_FOLDER, "testfeature1.py"),
-        True, False, False)
-    npt.assert_equal(len(objs), 3)
-    assert(all("std_err" in d for d in objs))
-    assert(all("target" in d for d in objs))
-    assert(all(d["target"] in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for d in objs))
-
-
-def test_determine_feats_to_plot2():
-    """Test determine features to plot - 2"""
-    ftpl = featurize.determine_feats_to_plot(cfg.features_to_plot)
-    npt.assert_array_equal(ftpl, cfg.features_to_plot)
-    ftpl = featurize.determine_feats_to_plot(cfg.features_list_science)
-    npt.assert_array_equal(ftpl, cfg.features_to_plot)
-    ftpl = featurize.determine_feats_to_plot(cfg.features_list_obs)
-    npt.assert_equal(len(ftpl), 5)
-    assert(all(f in cfg.features_list_obs for f in ftpl))
-    ftpl = featurize.determine_feats_to_plot(["f1"])
-    npt.assert_array_equal(ftpl, ["f1"])
-
-
-def test_write_column_titles():
-    """Test write column titles to files"""
-    with open("test_file1.txt", "w") as f1, open("test_file2.txt", "w") as f2:
-        featurize.write_column_titles(f1, f2, ["feat1", "feat2", "feat3",
-                                               "feat4"],
-                                      ["feat1", "feat2", "feat3"],
-                                      ["feat1", "feat2"])
-    with open("test_file1.txt", "r") as f1, open("test_file2.txt", "r") as f2:
-        f1_cont = f1.read()
-        f2_cont = f2.read()
-    os.remove(f1.name)
-    os.remove(f2.name)
-    npt.assert_equal(f1_cont, "feat1,feat2,feat3\n")
-    npt.assert_equal(f2_cont, "target,feat1,feat2\n")
+def sample_time_series(size=51, channels=1):
+    times = np.sort(np.random.random(size))
+    values = np.array([np.random.normal(size=size) for i in range(channels)]).T
+    errors = np.array([np.random.exponential(size=size)
+                       for i in range(channels)]).T
+    if channels == 1:
+        values = values[:, 0]
+        errors = errors[:, 0]
+    return times, values, errors
 
 
 def test_write_features_to_disk():
     """Test writing features to disk"""
-    featurize.write_features_to_disk(
-        [{"f1": 21.0, "f2": 0.15, "target": "c1"},
-         {"f1": 23.4, "f2": 2.31, "target": "c2"}],
-        "test_featset01", ["f1", "f2"], False)
-    with open(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_features.csv")) as f:
-        feat_cont = f.read()
-    with open(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_features_with_targets.csv")) as f:
-        feat_class_cont = f.read()
-    targets_list = list(np.load(pjoin(cfg.FEATURES_FOLDER,
-                                      "test_featset01_targets.npy")))
-    os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_features_with_targets.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_featset01_targets.npy"))
-    npt.assert_equal(feat_cont, "f1,f2\n21.0,0.15\n23.4,2.31\n")
-    npt.assert_equal(feat_class_cont,
-                     "target,f1,f2\nc1,21.0,0.15\nc2,23.4,2.31\n")
+    featurize.write_features_to_disk(sample_featureset(), "test")
+    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+                                         "test_featureset.nc"))
+    npt.assert_equal(list(featureset.data_vars), ['f1', 'f2'])
+    npt.assert_equal(list(featureset.coords), ['target', 'name'])
+    npt.assert_equal(featureset['f1'].values, [21.0, 23.4])
+    npt.assert_equal(featureset['f2'].values, [0.15, 2.31])
+    npt.assert_equal(featureset['target'].values, ['c1', 'c2'])
 
 
+@with_setup(copy_classification_test_data, remove_test_data)
 def test_main_featurize_function():
     """Test main featurize function"""
-    test_setup()
-
-    shutil.copy(
-        pjoin(DATA_PATH, "testfeature1.py"),
-        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
-    results_msg = featurize.featurize(
-        headerfile_path=pjoin(
-            cfg.UPLOAD_FOLDER,
-            "asas_training_subset_classes_with_metadata.dat"),
-        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
-                           "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "f"],
-        featureset_id="test", is_test=True,
+    featureset = featurize.featurize_data_file(header_path=pjoin(
+        cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
+        data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
+        features_to_use=["std_err", "f"], featureset_id="test",
+        first_N=cfg.TEST_N,
         custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                  "testfeature1.py"))
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_features.csv")))
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_targets.npy")))
-    target_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy"))
-    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
-                                "test_features.csv"))
-    cols = df.columns
-    values = df.values
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_features_with_targets.csv"))
-    assert("std_err" in cols)
-    assert("f" in cols)
+    assert("std_err" in featureset.data_vars)
+    assert("f" in featureset.data_vars)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                              'Classical_Cepheid', 'W_Ursae_Maj', 'Delta_Scuti']
-               for class_name in target_list))
+                              'Classical_Cepheid', 'W_Ursae_Maj',
+                              'Delta_Scuti']
+               for class_name in featureset['target'].values))
 
 
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_main_featurize_function_single_ts():
+    """Test main featurize function for single time series"""
+    featureset = featurize.featurize_data_file(header_path=pjoin(
+        cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
+        data_path=pjoin(cfg.UPLOAD_FOLDER, "247327.dat"),
+        features_to_use=["std_err", "f"], featureset_id="test",
+        first_N=cfg.TEST_N)
+    assert("std_err" in featureset.data_vars)
+    assert("f" in featureset.data_vars)
+    assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                              'Classical_Cepheid', 'W_Ursae_Maj',
+                              'Delta_Scuti']
+               for class_name in featureset['target'].values))
+
+
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_already_featurized_data():
+    """Test featurize function for pre-featurized data"""
+    featureset = featurize.load_and_store_feature_data(
+        pjoin(cfg.UPLOAD_FOLDER, "test_features_with_targets.csv"),
+        featureset_id="test", first_N=cfg.TEST_N)
+    assert("std_err" in featureset)
+    assert("amplitude" in featureset)
+    assert(all(class_name in ['class1', 'class2', 'class3']
+               for class_name in featureset['target']))
+
+
+@with_setup(copy_regression_test_data, remove_test_data)
 def test_main_featurize_function_regression_data():
     """Test main featurize function - regression data"""
-    test_setup_regression()
-
-    results_msg = featurize.featurize(
-        headerfile_path=pjoin(
-            cfg.UPLOAD_FOLDER,
-            "asas_training_subset_targets.dat"),
-        zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
-                           "asas_training_subset.tar.gz"),
+    featureset = featurize.featurize_data_file(
+        header_path=pjoin(cfg.UPLOAD_FOLDER,
+                          "asas_training_subset_targets.dat"),
+        data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_freq", "amplitude"],
-        featureset_id="test", is_test=True,
-        custom_script_path=None)
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_features.csv")))
-    assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
-                                "test_targets.npy")))
-    target_list = list(np.load(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy")))
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_targets.npy"))
-    df = pd.io.parsers.read_csv(pjoin(cfg.FEATURES_FOLDER,
-                                "test_features.csv"))
-    cols = df.columns
-    values = df.values
-    os.remove(pjoin(cfg.FEATURES_FOLDER, "test_features.csv"))
-    os.remove(pjoin(cfg.FEATURES_FOLDER,
-                    "test_features_with_targets.csv"))
-    npt.assert_array_equal(sorted(cols), ["amplitude", "freq1_freq", "std_err"])
+        featureset_id="test", first_N=cfg.TEST_N, custom_script_path=None)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ["amplitude", "freq1_freq", "std_err"])
     assert(all(isinstance(target, (float, np.float))
-               for target in target_list))
+               for target in featureset['target'].values))
 
 
-def test_teardown():
-    fpaths = []
-    for fname in ["asas_training_subset_classes_with_metadata.dat",
-                  "asas_training_subset_targets.dat",
-                  "asas_training_subset.tar.gz", "testfeature1.py"]:
-        fpaths.append(pjoin(cfg.UPLOAD_FOLDER, fname))
-    for fpath in fpaths:
-        if os.path.exists(fpath):
-            os.remove(fpath)
+def test_featurize_time_series_single():
+    """Test featurize wrapper function for single time series"""
+    t, m, e = sample_time_series()
+    features_to_use = ['amplitude', 'std_err']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
+
+
+def test_featurize_time_series_single_multichannel():
+    """Test featurize wrapper function for single time series"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err'])
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
+
+
+def test_featurize_time_series_multiple():
+    """Test featurize wrapper function for multiple time series"""
+    n_series = 5
+    list_of_series = [sample_time_series() for i in range(n_series)]
+    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    features_to_use = ['amplitude', 'std_err']
+    targets = np.array(['class1'] * n_series)
+    meta_features = [{'meta1': 0.5}] * n_series
+    featureset = featurize.featurize_time_series(times, values, errors,
+                                                 features_to_use, targets,
+                                                 meta_features)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err'])
+    npt.assert_array_equal(featureset.target.values, ['class1'] * n_series)
+
+
+def test_featurize_time_series_multiple_multichannel():
+    """Test featurize wrapper function for multiple time series"""
+    n_series = 5
+    n_channels = 3
+    list_of_series = [sample_time_series(channels=n_channels)
+                      for i in range(n_series)]
+    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    features_to_use = ['amplitude', 'std_err']
+    targets = np.array(['class1', 'class2'])
+    meta_features = {'meta1': 0.5}
+    featureset = featurize.featurize_time_series(times, values, errors,
+                                                 features_to_use, targets,
+                                                 meta_features)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err'])
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel'])
+    npt.assert_array_equal(featureset.target.values, ['class1', 'class2'])
+
+
+def test_featurize_time_series_multiple_tuples():
+    """Test featurize wrapper function for tuples of time series."""
+    n_series = 5
+    list_of_series = [sample_time_series() for i in range(n_series)]
+    times, values, errors = [tuple(x) for x in zip(*list_of_series)]
+    features_to_use = ['amplitude', 'std_err']
+    targets = np.array(['class1'] * n_series)
+    meta_features = [{'meta1': 0.5}] * n_series
+    featureset = featurize.featurize_time_series(times, values, errors,
+                                                 features_to_use, targets,
+                                                 meta_features)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err'])
+    npt.assert_array_equal(featureset.target.values, ['class1'] * n_series)

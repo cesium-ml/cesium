@@ -1,35 +1,58 @@
-from __future__ import print_function
-from sklearn.ensemble import RandomForestClassifier as RFC
-from sklearn.externals import joblib
-# from sklearn.cross_validation import train_test_split
-# from sklearn.metrics import confusion_matrix
 import os
-import numpy as np
-import pickle
+import xray
 from . import cfg
-from mltsp.celery_tasks import fit_and_store_model
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LinearRegression, SGDClassifier,\
+    RidgeClassifierCV, ARDRegression, BayesianRidge
+from sklearn.externals import joblib
 
 
-def create_and_pickle_model_celery(model_key, model_type, featureset_key,
-                                   model_options={}):
-    """
-    """
-
-    res = fit_and_store_model.delay(model_key, model_type, featureset_key,
-                                    model_options)
-    fout_name = res.get(timeout=200)
-
-    print(fout_name, "created!")
+MODELS_TYPE_DICT = {'RFC': RandomForestClassifier,
+                    'RFR': RandomForestRegressor,
+                    'LC': SGDClassifier,
+                    'LR': LinearRegression,
+                    'RC': RidgeClassifierCV,
+                    'ARDR': ARDRegression,
+                    'BRR': BayesianRidge}
 
 
-def build_model(model_key, model_type, featureset_key, model_options={}):
+def rectangularize_featureset(featureset):
+    """Convert xray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
+    featureset = featureset.drop([coord for coord in ['target', 'class']
+                                  if coord in featureset])
+    feature_df = featureset.to_dataframe()
+    if 'channel' in featureset:
+        feature_df = feature_df.unstack(level='channel')
+        if len(featureset.channel) == 1:
+            feature_df.columns = [pair[0] for pair in feature_df.columns]
+        else:
+            feature_df.columns = ['_'.join(pair)
+                                  for pair in feature_df.columns]
+    return feature_df
+
+
+def build_model_from_featureset(featureset, model=None, model_type=None,
+                                model_options={}):
+    """Build model from (non-rectangular) xray.Dataset of features."""
+    if model is None:
+        if model_type:
+            model = MODELS_TYPE_DICT[model_type](**model_options)
+        else:
+            raise ValueError("If model is None, model_type must be specified")
+    feature_df = rectangularize_featureset(featureset)
+    model.fit(feature_df, featureset['target'])
+    return model
+
+
+def create_and_pickle_model(model_key, model_type, featureset_key,
+                            model_options={}):
     """Build a `scikit-learn` model.
 
     Builds the specified model and pickles it in the file
     whose name is given by
-    ``"%s_%s.pkl" % (featureset_key, model_type)``
-    in the directory `cfg.MODELS_FOLDER` (or is later copied there
-    from within the Docker container if `in_docker_container` is True.
+    ``'%s_%s.pkl' % (featureset_key, model_type)``
+    in the directory `cfg.MODELS_FOLDER`.
+
 
     Parameters
     ----------
@@ -39,8 +62,7 @@ def build_model(model_key, model_type, featureset_key, model_options={}):
         RethinkDB ID of the associated feature set from which to build
         the model, which will also become the ID/key for the model.
     model_type : str
-        Abbreviation of the type of model to be created. Defaults
-        to "RFC".
+        Abbreviation of the type of model to be created.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
 
@@ -51,9 +73,15 @@ def build_model(model_key, model_type, featureset_key, model_options={}):
 
     """
 
-    create_and_pickle_model_celery(model_key, model_type, featureset_key,
-                                   model_options)
+    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
+                                   '{}_featureset.nc'.format(featureset_key))
+    featureset = xray.open_dataset(featureset_path)
 
-    print("Done!")
+    model = build_model_from_featureset(featureset, model_type=model_type,
+                                        model_options=model_options)
+
+    # Store the model:
+    foutname = os.path.join(cfg.MODELS_FOLDER, '{}.pkl'.format(model_key))
+    joblib.dump(model, foutname, compress=3)
     return("New model successfully created. Click the Predict tab to "
            "start using it.")
