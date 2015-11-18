@@ -5,6 +5,7 @@ import os
 import tarfile
 import tempfile
 import zipfile
+import dask.async
 from mltsp import custom_exceptions
 from mltsp import util
 from mltsp import obs_feature_tools as oft
@@ -13,7 +14,7 @@ from mltsp import custom_feature_tools as cft
 
 
 def featurize_single_ts(t, m, e, features_to_use, meta_features={},
-                        custom_script_path=None):
+                        custom_script_path=None, custom_functions=None):
     """Compute feature values for a given single time-series. Data is
     manipulated as dictionaries/lists of lists (as opposed to a more
     convenient DataFrame/DataSet) since it will be serialized as part of
@@ -35,7 +36,15 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
         Dictionary of metafeature information to potentially be consumed by
         custom feature scripts.
     custom_script_path : str, optional
-        Path to custom features script .py file, if applicable.
+        Path to custom features script .py file to be run in Docker container.
+    custom_functions : dict, optional
+        Dictionary of custom feature functions to be evaluated for the given time
+        series, or a dictionary representing a dask graph of function evaluations.
+        Dictionaries of functions should have keys `feature_name` and values
+        functions that take arguments (t, m, e); in the case of a
+        dask graph, these arrays should be referenced as 't', 'm', 'e',
+        respectively, and any values with keys present in `features_to_use`
+        will be computed.
 
     Returns
     -------
@@ -64,6 +73,27 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
             custom_features = {key: custom_features[key]
                                for key in custom_features.keys()
                                if key in features_to_use}
+        elif custom_functions:
+            # If all values in custom_functions are functions, evaluate each
+            if all(hasattr(v, '__call__') for v in custom_functions.values()):
+                custom_features = {feature: f(t, m[:, i], e[:, i])
+                                   for feature, f in custom_functions.items()
+                                   if feature in features_to_use}
+            # Otherwise, custom_functions is a dask graph
+            else:
+                dask_graph = {key: value
+                              for key, value in custom_functions.items()
+                              if key in features_to_use}
+                dask_keys = dask_graph.keys()
+                dask_graph['t'] = t
+                dask_graph['m'] = m[:, i]
+                dask_graph['e'] = e[:, i]
+                dask_graph.update(dict(list(obs_features.items()) +
+                                       list(science_features.items()) +
+                                       list(meta_features.items())))
+                custom_features = dict(zip(dask_keys,
+                                           dask.async.get_sync(dask_graph,
+                                                               dask_keys)))
         else:
             custom_features = {}
 
@@ -112,9 +142,9 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
                                       for feature in metadata.columns})
     featureset = xray.Dataset(combined_feature_dict)
     if names is not None:
-        featureset['name'].values = names
+        featureset.name = names
     if targets is not None:
-        featureset['target'] = targets
+        featureset.coords['target'] = (('name'), targets)
     return featureset
 
 

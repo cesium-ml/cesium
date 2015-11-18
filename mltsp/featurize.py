@@ -125,8 +125,8 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
 
 def featurize_time_series(times, values, errors=None, features_to_use=[],
-                          targets=None, meta_features=None,
-                          custom_script_path=None, labels=None):
+                          targets=None, meta_features=None, labels=None,
+                          custom_script_path=None, custom_functions=None):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -172,12 +172,20 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         dict/Series (for a single time series) or DataFrame (for multiple time
         series) of metafeature information; features are added to the output
         featureset, and their values are consumable by custom feature scripts.
-    custom_script_path : str, optional
-        Path to Python script containing function definitions for the
-        generation of any custom features. Defaults to None.
     labels : str or list of str, optional
         Label or list of labels for each time series, if applicable; will be
         stored in the `name` coordinate of the resulting `xray.Dataset`.
+    custom_script_path : str, optional
+        Path to Python script containing function definitions for the
+        generation of any custom features. Defaults to None.
+    custom_functions : dict, optional
+        Dictionary of custom feature functions to be evaluated for the given time
+        series, or a dictionary representing a dask graph of function evaluations.
+        Dictionaries of functions should have keys `feature_name` and values
+        functions that take arguments (t, m, e); in the case of a
+        dask graph, these arrays should be referenced as 't', 'm', 'e',
+        respectively, and any values with keys present in `features_to_use`
+        will be computed.
 
     Returns
     -------
@@ -216,7 +224,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         meta_feature_dict = meta_features.loc[label].to_dict()
         features = ft.featurize_single_ts(t, m, e, features_to_use,
                                           meta_features=meta_feature_dict,
-                                          custom_script_path=custom_script_path)
+                                          custom_script_path=custom_script_path,
+                                          custom_functions=custom_functions)
         feature_dicts.append(features)
     return ft.assemble_featureset(feature_dicts, targets, meta_features,
                                   labels)

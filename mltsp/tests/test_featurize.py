@@ -177,7 +177,7 @@ def test_featurize_time_series_single_multichannel():
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
     npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel'])
+                           ['name', 'channel', 'target'])
     npt.assert_array_equal(featureset.target.values, ['class1'])
 
 
@@ -205,7 +205,7 @@ def test_featurize_time_series_multiple_multichannel():
                       for i in range(n_series)]
     times, values, errors = [list(x) for x in zip(*list_of_series)]
     features_to_use = ['amplitude', 'std_err']
-    targets = np.array(['class1', 'class2'])
+    targets = np.array(['class1', 'class1', 'class1', 'class2', 'class2'])
     meta_features = {'meta1': 0.5}
     featureset = featurize.featurize_time_series(times, values, errors,
                                                  features_to_use, targets,
@@ -214,8 +214,8 @@ def test_featurize_time_series_multiple_multichannel():
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
     npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel'])
-    npt.assert_array_equal(featureset.target.values, ['class1', 'class2'])
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, targets)
 
 
 def test_featurize_time_series_multiple_tuples():
@@ -232,3 +232,41 @@ def test_featurize_time_series_multiple_tuples():
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.target.values, ['class1'] * n_series)
+
+
+def test_featurize_time_series_custom_functions():
+    """Test featurize wrapper function time series w/ custom functions"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err', 'test_f']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    custom_functions = {'test_f': lambda t, m, e: np.mean(m)}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features,
+                                                 custom_functions=custom_functions)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err', 'test_f'])
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
+
+
+def test_featurize_time_series_custom_dask_graph():
+    """Test featurize wrapper function time series w/ custom dask graph"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err', 'test_f']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    custom_functions = {'test_f': (lambda x: 2*x, 'amplitude')}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features,
+                                                 custom_functions=custom_functions)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err', 'test_f'])
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
