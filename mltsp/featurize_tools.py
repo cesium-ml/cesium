@@ -22,14 +22,16 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
 
     Parameters
     ----------
-    t : (n,) array
-        Array of n time values for a single time series.
-    m : (n,) or (n, p) array
-        Array of n measurement values for a single time series, each containing
-        p channels of measurements (if applicable).
-    e : (n,) or (n, p) array
-        Array of n measurement errors for a single time series, each containing
-        p channels of errors (if applicable).
+    t : (n,) or (p, n) array or list of (n_i,) arrays
+        Array of time values for a single time series, or a list of arrays (of
+        potentially different lengths) of time values for each channel of
+        measurement.
+    m : (n,) or (p, n) array or list of (n_i,) arrays
+        Array or list of measurement values for a single time series, each
+        containing p channels of measurements (if applicable).
+    e : (n,) or (p, n) array or list of (n_i,) arrays
+        Array or list of measurement error values for a single time series,
+        each containing p channels of measurements (if applicable).
     features_to_use : list of str
         List of feature names to be generated.
     meta_features : dict
@@ -38,10 +40,10 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
     custom_script_path : str, optional
         Path to custom features script .py file to be run in Docker container.
     custom_functions : dict, optional
-        Dictionary of custom feature functions to be evaluated for the given time
-        series, or a dictionary representing a dask graph of function evaluations.
-        Dictionaries of functions should have keys `feature_name` and values
-        functions that take arguments (t, m, e); in the case of a
+        Dictionary of custom feature functions to be evaluated for the given
+        time series, or a dictionary representing a dask graph of function
+        evaluations. Dictionaries of functions should have keys `feature_name`
+        and values functions that take arguments (t, m, e); in the case of a
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
@@ -53,20 +55,27 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
         channel) as values.
 
     """
-    if len(m.shape) == 1:
-        m = np.reshape(m, (-1, 1))
-        e = np.reshape(e, (-1, 1))
+    # Reformat single-channel data as multichannel with n_channels=1
+    if isinstance(m, np.ndarray) and (m.ndim == 1 or 1 in m.shape):
+        n_channels = 1
+        m = [m]
+    else:
+        n_channels = len(m)
+    if isinstance(t, np.ndarray) and (t.ndim == 1 or 1 in t.shape):
+        t = [t] * n_channels
+    if isinstance(e, np.ndarray) and (e.ndim == 1 or 1 in e.shape):
+        e = [e] * n_channels
 
-    all_feature_lists = {feature: m.shape[1] * [0.]
+    all_feature_lists = {feature: [0.] * n_channels
                          for feature in features_to_use}
-    for i in range(m.shape[1]):  # featurize each channel
-        obs_features = oft.generate_obs_features(t, m[:, i], e[:, i],
+    for i in range(n_channels):
+        obs_features = oft.generate_obs_features(t[i], m[i], e[i],
                                                  features_to_use)
-        science_features = sft.generate_science_features(t, m[:, i], e[:, i],
+        science_features = sft.generate_science_features(t[i], m[i], e[i],
                                                          features_to_use)
         if custom_script_path:
             custom_features = cft.generate_custom_features(
-                custom_script_path, t, m[:, i], e[:, i],
+                custom_script_path, t[i], m[i], e[i],
                 features_already_known=dict(list(obs_features.items()) +
                                             list(science_features.items()) +
                                             list(meta_features.items())))
@@ -76,7 +85,7 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
         elif custom_functions:
             # If all values in custom_functions are functions, evaluate each
             if all(hasattr(v, '__call__') for v in custom_functions.values()):
-                custom_features = {feature: f(t, m[:, i], e[:, i])
+                custom_features = {feature: f(t[i], m[i], e[i])
                                    for feature, f in custom_functions.items()
                                    if feature in features_to_use}
             # Otherwise, custom_functions is a dask graph
@@ -85,9 +94,9 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
                               for key, value in custom_functions.items()
                               if key in features_to_use}
                 dask_keys = dask_graph.keys()
-                dask_graph['t'] = t
-                dask_graph['m'] = m[:, i]
-                dask_graph['e'] = e[:, i]
+                dask_graph['t'] = t[i]
+                dask_graph['m'] = m[i]
+                dask_graph['e'] = e[i]
                 dask_graph.update(dict(list(obs_features.items()) +
                                        list(science_features.items()) +
                                        list(meta_features.items())))
@@ -138,11 +147,12 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
                                        [d[feature] for d in feature_dicts])
                              for feature in feature_names}
     if metadata is not None:
-        combined_feature_dict.update({feature: (['name'], metadata[feature].values)
+        combined_feature_dict.update({feature: (['name'],
+                                                metadata[feature].values)
                                       for feature in metadata.columns})
     featureset = xray.Dataset(combined_feature_dict)
     if names is not None:
-        featureset.name = names
+        featureset.coords['name'] = (('name'), names)
     if targets is not None:
         featureset.coords['target'] = (('name'), targets)
     return featureset

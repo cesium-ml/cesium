@@ -1,9 +1,9 @@
+import copy
 import os
 import tarfile
 import zipfile
 import numpy as np
 import pandas as pd
-
 from . import cfg
 from . import util
 from .celery_tasks import featurize_ts_file as featurize_celery_task
@@ -130,16 +130,20 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
-        - times: (n,) array
-        - values: (n,) array or (n, p) array (for p channels of measurement)
-        - errors: (n,) array or (n, p) array (for p channels of measurement)
+        - times:  (n,) array or (p, n) array (for p channels of measurement)
+        - values: (n,) array or (p, n) array (for p channels of measurement)
+        - errors: (n,) array or (p, n) array (for p channels of measurement)
 
     For multiple time series, inputs may have the form:
-        - times: list/tuple of (n,) arrays
-        - values: list/tuple of (n,) arrays or list/tuple of (n, p) arrays (for
-                  p channels of measurement)
-        - errors: list/tuple of (n,) arrays or list/tuple of (n, p) arrays (for
-                  p channels of measurement)
+        - times:  list of (n,) arrays, list of (p, n) arrays (for p channels of
+                  measurement), or list of lists of (n,) arrays (for
+                  multichannel data with different time values per channel)
+        - values: list of (n,) arrays, list of (p, n) arrays (for p channels of
+                  measurement), or list of lists of (n,) arrays (for
+                  multichannel data with different time values per channel)
+        - errors: list of (n,) arrays, list of (p, n) arrays (for p channels of
+                  measurement), or list of lists of (n,) arrays (for
+                  multichannel data with different time values per channel)
 
     In the case of multichannel measurements, each channel will be
     featurized separately, and the data variables of the output `xray.Dataset`
@@ -147,26 +151,27 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     Parameters
     ----------
-    times : array-like or list/tuple of array-like
-        1d array containing time values for a single time series, or a list of
-        1d arrays each containing time values for a single time series
-    values : array-like or list/tuple of array-like
-        ndarray of measurement values for a single time series, or a list of
-        ndarrays each containing measurement values for a single time series.
-        Multiple columns correspond to multiple channels of measurements (i.e.,
-        vector-valued time series measurements).
-    errors : array-like or list/tuple of array-like, optional
-        ndarray of measurement error values for a single time series, or a list
-        of ndarrays each containing measurement error values for a single time
-        series (if applicable). Multiple columns correspond to multiple
-        channels of measurements (i.e., vector-valued time series
-        measurements).
+    times : array, list of array, or list of lists of array
+        Array containing time values for a single time series, or a list of
+        arrays each containing time values for a single time series, or a list
+        of lists of arrays for multichannel data with different time values per
+        channel
+    values : array or list of array
+        Array containing measurement values for a single time series, or a list
+        of arrays each containing (possibly multivariate) measurement values
+        for a single time series, or a list of lists of arrays for multichannel
+        data with different time values per channel
+    errors : array or list/tuple of array, optional
+        Array containing measurement error values for a single time series, or
+        a list of arrays each containing (possibly multivariate) measurement
+        values for a single time series, or a list of lists of arrays for
+        multichannel data with different time values per channel
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty list, which
         will result in only metadata features being stored.
-    targets : str/float or array-like/list, optional
-        Target or list/array of targets, one per time series (if
-        applicable); will be stored in the `target` coordinate of the resulting
+    targets : str/float or array-like, optional
+        Target or sequence of targets, one per time series (if applicable);
+        will be stored in the `target` coordinate of the resulting
         `xray.Dataset`.
     meta_features : dict/Pandas.Series or list of dicts/Pandas.DataFrame
         dict/Series (for a single time series) or DataFrame (for multiple time
@@ -179,10 +184,10 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
     custom_functions : dict, optional
-        Dictionary of custom feature functions to be evaluated for the given time
-        series, or a dictionary representing a dask graph of function evaluations.
-        Dictionaries of functions should have keys `feature_name` and values
-        functions that take arguments (t, m, e); in the case of a
+        Dictionary of custom feature functions to be evaluated for the given
+        time series, or a dictionary representing a dask graph of function
+        evaluations.  Dictionaries of functions should have keys `feature_name`
+        and values functions that take arguments (t, m, e); in the case of a
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
@@ -193,13 +198,31 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         Featureset with `data_vars` containing feature values and `coords`
         containing labels (`name`) and targets (`target`), if applicable.
     """
-    if errors is None:
-        errors = values.copy()
-        if isinstance(errors, (list, tuple)):
-            for e in errors:
-                e[:] = cfg.DEFAULT_ERROR_VALUE
+    if times is None:
+        times = copy.deepcopy(values)
+        if isinstance(times, np.ndarray) and (times.ndim == 1
+                                              or 1 in times.shape):
+            times[:] = np.linspace(0., cfg.DEFAULT_MAX_TIME, times.size)
         else:
+            for t in times:
+                if isinstance(t, np.ndarray) and (t.ndim == 1 or 1 in t.shape):
+                    t[:] = np.linspace(0., cfg.DEFAULT_MAX_TIME, t.size)
+                else:
+                    for t_i in t:
+                        t_i[:] = np.linspace(0., cfg.DEFAULT_MAX_TIME, t_i.size)
+
+    if errors is None:
+        errors = copy.deepcopy(values)
+        if isinstance(errors, np.ndarray) and (errors.ndim == 1
+                                               or 1 in errors.shape):
             errors[:] = cfg.DEFAULT_ERROR_VALUE
+        else:
+            for e in errors:
+                if isinstance(e, np.ndarray) and (e.ndim == 1 or 1 in e.shape):
+                    e[:] = cfg.DEFAULT_ERROR_VALUE
+                else:
+                    for e_i in e:
+                        e_i[:] = cfg.DEFAULT_ERROR_VALUE
 
     if labels is None:
         if isinstance(times, (list, tuple)):
@@ -209,14 +232,13 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     if all([isinstance(x, np.ndarray) for x in (times, values, errors)]):
         times, values, errors = ([times], [values], [errors])
-        if isinstance(meta_features, pd.Series):
-            meta_features = meta_features.to_dict()
-        if not isinstance(targets, (list, tuple, np.ndarray)):
-            targets = [targets]
+    if isinstance(meta_features, pd.Series):
+        meta_features = meta_features.to_dict()
+    if not isinstance(targets, (list, tuple, np.ndarray)):
+        targets = [targets]
 
     if not all([isinstance(x, (list, tuple)) for x in (times, values, errors)]):
-        raise TypeError("times, values, and errors all have the same type "
-                        "either (ndarray or list/tuple)")
+        raise TypeError("times, values, and errors have incompatible types")
 
     meta_features = pd.DataFrame(meta_features, index=labels)
     feature_dicts = []
