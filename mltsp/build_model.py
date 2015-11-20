@@ -26,7 +26,7 @@ def rectangularize_featureset(featureset):
         if len(featureset.channel) == 1:
             feature_df.columns = [pair[0] for pair in feature_df.columns]
         else:
-            feature_df.columns = ['_'.join(pair)
+            feature_df.columns = ['_'.join([str(el) for el in pair])
                                   for pair in feature_df.columns]
     return feature_df
 
