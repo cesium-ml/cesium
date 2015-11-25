@@ -26,10 +26,11 @@ def periodic_model(lomb_model):
     def model_neg(t):
         return -1. * model_f(t)
 
-    min_1_a = optimize.fmin(model_neg, 0.05)[0] # start finding 1st minima, at 5% of phase (fudge/magic number) > 0.018
-    max_2_a = optimize.fmin(model_f, min_1_a + 0.01)[0]
-    min_3_a = optimize.fmin(model_neg, max_2_a + 0.01)[0]
-    max_4_a = optimize.fmin(model_f, min_3_a + 0.01)[0]
+    # Start finding 1st minima, at 5% of phase (fudge/magic number) > 0.018
+    min_1_a = optimize.fmin(model_neg, 0.05, disp=False)[0]
+    max_2_a = optimize.fmin(model_f, min_1_a + 0.01, disp=False)[0]
+    min_3_a = optimize.fmin(model_neg, max_2_a + 0.01, disp=False)[0]
+    max_4_a = optimize.fmin(model_f, min_3_a + 0.01, disp=False)[0]
 
 # TODO !!! is this wrong? seems like it should be a minus
     out_dict['phi1_phi2'] = (min_3_a - max_2_a) / (max_4_a / min_3_a)

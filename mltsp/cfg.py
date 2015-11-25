@@ -227,8 +227,9 @@ features_to_plot = [
 # Specify number of time series to featurize as part of a "test run"
 TEST_N = 5
 
-# Specify default measurement error value (for measurements without errors)
-ERROR_VALUE = 1e-4
+# Specify default values for missing times/errors
+DEFAULT_MAX_TIME = 1.0
+DEFAULT_ERROR_VALUE = 1e-4
 
 
 if not os.path.exists(PROJECT_PATH):

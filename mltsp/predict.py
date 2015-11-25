@@ -14,8 +14,8 @@ from . import util
 
 def model_predictions(featureset, model):
     """Construct a DataFrame of model predictions for given featureset."""
-    # Do probabilistic model prediction when possible
     feature_df = build_model.rectangularize_featureset(featureset)
+    # Do probabilistic model prediction when possible
     try:
         preds = model.predict_proba(feature_df)
     except AttributeError:

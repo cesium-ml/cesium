@@ -69,12 +69,12 @@ def sample_featureset():
 
 def sample_time_series(size=51, channels=1):
     times = np.sort(np.random.random(size))
-    values = np.array([np.random.normal(size=size) for i in range(channels)]).T
+    values = np.array([np.random.normal(size=size) for i in range(channels)])
     errors = np.array([np.random.exponential(size=size)
-                       for i in range(channels)]).T
+                       for i in range(channels)])
     if channels == 1:
-        values = values[:, 0]
-        errors = errors[:, 0]
+        values = values[0]
+        errors = errors[0]
     return times, values, errors
 
 
@@ -165,7 +165,7 @@ def test_featurize_time_series_single():
 
 
 def test_featurize_time_series_single_multichannel():
-    """Test featurize wrapper function for single time series"""
+    """Test featurize wrapper function for single multichannel time series"""
     n_channels = 3
     t, m, e = sample_time_series(channels=n_channels)
     features_to_use = ['amplitude', 'std_err']
@@ -177,7 +177,7 @@ def test_featurize_time_series_single_multichannel():
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
     npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel'])
+                           ['name', 'channel', 'target'])
     npt.assert_array_equal(featureset.target.values, ['class1'])
 
 
@@ -198,14 +198,14 @@ def test_featurize_time_series_multiple():
 
 
 def test_featurize_time_series_multiple_multichannel():
-    """Test featurize wrapper function for multiple time series"""
+    """Test featurize wrapper function for multiple multichannel time series"""
     n_series = 5
     n_channels = 3
     list_of_series = [sample_time_series(channels=n_channels)
                       for i in range(n_series)]
     times, values, errors = [list(x) for x in zip(*list_of_series)]
     features_to_use = ['amplitude', 'std_err']
-    targets = np.array(['class1', 'class2'])
+    targets = np.array(['class1', 'class1', 'class1', 'class2', 'class2'])
     meta_features = {'meta1': 0.5}
     featureset = featurize.featurize_time_series(times, values, errors,
                                                  features_to_use, targets,
@@ -214,21 +214,107 @@ def test_featurize_time_series_multiple_multichannel():
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
     npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel'])
-    npt.assert_array_equal(featureset.target.values, ['class1', 'class2'])
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, targets)
 
 
-def test_featurize_time_series_multiple_tuples():
-    """Test featurize wrapper function for tuples of time series."""
-    n_series = 5
-    list_of_series = [sample_time_series() for i in range(n_series)]
-    times, values, errors = [tuple(x) for x in zip(*list_of_series)]
+def test_featurize_time_series_uneven_multichannel():
+    """Test featurize wrapper function for uneven-length multichannel data"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    t = [[t, t[0:-5], t[0:-10]]]
+    m = [[m[0], m[1][0:-5], m[2][0:-10]]]
+    e = [[e[0], e[1][0:-5], e[2][0:-10]]]
     features_to_use = ['amplitude', 'std_err']
-    targets = np.array(['class1'] * n_series)
-    meta_features = [{'meta1': 0.5}] * n_series
-    featureset = featurize.featurize_time_series(times, values, errors,
-                                                 features_to_use, targets,
-                                                 meta_features)
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features)
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(featureset.target.values, ['class1'] * n_series)
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
+
+
+def test_featurize_time_series_custom_functions():
+    """Test featurize wrapper function for time series w/ custom functions"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err', 'test_f']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    custom_functions = {'test_f': lambda t, m, e: np.mean(m)}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features,
+                                                 custom_functions=custom_functions)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err', 'test_f'])
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
+
+
+def test_featurize_time_series_custom_dask_graph():
+    """Test featurize wrapper function for time series w/ custom dask graph"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err', 'test_f']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    custom_functions = {'test_f': (lambda x: 2*x, 'amplitude')}
+    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                 target, meta_features,
+                                                 custom_functions=custom_functions)
+    npt.assert_array_equal(sorted(featureset.data_vars),
+                           ['amplitude', 'meta1', 'std_err', 'test_f'])
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    npt.assert_array_equal(list(featureset.amplitude.coords),
+                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(featureset.target.values, ['class1'])
+
+
+def test_featurize_time_series_default_times():
+    """Test featurize wrapper function for time series w/ missing times"""
+    n_channels = 3
+    _, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err']
+    target = 'class1'
+    meta_features = {}
+    featureset = featurize.featurize_time_series(None, m, e, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    m = [[m[0], m[1][0:-5], m[2][0:-10]]]
+    e = [[e[0], e[1][0:-5], e[2][0:-10]]]
+    featureset = featurize.featurize_time_series(None, m, e, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    m = m[0][0]
+    e = e[0][0]
+    featureset = featurize.featurize_time_series(None, m, e, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(featureset.channel, [0])
+
+
+def test_featurize_time_series_default_errors():
+    """Test featurize wrapper function for time series w/ missing errors"""
+    n_channels = 3
+    t, m, _ = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err']
+    target = 'class1'
+    meta_features = {}
+    featureset = featurize.featurize_time_series(t, m, None, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    t = [[t, t[0:-5], t[0:-10]]]
+    m = [[m[0], m[1][0:-5], m[2][0:-10]]]
+    featureset = featurize.featurize_time_series(t, m, None, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    t = t[0][0]
+    m = m[0][0]
+    featureset = featurize.featurize_time_series(t, m, None, features_to_use,
+                                                 target, meta_features)
+    npt.assert_array_equal(featureset.channel, [0])
