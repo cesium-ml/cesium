@@ -28,7 +28,7 @@ def rectangularize_featureset(featureset):
         else:
             feature_df.columns = ['_'.join([str(el) for el in pair])
                                   for pair in feature_df.columns]
-    return feature_df
+    return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
