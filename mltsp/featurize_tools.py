@@ -93,7 +93,7 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
                 dask_graph = {key: value
                               for key, value in custom_functions.items()
                               if key in features_to_use}
-                dask_keys = dask_graph.keys()
+                dask_keys = list(dask_graph.keys())
                 dask_graph['t'] = t[i]
                 dask_graph['m'] = m[i]
                 dask_graph['e'] = e[i]

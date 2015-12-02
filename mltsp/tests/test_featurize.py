@@ -83,11 +83,11 @@ def test_write_features_to_disk():
     featurize.write_features_to_disk(sample_featureset(), "test")
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_featureset.nc"))
-    npt.assert_equal(list(featureset.data_vars), ['f1', 'f2'])
-    npt.assert_equal(list(featureset.coords), ['target', 'name'])
+    npt.assert_equal(sorted(featureset.data_vars), ['f1', 'f2'])
+    npt.assert_equal(sorted(featureset.coords), ['name', 'target'])
     npt.assert_equal(featureset['f1'].values, [21.0, 23.4])
     npt.assert_equal(featureset['f2'].values, [0.15, 2.31])
-    npt.assert_equal(featureset['target'].values, ['c1', 'c2'])
+    npt.assert_equal(featureset['target'].values, [b'c1', b'c2'])
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -176,8 +176,8 @@ def test_featurize_time_series_single_multichannel():
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+                           ['channel', 'name', 'target'])
     npt.assert_array_equal(featureset.target.values, ['class1'])
 
 
@@ -213,8 +213,8 @@ def test_featurize_time_series_multiple_multichannel():
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+                           ['channel', 'name', 'target'])
     npt.assert_array_equal(featureset.target.values, targets)
 
 
@@ -233,8 +233,8 @@ def test_featurize_time_series_uneven_multichannel():
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+                           ['channel', 'name', 'target'])
     npt.assert_array_equal(featureset.target.values, ['class1'])
 
 
@@ -252,8 +252,8 @@ def test_featurize_time_series_custom_functions():
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err', 'test_f'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+                           ['channel', 'name', 'target'])
     npt.assert_array_equal(featureset.target.values, ['class1'])
 
 
@@ -271,8 +271,8 @@ def test_featurize_time_series_custom_dask_graph():
     npt.assert_array_equal(sorted(featureset.data_vars),
                            ['amplitude', 'meta1', 'std_err', 'test_f'])
     npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(list(featureset.amplitude.coords),
-                           ['name', 'channel', 'target'])
+    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+                           ['channel', 'name', 'target'])
     npt.assert_array_equal(featureset.target.values, ['class1'])
 
 
