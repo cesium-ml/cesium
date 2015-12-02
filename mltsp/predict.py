@@ -20,7 +20,7 @@ def model_predictions(featureset, model):
         preds = model.predict_proba(feature_df)
     except AttributeError:
         preds = model.predict(feature_df)
-    preds_df = pd.DataFrame(preds, index=featureset.name)
+    preds_df = pd.DataFrame(preds, index=feature_df.index)
     if preds_df.shape[1] == 1:
         preds_df.columns = ['prediction']
     else:

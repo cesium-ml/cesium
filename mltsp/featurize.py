@@ -226,9 +226,9 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     if labels is None:
         if isinstance(times, (list, tuple)):
-            labels = np.arange(len(times)).astype('str')
+            labels = np.arange(len(times))
         else:
-            labels = np.array(['0'])
+            labels = np.array([0])
 
     if all([isinstance(x, np.ndarray) for x in (times, values, errors)]):
         times, values, errors = ([times], [values], [errors])
