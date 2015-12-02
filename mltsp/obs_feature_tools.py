@@ -58,7 +58,7 @@ def find_sorted_peaks(x):
                 if j == nbins-1 and x[i] == x[j]: # Reached the end
                     peak_inds.append(i)
     sorted_peak_inds = sorted(peak_inds, key=lambda i: x[i], reverse=True)
-    return zip(sorted_peak_inds, x[sorted_peak_inds])
+    return list(zip(sorted_peak_inds, x[sorted_peak_inds]))
 
 
 def peak_ratio(peaks, i, j):

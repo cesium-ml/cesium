@@ -121,9 +121,9 @@ class FlaskAppTestCase(unittest.TestCase):
     def test_check_job_status(self):
         """Test check job status"""
         rv = self.app.post('/check_job_status/?PID=999999')
-        assert 'finished' in rv.data
+        assert b'finished' in rv.data
         rv = self.app.post('/check_job_status/?PID=1')
-        assert 'currently running' in rv.data
+        assert b'currently running' in rv.data
 
     def test_is_running(self):
         """Test is_running()"""
@@ -478,7 +478,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                            as_html_table_string=True)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("userauth").get("111").delete().run(conn)
-            assert isinstance(featsets, (str, unicode))
             assert "table id" in featsets and "abc123" in featsets
 
     def test_list_models_authed(self):
@@ -580,7 +579,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                      as_html_table_string=True)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("userauth").get("111").delete().run(conn)
-            assert isinstance(results, (str, unicode))
             assert "table id" in results and "abc123" in results
 
     def test_list_preds_authed(self):
@@ -691,7 +689,6 @@ class FlaskAppTestCase(unittest.TestCase):
                                           as_html_table_string=True)
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("userauth").get("111").delete().run(conn)
-            assert isinstance(results, (str, unicode))
             assert "table id" in results and "abc123" in results
 
     def test_get_list_of_projects(self):
@@ -705,9 +702,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                     "active": "y"}).run(conn)
         rv = self.app.get('/get_list_of_projects')
         r.table("userauth").get("abc123").delete().run(conn)
-        assert '{' in rv.data
-        assert isinstance(eval(rv.data), dict)
-        assert "abc123" in eval(rv.data)["list"]
+        assert "abc123" in simplejson.loads(rv.data)["list"]
 
     def test_list_projects_authed(self):
         """Test list projects - authed only"""
@@ -1499,7 +1494,7 @@ class FlaskAppTestCase(unittest.TestCase):
             pred_results_dict = entry
             assert(pred_results_dict["pred_results_dict"]
                                          ["TESTRUN_215153"][0][0]
-                   in ['class1', 'class2', 'class3'])
+                   in [b'class1', b'class2', b'class3'])
 
             assert all(key in pred_results_dict for key in \
                        ("ts_data_dict", "features_dict"))
@@ -1523,8 +1518,8 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = self.app.post('/verifyNewScript',
                                content_type='multipart/form-data',
                                data={'custom_feat_script_file':
-                                     (open(pjoin(DATA_DIR, "testfeature1.py")),
-                                      "testfeature1.py")})
+                                     (open(pjoin(DATA_DIR, "testfeature1.py"),
+                                           mode='rb'), "testfeature1.py")})
             res_str = str(rv.data)
             assert("The following features have successfully been tested:" in
                    res_str)
@@ -1985,7 +1980,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                data={'features_file':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "test_features_with_targets.csv")),
+                                         "test_features_with_targets.csv"),
+                                         mode='rb'),
                                       "test_features_with_targets.csv"),
                                      'featuresetname': 'abc123',
                                      'featureset_projname_select': 'abc123'})
@@ -1998,11 +1994,11 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["zipfile_name"], "None")
             featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in ['class1', 'class2', 'class3'] for
+            assert(all(class_name in [b'class1', b'class2', b'class3'] for
                        class_name in featureset.target.values))
-            npt.assert_array_equal(list(featureset.data_vars),
-                                   ["std_err", "meta1", "meta2", "meta3",
-                                    "amplitude"])
+            npt.assert_array_equal(sorted(featureset.data_vars),
+                                   ["amplitude", "meta1", "meta2", "meta3",
+                                     "std_err"])
             assert("New feature set files saved successfully" in
                    res_dict["message"])
             model_and_prediction_teardown()
@@ -2019,12 +2015,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                data={'headerfile':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "asas_training_subset_classes.dat")),
+                                         "asas_training_subset_classes.dat"),
+                                         mode='rb'),
                                       "asas_training_subset_classes.dat"),
                                      'zipfile':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "asas_training_subset.tar.gz")),
+                                         "asas_training_subset.tar.gz"),
+                                         mode='rb'),
                                       "asas_training_subset.tar.gz"),
                                      'featureset_name': 'abc123',
                                      'featureset_project_name_select': 'abc123',
@@ -2032,7 +2030,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'features_selected': ['std_err', 'amplitude'],
                                      'custom_script_tested': 'yes',
                                      'custom_feat_script_file':
-                                     (open(pjoin(DATA_DIR, "testfeature1.py")),
+                                     (open(pjoin(DATA_DIR, "testfeature1.py"),
+                                           mode='rb'),
                                       "testfeature1.py"),
                                      'custom_feature_checkbox': ['f'],
                                      'is_test': 'True'})
@@ -2045,9 +2044,9 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                      'Delta_Scuti', 'RR_Lyrae']
+            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
+                                      b'Classical_Cepheid', b'W_Ursae_Maj',
+                                      b'Delta_Scuti', b'RR_Lyrae']
                        for class_name in featureset.target.values))
             cols = list(featureset.data_vars)
             npt.assert_array_equal(sorted(cols), ["amplitude", "f", "std_err"])
@@ -2090,12 +2089,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                data={'headerfile':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "asas_training_subset_classes.dat")),
+                                         "asas_training_subset_classes.dat"),
+                                         mode='rb'),
                                       "asas_training_subset_classes.dat"),
                                      'zipfile':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "asas_training_subset.tar.gz")),
+                                         "asas_training_subset.tar.gz"),
+                                         mode='rb'),
                                       "asas_training_subset.tar.gz"),
                                      'featureset_name': 'abc123',
                                      'featureset_project_name_select': 'abc123',
@@ -2111,9 +2112,9 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                      'Delta_Scuti', 'RR_Lyrae']
+            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
+                                      b'Classical_Cepheid', b'W_Ursae_Maj',
+                                      b'Delta_Scuti', b'RR_Lyrae']
                        for class_name in featureset.target.values))
             cols = list(featureset.data_vars)
             npt.assert_array_equal(sorted(cols), ["amplitude", "std_err"])
@@ -2170,9 +2171,9 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                      'Delta_Scuti', 'RR_Lyrae']
+            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
+                                      b'Classical_Cepheid', b'W_Ursae_Maj',
+                                      b'Delta_Scuti', b'RR_Lyrae']
                        for class_name in featureset['target'].values))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['avg_mag', 'meta1', 'meta2', 'meta3',
@@ -2205,7 +2206,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["zipfile_name"], "None")
             featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in ["class1", "class2", "class3"] 
+            assert(all(class_name in [b"class1", b"class2", b"class3"]
                        for class_name in featureset['target'].values))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['amplitude', 'meta1', 'meta2', 'meta3',
@@ -2272,12 +2273,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                data={'newpred_file':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "dotastro_215153.dat")),
+                                         "dotastro_215153.dat"),
+                                         mode='rb'),
                                       "dotastro_215153.dat"),
                                      'prediction_files_metadata':
                                      (open(pjoin(
                                          DATA_DIR,
-                                         "215153_metadata.dat")),
+                                         "215153_metadata.dat"),
+                                         mode='rb'),
                                       "215153_metadata.dat"),
                                      'newpred_file_sep': ',',
                                      'prediction_project_name': 'abc123',
@@ -2291,7 +2294,7 @@ class FlaskAppTestCase(unittest.TestCase):
             model_and_prediction_teardown()
             pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
-            assert(all(all(el[0] in ['class1', 'class2', 'class3']
+            assert(all(all(el[0] in [b'class1', b'class2', b'class3']
                            for el in pred_results[fname])
                        for fname in pred_results))
             assert("std_err" in feats_dict["dotastro_215153"])
@@ -2338,7 +2341,7 @@ class FlaskAppTestCase(unittest.TestCase):
             model_and_prediction_teardown()
             pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
-            assert(all(all(el[0] in ['class1', 'class2', 'class3']
+            assert(all(all(el[0] in [b'class1', b'class2', b'class3']
                            for el in pred_results[fname])
                        for fname in pred_results))
             assert("std_err" in feats_dict["TESTRUN_215153"])
