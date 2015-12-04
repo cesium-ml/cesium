@@ -138,7 +138,9 @@ def generate_obs_features(t, m, e, features_to_compute=cfg.features_list_obs):
         'delta_t_nhist': (normalize_hist, 'delta_t_hist', 'total_time'),
         'nhist_peaks': (find_sorted_peaks, 'delta_t_nhist'),
         'all_times_hist_peak_val': (np.max, 'delta_t_hist'),
-        'all_times_hist_peak_bin': (np.argmax, 'delta_t_hist'),
+        # Can't JSON serialize np.int64 under Python3 (yet?), cast as int first
+        'all_times_hist_peak_bin': (lambda x: int(np.argmax(x)),
+                                    'delta_t_hist'),
         'all_times_nhist_numpeaks': (len, 'nhist_peaks'),
         'all_times_nhist_peak_val': (np.max, 'delta_t_nhist'),
         'all_times_nhist_peak_1_to_2': (peak_ratio, 'nhist_peaks', 1, 2),
