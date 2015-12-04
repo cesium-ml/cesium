@@ -2,12 +2,10 @@ import numpy as np
 from scipy import stats
 
 
-# TODO !!! is this really supposed to return index instead of slope?
-# TODO !!! should this actually be greatest absolute slope?
 def max_slope(t, x):
-    """Compute the INDEX of the largest rate of change in the observed data."""
+    """Compute the largest rate of change in the observed data."""
     slopes = np.diff(x) / np.diff(t)
-    return np.argmax(slopes)
+    return np.max(np.abs(slopes))
 
 
 def maximum(x):
@@ -30,17 +28,15 @@ def minimum(x):
     return np.min(x)
 
 
-# TODO !!! this is almost certainly wrong; should fix ASAP
 def percent_beyond_1_std(x, e):
     """Percentage of values more than 1 std. dev. from the weighted average."""
     dists_from_mu = x - weighted_average(x, e)
-    return np.mean(dists_from_mu > weighted_average_std_err(x, e))
+    return np.mean(dists_from_mu > weighted_std_dev(x, e))
 
 
-# TODO !!! sign issues?
 def percent_close_to_median(x, window_frac=0.1):
     """Percentage of values within window_frac*(max(x)-min(x)) of median."""
-    window = (np.abs(np.max(x)) - np.abs(np.min(x))) * window_frac
+    window = (x.max() - x.min()) * window_frac
     return np.mean(np.abs(x - np.median(x)) < window)
 
 
@@ -56,7 +52,7 @@ def std(x):
 
 def weighted_average(x, e):
     """Arithmetic mean of observed values, weighted by measurement errors."""
-    return np.sum(x / (e**2)) / np.sum(1. / e**2)
+    return np.average(x, weights=1 / (e**2))
 
 
 def weighted_average_std_err(x, e):
@@ -69,3 +65,9 @@ def weighted_average_std_err(x, e):
     the data.
     """
     return np.sqrt(1.0 / np.sum(e**2))
+
+
+def weighted_std_dev(x, e):
+    """Standard deviation of observed values, weighted by measurement errors."""
+    return np.sqrt(np.average((x - weighted_average(x, e))**2,
+                              weights=1 / (e**2)))
