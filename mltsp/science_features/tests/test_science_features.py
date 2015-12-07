@@ -431,6 +431,29 @@ def test_lomb_scargle_irregular_multi_freq():
     npt.assert_array_less(10., all_lomb['freq1_signif'])
 
 
+def test_lomb_scargle_linear_trend():
+    frequencies = np.hstack((WAVE_FREQS[0], np.zeros(len(WAVE_FREQS)-1)))
+    amplitudes = np.zeros((len(WAVE_FREQS),4))
+    amplitudes[0,:] = [8,4,2,1]
+    phase = 0.1
+    slope = 0.5
+
+    # Estimated trend should be almost exact for noiseless data
+    times, values, errors = regular_periodic(frequencies, amplitudes, phase)
+    values += slope * times
+    all_lomb = sft.generate_science_features(times, values, errors,
+            lomb_features)
+    npt.assert_allclose(slope, all_lomb['linear_trend'], rtol=1e-3)
+
+    # Should still be close to true trend when noise is present
+    times, values, errors = irregular_periodic(frequencies, amplitudes, phase)
+    values += slope * times
+    values += np.random.normal(scale=1e-3, size=len(times))
+    all_lomb = sft.generate_science_features(times, values, errors,
+            lomb_features)
+    npt.assert_allclose(slope, all_lomb['linear_trend'], rtol=1e-1)
+
+
 def test_max():
     """Test maximum value feature."""
     times, values, errors = irregular_random()
@@ -455,14 +478,12 @@ def test_median_absolute_deviation():
         np.median(values))))
 
 
-# TODO should replace with commented version once sign problems fixed
 def test_percent_close_to_median():
     """Test feature which finds the percentage of points near the median value."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors,
             ['percent_close_to_median'])
-    amplitude = (np.abs(max(values)) - np.abs(min(values))) / 2.
-    #amplitude = (max(values) - min(values)) / 2.
+    amplitude = (max(values) - min(values)) / 2.
     within_buffer = np.abs(values - np.median(values)) < 0.2*amplitude
     npt.assert_allclose(f['percent_close_to_median'], np.mean(within_buffer))
 
@@ -564,16 +585,15 @@ def test_weighted_average():
     """Test weighted average and distance from weighted average features."""
     times, values, errors = irregular_random()
     f = sft.generate_science_features(times, values, errors, ['weighted_average'])
-    weighted_std_err = 1. / sum(errors**2)
-    error_weights = 1. / (errors)**2 / weighted_std_err
-    weighted_avg = np.average(values, weights=error_weights)
+    weighted_avg = np.average(values, weights=1. / (errors**2))
+    weighted_var = np.average((values - weighted_avg)**2,
+                              weights=1. / (errors**2))
     npt.assert_allclose(f['weighted_average'], weighted_avg)
 
     dists_from_weighted_avg = values - weighted_avg
     stds_from_weighted_avg = (dists_from_weighted_avg /
-            np.sqrt(weighted_std_err))
+            np.sqrt(weighted_var))
 
-    # TODO broken feature
     f = sft.generate_science_features(times, values, errors,
-            ['percent_beyond_1_std'])
+                                      ['percent_beyond_1_std'])
     npt.assert_equal(f['percent_beyond_1_std'], np.mean(stds_from_weighted_avg > 1.))
