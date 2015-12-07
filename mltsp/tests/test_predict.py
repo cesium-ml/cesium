@@ -82,8 +82,8 @@ def test_single_predict_classification():
                                 "215153_metadata.dat"), custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
-                assert(el[0] in ['class1', 'class2', 'class3']
-                       or el in ['class1', 'class2', 'class3'])
+                assert(el[0] in [b'class1', b'class2', b'class3']
+                       or el in [b'class1', b'class2', b'class3'])
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -103,8 +103,8 @@ def test_single_predict_classification_with_custom():
                                 cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "testfeature1.py"))
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
-                assert(el[0] in ['class1', 'class2', 'class3']
-                       or el in ['class1', 'class2', 'class3'])
+                assert(el[0] in [b'class1', b'class2', b'class3']
+                       or el in [b'class1', b'class2', b'class3'])
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -124,8 +124,8 @@ def test_multiple_predict_classification():
                                 custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
-                assert(el[0] in ['class1', 'class2', 'class3']
-                       or el in ['class1', 'class2', 'class3'])
+                assert(el[0] in [b'class1', b'class2', b'class3']
+                       or el in [b'class1', b'class2', b'class3'])
 
 
 @with_setup(copy_regression_test_data, remove_test_data)
