@@ -12,13 +12,35 @@ from . import featurize_tools as ft
 from . import util
 
 
-def model_predictions(featureset, model):
-    """Construct a DataFrame of model predictions for given featureset."""
+def model_predictions(featureset, model, return_probs=True):
+    """Construct a DataFrame of model predictions for given featureset.
+
+    Parameters
+    ----------
+    featureset : xray.Dataset
+        Dataset containing feature values for which predictions are desired
+    model : scikit-learn model
+        Fitted scikit-learn model to be used to generate predictions
+    return_probs : bool, optional
+        Parameter to control the type of prediction made in the classification
+        setting (the parameter has no effect for regression models). If True,
+        probabilities for each class are returned where possible; if False,
+        only the top predicted label for each time series is returned.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame of model predictions, indexed by `featureset.name`. Each row
+        contains either a single class/target prediction or (for probabilistic
+        predictions) a list of class probabilities.
+    """
     feature_df = build_model.rectangularize_featureset(featureset)
-    # Do probabilistic model prediction when possible
-    try:
-        preds = model.predict_proba(feature_df)
-    except AttributeError:
+    if return_probs:
+        try:
+            preds = model.predict_proba(feature_df)
+        except AttributeError:
+            preds = model.predict(feature_df)
+    else:
         preds = model.predict(feature_df)
     preds_df = pd.DataFrame(preds, index=feature_df.index)
     if preds_df.shape[1] == 1:
