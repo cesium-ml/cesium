@@ -8,7 +8,6 @@ from mltsp import build_model
 from nose.tools import with_setup
 import numpy.testing as npt
 import numpy as np
-import os
 from os.path import join as pjoin
 import uuid
 import rethinkdb as r
