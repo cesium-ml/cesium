@@ -94,7 +94,7 @@ def cast_model_params(model_type, model_params):
     from .ext.sklearn_models import model_descriptions
     # Find relevant model description
     for entry in model_descriptions:
-        if entry["abbr"] == model_type:
+        if entry["name"] == model_type:
             params_list = entry["params"]
             break
     # Iterate through params from HTML form and cast to expected types
