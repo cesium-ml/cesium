@@ -2813,12 +2813,17 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
 
     Parameters
     ----------
+    model_name : str
+        Name of new model.
     project_name : str
         Name of parent project.
     featureset_name : str
         Name of feature set from which to create new model.
     model_type : str
-        Abbreviation of type of model to create (e.g. "RFC").
+        Name of type of model to create (e.g. "Random Forest Classifier").
+    model_params : dict
+        Dictionary whose keys are relevant `sklearn` model parameter names,
+        and values are the desired parameter values.
 
     Returns
     -------
