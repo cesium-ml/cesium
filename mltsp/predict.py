@@ -54,7 +54,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
         above-specified model.
     custom_features_script : str, optional
         Path to custom features script to be used in feature
-        generation, defaults to None.
+        generation. Defaults to None.
     metadata_path : str, optional
         Path to meta data file associated with provided time series
         data. Defaults to None.
@@ -66,13 +66,13 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
         individual time-series data files used in prediction and whose
         corresponding values are dictionaries with the following
         key-value pairs:
-            "results_str": String containing table listing results in
-                HTML markup.
-            "ts_data": The original time-series data provided.
-            "features_dict": A dictionary containing the generated
-                features.
-            "pred_results": A list of lists, each containing one
-                of the most-probable targets and its probability.
+            - "results_str": String containing table listing results in
+              markup.
+            - "ts_data": The original time-series data provided.
+            - "features_dict": A dictionary containing the generated
+              features.
+            - "pred_results": A list of lists, each containing one
+              of the most-probable targets and its probability.
 
     """
     if tarfile.is_tarfile(newpred_path) or zipfile.is_zipfile(newpred_path):
