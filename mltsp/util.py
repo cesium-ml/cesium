@@ -111,6 +111,10 @@ def cast_model_params(model_type, model_params):
         if entry["name"] == model_type:
             params_list = entry["params"]
             break
+    try:
+        params_list
+    except NameError:
+        raise ValueError("model_type not in list of allowable models.")
     # Iterate through params from HTML form and cast to expected types
     for k, v in model_params.items():
         # Empty string or "None" goes to `None`
