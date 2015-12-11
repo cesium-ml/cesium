@@ -10,7 +10,6 @@ parse
 psutil>=2.2.1
 rethinkdb
 requests
-simplejson
 colorlog
 matplotlib>=1.1
 nose

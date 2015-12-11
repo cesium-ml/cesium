@@ -14,7 +14,7 @@ import uuid
 import rethinkdb as r
 import unittest
 import time
-import simplejson
+import json
 import shutil
 import pandas as pd
 import xray
@@ -702,7 +702,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                     "active": "y"}).run(conn)
         rv = self.app.get('/get_list_of_projects')
         r.table("userauth").get("abc123").delete().run(conn)
-        assert "abc123" in simplejson.loads(rv.data)["list"]
+        assert "abc123" in json.loads(rv.data.decode())["list"]
 
     def test_list_projects_authed(self):
         """Test list projects - authed only"""
@@ -1111,7 +1111,7 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             r.table("userauth").get("abc123").delete().run(conn)
             r.table("userauth").get("abc123_2").delete().run(conn)
-        res_dict = simplejson.loads(rv.data)
+        res_dict = json.loads(rv.data.decode())
         npt.assert_equal(res_dict['name'], "abc123")
         npt.assert_array_equal(sorted(res_dict["authed_users"]),
                                ['abc@123.com', 'testhandle@test.com'])
@@ -1826,7 +1826,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                content_type='multipart/form-data',
                                data={"PROJECT_NAME_TO_EDIT": "abc123",
                                      'action': 'Edit'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict["name"], "abc123")
             assert("featuresets" in res_dict)
             assert("authed_users" in res_dict)
@@ -1868,7 +1868,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                content_type='multipart/form-data',
                                data={"PROJECT_NAME_TO_EDIT": "abc123",
                                      'action': 'Delete'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict["result"], "Deleted 1 project(s).")
             count = r.table("projects").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
@@ -1898,7 +1898,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                content_type='multipart/form-data',
                                data={"PROJECT_NAME_TO_EDIT": "abc123",
                                      'action': 'Invalid action!'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict["error"], "Invalid request action.")
 
     def test_get_featureset_id_by_projname_and_featsetname(self):
@@ -1915,7 +1915,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             rv = self.app.get("/get_featureset_id_by_projname_and_featsetname"
                               "/abc123/abc123")
-            res_id = simplejson.loads(rv.data)["featureset_id"]
+            res_id = json.loads(rv.data.decode())["featureset_id"]
             npt.assert_equal(res_id, "abc123")
 
     def test_get_list_of_featuresets_by_project(self):
@@ -1936,7 +1936,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             rv = self.app.get("/get_list_of_featuresets_by_project/abc123")
-            featset_list = simplejson.loads(rv.data)["featset_list"]
+            featset_list = json.loads(rv.data.decode())["featset_list"]
             npt.assert_array_equal(sorted(featset_list), ["abc123", "abc123_2"])
 
     def test_get_list_of_models_by_project(self):
@@ -1962,7 +1962,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featlist": ["a", "b", "c"]}).run(conn)
             rv = self.app.get("/get_list_of_models_by_project/abc123")
             model_list = [e.split(" (created")[0] for e in
-                          simplejson.loads(rv.data)["model_list"]]
+                          json.loads(rv.data.decode())["model_list"]]
             npt.assert_array_equal(sorted(model_list),
                                    ["model_1 - RFC (featset1)",
                                     "model_2 - RFC (featset1)"])
@@ -1985,7 +1985,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "test_features_with_targets.csv"),
                                      'featuresetname': 'abc123',
                                      'featureset_projname_select': 'abc123'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2035,7 +2035,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "testfeature1.py"),
                                      'custom_feature_checkbox': ['f'],
                                      'is_test': 'True'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2104,7 +2104,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'features_selected': ['std_err', 'amplitude'],
                                      'custom_script_tested': "no",
                                      'is_test': 'True'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2163,7 +2163,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 sep=",", featlist=["avg_mag", "std_err"], is_test=True,
                 email_user=False, already_featurized=False,
                 custom_script_path=custom_script_path)
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2197,7 +2197,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 sep=",", featlist=["std_err", "amplitude"], is_test=True,
                 email_user=False, already_featurized=True,
                 custom_script_path=custom_script_path)
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2232,7 +2232,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = fa.buildModel(model_name="NEW_MODEL_NAME", project_name="abc123",
                                featureset_name="TEMP_TEST01", model_type="RFC",
                                model_params={})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             new_model_key = res_dict["new_model_key"]
@@ -2286,7 +2286,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'prediction_project_name': 'abc123',
                                      'prediction_model_name_and_type':
                                      'TEMP_TEST01 - RFC'})
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
@@ -2327,7 +2327,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                    model_key="TEMP_TEST01",
                                    model_name="TEMP_TEST01", model_type="RFC",
                                    metadata_file_path=dsts[1])
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             time.sleep(1)
@@ -2356,7 +2356,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1}}).run(conn)
             rv = fa.load_source_data('abc123', 'a')
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             for k in ["pred_results", "features_dict", "ts_data"]:
                 npt.assert_equal(res_dict[k], 1)
 
@@ -2370,7 +2370,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1}}).run(conn)
             rv = self.app.get("/load_source_data/abc123/a")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             for k in ["pred_results", "features_dict", "ts_data"]:
                 npt.assert_equal(res_dict[k], 1)
 
@@ -2385,7 +2385,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            'ts_data_dict': {'a': 1},
                                            "results_str_html": "a"}).run(conn)
             rv = fa.load_prediction_results('abc123')
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_array_equal(res_dict, {'id': 'abc123',
                                               'pred_results_dict': {'a': 1},
                                               'features_dict': {'a': 1},
@@ -2403,7 +2403,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            'ts_data_dict': {'a': 1},
                                            "results_str_html": "a"}).run(conn)
             rv = self.app.get("/load_prediction_results/abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
@@ -2424,7 +2424,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "parameters": {},
                                       "results_str_html": "a"}).run(conn)
             rv = fa.load_model_build_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
@@ -2440,7 +2440,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             rv = fa.load_model_build_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {"results_msg":
                                         ("No status message could be found for "
                                          "this process.")})
@@ -2459,7 +2459,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "results_msg": "Error occurred",
                                       "results_str_html": "a"}).run(conn)
             rv = fa.load_model_build_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
@@ -2486,7 +2486,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "results_msg": "results_msg",
                                       "results_str_html": "a"}).run(conn)
             rv = self.app.get("/load_model_build_results/abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
@@ -2508,7 +2508,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "results_msg": "results_msg",
                                         "results_str_html": "a"}).run(conn)
             rv = fa.load_featurization_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
@@ -2527,7 +2527,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         'ts_data_dict': {'a': 1},
                                         "results_str_html": "a"}).run(conn)
             rv = fa.load_featurization_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {"results_msg":
                                         ("No status message could be found for "
                                          "this process.")})
@@ -2538,7 +2538,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             rv = fa.load_featurization_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict, {"results_msg":
                                         ("No status message could be found for "
                                          "this process.")})
@@ -2563,7 +2563,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "results_msg": "Error occurred",
                                         "results_str_html": "a"}).run(conn)
             rv = fa.load_featurization_results("abc123")
-            res_dict = simplejson.loads(rv.data)
+            res_dict = json.loads(rv.data.decode())
             npt.assert_equal(
                 r.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
