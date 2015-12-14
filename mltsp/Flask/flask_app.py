@@ -17,7 +17,7 @@ import psutil
 import smtplib
 from email.mime.text import MIMEText
 import logging
-import simplejson
+import json
 from flask import (
     Flask, request, abort, render_template,
     session, Response, jsonify, g, send_from_directory)
@@ -1673,14 +1673,14 @@ def get_all_info_dict(auth_only=True):
     """
     info_dict = {}
     info_dict['list_of_current_projects'] = list_projects(auth_only=auth_only)
-    info_dict['list_of_current_projects_json'] = simplejson.dumps(
+    info_dict['list_of_current_projects_json'] = json.dumps(
         list_projects(auth_only=auth_only, name_only=True))
     info_dict['list_of_current_featuresets'] = list_featuresets(
         auth_only=auth_only)
-    info_dict['list_of_current_featuresets_json'] = simplejson.dumps(
+    info_dict['list_of_current_featuresets_json'] = json.dumps(
         list_featuresets(auth_only=auth_only, name_only=True))
     info_dict['list_of_current_models'] = list_models(auth_only=auth_only)
-    info_dict['list_of_current_models_json'] = simplejson.dumps(
+    info_dict['list_of_current_models_json'] = json.dumps(
         list_models(auth_only=auth_only, name_only=True))
     info_dict['PROJECT_NAME'] = (
         session['PROJECT_NAME'] if "PROJECT_NAME" in session else "")

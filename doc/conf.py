@@ -32,6 +32,13 @@ import shlex
 # ones.
 extensions = [
     'sphinx.ext.mathjax',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+#    'sphinx.ext.pngmath',
+    'numpydoc',
+#    'plot2rst',
+#    'sphinx.ext.intersphinx',
+#    'sphinx.ext.linkcode',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -44,7 +51,7 @@ source_parsers = {
     '.md': CommonMarkParser,
 }
 
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.md', '.txt']
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'

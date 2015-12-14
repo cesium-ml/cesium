@@ -1,5 +1,4 @@
 import subprocess
-from subprocess import Popen, PIPE
 import os
 import numpy as np
 
@@ -13,6 +12,7 @@ import requests
 
 
 def shorten_fname(file_path):
+    """Extract the name of a file (omitting directory names and extensions)."""
     return os.path.splitext(os.path.basename(file_path))[0]
 
 

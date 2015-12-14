@@ -16,7 +16,7 @@ all:
 	python setup.py build_ext -i
 
 clean:
-	find . -name "*.so" | xargs rm
+	find . -name "*.so" | xargs rm -f
 
 webapp: db celery
 	PYTHONPATH=. tools/launch_waitress.py

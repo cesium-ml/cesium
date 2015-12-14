@@ -50,8 +50,14 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
+	rm -rf api/
 
-html:
+api:
+	@mkdir -p api
+	$(PYTHON) tools/build_api_docs.py
+	@echo "Build API docs...done."
+
+html: api
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
@@ -113,7 +119,7 @@ epub:
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-latex:
+latex: api
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
