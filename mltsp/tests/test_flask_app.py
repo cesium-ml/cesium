@@ -1984,7 +1984,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123_2", "projkey": "abc123",
                                       "name": "model_2", "created": "abc",
-                                      "type": "RFC",
+                                      "type": "Random Forest Classifier",
                                       "featureset_name": "featset1",
                                       "parameters": {},
                                       "zipfile_path": "ZIPPATH.tar.gz",
