@@ -16,7 +16,7 @@ echo
 echo "[Drone] ----------------------------------------------------"
 
 echo "[Drone] Installing requirements"
-pip install --upgrade requests six python-dateutil
+pip install --upgrade requests six python-dateutil nose nose-exclude
 pip install -r requirements.txt
 
 mv ${REPO_PATH} ${SHARED_PATH}

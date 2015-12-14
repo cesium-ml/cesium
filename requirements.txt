@@ -12,8 +12,6 @@ rethinkdb
 requests
 colorlog
 matplotlib>=1.1
-nose
-nose-exclude
 pyyaml
 waitress
 celery

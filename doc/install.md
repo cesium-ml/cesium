@@ -1,114 +1,69 @@
 # Installation
+## Installation (library)
 
-## System dependencies
+The latest version of `mltsp` can be installed via `pip`:
+```
+pip install mltsp
+```
 
-Install compiler dependecies with
+The MLTSP library has the following dependencies:
+- [numpy](http://www.numpy.org/)
+- [scipy](http://www.scipy.org/)
+- [pandas](http://pandas.pydata.org)
+- [scikit-learn](http://scikit-learn.org/)
+- [cython](http://cython.org/)
+- [dask](http://dask.pydata.org/)
+- [xray](http://xray.readthedocs.org/)
 
-``sudo apt-get install build-essential python-dev libgfortran3``
+The easiest way to install the necessary dependencies is using `conda`:
+```
+conda install numpy scipy pandas scikit-learn cython dask xray
+```
 
-If you are using Anaconda (install dependencies with
-`sudo apt-get install libsm6 libxrender1 libfontconfig1`),
-create your environment with packaged dependencies pre-installed to save time:
+The `mltsp` library is compatible with both Python 2 and 3. 
 
-``conda create -n mltsp scipy pandas matplotlib scikit-learn pip``
+## Installation (web app)
 
-Then activate the environment:
+* Install the library dependencies above:
+```
+conda install numpy scipy pandas scikit-learn cython dask xray
+```
 
-  ``source activate mltsp``
+* Install [RabbitMQ](https://www.rabbitmq.com/download.html)
+  * Ensure server is running with `rabbitmq-server -detached`
 
-* Install RabbitMQ
+* Install [RethinkDB](https://www.rethinkdb.com/docs/install/)
 
-  For Debian / Ubuntu:
+* Install [Docker](https://docs.docker.com/engine/installation/) (optional)
 
-  ``sudo apt-get install rabbitmq-server``
+  * Only required to support the execution of user-specified (custom) feature extraction functions
+  * Pull down the required images: `tools/docker_pull.sh`
+  * Alternatively (but this takes much longer), build the images on your own machine:
+  `tools/build_docker_images.sh`
 
-  The server will automatically run as a daemon (background process)
-  upon install on Ubuntu.
+* Install the `mltsp` package (from source)
+  * Clone the (git repo)[https://github.com/mltsp/mltsp]:
+    `git clone https://github.com/mltsp/mltsp.git`
+  * Within the source directory, install via `pip install -e .`
 
-  Downloads for Mac OS X are
-  [here](https://www.rabbitmq.com/install-standalone-mac.html).
-  Launch via ``rabbitmq-server -detached``  after install.
+* Setup sample data and configuration files: `mltsp --install`
+  * Optional: locate `~/.config/mltsp/mltsp.yaml` and customize authentication tokens
 
-* Install PhantomJS
+## Starting the web app
+* Create the MLTSP database: `mltsp --db-init`
 
-  For Debian / Ubuntu:
+* Launch the web platform: `mltsp`
+  * User authentication is required by default; disable with `--disable-auth`
 
-  ``sudo apt-get install phantomjs``
+* Navigate to `http://localhost:5000`.
 
-  Downloads for Mac OS X are [here](http://phantomjs.org/download.html).
+* Host, port, etc. can be specified in `tools/launch_waitress.sh`.
 
-* Install RethinkDB
+## Testing
+### Back-end
+- `pip install nose nose-exclude`
+- `make test_backend`
 
-  For Debian / Ubuntu:
-
-  ```
-  source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
-  wget -qO- http://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
-  sudo apt-get update
-  sudo apt-get install rethinkdb
-  ```
-
-  Instructions for Mac OS X are [here](https://rethinkdb.com/docs/install/osx/).
-
-* Install Docker (optional)
-
-  *This step is only required if you want to support the execution of
-  user-specified feature extractors.*
-
-  See https://docs.docker.com/installation/ubuntulinux/ for installation and
-  configuration instructions.
-
-  Pull down the required images:
-
-  ``tools/docker_pull.sh``
-
-  Alternatively (but this takes much longer), build the images on your own
-  machine:
-
-  ``tools/build_docker_images.sh``
-
-## Installation
-
-Dependencies are listed in ``requirements.txt``.  Install them using:
-
-  ``pip install --find-links=http://wheels.scikit-image.org -r requirements.txt``
-
-Then do a local installation from the MLTSP source directory:
-
-  ``pip install -e .``
-
-## Configuration
-
-* Run ``mltsp --install``.
-
-* Optionally: locate ``~/.config/mltsp/mltsp.yaml`` and customize
-  authentication tokens.
-
-## Running MLTSP
-
-Create the MLTSP database:
-
-  ``mltsp --db-init``
-
-Then, launch the web platform:
-
-  ``mltsp --disable-auth``  # Without user authentication
-  ``mltsp``                 # With user authentication
-
-Connect with a web browser to ``http://localhost:5000``.
-
-## Developer Makefile targets
-
-* Launch RethinkDB:
-
-``make db``
-
-* Initialize the database:
-
-``make init``
-
-* Launch:
-
-``make webapp``
-
-* To specify host, port, etc., edit ``tools/launch_waitress.sh``.
+### Front-end
+- Install [PhantomJS](http://phantomjs.org/build.html)
+- `make test_frontend`
