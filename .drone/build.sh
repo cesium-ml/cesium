@@ -42,3 +42,6 @@ mltsp --db-init
 
 echo "[Drone] Run test suite"
 make test_no_docker
+
+echo "[Drone] Build HTML documentation"
+make html

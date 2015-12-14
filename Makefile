@@ -55,3 +55,7 @@ test_no_docker: test_backend_no_docker test_frontend_no_docker
 
 install:
 	pip install -r requirements.txt
+
+html:
+	pip install -q sphinx
+	export SPHINXOPTS=-W; make -C doc html
