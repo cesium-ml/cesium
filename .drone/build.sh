@@ -17,7 +17,7 @@ echo "[Drone] ----------------------------------------------------"
 
 echo "[Drone] Installing requirements"
 pip install --upgrade requests six python-dateutil nose nose-exclude
-pip install -r requirements.txt
+pip install -f http://travis-wheels.scikit-image.org/ -r requirements.txt
 
 mv ${REPO_PATH} ${SHARED_PATH}
 cd ${SHARED_PATH}/mltsp
@@ -44,4 +44,6 @@ echo "[Drone] Run test suite"
 make test_no_docker
 
 echo "[Drone] Build HTML documentation"
-make html
+errors=`make html 2>&1 | tee errors.log | grep ERROR`
+cat errors.log
+if [[ -n $errors ]]; then exit 1; fi
