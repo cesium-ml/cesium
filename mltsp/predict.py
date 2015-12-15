@@ -88,13 +88,12 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
         individual time-series data files used in prediction and whose
         corresponding values are dictionaries with the following
         key-value pairs:
-            - "results_str": String containing table listing results in
-              markup.
+
+            - "results_str": String containing table listing results in markup.
             - "ts_data": The original time-series data provided.
-            - "features_dict": A dictionary containing the generated
-              features.
-            - "pred_results": A list of lists, each containing one
-              of the most-probable targets and its probability.
+            - "features_dict": A dictionary containing the generated features.
+            - "pred_results": A list of lists, each containing one of the
+              most-probable targets and its probability.
 
     """
     if tarfile.is_tarfile(newpred_path) or zipfile.is_zipfile(newpred_path):
