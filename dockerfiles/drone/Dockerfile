@@ -18,3 +18,5 @@ RUN apt-get install -y wget curl git make \
                        cython \
                        rethinkdb docker.io phantomjs rabbitmq-server
                        # Add python-docker when switching to utopic / vivid
+
+ENTRYPOINT ["/sbin/my_init", "--"]
