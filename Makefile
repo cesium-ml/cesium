@@ -19,7 +19,7 @@ clean:
 	find . -name "*.so" | xargs rm -f
 
 webapp: db celery
-	PYTHONPATH=. tools/launch_waitress.py
+	PYTHONPATH=. $(MAKE) -C web_client
 
 init: db celery
 	mltsp --db-init --force
