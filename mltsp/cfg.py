@@ -113,7 +113,6 @@ features_list_science = [
     "freq1_amplitude3",
     "freq1_amplitude4",
     "freq1_freq",
-#    "freq1_rel_phase1",
     "freq1_rel_phase2",
     "freq1_rel_phase3",
     "freq1_rel_phase4",
@@ -123,7 +122,6 @@ features_list_science = [
     "freq2_amplitude3",
     "freq2_amplitude4",
     "freq2_freq",
-#    "freq2_rel_phase1",
     "freq2_rel_phase2",
     "freq2_rel_phase3",
     "freq2_rel_phase4",
@@ -132,7 +130,6 @@ features_list_science = [
     "freq3_amplitude3",
     "freq3_amplitude4",
     "freq3_freq",
-#    "freq3_rel_phase1",
     "freq3_rel_phase2",
     "freq3_rel_phase3",
     "freq3_rel_phase4",
@@ -158,8 +155,7 @@ features_list_science = [
     "lcmodel_pos_n_ratio",
     "linear_trend",
     "maximum",
-# TODO fix max_slope
-#    "max_slope",
+    "max_slope",
     "median",
     "median_absolute_deviation",
     "percent_close_to_median",
@@ -203,9 +199,6 @@ ignore_feats_list_science = [
     "lcmodel_pos_n_per_day",
     "lcmodel_pos_n_ratio",
     "phase_dispersion_freq0",
-#    "freq1_rel_phase_0",
-#    "freq2_rel_phase_0",
-#    "freq3_rel_phase_0",
     "ratio_PDM_LS_freq0",
     "n_points"]
 features_list_science = [f for f in features_list_science if f not in
