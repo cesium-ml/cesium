@@ -141,10 +141,8 @@ def cast_model_params(model_type, model_params):
                                   dest_type):
                         model_params[k] = ast.literal_eval(model_params[k])
                         break
-                    else:
-                        continue
                 except ValueError:
-                    continue
+                    pass
         if isinstance(model_params[k], str) and str not in dest_types_list:
             raise(ValueError("Model parameter cannot be cast to expected "
                              "type."))
