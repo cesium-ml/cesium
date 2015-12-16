@@ -7,13 +7,13 @@ from sklearn.linear_model import LinearRegression, SGDClassifier,\
 from sklearn.externals import joblib
 
 
-MODELS_TYPE_DICT = {'RFC': RandomForestClassifier,
-                    'RFR': RandomForestRegressor,
-                    'LC': SGDClassifier,
-                    'LR': LinearRegression,
-                    'RC': RidgeClassifierCV,
-                    'ARDR': ARDRegression,
-                    'BRR': BayesianRidge}
+MODELS_TYPE_DICT = {'Random Forest Classifier': RandomForestClassifier,
+                    'Random Forest Regressor': RandomForestRegressor,
+                    'Linear SGD Classifier': SGDClassifier,
+                    'Linear Regressor': LinearRegression,
+                    'Ridge Classifier CV': RidgeClassifierCV,
+                    'Bayesian ARD Regressor': ARDRegression,
+                    'Bayesian Ridge Regressor': BayesianRidge}
 
 
 def rectangularize_featureset(featureset):
