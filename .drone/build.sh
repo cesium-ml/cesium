@@ -16,8 +16,12 @@ echo
 echo "[Drone] ----------------------------------------------------"
 
 echo "[Drone] Installing requirements"
-pip install --upgrade requests six python-dateutil nose nose-exclude
-pip install -f http://travis-wheels.scikit-image.org/ -r requirements.txt
+pip install --upgrade pip requests six python-dateutil nose nose-exclude
+hash -d pip  # find upgraded pip
+sed -i 's/>=/==/g' requirements.txt
+WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
+            --find-links=http://travis-wheels.scikit-image.org/"
+pip install $WHEELHOUSE -r requirements.txt
 
 mv ${REPO_PATH} ${SHARED_PATH}
 cd ${SHARED_PATH}/mltsp
@@ -44,7 +48,9 @@ echo "[Drone] Run test suite"
 make test_no_docker
 
 echo "[Drone] Build HTML documentation"
+set +e
 errors=`make html 2>&1 | tee errors.log | grep ERROR`
+set -e
 cat errors.log
 if [[ -n $errors ]]; then
     echo "Errors detected in Sphinx build; exiting..."
