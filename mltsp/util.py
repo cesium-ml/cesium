@@ -145,8 +145,6 @@ def cast_model_params(model_type, model_params):
                         continue
                 except ValueError:
                     continue
-            else:
-                break
         if isinstance(model_params[k], str) and str not in dest_types_list:
             raise(ValueError("Model parameter cannot be cast to expected "
                              "type."))
