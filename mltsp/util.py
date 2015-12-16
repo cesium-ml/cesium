@@ -11,6 +11,13 @@ except ImportError:
 import requests
 
 
+def make_list(x):
+    import collections
+    if isinstance(x, collections.Iterable):
+        return x
+    else:
+        return [x,]
+
 
 def shorten_fname(file_path):
     """Extract the name of a file (omitting directory names and extensions)."""
@@ -126,27 +133,20 @@ def cast_model_params(model_type, model_params):
             if p["name"] == k:
                 param_entry = p
                 break
-        # If type description is a single type and not of type str, do cast
-        if type(param_entry["type"]) == type and param_entry["type"] != str:
-            dest_type = param_entry["type"]
-            if isinstance(ast.literal_eval(model_params[k]), dest_type):
-                model_params[k] = ast.literal_eval(model_params[k])
-        # Type description is a list of types
-        elif type(param_entry["type"]) == list:
-            dest_types_list = param_entry["type"]
-            for dest_type in dest_types_list:
-                if dest_type != str:
-                    try:
-                        if isinstance(ast.literal_eval(model_params[k]),
-                                      dest_type):
-                            model_params[k] = ast.literal_eval(model_params[k])
-                            break
-                        else:
-                            continue
-                    except ValueError:
+        dest_types_list = make_list(param_entry["type"])
+        for dest_type in dest_types_list:
+            if dest_type is not str:
+                try:
+                    if isinstance(ast.literal_eval(model_params[k]),
+                                  dest_type):
+                        model_params[k] = ast.literal_eval(model_params[k])
+                        break
+                    else:
                         continue
-                else:
-                    break
-            if type(model_params[k]) == str and str not in dest_types_list:
-                raise(ValueError("Model parameter cannot be cast to expected "
-                                 "type."))
+                except ValueError:
+                    continue
+            else:
+                break
+        if isinstance(model_params[k], str) and str not in dest_types_list:
+            raise(ValueError("Model parameter cannot be cast to expected "
+                             "type."))
