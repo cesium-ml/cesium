@@ -100,7 +100,6 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     params_list = featurize_task_params_list(ts_paths, features_to_use,
                                              metadata, custom_script_path)
 
-    # TODO: Determine number of cores in cluster:
     res = featurize_celery_task.chunks(params_list, cfg.N_CORES).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
     res_list = res.get(timeout=100)
