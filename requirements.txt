@@ -2,8 +2,8 @@ beautifulsoup4
 flask
 Flask-Stormpath
 docker-py
-numpy>=1.8
-scipy>=0.13
+numpy>=1.8.1
+scipy>=0.13.0
 scikit-learn==0.16.1  # also update version in dockerfiles/base/Dockerfile
 pandas>=0.17.0
 parse
@@ -11,7 +11,7 @@ psutil>=2.2.1
 rethinkdb
 requests
 colorlog
-matplotlib>=1.1
+matplotlib>=1.1.0
 pyyaml
 waitress
 celery
