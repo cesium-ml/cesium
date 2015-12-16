@@ -1,0 +1,23 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`predict`
+======================
+.. automodule:: mltsp.predict
+
+.. currentmodule:: mltsp.predict
+.. autosummary::
+
+   mltsp.predict.model_predictions
+   mltsp.predict.predict_data_file
+
+
+model_predictions
+-----------------
+
+.. autofunction:: mltsp.predict.model_predictions
+
+predict_data_file
+-----------------
+
+.. autofunction:: mltsp.predict.predict_data_file
+

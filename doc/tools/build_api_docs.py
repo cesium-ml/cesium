@@ -18,7 +18,15 @@ if __name__ == '__main__':
     # Unlike skimage, for now we just manually specify which files to inspect
     modules = ['mltsp', 'mltsp.featurize', #mltsp.custom_feature_tools',
                'mltsp.obs_feature_tools', 'mltsp.science_feature_tools',
-               'mltsp.build_model', 'mltsp.predict', 'mltsp.util']
+               'mltsp.science_features', 'mltsp.build_model', 'mltsp.predict',
+               'mltsp.util']
+
+    try:
+        from unittest.mock import MagicMock
+    except:
+        from mock import MagicMock
+    sys.modules['mltsp.science_features._lomb_scargle'] = MagicMock()
+
     docwriter = ApiDocWriter(package, modules)
 #    docwriter.package_skip_patterns += [r'filter$']
     docwriter.write_api_docs(outdir)

@@ -1,0 +1,59 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`obs_feature_tools`
+================================
+.. automodule:: mltsp.obs_feature_tools
+
+.. currentmodule:: mltsp.obs_feature_tools
+.. autosummary::
+
+   mltsp.obs_feature_tools.cad_prob
+   mltsp.obs_feature_tools.delta_t_hist
+   mltsp.obs_feature_tools.double_to_single_step
+   mltsp.obs_feature_tools.find_sorted_peaks
+   mltsp.obs_feature_tools.generate_obs_features
+   mltsp.obs_feature_tools.normalize_hist
+   mltsp.obs_feature_tools.peak_bin
+   mltsp.obs_feature_tools.peak_ratio
+
+
+cad_prob
+--------
+
+.. autofunction:: mltsp.obs_feature_tools.cad_prob
+
+delta_t_hist
+------------
+
+.. autofunction:: mltsp.obs_feature_tools.delta_t_hist
+
+double_to_single_step
+---------------------
+
+.. autofunction:: mltsp.obs_feature_tools.double_to_single_step
+
+find_sorted_peaks
+-----------------
+
+.. autofunction:: mltsp.obs_feature_tools.find_sorted_peaks
+
+generate_obs_features
+---------------------
+
+.. autofunction:: mltsp.obs_feature_tools.generate_obs_features
+
+normalize_hist
+--------------
+
+.. autofunction:: mltsp.obs_feature_tools.normalize_hist
+
+peak_bin
+--------
+
+.. autofunction:: mltsp.obs_feature_tools.peak_bin
+
+peak_ratio
+----------
+
+.. autofunction:: mltsp.obs_feature_tools.peak_ratio
+

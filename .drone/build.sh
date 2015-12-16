@@ -49,7 +49,7 @@ make test_no_docker
 
 echo "[Drone] Build HTML documentation"
 set +e
-errors=`make html 2>&1 | tee errors.log | grep ERROR`
+errors=`make html 2>&1 | tee errors.log | grep -i error`
 set -e
 cat errors.log
 if [[ -n $errors ]]; then

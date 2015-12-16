@@ -128,6 +128,11 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+try:
+    from unittest.mock import MagicMock
+except:
+    from mock import MagicMock
+sys.modules['mltsp.science_features._lomb_scargle'] = MagicMock()
 
 # -- Options for HTML output ----------------------------------------------
 
