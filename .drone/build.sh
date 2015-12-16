@@ -46,4 +46,7 @@ make test_no_docker
 echo "[Drone] Build HTML documentation"
 errors=`make html 2>&1 | tee errors.log | grep ERROR`
 cat errors.log
-if [[ -n $errors ]]; then exit 1; fi
+if [[ -n $errors ]]; then
+    echo "Errors detected in Sphinx build; exiting..."
+    exit 1;
+fi
