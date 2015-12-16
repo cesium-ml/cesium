@@ -14,7 +14,7 @@ import requests
 
 def make_list(x):
     import collections
-    if isinstance(x, collections.Iterable):
+    if isinstance(x, collections.Iterable) and not isinstance(x, str):
         return x
     else:
         return [x,]
@@ -149,3 +149,16 @@ def cast_model_params(model_type, model_params):
         if isinstance(model_params[k], str) and str not in dest_types_list:
             raise(ValueError("Model parameter cannot be cast to expected "
                              "type."))
+
+
+def remove_files(paths):
+    """Remove specified files from disk."""
+    paths = make_list(paths)
+    for path in paths:
+        try:
+            os.remove(path)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            else:
+                pass

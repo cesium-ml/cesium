@@ -1,3 +1,4 @@
+import os
 from mltsp import util
 from mltsp.ext.sklearn_models import model_descriptions
 import numpy.testing as npt
