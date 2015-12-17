@@ -318,11 +318,11 @@ class Mock(MagicMock):
     __version__ = MagicMock()
     random = MagicMock()
     stats = MagicMock()
-MOCK_MODULES = ['numpy', 'xray', 'sklearn', 'pandas', 'scipy', 'scipy.stats',
-                'scipy.linalg', 'scipy.special', 'sklearn.externals',
-                'sklearn.base', 'sklearn.ensemble', 'sklearn.linear_model',
-                'celery', 'dask', 'dask.async',
-                'mltsp.science_features._lomb_scargle']
+MOCK_MODULES = ['requests', 'parse', 'yaml', 'numpy', 'xray', 'sklearn',
+                'pandas', 'scipy', 'scipy.stats', 'scipy.linalg',
+                'scipy.special', 'sklearn.externals', 'sklearn.base',
+                'sklearn.ensemble', 'sklearn.linear_model', 'celery', 'dask',
+                'dask.async', 'mltsp.science_features._lomb_scargle']
 for m in MOCK_MODULES:
     sys.modules[m] = Mock()
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
