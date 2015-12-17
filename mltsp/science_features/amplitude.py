@@ -38,10 +38,8 @@ def percent_difference_flux_percentile(x, base=10., exponent=-0.4):
 
 
 def flux_percentile_ratio(x, percentile_range, base=10., exponent=-0.4):
-    """
-    A ratio of ((50+x) flux percentile - (50-x) flux percentile) /
-                       (95 flux percentile - 5 flux percentile),
-    where x = percentile_range/2.
+    """A ratio of ((50+x) flux percentile - (50-x) flux percentile) /
+    (95 flux percentile - 5 flux percentile), where x = percentile_range/2.
 
     Assumes data is log-scaled; by default we assume inputs are scaled as
     x=10^(-0.4*y), corresponding to units of magnitudes. Computations are
