@@ -87,9 +87,11 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     """
     if tarfile.is_tarfile(data_path) or zipfile.is_zipfile(data_path):
-        ts_paths = ft.extract_data_archive(data_path)
+        all_ts_paths = ft.extract_data_archive(data_path)
         if first_N:
-            ts_paths = ts_paths[:first_N]
+            ts_paths = all_ts_paths[:first_N]
+        else:
+            ts_paths = all_ts_paths
     else:
         ts_paths = [data_path]
 
@@ -100,7 +102,6 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     params_list = featurize_task_params_list(ts_paths, features_to_use,
                                              metadata, custom_script_path)
 
-    # TODO: Determine number of cores in cluster:
     res = featurize_celery_task.chunks(params_list, cfg.N_CORES).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
     res_list = res.get(timeout=100)
@@ -120,6 +121,12 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     if featureset_id:
         write_features_to_disk(featureset, featureset_id)
+
+    try:
+        all_ts_paths
+        util.remove_files(all_ts_paths)
+    except NameError:
+        pass
 
     return featureset
 

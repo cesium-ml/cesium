@@ -1,3 +1,4 @@
+import os
 from mltsp import util
 from mltsp.ext.sklearn_models import model_descriptions
 import numpy.testing as npt
@@ -90,3 +91,23 @@ def test_make_list():
     """Test util.make_list"""
     npt.assert_equal(util.make_list(1), [1])
     npt.assert_equal(util.make_list([1]), [1])
+
+
+def test_remove_files():
+    """Test util.remove_files"""
+    # Pass in single path (non-list)
+    fpath = "/tmp/mltsp.temp.test"
+    f = open(fpath, "w").close()
+    assert os.path.exists(fpath)
+    util.remove_files(fpath)
+    assert not os.path.exists(fpath)
+
+    # Pass in list of paths
+    f = open(fpath, "w").close()
+    assert os.path.exists(fpath)
+    util.remove_files([fpath])
+    assert not os.path.exists(fpath)
+
+    # File does not exist, should not raise exception
+    util.remove_files(fpath)
+
