@@ -313,5 +313,16 @@ try:
     from unittest.mock import MagicMock
 except:
     from mock import MagicMock
-sys.modules['mltsp.science_features._lomb_scargle'] = MagicMock()
+class Mock(MagicMock):
+    __all__ = []
+    __version__ = MagicMock()
+    random = MagicMock()
+    stats = MagicMock()
+MOCK_MODULES = ['numpy', 'xray', 'sklearn', 'pandas', 'scipy', 'scipy.stats',
+                'scipy.linalg', 'scipy.special', 'sklearn.externals',
+                'sklearn.base', 'sklearn.ensemble', 'sklearn.linear_model',
+                'celery', 'dask', 'dask.async',
+                'mltsp.science_features._lomb_scargle']
+for m in MOCK_MODULES:
+    sys.modules[m] = Mock()
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))

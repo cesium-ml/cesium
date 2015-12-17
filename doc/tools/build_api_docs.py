@@ -21,12 +21,6 @@ if __name__ == '__main__':
                'mltsp.science_features', 'mltsp.build_model', 'mltsp.predict',
                'mltsp.util']
 
-    try:
-        from unittest.mock import MagicMock
-    except:
-        from mock import MagicMock
-    sys.modules['mltsp.science_features._lomb_scargle'] = MagicMock()
-
     docwriter = ApiDocWriter(package, modules)
 #    docwriter.package_skip_patterns += [r'filter$']
     docwriter.write_api_docs(outdir)
