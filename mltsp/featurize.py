@@ -90,8 +90,10 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
         all_ts_paths = ft.extract_data_archive(data_path)
         if first_N:
             ts_paths = all_ts_paths[:first_N]
+        else:
+            ts_paths = all_ts_paths
     else:
-        ts_paths = all_ts_paths = [data_path]
+        ts_paths = [data_path]
 
     if header_path:
         targets, metadata = ft.parse_headerfile(header_path, ts_paths)
@@ -120,7 +122,11 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     if featureset_id:
         write_features_to_disk(featureset, featureset_id)
 
-    util.remove_files(all_ts_paths)
+    try:
+        all_ts_paths
+        util.remove_files(all_ts_paths)
+    except NameError:
+        pass
 
     return featureset
 
