@@ -2,7 +2,7 @@ import numpy as np
 
 
 model_descriptions = [
-    {"name": "RandomForestClassifier",
+    {"name": "Random Forest Classifier",
      "params": [
          {"name": "n_estimators", "type": int, "default": 10},
          {"name": "criterion", "type": str, "default": "gini"},
@@ -17,11 +17,10 @@ model_descriptions = [
          {"name": "oob_score", "type": bool, "default": False},
          {"name": "random_state", "type": int, "default": None},
          {"name": "class_weight", "type": dict, "default": None}],
-     "abbr": "RFC",
      "type": "classifier",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html"},
 
-    {"name": "RandomForestRegressor",
+    {"name": "Random Forest Regressor",
      "params": [
          {"name": "n_estimators", "type": int, "default": 10},
          {"name": "criterion", "type": str, "default": "mse"},
@@ -35,11 +34,10 @@ model_descriptions = [
          {"name": "bootstrap", "type": bool, "default": True},
          {"name": "oob_score", "type": bool, "default": False},
          {"name": "random_state", "type": int, "default": None}],
-     "abbr": "RFR",
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html"},
 
-    {"name": "LinearSGDClassifier",
+    {"name": "Linear SGD Classifier",
      "params": [
          {"name": "loss", "type": str, "default": "hinge"},
          {"name": "penalty", "type": str, "default": "l2"},
@@ -55,19 +53,17 @@ model_descriptions = [
          {"name": "power_t", "type": float, "default": 0.5},
          {"name": "class_weight", "type": [dict, str], "default": None},
          {"name": "average", "type": [bool, int], "default": False}],
-     "abbr": "LC",
      "type": "classifier",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html"},
 
-    {"name": "LinearRegression",
+    {"name": "Linear Regressor",
      "params": [
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False}],
-     "abbr": "LR",
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html"},
 
-    {"name": "RidgeClassifierCV",
+    {"name": "Ridge Classifier CV",
      "params": [
          {"name": "alphas", "type": list,
           "default": [0.1, 1., 10.]},
@@ -76,11 +72,10 @@ model_descriptions = [
          {"name": "scoring", "type": [str, "callable"], "default": None},
          {"name": "cv", "type": "generator", "default": None},
          {"name": "class_weight", "type": dict, "default": None}],
-     "abbr": "RC",
      "type": "classifier",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeClassifierCV.html"},
 
-    {"name": "BayesianARDRegression",
+    {"name": "Bayesian ARD Regressor",
      "params": [
          {"name": "n_inter", "type": int, "default": 300},
          {"name": "tol", "type": float, "default": 0.001},
@@ -92,11 +87,10 @@ model_descriptions = [
          {"name": "threshold_lambda", "type": float, "default": 10000.},
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False}],
-     "abbr": "ARDR",
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ARDRegression.html"},
 
-    {"name": "BayesianRidgeRegression",
+    {"name": "Bayesian Ridge Regressor",
      "params": [
          {"name": "n_inter", "type": int, "default": 300},
          {"name": "tol", "type": float, "default": 0.001},
@@ -107,6 +101,5 @@ model_descriptions = [
          {"name": "compute_score", "type": bool, "default": False},
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False}],
-     "abbr": "BRR",
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.BayesianRidge.html"}]

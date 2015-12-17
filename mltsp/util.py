@@ -1,5 +1,6 @@
 import subprocess
 import os
+import ast
 import numpy as np
 
 try:
@@ -9,6 +10,13 @@ except ImportError:
     dockerpy_installed = False
 import requests
 
+
+def make_list(x):
+    import collections
+    if isinstance(x, collections.Iterable):
+        return x
+    else:
+        return [x,]
 
 
 def shorten_fname(file_path):
@@ -90,13 +98,30 @@ def is_running_in_docker():
 
 
 def cast_model_params(model_type, model_params):
-    """Cast model parameter strings to expected types."""
+    """Cast model parameter strings to expected types.
+
+    Modifies `model_params` dict in place.
+
+    Parameters
+    ----------
+    model_type : str
+        Name of model.
+    model_params : dict
+        Dictionary whose keys are model parameter names and values are
+        string representations of corresponding values, which will be cast
+        to desired types in place, as specified in `sklearn_models` module.
+
+    """
     from .ext.sklearn_models import model_descriptions
     # Find relevant model description
     for entry in model_descriptions:
-        if entry["abbr"] == model_type:
+        if entry["name"] == model_type:
             params_list = entry["params"]
             break
+    try:
+        params_list
+    except NameError:
+        raise ValueError("model_type not in list of allowable models.")
     # Iterate through params from HTML form and cast to expected types
     for k, v in model_params.items():
         # Empty string or "None" goes to `None`
@@ -108,30 +133,16 @@ def cast_model_params(model_type, model_params):
             if p["name"] == k:
                 param_entry = p
                 break
-        # If type description is a single type and not of type list, do cast
-        if type(param_entry["type"]) == type and param_entry["type"] != list:
-            dest_type = param_entry["type"]
-            model_params[k] = dest_type(v)
-        # Parse string describing list correctly, eschewing `eval`
-        elif param_entry["type"] == list:
-            model_params[k] = model_params[k].replace("[", "").replace("]", "")\
-                                                              .replace(" ", "")\
-                                                              .split(",")
-            for i in range(len(model_params[k])):
-                if "." in model_params[k][i]:
-                    model_params[k][i] = float(model_params[k][i])
-                elif model_params[k][i].isdigit():
-                    model_params[k][i] = int(model_params[k][i])
-        # Type description is a list of types
-        elif type(param_entry["type"]) == list:
-            dest_types_list = param_entry["type"]
-            for dest_type in dest_types_list:
-                if dest_type != str:
-                    try:
-                        model_params[k] = dest_type(v)
+        dest_types_list = make_list(param_entry["type"])
+        for dest_type in dest_types_list:
+            if dest_type is not str:
+                try:
+                    if isinstance(ast.literal_eval(model_params[k]),
+                                  dest_type):
+                        model_params[k] = ast.literal_eval(model_params[k])
                         break
-                    except:
-                        continue
-            if type(model_params[k]) == str and str not in dest_types_list:
-                raise(ValueError("Model parameter cannot be cast to expected "
-                                 "type."))
+                except ValueError:
+                    pass
+        if isinstance(model_params[k], str) and str not in dest_types_list:
+            raise(ValueError("Model parameter cannot be cast to expected "
+                             "type."))
