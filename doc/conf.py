@@ -128,12 +128,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-try:
-    from unittest.mock import MagicMock
-except:
-    from mock import MagicMock
-sys.modules['mltsp.science_features._lomb_scargle'] = MagicMock()
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -312,3 +306,12 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+# -- MLTSP package configuration ------------------------------------------
+try:
+    from unittest.mock import MagicMock
+except:
+    from mock import MagicMock
+sys.modules['mltsp.science_features._lomb_scargle'] = MagicMock()
+sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
