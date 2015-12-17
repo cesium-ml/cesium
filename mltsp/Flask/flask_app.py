@@ -2750,7 +2750,6 @@ def featurizationPage(
             name=featureset_name, projkey=projkey, pid="None",
             featlist=featlist, custom_features_script=custom_script_path,
             meta_feats=meta_feats, headerfile_path=features_filepath)
-        multiprocessing.log_to_stderr()
         proc = multiprocessing.Process(target=featurize_proc, args=(
             features_filepath, None, featlist, new_featset_key, is_test,
             email_user, already_featurized, custom_script_path))
@@ -2779,7 +2778,6 @@ def featurizationPage(
             meta_feats=meta_feats, headerfile_path=headerfile_path,
             zipfile_path=zipfile_path)
         print("NEW FEATURESET ADDED WITH featset_key =", new_featset_key)
-        multiprocessing.log_to_stderr()
         proc = multiprocessing.Process(
             target=featurize_proc,
             args=(
@@ -2860,7 +2858,6 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
         projkey=projkey, pid="None")
     print("new model key =", new_model_key)
     print("New model featureset_key =", featureset_key)
-    multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target=build_model_proc,
         args=(new_model_key,
@@ -3130,7 +3127,6 @@ def predictionPage(
     #is_tarfile = tarfile.is_tarfile(newpred_file_path)
     pred_file_name = os.path.basename(newpred_file_path)
     print("starting prediction_proc...")
-    multiprocessing.log_to_stderr()
     proc = multiprocessing.Process(
         target=prediction_proc,
         args=(
