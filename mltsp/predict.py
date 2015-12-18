@@ -1,5 +1,4 @@
 from sklearn.externals import joblib
-from sklearn.base import ClassifierMixin, RegressorMixin
 import os
 import pandas as pd
 import xarray as xr
