@@ -96,7 +96,7 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
 
 
 def create_and_pickle_model(model_key, model_type, featureset_key,
-                            model_options={}):
+                            model_options={}, params_to_optimize=None):
     """Build a `scikit-learn` model.
 
     Builds the specified model and pickles it in the file
@@ -116,6 +116,10 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
         Abbreviation of the type of model to be created.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
+    params_to_optimize : list of str, optional
+        List of estimator parameter names on which to perform grid search
+        optimization. Corresponding entries in `model_options` must be lists
+        of potential parameter values to try. Defaults to None.
 
     Returns
     -------
@@ -129,7 +133,8 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
     featureset = xr.open_dataset(featureset_path)
 
     model = build_model_from_featureset(featureset, model_type=model_type,
-                                        model_options=model_options)
+                                        model_options=model_options,
+                                        params_to_optimize=params_to_optimize)
 
     # Store the model:
     foutname = os.path.join(cfg.MODELS_FOLDER, '{}.pkl'.format(model_key))

@@ -12,7 +12,7 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 
 def copy_classification_test_data():
-    fnames = ["test_featureset.nc", "test_featureset_10.nc"]
+    fnames = ["test_featureset.nc", "test_10_featureset.nc"]
     for fname in fnames:
         shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
 
@@ -24,7 +24,7 @@ def copy_regression_test_data():
 
 
 def remove_test_data():
-    fnames = ["test_featureset.nc", "test_featureset_10.nc",
+    fnames = ["test_featureset.nc", "test_10_featureset.nc",
               "test_reg_featureset.nc", "test.pkl"]
     for fname in fnames:
         for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER]:
@@ -117,9 +117,9 @@ def test_fit_existing_model():
 def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
-                                         "test_featureset_10.nc"))
+                                         "test_10_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
-    model_options = {"n_estimators": [10, 50, 100, 1000], "criterion": "gini",
+    model_options = {"n_estimators": [10, 50, 100], "criterion": "gini",
                      "min_samples_split": [2, 5],
                      "max_features": ["auto", 3], "bootstrap": True}
     params_to_optimize = ["n_estimators", "min_samples_split", "max_features"]
@@ -135,10 +135,10 @@ def test_fit_existing_model_optimize():
 def test_fit_optimize():
     """Test hypeparameter optimization"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
-                                         "test_featureset_10.nc"))
+                                         "test_10_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
     feature_df = build_model.rectangularize_featureset(featureset)
-    model_options = {"n_estimators": [10, 50, 100, 1000], "criterion": "gini",
+    model_options = {"n_estimators": [10, 50, 100], "criterion": "gini",
                      "min_samples_split": [2, 5],
                      "max_features": ["auto", 3], "bootstrap": True}
     params_to_optimize = ["n_estimators", "min_samples_split", "max_features"]
@@ -147,4 +147,20 @@ def test_fit_optimize():
         params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
+    assert "sklearn.grid_search.GridSearchCV" in str(type(model))
+
+
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_build_model_lin_class_optimize():
+    """Test main model building method - linear classifier - w/ optimization"""
+    model_options = {"alpha": [0.1, 0.001, 0.0001, 0.0000001],
+                     "epsilon": [0.001, 0.01, 0.1, 0.5],
+                     "learning_rate": "optimal"}
+    params_to_optimize = ["alpha", "epsilon"]
+    build_model.create_and_pickle_model("test_10", "Linear SGD Classifier",
+                                        "test_10", model_options,
+                                        params_to_optimize)
+    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test_10.pkl"))
+    assert hasattr(model, "best_params_")
+    assert hasattr(model, "predict")
     assert "sklearn.grid_search.GridSearchCV" in str(type(model))
