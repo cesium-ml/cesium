@@ -12,7 +12,7 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 
 def copy_classification_test_data():
-    fnames = ["test_featureset.nc"]
+    fnames = ["test_featureset.nc", "test_featureset_10.nc"]
     for fname in fnames:
         shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
 
@@ -24,7 +24,8 @@ def copy_regression_test_data():
 
 
 def remove_test_data():
-    fnames = ["test_featureset.nc", "test_reg_featureset.nc", "test.pkl"]
+    fnames = ["test_featureset.nc", "test_featureset_10.nc",
+              "test_reg_featureset.nc", "test.pkl"]
     for fname in fnames:
         for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER]:
             try:
@@ -110,3 +111,23 @@ def test_fit_existing_model():
     assert hasattr(model, "n_features_")
     assert hasattr(model, "predict_proba")
     assert "sklearn.ensemble.forest.RandomForestClassifier" in str(type(model))
+
+
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_fit_existing_model_optimize():
+    """Test model building helper function - with param. optimization"""
+    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+                                         "test_featureset_10.nc"))
+    model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
+    model_options = {"n_estimators": [10, 50, 100, 1000], "criterion": "gini",
+                     "min_samples_split": [2, 5],
+                     "max_features": ["auto", 3], "bootstrap": True}
+    params_to_optimize = ["n_estimators", "min_samples_split", "max_features"]
+    model = build_model.build_model_from_featureset(
+        featureset, model=model, model_options=model_options,
+        params_to_optimize=params_to_optimize)
+    assert hasattr(model, "best_params_")
+    assert hasattr(model, "predict_proba")
+    assert "sklearn.grid_search.GridSearchCV" in str(type(model))
+
+

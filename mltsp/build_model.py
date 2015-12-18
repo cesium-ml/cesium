@@ -70,8 +70,7 @@ def fit_model_optimize_hyperparams(data, targets, model, model_params,
                     model_params[i][k] = [model_params[i][k]]
 
     optimized_model = grid_search.GridSearchCV(model, model_params)
-    feature_df = rectangularize_featureset(featureset)
-    optimized_model.fit(feature_df, featureset['target'])
+    optimized_model.fit(data, targets)
     return optimized_model
 
 
