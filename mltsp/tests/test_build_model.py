@@ -131,3 +131,20 @@ def test_fit_existing_model_optimize():
     assert "sklearn.grid_search.GridSearchCV" in str(type(model))
 
 
+@with_setup(copy_classification_test_data, remove_test_data)
+def test_fit_optimize():
+    """Test hypeparameter optimization"""
+    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+                                         "test_featureset_10.nc"))
+    model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
+    feature_df = build_model.rectangularize_featureset(featureset)
+    model_options = {"n_estimators": [10, 50, 100, 1000], "criterion": "gini",
+                     "min_samples_split": [2, 5],
+                     "max_features": ["auto", 3], "bootstrap": True}
+    params_to_optimize = ["n_estimators", "min_samples_split", "max_features"]
+    model = build_model.fit_model_optimize_hyperparams(
+        feature_df, featureset['target'], model, model_options,
+        params_to_optimize)
+    assert hasattr(model, "best_params_")
+    assert hasattr(model, "predict_proba")
+    assert "sklearn.grid_search.GridSearchCV" in str(type(model))
