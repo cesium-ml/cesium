@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
 from sklearn.externals import joblib
+from sklearn import grid_search
 
 
 MODELS_TYPE_DICT = {'Random Forest Classifier': RandomForestClassifier,
@@ -31,16 +32,67 @@ def rectangularize_featureset(featureset):
     return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
+def fit_model_optimize_hyperparams(data, targets, model, model_params,
+                                   params_to_optimize):
+    """Optimize estimator hyperparameters.
+
+    Perform hyperparamter optimization using
+    `sklearn.grid_search.GridSearchCV`.
+
+    Parameters
+    ----------
+    data : Pandas.DataFrame
+        Features for training model.
+    targets : Pandas.Series
+        Targets corresponding to feature vectors in `data`.
+    model : sklearn estimator object
+        The model/estimator whose hyperparameters are to be optimized.
+    model_params : dict or list of dict
+        Dictionary with parameter names as keys and lists of parameter values
+        to try as values, or a list of such dictionaries.
+    params_to_optimize : list of str
+        List of parameter names to be optimized.
+
+    Returns
+    -------
+    `sklearn.grid_search.GridSearchCV` estimator object
+
+    """
+    # To fit with fixed, non-optimized params, must be wrapped in list
+    if isinstance(model_params, dict):
+        for k, v in model_params.items():
+            if k not in params_to_optimize:
+                model_params[k] = [model_params[k]]
+    elif isinstance(model_params, list):
+        for i in range(len(model_params)):
+            for k, v in model_params[i].items():
+                if k not in params_to_optimize:
+                    model_params[i][k] = [model_params[i][k]]
+
+    optimized_model = grid_search.GridSearchCV(model, model_params)
+    feature_df = rectangularize_featureset(featureset)
+    optimized_model.fit(feature_df, featureset['target'])
+    return optimized_model
+
+
 def build_model_from_featureset(featureset, model=None, model_type=None,
-                                model_options={}):
+                                model_options={}, params_to_optimize=None):
     """Build model from (non-rectangular) xarray.Dataset of features."""
     if model is None:
         if model_type:
-            model = MODELS_TYPE_DICT[model_type](**model_options)
+            if not params_to_optimize:
+                model = MODELS_TYPE_DICT[model_type](**model_options)
+            else:
+                model = MODELS_TYPE_DICT[model_type]()
         else:
             raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
-    model.fit(feature_df, featureset['target'])
+    if params_to_optimize:
+        model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
+                                               model, model_options,
+                                               params_to_optimize)
+    else:
+        model.fit(feature_df, featureset['target'])
     return model
 
 
