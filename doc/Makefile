@@ -52,12 +52,7 @@ clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf api/
 
-api:
-	@mkdir -p api
-	$(PYTHON) tools/build_api_docs.py
-	@echo "Build API docs...done."
-
-html: api
+html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
