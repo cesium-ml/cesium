@@ -317,15 +317,18 @@ try:
     import mock
 except:
     import unittest.mock as mock
+
 old_import = __import__
 def mock_import(name, *args, **kwargs):
     try:
         return old_import(name, *args, **kwargs)
     except Exception as e:
-        if 'mltsp' not in name:
-            return mock.MagicMock()
-        else:
+        if 'mltsp' in name:
             raise e
+        elif name == 'porterstemmer' or 'Stemmer' in name:
+            raise e
+        else:
+            return mock.MagicMock(name=name)
 __builtins__['__import__'] = mock_import
 
 
