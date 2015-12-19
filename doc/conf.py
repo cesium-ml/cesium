@@ -308,21 +308,40 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 
-# -- MLTSP package configuration ------------------------------------------
-try:
-    from unittest.mock import MagicMock
-except:
-    from mock import MagicMock
-class Mock(MagicMock):
-    __all__ = []
-    __version__ = MagicMock()
-    random = MagicMock()
-    stats = MagicMock()
-MOCK_MODULES = ['requests', 'parse', 'yaml', 'numpy', 'xray', 'sklearn',
-                'pandas', 'scipy', 'scipy.stats', 'scipy.linalg',
-                'scipy.special', 'sklearn.externals', 'sklearn.base',
-                'sklearn.ensemble', 'sklearn.linear_model', 'celery', 'dask',
-                'dask.async', 'mltsp.science_features._lomb_scargle']
-for m in MOCK_MODULES:
-    sys.modules[m] = Mock()
+# -- MLTSP package configuration (mock out dependencies) ------------------
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__name__), 'tools'))
+from apigen import ApiDocWriter
+import mltsp
+try:
+    import mock
+except:
+    import unittest.mock as mock
+old_import = __import__
+def mock_import(name, *args, **kwargs):
+    try:
+        return old_import(name, *args, **kwargs)
+    except Exception as e:
+        if 'mltsp' not in name:
+            return mock.MagicMock()
+        else:
+            raise e
+__builtins__['__import__'] = mock_import
+
+
+# -- Build MLTSP API documentation ----------------------------------------
+package = 'mltsp'
+module = sys.modules[package]
+
+outdir = 'api'
+# Unlike skimage, for now we just manually specify which files to inspect
+modules = ['mltsp', 'mltsp.featurize', #'mltsp.custom_feature_tools',
+           'mltsp.obs_feature_tools', 'mltsp.science_feature_tools',
+           'mltsp.science_features', 'mltsp.build_model', 'mltsp.predict',
+           'mltsp.util']
+
+docwriter = ApiDocWriter(package, modules)
+#    docwriter.package_skip_patterns += [r'filter$']
+docwriter.write_api_docs(outdir)
+docwriter.write_index(outdir, 'api', relative_to='api')
+print('%d files written' % len(docwriter.written_modules))
