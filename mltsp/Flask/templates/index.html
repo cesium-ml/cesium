@@ -296,7 +296,7 @@
                                   </tr>
                                   <tr class="model_params_tr model_params_tr_{{ model.abbr }}" style="display: none;" align='left'>
                                   {% for param in model.params %}
-                                    <td><strong>{{ param.name }} (
+                                    <td><input title="Optimize this hyperparameter" type="checkbox" id="optimize_checkbox" name="optimize_checkbox" value="{{ param.name }}" /><strong>{{ param.name }} (
                                     {% if param.type is sequence %}
                                       {% for e in param.type %}
                                         {{ e.__name__ }}

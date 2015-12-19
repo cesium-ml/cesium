@@ -2014,7 +2014,8 @@ def featurize_proc(
     update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
-def build_model_proc(model_key, model_type, model_params, featureset_key):
+def build_model_proc(model_key, model_type, model_params, featureset_key,
+                     params_to_optimize=None):
     """Build a model based on given features.
 
     Begins the model building process by calling
@@ -2030,6 +2031,9 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
         Dictionary specifying sklearn model parameters to be used.
     model_key : str
         Key/ID associated with model.
+    params_to_optimize : list of str, optional
+        List of parameter names that are formatted for hyperparameter
+        optimization.
 
     Returns
     -------
@@ -2044,7 +2048,8 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
     try:
         model_built_msg = build_model.create_and_pickle_model(
             model_key=model_key, model_type=model_type,
-            model_options=model_params, featureset_key=featureset_key)
+            model_options=model_params, featureset_key=featureset_key,
+            params_to_optimize=params_to_optimize)
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -2842,7 +2847,8 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
         for k in request.form:
             if k.startswith(model_type + "_"):
                 model_params[k.replace(model_type + "_", "")] = request.form[k]
-        util.cast_model_params(model_type, model_params)
+        params_to_optimize = request.form.getlist("optimize_checkbox")
+        util.cast_model_params(model_type, model_params, params_to_optimize)
     else:
         post_method = "http_api"
     projkey = project_name_to_key(project_name)
@@ -2863,7 +2869,8 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
         args=(new_model_key,
               model_type,
               model_params,
-              featureset_key))
+              featureset_key,
+              params_to_optimize))
     proc.start()
     PID = str(proc.pid)
     print("PROCESS ID IS", PID)

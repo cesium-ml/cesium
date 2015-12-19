@@ -101,7 +101,7 @@ def is_running_in_docker():
     return in_docker_container
 
 
-def cast_model_params(model_type, model_params):
+def cast_model_params(model_type, model_params, params_to_optimize=None):
     """Cast model parameter strings to expected types.
 
     Modifies `model_params` dict in place.
@@ -114,6 +114,9 @@ def cast_model_params(model_type, model_params):
         Dictionary whose keys are model parameter names and values are
         string representations of corresponding values, which will be cast
         to desired types in place, as specified in `sklearn_models` module.
+    params_to_optimize : list of str, optional
+        List of parameter names that are formatted for hyperparameter
+        optimization.
 
     """
     from .ext.sklearn_models import model_descriptions
