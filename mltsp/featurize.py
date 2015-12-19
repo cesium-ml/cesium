@@ -142,15 +142,15 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         - errors: (n,) array or (p, n) array (for p channels of measurement)
 
     For multiple time series, inputs may have the form:
-        - times:  list of (n,) arrays, list of (p, n) arrays (for p channels of
-                  measurement), or list of lists of (n,) arrays (for
-                  multichannel data with different time values per channel)
+        - times: list of (n,) arrays, list of (p, n) arrays (for p channels of
+          measurement), or list of lists of (n,) arrays (for
+          multichannel data with different time values per channel)
         - values: list of (n,) arrays, list of (p, n) arrays (for p channels of
-                  measurement), or list of lists of (n,) arrays (for
-                  multichannel data with different time values per channel)
+          measurement), or list of lists of (n,) arrays (for
+          multichannel data with different time values per channel)
         - errors: list of (n,) arrays, list of (p, n) arrays (for p channels of
-                  measurement), or list of lists of (n,) arrays (for
-                  multichannel data with different time values per channel)
+          measurement), or list of lists of (n,) arrays (for
+          multichannel data with different time values per channel)
 
     In the case of multichannel measurements, each channel will be
     featurized separately, and the data variables of the output `xray.Dataset`
