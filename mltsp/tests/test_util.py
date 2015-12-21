@@ -86,6 +86,13 @@ def test_cast_model_params():
 
     npt.assert_raises(ValueError, util.cast_model_params, "wrong_name", {})
 
+    # Test parameter grid for optimization input
+    model_type = "Random Forest Classifier"
+    params = {"max_features": "[150.3, 20, 'auto']"}
+    expected = {"max_features": [150.3, 20, "auto"]}
+    util.cast_model_params(model_type, params, ["max_features"])
+    npt.assert_equal(params, expected)
+
 
 def test_make_list():
     """Test util.make_list"""

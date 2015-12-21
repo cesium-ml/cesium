@@ -145,7 +145,11 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
             if dest_type is not str:
                 try:
                     if isinstance(ast.literal_eval(model_params[k]),
-                                  dest_type):
+                                  dest_type) or \
+                        (params_to_optimize and k in params_to_optimize and \
+                         isinstance(ast.literal_eval(model_params[k]), list) \
+                         and (type(x) in dest_types_list for x in \
+                              ast.literal_eval(model_params[k]))):
                         model_params[k] = ast.literal_eval(model_params[k])
                         break
                 except ValueError:
