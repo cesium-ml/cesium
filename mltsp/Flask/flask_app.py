@@ -2807,7 +2807,7 @@ def featurizationPage(
 @app.route('/buildModel', methods=['POST', 'GET'])
 @stormpath.login_required
 def buildModel(model_name=None, project_name=None, featureset_name=None,
-               model_type=None, model_params=None):
+               model_type=None, model_params=None, params_to_optimize=None):
     """Build new model for specified feature set.
 
     Handles 'buildModelForm' submission and starts model creation
