@@ -155,8 +155,8 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
                 except ValueError:
                     pass
         if isinstance(model_params[k], str) and str not in dest_types_list:
-            raise(ValueError("Model parameter cannot be cast to expected "
-                             "type."))
+            raise ValueError("Model parameter cannot be cast to expected "
+                             "type.")
 
 
 def remove_files(paths):
