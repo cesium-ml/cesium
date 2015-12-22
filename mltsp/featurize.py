@@ -115,7 +115,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     if metadata is not None:
         fname_metadata = metadata.loc[list(fnames)]
     else:
-        fname_metadata = None, None
+        fname_metadata = None
     featureset = ft.assemble_featureset(feature_dicts, fname_targets,
                                         fname_metadata, fnames)
 
