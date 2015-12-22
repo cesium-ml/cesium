@@ -1,4 +1,5 @@
 from sklearn.externals import joblib
+from sklearn.grid_search import GridSearchCV
 import os
 import pandas as pd
 import xarray as xr
@@ -45,7 +46,7 @@ def model_predictions(featureset, model, return_probs=True):
     if preds_df.shape[1] == 1:
         preds_df.columns = ['prediction']
     else:
-        if "GridSearchCV" in str(type(model)):
+        if isinstance(model, GridSearchCV):
             preds_df.columns = model.best_estimator_.classes_
         else:
             preds_df.columns = model.classes_
