@@ -143,7 +143,7 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
     combined_feature_dict = {feature: (['name', 'channel'],
                                        [d[feature] for d in feature_dicts])
                              for feature in feature_names}
-    if metadata is not None:
+    if metadata is not None and metadata != (None, None):
         combined_feature_dict.update({feature: (['name'],
                                                 metadata[feature].values)
                                       for feature in metadata.columns})
