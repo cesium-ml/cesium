@@ -4,6 +4,10 @@ from nose.tools import with_setup
 import os
 from os.path import join as pjoin
 from sklearn.externals import joblib
+from sklearn.grid_search import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LinearRegression, SGDClassifier,\
+    RidgeClassifierCV, ARDRegression, BayesianRidge
 import shutil
 import xarray as xr
 
@@ -41,7 +45,7 @@ def test_build_model_rfc():
                                         "test")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict_proba")
-    assert "sklearn.ensemble.forest.RandomForestClassifier" in str(type(model))
+    assert isinstance(model, RandomForestClassifier)
 
 
 @with_setup(copy_regression_test_data, remove_test_data)
@@ -51,7 +55,7 @@ def test_build_model_rfr():
                                         "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
-    assert "sklearn.ensemble.forest.RandomForestRegressor" in str(type(model))
+    assert isinstance(model, RandomForestRegressor)
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -60,7 +64,7 @@ def test_build_model_lin_class():
     build_model.create_and_pickle_model("test", "LinearSGDClassifier", "test")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
-    assert "SGDClassifier" in str(type(model))
+    assert isinstance(model, SGDClassifier)
 
 
 @with_setup(copy_regression_test_data, remove_test_data)
@@ -69,7 +73,7 @@ def test_build_model_lin_reg():
     build_model.create_and_pickle_model("test", "LinearRegressor", "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
-    assert "LinearRegression" in str(type(model))
+    assert isinstance(model, LinearRegression)
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -78,7 +82,7 @@ def test_build_model_ridge_cv():
     build_model.create_and_pickle_model("test", "RidgeClassifierCV", "test")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
-    assert "RidgeClassifierCV" in str(type(model))
+    assert isinstance(model, RidgeClassifierCV)
 
 
 @with_setup(copy_regression_test_data, remove_test_data)
@@ -88,7 +92,7 @@ def test_build_model_ard_reg():
                                         "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
-    assert "ARDRegression" in str(type(model))
+    assert isinstance(model, ARDRegression)
 
 
 @with_setup(copy_regression_test_data, remove_test_data)
@@ -98,7 +102,7 @@ def test_build_model_ard_reg():
                                         "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
-    assert "BayesianRidge" in str(type(model))
+    assert isinstance(model, BayesianRidge)
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -110,7 +114,7 @@ def test_fit_existing_model():
     model = build_model.build_model_from_featureset(featureset, model)
     assert hasattr(model, "n_features_")
     assert hasattr(model, "predict_proba")
-    assert "sklearn.ensemble.forest.RandomForestClassifier" in str(type(model))
+    assert isinstance(model, RandomForestClassifier)
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -128,9 +132,8 @@ def test_fit_existing_model_optimize():
         params_to_optimize=params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
-    assert "sklearn.grid_search.GridSearchCV" in str(type(model))
-    assert "sklearn.ensemble.forest.RandomForestClassifier" in \
-        str(type(model.best_estimator_))
+    assert isinstance(model, GridSearchCV)
+    assert isinstance(model.best_estimator_, RandomForestClassifier)
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -149,9 +152,8 @@ def test_fit_optimize():
         params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
-    assert "sklearn.grid_search.GridSearchCV" in str(type(model))
-    assert "sklearn.ensemble.forest.RandomForestClassifier" in \
-        str(type(model.best_estimator_))
+    assert isinstance(model, GridSearchCV)
+    assert isinstance(model.best_estimator_, RandomForestClassifier)
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -167,5 +169,5 @@ def test_build_model_lin_class_optimize():
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test_10.pkl"))
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict")
-    assert "sklearn.grid_search.GridSearchCV" in str(type(model))
-    assert "SGDClassifier" in str(type(model.best_estimator_))
+    assert isinstance(model, GridSearchCV)
+    assert isinstance(model.best_estimator_, SGDClassifier)
