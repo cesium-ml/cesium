@@ -8,13 +8,13 @@ from sklearn.externals import joblib
 from sklearn import grid_search
 
 
-MODELS_TYPE_DICT = {'Random Forest Classifier': RandomForestClassifier,
-                    'Random Forest Regressor': RandomForestRegressor,
-                    'Linear SGD Classifier': SGDClassifier,
-                    'Linear Regressor': LinearRegression,
-                    'Ridge Classifier CV': RidgeClassifierCV,
-                    'Bayesian ARD Regressor': ARDRegression,
-                    'Bayesian Ridge Regressor': BayesianRidge}
+MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
+                    'RandomForestRegressor': RandomForestRegressor,
+                    'LinearSGDClassifier': SGDClassifier,
+                    'LinearRegressor': LinearRegression,
+                    'RidgeClassifierCV': RidgeClassifierCV,
+                    'BayesianARDRegressor': ARDRegression,
+                    'BayesianRidgeRegressor': BayesianRidge}
 
 
 def rectangularize_featureset(featureset):

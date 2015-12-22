@@ -36,8 +36,8 @@ def remove_test_data():
 
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_build_model_rfc():
-    """Test main model building method - Random Forest Classifier"""
-    build_model.create_and_pickle_model("test", "Random Forest Classifier",
+    """Test main model building method - RandomForestClassifier"""
+    build_model.create_and_pickle_model("test", "RandomForestClassifier",
                                         "test")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict_proba")
@@ -46,8 +46,8 @@ def test_build_model_rfc():
 
 @with_setup(copy_regression_test_data, remove_test_data)
 def test_build_model_rfr():
-    """Test main model building method - Random Forest Regressor"""
-    build_model.create_and_pickle_model("test", "Random Forest Regressor",
+    """Test main model building method - RandomForestRegressor"""
+    build_model.create_and_pickle_model("test", "RandomForestRegressor",
                                         "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
@@ -57,7 +57,7 @@ def test_build_model_rfr():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_build_model_lin_class():
     """Test main model building method - linear classifier"""
-    build_model.create_and_pickle_model("test", "Linear SGD Classifier", "test")
+    build_model.create_and_pickle_model("test", "LinearSGDClassifier", "test")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
     assert "SGDClassifier" in str(type(model))
@@ -66,7 +66,7 @@ def test_build_model_lin_class():
 @with_setup(copy_regression_test_data, remove_test_data)
 def test_build_model_lin_reg():
     """Test main model building method - linear regressor"""
-    build_model.create_and_pickle_model("test", "Linear Regressor", "test_reg")
+    build_model.create_and_pickle_model("test", "LinearRegressor", "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
     assert "LinearRegression" in str(type(model))
@@ -75,7 +75,7 @@ def test_build_model_lin_reg():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_build_model_ridge_cv():
     """Test main model building method - Ridge Classifer CV"""
-    build_model.create_and_pickle_model("test", "Ridge Classifier CV", "test")
+    build_model.create_and_pickle_model("test", "RidgeClassifierCV", "test")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
     assert "RidgeClassifierCV" in str(type(model))
@@ -84,7 +84,7 @@ def test_build_model_ridge_cv():
 @with_setup(copy_regression_test_data, remove_test_data)
 def test_build_model_ard_reg():
     """Test main model building method - ARD Regression"""
-    build_model.create_and_pickle_model("test", "Bayesian ARD Regressor",
+    build_model.create_and_pickle_model("test", "BayesianARDRegressor",
                                         "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
@@ -94,7 +94,7 @@ def test_build_model_ard_reg():
 @with_setup(copy_regression_test_data, remove_test_data)
 def test_build_model_ard_reg():
     """Test main model building method - Bayesian Ridge Regression"""
-    build_model.create_and_pickle_model("test", "Bayesian Ridge Regressor",
+    build_model.create_and_pickle_model("test", "BayesianRidgeRegressor",
                                         "test_reg")
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
     assert hasattr(model, "predict")
@@ -106,7 +106,7 @@ def test_fit_existing_model():
     """Test model building helper function."""
     featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_featureset.nc"))
-    model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model = build_model.build_model_from_featureset(featureset, model)
     assert hasattr(model, "n_features_")
     assert hasattr(model, "predict_proba")
@@ -118,7 +118,7 @@ def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_10_featureset.nc"))
-    model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model_options = {"n_estimators": [10, 50, 100], "criterion": "gini",
                      "min_samples_split": [2, 5],
                      "max_features": ["auto", 3], "bootstrap": True}
@@ -136,7 +136,7 @@ def test_fit_optimize():
     """Test hypeparameter optimization"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_10_featureset.nc"))
-    model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     feature_df = build_model.rectangularize_featureset(featureset)
     model_options = {"n_estimators": [10, 50, 100], "criterion": "gini",
                      "min_samples_split": [2, 5],
@@ -157,7 +157,7 @@ def test_build_model_lin_class_optimize():
                      "epsilon": [0.001, 0.01, 0.1, 0.5],
                      "learning_rate": "optimal"}
     params_to_optimize = ["alpha", "epsilon"]
-    build_model.create_and_pickle_model("test_10", "Linear SGD Classifier",
+    build_model.create_and_pickle_model("test_10", "LinearSGDClassifier",
                                         "test_10", model_options,
                                         params_to_optimize)
     model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test_10.pkl"))

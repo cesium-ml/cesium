@@ -59,7 +59,7 @@ def test_model_predictions():
     featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          'test_featureset.nc'))
     model = build_model.build_model_from_featureset(
-        featureset, model_type='Random Forest Classifier')
+        featureset, model_type='RandomForestClassifier')
     preds = predict.model_predictions(featureset, model)
     assert(preds.shape[0] == len(featureset.name))
     assert(preds.shape[1] == len(np.unique(featureset.target.values)))

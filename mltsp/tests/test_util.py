@@ -36,7 +36,7 @@ def test_docker_images_available():
 
 def test_cast_model_params():
     """Test util.cast_model_params"""
-    model_type = "Random Forest Classifier"
+    model_type = "RandomForestClassifier"
     params = {"n_estimators": "1000",
               "max_features": "auto",
               "min_weight_fraction_leaf": "0.34",
@@ -50,19 +50,19 @@ def test_cast_model_params():
     util.cast_model_params(model_type, params)
     npt.assert_equal(params, expected)
 
-    model_type = "Random Forest Classifier"
+    model_type = "RandomForestClassifier"
     params = {"max_features": 150}
     expected = {"max_features": 150}
     util.cast_model_params(model_type, params)
     npt.assert_equal(params, expected)
 
-    model_type = "Random Forest Classifier"
+    model_type = "RandomForestClassifier"
     params = {"max_features": "150.3"}
     expected = {"max_features": 150.3}
     util.cast_model_params(model_type, params)
     npt.assert_equal(params, expected)
 
-    model_type = "Linear SGD Classifier"
+    model_type = "LinearSGDClassifier"
     params = {"class_weight": "{'a': 0.2, 'b': 0.8}",
               "average": "False"}
     expected = {"class_weight": {'a': 0.2, 'b': 0.8},
@@ -70,7 +70,7 @@ def test_cast_model_params():
     util.cast_model_params(model_type, params)
     npt.assert_equal(params, expected)
 
-    model_type = "Linear SGD Classifier"
+    model_type = "LinearSGDClassifier"
     params = {"class_weight": "some_str",
               "average": "2"}
     expected = {"class_weight": "some_str",
@@ -78,7 +78,7 @@ def test_cast_model_params():
     util.cast_model_params(model_type, params)
     npt.assert_equal(params, expected)
 
-    model_type = "Ridge Classifier CV"
+    model_type = "RidgeClassifierCV"
     params = {"alphas": "[0.1, 2.1, 6.2]"}
     expected = {"alphas": [0.1, 2.1, 6.2]}
     util.cast_model_params(model_type, params)
@@ -87,7 +87,7 @@ def test_cast_model_params():
     npt.assert_raises(ValueError, util.cast_model_params, "wrong_name", {})
 
     # Test parameter grid for optimization input
-    model_type = "Random Forest Classifier"
+    model_type = "RandomForestClassifier"
     params = {"max_features": "[150.3, 20, 'auto']"}
     expected = {"max_features": [150.3, 20, "auto"]}
     util.cast_model_params(model_type, params, ["max_features"])

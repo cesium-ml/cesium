@@ -76,7 +76,7 @@ def prediction_setup():
     shutil.copy(pjoin(DATA_DIR, "testfeature1.py"),
                 pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
     build_model.create_and_pickle_model("TEMP_TEST01",
-                                        "Random Forest Classifier",
+                                        "RandomForestClassifier",
                                         "TEMP_TEST01")
 
 
@@ -499,7 +499,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "created": "abc123",
@@ -507,7 +507,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "111", "created": "111",
@@ -533,7 +533,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type":
-                                      "Random Forest Classifier",
+                                      "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "created": "abc123",
@@ -541,7 +541,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "111", "created": "111",
@@ -571,7 +571,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type":
-                                      "Random Forest Classifier",
+                                      "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "created": "abc123",
@@ -579,7 +579,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             r.table("models").insert({"id": "111", "projkey": "111",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "111", "created": "111",
@@ -606,7 +606,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "MODEL_NAME",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -617,7 +617,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "111", "projkey": "111",
                                            "name": "111",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "MODEL_NAME",
                                            "created": "111",
                                            "filename": "111.txt",
@@ -644,7 +644,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "MODEL_NAME",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -655,7 +655,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "111", "projkey": "111",
                                            "name": "111",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "MODEL_NAME",
                                            "created": "111",
                                            "filename": "111.txt",
@@ -686,7 +686,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "MODEL_NAME",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -697,7 +697,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "111", "projkey": "111",
                                            "name": "111",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "MODEL_NAME",
                                            "created": "111",
                                            "filename": "111.txt",
@@ -815,7 +815,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = fa.add_model(model_name="TEST_NAME",
                                    featureset_name="TEST",
                                    featureset_key="123",
-                                   model_type="Random Forest Classifier",
+                                   model_type="RandomForestClassifier",
                                    model_params={},
                                    projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
@@ -833,7 +833,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = fa.add_model(model_name="TEST_NAME",
                                    featureset_name="TEST",
                                    featureset_key="123",
-                                   model_type="Random Forest Classifier",
+                                   model_type="RandomForestClassifier",
                                    model_params={},
                                    projkey="ABC", pid="2")
             entry = r.table("models").get(new_key).run(conn)
@@ -852,7 +852,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = fa.add_prediction(project_name="abc123",
                                         model_key="model_key",
                                         model_name="model_name",
-                                        model_type="Random Forest Classifier",
+                                        model_type="RandomForestClassifier",
                                         pred_filename="test.dat",
                                         pid="2")
             entry = r.table("predictions").get(new_key).run(conn)
@@ -873,7 +873,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "created": "abc123",
@@ -882,7 +882,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "model_name": "abc123",
                                            "created": "abc123",
                                            "filename": "abc.txt",
@@ -902,7 +902,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(fpaths, [])
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "created": "abc123",
@@ -966,7 +966,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
@@ -1011,7 +1011,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
@@ -1070,7 +1070,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
@@ -1079,7 +1079,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "abc123",
                                            "model_name": "abc123",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "filename": "FNAME.dat",
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
@@ -1093,7 +1093,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert "<table" in proj_info["models"] and "abc123" in \
                 proj_info["models"]
             assert all(x in proj_info["predictions"] for x in
-                       ["<table", "Random Forest Classifier", "abc123",
+                       ["<table", "RandomForestClassifier", "abc123",
                         "FNAME.dat"])
 
     def test_get_project_details_json(self):
@@ -1119,7 +1119,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
@@ -1128,7 +1128,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "created": "abc123",
                                            "model_name": "abc123",
                                            "model_type":
-                                           "Random Forest Classifier",
+                                           "RandomForestClassifier",
                                            "filename": "FNAME.dat",
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
@@ -1257,7 +1257,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featset_key": "abc123"}).run(conn)
@@ -1479,7 +1479,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "TEMP_TEST01",
                                       "featureset_name": "abc123",
                                       "parameters": {}}).run(conn)
-            fa.build_model_proc("TEMP_TEST01", "Random Forest Classifier", {},
+            fa.build_model_proc("TEMP_TEST01", "RandomForestClassifier", {},
                                 "TEMP_TEST01")
             entry = r.table("models").get("TEMP_TEST01").run(conn)
             assert "results_msg" in entry
@@ -1506,14 +1506,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featset_key": "TEMP_TEST01",
                                       "projkey": "TEMP_TEST01",
                                       "name": "TEMP_TEST01",
-                                      "type": "Random Forest Classifier"})\
+                                      "type": "RandomForestClassifier"})\
                              .run(conn)
             r.table("projects").insert({"id": "TEMP_TEST01", "name":
                                         "TEMP_TEST01"}).run(conn)
             r.table("predictions").insert({"id": "TEMP_TEST01"}).run(conn)
             fa.prediction_proc(
                 pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-                "TEMP_TEST01", "TEMP_TEST01", "Random Forest Classifier",
+                "TEMP_TEST01", "TEMP_TEST01", "RandomForestClassifier",
                 "TEMP_TEST01", "TEMP_TEST01",
                 metadata_file=pjoin(cfg.UPLOAD_FOLDER,
                                     "TESTRUN_215153_metadata.dat"))
@@ -1697,7 +1697,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featset_key": "abc123",
                                       "featureset_name": "abc123",
                                       "parameters": {},
-                                      "type": "Random Forest Classifier"})\
+                                      "type": "RandomForestClassifier"})\
                              .run(conn)
             r.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123",
@@ -1712,7 +1712,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featset_key": "abc1234",
                                       "featureset_name": "abc123",
                                       "parameters": {},
-                                      "type": "Random Forest Classifier"})\
+                                      "type": "RandomForestClassifier"})\
                              .run(conn)
             r.table("features").insert({"id": "abc1234", "projkey": "abc123",
                                         "name": "abc1234",
@@ -1727,7 +1727,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featset_key": "abc1235",
                                       "featureset_name": "abc123",
                                       "parameters": {},
-                                      "type": "Random Forest Classifier"})\
+                                      "type": "RandomForestClassifier"})\
                              .run(conn)
             r.table("features").insert({"id": "abc1235", "projkey": "abc123",
                                         "name": "abc1235",
@@ -1781,7 +1781,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "headerfile_path": "HEADPATH.dat",
                                            "zipfile_path": "ZIPPATH.tar.gz",
                                            "featset_key": "abc123",
-                                           "type": "Random Forest Classifier"})\
+                                           "type": "RandomForestClassifier"})\
                                   .run(conn)
             r.table("predictions").insert({"id": "abc1234",
                                            "projkey": "abc1234",
@@ -1878,7 +1878,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
@@ -1980,14 +1980,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123"}).run(conn)
             r.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "model_1", "created": "abc123",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "featset1",
                                       "parameters": {},
                                       "zipfile_path": "ZIPPATH.tar.gz",
                                       "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "abc123_2", "projkey": "abc123",
                                       "name": "model_2", "created": "abc",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featureset_name": "featset1",
                                       "parameters": {},
                                       "zipfile_path": "ZIPPATH.tar.gz",
@@ -1997,8 +1997,8 @@ class FlaskAppTestCase(unittest.TestCase):
                           json.loads(rv.data.decode())["model_list"]]
             npt.assert_array_equal(
                 sorted(model_list),
-                ["model_1 - Random Forest Classifier (featset1)",
-                 "model_2 - Random Forest Classifier (featset1)"])
+                ["model_1 - RandomForestClassifier (featset1)",
+                 "model_2 - RandomForestClassifier (featset1)"])
 
     def test_upload_features_form(self):
         """Test upload features form"""
@@ -2267,7 +2267,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = fa.buildModel(model_name="NEW_MODEL_NAME",
                                project_name="abc123",
                                featureset_name="TEMP_TEST10",
-                               model_type="Random Forest Classifier",
+                               model_type="RandomForestClassifier",
                                model_params={"n_estimators": [10, 50, 100]},
                                params_to_optimize=["n_estimators"])
             res_dict = json.loads(rv.data.decode())
@@ -2300,7 +2300,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featset_key": "TEMP_TEST01",
                                       "featureset_name": "abc123",
                                       "projkey": "abc123",
@@ -2323,7 +2323,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'newpred_file_sep': ',',
                                      'prediction_project_name': 'abc123',
                                      'prediction_model_name_and_type':
-                                     'TEMP_TEST01 - Random Forest Classifier'})
+                                     'TEMP_TEST01 - RandomForestClassifier'})
             res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
@@ -2353,7 +2353,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             r.table("models").insert({"id": "TEMP_TEST01",
-                                      "type": "Random Forest Classifier",
+                                      "type": "RandomForestClassifier",
                                       "featset_key": "TEMP_TEST01",
                                       "featureset_name": "abc123",
                                       "parameters": {},
@@ -2364,7 +2364,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                    project_name="abc123",
                                    model_key="TEMP_TEST01",
                                    model_name="TEMP_TEST01",
-                                   model_type="Random Forest Classifier",
+                                   model_type="RandomForestClassifier",
                                    metadata_file_path=dsts[1])
             res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
