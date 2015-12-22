@@ -45,7 +45,10 @@ def model_predictions(featureset, model, return_probs=True):
     if preds_df.shape[1] == 1:
         preds_df.columns = ['prediction']
     else:
-        preds_df.columns = model.classes_
+        if "GridSearchCV" in str(type(model)):
+            preds_df.columns = model.best_estimator_.classes_
+        else:
+            preds_df.columns = model.classes_
     return preds_df
 
 
