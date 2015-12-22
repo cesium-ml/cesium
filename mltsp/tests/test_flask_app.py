@@ -62,6 +62,8 @@ def featurize_teardown():
 def build_model_setup():
     shutil.copy(pjoin(DATA_DIR, "test_featureset.nc"),
                 pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_featureset.nc"))
+    shutil.copy(pjoin(DATA_DIR, "test_10_featureset.nc"),
+                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST10_featureset.nc"))
 
 
 def prediction_setup():
@@ -79,7 +81,8 @@ def prediction_setup():
 
 
 def model_and_prediction_teardown():
-    fnames = ["TEMP_TEST01_featureset.nc", "TEMP_TEST01.pkl"]
+    fnames = ["TEMP_TEST01_featureset.nc", "TEMP_TEST10_featureset.nc",
+              "TEMP_TEST01.pkl"]
     for fname in fnames:
         for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER]:
             try:
@@ -2254,18 +2257,19 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "TEMP_TEST01",
+            r.table("features").insert({"id": "TEMP_TEST10",
                                         "projkey": "abc123",
-                                        "name": "TEMP_TEST01",
+                                        "name": "TEMP_TEST10",
                                         "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             rv = fa.buildModel(model_name="NEW_MODEL_NAME",
                                project_name="abc123",
-                               featureset_name="TEMP_TEST01",
+                               featureset_name="TEMP_TEST10",
                                model_type="Random Forest Classifier",
-                               model_params={})
+                               model_params={"n_estimators": [10, 50, 100]},
+                               params_to_optimize=["n_estimators"])
             res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
