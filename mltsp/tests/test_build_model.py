@@ -129,6 +129,8 @@ def test_fit_existing_model_optimize():
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
     assert "sklearn.grid_search.GridSearchCV" in str(type(model))
+    assert "sklearn.ensemble.forest.RandomForestClassifier" in \
+        str(type(model.best_estimator_))
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -148,6 +150,8 @@ def test_fit_optimize():
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
     assert "sklearn.grid_search.GridSearchCV" in str(type(model))
+    assert "sklearn.ensemble.forest.RandomForestClassifier" in \
+        str(type(model.best_estimator_))
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
@@ -164,3 +168,4 @@ def test_build_model_lin_class_optimize():
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict")
     assert "sklearn.grid_search.GridSearchCV" in str(type(model))
+    assert "SGDClassifier" in str(type(model.best_estimator_))
