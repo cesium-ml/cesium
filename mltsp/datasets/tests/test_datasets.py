@@ -10,6 +10,7 @@ import pandas as pd
 from sklearn.datasets.base import Bunch
 
 import mltsp.datasets.andrzejak as andrzejak
+import mltsp.datasets.util as dsutil
 
 try:
     from io import BytesIO as StringLike
@@ -17,6 +18,15 @@ except:
     import StringIO as StringLike
 
  
+def urlpatch(*args):
+    try:
+        import urllib.request
+        return mock.patch('urllib.request.urlopen', side_effect=args[0])
+    except:
+        import urllib2
+        return mock.patch('urllib2.urlopen', side_effect=args[0])
+
+
 class MockZipUrl(object):
     def __init__(self, url, num_columns=1):
         self.url = url
@@ -40,7 +50,7 @@ def _mock_andrzejak_url(*args):
     return MockZipUrl(url=args[0], num_columns=1)
 
 
-@mock.patch('urllib.request.urlopen', side_effect=_mock_andrzejak_url)
+@urlpatch(_mock_andrzejak_url)
 def test_fetch_andrzejak(self):
     """Test EEG data download."""
     num_files = len(andrzejak.ZIP_FILES)
