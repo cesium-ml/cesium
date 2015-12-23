@@ -1,7 +1,11 @@
-import subprocess
-import os
-import errno
 import ast
+import errno
+import os
+import subprocess
+import tarfile
+import tempfile
+import zipfile
+
 import numpy as np
 
 try:
@@ -86,7 +90,6 @@ def docker_images_available():
 
 def is_running_in_docker():
     """Return bool indicating whether running in a Docker container."""
-    import subprocess
     if not os.path.exists("/proc/1/cgroup"):
         return False
     proc = subprocess.Popen(["cat", "/proc/1/cgroup"], stdout=subprocess.PIPE)
@@ -160,3 +163,39 @@ def remove_files(paths):
                 raise
             else:
                 pass
+
+
+def extract_data_archive(archive_path, extract_dir=None):
+    """Extract zip- or tarfile of time series file and return file paths.
+    
+    Parameters
+    ----------
+    archive_path : str
+        Path to archive to be extracted.
+
+    extract_dir : str, optional
+        Directory into which files are to be extracted. If None, a temporary
+        directory is created.
+
+    Returns
+    -------
+    list of str
+        List of full paths to extracted files.
+    """
+    if extract_dir is None:
+        extract_dir = tempfile.mkdtemp()
+
+    if tarfile.is_tarfile(archive_path):
+        archive = tarfile.open(archive_path)
+        archive.extractall(path=extract_dir)
+        all_paths = [os.path.join(extract_dir, f) for f in archive.getnames()]
+    elif zipfile.is_zipfile(archive_path):
+        archive = zipfile.ZipFile(archive_path)
+        archive.extractall(path=extract_dir)
+        all_paths = [os.path.join(extract_dir, f) for f in archive.namelist()]
+    else:
+        raise ValueError('{} is not a valid zip- or '
+                         'tarfile.'.format(archive_path))
+    file_paths = [f for f in all_paths if not os.path.isdir(f)]
+    archive.close()
+    return file_paths

@@ -87,7 +87,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     """
     if tarfile.is_tarfile(data_path) or zipfile.is_zipfile(data_path):
-        all_ts_paths = ft.extract_data_archive(data_path)
+        all_ts_paths = util.extract_data_archive(data_path)
         if first_N:
             ts_paths = all_ts_paths[:first_N]
         else:

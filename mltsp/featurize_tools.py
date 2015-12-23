@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 import xray
 import os
-import tarfile
-import tempfile
-import zipfile
 import dask.async
 from mltsp import custom_exceptions
 from mltsp import util
@@ -207,19 +204,3 @@ def parse_headerfile(headerfile_path, files_to_include=None):
         targets = None
     feature_data = header.drop(['target', 'class'], axis=1, errors='ignore')
     return targets, feature_data
-
-
-def extract_data_archive(archive_path):
-    """Extract zip- or tarfile of time series file and return file paths."""
-    if tarfile.is_tarfile(archive_path):
-        archive = tarfile.open(archive_path)
-    elif zipfile.is_zipfile(archive_path):
-        archive = zipfile.open(archive_path)
-    else:
-        raise ValueError('{} is not a valid zip- or '
-                         'tarfile.'.format(archive_path))
-    extract_dir = tempfile.mkdtemp()
-    archive.extractall(path=extract_dir)
-    all_paths = [os.path.join(extract_dir, f) for f in archive.getnames()]
-    file_paths = [f for f in all_paths if not os.path.isdir(f)]
-    return file_paths
