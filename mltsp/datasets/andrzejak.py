@@ -1,8 +1,5 @@
-import glob
 import logging
 import os
-import tarfile
-from zipfile import ZipFile
 
 import numpy as np
 from sklearn.datasets.base import Bunch
@@ -46,8 +43,8 @@ def download_andrzejak(data_dir):
     -------
     sklearn.datasets.base.Bunch
         Dictionary-like object with attributes:
-            - times: list of (4096,) ararys of time values
-            - measurements: list of (4096,) ararys of measurement values
+            - times: list of (4096,) arrays of time values
+            - measurements: list of (4096,) arrays of measurement values
             - target: array of class labels for each time series
             - archive: path to data archive
             - header: path to header file
@@ -79,11 +76,13 @@ def download_andrzejak(data_dir):
     header_path = os.path.join(data_dir, "andrzejak.csv")
     dsutil.write_header(header_path, new_ts_paths, classes)
 
+    extract_dir = os.path.join(data_dir, os.path.basename(ARCHIVE_NAME))
     util.remove_files(ts_paths + new_ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
     data = Bunch(times=times, measurements=measurements,
-                  target=classes, archive=archive_path, header=header_path)
+                 target=np.array(classes), archive=archive_path,
+                 header=header_path)
     joblib.dump(data, cache_path, compress=3)
     return data
 
@@ -101,11 +100,11 @@ def fetch_andrzejak(data_dir=None):
     -------
     sklearn.datasets.base.Bunch
         Dictionary-like object with attributes:
-            times: list of (4096,) ararys of time values
-            measurements: list of (4096,) ararys of measurement values
-            target: array of class labels for each time series
-            archive: path to data archive
-            header: path to header file
+            - times: list of (4096,) arrays of time values
+            - measurements: list of (4096,) arrays of measurement values
+            - target: array of class labels for each time series
+            - archive: path to data archive
+            - header: path to header file
 
     References
     ----------

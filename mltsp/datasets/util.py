@@ -24,7 +24,17 @@ def _md5sum_file(path):
     return m.hexdigest()
 
 
-def download_and_extract_archives(data_dir, base_url, filenames, md5sums=None):
+def download_file(data_dir, base_url, filename):
+    """Download a single file into the given directory."""
+    file_path = os.path.join(data_dir, filename)
+    opener = request.urlopen(base_url + filename)
+    with open(file_path, 'wb') as f:
+        f.write(opener.read())
+    return file_path
+
+
+def download_and_extract_archives(data_dir, base_url, filenames, md5sums=None,
+                                 remove_archive=True):
     """Download list of data archives, verify md5 checksums (if applicable),
     and extract into the given directory.
     """
@@ -39,7 +49,8 @@ def download_and_extract_archives(data_dir, base_url, filenames, md5sums=None):
                 raise ValueError("File {} checksum verification has failed."
                                  " Dataset fetching aborted.".format(fname))
         file_paths.extend(util.extract_data_archive(archive_path, data_dir))
-        util.remove_files(archive_path)
+        if remove_archive:
+            util.remove_files(archive_path)
     return file_paths
 
 
