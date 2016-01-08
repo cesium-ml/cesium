@@ -148,8 +148,8 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
                                   dest_type) or \
                         (params_to_optimize and k in params_to_optimize and \
                          isinstance(ast.literal_eval(model_params[k]), list) \
-                         and (type(x) in dest_types_list for x in \
-                              ast.literal_eval(model_params[k]))):
+                         and all(type(x) in dest_types_list for x in \
+                                 ast.literal_eval(model_params[k]))):
                         model_params[k] = ast.literal_eval(model_params[k])
                         break
                 except ValueError:
