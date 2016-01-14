@@ -9,10 +9,6 @@ echo "[Drone] systems check..."
 echo "[Drone] ----------------------------------------------------"
 echo "[Drone] Current path: ${REPO_PATH}"
 echo "[Drone] Shared path: ${SHARED_PATH}"
-
-echo -e "[Drone] Docker info:\n"
-docker -H unix:///var/run/docker.sock info
-echo
 echo "[Drone] ----------------------------------------------------"
 
 echo "[Drone] Installing base requirements"
