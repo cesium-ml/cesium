@@ -45,7 +45,7 @@ def download_andrzejak(data_dir):
         Dictionary-like object with attributes:
             - times: list of (4096,) arrays of time values
             - measurements: list of (4096,) arrays of measurement values
-            - target: array of class labels for each time series
+            - classes: array of class labels for each time series
             - archive: path to data archive
             - header: path to header file
     """
@@ -81,7 +81,7 @@ def download_andrzejak(data_dir):
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
     data = Bunch(times=times, measurements=measurements,
-                 target=np.array(classes), archive=archive_path,
+                 classes=np.array(classes), archive=archive_path,
                  header=header_path)
     joblib.dump(data, cache_path, compress=3)
     return data
@@ -102,7 +102,7 @@ def fetch_andrzejak(data_dir=None):
         Dictionary-like object with attributes:
             - times: list of (4096,) arrays of time values
             - measurements: list of (4096,) arrays of measurement values
-            - target: array of class labels for each time series
+            - classes: array of class labels for each time series
             - archive: path to data archive
             - header: path to header file
 

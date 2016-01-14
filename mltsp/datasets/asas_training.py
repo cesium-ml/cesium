@@ -42,7 +42,7 @@ def download_asas_training(data_dir):
             - times: list of arrays of time values
             - measurements: list of arrays of measurement values
             - errors: list of arrays of error values
-            - target: array of class labels for each time series
+            - classes: array of class labels for each time series
             - metadata: DataFrame of metafeature values indexed by file
             - archive: path to data archive
             - header: path to header file
@@ -73,7 +73,7 @@ def download_asas_training(data_dir):
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
     data = Bunch(times=times, measurements=measurements, errors=errors,
-                 target=classes, metadata=metadata, archive=archive_path,
+                 classes=classes, metadata=metadata, archive=archive_path,
                  header=header_path)
     joblib.dump(data, cache_path, compress=3)
     return data
@@ -95,7 +95,7 @@ def fetch_asas_training(data_dir=None):
             - times: list of arrays of time values
             - measurements: list of arrays of measurement values
             - errors: list of arrays of error values
-            - target: Series of classes for each time series indexed by file
+            - classes: Series of classes for each time series indexed by file
             - metadata: DataFrame of metafeature values indexed by file
             - archive: path to data archive
             - header: path to header file
