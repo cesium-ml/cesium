@@ -1,4 +1,3 @@
-sphinx>=1.3.4
 mock
 recommonmark
 numpydoc
