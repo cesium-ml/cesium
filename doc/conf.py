@@ -325,8 +325,6 @@ def mock_import(name, *args, **kwargs):
     except Exception as e:
         if 'mltsp' in name:
             raise e
-        elif name == 'porterstemmer' or 'Stemmer' in name:
-            raise e
         else:
             return mock.MagicMock(name=name)
 __builtins__['__import__'] = mock_import
