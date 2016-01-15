@@ -116,7 +116,8 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
 
     model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
                                      "{}.pkl".format(model_key)))
-    preds_df = model_predictions(new_featureset, model)
+    # Covert to DataFrame so we can treat 1d/2d predictions in the same way
+    preds_df = pd.DataFrame(model_predictions(new_featureset, model))
 
     # TODO this code will go away when we stop returning all the data here,
     # which should happen when we develop a file management system.
@@ -125,7 +126,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
     results_dict = {fname: {"results_str": "",
                             "ts_data": all_ts_data[fname],
                             "features_dict": new_feature_df.loc[fname].to_dict(),
-                            "pred_results": list(row.sort(inplace=False,
+                            "pred_results": list(row.sort_values(inplace=False,
                                                  ascending=False).iteritems())
                                             if len(row) > 1 else row}
                     for fname, row in preds_df.iterrows()}
