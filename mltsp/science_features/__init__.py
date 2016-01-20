@@ -11,6 +11,7 @@ from .lomb_scargle import lomb_scargle_model, get_lomb_frequency, \
     get_lomb_amplitude, get_lomb_rel_phase, get_lomb_amplitude_ratio, \
     get_lomb_frequency_ratio, get_lomb_signif_ratio, get_lomb_lambda, \
     get_lomb_signif, get_lomb_varrat, get_lomb_trend, get_lomb_y_offset
+from .lomb_scargle_fast import lomb_scargle_fast_period
 from .num_alias import num_alias
 from .periodic_model import periodic_model, get_max_delta_mags, \
     get_min_delta_mags, get_model_phi1_phi2

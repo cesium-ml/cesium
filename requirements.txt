@@ -17,3 +17,4 @@ waitress
 celery
 dask>=0.7.5
 xray
+gatspy

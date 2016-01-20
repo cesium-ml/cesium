@@ -14,8 +14,6 @@ import glob
 # These values are chosen because they lie exactly on the grid of frequencies
 # searched by the Lomb Scargle optimization procedure
 WAVE_FREQS = np.array([5.3, 3.3, 2.1])
-# This value is hard-coded in Lomb Scargle algorithm algorithm
-NUM_HARMONICS = 4
 
 # List of features that involve the Lomb-Scargle periodogram; we repeatedly
 # compute these for each Lomb-Scargle test
@@ -138,8 +136,8 @@ def irregular_periodic(freqs, amplitudes, phase, seed=0, size=501):
     state = np.random.RandomState(seed)
     times = np.sort(state.uniform(0, 2, size))
     values = np.zeros(size)
-    for i in range(len(freqs)):
-        for j in range(NUM_HARMONICS):
+    for i in range(freqs.shape[0]):
+        for j in range(amplitudes.shape[1]):
             values += amplitudes[i,j] * np.sin(2*np.pi*times*freqs[i]*(j+1)+phase)
     errors = state.exponential(1e-2, size)
     return times, values, errors
@@ -262,7 +260,7 @@ def test_lomb_scargle_regular_single_freq():
                     atol=1e-2)
 
     # Only test the first (true) frequency; the rest correspond to noise
-    for j in range(1, NUM_HARMONICS):
+    for j in range(1, amplitudes.shape[1]):
         npt.assert_allclose(phase*j*(-1**j),
             all_lomb['freq1_rel_phase{}'.format(j+1)], rtol=1e-2, atol=1e-2)
 
@@ -316,7 +314,7 @@ def test_lomb_scargle_irregular_single_freq():
     npt.assert_allclose(all_lomb['freq1_freq'], frequencies[0], rtol=1e-2)
 
     # Only test first frequency here; noise gives non-zero amplitudes for residuals
-    for j in range(NUM_HARMONICS):
+    for j in range(amplitudes.shape[1]):
         npt.assert_allclose(amplitudes[0,j],
                 all_lomb['freq1_amplitude{}'.format(j+1)], rtol=5e-2, atol=5e-2)
         if j >= 1:
@@ -450,8 +448,40 @@ def test_lomb_scargle_linear_trend():
     values += slope * times
     values += np.random.normal(scale=1e-3, size=len(times))
     all_lomb = sft.generate_science_features(times, values, errors,
-            lomb_features)
+                                             lomb_features)
     npt.assert_allclose(slope, all_lomb['linear_trend'], rtol=1e-1)
+
+
+def test_lomb_scargle_fast_regular():
+    """Test gatspy's fast Lomb-Scargle period estimate on regularly-sampled
+    periodic data.
+
+    Note: this model fits only a single sinusoid with no additional harmonics,
+    so we use only 1 frequency and 1 amplitude to generate test data.
+    """
+    frequencies = np.array([4])
+    amplitudes = np.array([[1]])
+    phase = 0.1
+    times, values, errors = regular_periodic(frequencies, amplitudes, phase)
+    f = sft.generate_science_features(times, values, errors, ['period_fast'])
+
+    npt.assert_allclose(f['period_fast'], 1 / frequencies[0], rtol=5e-4)
+
+
+def test_lomb_scargle_fast_irregular():
+    """Test gatspy's fast Lomb-Scargle period estimate on irregularly-sampled
+    periodic data.
+
+    Note: this model fits only a single sinusoid with no additional harmonics,
+    so we use only 1 frequency and 1 amplitude to generate test data.
+    """
+    frequencies = np.array([4])
+    amplitudes = np.array([[1]])
+    phase = 0.1
+    times, values, errors = irregular_periodic(frequencies, amplitudes, phase)
+    f = sft.generate_science_features(times, values, errors, ['period_fast'])
+
+    npt.assert_allclose(f['period_fast'], 1 / frequencies[0], rtol=3e-2)
 
 
 def test_max():
@@ -461,13 +491,12 @@ def test_max():
     npt.assert_equal(f['maximum'], max(values))
 
 
-# TODO uncomment when feature is fixed
-#def test_max_slope():
-#    """Test maximum slope feature, which finds the INDEX of the largest slope."""
-#    times, values, errors = irregular_random()
-#    f = sft.generate_science_features(times, values, errors, ['max_slope'])
-#    slopes = np.diff(values) / np.diff(times)
-#    npt.assert_allclose(f['max_slope'], np.argmax(np.abs(slopes)))
+def test_max_slope():
+    """Test maximum slope feature, which finds the INDEX of the largest slope."""
+    times, values, errors = irregular_random()
+    f = sft.generate_science_features(times, values, errors, ['max_slope'])
+    slopes = np.diff(values) / np.diff(times)
+    npt.assert_allclose(f['max_slope'], np.max(np.abs(slopes)))
 
 
 def test_median_absolute_deviation():

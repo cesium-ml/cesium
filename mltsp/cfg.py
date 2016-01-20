@@ -167,6 +167,7 @@ features_list_science = [
     "p2p_ssqr_diff_over_var",
     "percent_amplitude",
     "percent_difference_flux_percentile",
+    "period_fast",
     "phase_dispersion_freq0",
     "qso_log_chi2_qsonu",
     "qso_log_chi2nuNULL_chi2nu",
