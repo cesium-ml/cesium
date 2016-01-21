@@ -8,12 +8,12 @@ SHARED_PATH=/tmp/`ls -1 /tmp/ | grep -E ^drone_shared | head -n 1`
 echo "[Drone] systems check..."
 echo "[Drone] ----------------------------------------------------"
 echo "[Drone] Current path: ${REPO_PATH}"
-echo "[Drone] Shared path: ${SHARED_PATH}"
-
-echo -e "[Drone] Docker info:\n"
-docker -H unix:///var/run/docker.sock info
-echo
 echo "[Drone] ----------------------------------------------------"
+
+echo "[Drone] Creating Python virtual environment"
+pip install virtualenv
+virtualenv /envs/python2.7 -p python2.7
+source /envs/python2.7/bin/activate
 
 echo "[Drone] Installing base requirements"
 pip install --upgrade pip requests six python-dateutil nose nose-exclude
@@ -35,9 +35,6 @@ sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
 pip install $WHEELHOUSE -r requirements.txt
-
-mv ${REPO_PATH} ${SHARED_PATH}
-cd ${SHARED_PATH}/mltsp
 
 echo "[Drone] Build extension"
 python setup.py build_ext -i
