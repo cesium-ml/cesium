@@ -465,7 +465,7 @@ def test_lomb_scargle_fast_regular():
     times, values, errors = regular_periodic(frequencies, amplitudes, phase)
     f = sft.generate_science_features(times, values, errors, ['period_fast'])
 
-    npt.assert_allclose(f['period_fast'], 1 / frequencies[0], rtol=5e-4)
+    npt.assert_allclose(f['period_fast'], 1. / frequencies[0], rtol=5e-4)
 
 
 def test_lomb_scargle_fast_irregular():
@@ -481,7 +481,7 @@ def test_lomb_scargle_fast_irregular():
     times, values, errors = irregular_periodic(frequencies, amplitudes, phase)
     f = sft.generate_science_features(times, values, errors, ['period_fast'])
 
-    npt.assert_allclose(f['period_fast'], 1 / frequencies[0], rtol=3e-2)
+    npt.assert_allclose(f['period_fast'], 1. / frequencies[0], rtol=3e-2)
 
 
 def test_max():
