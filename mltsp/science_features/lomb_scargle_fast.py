@@ -5,7 +5,7 @@ import gatspy
 def lomb_scargle_fast_period(t, m, e):
     """Fits a simple sinuosidal model
 
-        y(t) = A sin(2*pi*w*t) + B cos(2*pi*w*t) + c
+        y(t) = A sin(2*pi*w*t + phi) + c
 
     and returns the estimated period 1/w. Much faster than fitting the
     full multi-frequency model used by `science_features.lomb_scargle`.
