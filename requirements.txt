@@ -17,3 +17,5 @@ waitress
 celery
 dask>=0.7.5
 xray
+gatspy
+supersmoother  # TODO remove if gatspy removes requirement

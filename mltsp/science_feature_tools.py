@@ -121,6 +121,9 @@ def generate_science_features(t, m, e,
         'p2p_scatter_pfold_over_mad': (sf.get_p2p_scatter_pfold_over_mad,
                                        'p2p_model'),
         'p2p_ssqr_diff_over_var': (sf.get_p2p_ssqr_diff_over_var, 'p2p_model'),
+
+        # Fast Lomb-Scargle from Gatspy
+        'period_fast': (sf.lomb_scargle_fast_period, t, m, e),
    }
 
     # Do not execute in parallel; parallelization has already taken place at
