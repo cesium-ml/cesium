@@ -26,6 +26,9 @@ def _md5sum_file(path):
 
 def download_file(data_dir, base_url, filename):
     """Download a single file into the given directory."""
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
     file_path = os.path.join(data_dir, filename)
     opener = request.urlopen(base_url + filename)
     with open(file_path, 'wb') as f:
@@ -38,6 +41,9 @@ def download_and_extract_archives(data_dir, base_url, filenames, md5sums=None,
     """Download list of data archives, verify md5 checksums (if applicable),
     and extract into the given directory.
     """
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
     file_paths = []
     for fname in filenames:
         archive_path = os.path.join(data_dir, fname)

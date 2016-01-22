@@ -2,7 +2,6 @@ import logging
 import os
 
 import numpy as np
-from sklearn.datasets.base import Bunch
 from sklearn.externals import joblib
 
 from .. import cfg
@@ -10,7 +9,7 @@ from .. import util
 from . import util as dsutil
 
 
-BASE_URL = "http://epileptologie-bonn.de/cms/upload/workgroup/lehnertz/"
+BASE_URL = "https://github.com/mltsp/mltsp-data/raw/master/andrzejak/"
 ZIP_FILES = ["Z.zip", "O.zip", "N.zip", "F.zip", "S.zip"]
 MD5SUMS = {
     "Z.zip": "ca5c761d62704c4d2465822e2131f868",
@@ -36,13 +35,13 @@ def download_andrzejak(data_dir):
 
     Parameters
     ----------
-    data_dir: str
+    data_dir : str
         Path where downloaded data should be stored.
 
     Returns
     -------
-    sklearn.datasets.base.Bunch
-        Dictionary-like object with attributes:
+    dict
+        Dictionary with attributes:
             - times: list of (4096,) arrays of time values
             - measurements: list of (4096,) arrays of measurement values
             - classes: array of class labels for each time series
@@ -50,11 +49,9 @@ def download_andrzejak(data_dir):
             - header: path to header file
     """
     logger.warning("Downloading data from {}".format(BASE_URL))
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
 
     ts_paths = dsutil.download_and_extract_archives(data_dir, BASE_URL,
-                                                      ZIP_FILES, MD5SUMS)
+                                                    ZIP_FILES, MD5SUMS)
 
     # Reformat time series files and add to `andrzejak.tar.gz` archive
     times = []
@@ -80,9 +77,9 @@ def download_andrzejak(data_dir):
     util.remove_files(ts_paths + new_ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
-    data = Bunch(times=times, measurements=measurements,
-                 classes=np.array(classes), archive=archive_path,
-                 header=header_path)
+    data = dict(times=times, measurements=measurements,
+                classes=np.array(classes), archive=archive_path,
+                header=header_path)
     joblib.dump(data, cache_path, compress=3)
     return data
 
@@ -92,14 +89,14 @@ def fetch_andrzejak(data_dir=None):
 
     Parameters
     ----------
-    data_dir: str, optional
+    data_dir : str, optional
         Path where downloaded data should be stored. Defaults to
-        a subdirectory `andrzejak` within `cfg.DATA_PATH`.
+        a subdirectory `datasets/andrzejak` within `cfg.DATA_PATH`.
 
     Returns
     -------
-    sklearn.datasets.base.Bunch
-        Dictionary-like object with attributes:
+    dict
+        Dictionary with attributes:
             - times: list of (4096,) arrays of time values
             - measurements: list of (4096,) arrays of measurement values
             - classes: array of class labels for each time series
@@ -110,12 +107,12 @@ def fetch_andrzejak(data_dir=None):
     ----------
     Andrzejak, Ralph G., et al. "Indications of nonlinear deterministic and
     finite-dimensional structures in time series of brain electrical activity:
-    Dependence on recording region and brain state." Physical Review E 64.6
+    Dependence on recording region and brain state." *Phys. Rev. E* 64.6
     (2001): 061907.
     """
 
     if data_dir is None:
-        data_dir = os.path.join(cfg.DATA_PATH, "andrzejak")
+        data_dir = os.path.join(cfg.DATA_PATH, "datasets/andrzejak")
     cache_path = os.path.join(data_dir, CACHE_NAME)
 
     try:

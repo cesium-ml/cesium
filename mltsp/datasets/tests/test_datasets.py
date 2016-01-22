@@ -19,7 +19,7 @@ try:
 except:
     from io import BytesIO as StringIO
 
- 
+
 def urlpatch(*args):
     try:
         import urllib.request
@@ -66,15 +66,15 @@ def test_fetch_andrzejak(self):
     data_dir = tempfile.mkdtemp()
     andrzejak.MD5SUMS = None
     data = andrzejak.fetch_andrzejak(data_dir)
-    assert(data.archive.endswith('andrzejak.tar.gz')
-           and os.path.exists(data.archive))
-    header = pd.read_csv(data.header)
-    npt.assert_array_equal(header['class'], data.classes)
+    assert(data['archive'].endswith('andrzejak.tar.gz')
+           and os.path.exists(data['archive']))
+    header = pd.read_csv(data['header'])
+    npt.assert_array_equal(header['class'], data['classes'])
     assert(all(len(t) == len(m)
-               for t, m in zip(data.times, data.measurements)))
-    assert(len(data.times) == num_files)
-    assert(len(data.classes) == num_files)
-    assert(all(c in ['Z', 'N', 'O', 'S', 'F'] for c in data.classes))
+               for t, m in zip(data['times'], data['measurements'])))
+    assert(len(data['times']) == num_files)
+    assert(len(data['classes']) == num_files)
+    assert(all(c in ['Z', 'N', 'O', 'S', 'F'] for c in data['classes']))
     shutil.rmtree(data_dir)
 
 
@@ -89,14 +89,15 @@ def test_fetch_asas_training(self):
     data_dir = tempfile.mkdtemp()
     asas_training.MD5SUMS = None
     data = asas_training.fetch_asas_training(data_dir)
-    assert(data.archive.endswith('asas_training_set.tar.gz') 
-           and os.path.exists(data.archive))
-    header = pd.read_csv(data.header)
-    npt.assert_array_equal(header['class'], data.classes)
+    assert(data['archive'].endswith('asas_training_set.tar.gz')
+           and os.path.exists(data['archive']))
+    header = pd.read_csv(data['header'])
+    npt.assert_array_equal(header['class'], data['classes'])
     assert(all(len(t) == len(m) and len(m) == len(e)
-               for t, m, e in zip(data.times, data.measurements, data.errors)))
-    assert(len(data.times) == num_files)
-    assert(len(data.classes) == num_files)
-    assert(len(data.metadata) == num_files)
-    assert(all(c in ['a'] for c in data.classes))
+               for t, m, e in zip(data['times'], data['measurements'],
+                                  data['errors'])))
+    assert(len(data['times']) == num_files)
+    assert(len(data['classes']) == num_files)
+    assert(len(data['metadata']) == num_files)
+    assert(all(c in ['a'] for c in data['classes']))
     shutil.rmtree(data_dir)

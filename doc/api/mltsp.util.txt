@@ -1,0 +1,59 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`util`
+===================
+.. automodule:: mltsp.util
+
+.. currentmodule:: mltsp.util
+.. autosummary::
+
+   mltsp.util.cast_model_params
+   mltsp.util.docker_images_available
+   mltsp.util.extract_data_archive
+   mltsp.util.get_docker_client
+   mltsp.util.is_running_in_docker
+   mltsp.util.make_list
+   mltsp.util.remove_files
+   mltsp.util.shorten_fname
+
+
+cast_model_params
+-----------------
+
+.. autofunction:: mltsp.util.cast_model_params
+
+docker_images_available
+-----------------------
+
+.. autofunction:: mltsp.util.docker_images_available
+
+extract_data_archive
+--------------------
+
+.. autofunction:: mltsp.util.extract_data_archive
+
+get_docker_client
+-----------------
+
+.. autofunction:: mltsp.util.get_docker_client
+
+is_running_in_docker
+--------------------
+
+.. autofunction:: mltsp.util.is_running_in_docker
+
+make_list
+---------
+
+.. autofunction:: mltsp.util.make_list
+
+remove_files
+------------
+
+.. autofunction:: mltsp.util.remove_files
+
+shorten_fname
+-------------
+
+.. autofunction:: mltsp.util.shorten_fname
+

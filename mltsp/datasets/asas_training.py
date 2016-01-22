@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 import pandas as pd
-from sklearn.datasets.base import Bunch
 from sklearn.externals import joblib
 
 from .. import cfg
@@ -13,7 +12,7 @@ from . import util as dsutil
 
 
 # TODO replace with real host
-BASE_URL = "https://github.com/mltsp/mltsp/raw/master/mltsp/data/sample_data/"
+BASE_URL = "https://github.com/mltsp/mltsp-data/raw/master/asas_training/"
 MD5SUMS = {"asas_training_set.tar.gz": "02c65e90d23999ec1c59ad56a78de477"}
 ARCHIVE_NAME = "asas_training_set.tar.gz"
 HEADER_FILE = "asas_training_set_classes_with_metadata.dat"
@@ -37,8 +36,8 @@ def download_asas_training(data_dir):
 
     Returns
     -------
-    sklearn.datasets.base.Bunch
-        Dictionary-like object with attributes:
+    dict
+        Dictionary with attributes:
             - times: list of arrays of time values
             - measurements: list of arrays of measurement values
             - errors: list of arrays of error values
@@ -48,8 +47,6 @@ def download_asas_training(data_dir):
             - header: path to header file
     """
     logger.warning("Downloading data from {}".format(BASE_URL))
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
 
     header_path = dsutil.download_file(data_dir, BASE_URL, HEADER_FILE)
     ts_paths = dsutil.download_and_extract_archives(data_dir, BASE_URL,
@@ -72,9 +69,9 @@ def download_asas_training(data_dir):
     classes, metadata = featurize_tools.parse_headerfile(header_path, ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
-    data = Bunch(times=times, measurements=measurements, errors=errors,
-                 classes=classes, metadata=metadata, archive=archive_path,
-                 header=header_path)
+    data = dict(times=times, measurements=measurements, errors=errors,
+                classes=classes, metadata=metadata, archive=archive_path,
+                header=header_path)
     joblib.dump(data, cache_path, compress=3)
     return data
 
@@ -86,12 +83,12 @@ def fetch_asas_training(data_dir=None):
     ----------
     data_dir: str, optional
         Path where downloaded data should be stored. Defaults to
-        a subdirectory `asas_training` within `cfg.DATA_PATH`.
+        a subdirectory `datasets/asas_training` within `cfg.DATA_PATH`.
 
     Returns
     -------
-    sklearn.datasets.base.Bunch
-        Dictionary-like object with attributes:
+    dict
+        Dictionary attributes:
             - times: list of arrays of time values
             - measurements: list of arrays of measurement values
             - errors: list of arrays of error values
@@ -109,7 +106,7 @@ def fetch_asas_training(data_dir=None):
     """
 
     if data_dir is None:
-        data_dir = os.path.join(cfg.DATA_PATH, "asas_training")
+        data_dir = os.path.join(cfg.DATA_PATH, "datasets/asas_training")
     cache_path = os.path.join(data_dir, CACHE_NAME)
 
     try:

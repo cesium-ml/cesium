@@ -338,7 +338,7 @@ module = sys.modules[package]
 
 outdir = 'api'
 # Unlike skimage, for now we just manually specify which files to inspect
-modules = ['mltsp', 'mltsp.featurize', #'mltsp.custom_feature_tools',
+modules = ['mltsp', 'mltsp.datasets', 'mltsp.featurize', #'mltsp.custom_feature_tools',
            'mltsp.obs_feature_tools', 'mltsp.science_feature_tools',
            'mltsp.science_features', 'mltsp.build_model', 'mltsp.predict',
            'mltsp.util']

@@ -1,0 +1,29 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`build_model`
+==========================
+.. automodule:: mltsp.build_model
+
+.. currentmodule:: mltsp.build_model
+.. autosummary::
+
+   mltsp.build_model.build_model_from_featureset
+   mltsp.build_model.create_and_pickle_model
+   mltsp.build_model.rectangularize_featureset
+
+
+build_model_from_featureset
+---------------------------
+
+.. autofunction:: mltsp.build_model.build_model_from_featureset
+
+create_and_pickle_model
+-----------------------
+
+.. autofunction:: mltsp.build_model.create_and_pickle_model
+
+rectangularize_featureset
+-------------------------
+
+.. autofunction:: mltsp.build_model.rectangularize_featureset
+
