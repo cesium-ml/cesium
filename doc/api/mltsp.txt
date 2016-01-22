@@ -1,0 +1,17 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`mltsp`
+============
+.. automodule:: mltsp
+
+.. currentmodule:: mltsp
+.. autosummary::
+
+   mltsp.install
+
+
+install
+-------
+
+.. autofunction:: mltsp.install
+

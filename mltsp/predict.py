@@ -97,7 +97,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
 
     """
     if tarfile.is_tarfile(newpred_path) or zipfile.is_zipfile(newpred_path):
-        ts_paths = ft.extract_data_archive(newpred_path)
+        ts_paths = util.extract_data_archive(newpred_path)
     else:
         ts_paths = [newpred_path]
     all_ts_data = {util.shorten_fname(ts_path): ft.parse_ts_data(ts_path)

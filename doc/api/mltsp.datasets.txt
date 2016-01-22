@@ -1,0 +1,23 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`datasets`
+=======================
+.. automodule:: mltsp.datasets
+
+.. currentmodule:: mltsp.datasets
+.. autosummary::
+
+   mltsp.datasets.fetch_andrzejak
+   mltsp.datasets.fetch_asas_training
+
+
+fetch_andrzejak
+---------------
+
+.. autofunction:: mltsp.datasets.fetch_andrzejak
+
+fetch_asas_training
+-------------------
+
+.. autofunction:: mltsp.datasets.fetch_asas_training
+

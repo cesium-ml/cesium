@@ -1,0 +1,281 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+Module: :mod:`science_features`
+===============================
+.. automodule:: mltsp.science_features
+
+.. currentmodule:: mltsp.science_features
+.. autosummary::
+
+   mltsp.science_features.amplitude
+   mltsp.science_features.flux_percentile_ratio
+   mltsp.science_features.get_fold2P_slope_percentile
+   mltsp.science_features.get_lomb_amplitude
+   mltsp.science_features.get_lomb_amplitude_ratio
+   mltsp.science_features.get_lomb_frequency
+   mltsp.science_features.get_lomb_frequency_ratio
+   mltsp.science_features.get_lomb_lambda
+   mltsp.science_features.get_lomb_rel_phase
+   mltsp.science_features.get_lomb_signif
+   mltsp.science_features.get_lomb_signif_ratio
+   mltsp.science_features.get_lomb_trend
+   mltsp.science_features.get_lomb_varrat
+   mltsp.science_features.get_lomb_y_offset
+   mltsp.science_features.get_max_delta_mags
+   mltsp.science_features.get_medperc90_2p_p
+   mltsp.science_features.get_min_delta_mags
+   mltsp.science_features.get_model_phi1_phi2
+   mltsp.science_features.get_p2p_scatter_2praw
+   mltsp.science_features.get_p2p_scatter_over_mad
+   mltsp.science_features.get_p2p_scatter_pfold_over_mad
+   mltsp.science_features.get_p2p_ssqr_diff_over_var
+   mltsp.science_features.get_qso_log_chi2_qsonu
+   mltsp.science_features.get_qso_log_chi2nuNULL_chi2nu
+   mltsp.science_features.lomb_scargle_model
+   mltsp.science_features.max_slope
+   mltsp.science_features.maximum
+   mltsp.science_features.median
+   mltsp.science_features.median_absolute_deviation
+   mltsp.science_features.minimum
+   mltsp.science_features.num_alias
+   mltsp.science_features.p2p_model
+   mltsp.science_features.percent_amplitude
+   mltsp.science_features.percent_beyond_1_std
+   mltsp.science_features.percent_close_to_median
+   mltsp.science_features.percent_difference_flux_percentile
+   mltsp.science_features.period_folding
+   mltsp.science_features.periodic_model
+   mltsp.science_features.qso_fit
+   mltsp.science_features.scatter_res_raw
+   mltsp.science_features.skew
+   mltsp.science_features.std
+   mltsp.science_features.stetson_j
+   mltsp.science_features.stetson_k
+   mltsp.science_features.weighted_average
+
+
+amplitude
+---------
+
+.. autofunction:: mltsp.science_features.amplitude
+
+flux_percentile_ratio
+---------------------
+
+.. autofunction:: mltsp.science_features.flux_percentile_ratio
+
+get_fold2P_slope_percentile
+---------------------------
+
+.. autofunction:: mltsp.science_features.get_fold2P_slope_percentile
+
+get_lomb_amplitude
+------------------
+
+.. autofunction:: mltsp.science_features.get_lomb_amplitude
+
+get_lomb_amplitude_ratio
+------------------------
+
+.. autofunction:: mltsp.science_features.get_lomb_amplitude_ratio
+
+get_lomb_frequency
+------------------
+
+.. autofunction:: mltsp.science_features.get_lomb_frequency
+
+get_lomb_frequency_ratio
+------------------------
+
+.. autofunction:: mltsp.science_features.get_lomb_frequency_ratio
+
+get_lomb_lambda
+---------------
+
+.. autofunction:: mltsp.science_features.get_lomb_lambda
+
+get_lomb_rel_phase
+------------------
+
+.. autofunction:: mltsp.science_features.get_lomb_rel_phase
+
+get_lomb_signif
+---------------
+
+.. autofunction:: mltsp.science_features.get_lomb_signif
+
+get_lomb_signif_ratio
+---------------------
+
+.. autofunction:: mltsp.science_features.get_lomb_signif_ratio
+
+get_lomb_trend
+--------------
+
+.. autofunction:: mltsp.science_features.get_lomb_trend
+
+get_lomb_varrat
+---------------
+
+.. autofunction:: mltsp.science_features.get_lomb_varrat
+
+get_lomb_y_offset
+-----------------
+
+.. autofunction:: mltsp.science_features.get_lomb_y_offset
+
+get_max_delta_mags
+------------------
+
+.. autofunction:: mltsp.science_features.get_max_delta_mags
+
+get_medperc90_2p_p
+------------------
+
+.. autofunction:: mltsp.science_features.get_medperc90_2p_p
+
+get_min_delta_mags
+------------------
+
+.. autofunction:: mltsp.science_features.get_min_delta_mags
+
+get_model_phi1_phi2
+-------------------
+
+.. autofunction:: mltsp.science_features.get_model_phi1_phi2
+
+get_p2p_scatter_2praw
+---------------------
+
+.. autofunction:: mltsp.science_features.get_p2p_scatter_2praw
+
+get_p2p_scatter_over_mad
+------------------------
+
+.. autofunction:: mltsp.science_features.get_p2p_scatter_over_mad
+
+get_p2p_scatter_pfold_over_mad
+------------------------------
+
+.. autofunction:: mltsp.science_features.get_p2p_scatter_pfold_over_mad
+
+get_p2p_ssqr_diff_over_var
+--------------------------
+
+.. autofunction:: mltsp.science_features.get_p2p_ssqr_diff_over_var
+
+get_qso_log_chi2_qsonu
+----------------------
+
+.. autofunction:: mltsp.science_features.get_qso_log_chi2_qsonu
+
+get_qso_log_chi2nuNULL_chi2nu
+-----------------------------
+
+.. autofunction:: mltsp.science_features.get_qso_log_chi2nuNULL_chi2nu
+
+lomb_scargle_model
+------------------
+
+.. autofunction:: mltsp.science_features.lomb_scargle_model
+
+max_slope
+---------
+
+.. autofunction:: mltsp.science_features.max_slope
+
+maximum
+-------
+
+.. autofunction:: mltsp.science_features.maximum
+
+median
+------
+
+.. autofunction:: mltsp.science_features.median
+
+median_absolute_deviation
+-------------------------
+
+.. autofunction:: mltsp.science_features.median_absolute_deviation
+
+minimum
+-------
+
+.. autofunction:: mltsp.science_features.minimum
+
+num_alias
+---------
+
+.. autofunction:: mltsp.science_features.num_alias
+
+p2p_model
+---------
+
+.. autofunction:: mltsp.science_features.p2p_model
+
+percent_amplitude
+-----------------
+
+.. autofunction:: mltsp.science_features.percent_amplitude
+
+percent_beyond_1_std
+--------------------
+
+.. autofunction:: mltsp.science_features.percent_beyond_1_std
+
+percent_close_to_median
+-----------------------
+
+.. autofunction:: mltsp.science_features.percent_close_to_median
+
+percent_difference_flux_percentile
+----------------------------------
+
+.. autofunction:: mltsp.science_features.percent_difference_flux_percentile
+
+period_folding
+--------------
+
+.. autofunction:: mltsp.science_features.period_folding
+
+periodic_model
+--------------
+
+.. autofunction:: mltsp.science_features.periodic_model
+
+qso_fit
+-------
+
+.. autofunction:: mltsp.science_features.qso_fit
+
+scatter_res_raw
+---------------
+
+.. autofunction:: mltsp.science_features.scatter_res_raw
+
+skew
+----
+
+.. autofunction:: mltsp.science_features.skew
+
+std
+---
+
+.. autofunction:: mltsp.science_features.std
+
+stetson_j
+---------
+
+.. autofunction:: mltsp.science_features.stetson_j
+
+stetson_k
+---------
+
+.. autofunction:: mltsp.science_features.stetson_k
+
+weighted_average
+----------------
+
+.. autofunction:: mltsp.science_features.weighted_average
+
