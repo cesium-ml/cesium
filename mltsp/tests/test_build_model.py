@@ -123,10 +123,11 @@ def test_fit_existing_model_optimize():
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_10_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
-    model_options = {"n_estimators": [10, 50, 100], "criterion": "gini",
-                     "min_samples_split": [2, 5],
-                     "max_features": ["auto", 3], "bootstrap": True}
-    params_to_optimize = ["n_estimators", "min_samples_split", "max_features"]
+    model_options = {"criterion": "gini",
+                     "bootstrap": True}
+    params_to_optimize = {"n_estimators": [10, 50, 100],
+                          "min_samples_split": [2, 5],
+                          "max_features": ["auto", 3]}
     model = build_model.build_model_from_featureset(
         featureset, model=model, model_options=model_options,
         params_to_optimize=params_to_optimize)
@@ -141,15 +142,16 @@ def test_fit_optimize():
     """Test hypeparameter optimization"""
     featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_10_featureset.nc"))
-    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
+    model_options = {"criterion": "gini",
+                     "bootstrap": True}
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']\
+            (**model_options)
     feature_df = build_model.rectangularize_featureset(featureset)
-    model_options = {"n_estimators": [10, 50, 100], "criterion": "gini",
-                     "min_samples_split": [2, 5],
-                     "max_features": ["auto", 3], "bootstrap": True}
-    params_to_optimize = ["n_estimators", "min_samples_split", "max_features"]
+    params_to_optimize = {"n_estimators": [10, 50, 100],
+                          "min_samples_split": [2, 5],
+                          "max_features": ["auto", 3]}
     model = build_model.fit_model_optimize_hyperparams(
-        feature_df, featureset['target'], model, model_options,
-        params_to_optimize)
+        feature_df, featureset['target'], model, params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
     assert isinstance(model, GridSearchCV)
@@ -159,10 +161,9 @@ def test_fit_optimize():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_build_model_lin_class_optimize():
     """Test main model building method - linear classifier - w/ optimization"""
-    model_options = {"alpha": [0.1, 0.001, 0.0001, 0.0000001],
-                     "epsilon": [0.001, 0.01, 0.1, 0.5],
-                     "learning_rate": "optimal"}
-    params_to_optimize = ["alpha", "epsilon"]
+    model_options = {"learning_rate": "optimal"}
+    params_to_optimize = {"alpha": [0.1, 0.001, 0.0001, 0.0000001],
+                          "epsilon": [0.001, 0.01, 0.1, 0.5]}
     build_model.create_and_pickle_model("test_10", "LinearSGDClassifier",
                                         "test_10", model_options,
                                         params_to_optimize)

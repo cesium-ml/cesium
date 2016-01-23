@@ -32,8 +32,7 @@ def rectangularize_featureset(featureset):
     return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
-def fit_model_optimize_hyperparams(data, targets, model, model_params,
-                                   params_to_optimize):
+def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize):
     """Optimize estimator hyperparameters.
 
     Perform hyperparamter optimization using
@@ -47,29 +46,16 @@ def fit_model_optimize_hyperparams(data, targets, model, model_params,
         Targets corresponding to feature vectors in `data`.
     model : sklearn estimator object
         The model/estimator whose hyperparameters are to be optimized.
-    model_params : dict or list of dict
-        Dictionary with parameter names as keys and lists of parameter values
-        to try as values, or a list of such dictionaries.
-    params_to_optimize : list of str
-        List of parameter names to be optimized.
+    params_to_optimize : dict or list of dict
+        Dictionary with parameter names as keys and lists of values to try
+        as values, or a list of such dictionaries.
 
     Returns
     -------
     `sklearn.grid_search.GridSearchCV` estimator object
 
     """
-    # To fit with fixed, non-optimized params, must be wrapped in list
-    if isinstance(model_params, dict):
-        for k, v in model_params.items():
-            if k not in params_to_optimize:
-                model_params[k] = [model_params[k]]
-    elif isinstance(model_params, list):
-        for i in range(len(model_params)):
-            for k, v in model_params[i].items():
-                if k not in params_to_optimize:
-                    model_params[i][k] = [model_params[i][k]]
-
-    optimized_model = grid_search.GridSearchCV(model, model_params)
+    optimized_model = grid_search.GridSearchCV(model, params_to_optimize)
     optimized_model.fit(data, targets)
     return optimized_model
 
@@ -79,17 +65,13 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
     """Build model from (non-rectangular) xarray.Dataset of features."""
     if model is None:
         if model_type:
-            if not params_to_optimize:
-                model = MODELS_TYPE_DICT[model_type](**model_options)
-            else:
-                model = MODELS_TYPE_DICT[model_type]()
+            model = MODELS_TYPE_DICT[model_type](**model_options)
         else:
             raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
     if params_to_optimize:
         model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
-                                               model, model_options,
-                                               params_to_optimize)
+                                               model, params_to_optimize)
     else:
         model.fit(feature_df, featureset['target'])
     return model
@@ -116,10 +98,9 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
         Abbreviation of the type of model to be created.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
-    params_to_optimize : list of str, optional
-        List of estimator parameter names on which to perform grid search
-        optimization. Corresponding entries in `model_options` must be lists
-        of potential parameter values to try. Defaults to None.
+    params_to_optimize : dict or list of dict, optional
+        Dictionary with parameter names as keys and lists of values to try
+        as values, or a list of such dictionaries. Defaults to None.
 
     Returns
     -------
