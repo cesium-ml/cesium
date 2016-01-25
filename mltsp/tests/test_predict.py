@@ -170,8 +170,8 @@ def test_predict_optimized_model():
     """Test main predict function (classification) w/ optimized model"""
     build_model.create_and_pickle_model('test_10', "RandomForestClassifier",
                                         'test_10',
-                                        {"n_estimators": [10, 50, 100]},
-                                        ["n_estimators"])
+                                        {},
+                                        {"n_estimators": [10, 50, 100]})
     pred_results_dict = predict.predict_data_file(
                             pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
                             'test_10', "RandomForestClassifier", 'test_10',

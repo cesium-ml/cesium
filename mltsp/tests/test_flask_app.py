@@ -2268,8 +2268,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                project_name="abc123",
                                featureset_name="TEMP_TEST10",
                                model_type="RandomForestClassifier",
-                               model_params={"n_estimators": [10, 50, 100]},
-                               params_to_optimize=["n_estimators"])
+                               model_params={},
+                               params_to_optimize={"n_estimators":
+                                                   [10, 50, 100]})
             res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
