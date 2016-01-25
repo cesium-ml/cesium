@@ -114,9 +114,9 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
         Dictionary whose keys are model parameter names and values are
         string representations of corresponding values, which will be cast
         to desired types in place, as specified in `sklearn_models` module.
-    params_to_optimize : list of str, optional
-        List of parameter names that are formatted for hyperparameter
-        optimization.
+    params_to_optimize : dict, optional
+        Dictionary with parameter names as keys and lists of values to try
+        as values. Defaults to None.
 
     """
     from .ext.sklearn_models import model_descriptions
@@ -145,11 +145,7 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
             if dest_type is not str:
                 try:
                     if isinstance(ast.literal_eval(model_params[k]),
-                                  dest_type) or \
-                        (params_to_optimize and k in params_to_optimize and \
-                         isinstance(ast.literal_eval(model_params[k]), list) \
-                         and all(type(x) in dest_types_list for x in \
-                                 ast.literal_eval(model_params[k]))):
+                                  dest_type):
                         model_params[k] = ast.literal_eval(model_params[k])
                         break
                 except ValueError:
@@ -157,6 +153,30 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
         if isinstance(model_params[k], str) and str not in dest_types_list:
             raise ValueError("Model parameter cannot be cast to expected "
                              "type.")
+    if params_to_optimize:
+        for k, v in params_to_optimize.items():
+            # Find relevant parameter description
+            for p in params_list:
+                if p["name"] == k:
+                    param_entry = p
+                    break
+            dest_types_list = make_list(param_entry["type"])
+            for dest_type in dest_types_list:
+                if dest_type is not str:
+                    try:
+                        if isinstance(ast.literal_eval(params_to_optimize[k]),
+                                      list) and \
+                                all(type(x) in dest_types_list for x in \
+                                    ast.literal_eval(params_to_optimize[k])):
+                            params_to_optimize[k] = ast.literal_eval(
+                                params_to_optimize[k])
+                            break
+                    except ValueError:
+                        pass
+            if isinstance(params_to_optimize[k], str) and \
+               str not in dest_types_list:
+                raise ValueError("Model parameter cannot be cast to expected "
+                                 "type.")
 
 
 def remove_files(paths):

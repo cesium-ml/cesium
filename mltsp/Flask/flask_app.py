@@ -2843,11 +2843,16 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
                            .split(" (created")[0].strip())
         model_type = str(request.form['model_type_select'])
+        params_to_optimize_list = request.form.getlist("optimize_checkbox")
         model_params = {}
+        params_to_optimize = {}
         for k in request.form:
             if k.startswith(model_type + "_"):
-                model_params[k.replace(model_type + "_", "")] = request.form[k]
-        params_to_optimize = request.form.getlist("optimize_checkbox")
+                param_name = k.replace(model_type + "_", "")
+                if param_name in params_to_optimize_list:
+                    params_to_optimize[param_name] = request.form[k]
+                else:
+                    model_params[param_name] = request.form[k]
         util.cast_model_params(model_type, model_params, params_to_optimize)
     else:
         post_method = "http_api"

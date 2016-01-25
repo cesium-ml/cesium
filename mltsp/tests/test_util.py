@@ -88,10 +88,10 @@ def test_cast_model_params():
 
     # Test parameter grid for optimization input
     model_type = "RandomForestClassifier"
-    params = {"max_features": "[150.3, 20, 'auto']"}
+    params_to_optimize = {"max_features": "[150.3, 20, 'auto']"}
     expected = {"max_features": [150.3, 20, "auto"]}
-    util.cast_model_params(model_type, params, ["max_features"])
-    npt.assert_equal(params, expected)
+    util.cast_model_params(model_type, {}, params_to_optimize)
+    npt.assert_equal(params_to_optimize, expected)
 
 
 def test_make_list():
