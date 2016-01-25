@@ -164,17 +164,17 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
             for dest_type in dest_types_list:
                 if dest_type is not str:
                     try:
-                        if isinstance(ast.literal_eval(params_to_optimize[k]),
-                                      list) and \
-                                all(type(x) in dest_types_list for x in \
-                                    ast.literal_eval(params_to_optimize[k])):
+                        if (isinstance(ast.literal_eval(params_to_optimize[k]),
+                                      list) and 
+                            all(type(x) in dest_types_list for x in 
+                                ast.literal_eval(params_to_optimize[k]))):
                             params_to_optimize[k] = ast.literal_eval(
                                 params_to_optimize[k])
                             break
                     except ValueError:
                         pass
-            if isinstance(params_to_optimize[k], str) and \
-               str not in dest_types_list:
+            if (isinstance(params_to_optimize[k], str) and 
+                str not in dest_types_list):
                 raise ValueError("Model parameter cannot be cast to expected "
                                  "type.")
 
