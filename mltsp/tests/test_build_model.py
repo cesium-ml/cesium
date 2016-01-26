@@ -120,7 +120,7 @@ def test_fit_existing_model():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
-    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_10_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model_options = {"criterion": "gini",
@@ -140,7 +140,7 @@ def test_fit_existing_model_optimize():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_fit_optimize():
     """Test hypeparameter optimization"""
-    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_10_featureset.nc"))
     model_options = {"criterion": "gini",
                      "bootstrap": True}
