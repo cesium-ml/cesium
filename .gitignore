@@ -19,3 +19,4 @@ dist
 .eggs
 .coverage
 MANIFEST
+.ipynb_checkpoints
