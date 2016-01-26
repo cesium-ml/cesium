@@ -61,7 +61,7 @@ conda install numpy scipy pandas scikit-learn cython dask xray
 
 ## Testing
 ### Back-end
-- `pip install nose nose-exclude`
+- `pip install nose nose-exclude mock`
 - `make test_backend`
 
 ### Front-end

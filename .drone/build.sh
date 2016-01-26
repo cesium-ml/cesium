@@ -16,7 +16,7 @@ virtualenv /envs/python2.7 -p python2.7
 source /envs/python2.7/bin/activate
 
 echo "[Drone] Installing base requirements"
-pip install --upgrade pip requests six python-dateutil nose nose-exclude
+pip install --upgrade pip requests six python-dateutil nose nose-exclude mock
 hash -d pip  # find upgraded pip
 
 echo "[Drone] Build HTML documentation"
