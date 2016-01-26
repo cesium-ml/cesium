@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 import os
 import dask.async
+from mltsp import cfg
 from mltsp import custom_exceptions
 from mltsp import util
 from mltsp import obs_feature_tools as oft
@@ -156,15 +157,28 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
 
 
 def parse_ts_data(filepath, sep=","):
-    """Parses time series data file and returns np.ndarray with 1-3 columns."""
+    """Parses time series data file and returns np.ndarray with 3 columns:
+       - For data containing three columns (time, measurement, error), all three are
+         returned 
+       - For data containing two columns, a dummy error column is added with
+         value `cfg.DEFAULT_ERROR_VALUE`
+       - For data containing one column, a time column is also added with
+         values evenly spaced from 0 to `cfg.DEFAULT_MAX_TIME`
+         """
     with open(filepath) as f:
-        ts_data = np.loadtxt(f, delimiter=sep)
+        ts_data = np.loadtxt(f, delimiter=sep, ndmin=2)
     ts_data = ts_data[:, :3]  # Only using T, M, E
-    for row in ts_data:
-        if len(row) < 2:
-            raise custom_exceptions.DataFormatError(
-                "Incomplete or improperly formatted time "
-                "series data file provided.")
+    if ts_data.shape[1] == 0:
+        raise custom_exceptions.DataFormatError("""Incomplete or improperly
+                                                formatted time series data file
+                                                provided.""")
+    elif ts_data.shape[1] == 1:
+        ts_data = np.c_[np.linspace(0, cfg.DEFAULT_MAX_TIME, len(ts_data)),
+                        ts_data,
+                        np.repeat(cfg.DEFAULT_ERROR_VALUE, len(ts_data))]
+    elif ts_data.shape[1] == 2:
+        ts_data = np.c_[ts_data,
+                        np.repeat(cfg.DEFAULT_ERROR_VALUE, len(ts_data))]
     return ts_data.T
 
 
