@@ -6,7 +6,7 @@ import os
 from os.path import join as pjoin
 import shutil
 import numpy as np
-import xray
+import xarray as xr
 import sklearn.base
 
 
@@ -56,7 +56,7 @@ def remove_test_data():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_model_predictions():
     """Test inner model prediction function"""
-    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          'test_featureset.nc'))
     model = build_model.build_model_from_featureset(
         featureset, model_type='Random Forest Classifier')

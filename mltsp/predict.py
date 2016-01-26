@@ -2,7 +2,7 @@ from sklearn.externals import joblib
 from sklearn.base import ClassifierMixin, RegressorMixin
 import os
 import pandas as pd
-import xray
+import xarray as xr
 import tarfile
 import zipfile
 from . import build_model
@@ -17,7 +17,7 @@ def model_predictions(featureset, model, return_probs=True):
 
     Parameters
     ----------
-    featureset : xray.Dataset
+    featureset : xarray.Dataset
         Dataset containing feature values for which predictions are desired
     model : scikit-learn model
         Fitted scikit-learn model to be used to generate predictions
@@ -105,7 +105,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
 
     featureset_path = os.path.join(cfg.FEATURES_FOLDER,
                                    '{}_featureset.nc'.format(featureset_key))
-    featureset = xray.open_dataset(featureset_path)
+    featureset = xr.open_dataset(featureset_path)
     features_to_use = list(featureset.data_vars)
     new_featureset = featurize.featurize_data_file(newpred_path, metadata_path,
                                                    features_to_use=features_to_use,

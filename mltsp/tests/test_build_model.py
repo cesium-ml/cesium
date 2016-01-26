@@ -5,7 +5,7 @@ import os
 from os.path import join as pjoin
 from sklearn.externals import joblib
 import shutil
-import xray
+import xarray as xr
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -103,7 +103,7 @@ def test_build_model_ard_reg():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_fit_existing_model():
     """Test model building helper function."""
-    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['Random Forest Classifier']()
     model = build_model.build_model_from_featureset(featureset, model)

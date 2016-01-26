@@ -1,5 +1,5 @@
 import os
-import xray
+import xarray as xr
 from . import cfg
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
@@ -17,7 +17,7 @@ MODELS_TYPE_DICT = {'Random Forest Classifier': RandomForestClassifier,
 
 
 def rectangularize_featureset(featureset):
-    """Convert xray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
+    """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
     featureset = featureset.drop([coord for coord in ['target', 'class']
                                   if coord in featureset])
     feature_df = featureset.to_dataframe()
@@ -33,7 +33,7 @@ def rectangularize_featureset(featureset):
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
                                 model_options={}):
-    """Build model from (non-rectangular) xray.Dataset of features."""
+    """Build model from (non-rectangular) xarray.Dataset of features."""
     if model is None:
         if model_type:
             model = MODELS_TYPE_DICT[model_type](**model_options)
@@ -75,7 +75,7 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
 
     featureset_path = os.path.join(cfg.FEATURES_FOLDER,
                                    '{}_featureset.nc'.format(featureset_key))
-    featureset = xray.open_dataset(featureset_path)
+    featureset = xr.open_dataset(featureset_path)
 
     model = build_model_from_featureset(featureset, model_type=model_type,
                                         model_options=model_options)
