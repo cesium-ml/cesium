@@ -7,7 +7,7 @@ import os
 from os.path import join as pjoin
 import shutil
 import numpy as np
-import xray
+import xarray as xr
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -61,7 +61,7 @@ def test_headerfile_parser():
 
 
 def sample_featureset():
-    ds = xray.Dataset({'f1': ('name', [21.0, 23.4]),
+    ds = xr.Dataset({'f1': ('name', [21.0, 23.4]),
                        'f2': ('name', [0.15, 2.31])},
                       coords={'target': ['c1', 'c2']})
     return ds
@@ -81,7 +81,7 @@ def sample_time_series(size=51, channels=1):
 def test_write_features_to_disk():
     """Test writing features to disk"""
     featurize.write_features_to_disk(sample_featureset(), "test")
-    featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                          "test_featureset.nc"))
     npt.assert_equal(sorted(featureset.data_vars), ['f1', 'f2'])
     npt.assert_equal(sorted(featureset.coords), ['name', 'target'])

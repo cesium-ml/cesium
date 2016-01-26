@@ -1,4 +1,3 @@
-import mock
 import os
 import shutil
 import tempfile
@@ -18,6 +17,10 @@ try:
     from cStringIO import StringIO
 except:
     from io import BytesIO as StringIO
+try:
+    import mock
+except:
+    import unittest.mock as mock
 
 
 def urlpatch(*args):

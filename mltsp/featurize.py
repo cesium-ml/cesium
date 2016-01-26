@@ -11,7 +11,7 @@ from . import featurize_tools as ft
 
 
 def write_features_to_disk(featureset, featureset_id):
-    """Store xray.Dataset of features as netCDF using given featureset key."""
+    """Store xarray.Dataset of features as netCDF using given featureset key."""
     featureset_path = os.path.join(cfg.FEATURES_FOLDER,
                                    "{}_featureset.nc".format(featureset_id))
     featureset.to_netcdf(featureset_path)
@@ -19,7 +19,7 @@ def write_features_to_disk(featureset, featureset_id):
 
 def load_and_store_feature_data(features_path, featureset_id="unknown",
                                 first_N=None):
-    """Read features from CSV file and store as xray.Dataset."""
+    """Read features from CSV file and store as xarray.Dataset."""
     targets, metadata = ft.parse_headerfile(features_path)
     if first_N:
         metadata = metadata[:first_N]
@@ -53,7 +53,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     where each line contains either pairs (time, value) or triples (time,
     value, error).
 
-    If `featureset_id` is provided, Features are saved as an xray.Dataset in
+    If `featureset_id` is provided, Features are saved as an xarray.Dataset in
     netCDF format to the file ``"%s_featureset.nc" % featureset_id`` in the
     directory `cfg.FEATURES_FOLDER`.
 
@@ -81,7 +81,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     Returns
     -------
-    xray.Dataset
+    xarray.Dataset
         Featureset with `data_vars` containing feature values, and `coords`
         containing filenames and targets (if applicable).
 
@@ -153,8 +153,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
           multichannel data with different time values per channel)
 
     In the case of multichannel measurements, each channel will be
-    featurized separately, and the data variables of the output `xray.Dataset`
-    will be indexed by a `channel` coordinate.
+    featurized separately, and the data variables of the output
+    `xarray.Dataset` will be indexed by a `channel` coordinate.
 
     Parameters
     ----------
@@ -179,14 +179,14 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     targets : str/float or array-like, optional
         Target or sequence of targets, one per time series (if applicable);
         will be stored in the `target` coordinate of the resulting
-        `xray.Dataset`.
+        `xarray.Dataset`.
     meta_features : dict/Pandas.Series or list of dicts/Pandas.DataFrame
         dict/Series (for a single time series) or DataFrame (for multiple time
         series) of metafeature information; features are added to the output
         featureset, and their values are consumable by custom feature scripts.
     labels : str or list of str, optional
         Label or list of labels for each time series, if applicable; will be
-        stored in the `name` coordinate of the resulting `xray.Dataset`.
+        stored in the `name` coordinate of the resulting `xarray.Dataset`.
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
@@ -201,7 +201,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     Returns
     -------
-    xray.Dataset
+    xarray.Dataset
         Featureset with `data_vars` containing feature values and `coords`
         containing labels (`name`) and targets (`target`), if applicable.
     """

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import xray
+import xarray as xr
 import os
 import dask.async
 from mltsp import custom_exceptions
@@ -115,7 +115,7 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
 
 def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
     """Transforms raw feature data (as returned by `featurize_single_ts`) into
-    an xray.Dataset.
+    an xarray.Dataset.
 
     Parameters
     ----------
@@ -124,16 +124,16 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
         lists of feature values (one per channel) as values.
 
     targets : list or pandas.Series, optional
-        If provided, the `target` coordinate of the featureset xray.Dataset
+        If provided, the `target` coordinate of the featureset xarray.Dataset
         will be set accordingly.
 
     metadata : pandas.DataFrame, optional
         If provided, the columns of `metadata` will be added as data variables
-        to the featureset xray.Dataset.
+        to the featureset xarray.Dataset.
 
     Returns
     -------
-    xray.Dataset
+    xarray.Dataset
         Featureset with `data_vars` containing feature values, and `coords`
         containing filenames and targets (if applicable).
 
@@ -147,11 +147,11 @@ def assemble_featureset(feature_dicts, targets=None, metadata=None, names=None):
         combined_feature_dict.update({feature: (['name'],
                                                 metadata[feature].values)
                                       for feature in metadata.columns})
-    featureset = xray.Dataset(combined_feature_dict)
+    featureset = xr.Dataset(combined_feature_dict)
     if names is not None:
-        featureset.coords['name'] = (('name'), names)
+        featureset.coords['name'] = ('name', np.array(names))
     if targets is not None:
-        featureset.coords['target'] = (('name'), targets)
+        featureset.coords['target'] = ('name', np.array(targets))
     return featureset
 
 

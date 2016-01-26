@@ -13,11 +13,11 @@ The MLTSP library has the following dependencies:
 - [scikit-learn](http://scikit-learn.org/)
 - [cython](http://cython.org/)
 - [dask](http://dask.pydata.org/)
-- [xray](http://xray.readthedocs.org/)
+- [xarray](http://xarray.pydata.org/)
 
 The easiest way to install the necessary dependencies is using `conda`:
 ```
-conda install numpy scipy pandas scikit-learn cython dask xray
+conda install numpy scipy pandas scikit-learn cython dask xarray
 ```
 
 The `mltsp` library is compatible with both Python 2 and 3. 
@@ -26,7 +26,7 @@ The `mltsp` library is compatible with both Python 2 and 3.
 
 * Install the library dependencies above:
 ```
-conda install numpy scipy pandas scikit-learn cython dask xray
+conda install numpy scipy pandas scikit-learn cython dask xarray
 ```
 
 * Install [RabbitMQ](https://www.rabbitmq.com/download.html)
@@ -61,7 +61,7 @@ conda install numpy scipy pandas scikit-learn cython dask xray
 
 ## Testing
 ### Back-end
-- `pip install nose nose-exclude`
+- `pip install nose nose-exclude mock`
 - `make test_backend`
 
 ### Front-end

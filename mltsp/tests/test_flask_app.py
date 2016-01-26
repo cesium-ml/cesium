@@ -16,7 +16,7 @@ import time
 import json
 import shutil
 import pandas as pd
-import xray
+import xarray as xr
 from sklearn.externals import joblib
 
 DATA_DIR = pjoin(os.path.dirname(__file__), "data")
@@ -1459,7 +1459,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
                                         "TEST01_featureset.nc")))
             assert("results_msg" in entry)
-            featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "TEST01_featureset.nc"))
             assert("std_err" in featureset)
             featurize_teardown()
@@ -2022,7 +2022,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             npt.assert_equal(res_dict["zipfile_name"], "None")
-            featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
             assert(all(class_name in [b'class1', b'class2', b'class3'] for
                        class_name in featureset.target.values))
@@ -2073,7 +2073,7 @@ class FlaskAppTestCase(unittest.TestCase):
             time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
             assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
                                       b'Classical_Cepheid', b'W_Ursae_Maj',
@@ -2142,7 +2142,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
             assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
                                       b'Classical_Cepheid', b'W_Ursae_Maj',
@@ -2201,7 +2201,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
             assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
                                       b'Classical_Cepheid', b'W_Ursae_Maj',
@@ -2236,7 +2236,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             npt.assert_equal(res_dict["zipfile_name"], "None")
-            featureset = xray.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
             assert(all(class_name in [b"class1", b"class2", b"class3"]
                        for class_name in featureset['target'].values))
