@@ -133,7 +133,7 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
     for k, v in model_params.items():
         # Empty string or "None" goes to `None`
         if v in ["None", ""]:
-            v = None
+            model_params[k] = None
             continue
         # Find relevant parameter description
         for p in params_list:
@@ -144,8 +144,7 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
         for dest_type in dest_types_list:
             if dest_type is not str:
                 try:
-                    if isinstance(ast.literal_eval(v),
-                                  dest_type):
+                    if isinstance(ast.literal_eval(v), dest_type):
                         model_params[k] = ast.literal_eval(v)
                         break
                 except ValueError:
@@ -164,8 +163,7 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
             for dest_type in dest_types_list:
                 if dest_type is not str:
                     try:
-                        if (isinstance(ast.literal_eval(v),
-                                      list) and
+                        if (isinstance(ast.literal_eval(v), list) and
                             all(type(x) in dest_types_list for x in
                                 ast.literal_eval(v))):
                             params_to_optimize[k] = ast.literal_eval(v)
