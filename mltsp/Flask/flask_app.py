@@ -2853,7 +2853,11 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
                     params_to_optimize[param_name] = request.form[k]
                 else:
                     model_params[param_name] = request.form[k]
-        util.cast_model_params(model_type, model_params, params_to_optimize)
+        util.robust_literal_eval_dict(model_params)
+        util.robust_literal_eval_dict(params_to_optimize)
+        util.check_model_param_types(model_type, model_params)
+        util.check_model_param_types(model_type, params_to_optimize,
+                                     all_as_lists=True)
     else:
         post_method = "http_api"
     projkey = project_name_to_key(project_name)

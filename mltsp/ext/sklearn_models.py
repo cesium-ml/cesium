@@ -69,7 +69,7 @@ model_descriptions = [
           "default": [0.1, 1., 10.]},
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False},
-         {"name": "scoring", "type": [str, "callable"], "default": None},
+         {"name": "scoring", "type": str, "default": None},
          {"name": "cv", "type": "generator", "default": None},
          {"name": "class_weight", "type": dict, "default": None}],
      "type": "classifier",

@@ -101,7 +101,7 @@ def is_running_in_docker():
     return in_docker_container
 
 
-def cast_model_params(model_type, model_params, params_to_optimize=None):
+def check_model_param_types(model_type, model_params, all_as_lists=False):
     """Cast model parameter strings to expected types.
 
     Modifies `model_params` dict in place.
@@ -111,12 +111,21 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
     model_type : str
         Name of model.
     model_params : dict
-        Dictionary whose keys are model parameter names and values are
-        string representations of corresponding values, which will be cast
-        to desired types in place, as specified in `sklearn_models` module.
-    params_to_optimize : dict, optional
-        Dictionary with parameter names as keys and lists of values to try
-        as values. Defaults to None.
+        Dictionary containing model parameters to be checked against expected
+        types.
+    all_as_lists : bool, optional
+        Boolean indicating whether `model_params` values are wrapped in lists,
+        as in the case of parameter grids for optimization.
+
+    Returns
+    -------
+    bool
+        Returns True if all parameters are of expected type.
+
+    Raises
+    ------
+    ValueError
+        Raises ValueError if parameter(s) are not of expected type.
 
     """
     from .ext.sklearn_models import model_descriptions
@@ -129,7 +138,7 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
         params_list
     except NameError:
         raise ValueError("model_type not in list of allowable models.")
-    # Iterate through params from HTML form and cast to expected types
+    # Iterate through params and check against expected types
     for k, v in model_params.items():
         # Empty string or "None" goes to `None`
         if v in ["None", ""]:
@@ -142,38 +151,16 @@ def cast_model_params(model_type, model_params, params_to_optimize=None):
                 break
         dest_types_list = make_list(param_entry["type"])
         for dest_type in dest_types_list:
-            if dest_type is not str:
-                try:
-                    if isinstance(ast.literal_eval(v), dest_type):
-                        model_params[k] = ast.literal_eval(v)
-                        break
-                except ValueError:
-                    pass
-        if isinstance(model_params[k], str) and str not in dest_types_list:
-            raise ValueError("Model parameter cannot be cast to expected "
-                             "type.")
-    if params_to_optimize:
-        for k, v in params_to_optimize.items():
-            # Find relevant parameter description
-            for p in params_list:
-                if p["name"] == k:
-                    param_entry = p
+            if not all_as_lists:
+                if isinstance(v, dest_type):
                     break
-            dest_types_list = make_list(param_entry["type"])
-            for dest_type in dest_types_list:
-                if dest_type is not str:
-                    try:
-                        if (isinstance(ast.literal_eval(v), list) and
-                            all(type(x) in dest_types_list for x in
-                                ast.literal_eval(v))):
-                            params_to_optimize[k] = ast.literal_eval(v)
-                            break
-                    except ValueError:
-                        pass
-            if (isinstance(params_to_optimize[k], str) and
-                str not in dest_types_list):
-                raise ValueError("Model parameter cannot be cast to expected "
-                                 "type.")
+            else:
+                if isinstance(v, list) and all(type(x) in dest_types_list
+                                               for x in v):
+                    break
+        else:
+            raise ValueError("Model parameter is not of expected type.")
+    return True
 
 
 def remove_files(paths):
@@ -191,7 +178,7 @@ def remove_files(paths):
 
 def extract_data_archive(archive_path, extract_dir=None):
     """Extract zip- or tarfile of time series file and return file paths.
-    
+
     Parameters
     ----------
     archive_path : str
@@ -223,3 +210,20 @@ def extract_data_archive(archive_path, extract_dir=None):
     file_paths = [f for f in all_paths if not os.path.isdir(f)]
     archive.close()
     return file_paths
+
+
+def robust_literal_eval_dict(input_dict):
+    """Call `ast.literal_eval` on dict values without raising `ValueError`.
+
+    Parameters
+    ----------
+    input_dict : dict
+        Dictionary whose values are string literals to be evaluated. Dictionary
+        is modified in-place.
+
+    """
+    for k, v in input_dict.items():
+        try:
+            input_dict[k] = ast.literal_eval(v)
+        except ValueError:
+            pass
