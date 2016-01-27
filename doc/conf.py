@@ -322,13 +322,19 @@ old_import = __import__
 def mock_import(name, *args, **kwargs):
     try:
         return old_import(name, *args, **kwargs)
-    except Exception as e:
-        if 'mltsp' in name:
-            raise e
+    except (ImportError, KeyError) as ie:
+        if 'mltsp' in name:  # Don't skip failure for a real API module
+            raise ie
+        # Sphinx has a bug that causes a crash if porterstemmer is imported,
+        # so we need this mock import to fail. May remove after release of
+        # https://github.com/sphinx-doc/sphinx/commit/f1518c5fc4446d63c0ba92150f5a226e3691aa62
         elif name == 'porterstemmer' or 'Stemmer' in name:
-            raise e
+            raise ie
         else:
             return mock.MagicMock(name=name)
+    # Pass on other types of exceptions to avoid repeated pandas imports
+    except Exception as e:
+        pass
 __builtins__['__import__'] = mock_import
 
 
