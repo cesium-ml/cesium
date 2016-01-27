@@ -93,34 +93,34 @@ def test_check_model_param_types():
                 "min_weight_fraction_leaf": 0.34,
                 "bootstrap": True,
                 "class_weight": {'a': 0.2, 'b': 0.8}}
-    assert util.check_model_param_types(model_type, params)
+    util.check_model_param_types(model_type, params)
 
     model_type = "RandomForestClassifier"
     params = {"max_features": 150}
-    assert util.check_model_param_types(model_type, params)
+    util.check_model_param_types(model_type, params)
 
     model_type = "RandomForestClassifier"
     params = {"max_features": 150.3}
-    assert util.check_model_param_types(model_type, params)
+    util.check_model_param_types(model_type, params)
 
     model_type = "LinearSGDClassifier"
     params = {"class_weight": {'a': 0.2, 'b': 0.8},
                 "average": False}
-    assert util.check_model_param_types(model_type, params)
+    util.check_model_param_types(model_type, params)
 
     model_type = "LinearSGDClassifier"
     params = {"class_weight": "some_str",
                 "average": 2}
-    assert util.check_model_param_types(model_type, params)
+    util.check_model_param_types(model_type, params)
 
     model_type = "RidgeClassifierCV"
     params = {"alphas": [0.1, 2.1, 6.2]}
-    assert util.check_model_param_types(model_type, params)
+    util.check_model_param_types(model_type, params)
 
     # Test parameter grid for optimization input
     model_type = "RandomForestClassifier"
     params_to_optimize = {"max_features": [150.3, 20, "auto"]}
-    assert util.check_model_param_types(model_type, params_to_optimize,
+    util.check_model_param_types(model_type, params_to_optimize,
                                         all_as_lists=True)
 
 

@@ -117,11 +117,6 @@ def check_model_param_types(model_type, model_params, all_as_lists=False):
         Boolean indicating whether `model_params` values are wrapped in lists,
         as in the case of parameter grids for optimization.
 
-    Returns
-    -------
-    bool
-        Returns True if all parameters are of expected type.
-
     Raises
     ------
     ValueError
@@ -164,7 +159,6 @@ def check_model_param_types(model_type, model_params, all_as_lists=False):
                              "in list of expected types ({}).".format(
                                  param_entry["name"], v, type(v),
                                  dest_types_list))
-    return True
 
 
 def remove_files(paths):
