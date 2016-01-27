@@ -152,14 +152,18 @@ def check_model_param_types(model_type, model_params, all_as_lists=False):
         dest_types_list = make_list(param_entry["type"])
         for dest_type in dest_types_list:
             if not all_as_lists:
-                if isinstance(v, dest_type):
+                if isinstance(v, dest_type) or v is None:
                     break
             else:
                 if isinstance(v, list) and all(type(x) in dest_types_list
-                                               for x in v):
+                                               or x is None for x in v):
                     break
         else:
-            raise ValueError("Model parameter is not of expected type.")
+            raise ValueError("Model parameter is not of expected type "
+                             "(parameter {} ({}) is of type {}, which is not "
+                             "in list of expected types ({}).".format(
+                                 param_entry["name"], v, type(v),
+                                 dest_types_list))
     return True
 
 
