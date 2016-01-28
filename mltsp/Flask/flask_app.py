@@ -2850,9 +2850,9 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
             if k.startswith(model_type + "_"):
                 param_name = k.replace(model_type + "_", "")
                 if param_name in params_to_optimize_list:
-                    params_to_optimize[param_name] = request.form[k]
+                    params_to_optimize[param_name] = str(request.form[k])
                 else:
-                    model_params[param_name] = request.form[k]
+                    model_params[param_name] = str(request.form[k])
         model_params = {k: util.robust_literal_eval(v) for k, v in
                         model_params.items()}
         params_to_optimize = {k: util.robust_literal_eval(v) for k, v in
