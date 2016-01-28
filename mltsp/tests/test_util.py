@@ -34,55 +34,22 @@ def test_docker_images_available():
     assert isinstance(util.docker_images_available(), bool)
 
 
-def test_robust_literal_eval_dict():
-    """Test util.robust_literal_eval_dict"""
+def test_robust_literal_eval():
+    """Test util.robust_literal_eval"""
     params = {"n_estimators": "1000",
               "max_features": "auto",
               "min_weight_fraction_leaf": "0.34",
               "bootstrap": "True",
-              "class_weight": "{'a': 0.2, 'b': 0.8}"}
+              "class_weight": "{'a': 0.2, 'b': 0.8}",
+              "max_features2": "[150.3, 20, 'auto']"}
     expected = {"n_estimators": 1000,
                 "max_features": "auto",
                 "min_weight_fraction_leaf": 0.34,
                 "bootstrap": True,
-                "class_weight": {'a': 0.2, 'b': 0.8}}
-    util.robust_literal_eval_dict(params)
+                "class_weight": {'a': 0.2, 'b': 0.8},
+                "max_features2": [150.3, 20, "auto"]}
+    params = {k: util.robust_literal_eval(v) for k, v in params.items()}
     npt.assert_equal(params, expected)
-
-    params = {"max_features": 150}
-    expected = {"max_features": 150}
-    util.robust_literal_eval_dict(params)
-    npt.assert_equal(params, expected)
-
-    params = {"max_features": "150.3"}
-    expected = {"max_features": 150.3}
-    util.robust_literal_eval_dict(params)
-    npt.assert_equal(params, expected)
-
-    params = {"class_weight": "{'a': 0.2, 'b': 0.8}",
-              "average": "False"}
-    expected = {"class_weight": {'a': 0.2, 'b': 0.8},
-                "average": False}
-    util.robust_literal_eval_dict(params)
-    npt.assert_equal(params, expected)
-
-    params = {"class_weight": "some_str",
-              "average": "2"}
-    expected = {"class_weight": "some_str",
-                "average": 2}
-    util.robust_literal_eval_dict(params)
-    npt.assert_equal(params, expected)
-
-    params = {"alphas": "[0.1, 2.1, 6.2]"}
-    expected = {"alphas": [0.1, 2.1, 6.2]}
-    util.robust_literal_eval_dict(params)
-    npt.assert_equal(params, expected)
-
-    # Test parameter grid for optimization input
-    params_to_optimize = {"max_features": "[150.3, 20, 'auto']"}
-    expected = {"max_features": [150.3, 20, "auto"]}
-    util.robust_literal_eval_dict(params_to_optimize)
-    npt.assert_equal(params_to_optimize, expected)
 
 
 def test_check_model_param_types():

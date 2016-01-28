@@ -210,18 +210,20 @@ def extract_data_archive(archive_path, extract_dir=None):
     return file_paths
 
 
-def robust_literal_eval_dict(input_dict):
-    """Call `ast.literal_eval` on dict values without raising `ValueError`.
+def robust_literal_eval(val):
+    """Call `ast.literal_eval` without raising `ValueError`.
 
     Parameters
     ----------
-    input_dict : dict
-        Dictionary whose values are string literals to be evaluated. Dictionary
-        is modified in-place.
+    val : str
+        String literal to be evaluated.
+
+    Returns
+    -------
+    Output of `ast.literal_eval(val)', or `val` if `ValueError` was raised.
 
     """
-    for k, v in input_dict.items():
-        try:
-            input_dict[k] = ast.literal_eval(v)
-        except ValueError:
-            pass
+    try:
+        return ast.literal_eval(val)
+    except ValueError:
+        return val

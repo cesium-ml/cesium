@@ -2853,8 +2853,10 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
                     params_to_optimize[param_name] = request.form[k]
                 else:
                     model_params[param_name] = request.form[k]
-        util.robust_literal_eval_dict(model_params)
-        util.robust_literal_eval_dict(params_to_optimize)
+        model_params = {k: util.robust_literal_eval(v) for k, v in
+                        model_params.items()}
+        params_to_optimize = {k: util.robust_literal_eval(v) for k, v in
+                              params_to_optimize.items()}
         util.check_model_param_types(model_type, model_params)
         util.check_model_param_types(model_type, params_to_optimize,
                                      all_as_lists=True)
