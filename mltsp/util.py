@@ -101,7 +101,7 @@ def is_running_in_docker():
     return in_docker_container
 
 
-def cast_model_params(model_type, model_params):
+def check_model_param_types(model_type, model_params, all_as_lists=False):
     """Cast model parameter strings to expected types.
 
     Modifies `model_params` dict in place.
@@ -111,9 +111,16 @@ def cast_model_params(model_type, model_params):
     model_type : str
         Name of model.
     model_params : dict
-        Dictionary whose keys are model parameter names and values are
-        string representations of corresponding values, which will be cast
-        to desired types in place, as specified in `sklearn_models` module.
+        Dictionary containing model parameters to be checked against expected
+        types.
+    all_as_lists : bool, optional
+        Boolean indicating whether `model_params` values are wrapped in lists,
+        as in the case of parameter grids for optimization.
+
+    Raises
+    ------
+    ValueError
+        Raises ValueError if parameter(s) are not of expected type.
 
     """
     from .ext.sklearn_models import model_descriptions
@@ -126,7 +133,7 @@ def cast_model_params(model_type, model_params):
         params_list
     except NameError:
         raise ValueError("model_type not in list of allowable models.")
-    # Iterate through params from HTML form and cast to expected types
+    # Iterate through params and check against expected types
     for k, v in model_params.items():
         # Empty string or "None" goes to `None`
         if v in ["None", ""]:
@@ -138,18 +145,16 @@ def cast_model_params(model_type, model_params):
                 param_entry = p
                 break
         dest_types_list = make_list(param_entry["type"])
-        for dest_type in dest_types_list:
-            if dest_type is not str:
-                try:
-                    if isinstance(ast.literal_eval(model_params[k]),
-                                  dest_type):
-                        model_params[k] = ast.literal_eval(model_params[k])
-                        break
-                except ValueError:
-                    pass
-        if isinstance(model_params[k], str) and str not in dest_types_list:
-            raise(ValueError("Model parameter cannot be cast to expected "
-                             "type."))
+        if not all_as_lists:
+            v = [v,]
+        if all(type(x) in dest_types_list or x is None for x in v):
+            break
+        else:
+            raise ValueError("Model parameter is not of expected type "
+                             "(parameter {} ({}) is of type {}, which is not "
+                             "in list of expected types ({}).".format(
+                                 param_entry["name"], v, type(v),
+                                 dest_types_list))
 
 
 def remove_files(paths):
@@ -167,7 +172,7 @@ def remove_files(paths):
 
 def extract_data_archive(archive_path, extract_dir=None):
     """Extract zip- or tarfile of time series file and return file paths.
-    
+
     Parameters
     ----------
     archive_path : str
@@ -199,3 +204,22 @@ def extract_data_archive(archive_path, extract_dir=None):
     file_paths = [f for f in all_paths if not os.path.isdir(f)]
     archive.close()
     return file_paths
+
+
+def robust_literal_eval(val):
+    """Call `ast.literal_eval` without raising `ValueError`.
+
+    Parameters
+    ----------
+    val : str
+        String literal to be evaluated.
+
+    Returns
+    -------
+    Output of `ast.literal_eval(val)', or `val` if `ValueError` was raised.
+
+    """
+    try:
+        return ast.literal_eval(val)
+    except ValueError:
+        return val

@@ -291,12 +291,12 @@
 
                                 {% for model in MODEL_DESCRIPTIONS %}
 
-                                  <tr class="model_params_tr model_params_tr_{{ model.abbr }}" style="display: none;" align='left'>
+                                  <tr class="model_params_tr model_params_tr_{{ model.name }}" style="display: none;" align='left'>
                                     <td colspan=3>Please see <a target="_blank" href="{{ model.url }}">{{ model.url }}</a> for parameter descriptions.</td>
                                   </tr>
-                                  <tr class="model_params_tr model_params_tr_{{ model.abbr }}" style="display: none;" align='left'>
+                                  <tr class="model_params_tr model_params_tr_{{ model.name }}" style="display: none;" align='left'>
                                   {% for param in model.params %}
-                                    <td><strong>{{ param.name }} (
+                                    <td><input title="Optimize this hyperparameter" type="checkbox" id="optimize_checkbox" name="optimize_checkbox" value="{{ param.name }}" /><strong>{{ param.name }} (
                                     {% if param.type is sequence %}
                                       {% for e in param.type %}
                                         {{ e.__name__ }}
@@ -304,10 +304,10 @@
                                     {% else %}
                                       {{ param.type.__name__ }} 
                                     {% endif %}
-                                  ): </strong><input type="text" name="{{ model.abbr }}_{{ param.name }}" id="{{ model.abbr }}_{{ param.name }}" value="{{ param.default }}" size=6></input></td>
+                                  ): </strong><input type="text" name="{{ model.name }}_{{ param.name }}" id="{{ model.name }}_{{ param.name }}" value="{{ param.default }}" size=6></input></td>
                                     {% if loop.index is divisibleby 3 %}
                                       </tr>
-                                      <tr class="model_params_tr model_params_tr_{{ model.abbr }}" style="display: none;" align='left'>
+                                      <tr class="model_params_tr model_params_tr_{{ model.name }}" style="display: none;" align='left'>
                                     {% endif %}
                                   {% endfor %}
                                 {% endfor %}

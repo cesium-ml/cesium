@@ -5,15 +5,16 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
 from sklearn.externals import joblib
+from sklearn import grid_search
 
 
-MODELS_TYPE_DICT = {'Random Forest Classifier': RandomForestClassifier,
-                    'Random Forest Regressor': RandomForestRegressor,
-                    'Linear SGD Classifier': SGDClassifier,
-                    'Linear Regressor': LinearRegression,
-                    'Ridge Classifier CV': RidgeClassifierCV,
-                    'Bayesian ARD Regressor': ARDRegression,
-                    'Bayesian Ridge Regressor': BayesianRidge}
+MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
+                    'RandomForestRegressor': RandomForestRegressor,
+                    'LinearSGDClassifier': SGDClassifier,
+                    'LinearRegressor': LinearRegression,
+                    'RidgeClassifierCV': RidgeClassifierCV,
+                    'BayesianARDRegressor': ARDRegression,
+                    'BayesianRidgeRegressor': BayesianRidge}
 
 
 def rectangularize_featureset(featureset):
@@ -31,8 +32,36 @@ def rectangularize_featureset(featureset):
     return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
+def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize):
+    """Optimize estimator hyperparameters.
+
+    Perform hyperparamter optimization using
+    `sklearn.grid_search.GridSearchCV`.
+
+    Parameters
+    ----------
+    data : Pandas.DataFrame
+        Features for training model.
+    targets : Pandas.Series
+        Targets corresponding to feature vectors in `data`.
+    model : sklearn estimator object
+        The model/estimator whose hyperparameters are to be optimized.
+    params_to_optimize : dict or list of dict
+        Dictionary with parameter names as keys and lists of values to try
+        as values, or a list of such dictionaries.
+
+    Returns
+    -------
+    `sklearn.grid_search.GridSearchCV` estimator object
+
+    """
+    optimized_model = grid_search.GridSearchCV(model, params_to_optimize)
+    optimized_model.fit(data, targets)
+    return optimized_model
+
+
 def build_model_from_featureset(featureset, model=None, model_type=None,
-                                model_options={}):
+                                model_options={}, params_to_optimize=None):
     """Build model from (non-rectangular) xarray.Dataset of features."""
     if model is None:
         if model_type:
@@ -40,12 +69,16 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
         else:
             raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
-    model.fit(feature_df, featureset['target'])
+    if params_to_optimize:
+        model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
+                                               model, params_to_optimize)
+    else:
+        model.fit(feature_df, featureset['target'])
     return model
 
 
 def create_and_pickle_model(model_key, model_type, featureset_key,
-                            model_options={}):
+                            model_options={}, params_to_optimize=None):
     """Build a `scikit-learn` model.
 
     Builds the specified model and pickles it in the file
@@ -65,6 +98,9 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
         Abbreviation of the type of model to be created.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
+    params_to_optimize : dict or list of dict, optional
+        Dictionary with parameter names as keys and lists of values to try
+        as values, or a list of such dictionaries. Defaults to None.
 
     Returns
     -------
@@ -78,7 +114,8 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
     featureset = xr.open_dataset(featureset_path)
 
     model = build_model_from_featureset(featureset, model_type=model_type,
-                                        model_options=model_options)
+                                        model_options=model_options,
+                                        params_to_optimize=params_to_optimize)
 
     # Store the model:
     foutname = os.path.join(cfg.MODELS_FOLDER, '{}.pkl'.format(model_key))

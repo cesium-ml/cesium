@@ -2014,7 +2014,8 @@ def featurize_proc(
     update_featset_entry_with_results_msg(featureset_key, results_str)
 
 
-def build_model_proc(model_key, model_type, model_params, featureset_key):
+def build_model_proc(model_key, model_type, model_params, featureset_key,
+                     params_to_optimize=None):
     """Build a model based on given features.
 
     Begins the model building process by calling
@@ -2030,6 +2031,9 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
         Dictionary specifying sklearn model parameters to be used.
     model_key : str
         Key/ID associated with model.
+    params_to_optimize : list of str, optional
+        List of parameter names that are formatted for hyperparameter
+        optimization.
 
     Returns
     -------
@@ -2044,7 +2048,8 @@ def build_model_proc(model_key, model_type, model_params, featureset_key):
     try:
         model_built_msg = build_model.create_and_pickle_model(
             model_key=model_key, model_type=model_type,
-            model_options=model_params, featureset_key=featureset_key)
+            model_options=model_params, featureset_key=featureset_key,
+            params_to_optimize=params_to_optimize)
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -2802,7 +2807,7 @@ def featurizationPage(
 @app.route('/buildModel', methods=['POST', 'GET'])
 @stormpath.login_required
 def buildModel(model_name=None, project_name=None, featureset_name=None,
-               model_type=None, model_params=None):
+               model_type=None, model_params=None, params_to_optimize=None):
     """Build new model for specified feature set.
 
     Handles 'buildModelForm' submission and starts model creation
@@ -2818,7 +2823,7 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
     featureset_name : str
         Name of feature set from which to create new model.
     model_type : str
-        Name of type of model to create (e.g. "Random Forest Classifier").
+        Name of type of model to create (e.g. "RandomForestClassifier").
     model_params : dict
         Dictionary whose keys are relevant `sklearn` model parameter names,
         and values are the desired parameter values.
@@ -2838,11 +2843,23 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
         featureset_name = (str(request.form['modelbuild_featset_name_select'])
                            .split(" (created")[0].strip())
         model_type = str(request.form['model_type_select'])
+        params_to_optimize_list = request.form.getlist("optimize_checkbox")
         model_params = {}
+        params_to_optimize = {}
         for k in request.form:
             if k.startswith(model_type + "_"):
-                model_params[k.replace(model_type + "_", "")] = request.form[k]
-        util.cast_model_params(model_type, model_params)
+                param_name = k.replace(model_type + "_", "")
+                if param_name in params_to_optimize_list:
+                    params_to_optimize[param_name] = str(request.form[k])
+                else:
+                    model_params[param_name] = str(request.form[k])
+        model_params = {k: util.robust_literal_eval(v) for k, v in
+                        model_params.items()}
+        params_to_optimize = {k: util.robust_literal_eval(v) for k, v in
+                              params_to_optimize.items()}
+        util.check_model_param_types(model_type, model_params)
+        util.check_model_param_types(model_type, params_to_optimize,
+                                     all_as_lists=True)
     else:
         post_method = "http_api"
     projkey = project_name_to_key(project_name)
@@ -2863,7 +2880,8 @@ def buildModel(model_name=None, project_name=None, featureset_name=None,
         args=(new_model_key,
               model_type,
               model_params,
-              featureset_key))
+              featureset_key,
+              params_to_optimize))
     proc.start()
     PID = str(proc.pid)
     print("PROCESS ID IS", PID)

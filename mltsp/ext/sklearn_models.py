@@ -2,7 +2,7 @@ import numpy as np
 
 
 model_descriptions = [
-    {"name": "Random Forest Classifier",
+    {"name": "RandomForestClassifier",
      "params": [
          {"name": "n_estimators", "type": int, "default": 10},
          {"name": "criterion", "type": str, "default": "gini"},
@@ -20,7 +20,7 @@ model_descriptions = [
      "type": "classifier",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html"},
 
-    {"name": "Random Forest Regressor",
+    {"name": "RandomForestRegressor",
      "params": [
          {"name": "n_estimators", "type": int, "default": 10},
          {"name": "criterion", "type": str, "default": "mse"},
@@ -37,7 +37,7 @@ model_descriptions = [
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html"},
 
-    {"name": "Linear SGD Classifier",
+    {"name": "LinearSGDClassifier",
      "params": [
          {"name": "loss", "type": str, "default": "hinge"},
          {"name": "penalty", "type": str, "default": "l2"},
@@ -56,26 +56,26 @@ model_descriptions = [
      "type": "classifier",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html"},
 
-    {"name": "Linear Regressor",
+    {"name": "LinearRegressor",
      "params": [
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False}],
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html"},
 
-    {"name": "Ridge Classifier CV",
+    {"name": "RidgeClassifierCV",
      "params": [
          {"name": "alphas", "type": list,
           "default": [0.1, 1., 10.]},
          {"name": "fit_intercept", "type": bool, "default": True},
          {"name": "normalize", "type": bool, "default": False},
-         {"name": "scoring", "type": [str, "callable"], "default": None},
+         {"name": "scoring", "type": str, "default": None},
          {"name": "cv", "type": "generator", "default": None},
          {"name": "class_weight", "type": dict, "default": None}],
      "type": "classifier",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeClassifierCV.html"},
 
-    {"name": "Bayesian ARD Regressor",
+    {"name": "BayesianARDRegressor",
      "params": [
          {"name": "n_inter", "type": int, "default": 300},
          {"name": "tol", "type": float, "default": 0.001},
@@ -90,7 +90,7 @@ model_descriptions = [
      "type": "regressor",
      "url": "http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ARDRegression.html"},
 
-    {"name": "Bayesian Ridge Regressor",
+    {"name": "BayesianRidgeRegressor",
      "params": [
          {"name": "n_inter", "type": int, "default": 300},
          {"name": "tol", "type": float, "default": 0.001},

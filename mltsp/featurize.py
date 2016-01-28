@@ -104,7 +104,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     res = featurize_celery_task.chunks(params_list, cfg.N_CORES).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
-    res_list = res.get(timeout=100)
+    res_list = res.get()
     res_flat = [elem for chunk in res_list for elem in chunk]
     fnames, feature_dicts = zip(*res_flat)
 
@@ -115,7 +115,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     if metadata is not None:
         fname_metadata = metadata.loc[list(fnames)]
     else:
-        fname_metadata = None, None
+        fname_metadata = None
     featureset = ft.assemble_featureset(feature_dicts, fname_targets,
                                         fname_metadata, fnames)
 
