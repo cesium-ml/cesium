@@ -4,6 +4,7 @@ import multiprocessing
 import subprocess
 import glob
 import os
+import sys
 
 
 if __name__ == "__main__":
@@ -16,10 +17,10 @@ if __name__ == "__main__":
     p.start()
 
     tests = sorted(glob.glob('mltsp/tests/frontend/*.js'))
-    subprocess.call(['external/casperjs/bin/casperjs', '--verbose',
-                     '--log-level=debug', 'test'] + tests)
+    status = subprocess.call(['external/casperjs/bin/casperjs', '--verbose',
+                              '--log-level=debug', 'test'] + tests)
 
     p.terminate()
 
-
+    sys.exit(status)
 
