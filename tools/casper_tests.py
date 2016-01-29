@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
-import multiprocessing
 import subprocess
 import glob
 import os
 import sys
 import time
 
+from os.path import join as pjoin
 
-web_client_path = os.path.join(os.path.dirname(__file__), '../web_client')
+parent_path = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
+web_client_path = os.path.abspath(pjoin(parent_path, 'web_client'))
+casperjs_path = os.path.abspath(pjoin(parent_path, 'external/casperjs/bin/casperjs'))
 
 
 def supervisor_status():
@@ -29,15 +31,18 @@ def reset_db():
 
 
 if __name__ == '__main__':
+    print('[test_frontend] Initialize test database')
     reset_db()
 
+    subprocess.Popen(['mkdir', '-p', 'log'])
+    subprocess.Popen('tail -f log/*.log', cwd=web_client_path, shell=True)
     web_client = subprocess.Popen('make', cwd=web_client_path)
 
     print('[test_frontend] Waiting for supervisord to launch all server processes...')
 
     timeout = 0
-    while (timeout < 5) and
-          (not all([b'RUNNING' in line for line in supervisor_status()])):
+    while ((timeout < 5) and
+           (not all([b'RUNNING' in line for line in supervisor_status()]))):
         time.sleep(1)
         timeout += 1
 
@@ -46,9 +51,9 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     print('[test_frontend] Launching CasperJS...')
-    tests = sorted(glob.glob('mltsp/tests/frontend/*.js'))
-    subprocess.call(['external/casperjs/bin/casperjs', '--verbose',
-                     '--log-level=debug', 'test'] + tests)
+    tests = sorted(glob.glob(pjoin(parent_path, 'mltsp/tests/frontend/*.js')))
+    status = subprocess.call([casperjs_path, '--verbose',
+                             '--log-level=debug', 'test'] + tests, cwd=parent_path)
 
     print('[test_frontend] Terminating supervisord...')
     web_client.terminate()
