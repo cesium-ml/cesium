@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 from . import cfg
 from . import util
-from .celery_tasks import featurize_ts_file as featurize_celery_task
+from .celery_tasks import celery_available
+from .celery_tasks import featurize_ts_data as featurize_data_task
+from .celery_tasks import featurize_ts_file as featurize_file_task
 from . import featurize_tools as ft
 
 
@@ -20,26 +22,40 @@ def write_features_to_disk(featureset, featureset_id):
 def load_and_store_feature_data(features_path, featureset_id="unknown",
                                 first_N=None):
     """Read features from CSV file and store as xarray.Dataset."""
-    targets, metadata = ft.parse_headerfile(features_path)
+    targets, meta_features = ft.parse_headerfile(features_path)
     if first_N:
-        metadata = metadata[:first_N]
+        meta_features = meta_features[:first_N]
         if targets is not None:
             targets = targets[:first_N]
-    featureset = ft.assemble_featureset([], targets, metadata)
+    featureset = ft.assemble_featureset([], targets, meta_features)
     write_features_to_disk(featureset, featureset_id)
     return featureset
 
 
-def featurize_task_params_list(ts_paths, features_to_use, metadata=None,
+def featurize_data_task_params(times, values, errors, labels,
+                               features_to_use, meta_features=None,
                                custom_script_path=None):
-    """Create list of tuples containing params for `featurize_celery_task`."""
+    """Create list of tuples containing params for `featurize_data_task`."""
+    params_list = []
+    for t, m, e, label in zip(times, values, errors, labels):
+        meta_feature_dict = meta_features.loc[label].to_dict()
+        if isinstance(label, np.int64):  # Labels need to be JSON-serializable
+            label = int(label)
+        params_list.append((t, m, e, label, features_to_use,
+                            meta_feature_dict, custom_script_path))
+    return params_list
+
+
+def featurize_file_task_params(ts_paths, features_to_use, meta_features=None,
+                               custom_script_path=None):
+    """Create list of tuples containing params for `featurize_file_task`."""
     params_list = []
     for ts_path in ts_paths:
-        if metadata is not None:
-            ts_metadata = metadata.loc[util.shorten_fname(ts_path)].to_dict()
+        if meta_features is not None:
+            ts_meta_features = meta_features.loc[util.shorten_fname(ts_path)].to_dict()
         else:
-            ts_metadata = {}
-        params_list.append((ts_path, features_to_use, ts_metadata,
+            ts_meta_features = {}
+        params_list.append((ts_path, features_to_use, ts_meta_features,
                             custom_script_path))
     return params_list
 
@@ -64,10 +80,10 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
         series files to be used for feature generation.
     header_path : str, optional
         Path to header file containing file names, target names, and
-        metadata.
+        meta_features.
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty
-        list, which will result in only metadata features being stored.
+        list, which will result in only meta_features features being stored.
     featureset_id : str, optional
         RethinkDB ID of the new feature set entry. If provided, the feature set
         will be saved to a file with prefix `featureset_id`.
@@ -96,28 +112,24 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
         ts_paths = [data_path]
 
     if header_path:
-        targets, metadata = ft.parse_headerfile(header_path, ts_paths)
+        targets, meta_features = ft.parse_headerfile(header_path, ts_paths)
     else:
-        targets, metadata = None, None
-    params_list = featurize_task_params_list(ts_paths, features_to_use,
-                                             metadata, custom_script_path)
+        targets, meta_features = None, None
+    params_list = featurize_file_task_params(ts_paths, features_to_use,
+                                             meta_features, custom_script_path)
 
-    res = featurize_celery_task.chunks(params_list, cfg.N_CORES).delay()
+    res = featurize_file_task.chunks(params_list, cfg.N_CORES).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
     res_list = res.get()
     res_flat = [elem for chunk in res_list for elem in chunk]
     fnames, feature_dicts = zip(*res_flat)
 
     if targets is not None:
-        fname_targets = targets.loc[list(fnames)]
-    else:
-        fname_targets = None
-    if metadata is not None:
-        fname_metadata = metadata.loc[list(fnames)]
-    else:
-        fname_metadata = None
-    featureset = ft.assemble_featureset(feature_dicts, fname_targets,
-                                        fname_metadata, fnames)
+        targets = targets.loc[list(fnames)]
+    if meta_features is not None:
+        meta_features = meta_features.loc[list(fnames)]
+    featureset = ft.assemble_featureset(feature_dicts, targets, meta_features,
+                                        fnames)
 
     if featureset_id:
         write_features_to_disk(featureset, featureset_id)
@@ -132,8 +144,9 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
 
 def featurize_time_series(times, values, errors=None, features_to_use=[],
-                          targets=None, meta_features=None, labels=None,
-                          custom_script_path=None, custom_functions=None):
+                          targets=None, meta_features={}, labels=None,
+                          custom_script_path=None, custom_functions=None,
+                          use_celery=True):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -175,7 +188,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         multichannel data with different time values per channel
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty list, which
-        will result in only metadata features being stored.
+        will result in only meta_features features being stored.
     targets : str/float or array-like, optional
         Target or sequence of targets, one per time series (if applicable);
         will be stored in the `target` coordinate of the resulting
@@ -198,6 +211,9 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
+    use_celery : bool, optional
+        Boolean to control whether to distribute tasks to Celery workers (if
+        Celery is available). Defaults to True.
 
     Returns
     -------
@@ -241,20 +257,35 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         times, values, errors = ([times], [values], [errors])
     if isinstance(meta_features, pd.Series):
         meta_features = meta_features.to_dict()
-    if not isinstance(targets, (list, tuple, np.ndarray)):
-        targets = [targets]
+    if targets is not None:
+        targets = pd.Series(targets, index=labels)
 
     if not all([isinstance(x, (list, tuple)) for x in (times, values, errors)]):
         raise TypeError("times, values, and errors have incompatible types")
 
     meta_features = pd.DataFrame(meta_features, index=labels)
-    feature_dicts = []
-    for t, m, e, label in zip(times, values, errors, labels):
-        meta_feature_dict = meta_features.loc[label].to_dict()
-        features = ft.featurize_single_ts(t, m, e, features_to_use,
-                                          meta_features=meta_feature_dict,
-                                          custom_script_path=custom_script_path,
-                                          custom_functions=custom_functions)
-        feature_dicts.append(features)
+
+    if use_celery and celery_available():
+        params_list = featurize_data_task_params(times, values, errors, labels,
+                                                 features_to_use,
+                                                 meta_features,
+                                                 custom_script_path)
+        res = featurize_data_task.chunks(params_list, cfg.N_CORES).delay()
+        # Returns list of list of pairs [label, {feature: [values]]
+        res_list = res.get()
+        res_flat = [elem for chunk in res_list for elem in chunk]
+        labels, feature_dicts = zip(*res_flat)
+        if targets is not None:
+            targets = targets.loc[list(labels)]
+        meta_features = meta_features.loc[list(labels)]
+    else:
+        feature_dicts = []
+        for t, m, e, label in zip(times, values, errors, labels):
+            meta_feature_dict = meta_features.loc[label].to_dict()
+            features = ft.featurize_single_ts(t, m, e, features_to_use,
+                                              meta_features=meta_feature_dict,
+                                              custom_script_path=custom_script_path,
+                                              custom_functions=custom_functions)
+            feature_dicts.append(features)
     return ft.assemble_featureset(feature_dicts, targets, meta_features,
                                   labels)
