@@ -118,6 +118,8 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
     params_list = featurize_file_task_params(ts_paths, features_to_use,
                                              meta_features, custom_script_path)
 
+    if not celery_available():
+        raise RuntimeError("Celery not available")
     res = featurize_file_task.chunks(params_list, cfg.N_CORES).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
     res_list = res.get()
