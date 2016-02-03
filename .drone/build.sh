@@ -35,7 +35,6 @@ sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
 
-pip install $WHEELHOUSE `cat requirements.txt | grep numpy | sed 's/>=/==/g'`
 pip install $WHEELHOUSE -r requirements.txt
 
 echo "[Drone] Build extension"
