@@ -1,15 +1,18 @@
-image: mltsp/drone
-git:
+build:
+    image: mltsp/drone
+    commands:
+        - ./.drone/build.sh
+clone:
   depth: 1
   path: github.com/mltsp/mltsp
 env:
 script:
   - ./.drone/build.sh
 notify:
-  email:
-    recipients:
-      - stefanv@berkeley.edu
-  webhook:
-    on_started: false
-    on_success: true
-    on_failure: true
+    gitter:
+        webhook: https://webhooks.gitter.im/e/90fff13a43dbc71cc72d
+matrix:
+    PYTHON_VERSION:
+        - 2.7
+        - 3.5
+

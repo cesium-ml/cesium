@@ -1,3 +1,5 @@
+## Drone installation
+
 - We no longer need to build Drone--just run it from the Docker container as
   outlined in the installation instructions.  Note, the docker cmd has to be
   modified slightly a) to mount /var/lib/drone with correct permissions and b)
@@ -13,6 +15,11 @@
       --detach=true \
       --name=drone \
       drone/drone:0.4
+
+- Drone needs access to ``/var/run/docker.sock``.  To make this work on
+  SELinux, use https://github.com/dpw/selinux-dockersock
+
+## Other notes
 
 - For building from source: follow the instructions on github.com:drone/drone
   line by line to build, e.g. do not forget to set
