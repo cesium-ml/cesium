@@ -1,14 +1,8 @@
-CELERY_RESULT_BACKEND = "amqp"
-
-#CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'amqp'
 CELERY_TASK_SERIALIZER = 'pickle'
-
-#CELERY_RESULT_SERIALIZER = 'json'  # NOTE: MUST BE SET TO JSON
 CELERY_RESULT_SERIALIZER = 'pickle'
-
-#CELERY_ACCEPT_CONTENT = ['json']
 CELERY_ACCEPT_CONTENT = ['pickle']
 
-INSTALLED_APPS = ["mltsp"]
+INSTALLED_APPS = ['mltsp']
 
-CELERY_IMPORTS = ("mltsp", "celery_tasks")
+CELERY_IMPORTS = ('mltsp', 'celery_tasks')

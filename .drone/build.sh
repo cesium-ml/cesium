@@ -56,4 +56,5 @@ echo "[Drone] Initialize database"
 mltsp --db-init
 
 echo "[Drone] Run test suite"
+export C_FORCE_ROOT=1 # override warning about running Celery+pickle as root
 make test_no_docker

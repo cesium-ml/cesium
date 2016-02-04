@@ -5,7 +5,7 @@ PY_VER = $(shell python -c 'import sys; print(sys.version_info.major)')
 
 celery:
 	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
-		C_FORCE_ROOT=1 PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
+		PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
 	else \
 		echo "[Celery] is already running"; \
 	fi

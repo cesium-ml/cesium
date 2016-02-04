@@ -1,5 +1,6 @@
 from celery import Celery
 import os
+import pickle
 import sys
 import numpy as np
 import pandas as pd
@@ -63,7 +64,7 @@ def featurize_ts_file(ts_file_path, features_to_use, metadata={},
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")
 def featurize_ts_data(t, m, e, label, features_to_use, metadata={},
-                      custom_script_path=None):
+                      custom_script_path=None, custom_functions=None):
     """Featurize time-series data file.
 
     Parameters
@@ -88,6 +89,14 @@ def featurize_ts_data(t, m, e, label, features_to_use, metadata={},
         series, if applicable.
     custom_script_path : str, optional
         Path to custom features script .py file, if applicable.
+    custom_functions : dict, optional
+        Dictionary of custom feature functions to be evaluated for the given
+        time series, or a dictionary representing a dask graph of function
+        evaluations. Dictionaries of functions should have keys `feature_name`
+        and values functions that take arguments (t, m, e); in the case of a
+        dask graph, these arrays should be referenced as 't', 'm', 'e',
+        respectively, and any values with keys present in `features_to_use`
+        will be computed.
 
     Returns
     -------
@@ -96,6 +105,18 @@ def featurize_ts_data(t, m, e, label, features_to_use, metadata={},
         second element is a dictionary of features.
 
     """
+    try:
+        pickle.loads(pickle.dumps(custom_functions))
+        # If a function was defined outside a module, it will fail to load
+        # properly on a Celery worker (even if it's pickleable)
+        if custom_functions:
+            assert(all(f.__module__ != '__main__'
+                       for f in custom_functions.values()))
+    except:
+        raise ValueError("Using Celery requires pickleable custom functions; "
+                         "please import your functions from a module or set "
+                         "`use_celery=False`.")
+
     all_features = ft.featurize_single_ts(t, m, e, features_to_use, metadata,
-                                          custom_script_path)
+                                          custom_script_path, custom_functions)
     return (label, all_features)

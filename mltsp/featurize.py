@@ -34,21 +34,27 @@ def load_and_store_feature_data(features_path, featureset_id="unknown",
 
 def featurize_data_task_params(times, values, errors, labels,
                                features_to_use, meta_features=None,
-                               custom_script_path=None):
-    """Create list of tuples containing params for `featurize_data_task`."""
+                               custom_script_path=None, custom_functions=None):
+    """Create list of tuples containing params for `featurize_data_task`.
+
+    See `featurize_time_series` for parameter descriptions.
+    """
     params_list = []
     for t, m, e, label in zip(times, values, errors, labels):
         meta_feature_dict = meta_features.loc[label].to_dict()
         if isinstance(label, np.int64):  # Labels need to be JSON-serializable
             label = int(label)
-        params_list.append((t, m, e, label, features_to_use,
-                            meta_feature_dict, custom_script_path))
+        params_list.append((t, m, e, label, features_to_use, meta_feature_dict,
+                            custom_script_path, custom_functions))
     return params_list
 
 
 def featurize_file_task_params(ts_paths, features_to_use, meta_features=None,
                                custom_script_path=None):
-    """Create list of tuples containing params for `featurize_file_task`."""
+    """Create list of tuples containing params for `featurize_file_task`.
+
+    See `featurize_time_series` for parameter descriptions.
+    """
     params_list = []
     for ts_path in ts_paths:
         if meta_features is not None:
@@ -271,7 +277,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         params_list = featurize_data_task_params(times, values, errors, labels,
                                                  features_to_use,
                                                  meta_features,
-                                                 custom_script_path)
+                                                 custom_script_path,
+                                                 custom_functions)
         res = featurize_data_task.chunks(params_list, cfg.N_CORES).delay()
         # Returns list of list of pairs [label, {feature: [values]]
         res_list = res.get()
