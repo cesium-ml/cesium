@@ -1,5 +1,7 @@
 FROM mltsp/base
 
+RUN sed -i 's/archive.ubuntu.com/us.archive.ubuntu.com/g' /etc/apt/sources.list
+
 RUN apt-get update
 RUN apt-get install -y wget
 
@@ -10,15 +12,8 @@ RUN \
 
 RUN apt-get update
 RUN apt-get install -y curl git make \
-                       python-pip \
-                       python-numpy python-scipy python-pandas python-flask \
-                       python-parse python-psutil \
-                       python-requests python-tables \
-                       python-matplotlib python-nose python-yaml \
-                       python-sklearn \
-                       cython \
+                       python3-dev \
                        rethinkdb docker.io rabbitmq-server nginx
-                       # Add python-docker when switching to utopic / vivid
 
 # Install PhantomJS
 RUN apt-get install -y fontconfig-config fonts-dejavu-core libfontconfig1 libfreetype6 \
