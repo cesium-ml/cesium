@@ -1,9 +1,10 @@
 beautifulsoup4
 flask
-Flask-Stormpath
+git+git://github.com/stormpath/stormpath-sdk-python.git@2.1.6
+git+git://github.com/stormpath/stormpath-flask.git@develop  # replace with Flask-Stormpath once they make a release with the Python 3 version
 docker-py
 numpy>=1.8.1
-scipy>=0.13.0
+scipy>=0.16.0
 scikit-learn>=0.16.1
 pandas>=0.17.0
 parse
@@ -11,7 +12,7 @@ psutil>=2.2.1
 rethinkdb
 requests
 colorlog
-matplotlib>=1.1.0
+matplotlib>=1.5.0
 pyyaml
 waitress
 celery

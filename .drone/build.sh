@@ -12,8 +12,8 @@ echo "[Drone] ----------------------------------------------------"
 
 echo "[Drone] Creating Python virtual environment"
 pip install virtualenv
-virtualenv /envs/python2.7 -p python2.7
-source /envs/python2.7/bin/activate
+virtualenv /envs/mltsp -p python${PYTHON_VERSION}
+source /envs/mltsp/bin/activate
 
 echo "[Drone] Installing base requirements"
 pip install --upgrade pip requests six python-dateutil nose nose-exclude mock
@@ -34,6 +34,7 @@ echo "[Drone] Installing MLTSP requirements"
 sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
+
 pip install $WHEELHOUSE -r requirements.txt
 
 echo "[Drone] Build extension"

@@ -48,7 +48,8 @@ with open('mltsp/version.py') as fid:
             break
 
 with open('requirements.txt') as fid:
-    INSTALL_REQUIRES = [l.split('#')[0].strip() for l in fid.readlines() if l]
+    INSTALL_REQUIRES = [l.split('#')[0].strip() for l in fid.readlines() if l
+                        and not l.startswith('git')]
     INSTALL_REQUIRES = [pkg.replace('-', '_') for pkg in INSTALL_REQUIRES]
 
 
