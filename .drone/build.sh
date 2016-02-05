@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 REPO_PATH=`pwd`
 SHARED_PATH=/tmp/`ls -1 /tmp/ | grep -E ^drone_shared | head -n 1`
