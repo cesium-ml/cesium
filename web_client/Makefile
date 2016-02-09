@@ -15,7 +15,7 @@ paths:
 supervisord: paths
 	$(SUPERVISORD) -c supervisord.conf
 
-logs:
+logs: paths
 	rm -f log/*.log
 	touch `cat supervisord.conf | grep "\.log" | cut -d '=' -f 2`
 	tail -F log/*.log 2>/dev/null &
