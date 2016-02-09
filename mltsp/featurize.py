@@ -1,5 +1,6 @@
 import copy
 import os
+import pickle
 import tarfile
 import zipfile
 import numpy as np
@@ -32,9 +33,10 @@ def load_and_store_feature_data(features_path, featureset_id="unknown",
     return featureset
 
 
-def featurize_data_task_params(times, values, errors, labels,
-                               features_to_use, meta_features=None,
-                               custom_script_path=None, custom_functions=None):
+def prepare_celery_data_task_params(times, values, errors, labels,
+                                    features_to_use, meta_features=None,
+                                    custom_script_path=None,
+                                    custom_functions=None):
     """Create list of tuples containing params for `featurize_data_task`.
 
     See `featurize_time_series` for parameter descriptions.
@@ -49,8 +51,9 @@ def featurize_data_task_params(times, values, errors, labels,
     return params_list
 
 
-def featurize_file_task_params(ts_paths, features_to_use, meta_features=None,
-                               custom_script_path=None):
+def prepare_celery_file_task_params(ts_paths, features_to_use,
+                                    meta_features=None,
+                                    custom_script_path=None):
     """Create list of tuples containing params for `featurize_file_task`.
 
     See `featurize_time_series` for parameter descriptions.
@@ -121,14 +124,15 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
         targets, meta_features = ft.parse_headerfile(header_path, ts_paths)
     else:
         targets, meta_features = None, None
-    params_list = featurize_file_task_params(ts_paths, features_to_use,
-                                             meta_features, custom_script_path)
+    params_list = prepare_celery_file_task_params(ts_paths, features_to_use,
+                                                  meta_features,
+                                                  custom_script_path)
 
     if not celery_available():
         raise RuntimeError("Celery not available")
-    res = featurize_file_task.chunks(params_list, cfg.N_CORES).delay()
+    celery_res = featurize_file_task.chunks(params_list, cfg.N_CORES).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
-    res_list = res.get()
+    res_list = celery_res.get()
     res_flat = [elem for chunk in res_list for elem in chunk]
     fnames, feature_dicts = zip(*res_flat)
 
@@ -154,7 +158,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 def featurize_time_series(times, values, errors=None, features_to_use=[],
                           targets=None, meta_features={}, labels=None,
                           custom_script_path=None, custom_functions=None,
-                          use_celery=True):
+                          use_celery=False):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -273,15 +277,31 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     meta_features = pd.DataFrame(meta_features, index=labels)
 
-    if use_celery and celery_available():
-        params_list = featurize_data_task_params(times, values, errors, labels,
-                                                 features_to_use,
-                                                 meta_features,
-                                                 custom_script_path,
-                                                 custom_functions)
-        res = featurize_data_task.chunks(params_list, cfg.N_CORES).delay()
+    if use_celery:
+        if not celery_available():
+            raise RuntimeError("Celery unavailable; please check your Celery "
+                               "configuration or set `use_celery=False`.")
+        try:
+            pickle.loads(pickle.dumps(custom_functions))
+            # If a function was defined outside a module, it will fail to load
+            # properly on a Celery worker (even if it's pickleable)
+            if custom_functions:
+                assert(not any(f.__module__ == '__main__'
+                               for f in custom_functions.values()))
+        except:
+            raise ValueError("Using Celery requires pickleable custom functions; "
+                             "please import your functions from a module or set "
+                             "`use_celery=False`.")
+
+        params_list = prepare_celery_data_task_params(times, values, errors,
+                                                      labels, features_to_use,
+                                                      meta_features,
+                                                      custom_script_path,
+                                                      custom_functions)
+        celery_res = featurize_data_task.chunks(params_list,
+                                                cfg.N_CORES).delay()
         # Returns list of list of pairs [label, {feature: [values]]
-        res_list = res.get()
+        res_list = celery_res.get()
         res_flat = [elem for chunk in res_list for elem in chunk]
         labels, feature_dicts = zip(*res_flat)
         if targets is not None:

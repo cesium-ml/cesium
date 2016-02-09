@@ -1,6 +1,5 @@
 from celery import Celery
 import os
-import pickle
 import sys
 import numpy as np
 import pandas as pd
@@ -22,11 +21,12 @@ def check_celery():
     """Test task."""
     return "OK"
 
+
 def celery_available():
     """Test Celery task; this is much faster than running `celery status`."""
     try:
         res = check_celery.apply_async()
-        return "OK" == res.get(timeout=5)
+        return "OK" == res.get(timeout=2)
     except:
         return False
 
@@ -105,18 +105,6 @@ def featurize_ts_data(t, m, e, label, features_to_use, metadata={},
         second element is a dictionary of features.
 
     """
-    try:
-        pickle.loads(pickle.dumps(custom_functions))
-        # If a function was defined outside a module, it will fail to load
-        # properly on a Celery worker (even if it's pickleable)
-        if custom_functions:
-            assert(all(f.__module__ != '__main__'
-                       for f in custom_functions.values()))
-    except:
-        raise ValueError("Using Celery requires pickleable custom functions; "
-                         "please import your functions from a module or set "
-                         "`use_celery=False`.")
-
     all_features = ft.featurize_single_ts(t, m, e, features_to_use, metadata,
                                           custom_script_path, custom_functions)
     return (label, all_features)

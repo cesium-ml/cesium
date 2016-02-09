@@ -2027,7 +2027,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["zipfile_name"], "None")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'class1', b'class2', b'class3'] for
+            assert(all(class_name in ['class1', 'class2', 'class3'] for
                        class_name in featureset.target.values))
             npt.assert_array_equal(sorted(featureset.data_vars),
                                    ["amplitude", "meta1", "meta2", "meta3",
@@ -2078,9 +2078,9 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
-                                      b'Classical_Cepheid', b'W_Ursae_Maj',
-                                      b'Delta_Scuti', b'RR_Lyrae']
+            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti', 'RR_Lyrae']
                        for class_name in featureset.target.values))
             cols = list(featureset.data_vars)
             npt.assert_array_equal(sorted(cols), ["amplitude", "f", "std_err"])
@@ -2147,9 +2147,9 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
-                                      b'Classical_Cepheid', b'W_Ursae_Maj',
-                                      b'Delta_Scuti', b'RR_Lyrae']
+            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti', 'RR_Lyrae']
                        for class_name in featureset.target.values))
             cols = list(featureset.data_vars)
             npt.assert_array_equal(sorted(cols), ["amplitude", "std_err"])
@@ -2206,9 +2206,9 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
-                                      b'Classical_Cepheid', b'W_Ursae_Maj',
-                                      b'Delta_Scuti', b'RR_Lyrae']
+            assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti', 'RR_Lyrae']
                        for class_name in featureset['target'].values))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['avg_mag', 'meta1', 'meta2', 'meta3',
@@ -2241,7 +2241,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["zipfile_name"], "None")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b"class1", b"class2", b"class3"]
+            assert(all(class_name in ["class1", "class2", "class3"]
                        for class_name in featureset['target'].values))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['amplitude', 'meta1', 'meta2', 'meta3',
