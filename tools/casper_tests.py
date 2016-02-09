@@ -34,9 +34,7 @@ if __name__ == '__main__':
     print('[test_frontend] Initialize test database')
     reset_db()
 
-    subprocess.Popen(['mkdir', '-p', 'log'])
-    subprocess.Popen('tail -f log/*.log', cwd=web_client_path, shell=True)
-    web_client = subprocess.Popen('make', cwd=web_client_path)
+    web_client = subprocess.Popen(['make', 'monitor'], cwd=web_client_path)
 
     print('[test_frontend] Waiting for supervisord to launch all server processes...')
 
