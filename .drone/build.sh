@@ -38,6 +38,7 @@ WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
 pip install $WHEELHOUSE -r requirements.txt
 
 echo "[Drone] Build extension"
+pip install $WHEELHOUSE cython==0.23.4
 python setup.py build_ext -i
 
 echo "[Drone] Installing mltsp in-place"
