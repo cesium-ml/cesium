@@ -86,7 +86,7 @@ def test_write_features_to_disk():
     npt.assert_equal(sorted(fset.coords), ['name', 'target'])
     npt.assert_equal(fset['f1'].values, [21.0, 23.4])
     npt.assert_equal(fset['f2'].values, [0.15, 2.31])
-    npt.assert_equal(fset['target'].values, ['c1', 'c2'])
+    npt.assert_equal(fset['target'].values.astype('U'), ['c1', 'c2'])
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
