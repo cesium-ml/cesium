@@ -1,6 +1,6 @@
+from mltsp import cfg
 from mltsp import featurize
 from mltsp import featurize_tools
-from mltsp import cfg
 from nose.tools import with_setup
 import numpy.testing as npt
 import os
@@ -81,74 +81,73 @@ def sample_time_series(size=51, channels=1):
 def test_write_features_to_disk():
     """Test writing features to disk"""
     featurize.write_features_to_disk(sample_featureset(), "test")
-    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
-                                         "test_featureset.nc"))
-    npt.assert_equal(sorted(featureset.data_vars), ['f1', 'f2'])
-    npt.assert_equal(sorted(featureset.coords), ['name', 'target'])
-    npt.assert_equal(featureset['f1'].values, [21.0, 23.4])
-    npt.assert_equal(featureset['f2'].values, [0.15, 2.31])
-    npt.assert_equal(featureset['target'].values, [b'c1', b'c2'])
+    fset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER, "test_featureset.nc"))
+    npt.assert_equal(sorted(fset.data_vars), ['f1', 'f2'])
+    npt.assert_equal(sorted(fset.coords), ['name', 'target'])
+    npt.assert_equal(fset['f1'].values, [21.0, 23.4])
+    npt.assert_equal(fset['f2'].values, [0.15, 2.31])
+    npt.assert_equal(fset['target'].values.astype('U'), ['c1', 'c2'])
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_main_featurize_function():
-    """Test main featurize function"""
-    featureset = featurize.featurize_data_file(header_path=pjoin(
-        cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
-        data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
-        features_to_use=["std_err", "f"], featureset_id="test",
-        first_N=cfg.TEST_N,
-        custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+    """Test main featurize function for on-disk time series"""
+    fset = featurize.featurize_data_file(header_path=pjoin(
+               cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
+               data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
+               features_to_use=["std_err", "f"], featureset_id="test",
+               first_N=cfg.TEST_N,
+               custom_script_path=pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
                                  "testfeature1.py"))
-    assert("std_err" in featureset.data_vars)
-    assert("f" in featureset.data_vars)
+    assert("std_err" in fset.data_vars)
+    assert("f" in fset.data_vars)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj',
                               'Delta_Scuti']
-               for class_name in featureset['target'].values))
+               for class_name in fset['target'].values))
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_main_featurize_function_single_ts():
     """Test main featurize function for single time series"""
-    featureset = featurize.featurize_data_file(header_path=pjoin(
-        cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
-        data_path=pjoin(cfg.UPLOAD_FOLDER, "247327.dat"),
-        features_to_use=["std_err", "f"], featureset_id="test",
-        first_N=cfg.TEST_N)
-    assert("std_err" in featureset.data_vars)
-    assert("f" in featureset.data_vars)
+    fset = featurize.featurize_data_file(header_path=pjoin(
+               cfg.UPLOAD_FOLDER, "asas_training_subset_classes_with_metadata.dat"),
+               data_path=pjoin(cfg.UPLOAD_FOLDER, "247327.dat"),
+               features_to_use=["std_err", "f"], featureset_id="test",
+               first_N=cfg.TEST_N)
+    assert("std_err" in fset.data_vars)
+    assert("f" in fset.data_vars)
     assert(all(class_name in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                               'Classical_Cepheid', 'W_Ursae_Maj',
                               'Delta_Scuti']
-               for class_name in featureset['target'].values))
+               for class_name in fset['target'].values))
 
 
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
-    featureset = featurize.load_and_store_feature_data(
-        pjoin(cfg.UPLOAD_FOLDER, "test_features_with_targets.csv"),
-        featureset_id="test", first_N=cfg.TEST_N)
-    assert("std_err" in featureset)
-    assert("amplitude" in featureset)
+    fset = featurize.load_and_store_feature_data(
+               pjoin(cfg.UPLOAD_FOLDER, "test_features_with_targets.csv"),
+               featureset_id="test", first_N=cfg.TEST_N)
+    assert("std_err" in fset)
+    assert("amplitude" in fset)
     assert(all(class_name in ['class1', 'class2', 'class3']
-               for class_name in featureset['target']))
+               for class_name in fset['target']))
 
 
 @with_setup(copy_regression_test_data, remove_test_data)
 def test_main_featurize_function_regression_data():
     """Test main featurize function - regression data"""
-    featureset = featurize.featurize_data_file(
+    fset = featurize.featurize_data_file(
         header_path=pjoin(cfg.UPLOAD_FOLDER,
                           "asas_training_subset_targets.dat"),
         data_path=pjoin(cfg.UPLOAD_FOLDER, "asas_training_subset.tar.gz"),
         features_to_use=["std_err", "freq1_freq", "amplitude"],
         featureset_id="test", first_N=cfg.TEST_N, custom_script_path=None)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ["amplitude", "freq1_freq", "std_err"])
     assert(all(isinstance(target, (float, np.float))
-               for target in featureset['target'].values))
+               for target in fset['target'].values))
 
 
 def test_featurize_time_series_single():
@@ -157,11 +156,11 @@ def test_featurize_time_series_single():
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {'meta1': 0.5}
-    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(featureset.target.values, ['class1'])
+    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_single_multichannel():
@@ -171,14 +170,14 @@ def test_featurize_time_series_single_multichannel():
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {'meta1': 0.5}
-    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
+    npt.assert_array_equal(sorted(fset.amplitude.coords),
                            ['channel', 'name', 'target'])
-    npt.assert_array_equal(featureset.target.values, ['class1'])
+    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_multiple():
@@ -189,12 +188,12 @@ def test_featurize_time_series_multiple():
     features_to_use = ['amplitude', 'std_err']
     targets = np.array(['class1'] * n_series)
     meta_features = [{'meta1': 0.5}] * n_series
-    featureset = featurize.featurize_time_series(times, values, errors,
-                                                 features_to_use, targets,
-                                                 meta_features)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    fset = featurize.featurize_time_series(times, values, errors,
+                                           features_to_use, targets,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(featureset.target.values, ['class1'] * n_series)
+    npt.assert_array_equal(fset.target.values, ['class1'] * n_series)
 
 
 def test_featurize_time_series_multiple_multichannel():
@@ -207,15 +206,15 @@ def test_featurize_time_series_multiple_multichannel():
     features_to_use = ['amplitude', 'std_err']
     targets = np.array(['class1', 'class1', 'class1', 'class2', 'class2'])
     meta_features = {'meta1': 0.5}
-    featureset = featurize.featurize_time_series(times, values, errors,
-                                                 features_to_use, targets,
-                                                 meta_features)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    fset = featurize.featurize_time_series(times, values, errors,
+                                           features_to_use, targets,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
+    npt.assert_array_equal(sorted(fset.amplitude.coords),
                            ['channel', 'name', 'target'])
-    npt.assert_array_equal(featureset.target.values, targets)
+    npt.assert_array_equal(fset.target.values, targets)
 
 
 def test_featurize_time_series_uneven_multichannel():
@@ -228,14 +227,14 @@ def test_featurize_time_series_uneven_multichannel():
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {'meta1': 0.5}
-    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
+    npt.assert_array_equal(sorted(fset.amplitude.coords),
                            ['channel', 'name', 'target'])
-    npt.assert_array_equal(featureset.target.values, ['class1'])
+    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_custom_functions():
@@ -246,15 +245,16 @@ def test_featurize_time_series_custom_functions():
     target = 'class1'
     meta_features = {'meta1': 0.5}
     custom_functions = {'test_f': lambda t, m, e: np.mean(m)}
-    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                                 target, meta_features,
-                                                 custom_functions=custom_functions)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features,
+                                           custom_functions=custom_functions,
+                                           use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err', 'test_f'])
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
+    npt.assert_array_equal(sorted(fset.amplitude.coords),
                            ['channel', 'name', 'target'])
-    npt.assert_array_equal(featureset.target.values, ['class1'])
+    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_custom_dask_graph():
@@ -264,16 +264,17 @@ def test_featurize_time_series_custom_dask_graph():
     features_to_use = ['amplitude', 'std_err', 'test_f']
     target = 'class1'
     meta_features = {'meta1': 0.5}
-    custom_functions = {'test_f': (lambda x: 2*x, 'amplitude')}
-    featureset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                                 target, meta_features,
-                                                 custom_functions=custom_functions)
-    npt.assert_array_equal(sorted(featureset.data_vars),
+    custom_functions = {'test_f': (lambda x: x.min() - x.max(), 'amplitude')}
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features,
+                                           custom_functions=custom_functions,
+                                           use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err', 'test_f'])
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
-    npt.assert_array_equal(sorted(featureset.amplitude.coords),
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
+    npt.assert_array_equal(sorted(fset.amplitude.coords),
                            ['channel', 'name', 'target'])
-    npt.assert_array_equal(featureset.target.values, ['class1'])
+    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_default_times():
@@ -283,19 +284,19 @@ def test_featurize_time_series_default_times():
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {}
-    featureset = featurize.featurize_time_series(None, m, e, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    fset = featurize.featurize_time_series(None, m, e, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
     m = [[m[0], m[1][0:-5], m[2][0:-10]]]
     e = [[e[0], e[1][0:-5], e[2][0:-10]]]
-    featureset = featurize.featurize_time_series(None, m, e, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    fset = featurize.featurize_time_series(None, m, e, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
     m = m[0][0]
     e = e[0][0]
-    featureset = featurize.featurize_time_series(None, m, e, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(featureset.channel, [0])
+    fset = featurize.featurize_time_series(None, m, e, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(fset.channel, [0])
 
 
 def test_featurize_time_series_default_errors():
@@ -305,16 +306,39 @@ def test_featurize_time_series_default_errors():
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {}
-    featureset = featurize.featurize_time_series(t, m, None, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    fset = featurize.featurize_time_series(t, m, None, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
     t = [[t, t[0:-5], t[0:-10]]]
     m = [[m[0], m[1][0:-5], m[2][0:-10]]]
-    featureset = featurize.featurize_time_series(t, m, None, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(featureset.channel, np.arange(n_channels))
+    fset = featurize.featurize_time_series(t, m, None, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
     t = t[0][0]
     m = m[0][0]
-    featureset = featurize.featurize_time_series(t, m, None, features_to_use,
-                                                 target, meta_features)
-    npt.assert_array_equal(featureset.channel, [0])
+    fset = featurize.featurize_time_series(t, m, None, features_to_use, target,
+                                           meta_features, use_celery=False)
+    npt.assert_array_equal(fset.channel, [0])
+
+
+def test_featurize_time_series_celery():
+    """Test `featurize_time_series` with Celery.
+    
+    The actual featurization work is being done by
+    `featurize_tools.featurize_single_time_series`, which is called by both the
+    Celery and non-Celery versions; thus, besides the above tests, we only need
+    to check that the Celery task is configured properly."""
+    t, m, e = sample_time_series()
+    features_to_use = ['amplitude', 'std_err', 'test_f']
+    # This ideally would be a dummy lambda function but celery can't do that
+    from mltsp.science_features import lomb_scargle_fast as lsf
+    custom_functions = {'test_f': lsf.lomb_scargle_fast_period}
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features,
+                                           custom_functions=custom_functions,
+                                           use_celery=True)
+    npt.assert_array_equal(sorted(fset.data_vars),
+                           ['amplitude', 'meta1', 'std_err', 'test_f'])
+    npt.assert_array_equal(fset.target.values, ['class1'])

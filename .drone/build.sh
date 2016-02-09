@@ -38,6 +38,7 @@ WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
 pip install $WHEELHOUSE -r requirements.txt
 
 echo "[Drone] Build extension"
+pip install $WHEELHOUSE cython==0.23.4
 python setup.py build_ext -i
 
 echo "[Drone] Installing mltsp in-place"
@@ -56,4 +57,5 @@ echo "[Drone] Initialize database"
 mltsp --db-init
 
 echo "[Drone] Run test suite"
+export C_FORCE_ROOT=1 # override warning about running Celery+pickle as root
 make test_no_docker

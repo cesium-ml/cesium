@@ -1520,9 +1520,10 @@ class FlaskAppTestCase(unittest.TestCase):
 
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
             pred_results_dict = entry
-            assert(pred_results_dict["pred_results_dict"]
-                                         ["TESTRUN_215153"][0][0]
-                   in [b'class1', b'class2', b'class3'])
+            classes = np.array([el[0] for el in
+                                pred_results_dict["pred_results_dict"]["TESTRUN_215153"]],
+                               dtype='U')
+            assert all(c in ['class1', 'class2', 'class3'] for c in classes)
 
             assert all(key in pred_results_dict for key in \
                        ("ts_data_dict", "features_dict"))
@@ -2027,8 +2028,8 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["zipfile_name"], "None")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'class1', b'class2', b'class3'] for
-                       class_name in featureset.target.values))
+            assert(all(c in ['class1', 'class2', 'class3'] for
+                       c in featureset.target.values.astype('U')))
             npt.assert_array_equal(sorted(featureset.data_vars),
                                    ["amplitude", "meta1", "meta2", "meta3",
                                      "std_err"])
@@ -2078,10 +2079,10 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
-                                      b'Classical_Cepheid', b'W_Ursae_Maj',
-                                      b'Delta_Scuti', b'RR_Lyrae']
-                       for class_name in featureset.target.values))
+            assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti', 'RR_Lyrae']
+                       for c in featureset.target.values.astype('U')))
             cols = list(featureset.data_vars)
             npt.assert_array_equal(sorted(cols), ["amplitude", "f", "std_err"])
             fpaths = []
@@ -2147,10 +2148,10 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
-                                      b'Classical_Cepheid', b'W_Ursae_Maj',
-                                      b'Delta_Scuti', b'RR_Lyrae']
-                       for class_name in featureset.target.values))
+            assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti', 'RR_Lyrae']
+                       for c in featureset.target.values.astype('U')))
             cols = list(featureset.data_vars)
             npt.assert_array_equal(sorted(cols), ["amplitude", "std_err"])
             fpaths = []
@@ -2206,10 +2207,10 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b'Mira', b'Herbig_AEBE', b'Beta_Lyrae',
-                                      b'Classical_Cepheid', b'W_Ursae_Maj',
-                                      b'Delta_Scuti', b'RR_Lyrae']
-                       for class_name in featureset['target'].values))
+            assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
+                                      'Classical_Cepheid', 'W_Ursae_Maj',
+                                      'Delta_Scuti', 'RR_Lyrae']
+                       for c in featureset['target'].values.astype('U')))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['avg_mag', 'meta1', 'meta2', 'meta3',
                                     'std_err'])
@@ -2241,8 +2242,8 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["zipfile_name"], "None")
             featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
                                                  "%s_featureset.nc" % new_key))
-            assert(all(class_name in [b"class1", b"class2", b"class3"]
-                       for class_name in featureset['target'].values))
+            assert(all(c in ["class1", "class2", "class3"]
+                       for c in featureset['target'].values.astype('U')))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['amplitude', 'meta1', 'meta2', 'meta3',
                                     'std_err'])
@@ -2333,10 +2334,10 @@ class FlaskAppTestCase(unittest.TestCase):
             model_and_prediction_teardown()
             pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
-            assert(all(all(el[0] in [b'class1', b'class2', b'class3']
-                           for el in pred_results[fname])
-                       for fname in pred_results))
-            assert("std_err" in feats_dict["dotastro_215153"])
+            classes = np.array([el[0] for fname in pred_results
+                                for el in pred_results[fname]], dtype='U')
+            assert all(c in ['class1', 'class2', 'class3'] for c in classes)
+            assert "std_err" in feats_dict["dotastro_215153"]
 
     def test_prediction_page(self):
         """Test main prediction function"""
@@ -2381,10 +2382,10 @@ class FlaskAppTestCase(unittest.TestCase):
             model_and_prediction_teardown()
             pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
-            assert(all(all(el[0] in [b'class1', b'class2', b'class3']
-                           for el in pred_results[fname])
-                       for fname in pred_results))
-            assert("std_err" in feats_dict["TESTRUN_215153"])
+            classes = np.array([el[0] for fname in pred_results
+                                for el in pred_results[fname]], dtype='U')
+            assert all(c in ['class1', 'class2', 'class3'] for c in classes)
+            assert "std_err" in feats_dict["TESTRUN_215153"]
 
     def test_load_source_data(self):
         """Test load source data"""
