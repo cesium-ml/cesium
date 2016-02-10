@@ -7,7 +7,7 @@ from sklearn.externals import joblib
 
 from ..cfg import config
 from .. import util
-from .. import featurize_tools
+from .. import manage_data
 from . import util as dsutil
 
 
@@ -58,7 +58,7 @@ def download_asas_training(data_dir):
     measurements = []
     errors = []
     for fname in ts_paths:
-        t, m, e = featurize_tools.parse_ts_data(fname)
+        t, m, e = manage_data.parse_ts_data(fname)
         times.append(t)
         measurements.append(m)
         errors.append(e)
@@ -66,7 +66,7 @@ def download_asas_training(data_dir):
     extract_dir = os.path.join(data_dir, os.path.basename(ARCHIVE_NAME))
     util.remove_files(ts_paths)
 
-    classes, metadata = featurize_tools.parse_headerfile(header_path, ts_paths)
+    classes, metadata = manage_data.parse_headerfile(header_path, ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
     data = dict(times=times, measurements=measurements, errors=errors,

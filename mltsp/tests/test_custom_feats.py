@@ -2,6 +2,8 @@ from mltsp import custom_feature_tools as cft
 from mltsp import featurize_tools as ft
 from mltsp.cfg import config
 from mltsp import util
+from mltsp import custom_feature_tools as cft
+from mltsp import manage_data
 import numpy.testing as npt
 import numpy as np
 import os
@@ -74,7 +76,7 @@ def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")
     ts_datafile = pjoin(DATA_PATH, "dotastro_215153.dat")
-    t, m, e = ft.parse_ts_data(ts_datafile)
+    t, m, e = manage_data.parse_ts_data(ts_datafile)
     feats_known_dict = {'t': list(t), 'm': list(m), 'e': list(e)}
     results = cft.docker_extract_features(script_fpath, feats_known_dict)
     assert(isinstance(results, dict))
@@ -105,7 +107,7 @@ def test_list_features_provided():
 
 def test_generate_custom_features():
     """Test main generate custom features function"""
-    t, m, e = ft.parse_ts_data(pjoin(DATA_PATH, "dotastro_215153.dat"))
+    t, m, e = manage_data.parse_ts_data(pjoin(DATA_PATH, "dotastro_215153.dat"))
     feats = cft.generate_custom_features(pjoin(DATA_PATH, "testfeature1.py"),
                                          t, m, e)
     npt.assert_almost_equal(feats["avg_mag"], 10.347417647058824)

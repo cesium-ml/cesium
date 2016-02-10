@@ -8,7 +8,7 @@ import zipfile
 from . import build_model
 from .cfg import config
 from . import featurize
-from . import featurize_tools as ft
+from . import manage_data
 from . import util
 
 
@@ -99,36 +99,34 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
               most-probable targets and its probability.
 
     """
-    if tarfile.is_tarfile(newpred_path) or zipfile.is_zipfile(newpred_path):
-        ts_paths = util.extract_data_archive(newpred_path)
-    else:
-        ts_paths = [newpred_path]
-    all_ts_data = {util.shorten_fname(ts_path): ft.parse_ts_data(ts_path)
-                   for ts_path in ts_paths}
+    with util.extract_time_series(data_path, cleanup_archive=False,
+                                  cleanup_files=True) as ts_paths:
+        all_ts_data = {util.shorten_fname(ts_path):
+                       manage_data.parse_ts_data(ts_path)
+                       for ts_path in ts_paths}
 
-    featureset_path = os.path.join(config['paths']['features_folder'],
-                                   '{}_featureset.nc'.format(featureset_key))
-    featureset = xr.open_dataset(featureset_path)
-    features_to_use = list(featureset.data_vars)
-    new_featureset = featurize.featurize_data_file(newpred_path, metadata_path,
-                                                   features_to_use=features_to_use,
-                                                   custom_script_path=custom_features_script)
+        featureset_path = os.path.join(config['paths']['features_folder'],
+                                       '{}_featureset.nc'.format(featureset_key))
+        featureset = xr.open_dataset(featureset_path)
+        features_to_use = list(featureset.data_vars)
+        new_featureset = featurize.featurize_data_file(newpred_path, metadata_path,
+                                                       features_to_use=features_to_use,
+                                                       custom_script_path=custom_features_script)
 
-    model = joblib.load(os.path.join(config['paths']['models_folder'],
-                                     "{}.pkl".format(model_key)))
-    # Covert to DataFrame so we can treat 1d/2d predictions in the same way
-    preds_df = pd.DataFrame(model_predictions(new_featureset, model))
+        model = joblib.load(os.path.join(config['paths']['models_folder'],
+                                         "{}.pkl".format(model_key)))
+        # Covert to DataFrame so we can treat 1d/2d predictions in the same way
+        preds_df = pd.DataFrame(model_predictions(new_featureset, model))
 
-    # TODO this code will go away when we stop returning all the data here,
-    # which should happen when we develop a file management system.
-    results_dict = {}
-    new_feature_df = build_model.rectangularize_featureset(new_featureset)
-    results_dict = {fname: {"results_str": "",
-                            "ts_data": all_ts_data[fname],
-                            "features_dict": new_feature_df.loc[fname].to_dict(),
-                            "pred_results": list(row.sort_values(inplace=False,
-                                                 ascending=False).iteritems())
-                                            if len(row) > 1 else row}
-                    for fname, row in preds_df.iterrows()}
-
+        # TODO this code will go away when we stop returning all the data here,
+        # which should happen when we develop a file management system.
+        results_dict = {}
+        new_feature_df = build_model.rectangularize_featureset(new_featureset)
+        results_dict = {fname: {"results_str": "",
+                                "ts_data": all_ts_data[fname],
+                                "features_dict": new_feature_df.loc[fname].to_dict(),
+                                "pred_results": list(row.sort_values(inplace=False,
+                                                     ascending=False).iteritems())
+                                                if len(row) > 1 else row}
+                        for fname, row in preds_df.iterrows()}
     return results_dict

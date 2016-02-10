@@ -1,4 +1,5 @@
 import ast
+import contextlib
 import errno
 import os
 import subprocess
@@ -170,40 +171,62 @@ def remove_files(paths):
                 pass
 
 
-def extract_data_archive(archive_path, extract_dir=None):
+@contextlib.contextmanager
+def extract_time_series(data_path, cleanup_archive=True, cleanup_files=False,
+                        extract_dir=None):
     """Extract zip- or tarfile of time series file and return file paths.
+
+    If the given file is not a tar- or zipfile then it is treated as a single
+    time series filepath.
 
     Parameters
     ----------
-    archive_path : str
-        Path to archive to be extracted.
+    data_path : str
+        Path to data archive or single data file.
+
+    cleanup_archive : bool, optional
+        Boolean specifying whether to delete the original archive (if
+        applicable). Defaults to True.
+    
+    cleanup_files : bool, optional
+        Boolean specifying whether to delete the extracted files when exiting
+        the given context. Defaults to False.
 
     extract_dir : str, optional
-        Directory into which files are to be extracted. If None, a temporary
-        directory is created.
+        Directory into which files are to be extracted (if applicable). If
+        None, a temporary directory is created.
 
-    Returns
-    -------
+    Yields
+    ------
     list of str
-        List of full paths to extracted files.
+        List of full paths to time series files.
     """
     if extract_dir is None:
         extract_dir = tempfile.mkdtemp()
 
-    if tarfile.is_tarfile(archive_path):
-        archive = tarfile.open(archive_path)
+    if tarfile.is_tarfile(data_path):
+        archive = tarfile.open(data_path)
         archive.extractall(path=extract_dir)
         all_paths = [os.path.join(extract_dir, f) for f in archive.getnames()]
-    elif zipfile.is_zipfile(archive_path):
-        archive = zipfile.ZipFile(archive_path)
+    elif zipfile.is_zipfile(data_path):
+        archive = zipfile.ZipFile(data_path)
         archive.extractall(path=extract_dir)
         all_paths = [os.path.join(extract_dir, f) for f in archive.namelist()]
     else:
-        raise ValueError('{} is not a valid zip- or '
-                         'tarfile.'.format(archive_path))
+        archive = None
+        all_paths = [data_path]
+        
+    if archive:
+        archive.close()
+        if cleanup_archive:
+            remove_files(data_path)
+
     file_paths = [f for f in all_paths if not os.path.isdir(f)]
-    archive.close()
-    return file_paths
+    try:
+        yield file_paths
+    finally:
+        if cleanup_files:
+            remove_files(file_paths)
 
 
 def robust_literal_eval(val):

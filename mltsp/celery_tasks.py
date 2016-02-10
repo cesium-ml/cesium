@@ -3,9 +3,11 @@ import os
 import sys
 import numpy as np
 import pandas as pd
+import xarray as xr
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from mltsp.cfg import config
 from mltsp import util
+from mltsp import manage_data
 from mltsp import featurize_tools as ft
 from mltsp import obs_feature_tools as oft
 from mltsp import science_feature_tools as sft
@@ -32,8 +34,7 @@ def celery_available():
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_file")
-def featurize_ts_file(ts_file_path, features_to_use, metadata={},
-                      custom_script_path=None):
+def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
     """Featurize time-series data file.
 
     Parameters
@@ -42,9 +43,6 @@ def featurize_ts_file(ts_file_path, features_to_use, metadata={},
         Time-series data file disk location path.
     features_to_use : list of str
         List of names of features to be generated.
-    metadata : dict, optional
-        Dictionary containing metafeature names and values for the given time
-        series, if applicable.
     custom_script_path : str, optional
         Path to custom features script .py file, if applicable.
 
@@ -56,10 +54,15 @@ def featurize_ts_file(ts_file_path, features_to_use, metadata={},
 
     """
     short_fname = util.shorten_fname(ts_file_path)
-    t, m, e = ft.parse_ts_data(ts_file_path)
-    all_features = ft.featurize_single_ts(t, m, e, features_to_use, metadata,
-                                          custom_script_path)
-    return (short_fname, all_features)
+    with xr.open_dataset(ts_file_path) as data:
+        meta_features = data.meta_features.to_series().to_dict()
+        all_features = ft.featurize_single_ts(data.time.values,
+                                              data.measurement.values,
+                                              data.error.values,
+                                              features_to_use, meta_features,
+                                              custom_script_path)
+        return (short_fname, all_features, data.attrs.get('target'),
+                meta_features)
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")

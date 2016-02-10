@@ -44,7 +44,7 @@ def download_and_extract_archives(data_dir, base_url, filenames, md5sums=None,
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
-    file_paths = []
+    all_file_paths = []
     for fname in filenames:
         archive_path = os.path.join(data_dir, fname)
         opener = request.urlopen(base_url + fname)
@@ -54,10 +54,11 @@ def download_and_extract_archives(data_dir, base_url, filenames, md5sums=None,
             if _md5sum_file(archive_path) != md5sums[fname]:
                 raise ValueError("File {} checksum verification has failed."
                                  " Dataset fetching aborted.".format(fname))
-        file_paths.extend(util.extract_data_archive(archive_path, data_dir))
-        if remove_archive:
-            util.remove_files(archive_path)
-    return file_paths
+        with util.extract_time_series(archive_path,
+                                      cleanup_archive=remove_archive,
+                                      extract_dir=data_dir) as file_paths:
+            all_file_paths.extend(file_paths)
+    return all_file_paths
 
 
 def build_time_series_archive(archive_path, ts_paths):
