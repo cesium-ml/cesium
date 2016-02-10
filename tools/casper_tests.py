@@ -34,7 +34,9 @@ if __name__ == '__main__':
     print('[test_frontend] Initialize test database')
     reset_db()
 
-    web_client = subprocess.Popen(['make', 'monitor'], cwd=web_client_path)
+    env = os.environ.copy()
+    web_client = subprocess.Popen(['make', 'monitor'], cwd=web_client_path,
+                                  env=env)
 
     print('[test_frontend] Waiting for supervisord to launch all server processes...')
 
@@ -51,7 +53,8 @@ if __name__ == '__main__':
     print('[test_frontend] Launching CasperJS...')
     tests = sorted(glob.glob(pjoin(parent_path, 'mltsp/tests/frontend/*.js')))
     status = subprocess.call([casperjs_path, '--verbose',
-                             '--log-level=debug', 'test'] + tests, cwd=parent_path)
+                             '--log-level=debug', 'test'] + tests,
+                             cwd=parent_path, env=env)
 
     print('[test_frontend] Terminating supervisord...')
     web_client.terminate()
