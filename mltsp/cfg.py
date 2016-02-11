@@ -254,25 +254,21 @@ class warn_defaultdict(dict):
     {}
 
     """
+    def __setitem__(self, key, value):
+        if isinstance(value, dict):
+            value = warn_defaultdict(value)
+
+        dict.__setitem__(self, key, value)
+
     def __getitem__(self, key):
         if not key in self.keys():
             print('[config] WARNING: non-existent '
                   'key "{}" requested'.format(key))
-            return warn_defaultdict()
-        else:
-            item = dict.__getitem__(self, key)
 
-            # Special case for celery configuration:
-            # we do *not* want a defaultdict here,
-            # otherwise Celery will query it for all
-            # possible configuration values
-            if key == 'celery':
-                return item
+            self.__setitem__(key, warn_defaultdict())
 
-            if isinstance(item, dict):
-                return warn_defaultdict(item)
-            else:
-                return item
+        return dict.__getitem__(self, key)
+
 
 config = warn_defaultdict(config)
 
