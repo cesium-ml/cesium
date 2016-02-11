@@ -38,7 +38,7 @@ test_backend: db celery
 
 test_backend_no_docker: db celery | clean_test_config
 	echo -e "testing:\n    no_docker: 1" > "mltsp-_test_.yaml"
-	nosetests -v mltsp
+	nosetests -v -s mltsp
 
 test_frontend: external/casperjs db celery
 	echo -e "testing:\n    disable_auth: 1" > "mltsp-_test_.yaml"
