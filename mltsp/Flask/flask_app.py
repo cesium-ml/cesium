@@ -26,6 +26,7 @@ import numpy as np
 
 import yaml
 if config['testing']['disable_auth']:
+    print('[mltsp] Disabling front-end authentication')
     from ..ext import stormpath_mock as stormpath
 else:
     from flask.ext import stormpath
@@ -93,6 +94,7 @@ logging.basicConfig(filename=config['paths']['err_log_path'],
 RDB_HOST = config['database']['host']
 RDB_PORT = config['database']['port']
 if config['testing']['test_db']:
+    print('[mltsp] Using test database')
     MLTSP_DB = "mltsp_testing"
 else:
     MLTSP_DB = "mltsp_app"

@@ -1,7 +1,11 @@
 import os
 
 from mltsp.cfg import config
+
+print('[testing] Configure MLTSP to use test database')
 config['testing']['test_db'] = 1
+
+print('[testing] Configure MLTSP to disable authentication')
 config['testing']['disable_auth'] = 1
 
 from mltsp.Flask import flask_app as fa
