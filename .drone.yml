@@ -1,6 +1,7 @@
 build:
     image: mltsp/drone
     commands:
+        - git log -1
         - ./.drone/build.sh
 
 clone:
