@@ -16,7 +16,7 @@ celery:
 all:
 	python setup.py build_ext -i
 
-ddclean:
+clean:
 	find . -name "*.so" | xargs rm -f
 
 webapp: db celery
@@ -36,7 +36,7 @@ external/casperjs:
 test_backend: db celery
 	nosetests -v mltsp
 
-test_backend_no_docker: db celery | clean_test_config
+test_backend_no_docker: db celery
 	echo -e "testing:\n    no_docker: 1" > "mltsp-_test_.yaml"
 	nosetests -v -s mltsp
 
