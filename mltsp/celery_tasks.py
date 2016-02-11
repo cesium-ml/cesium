@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from mltsp import cfg
+from mltsp.cfg import config
 from mltsp import util
 from mltsp import featurize_tools as ft
 from mltsp import obs_feature_tools as oft
@@ -12,8 +12,8 @@ from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 
 
-os.environ['CELERY_CONFIG_MODULE'] = cfg.CELERY_CONFIG
-celery_app = Celery('celery_fit', broker=cfg.CELERY_BROKER)
+celery_app = Celery('celery_fit', broker=config['celery']['celery_broker'])
+celery_app.config_from_object(config['celery'])
 
 
 @celery_app.task(name="celery_tasks.check_celery")

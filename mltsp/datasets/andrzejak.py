@@ -4,7 +4,7 @@ import os
 import numpy as np
 from sklearn.externals import joblib
 
-from .. import cfg
+from ..cfg import config
 from .. import util
 from . import util as dsutil
 
@@ -91,7 +91,8 @@ def fetch_andrzejak(data_dir=None):
     ----------
     data_dir : str, optional
         Path where downloaded data should be stored. Defaults to
-        a subdirectory `datasets/andrzejak` within `cfg.DATA_PATH`.
+        a subdirectory `datasets/andrzejak` within
+        `config['paths']['data_path']`.
 
     Returns
     -------
@@ -112,7 +113,7 @@ def fetch_andrzejak(data_dir=None):
     """
 
     if data_dir is None:
-        data_dir = os.path.join(cfg.DATA_PATH, "datasets/andrzejak")
+        data_dir = os.path.join(config['paths']['data_path'], "datasets/andrzejak")
     cache_path = os.path.join(data_dir, CACHE_NAME)
 
     try:

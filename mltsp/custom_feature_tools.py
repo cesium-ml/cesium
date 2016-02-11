@@ -11,7 +11,7 @@ import tarfile
 import shutil
 import numpy as np
 from importlib import import_module
-from . import cfg
+from .cfg import config
 from . import util
 
 class MissingRequiredParameterError(Exception):
@@ -260,10 +260,10 @@ def execute_functions_in_order(script_fpath, features_already_known):
 def make_tmp_dir():
     """
     """
-    if os.path.exists(cfg.PROJECT_PATH_LINK):
-        proj_path = cfg.PROJECT_PATH_LINK
+    if os.path.exists(config['paths']['project_path_link']):
+        proj_path = config['paths']['project_path_link']
     else:
-        proj_path = cfg.PROJECT_PATH
+        proj_path = config['paths']['project_path']
     path_to_tmp_dir = os.path.join(proj_path, "tmp",
                                    str(uuid.uuid4())[:10])
     os.makedirs(path_to_tmp_dir)
@@ -324,10 +324,10 @@ def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
 
         # Use symlink if one was created (in which case this is probably
         # being run in a Disco worker)
-        if os.path.exists(cfg.PROJECT_PATH_LINK):
-            proj_mount_path = cfg.PROJECT_PATH_LINK
+        if os.path.exists(config['paths']['project_path_link']):
+            proj_mount_path = config['paths']['project_path_link']
         else:
-            proj_mount_path = cfg.PROJECT_PATH
+            proj_mount_path = config['paths']['project_path']
         # Create container
         cont_id = client.create_container(
             image="mltsp/base",
@@ -369,11 +369,11 @@ def remove_tmp_files(path_to_tmp_dir):
     """
     # Remove tmp dir
     shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-    for tmp_file in (os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+    for tmp_file in (os.path.join(config['paths']['tmp_custom_feats_folder'],
                                   "custom_feature_defs.py"),
-                     os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                     os.path.join(config['paths']['tmp_custom_feats_folder'],
                                   "custom_feature_defs.pyc"),
-                     os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                     os.path.join(config['paths']['tmp_custom_feats_folder'],
                                   "__init__.pyc")):
         try:
             os.remove(tmp_file)
@@ -434,7 +434,8 @@ def docker_extract_features(script_fpath, features_already_known):
 def assemble_test_data():
     """
     """
-    fname = os.path.join(cfg.SAMPLE_DATA_PATH, "dotastro_215153.dat")
+    fname = os.path.join(config['paths']['sample_data_path'],
+                         "dotastro_215153.dat")
     t, m, e = np.loadtxt(fname, delimiter=',').T
     features_already_known = {'t': list(t), 'm': list(m), 'e': list(e)}
     return features_already_known
@@ -466,19 +467,19 @@ def verify_new_script(script_fpath, docker_container=False):
     print(script_fpath, os.path.isfile(script_fpath))
 
     all_extracted_features = {}
-    no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
-    if util.docker_images_available() and not no_docker:
-        print("Extracting features inside docker container...")
-        all_extracted_features = docker_extract_features(
-            script_fpath=script_fpath,
-            features_already_known=features_already_known)
-    elif no_docker:
+    if config['testing']['no_docker']:
         print("WARNING - generating custom features WITHOUT docker container...")
         all_extracted_features = execute_functions_in_order(
             features_already_known=features_already_known,
             script_fpath=script_fpath)
-    elif not util.docker_images_available():
-        raise Exception("Docker image not available.")
+    elif util.docker_images_available():
+        print("Extracting features inside docker container...")
+        all_extracted_features = docker_extract_features(
+            script_fpath=script_fpath,
+            features_already_known=features_already_known)
+    else:
+        raise Exception("Feature extraction inside Docker images requested, "
+                        "but no suitable Docker images available.")
     return all_extracted_features
 
 
@@ -560,18 +561,18 @@ def generate_custom_features(custom_script_path, t, m, e,
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
     else:
-        no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
-        if util.docker_images_available() and not no_docker:
-            print("Generating custom features inside docker container...")
-            all_new_features = docker_extract_features(
-                script_fpath=custom_script_path,
-                features_already_known=features_already_known)
-        elif no_docker:
+        if config['testing']['no_docker']:
             print("WARNING - generating custom features WITHOUT docker container...")
             all_new_features = execute_functions_in_order(
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
-        elif not util.docker_images_available():
-            raise Exception("Docker image not available.")
+        elif util.docker_images_available():
+            print("Generating custom features inside docker container...")
+            all_new_features = docker_extract_features(
+                script_fpath=custom_script_path,
+                features_already_known=features_already_known)
+        else:
+            raise Exception("Feature extraction inside Docker images requested, "
+                            "but no suitable Docker images available.")
 
     return all_new_features

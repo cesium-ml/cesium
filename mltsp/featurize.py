@@ -5,7 +5,7 @@ import tarfile
 import zipfile
 import numpy as np
 import pandas as pd
-from . import cfg
+from .cfg import config
 from . import util
 from .celery_tasks import celery_available
 from .celery_tasks import featurize_ts_data as featurize_data_task
@@ -15,7 +15,7 @@ from . import featurize_tools as ft
 
 def write_features_to_disk(featureset, featureset_id):
     """Store xarray.Dataset of features as netCDF using given featureset key."""
-    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
+    featureset_path = os.path.join(config['paths']['features_folder'],
                                    "{}_featureset.nc".format(featureset_id))
     featureset.to_netcdf(featureset_path)
 
@@ -80,7 +80,7 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     If `featureset_id` is provided, Features are saved as an xarray.Dataset in
     netCDF format to the file ``"%s_featureset.nc" % featureset_id`` in the
-    directory `cfg.FEATURES_FOLDER`.
+    directory `config['paths']['features_folder']`.
 
     Parameters
     ----------
@@ -130,7 +130,8 @@ def featurize_data_file(data_path, header_path=None, features_to_use=[],
 
     if not celery_available():
         raise RuntimeError("Celery not available")
-    celery_res = featurize_file_task.chunks(params_list, cfg.N_CORES).delay()
+    celery_res = featurize_file_task.chunks(params_list,
+                                            config['mltsp']['N_CORES']).delay()
     # Returns list of list of pairs [fname, {feature: [values]]
     res_list = celery_res.get()
     res_flat = [elem for chunk in res_list for elem in chunk]
@@ -237,27 +238,31 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         times = copy.deepcopy(values)
         if isinstance(times, np.ndarray) and (times.ndim == 1
                                               or 1 in times.shape):
-            times[:] = np.linspace(0., cfg.DEFAULT_MAX_TIME, times.size)
+            times[:] = np.linspace(0., config['mltsp']['DEFAULT_MAX_TIME'],
+                                   times.size)
         else:
             for t in times:
                 if isinstance(t, np.ndarray) and (t.ndim == 1 or 1 in t.shape):
-                    t[:] = np.linspace(0., cfg.DEFAULT_MAX_TIME, t.size)
+                    t[:] = np.linspace(0., config['mltsp']['DEFAULT_MAX_TIME'],
+                                       t.size)
                 else:
                     for t_i in t:
-                        t_i[:] = np.linspace(0., cfg.DEFAULT_MAX_TIME, t_i.size)
+                        t_i[:] = np.linspace(
+                            0., config['mltsp']['DEFAULT_MAX_TIME'], t_i.size
+                            )
 
     if errors is None:
         errors = copy.deepcopy(values)
         if isinstance(errors, np.ndarray) and (errors.ndim == 1
                                                or 1 in errors.shape):
-            errors[:] = cfg.DEFAULT_ERROR_VALUE
+            errors[:] = config['mltsp']['DEFAULT_ERROR_VALUE']
         else:
             for e in errors:
                 if isinstance(e, np.ndarray) and (e.ndim == 1 or 1 in e.shape):
-                    e[:] = cfg.DEFAULT_ERROR_VALUE
+                    e[:] = config['mltsp']['DEFAULT_ERROR_VALUE']
                 else:
                     for e_i in e:
-                        e_i[:] = cfg.DEFAULT_ERROR_VALUE
+                        e_i[:] = config['mltsp']['DEFAULT_ERROR_VALUE']
 
     if labels is None:
         if isinstance(times, (list, tuple)):
@@ -298,8 +303,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
                                                       meta_features,
                                                       custom_script_path,
                                                       custom_functions)
-        celery_res = featurize_data_task.chunks(params_list,
-                                                cfg.N_CORES).delay()
+        celery_res = featurize_data_task.chunks(
+            params_list, config['mltsp']['N_CORES']).delay()
         # Returns list of list of pairs [label, {feature: [values]]
         res_list = celery_res.get()
         res_flat = [elem for chunk in res_list for elem in chunk]

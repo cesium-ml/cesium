@@ -53,8 +53,8 @@ conda install numpy scipy pandas scikit-learn cython dask xarray
 * Create the MLTSP database: `mltsp --db-init`
 
 * Launch the web platform: `cd web_client && make`
-  * User authentication is required by default; disable by setting the
-    environment variable MLTSP_DEBUG_LOGIN=1  
+* User authentication is required by default; disable by modifying
+  'disable_auth' in the configuration file.
 
 * Navigate to `http://localhost:5000`.
 

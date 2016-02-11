@@ -5,8 +5,8 @@
 if __name__ == "__main__":
     # Run Cython setup script:
     # from subprocess import call
-    # from mltsp import cfg
-    # call(["%s/make" % cfg.PROJECT_PATH])
+    # from mltsp.cfg import config
+    # call(["%s/make" % config['paths']['project_path']])
 
     import argparse
     parser = argparse.ArgumentParser(description='MLTSP Docker scripts')

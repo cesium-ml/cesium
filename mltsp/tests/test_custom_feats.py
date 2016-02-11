@@ -1,6 +1,6 @@
 from mltsp import custom_feature_tools as cft
 from mltsp import featurize_tools as ft
-from mltsp import cfg
+from mltsp.cfg import config
 from mltsp import util
 import numpy.testing as npt
 import numpy as np
@@ -15,12 +15,11 @@ from numpy.testing import decorators as dec
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
 
 
 def setup():
     shutil.copy(pjoin(DATA_PATH, "testfeature1.py"),
-                pjoin(cfg.MLTSP_PACKAGE_PATH,
+                pjoin(config['paths']['package_path'],
                       "custom_feature_scripts/custom_feature_defs.py"))
 
 
@@ -41,10 +40,10 @@ def test_call_custom_functions():
     """Test executing of custom feature definition functions"""
     fnames_req_prov_dict, all_required_params, all_provided_params = \
         cft.parse_for_req_prov_params(pjoin(DATA_PATH, "testfeature1.py"))
-    if not os.path.exists(pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+    if not os.path.exists(pjoin(config['paths']['tmp_custom_feats_folder'],
                                 "custom_feature_defs.py")):
         shutil.copyfile(pjoin(DATA_PATH, "testfeature1.py"),
-                        pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                        pjoin(config['paths']['tmp_custom_feats_folder'],
                               "custom_feature_defs.py"))
     extracted_feats = cft.call_custom_functions(
         {"t": [1.0, 1.2, 1.4], "m": [12.2, 14.1, 15.2],
@@ -54,7 +53,8 @@ def test_call_custom_functions():
     npt.assert_almost_equal(extracted_feats["avg_mag"],
                             np.average([12.2, 14.1, 15.2]))
     assert(all(x in extracted_feats for x in ["a", "l", "o"]))
-    os.remove(pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER, "custom_feature_defs.py"))
+    os.remove(pjoin(config['paths']['tmp_custom_feats_folder'],
+                    "custom_feature_defs.py"))
 
 
 def test_execute_functions_in_order():
@@ -68,7 +68,7 @@ def test_execute_functions_in_order():
     assert(all(x in feats for x in ["a", "l", "o"]))
 
 
-@dec.skipif(no_docker, "Docker testing turned off")
+@dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
     assert(util.docker_images_available())
@@ -118,7 +118,7 @@ def test_copy_data_to_tmp_dir():
     shutil.rmtree(tmp_dir_path, ignore_errors=True)
 
 
-@dec.skipif(no_docker, "Docker testing turned off")
+@dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
 def test_extract_feats_in_docker_container():
     """Test custom feature extraction in Docker container"""
     tmp_dir_path = cft.make_tmp_dir()
@@ -142,16 +142,16 @@ def test_remove_tmp_files_and_container():
     """Test remove temp files and container"""
     cft.remove_tmp_files("/tmp/mltsp_test")
     assert(not os.path.exists("/tmp/mltsp_test"))
-    for tmp_file in [pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+    for tmp_file in [pjoin(config['paths']['tmp_custom_feats_folder'],
                            "custom_feature_defs.py"),
-                     pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                     pjoin(config['paths']['tmp_custom_feats_folder'],
                            "custom_feature_defs.pyc"),
-                     pjoin(cfg.TMP_CUSTOM_FEATS_FOLDER,
+                     pjoin(config['paths']['tmp_custom_feats_folder'],
                            "__init__.pyc")]:
         assert(not os.path.exists(tmp_file))
 
 
-@dec.skipif(no_docker, "Docker testing turned off")
+@dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
 def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")
@@ -195,7 +195,7 @@ def test_generate_custom_features():
 
 def teardown():
     """Tear-down - remove tmp files"""
-    for f in [pjoin(cfg.MLTSP_PACKAGE_PATH,
+    for f in [pjoin(config['paths']['package_path'],
                     "custom_feature_scripts/custom_feature_defs.py")]:
         if os.path.isfile(f):
             os.remove(f)

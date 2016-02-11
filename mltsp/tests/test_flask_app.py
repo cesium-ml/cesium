@@ -1,8 +1,10 @@
 import os
-os.environ["MLTSP_DEBUG_LOGIN"] = "1"
-os.environ["MLTSP_TEST_DB"] = "1"
+
+from mltsp.cfg import config
+config['testing']['test_db'] = 1
+config['testing']['disable_auth'] = 1
+
 from mltsp.Flask import flask_app as fa
-from mltsp import cfg
 from mltsp import custom_exceptions
 from mltsp import build_model
 from nose.tools import with_setup
@@ -34,8 +36,8 @@ def featurize_setup():
     for fname in fnames:
         fpaths.append(pjoin(DATA_DIR, fname))
     for fpath in fpaths:
-        shutil.copy(fpath, cfg.UPLOAD_FOLDER)
-        dest_paths.append(pjoin(cfg.UPLOAD_FOLDER, os.path.basename(fpath)))
+        shutil.copy(fpath, config['paths']['upload_folder'])
+        dest_paths.append(pjoin(config['paths']['upload_folder'], os.path.basename(fpath)))
     return dest_paths
 
 
@@ -46,13 +48,13 @@ def delete_entries_by_table(table_name):
 
 
 def featurize_teardown():
-    fpaths = [pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+    fpaths = [pjoin(config['paths']['custom_feature_script_folder'],
                     "testfeature1.py")]
     fnames = ["asas_training_subset_classes_with_metadata.dat",
               "asas_training_subset.tar.gz", "testfeature1.py"]
     for fname in fnames:
-        fpaths.append(pjoin(cfg.UPLOAD_FOLDER, fname))
-    fpaths.append(pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+        fpaths.append(pjoin(config['paths']['upload_folder'], fname))
+    fpaths.append(pjoin(config['paths']['custom_feature_script_folder'],
                         "testfeature1.py"))
     for fpath in fpaths:
         if os.path.exists(fpath):
@@ -61,20 +63,20 @@ def featurize_teardown():
 
 def build_model_setup():
     shutil.copy(pjoin(DATA_DIR, "test_featureset.nc"),
-                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_featureset.nc"))
+                pjoin(config['paths']['features_folder'], "TEMP_TEST01_featureset.nc"))
     shutil.copy(pjoin(DATA_DIR, "test_10_featureset.nc"),
-                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST10_featureset.nc"))
+                pjoin(config['paths']['features_folder'], "TEMP_TEST10_featureset.nc"))
 
 
 def prediction_setup():
     shutil.copy(pjoin(DATA_DIR, "test_featureset.nc"),
-                pjoin(cfg.FEATURES_FOLDER, "TEMP_TEST01_featureset.nc"))
+                pjoin(config['paths']['features_folder'], "TEMP_TEST01_featureset.nc"))
     shutil.copy(pjoin(DATA_DIR, "dotastro_215153.dat"),
-                pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"))
+                pjoin(config['paths']['upload_folder'], "TESTRUN_215153.dat"))
     shutil.copy(pjoin(DATA_DIR, "TESTRUN_215153_metadata.dat"),
-                cfg.UPLOAD_FOLDER)
+                config['paths']['upload_folder'])
     shutil.copy(pjoin(DATA_DIR, "testfeature1.py"),
-                pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "TESTRUN_CF.py"))
+                pjoin(config['paths']['custom_feature_script_folder'], "TESTRUN_CF.py"))
     build_model.create_and_pickle_model("TEMP_TEST01",
                                         "RandomForestClassifier",
                                         "TEMP_TEST01")
@@ -84,7 +86,7 @@ def model_and_prediction_teardown():
     fnames = ["TEMP_TEST01_featureset.nc", "TEMP_TEST10_featureset.nc",
               "TEMP_TEST01.pkl"]
     for fname in fnames:
-        for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER]:
+        for data_dir in [config['paths']['features_folder'], config['paths']['models_folder']]:
             try:
                 os.remove(pjoin(data_dir, fname))
             except OSError:
@@ -947,15 +949,15 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"),
                  "w").close()
-            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert os.path.exists(pjoin(config['paths']['features_folder'],
                                         "abc123_featureset.nc"))
             fa.delete_associated_project_data("features", "abc123")
             count = r.table("features").filter({"id":
                                                 "abc123"}).count().run(conn)
             npt.assert_equal(count, 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
 
     def test_delete_associated_project_data_models(self):
@@ -970,13 +972,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             fa.delete_associated_project_data("models", "abc123")
             count = r.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc123.pkl"))
 
     def test_delete_associated_project_data_predictions(self):
@@ -1022,12 +1024,12 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "zipfile_path": "ZIPPATH.tar.gz",
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"),
                  "w").close()
-            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert os.path.exists(pjoin(config['paths']['features_folder'],
                                         "abc123_featureset.nc"))
-            open(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             # Call the method being tested
             fa.delete_project("abc123")
             count = r.table("projects").filter({"id": "abc123"}).count()\
@@ -1036,12 +1038,12 @@ class FlaskAppTestCase(unittest.TestCase):
             count = r.table("features").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
             npt.assert_equal(count, 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
             count = r.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc123.pkl"))
             count = r.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
@@ -1237,14 +1239,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_featureset.nc"), "w")\
+            open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"), "w")\
                 .close()
             fa.update_project_info("abc123", "abc123", "", [],
                                    delete_features_keys=["abc123"])
             r.table("projects").get("abc123").delete().run(conn)
             npt.assert_equal(r.table("features").filter({"id":"abc123"})\
                              .count().run(conn), 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
 
     def test_update_project_info_delete_models(self):
@@ -1266,15 +1268,15 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             fa.update_project_info("abc123", "abc123", "", [],
                                    delete_model_keys=["abc123"])
             npt.assert_equal(
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
             assert not os.path.exists(
-                pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+                pjoin(config['paths']['models_folder'], "abc123.pkl"))
 
     def test_update_project_info_delete_predictions(self):
         """Test update project info - delete predictions"""
@@ -1333,8 +1335,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             featlist = fa.get_list_of_available_features()
-            expected = sorted([x for x in cfg.features_list_science if x not in
-                               cfg.ignore_feats_list_science])
+            expected = sorted(
+                [x for x in config['mltsp']['features_list_science']
+                 if x not in config['mltsp']['ignore_feats_list_science']])
             npt.assert_array_equal(featlist, expected)
 
     def test_get_list_of_available_features_set2(self):
@@ -1342,8 +1345,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             featlist = fa.get_list_of_available_features_set2()
-            expected = sorted([x for x in cfg.features_list_obs if x not in
-                               cfg.ignore_feats_list_science])
+            expected = sorted(
+                [x for x in config['mltsp']['features_list_obs']
+                 if x not in config['mltsp']['ignore_feats_list_science']])
             npt.assert_array_equal(featlist, expected)
 
     def test_allowed_file(self):
@@ -1447,22 +1451,22 @@ class FlaskAppTestCase(unittest.TestCase):
             try:
                 fa.featurize_proc(
                     headerfile_path=pjoin(
-                        cfg.UPLOAD_FOLDER,
+                        config['paths']['upload_folder'],
                         "asas_training_subset_classes_with_metadata.dat"),
-                    zipfile_path=pjoin(cfg.UPLOAD_FOLDER,
+                    zipfile_path=pjoin(config['paths']['upload_folder'],
                                        "asas_training_subset.tar.gz"),
                     features_to_use=["std_err", "amplitude"],
                     featureset_key="TEST01", is_test=True, email_user=False,
                     already_featurized=False,
-                    custom_script_path=pjoin(cfg.UPLOAD_FOLDER,
+                    custom_script_path=pjoin(config['paths']['upload_folder'],
                                              "testfeature1.py"))
             finally:
                 entry = r.table("features").get("TEST01").run(conn)
                 r.table("features").get("TEST01").delete().run(conn)
-            assert(os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert(os.path.exists(pjoin(config['paths']['features_folder'],
                                         "TEST01_featureset.nc")))
             assert("results_msg" in entry)
-            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "TEST01_featureset.nc"))
             assert("std_err" in featureset)
             featurize_teardown()
@@ -1483,9 +1487,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                 "TEMP_TEST01")
             entry = r.table("models").get("TEMP_TEST01").run(conn)
             assert "results_msg" in entry
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER,
+            assert os.path.exists(pjoin(config['paths']['models_folder'],
                                         "TEMP_TEST01.pkl"))
-            model = joblib.load(pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"))
+            model = joblib.load(pjoin(config['paths']['models_folder'], "TEMP_TEST01.pkl"))
             assert hasattr(model, "predict_proba")
             model_and_prediction_teardown()
 
@@ -1512,10 +1516,10 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "TEMP_TEST01"}).run(conn)
             r.table("predictions").insert({"id": "TEMP_TEST01"}).run(conn)
             fa.prediction_proc(
-                pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
+                pjoin(config['paths']['upload_folder'], "TESTRUN_215153.dat"),
                 "TEMP_TEST01", "TEMP_TEST01", "RandomForestClassifier",
                 "TEMP_TEST01", "TEMP_TEST01",
-                metadata_file=pjoin(cfg.UPLOAD_FOLDER,
+                metadata_file=pjoin(config['paths']['upload_folder'],
                                     "TESTRUN_215153_metadata.dat"))
 
             entry = r.table("predictions").get("TEMP_TEST01").run(conn)
@@ -1527,13 +1531,13 @@ class FlaskAppTestCase(unittest.TestCase):
 
             assert all(key in pred_results_dict for key in \
                        ("ts_data_dict", "features_dict"))
-            for fpath in [pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-                          pjoin(cfg.UPLOAD_FOLDER,
+            for fpath in [pjoin(config['paths']['upload_folder'], "TESTRUN_215153.dat"),
+                          pjoin(config['paths']['upload_folder'],
                                 "TESTRUN_215153_metadata.dat"),
-                          pjoin(cfg.FEATURES_FOLDER,
+                          pjoin(config['paths']['features_folder'],
                                 "TEMP_TEST01_featureset.nc"),
-                          pjoin(cfg.MODELS_FOLDER, "TEMP_TEST01.pkl"),
-                          pjoin(cfg.CUSTOM_FEATURE_SCRIPT_FOLDER,
+                          pjoin(config['paths']['models_folder'], "TEMP_TEST01.pkl"),
+                          pjoin(config['paths']['custom_feature_script_folder'],
                                 "TESTRUN_CF.py")]:
                 try:
                     os.remove(fpath)
@@ -1599,9 +1603,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"),
                  "w").close()
-            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert os.path.exists(pjoin(config['paths']['features_folder'],
                                         "abc123_featureset.nc"))
             rv = self.app.post('/editProjectForm',
                                content_type='multipart/form-data',
@@ -1620,7 +1624,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(
                 r.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
 
     def test_edit_project_form_delete_featsets(self):
@@ -1635,21 +1639,21 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"),
                  "w").close()
             r.table("features").insert({"id": "abc1234", "projkey": "abc123",
                                         "name": "abc1234", "created": "abc1234",
                                         "headerfile_path": "HEADPATH4.dat",
                                         "zipfile_path": "ZIPPATH4.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc1234_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc1234_featureset.nc"),
                  "w").close()
             r.table("features").insert({"id": "abc1235", "projkey": "abc123",
                                         "name": "abc1235", "created": "abc1235",
                                         "headerfile_path": "HEADPATH5.dat",
                                         "zipfile_path": "ZIPPATH5.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc1235_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc1235_featureset.nc"),
                  "w").close()
             rv = self.app.post('/editProjectForm',
                                content_type='multipart/form-data',
@@ -1671,17 +1675,17 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(
                 r.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
             npt.assert_equal(
                 r.table("features").filter({"id": "abc1234"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc1234_featureset.nc"))
             npt.assert_equal(
                 r.table("features").filter({"id": "abc1235"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc1235_featureset.nc"))
 
     def test_edit_project_form_delete_models(self):
@@ -1704,8 +1708,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc123",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             r.table("models").insert({"id": "abc1234", "projkey": "abc123",
                                       "name": "abc1234", "created": "abc1234",
                                       "headerfile_path": "HEADPATH4.dat",
@@ -1719,8 +1723,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc1234",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc1234.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1234.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc1234.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc1234.pkl"))
             r.table("models").insert({"id": "abc1235", "projkey": "abc123",
                                       "name": "abc1235", "created": "abc1235",
                                       "headerfile_path": "HEADPATH5.dat",
@@ -1734,8 +1738,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                         "name": "abc1235",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
-            open(pjoin(cfg.MODELS_FOLDER, "abc1235.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc1235.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc1235.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc1235.pkl"))
             rv = self.app.post('/editProjectForm',
                                content_type='multipart/form-data',
                                data={'project_name_orig': 'abc123',
@@ -1757,16 +1761,16 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(
                 r.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+            assert not os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             npt.assert_equal(
                 r.table("models").filter({"id": "abc1234"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc1234.pkl"))
             npt.assert_equal(
                 r.table("models").filter({"id": "abc1235"}).count().run(conn),
                 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc1235.pkl"))
 
     def test_edit_project_form_delete_predictions(self):
@@ -1890,12 +1894,12 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "zipfile_path": "ZIPPATH.tar.gz",
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
-            open(pjoin(cfg.FEATURES_FOLDER, "abc123_featureset.nc"),
+            open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"),
                  "w").close()
-            assert os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert os.path.exists(pjoin(config['paths']['features_folder'],
                                         "abc123_featureset.nc"))
-            open(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"), "w").close()
-            assert os.path.exists(pjoin(cfg.MODELS_FOLDER, "abc123.pkl"))
+            open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
+            assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             # Call the method being tested
             rv = self.app.post("/editOrDeleteProject",
                                content_type='multipart/form-data',
@@ -1909,12 +1913,12 @@ class FlaskAppTestCase(unittest.TestCase):
             count = r.table("features").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
             npt.assert_equal(count, 0)
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
             count = r.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
-            assert not os.path.exists(pjoin(cfg.MODELS_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc123.pkl"))
             count = r.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
@@ -2026,7 +2030,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             npt.assert_equal(res_dict["zipfile_name"], "None")
-            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
             assert(all(c in ['class1', 'class2', 'class3'] for
                        c in featureset.target.values.astype('U')))
@@ -2077,7 +2081,7 @@ class FlaskAppTestCase(unittest.TestCase):
             time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
             assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                       'Classical_Cepheid', 'W_Ursae_Maj',
@@ -2087,8 +2091,8 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_array_equal(sorted(cols), ["amplitude", "f", "std_err"])
             fpaths = []
             for fpath in [
-                    pjoin(cfg.FEATURES_FOLDER, "%s_featureset.nc" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER,
+                    pjoin(config['paths']['features_folder'], "%s_featureset.nc" % new_key),
+                    pjoin(config['paths']['features_folder'],
                           "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
@@ -2146,7 +2150,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
             assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                       'Classical_Cepheid', 'W_Ursae_Maj',
@@ -2156,8 +2160,8 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_array_equal(sorted(cols), ["amplitude", "std_err"])
             fpaths = []
             for fpath in [
-                    pjoin(cfg.FEATURES_FOLDER, "%s_featureset.nc" % new_key),
-                    pjoin(cfg.FEATURES_FOLDER,
+                    pjoin(config['paths']['features_folder'], "%s_featureset.nc" % new_key),
+                    pjoin(config['paths']['features_folder'],
                           "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
@@ -2179,7 +2183,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert("New feature set files saved successfully" in
                    res_dict["message"])
             npt.assert_equal(e["name"], "abc123")
-            assert not os.path.exists(pjoin(cfg.FEATURES_FOLDER,
+            assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "%s_featureset.nc" % new_key))
 
     def test_featurization_page(self):
@@ -2205,7 +2209,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+            featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
             assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
                                       'Classical_Cepheid', 'W_Ursae_Maj',
@@ -2223,7 +2227,7 @@ class FlaskAppTestCase(unittest.TestCase):
             r.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             shutil.copy(pjoin(DATA_DIR, "test_features_with_targets.csv"),
-                        cfg.UPLOAD_FOLDER)
+                        config['paths']['upload_folder'])
             headerfile_name = "test_features_with_targets.csv"
             headerfile_path, zipfile_path, custom_script_path = \
                 featurize_setup()
@@ -2240,8 +2244,9 @@ class FlaskAppTestCase(unittest.TestCase):
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             npt.assert_equal(res_dict["zipfile_name"], "None")
-            featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
-                                                 "%s_featureset.nc" % new_key))
+            featureset = xr.open_dataset(
+                pjoin(config['paths']['features_folder'],
+                      "%s_featureset.nc" % new_key))
             assert(all(c in ["class1", "class2", "class3"]
                        for c in featureset['target'].values.astype('U')))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
@@ -2278,7 +2283,7 @@ class FlaskAppTestCase(unittest.TestCase):
             new_model_key = res_dict["new_model_key"]
             entry = r.table("models").get(new_model_key).run(conn)
             assert "results_msg" in entry
-            model = joblib.load(pjoin(cfg.MODELS_FOLDER,
+            model = joblib.load(pjoin(config['paths']['models_folder'],
                                       "{}.pkl".format(new_model_key)))
             assert hasattr(model, "predict_proba")
             model_and_prediction_teardown()
@@ -2360,8 +2365,10 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "TEMP_TEST01"}).run(conn)
-            dsts = [pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153.dat"),
-                    pjoin(cfg.UPLOAD_FOLDER, "TESTRUN_215153_metadata.dat")]
+            dsts = [pjoin(config['paths']['upload_folder'],
+                          "TESTRUN_215153.dat"),
+                    pjoin(config['paths']['upload_folder'],
+                          "TESTRUN_215153_metadata.dat")]
             rv = fa.predictionPage(dsts[0],
                                    project_name="abc123",
                                    model_key="TEMP_TEST01",

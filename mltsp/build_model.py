@@ -1,6 +1,6 @@
 import os
 import xarray as xr
-from . import cfg
+from .cfg import config
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
@@ -84,7 +84,7 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
     Builds the specified model and pickles it in the file
     whose name is given by
     ``'%s_%s.pkl' % (featureset_key, model_type)``
-    in the directory `cfg.MODELS_FOLDER`.
+    in the directory `config['paths']['models_folder']`.
 
 
     Parameters
@@ -109,7 +109,7 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
 
     """
 
-    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
+    featureset_path = os.path.join(config['paths']['features_folder'],
                                    '{}_featureset.nc'.format(featureset_key))
     featureset = xr.open_dataset(featureset_path)
 
@@ -118,7 +118,7 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
                                         params_to_optimize=params_to_optimize)
 
     # Store the model:
-    foutname = os.path.join(cfg.MODELS_FOLDER, '{}.pkl'.format(model_key))
+    foutname = os.path.join(config['paths']['models_folder'], '{}.pkl'.format(model_key))
     joblib.dump(model, foutname, compress=3)
     return("New model successfully created. Click the Predict tab to "
            "start using it.")

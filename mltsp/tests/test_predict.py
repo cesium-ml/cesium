@@ -1,5 +1,5 @@
 from mltsp import predict
-from mltsp import cfg
+from mltsp.cfg import config
 from mltsp import build_model
 from nose.tools import with_setup
 import os
@@ -20,12 +20,12 @@ def copy_classification_test_data():
               "215153_215176_218272_218934.tar.gz", "testfeature1.py"]
     for fname in fnames:
         if fname.endswith('.nc'):
-            shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
+            shutil.copy(pjoin(DATA_PATH, fname), config['paths']['features_folder'])
         elif fname.endswith('.py'):
             shutil.copy(pjoin(DATA_PATH, fname),
-                        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
+                        config['paths']['custom_feature_script_folder'])
         else:
-            shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
+            shutil.copy(pjoin(DATA_PATH, fname), config['paths']['upload_folder'])
 
 
 def copy_regression_test_data():
@@ -33,9 +33,9 @@ def copy_regression_test_data():
               "215153_metadata.dat"]
     for fname in fnames:
         if fname.endswith('.nc'):
-            shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
+            shutil.copy(pjoin(DATA_PATH, fname), config['paths']['features_folder'])
         else:
-            shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
+            shutil.copy(pjoin(DATA_PATH, fname), config['paths']['upload_folder'])
 
 
 def remove_test_data():
@@ -45,8 +45,9 @@ def remove_test_data():
               "215153_215176_218272_218934_metadata.dat",
               "215153_215176_218272_218934.tar.gz", "test_10_featureset.nc"]
     for fname in fnames:
-        for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER,
-                         cfg.CUSTOM_FEATURE_SCRIPT_FOLDER]:
+        for data_dir in [config['paths']['features_folder'],
+                         config['paths']['models_folder'],
+                         config['paths']['custom_feature_script_folder']]:
             try:
                 os.remove(pjoin(data_dir, fname))
             except OSError:
@@ -56,8 +57,8 @@ def remove_test_data():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_model_predictions():
     """Test inner model prediction function"""
-    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
-                                         'test_featureset.nc'))
+    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
+                                       'test_featureset.nc'))
     model = build_model.build_model_from_featureset(
         featureset, model_type='RandomForestClassifier')
     preds = predict.model_predictions(featureset, model)
@@ -76,9 +77,9 @@ def test_single_predict_classification():
     for model_type in classifier_types:
         build_model.create_and_pickle_model('test', model_type, 'test')
         pred_results_dict = predict.predict_data_file(
-                                pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                                pjoin(config['paths']['upload_folder'], "dotastro_215153.dat"),
                                 'test', model_type, 'test',
-                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                metadata_path=pjoin(config['paths']['upload_folder'],
                                 "215153_metadata.dat"), custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
@@ -93,14 +94,19 @@ def test_single_predict_classification_with_custom():
                         in build_model.MODELS_TYPE_DICT.items()
                         if issubclass(model_class,
                                       sklearn.base.ClassifierMixin)]
+
+    dotastro_dat = pjoin(config['paths']['upload_folder'], "dotastro_215153.dat")
+    metadata = pjoin(config['paths']['upload_folder'], "215153_metadata.dat")
+    features_script = pjoin(config['paths']['custom_feature_script_folder'],
+                            "testfeature1.py")
+
     for model_type in classifier_types:
         build_model.create_and_pickle_model('test', model_type, 'test_cust')
         pred_results_dict = predict.predict_data_file(
-                                pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
-                                'test', model_type, "test_cust",
-                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
-                                "215153_metadata.dat"), custom_features_script=pjoin(
-                                cfg.CUSTOM_FEATURE_SCRIPT_FOLDER, "testfeature1.py"))
+            dotastro_dat, 'test', model_type, "test_cust",
+            metadata_path=metadata,
+            custom_features_script=features_script)
+
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(el[0] in [b'class1', b'class2', b'class3']
@@ -116,10 +122,10 @@ def test_multiple_predict_classification():
     for model_type in classifier_types:
         build_model.create_and_pickle_model('test', model_type, 'test')
         pred_results_dict = predict.predict_data_file(
-                                pjoin(cfg.UPLOAD_FOLDER,
+                                pjoin(config['paths']['upload_folder'],
                                       "215153_215176_218272_218934.tar.gz"),
                                 'test', model_type, 'test',
-                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                metadata_path=pjoin(config['paths']['upload_folder'],
                                 "215153_215176_218272_218934_metadata.dat"),
                                 custom_features_script=None)
         for fname, results in pred_results_dict.items():
@@ -137,9 +143,9 @@ def test_single_predict_regression():
     for model_type in regressor_types:
         build_model.create_and_pickle_model('test', model_type, 'test_reg')
         pred_results_dict = predict.predict_data_file(
-                                pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                                pjoin(config['paths']['upload_folder'], "dotastro_215153.dat"),
                                 'test', model_type, 'test_reg',
-                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                metadata_path=pjoin(config['paths']['upload_folder'],
                                 "215153_metadata.dat"), custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
@@ -154,10 +160,10 @@ def test_multiple_predict_regression():
                        if issubclass(model_class, sklearn.base.RegressorMixin)]
     for model_type in regressor_types:
         build_model.create_and_pickle_model('test', model_type, 'test_reg')
-        pred_results_dict = predict.predict_data_file(pjoin(cfg.UPLOAD_FOLDER,
+        pred_results_dict = predict.predict_data_file(pjoin(config['paths']['upload_folder'],
                                 "215153_215176_218272_218934.tar.gz"),
                                 'test', model_type, 'test_reg',
-                                metadata_path=pjoin(cfg.UPLOAD_FOLDER,
+                                metadata_path=pjoin(config['paths']['upload_folder'],
                                 "215153_215176_218272_218934_metadata.dat"),
                                 custom_features_script=None)
         for fname, results in pred_results_dict.items():
@@ -173,7 +179,7 @@ def test_predict_optimized_model():
                                         {},
                                         {"n_estimators": [10, 50, 100]})
     pred_results_dict = predict.predict_data_file(
-                            pjoin(cfg.UPLOAD_FOLDER, "dotastro_215153.dat"),
+                            pjoin(config['paths']['upload_folder'], "dotastro_215153.dat"),
                             'test_10', "RandomForestClassifier", 'test_10',
                             metadata_path=None, custom_features_script=None)
     for fname, results in pred_results_dict.items():

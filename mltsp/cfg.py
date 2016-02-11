@@ -7,12 +7,18 @@ import os, sys
 import multiprocessing
 import yaml
 from . import util
+import glob
+from collections import defaultdict
 
 # Load configuration
 config_files = [
     os.path.expanduser('~/.config/mltsp/mltsp.yaml'),
-    os.path.join(os.path.dirname(__file__), '../mltsp.yaml')
     ]
+
+config_files.extend(glob.glob(
+    os.path.join(os.path.dirname(__file__), '../mltsp-*.yaml')))
+config_files.extend(glob.glob(
+    os.path.join(os.path.dirname(__file__), '../../mltsp-*.yaml')))
 
 config_files = [os.path.abspath(cf) for cf in config_files]
 
@@ -22,8 +28,9 @@ config = yaml.load(open(os.path.join(os.path.dirname(__file__),
 
 for cf in config_files:
     try:
-        config = yaml.load(open(cf))
-        break
+        more_config = yaml.load(open(cf))
+        print('[MLTSP] Loaded {}'.format(cf))
+        config.update(more_config)
     except IOError:
         pass
 
@@ -44,28 +51,17 @@ except Exception as e:
     print("Using N_CORES = 8")
     N_CORES = 8
 
-CELERY_CONFIG = 'mltsp.ext.celeryconfig'
-CELERY_BROKER = 'amqp://guest@localhost//'
 
-# Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
-DATA_PATH = os.path.expanduser('~/.local/mltsp/')
-SAMPLE_DATA_PATH = os.path.join(DATA_PATH, "sample_data")
+PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
 
-# Specify path to uploads, models, and feature folders:
-UPLOAD_FOLDER = os.path.join(DATA_PATH, "flask_uploads")
-MODELS_FOLDER = os.path.join(DATA_PATH, "classifier_models")
-FEATURES_FOLDER = os.path.join(DATA_PATH, "extracted_features")
-CUSTOM_FEATURE_SCRIPT_FOLDER = os.path.join(
-    UPLOAD_FOLDER,
-    "custom_feature_scripts")
-TMP_CUSTOM_FEATS_FOLDER = os.path.join(MLTSP_PACKAGE_PATH,
-                                       "custom_feature_scripts")
-ERR_LOG_PATH = os.path.join(
-    DATA_PATH, "logs/errors_and_warnings.txt")
+# Expand home variable;
+# replace variables {project_path} and {package_path} in paths
+for key, val in config['paths'].items():
+    config['paths'][key] = os.path.expanduser(val).format(**
+        {'project_path': PROJECT_PATH,
+         'package_path': PACKAGE_PATH})
 
-PROJECT_PATH_LINK = "/tmp/mltsp_link"
 
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
@@ -226,16 +222,10 @@ DEFAULT_MAX_TIME = 1.0
 DEFAULT_ERROR_VALUE = 1e-4
 
 
-if not os.path.exists(PROJECT_PATH):
-    print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
-    if util.is_running_in_docker() == False:
-        sys.exit(-1)
-
-
-for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
-             ERR_LOG_PATH, CUSTOM_FEATURE_SCRIPT_FOLDER):
-    if path == ERR_LOG_PATH:
+for path_name, path in config['paths'].items():
+    if path_name == 'err_log_path':
         path = os.path.dirname(path)
+
     if not os.path.exists(path):
         print("Creating %s" % path)
         try:
@@ -246,3 +236,60 @@ for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
 del yaml, os, sys, print_function, config_files, multiprocessing
 
 config['mltsp'] = locals()
+
+class warn_defaultdict(dict):
+    """
+    A recursive `collections.defaultdict`, but with printed warnings when
+    an item is not found.
+
+    >>> d = warn_defaultdict({1: 2})
+    >>> d[2][3][4]
+    [config] WARNING: non-existent key "2" requested
+    [config] WARNING: non-existent key "3" requested
+    [config] WARNING: non-existent key "4" requested
+
+    >>> d = warn_defaultdict({'sub': {'a': 'b'}})
+    >>> print(d['sub']['foo'])
+    [config] WARNING: non-existent key "foo" requested
+    {}
+
+    """
+    def __getitem__(self, key):
+        if not key in self.keys():
+            print('[config] WARNING: non-existent '
+                  'key "{}" requested'.format(key))
+            return warn_defaultdict()
+        else:
+            item = dict.__getitem__(self, key)
+
+            # Special case for celery configuration:
+            # we do *not* want a defaultdict here,
+            # otherwise Celery will query it for all
+            # possible configuration values
+            if key == 'celery':
+                return item
+
+            if isinstance(item, dict):
+                return warn_defaultdict(item)
+            else:
+                return item
+
+config = warn_defaultdict(config)
+
+def show_config():
+    print()
+    print("=" * 78)
+    print("MLTSP configuration")
+
+    for key in ('paths', 'celery', 'database', 'testing'):
+        if key in config:
+            print("-" * 78)
+            print(key)
+            print("-" * 78)
+
+            for key, val in config[key].items():
+                print(key.ljust(30), val)
+
+    print("=" * 78)
+
+show_config()
