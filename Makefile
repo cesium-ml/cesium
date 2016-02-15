@@ -57,5 +57,5 @@ install:
 	pip install -r requirements.txt
 
 html:
-	pip install -q sphinx -r requirements.readthedocs.txt
+	pip install -q -r requirements.readthedocs.txt
 	export SPHINXOPTS=-W; make -C doc html
