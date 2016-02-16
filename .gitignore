@@ -20,3 +20,4 @@ dist
 .coverage
 MANIFEST
 .ipynb_checkpoints
+*_test_*.yaml
