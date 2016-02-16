@@ -33,18 +33,20 @@ paths:
     ## Two special variables are available below:
     ## - {project_path} : location of the MLTSP package
     ## - {package_path} : location of the mltsp package content
-    data_path:        ~/.local/mltsp
-    err_log_path:     ~/.local/mltsp/logs/errors_and_warnings.log
-    sample_data_path: ~/.local/mltsp/sample_data
-    models_folder:    ~/.local/mltsp/classifier_models
-    features_folder:  ~/.local/mltsp/extracted_features
+    ##
+    ## You can also use defined paths later on (see, e.g., data_path).
 
-    upload_folder:    ~/.local/mltsp/flask_uploads
-    custom_feature_script_folder: ~/.local/mltsp/flask_uploads/custom_feature_scripts
+    data_path:        '~/.local/mltsp'
+    err_log_path:     '{data_path}/logs/errors_and_warnings.log'
+    sample_data_path: '{data_path}/sample_data'
+    models_folder:    '{data_path}/classifier_models'
+    features_folder:  '{data_path}/extracted_features'
 
-    project_path: '{project_path}'
-    package_path: '{package_path}'
-    tmp_custom_feats_folder: '{package_path}/custom_feature_scripts'
+    upload_folder:    '{data_path}/flask_uploads'
+    custom_feature_script_folder: '{data_path}/flask_uploads/custom_feature_scripts'
+    temp: '/tmp/mltsp'
+
+    tmp_custom_feats_folder: '{data_path}/tmp/custom_feature_scripts'
 
     # This is slated for deprecation
     project_path_link: /tmp/mltsp_link

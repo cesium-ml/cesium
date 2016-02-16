@@ -2222,9 +2222,8 @@ def verifyNewScript():
         scriptfile = request.files['custom_feat_script_file']
         scriptfile_name = secure_filename(scriptfile.filename)
         scriptfile_path = os.path.join(
-            os.path.join(
-                config['paths']['upload_folder'], "custom_feature_scripts"),
-            str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
+                config['paths']['upload_folder'], "custom_feature_scripts",
+                str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
             test_results = cft.verify_new_script(script_fpath=scriptfile_path)
@@ -2583,9 +2582,8 @@ def uploadDataFeaturize(
             customscript_fname = str(secure_filename(custom_script.filename))
             print(customscript_fname, 'uploaded.')
             customscript_path = os.path.join(
-                os.path.join(
-                    config['paths']['upload_folder'], "custom_feature_scripts"),
-                str(uuid.uuid4()) + "_" + str(customscript_fname))
+                    config['paths']['upload_folder'], "custom_feature_scripts",
+                    str(uuid.uuid4()) + "_" + str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
             features_to_use += custom_features

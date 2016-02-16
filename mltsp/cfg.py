@@ -57,11 +57,12 @@ PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 # Expand home variable;
 # replace variables {project_path} and {package_path} in paths
-for key, val in config['paths'].items():
-    config['paths'][key] = os.path.expanduser(val).format(**
-        {'project_path': PROJECT_PATH,
-         'package_path': PACKAGE_PATH})
-
+config['paths'].update({'project_path': PROJECT_PATH,
+                        'package_path': PACKAGE_PATH})
+config['paths'] = {key: os.path.expanduser(value)
+                   for (key, value) in config['paths'].items()}
+config['paths'] = {key: value.format(**config['paths'])
+                   for (key, value) in config['paths'].items()}
 
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
