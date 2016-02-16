@@ -10,8 +10,9 @@ from . import util
 from .celery_tasks import celery_available
 from .celery_tasks import featurize_ts_data as featurize_data_task
 from .celery_tasks import featurize_ts_file as featurize_file_task
+from . import data_management
 from . import featurize_tools as ft
-from . import manage_data
+from .time_series import TimeSeries
 
 
 def write_features_to_disk(featureset, featureset_id):
@@ -24,7 +25,7 @@ def write_features_to_disk(featureset, featureset_id):
 def load_and_store_feature_data(features_path, featureset_id="unknown",
                                 first_N=None):
     """Read features from CSV file and store as xarray.Dataset."""
-    targets, meta_features = manage_data.parse_headerfile(features_path)
+    targets, meta_features = data_management.parse_headerfile(features_path)
     meta_features = meta_features[:first_N]
     if targets is not None:
         targets = targets[:first_N]
@@ -35,7 +36,7 @@ def load_and_store_feature_data(features_path, featureset_id="unknown",
 
 
 def prepare_celery_data_task_params(times, values, errors, labels,
-                                    features_to_use, meta_features=None,
+                                    features_to_use, meta_features={},
                                     custom_script_path=None,
                                     custom_functions=None):
     """Create list of tuples containing params for `featurize_data_task`.
@@ -44,11 +45,10 @@ def prepare_celery_data_task_params(times, values, errors, labels,
     """
     params_list = []
     for t, m, e, label in zip(times, values, errors, labels):
-        meta_feature_dict = meta_features.loc[label].to_dict()
-        if isinstance(label, np.int64):  # Labels need to be JSON-serializable
-            label = int(label)
-        params_list.append((t, m, e, label, features_to_use, meta_feature_dict,
-                            custom_script_path, custom_functions))
+        ts = TimeSeries(t, m, e, meta_features=meta_features.loc[label],
+                        name=label)
+        params_list.append((ts, features_to_use, custom_script_path,
+                            custom_functions))
     return params_list
 
 
@@ -122,6 +122,8 @@ def featurize_data_files(ts_paths, features_to_use=[],
     return featureset
 
 
+# TODO should this be changed to use TimeSeries objects? or maybe an optional
+# argument for TimeSeries?
 def featurize_time_series(times, values, errors=None, features_to_use=[],
                           targets=None, meta_features={}, labels=None,
                           custom_script_path=None, custom_functions=None,
@@ -283,12 +285,11 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         feature_dicts = []
         meta_feature_dicts = []
         for t, m, e, label in zip(times, values, errors, labels):
-            meta_feature_dict = meta_features.loc[label].to_dict()
-            feature_dict = ft.featurize_single_ts(t, m, e, features_to_use,
-                                                  meta_features=meta_feature_dict,
+            ts = TimeSeries(t, m, e, meta_features=meta_features.loc[label])
+            feature_dict = ft.featurize_single_ts(ts, features_to_use,
                                                   custom_script_path=custom_script_path,
                                                   custom_functions=custom_functions)
             feature_dicts.append(feature_dict)
-            meta_feature_dicts.append(meta_feature_dict)
+            meta_feature_dicts.append(ts.meta_features)
     return ft.assemble_featureset(feature_dicts, targets, meta_feature_dicts,
                                   labels)

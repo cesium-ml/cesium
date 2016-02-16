@@ -6,8 +6,8 @@ import pandas as pd
 import xarray as xr
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from mltsp.cfg import config
+from mltsp import time_series
 from mltsp import util
-from mltsp import manage_data
 from mltsp import featurize_tools as ft
 from mltsp import obs_feature_tools as oft
 from mltsp import science_feature_tools as sft
@@ -54,20 +54,15 @@ def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
 
     """
     short_fname = util.shorten_fname(ts_file_path)
-    with xr.open_dataset(ts_file_path) as data:
-        meta_features = data.meta_features.to_series().to_dict()
-        all_features = ft.featurize_single_ts(data.time.values,
-                                              data.measurement.values,
-                                              data.error.values,
-                                              features_to_use, meta_features,
-                                              custom_script_path)
-        return (short_fname, all_features, data.attrs.get('target'),
-                meta_features)
+    ts = time_series.from_netcdf(ts_file_path)
+    all_features = ft.featurize_single_ts(ts, features_to_use,
+                                          custom_script_path)
+    return (short_fname, all_features, ts.target, ts.meta_features)
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")
-def featurize_ts_data(t, m, e, label, features_to_use, metadata={},
-                      custom_script_path=None, custom_functions=None):
+def featurize_ts_data(ts, features_to_use, custom_script_path=None,
+                      custom_functions=None):
     """Featurize time-series data file.
 
     Parameters
@@ -108,6 +103,6 @@ def featurize_ts_data(t, m, e, label, features_to_use, metadata={},
         second element is a dictionary of features.
 
     """
-    all_features = ft.featurize_single_ts(t, m, e, features_to_use, metadata,
+    all_features = ft.featurize_single_ts(ts, features_to_use,
                                           custom_script_path, custom_functions)
-    return (label, all_features)
+    return (ts.name, all_features)

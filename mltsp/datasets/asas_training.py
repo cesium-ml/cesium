@@ -7,7 +7,7 @@ from sklearn.externals import joblib
 
 from ..cfg import config
 from .. import util
-from .. import manage_data
+from .. import data_management
 from . import util as dsutil
 
 
@@ -58,7 +58,7 @@ def download_asas_training(data_dir):
     measurements = []
     errors = []
     for fname in ts_paths:
-        t, m, e = manage_data.parse_ts_data(fname)
+        t, m, e = data_management.parse_ts_data(fname)
         times.append(t)
         measurements.append(m)
         errors.append(e)
@@ -66,7 +66,7 @@ def download_asas_training(data_dir):
     extract_dir = os.path.join(data_dir, os.path.basename(ARCHIVE_NAME))
     util.remove_files(ts_paths)
 
-    classes, metadata = manage_data.parse_headerfile(header_path, ts_paths)
+    classes, metadata = data_management.parse_headerfile(header_path, ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
     data = dict(times=times, measurements=measurements, errors=errors,

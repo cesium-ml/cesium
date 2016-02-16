@@ -8,7 +8,7 @@ import zipfile
 from . import build_model
 from .cfg import config
 from . import featurize
-from . import manage_data
+from . import data_management
 from . import util
 
 
@@ -102,7 +102,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
     with util.extract_time_series(data_path, cleanup_archive=False,
                                   cleanup_files=True) as ts_paths:
         all_ts_data = {util.shorten_fname(ts_path):
-                       manage_data.parse_ts_data(ts_path)
+                       data_management.parse_ts_data(ts_path)
                        for ts_path in ts_paths}
 
         featureset_path = os.path.join(config['paths']['features_folder'],

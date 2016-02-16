@@ -5,14 +5,15 @@ import os
 import dask.async
 from mltsp.cfg import config
 from mltsp import custom_exceptions
+from mltsp import data_management
 from mltsp import util
 from mltsp import obs_feature_tools as oft
 from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 
 
-def featurize_single_ts(t, m, e, features_to_use, meta_features={},
-                        custom_script_path=None, custom_functions=None):
+def featurize_single_ts(ts, features_to_use, custom_script_path=None,
+                        custom_functions=None):
     """Compute feature values for a given single time-series. Data is
     manipulated as dictionaries/lists of lists (as opposed to a more
     convenient DataFrame/DataSet) since it will be serialized as part of
@@ -53,37 +54,26 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
         channel) as values.
 
     """
-    # Reformat single-channel data as multichannel with n_channels=1
-    if isinstance(m, np.ndarray) and (m.ndim == 1 or 1 in m.shape):
-        n_channels = 1
-        m = [m]
-    else:
-        n_channels = len(m)
-    if isinstance(t, np.ndarray) and (t.ndim == 1 or 1 in t.shape):
-        t = [t] * n_channels
-    if isinstance(e, np.ndarray) and (e.ndim == 1 or 1 in e.shape):
-        e = [e] * n_channels
-
-    all_feature_lists = {feature: [0.] * n_channels
+    all_feature_lists = {feature: [0.] * ts.n_channels
                          for feature in features_to_use}
-    for i in range(n_channels):
-        obs_features = oft.generate_obs_features(t[i], m[i], e[i],
+    for (t_i, m_i, e_i), i in zip(ts.channels(), range(ts.n_channels)):
+        obs_features = oft.generate_obs_features(t_i, m_i, e_i,
                                                  features_to_use)
-        science_features = sft.generate_science_features(t[i], m[i], e[i],
+        science_features = sft.generate_science_features(t_i, m_i, e_i,
                                                          features_to_use)
         if custom_script_path:
             custom_features = cft.generate_custom_features(
-                custom_script_path, t[i], m[i], e[i],
+                custom_script_path, t_i, m_i, e_i,
                 features_already_known=dict(list(obs_features.items()) +
                                             list(science_features.items()) +
-                                            list(meta_features.items())))
+                                            list(ts.meta_features.items())))
             custom_features = {key: custom_features[key]
                                for key in custom_features.keys()
                                if key in features_to_use}
         elif custom_functions:
             # If all values in custom_functions are functions, evaluate each
             if all(hasattr(v, '__call__') for v in custom_functions.values()):
-                custom_features = {feature: f(t[i], m[i], e[i])
+                custom_features = {feature: f(t_i, m_i, e_i)
                                    for feature, f in custom_functions.items()
                                    if feature in features_to_use}
             # Otherwise, custom_functions is a dask graph
@@ -92,12 +82,12 @@ def featurize_single_ts(t, m, e, features_to_use, meta_features={},
                               for key, value in custom_functions.items()
                               if key in features_to_use}
                 dask_keys = list(dask_graph.keys())
-                dask_graph['t'] = t[i]
-                dask_graph['m'] = m[i]
-                dask_graph['e'] = e[i]
+                dask_graph['t'] = t_i
+                dask_graph['m'] = m_i
+                dask_graph['e'] = e_i
                 dask_graph.update(dict(list(obs_features.items()) +
                                        list(science_features.items()) +
-                                       list(meta_features.items())))
+                                       list(ts.meta_features.items())))
                 custom_features = dict(zip(dask_keys,
                                            dask.async.get_sync(dask_graph,
                                                                dask_keys)))

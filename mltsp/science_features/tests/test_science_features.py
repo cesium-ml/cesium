@@ -1,5 +1,5 @@
 from mltsp.cfg import config
-from mltsp import manage_data
+from mltsp import data_management
 from mltsp import science_feature_tools as sft
 
 import numpy as np
@@ -82,7 +82,7 @@ def test_feature_generation():
     features_extracted = None
     values_computed = None
     for i, ts_data_file_path in enumerate(test_files):
-        t, m, e = manage_data.parse_ts_data(ts_data_file_path)
+        t, m, e = data_management.parse_ts_data(ts_data_file_path)
         features = sft.generate_science_features(t, m, e,
             config['mltsp']['features_list_science'])
         sorted_features = sorted(features.items())

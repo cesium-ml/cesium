@@ -1,6 +1,5 @@
 from mltsp.cfg import config
 from mltsp import featurize
-from mltsp import manage_data
 from nose.tools import with_setup
 import numpy.testing as npt
 import os
@@ -11,8 +10,6 @@ import xarray as xr
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-TS_NO_LABEL_PATHS = [pjoin(DATA_PATH, f) for f in ["dotastro_215153.nc",
-                                                   "dotastro_215176.nc"]]
 TS_CLASS_PATHS = [pjoin(DATA_PATH, f) for f in
                   ["dotastro_215153_with_class.nc",
                    "dotastro_215176_with_class.nc"]]
@@ -22,27 +19,6 @@ TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
 TEST_OUTPUT_PATHS = [pjoin(cfg['paths']['features_folder'], "test_featureset.nc")]
-
-
-def copy_classification_test_data():
-#    fnames = CLASSIFICATION_TEST_FILES
-#    for fname in fnames:
-#        if fname.endswith('.py'):
-#            shutil.copy(pjoin(DATA_PATH, fname),
-#                        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
-#        elif fname.endswith('.nc'):
-#            shutil.copy(pjoin(DATA_PATH, fname), cfg.TS_DATA_FOLDER)
-    pass
-
-
-#def copy_regression_test_data():
-#    fnames = REGRESSION_TEST_FILES
-#    for fname in fnames:
-#        if fname.endswith('.py'):
-#            shutil.copy(pjoin(DATA_PATH, fname),
-#                        cfg.CUSTOM_FEATURE_SCRIPT_FOLDER)
-#        else:
-#            shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
 
 
 def remove_test_data():
@@ -84,7 +60,7 @@ def test_write_features_to_disk():
         npt.assert_equal(fset['target'].values.astype('U'), ['c1', 'c2'])
 
 
-@with_setup(copy_classification_test_data, remove_test_data)
+@with_setup(teardown=remove_test_data)
 def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
     fset = featurize.load_and_store_feature_data(FEATURES_CSV_PATH,

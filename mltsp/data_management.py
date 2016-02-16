@@ -5,6 +5,7 @@ import rethinkdb as rdb
 import xarray as xr
 from . import cfg
 from . import util
+from .time_series import TimeSeries
 
 
 __all__ = []
@@ -18,7 +19,7 @@ def parse_ts_data(filepath, sep=","):
          value `config['mltsp']['DEFAULT_ERROR_VALUE']`
        - For data containing one column, a time column is also added with
          values evenly spaced from 0 to `config['mltsp']['DEFAULT_MAX_TIME']`
-         """
+        """
     with open(filepath) as f:
         ts_data = np.loadtxt(f, delimiter=sep, ndmin=2)
     ts_data = ts_data[:, :3]  # Only using T, M, E
@@ -77,19 +78,6 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     return targets, feature_data
 
 
-# TODO more general API, expand to match `featurize_single_ts`? lists of arrays, etc.
-def assemble_ts_dataset(t, m, e, target, meta_features, fname):
-    meta_features = xr.DataArray(pd.Series(meta_features), dims=['feature'])
-    dataset = xr.Dataset({'time': (['i'], t), 'measurement': (['i'], m),
-                          'error': (['i'], e),
-                          'meta_features': meta_features},
-#                         coords={'feature': meta_features.keys()},
-                         attrs={'name': fname})
-    if target:
-        dataset.attrs['target'] = target
-    return dataset
-
-
 def parse_and_store_ts_data(data_path, header_path=None, dataset_id=None,
                             cleanup_archive=True):
     """
@@ -120,21 +108,19 @@ def parse_and_store_ts_data(data_path, header_path=None, dataset_id=None,
             targets = pd.Series([None], index=short_fnames)
             meta_features = pd.DataFrame(index=short_fnames)
 
-        datasets, ds_fnames = [], []
+        time_series = []
         for ts_path in ts_paths:
             fname = util.shorten_fname(ts_path)
             t, m, e = parse_ts_data(ts_path)
             ts_target = targets.loc[fname]
             ts_meta_features = meta_features.loc[fname]
-            ds = assemble_ts_dataset(t, m, e, ts_target, ts_meta_features,
-                                     fname)
-            ds_fname = '{}.nc'.format(fname)
+            ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname)
+            ts_fname = '{}.nc'.format(fname)
             if dataset_id:
-                ds_fname = '_'.join(dataset_id, ds_fname)
-            ds.to_netcdf(os.path.join(cfg.TS_DATA_FOLDER, ds_fname))
-            datasets.append(ds)
-            ds_fnames.append(ds_fname)
-    return datasets, ds_fnames
+                ts_fname = '_'.join(dataset_id, ts_fname)
+            ts.to_netcdf(os.path.join(cfg.TS_DATA_FOLDER, ts_fname))
+            time_series.append(ts)
+    return time_series
 
 
 # TODO move into separate database module

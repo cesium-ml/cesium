@@ -7,7 +7,7 @@ import tarfile
 import numpy as np
 import xarray as xr
 from mltsp import cfg
-from mltsp import manage_data
+from mltsp import data_management
 from mltsp import util
 
 
@@ -46,32 +46,18 @@ def sample_time_series(size=51, channels=1):
 
 def test_parse_ts_data():
     """Test time series data file parsing."""
-    t, m, e = manage_data.parse_ts_data(pjoin(DATA_PATH, "dotastro_215153.dat"))
+    t, m, e = data_management.parse_ts_data(pjoin(DATA_PATH, "dotastro_215153.dat"))
     assert t.ndim == 1
     assert len(t) == len(m) and len(m) == len(e)
 
 
 def test_parse_headerfile():
     """Test header file parsing."""
-    targets, metadata = manage_data.parse_headerfile(
+    targets, metadata = data_management.parse_headerfile(
         pjoin(DATA_PATH, "sample_classes_with_metadata_headerfile.dat"))
     npt.assert_array_equal(metadata.keys(), ["meta1", "meta2", "meta3"])
     npt.assert_equal(targets.loc["237022"], "W_Ursae_Maj")
     npt.assert_almost_equal(metadata.loc["230395"].meta1, 0.270056761691)
-
-
-def test_assemble_ts_dataset():
-    t, m, e = sample_time_series()
-    target = 'class1'
-    meta_features = {'f1': 1.0}
-    fname = 'testf'
-    dataset = manage_data.assemble_ts_dataset(t, m, e, target, meta_features,
-                                              fname)
-    assert(all(t == dataset.time) and all(m == dataset.measurement)
-           and all(e == dataset.error))
-    assert dataset.target == target
-    assert dataset.meta_features.to_series().to_dict() == meta_features
-    assert dataset.name == fname
 
 
 @with_setup(copy_test_data, remove_test_data)
@@ -79,11 +65,11 @@ def test_parse_and_store_ts_data():
     data_file_path = pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz")
     header_path = pjoin(cfg.UPLOAD_FOLDER,
                         "215153_215176_218272_218934_metadata.dat")
-    datasets, fnames = manage_data.parse_and_store_ts_data(data_file_path,
-                                                           header_path,
-                                                           cleanup_archive=False)
-    for ds, fname in zip(datasets, fnames):
-        assert all(ds.feature == ['meta1', 'meta2', 'meta3'])
-        assert ds.name + '.nc' == fname
-        assert(len(ds.time) == len(ds.measurement)
-               and len(ds.time) == len(ds.error))
+    time_series = data_management.parse_and_store_ts_data(data_file_path,
+                                                          header_path,
+                                                          cleanup_archive=False)
+    for ts in time_series:
+        assert all(f in ['meta1', 'meta2', 'meta3']
+                   for f in ts.meta_features.keys())
+        assert(len(ts.time) == len(ts.measurement)
+               and len(ts.time) == len(ts.error))
