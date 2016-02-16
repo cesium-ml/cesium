@@ -132,7 +132,11 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+# Per https://github.com/snide/sphinx_rtd_theme: specify theme if not on RTD
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -324,11 +328,6 @@ def mock_import(name, *args, **kwargs):
         return old_import(name, *args, **kwargs)
     except (ImportError, KeyError) as ie:
         if 'mltsp' in name:  # Don't skip failure for a real API module
-            raise ie
-        # Sphinx has a bug that causes a crash if porterstemmer is imported,
-        # so we need this mock import to fail. May remove after release of
-        # https://github.com/sphinx-doc/sphinx/commit/f1518c5fc4446d63c0ba92150f5a226e3691aa62
-        elif name == 'porterstemmer' or 'Stemmer' in name:
             raise ie
         else:
             return mock.MagicMock(name=name)
