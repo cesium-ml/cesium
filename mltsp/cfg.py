@@ -8,7 +8,6 @@ import multiprocessing
 import yaml
 from . import util
 import glob
-from collections import defaultdict
 
 # Load configuration
 config_files = [
@@ -23,8 +22,9 @@ config_files.extend(glob.glob(
 config_files = [os.path.abspath(cf) for cf in config_files]
 
 # Load example config file as default template
-config = yaml.load(open(os.path.join(os.path.dirname(__file__),
-                        'mltsp.yaml.example')))
+config = util.warn_defaultdict()
+config.update(yaml.load(open(os.path.join(os.path.dirname(__file__),
+                             "mltsp.yaml.example"))))
 
 for cf in config_files:
     try:
@@ -237,41 +237,6 @@ for path_name, path in config['paths'].items():
 del yaml, os, sys, print_function, config_files, multiprocessing
 
 config['mltsp'] = locals()
-
-class warn_defaultdict(dict):
-    """
-    A recursive `collections.defaultdict`, but with printed warnings when
-    an item is not found.
-
-    >>> d = warn_defaultdict({1: 2})
-    >>> d[2][3][4]
-    [config] WARNING: non-existent key "2" requested
-    [config] WARNING: non-existent key "3" requested
-    [config] WARNING: non-existent key "4" requested
-
-    >>> d = warn_defaultdict({'sub': {'a': 'b'}})
-    >>> print(d['sub']['foo'])
-    [config] WARNING: non-existent key "foo" requested
-    {}
-
-    """
-    def __setitem__(self, key, value):
-        if isinstance(value, dict):
-            value = warn_defaultdict(value)
-
-        dict.__setitem__(self, key, value)
-
-    def __getitem__(self, key):
-        if not key in self.keys():
-            print('[config] WARNING: non-existent '
-                  'key "{}" requested'.format(key))
-
-            self.__setitem__(key, warn_defaultdict())
-
-        return dict.__getitem__(self, key)
-
-
-config = warn_defaultdict(config)
 
 def show_config():
     print()

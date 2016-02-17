@@ -38,15 +38,15 @@ test_backend: db celery
 	nosetests -v mltsp
 
 test_backend_no_docker: db celery
-	echo -e "testing:\n    no_docker: 1" > "mltsp-_test_.yaml"
+	echo -e "testing:\n    no_docker: 1\n    test_db: 1" > "mltsp-_test_.yaml"
 	nosetests -v -s mltsp
 
 test_frontend: external/casperjs db celery
-	echo -e "testing:\n    disable_auth: 1" > "mltsp-_test_.yaml"
+	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "mltsp-_test_.yaml"
 	@PYTHONPATH="." tools/casper_tests.py
 
 test_frontend_no_docker: external/casperjs db celery
-	echo -e "testing:\n    no_docker: 1" > "mltsp-_test_.yaml"
+	echo -e "testing:\n    no_docker: 1\n    test_db: 1" > "mltsp-_test_.yaml"
 	echo -e "    disable_auth: 1" >> "mltsp-_test_.yaml"
 	@PYTHONPATH="." tools/casper_tests.py
 
