@@ -228,6 +228,11 @@ del yaml, os, sys, print_function, config_files, multiprocessing
 
 config['mltsp'] = locals()
 
+# Celery does not like getting empty dictionaries for configuration
+# variables
+dict.__setitem__(config, 'celery', dict(config['celery']))
+
+
 def show_config():
     print()
     print("=" * 78)
