@@ -10,10 +10,13 @@ import io
 import tarfile
 import shutil
 import numpy as np
+import tempfile
 from importlib import import_module
+from os.path import join as pjoin
+
 from .cfg import config
 from . import util
-from os.path import join as pjoin
+
 
 class MissingRequiredParameterError(Exception):
 
@@ -302,7 +305,13 @@ def extract_feats_in_docker_container(container_name, tmp_dir):
         stdout = client.logs(container=cont_id, stdout=True)
         stderr = client.logs(container=cont_id, stderr=True)
         if stderr.strip():
-            print("\n\ndocker container stderr:\n\n", stderr.strip(), "\n\n")
+            print("Docker container stdout:")
+            try:
+                print(stderr.decode('ascii'))
+            except:
+                # Python 2
+                print(stderr)
+
         # Copy JSON results data from Docker container to host
         docker_copy(client, cont_id, "/tmp/results_dict.json",
                     target=tmp_dir)
@@ -358,6 +367,7 @@ def docker_extract_features(script_fpath, features_already_known):
 
     """
     container_id = str(uuid.uuid4())[:10]
+
     tmp_dir = tempfile.mkdtemp(prefix='mltsp')
 
     try:

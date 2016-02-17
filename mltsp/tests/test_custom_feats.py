@@ -70,26 +70,6 @@ def test_docker_installed():
 
 
 @dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
-def test_extract_feats_in_docker_container():
-    """Test custom feature extraction in Docker container"""
-    tmp_dir_path = cft.make_tmp_dir()
-    feats_known_dict = {"feat1": 0.215, "feat2": 0.311}
-    ts_datafile = pjoin(DATA_PATH, "dotastro_215153.dat")
-    t, m, e = ft.parse_ts_data(ts_datafile)
-    feats_known_dict['t'] = list(t)
-    feats_known_dict['m'] = list(m)
-    feats_known_dict['e'] = list(e)
-    cft.copy_data_to_tmp_dir(tmp_dir_path,
-                             pjoin(DATA_PATH, "testfeature1.py"),
-                             feats_known_dict)
-    results = cft.extract_feats_in_docker_container("test", tmp_dir_path)
-    shutil.rmtree(tmp_dir_path, ignore_errors=True)
-#    cft.remove_tmp_files(tmp_dir_path)
-    assert(isinstance(results, dict))
-    npt.assert_almost_equal(results["avg_mag"], 10.347417647058824)
-
-
-@dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
 def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")

@@ -34,6 +34,7 @@ external/casperjs:
 
 
 test_backend: db celery
+	rm *_test_*.yaml
 	nosetests -v mltsp
 
 test_backend_no_docker: db celery
