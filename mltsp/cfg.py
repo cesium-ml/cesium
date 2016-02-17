@@ -34,16 +34,6 @@ for cf in config_files:
     except IOError:
         pass
 
-if not config and not sys.argv[0].endswith('mltsp'):
-    if not util.is_running_in_docker():
-        print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
-              '\n '.join(config_files),
-              "\n\nPlease refer to the installation guide for further\n"
-              "instructions.\n\n"
-              "You probably want to execute:\n"
-              "  mltsp --install")
-        sys.exit(-1)
-
 try:
     N_CORES = multiprocessing.cpu_count()
 except Exception as e:
