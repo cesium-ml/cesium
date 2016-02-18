@@ -5,6 +5,10 @@ import glob
 import os
 import sys
 import time
+try:
+    import http.client as http
+except ImportError:
+    import httplib as http
 
 from os.path import join as pjoin
 
@@ -40,23 +44,39 @@ if __name__ == '__main__':
 
     print('[test_frontend] Waiting for supervisord to launch all server processes...')
 
-    timeout = 0
-    while ((timeout < 5) and
-           (not all([b'RUNNING' in line for line in supervisor_status()]))):
-        time.sleep(1)
-        timeout += 1
+    try:
+        timeout = 0
+        while ((timeout < 5) and
+               (not all([b'RUNNING' in line for line in supervisor_status()]))):
+            time.sleep(1)
+            timeout += 1
 
-    if timeout == 5:
-        print('[test_frontend] Could not launch server processes; terminating')
-        sys.exit(-1)
+        if timeout == 5:
+            print('[test_frontend] Could not launch server processes; terminating')
+            sys.exit(-1)
 
-    print('[test_frontend] Launching CasperJS...')
-    tests = sorted(glob.glob(pjoin(parent_path, 'mltsp/tests/frontend/*.js')))
-    status = subprocess.call([casperjs_path, '--verbose',
-                             '--log-level=debug', 'test'] + tests,
-                             cwd=parent_path, env=env)
+        for timeout in range(10):
+            conn = http.HTTPConnection("localhost", 5000)
+            conn.request('HEAD', '/')
+            status = conn.getresponse().status
+            if status == 200:
+                break
+            time.sleep(1)
 
-    print('[test_frontend] Terminating supervisord...')
-    web_client.terminate()
+        if status != 200:
+            print('[test_frontend] Server status is {} instead of 200'.format(
+                status))
+            sys.exit(-1)
+        else:
+            print('[test_frontend] Verified server availability')
+
+        print('[test_frontend] Launching CasperJS...')
+        tests = sorted(glob.glob(pjoin(parent_path, 'mltsp/tests/frontend/*.js')))
+        status = subprocess.call([casperjs_path, '--verbose',
+                                 '--log-level=debug', 'test'] + tests,
+                                 cwd=parent_path, env=env)
+    finally:
+        print('[test_frontend] Terminating supervisord...')
+        web_client.terminate()
 
     sys.exit(status)
