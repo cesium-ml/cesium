@@ -16,8 +16,6 @@ config_files = [
 
 config_files.extend(glob.glob(
     os.path.join(os.path.dirname(__file__), '../mltsp-*.yaml')))
-config_files.extend(glob.glob(
-    os.path.join(os.path.dirname(__file__), '../../mltsp-*.yaml')))
 
 config_files = [os.path.abspath(cf) for cf in config_files]
 

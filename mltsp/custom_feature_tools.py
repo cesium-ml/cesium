@@ -147,6 +147,24 @@ def call_custom_functions(features_already_known, all_required_params,
                           all_provided_params, fnames_req_prov_dict,
                           script_fpath):
     """
+    Call custom feature functions to compute required features.
+
+    Parameters
+    ----------
+    features_already_known : list of str
+        Features already computed.
+    all_required_params : list of str
+        All parameters we'd like to compute.
+    all_provided_params : list of str
+        Features provided by the script.
+    fnames_req_prov_dict : dict
+        Keys are function names.  For each function,
+        describes the required and provided features in
+        ``fnames_req_prov_dict['funcname']['required']`` and
+        ``fnames_req_prov_dict['funcname']['provided']``.
+    script_fpath : str
+        Path to custom feature script.
+
     """
     # import the custom feature defs
     with open(script_fpath) as f:
@@ -160,10 +178,11 @@ def call_custom_functions(features_already_known, all_required_params,
     save_stdout = sys.stdout
     sys.stdout = DummyFile()
 
-    all_required_params = [x for x in all_required_params
-                           if x not in features_already_known]
+    all_required_params = (set(all_required_params) -
+                           set(features_already_known))
+    params_missing = (set(all_required_params) -
+                      set(all_provided_params))
 
-    params_missing = set(all_required_params) - set(all_provided_params)
     if params_missing:
         raise Exception((
             "Not all of the required parameters are provided by the "
@@ -182,12 +201,11 @@ def call_custom_functions(features_already_known, all_required_params,
             reqs_provs_dict = fnames_req_prov_dict[funcname]
             reqs = reqs_provs_dict['requires']
             provs = reqs_provs_dict['provides']
-            if len(set(all_required_params) & set(reqs)) > 0:
+            if (set(all_required_params) & set(reqs)):
                 func_queue.append(funcname)
             else:
                 func_rounds[str(i)].append(funcname)
-                all_required_params = [x for x in all_required_params
-                                       if x not in provs]
+                all_required_params = (set(all_required_params) - set(provs))
                 arguments = {}
                 for req in reqs:
                     if req in features_already_known:
@@ -385,14 +403,14 @@ def docker_extract_features(script_fpath, features_already_known):
 def assemble_test_data():
     """
     """
-    fname = pjoin(config['paths']['sample_data_path'],
-                         "dotastro_215153.dat")
+    fname = pjoin(os.path.dirname(__file__),
+                  'data/sample_data/dotastro_215153.dat')
     t, m, e = np.loadtxt(fname, delimiter=',').T
     features_already_known = {'t': list(t), 'm': list(m), 'e': list(e)}
     return features_already_known
 
 
-def verify_new_script(script_fpath, docker_container=False):
+def verify_new_script(script_fpath):
     """Test custom features script and return generated features.
 
     Performs test run on custom feature def script with trial time
@@ -403,9 +421,6 @@ def verify_new_script(script_fpath, docker_container=False):
     ----------
     script_fpath : str
         Path to custom feature definitions script.
-    docker_container : bool, optional
-        Boolean indicating whether function is being called from within
-        a Docker container.
 
     Returns
     -------
@@ -415,23 +430,12 @@ def verify_new_script(script_fpath, docker_container=False):
 
     """
     features_already_known = assemble_test_data()
-    print(script_fpath, os.path.isfile(script_fpath))
-
-    all_extracted_features = {}
-    if config['testing']['no_docker']:
-        print("WARNING - generating custom features WITHOUT docker container...")
-        all_extracted_features = execute_functions_in_order(
-            features_already_known=features_already_known,
-            script_fpath=script_fpath)
-    elif util.docker_images_available():
-        print("Extracting features inside docker container...")
-        all_extracted_features = docker_extract_features(
-            script_fpath=script_fpath,
-            features_already_known=features_already_known)
-    else:
-        raise Exception("Feature extraction inside Docker images requested, "
-                        "but no suitable Docker images available.")
-    return all_extracted_features
+    return generate_custom_features(
+        script_fpath,
+        features_already_known['t'],
+        features_already_known['m'],
+        features_already_known['e'],
+        features_already_known=features_already_known)
 
 
 def list_features_provided(script_fpath):
