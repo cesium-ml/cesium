@@ -7,35 +7,30 @@ import os, sys
 import multiprocessing
 import yaml
 from . import util
+import glob
 
 # Load configuration
 config_files = [
     os.path.expanduser('~/.config/mltsp/mltsp.yaml'),
-    os.path.join(os.path.dirname(__file__), '../mltsp.yaml')
     ]
+
+config_files.extend(glob.glob(
+    os.path.join(os.path.dirname(__file__), '../mltsp-*.yaml')))
 
 config_files = [os.path.abspath(cf) for cf in config_files]
 
 # Load example config file as default template
-config = yaml.load(open(os.path.join(os.path.dirname(__file__),
-                        'mltsp.yaml.example')))
+config = util.warn_defaultdict()
+config.update(yaml.load(open(os.path.join(os.path.dirname(__file__),
+                             "mltsp.yaml.example"))))
 
 for cf in config_files:
     try:
-        config = yaml.load(open(cf))
-        break
+        more_config = yaml.load(open(cf))
+        print('[MLTSP] Loaded {}'.format(cf))
+        config.update(more_config)
     except IOError:
         pass
-
-if not config and not sys.argv[0].endswith('mltsp'):
-    if not util.is_running_in_docker():
-        print("Warning!  No 'mltsp.yaml' configuration found in one of:\n\n",
-              '\n '.join(config_files),
-              "\n\nPlease refer to the installation guide for further\n"
-              "instructions.\n\n"
-              "You probably want to execute:\n"
-              "  mltsp --install")
-        sys.exit(-1)
 
 try:
     N_CORES = multiprocessing.cpu_count()
@@ -44,28 +39,18 @@ except Exception as e:
     print("Using N_CORES = 8")
     N_CORES = 8
 
-CELERY_CONFIG = 'mltsp.ext.celeryconfig'
-CELERY_BROKER = 'amqp://guest@localhost//'
 
-# Specify path to project directory:
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-MLTSP_PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
-DATA_PATH = os.path.expanduser('~/.local/mltsp/')
-SAMPLE_DATA_PATH = os.path.join(DATA_PATH, "sample_data")
+PACKAGE_PATH = os.path.abspath(os.path.dirname(__file__))
 
-# Specify path to uploads, models, and feature folders:
-UPLOAD_FOLDER = os.path.join(DATA_PATH, "flask_uploads")
-MODELS_FOLDER = os.path.join(DATA_PATH, "classifier_models")
-FEATURES_FOLDER = os.path.join(DATA_PATH, "extracted_features")
-CUSTOM_FEATURE_SCRIPT_FOLDER = os.path.join(
-    UPLOAD_FOLDER,
-    "custom_feature_scripts")
-TMP_CUSTOM_FEATS_FOLDER = os.path.join(MLTSP_PACKAGE_PATH,
-                                       "custom_feature_scripts")
-ERR_LOG_PATH = os.path.join(
-    DATA_PATH, "logs/errors_and_warnings.txt")
-
-PROJECT_PATH_LINK = "/tmp/mltsp_link"
+# Expand home variable;
+# replace variables {project_path} and {package_path} in paths
+config['paths'].update({'project_path': PROJECT_PATH,
+                        'package_path': PACKAGE_PATH})
+config['paths'] = {key: os.path.expanduser(value)
+                   for (key, value) in config['paths'].items()}
+config['paths'] = {key: value.format(**config['paths'])
+                   for (key, value) in config['paths'].items()}
 
 # Specify list of general time-series features to be used (must
 # correspond to those in lc_tools.LightCurve object attributes):
@@ -226,16 +211,10 @@ DEFAULT_MAX_TIME = 1.0
 DEFAULT_ERROR_VALUE = 1e-4
 
 
-if not os.path.exists(PROJECT_PATH):
-    print("cfg.py: Non-existing project path (%s) specified" % PROJECT_PATH)
-    if util.is_running_in_docker() == False:
-        sys.exit(-1)
-
-
-for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
-             ERR_LOG_PATH, CUSTOM_FEATURE_SCRIPT_FOLDER):
-    if path == ERR_LOG_PATH:
+for path_name, path in config['paths'].items():
+    if path_name == 'err_log_path':
         path = os.path.dirname(path)
+
     if not os.path.exists(path):
         print("Creating %s" % path)
         try:
@@ -246,3 +225,26 @@ for path in (DATA_PATH, UPLOAD_FOLDER, MODELS_FOLDER, FEATURES_FOLDER,
 del yaml, os, sys, print_function, config_files, multiprocessing
 
 config['mltsp'] = locals()
+
+# Celery does not like getting empty dictionaries for configuration
+# variables
+dict.__setitem__(config, 'celery', dict(config['celery']))
+
+
+def show_config():
+    print()
+    print("=" * 78)
+    print("MLTSP configuration")
+
+    for key in ('paths', 'celery', 'database', 'testing'):
+        if key in config:
+            print("-" * 78)
+            print(key)
+            print("-" * 78)
+
+            for key, val in config[key].items():
+                print(key.ljust(30), val)
+
+    print("=" * 78)
+
+show_config()

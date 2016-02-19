@@ -13,7 +13,8 @@ RUN \
 RUN apt-get update
 RUN apt-get install -y curl git make \
                        python3-dev \
-                       rethinkdb docker.io rabbitmq-server nginx
+                       rethinkdb docker.io rabbitmq-server nginx \
+                       libzmq3 libzmq3-dev supervisor
 
 # Install PhantomJS
 RUN apt-get install -y fontconfig-config fonts-dejavu-core libfontconfig1 libfreetype6 \

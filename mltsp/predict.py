@@ -6,7 +6,7 @@ import xarray as xr
 import tarfile
 import zipfile
 from . import build_model
-from . import cfg
+from .cfg import config
 from . import featurize
 from . import featurize_tools as ft
 from . import util
@@ -106,7 +106,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
     all_ts_data = {util.shorten_fname(ts_path): ft.parse_ts_data(ts_path)
                    for ts_path in ts_paths}
 
-    featureset_path = os.path.join(cfg.FEATURES_FOLDER,
+    featureset_path = os.path.join(config['paths']['features_folder'],
                                    '{}_featureset.nc'.format(featureset_key))
     featureset = xr.open_dataset(featureset_path)
     features_to_use = list(featureset.data_vars)
@@ -114,7 +114,7 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
                                                    features_to_use=features_to_use,
                                                    custom_script_path=custom_features_script)
 
-    model = joblib.load(os.path.join(cfg.MODELS_FOLDER,
+    model = joblib.load(os.path.join(config['paths']['models_folder'],
                                      "{}.pkl".format(model_key)))
     # Covert to DataFrame so we can treat 1d/2d predictions in the same way
     preds_df = pd.DataFrame(model_predictions(new_featureset, model))

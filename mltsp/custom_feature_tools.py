@@ -10,9 +10,13 @@ import io
 import tarfile
 import shutil
 import numpy as np
+import tempfile
 from importlib import import_module
-from . import cfg
+from os.path import join as pjoin
+
+from .cfg import config
 from . import util
+
 
 class MissingRequiredParameterError(Exception):
 
@@ -108,6 +112,9 @@ class DummyFile(object):
     def write(self, x):
         pass
 
+    def flush(self):
+        pass
+
 
 def parse_for_req_prov_params(script_fpath):
     """
@@ -138,39 +145,50 @@ def parse_for_req_prov_params(script_fpath):
 
 def call_custom_functions(features_already_known, all_required_params,
                           all_provided_params, fnames_req_prov_dict,
-                          script_fpath=None):
+                          script_fpath):
     """
+    Call custom feature functions to compute required features.
+
+    Parameters
+    ----------
+    features_already_known : list of str
+        Features already computed.
+    all_required_params : list of str
+        All parameters we'd like to compute.
+    all_provided_params : list of str
+        Features provided by the script.
+    fnames_req_prov_dict : dict
+        Keys are function names.  For each function,
+        describes the required and provided features in
+        ``fnames_req_prov_dict['funcname']['required']`` and
+        ``fnames_req_prov_dict['funcname']['provided']``.
+    script_fpath : str
+        Path to custom feature script.
+
     """
     # import the custom feature defs
-    try:
-        from .custom_feature_scripts import custom_feature_defs
-    except ImportError:
-        try:
-            import custom_feature_defs
-        except ImportError:
-            if script_fpath:
-                script_name = str(uuid.uuid4())[:10] + ".py"
-                custom_feature_scripts_dir = os.path.join(
-                    os.path.dirname(__file__), "custom_feature_scripts")
-                copied_path = os.path.join(custom_feature_scripts_dir,
-                                           script_name)
-                shutil.copy(script_fpath, copied_path)
-                custom_feature_defs = import_module(".custom_feature_scripts." +
-                                                    script_name.replace(".py", ""),
-                                                    "mltsp")
+    with open(script_fpath) as f:
+        script_dir, script_filename = os.path.split(script_fpath)
+        code = compile(f.read(), script_filename, 'exec')
+
+    custom_feature_defs = {}
+    exec(code, custom_feature_defs)
 
     # temporarily redirect stdout:
     save_stdout = sys.stdout
     sys.stdout = DummyFile()
 
-    all_required_params_copy = [x for x in all_required_params
-                                if x not in features_already_known]
-    for reqd_param in all_required_params_copy:
-        if reqd_param not in all_provided_params:
-            raise Exception((
-                "Not all of the required parameters are provided by the "
-                "functions in this script (required parameter '%s').") %
-                str(reqd_param))
+    all_required_params = (set(all_required_params) -
+                           set(features_already_known))
+    params_missing = (set(all_required_params) -
+                      set(all_provided_params))
+
+    if params_missing:
+        raise Exception((
+            "Not all of the required parameters are provided by the "
+            "functions in this script (required parameter(s) '%s').") %
+            params_missing)
+
     funcs_round_1 = []
     func_queue = []
     funcnames = list(fnames_req_prov_dict.keys())
@@ -183,20 +201,18 @@ def call_custom_functions(features_already_known, all_required_params,
             reqs_provs_dict = fnames_req_prov_dict[funcname]
             reqs = reqs_provs_dict['requires']
             provs = reqs_provs_dict['provides']
-            if len(set(all_required_params_copy) & set(reqs)) > 0:
+            if (set(all_required_params) & set(reqs)):
                 func_queue.append(funcname)
             else:
                 func_rounds[str(i)].append(funcname)
-                all_required_params_copy = [x for x in all_required_params_copy
-                                            if x not in provs]
+                all_required_params = (set(all_required_params) - set(provs))
                 arguments = {}
                 for req in reqs:
                     if req in features_already_known:
                         arguments[req] = features_already_known[req]
                     elif req in all_extracted_features:
                         arguments[req] = all_extracted_features[req]
-                func_result = getattr(
-                    custom_feature_defs, funcname)(**arguments)
+                func_result = custom_feature_defs[funcname](**arguments)
                 all_extracted_features = dict(
                     list(all_extracted_features.items()) +
                     list(func_result.items()))
@@ -241,11 +257,7 @@ def execute_functions_in_order(script_fpath, features_already_known):
 
     """
     # For when run inside Docker container:
-    try:
-        sys, os
-    except NameError:
-        import sys
-        import os
+    import sys, os
 
     fnames_req_prov_dict, all_required_params, all_provided_params = \
         parse_for_req_prov_params(script_fpath)
@@ -256,38 +268,6 @@ def execute_functions_in_order(script_fpath, features_already_known):
 
     return all_extracted_features
 
-
-def make_tmp_dir():
-    """
-    """
-    if os.path.exists(cfg.PROJECT_PATH_LINK):
-        proj_path = cfg.PROJECT_PATH_LINK
-    else:
-        proj_path = cfg.PROJECT_PATH
-    path_to_tmp_dir = os.path.join(proj_path, "tmp",
-                                   str(uuid.uuid4())[:10])
-    os.makedirs(path_to_tmp_dir)
-    return path_to_tmp_dir
-
-
-def generate_random_str():
-    """Generate random 10-character string using uuid.uuid4.
-    """
-    return str(uuid.uuid4())[:10]
-
-
-def copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath,
-                         features_already_known):
-    """
-    """
-    shutil.copy(script_fpath,
-                os.path.join(path_to_tmp_dir, "custom_feature_defs.py"))
-    with open(os.path.join(path_to_tmp_dir, "features_already_known.json"),
-              "w") as f:
-        json.dump(features_already_known, f)
-    # Create __init__.py file so that custom feats script can be imported
-    open(os.path.join(path_to_tmp_dir, "__init__.py"), "w").close()
-    return
 
 
 def docker_copy(docker_client, container_id, path, target="."):
@@ -313,73 +293,61 @@ def docker_copy(docker_client, container_id, path, target="."):
     tar.extractall(path=target)
 
 
-def extract_feats_in_docker_container(container_name, path_to_tmp_dir):
+def extract_feats_in_docker_container(container_name, tmp_dir):
     """
     """
-    tmp_data_dir = path_to_tmp_dir
     try:
         # Spin up Docker contain and extract custom feats
         # Instantiate Docker client
         client = util.get_docker_client()
 
-        # Use symlink if one was created (in which case this is probably
-        # being run in a Disco worker)
-        if os.path.exists(cfg.PROJECT_PATH_LINK):
-            proj_mount_path = cfg.PROJECT_PATH_LINK
-        else:
-            proj_mount_path = cfg.PROJECT_PATH
+        proj_mount_path = config['paths']['project_path']
+
         # Create container
         cont_id = client.create_container(
             image="mltsp/base",
-            command="python {}/mltsp/run_script_in_container.py --{} --tmp_dir={}".format(
-                proj_mount_path, "extract_custom_feats", tmp_data_dir),
+            command=("python {}/docker_scripts/extract_custom_feats.py "
+                     "--tmp_dir={}").format(proj_mount_path, tmp_dir),
             tty=True,
-            volumes="{}:{}".format("", proj_mount_path))["Id"]
+            volumes=[proj_mount_path, tmp_dir])["Id"]
 
         # Start container
         client.start(cont_id,
                      binds={proj_mount_path: {"bind": proj_mount_path,
-                                              "ro": True}})
+                                              "ro": True},
+                            tmp_dir: {"bind": tmp_dir,
+                                      "ro": True}})
+
         # Wait for process to complete
         client.wait(cont_id)
         stdout = client.logs(container=cont_id, stdout=True)
         stderr = client.logs(container=cont_id, stderr=True)
-        if str(stderr).strip() != "" and stderr != b'':
-            print("\n\ndocker container stderr:\n\n", str(stderr).strip(), "\n\n")
+        if stderr.strip():
+            print("Docker container stdout:")
+            try:
+                print(stderr.decode('ascii'))
+            except:
+                # Python 2
+                print(stderr)
+
         # Copy JSON results data from Docker container to host
         docker_copy(client, cont_id, "/tmp/results_dict.json",
-                    target=path_to_tmp_dir)
+                    target=tmp_dir)
+
         print("/tmp/results_dict.json copied to host machine.")
+
         # Load results data
-        with open(os.path.join(path_to_tmp_dir, "results_dict.json"),
-                  "r") as f:
+        with open(pjoin(tmp_dir, "results_dict.json"), "r") as f:
             return json.load(f)
-    except:
-        raise
+
     finally:
         # Kill and remove the container
         try:
             client.remove_container(container=cont_id, force=True)
-        except UnboundLocalError:
-            print("Error occurred in running Docker container.")
+        except UnboundLocalError as e:
+            print("Error occurred while running Docker container:")
+            print(e)
 
-
-def remove_tmp_files(path_to_tmp_dir):
-    """
-    """
-    # Remove tmp dir
-    shutil.rmtree(path_to_tmp_dir, ignore_errors=True)
-    for tmp_file in (os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                                  "custom_feature_defs.py"),
-                     os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                                  "custom_feature_defs.pyc"),
-                     os.path.join(cfg.TMP_CUSTOM_FEATS_FOLDER,
-                                  "__init__.pyc")):
-        try:
-            os.remove(tmp_file)
-        except OSError:
-            pass
-    return
 
 
 def docker_extract_features(script_fpath, features_already_known):
@@ -416,31 +384,33 @@ def docker_extract_features(script_fpath, features_already_known):
         List of dictionaries of all generated features.
 
     """
-    container_name = generate_random_str()
-    path_to_tmp_dir = make_tmp_dir()
+    container_id = str(uuid.uuid4())[:10]
 
-    copy_data_to_tmp_dir(path_to_tmp_dir, script_fpath, features_already_known)
+    tmp_dir = tempfile.mkdtemp(prefix='mltsp')
 
     try:
-        results_dict = extract_feats_in_docker_container(
-            container_name, path_to_tmp_dir)
-    except:
-        raise
+        shutil.copy(script_fpath, pjoin(tmp_dir, "custom_feature_defs.py"))
+        with open(pjoin(tmp_dir, "features_already_known.json"), "w") as f:
+            json.dump(features_already_known, f)
+
+        results_dict = extract_feats_in_docker_container(container_id, tmp_dir)
     finally:
-        remove_tmp_files(path_to_tmp_dir)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
     return results_dict
 
 
 def assemble_test_data():
     """
     """
-    fname = os.path.join(cfg.SAMPLE_DATA_PATH, "dotastro_215153.dat")
+    fname = pjoin(os.path.dirname(__file__),
+                  'data/sample_data/dotastro_215153.dat')
     t, m, e = np.loadtxt(fname, delimiter=',').T
     features_already_known = {'t': list(t), 'm': list(m), 'e': list(e)}
     return features_already_known
 
 
-def verify_new_script(script_fpath, docker_container=False):
+def verify_new_script(script_fpath):
     """Test custom features script and return generated features.
 
     Performs test run on custom feature def script with trial time
@@ -451,9 +421,6 @@ def verify_new_script(script_fpath, docker_container=False):
     ----------
     script_fpath : str
         Path to custom feature definitions script.
-    docker_container : bool, optional
-        Boolean indicating whether function is being called from within
-        a Docker container.
 
     Returns
     -------
@@ -463,23 +430,12 @@ def verify_new_script(script_fpath, docker_container=False):
 
     """
     features_already_known = assemble_test_data()
-    print(script_fpath, os.path.isfile(script_fpath))
-
-    all_extracted_features = {}
-    no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
-    if util.docker_images_available() and not no_docker:
-        print("Extracting features inside docker container...")
-        all_extracted_features = docker_extract_features(
-            script_fpath=script_fpath,
-            features_already_known=features_already_known)
-    elif no_docker:
-        print("WARNING - generating custom features WITHOUT docker container...")
-        all_extracted_features = execute_functions_in_order(
-            features_already_known=features_already_known,
-            script_fpath=script_fpath)
-    elif not util.docker_images_available():
-        raise Exception("Docker image not available.")
-    return all_extracted_features
+    return generate_custom_features(
+        script_fpath,
+        features_already_known['t'],
+        features_already_known['m'],
+        features_already_known['e'],
+        features_already_known=features_already_known)
 
 
 def list_features_provided(script_fpath):
@@ -560,18 +516,18 @@ def generate_custom_features(custom_script_path, t, m, e,
             features_already_known=features_already_known,
             script_fpath=custom_script_path)
     else:
-        no_docker = (os.getenv("MLTSP_NO_DOCKER") == "1")
-        if util.docker_images_available() and not no_docker:
-            print("Generating custom features inside docker container...")
-            all_new_features = docker_extract_features(
-                script_fpath=custom_script_path,
-                features_already_known=features_already_known)
-        elif no_docker:
+        if config['testing']['no_docker']:
             print("WARNING - generating custom features WITHOUT docker container...")
             all_new_features = execute_functions_in_order(
                 features_already_known=features_already_known,
                 script_fpath=custom_script_path)
-        elif not util.docker_images_available():
-            raise Exception("Docker image not available.")
+        elif util.docker_images_available():
+            print("Generating custom features inside docker container...")
+            all_new_features = docker_extract_features(
+                script_fpath=custom_script_path,
+                features_already_known=features_already_known)
+        else:
+            raise Exception("Feature extraction inside Docker images requested, "
+                            "but no suitable Docker images available.")
 
     return all_new_features

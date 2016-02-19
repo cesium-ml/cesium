@@ -2,6 +2,7 @@
 
 SHELL = /bin/bash
 PY_VER = $(shell python -c 'import sys; print(sys.version_info.major)')
+CLEAN_TEST_CONFIG = $(shell rm -f mltsp-_test_.yaml)
 
 celery:
 	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
@@ -19,7 +20,8 @@ clean:
 	find . -name "*.so" | xargs rm -f
 
 webapp: db celery
-	PYTHONPATH=. tools/launch_waitress.py
+	@rm -f mltsp-_test_.yaml
+	PYTHONPATH=. $(MAKE) -C web_client
 
 init: db celery
 	mltsp --db-init --force
@@ -30,28 +32,30 @@ db:
 external/casperjs:
 	@tools/casper_install.sh
 
+
 test_backend: db celery
+	rm *_test_*.yaml
 	nosetests -v mltsp
 
-test_backend_no_docker: export MLTSP_NO_DOCKER=1
 test_backend_no_docker: db celery
-	nosetests -v mltsp
+	echo -e "testing:\n    no_docker: 1\n    test_db: 1" > "mltsp-_test_.yaml"
+	nosetests -v -s mltsp
 
-test_frontend: export MLTSP_DEBUG_LOGIN=1
 test_frontend: external/casperjs db celery
+	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "mltsp-_test_.yaml"
 	@PYTHONPATH="." tools/casper_tests.py
 
-test_frontend_no_docker: export MLTSP_NO_DOCKER=1
-test_frontend_no_docker: export MLTSP_DEBUG_LOGIN=1
 test_frontend_no_docker: external/casperjs db celery
+	echo -e "testing:\n    no_docker: 1\n    test_db: 1" > "mltsp-_test_.yaml"
+	echo -e "    disable_auth: 1" >> "mltsp-_test_.yaml"
 	@PYTHONPATH="." tools/casper_tests.py
 
 test_entrypoint:
 	mltsp --version
 
-test: test_entrypoint test_backend test_frontend
+test: | test_entrypoint test_backend test_frontend
 
-test_no_docker: test_backend_no_docker test_frontend_no_docker
+test_no_docker: | test_backend_no_docker test_frontend_no_docker
 
 install:
 	pip install -r requirements.txt

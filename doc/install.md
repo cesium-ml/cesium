@@ -52,12 +52,13 @@ conda install numpy scipy pandas scikit-learn cython dask xarray
 ## Starting the web app
 * Create the MLTSP database: `mltsp --db-init`
 
-* Launch the web platform: `mltsp`
-  * User authentication is required by default; disable with `--disable-auth`
+* Launch the web platform: `cd web_client && make`
+* User authentication is required by default; disable by modifying
+  'disable_auth' in the configuration file.
 
 * Navigate to `http://localhost:5000`.
 
-* Host, port, etc. can be specified in `tools/launch_waitress.sh`.
+* The port can be configured in `web_client/nginx.conf`.
 
 ## Testing
 ### Back-end

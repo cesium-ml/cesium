@@ -8,7 +8,6 @@ import os
 # list of (Google) admin accounts to have access to all projects
 sys_admin_emails = ['a.crellinquick@gmail.com']
 
-from .. import cfg
 from ..cfg import config
 
 import shutil
@@ -26,7 +25,8 @@ import uuid
 import numpy as np
 
 import yaml
-if os.getenv("MLTSP_DEBUG_LOGIN") == "1" or '--disable-auth' in sys.argv:
+if config['testing']['disable_auth']:
+    print('[mltsp] Disabling front-end authentication')
     from ..ext import stormpath_mock as stormpath
 else:
     from flask.ext import stormpath
@@ -45,7 +45,8 @@ from ..version import version
 from .. import util
 from ..ext import sklearn_models
 
-all_available_features_list = cfg.features_list_obs + cfg.features_list_science
+all_available_features_list = (config['mltsp']['features_list_obs'] +
+                               config['mltsp']['features_list_science'])
 
 # Flask initialization
 app = Flask(__name__, static_folder=None)
@@ -84,14 +85,16 @@ stormpath_manager = stormpath.StormpathManager()
 stormpath_manager.init_app(app)
 
 
-app.config['UPLOAD_FOLDER'] = cfg.UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = config['paths']['upload_folder']
 
-logging.basicConfig(filename=cfg.ERR_LOG_PATH, level=logging.WARNING)
+logging.basicConfig(filename=config['paths']['err_log_path'],
+                    level=logging.WARNING)
 
 # RethinkDB config:
-RDB_HOST = os.environ.get('RDB_HOST') or 'localhost'
-RDB_PORT = os.environ.get('RDB_PORT') or 28015
-if os.getenv("MLTSP_TEST_DB") == "1":
+RDB_HOST = config['database']['host']
+RDB_PORT = config['database']['port']
+if config['testing']['test_db']:
+    print('[mltsp] Using test database')
     MLTSP_DB = "mltsp_testing"
 else:
     MLTSP_DB = "mltsp_app"
@@ -124,7 +127,7 @@ def user_can_access_features_file(filename):
 @stormpath.login_required
 def custom_static_features_data(filename):
     if user_can_access_features_file(filename):
-        return send_from_directory(cfg.FEATURES_FOLDER, filename)
+        return send_from_directory(config['paths']['features_folder'], filename)
     else:
         abort(403)
 
@@ -1196,7 +1199,8 @@ def model_associated_files(model_key):
     try:
         entry_dict = rdb.table("models").get(model_key).run(g.rdb_conn)
         featset_key = entry_dict["featset_key"]
-        fpaths = [os.path.join(cfg.MODELS_FOLDER, "{}.pkl".format(model_key))]
+        fpaths = [os.path.join(config['paths']['models_folder'],
+                               "{}.pkl".format(model_key))]
         fpaths += featset_associated_files(featset_key)
     except:
         try:
@@ -1221,7 +1225,8 @@ def featset_associated_files(featset_key):
 
     """
     fpaths = []
-    fpath = os.path.join(cfg.FEATURES_FOLDER, "%s_featureset.nc" % featset_key)
+    fpath = os.path.join(config['paths']['features_folder'],
+                         "%s_featureset.nc" % featset_key)
     if os.path.exists(fpath):
         fpaths.append(fpath)
     entry_dict = rdb.table("features").get(featset_key).run(g.rdb_conn)
@@ -1692,14 +1697,14 @@ def get_all_info_dict(auth_only=True):
 
 def get_list_of_available_features():
     """Return list of built-in time-series features available."""
-    return sorted([feat for feat in cfg.features_list_science if feat not in
-                   cfg.ignore_feats_list_science])
+    return sorted([feat for feat in config['mltsp']['features_list_science']
+                   if feat not in config['mltsp']['ignore_feats_list_science']])
 
 
 def get_list_of_available_features_set2():
     """Return list of additional built-in time-series features."""
-    return sorted([feat for feat in cfg.features_list_obs if feat not in
-                   cfg.ignore_feats_list_science])
+    return sorted([feat for feat in config['mltsp']['features_list_obs']
+                   if feat not in config['mltsp']['ignore_feats_list_science']])
 
 
 def allowed_file(filename):
@@ -1975,7 +1980,7 @@ def featurize_proc(
     # subprocess that is separate from main app:
     before_request()
     try:
-        first_N = cfg.TEST_N if is_test else None
+        first_N = config['mltsp']['TEST_N'] if is_test else None
         if already_featurized:
             featurize.load_and_store_feature_data(
                 headerfile_path, featureset_id=featureset_key, first_N=first_N)
@@ -2217,9 +2222,8 @@ def verifyNewScript():
         scriptfile = request.files['custom_feat_script_file']
         scriptfile_name = secure_filename(scriptfile.filename)
         scriptfile_path = os.path.join(
-            os.path.join(
-                cfg.UPLOAD_FOLDER, "custom_feature_scripts"),
-            str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
+                config['paths']['upload_folder'], "custom_feature_scripts",
+                str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
             test_results = cft.verify_new_script(script_fpath=scriptfile_path)
@@ -2526,7 +2530,7 @@ def uploadFeaturesForm():
                         strip().split(" (created")[0])
         features_file_name = (str(uuid.uuid4()) +
                               str(secure_filename(features_file.filename)))
-        path = os.path.join(cfg.UPLOAD_FOLDER, features_file_name)
+        path = os.path.join(config['paths']['upload_folder'], features_file_name)
         features_file.save(path)
         print("Saved", path)
         return featurizationPage(
@@ -2578,9 +2582,8 @@ def uploadDataFeaturize(
             customscript_fname = str(secure_filename(custom_script.filename))
             print(customscript_fname, 'uploaded.')
             customscript_path = os.path.join(
-                os.path.join(
-                    cfg.UPLOAD_FOLDER, "custom_feature_scripts"),
-                str(uuid.uuid4()) + "_" + str(customscript_fname))
+                    config['paths']['upload_folder'], "custom_feature_scripts",
+                    str(uuid.uuid4()) + "_" + str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
             features_to_use += custom_features
@@ -2609,8 +2612,9 @@ def uploadDataFeaturize(
             print(filename, "uploaded but no sep info. Setting sep=,")
             sep = ","
         headerfile_path = os.path.join(
-            cfg.UPLOAD_FOLDER, headerfile_name)
-        zipfile_path = os.path.join(cfg.UPLOAD_FOLDER, zipfile_name)
+            config['paths']['upload_folder'], headerfile_name)
+        zipfile_path = os.path.join(config['paths']['upload_folder'],
+                                    zipfile_name)
         headerfile.save(headerfile_path)
         zipfile.save(zipfile_path)
         print("Saved", headerfile_name, "and", zipfile_name)
@@ -2736,7 +2740,7 @@ def featurizationPage(
         # User is uploading pre-featurized data, without time-series data
         features_filename = headerfile_name
         features_filepath = os.path.join(
-            cfg.UPLOAD_FOLDER, features_filename)
+            config['paths']['upload_folder'], features_filename)
         with open(features_filepath) as f:
             featlist = f.readline().strip().split(',')[1:]
         meta_feats = []
@@ -2773,8 +2777,9 @@ def featurizationPage(
             "featureset_key": new_featset_key})
     else:  # User is uploading time-series data to be featurized
         headerfile_path = os.path.join(
-            cfg.UPLOAD_FOLDER, headerfile_name)
-        zipfile_path = os.path.join(cfg.UPLOAD_FOLDER, zipfile_name)
+            config['paths']['upload_folder'], headerfile_name)
+        zipfile_path = os.path.join(config['paths']['upload_folder'],
+                                    zipfile_name)
         with open(headerfile_path) as f:
             meta_feats = f.readline().strip().split(',')[2:]
         new_featset_key = add_featureset(
@@ -2966,7 +2971,8 @@ def uploadPredictionData():
     if request.method == 'POST':
         newpred_file = request.files["newpred_file"]
         tmp_folder = "tmp_" + str(uuid.uuid4())
-        path_to_tmp_dir = os.path.join(cfg.UPLOAD_FOLDER, tmp_folder)
+        path_to_tmp_dir = os.path.join(config['paths']['upload_folder'],
+                                       tmp_folder)
         os.mkdir(path_to_tmp_dir)
         if "prediction_files_metadata" in request.files:
             prediction_files_metadata = request.files[
@@ -3451,12 +3457,12 @@ def run_main(args=None):
         db_init(force=args.force)
         sys.exit(0)
 
-    if args.debug:
+    if args.debug or config['testing']['debug']:
         app.config['DEBUG'] = True
         app.config['WTF_CSRF_ENABLED'] = False
 
     print("Launching server on %s:%s" % (args.host, args.port))
-    print("Logging to:", cfg.ERR_LOG_PATH)
+    print("Logging to:", config['paths']['err_log_path'])
     app.run(port=args.port, host=args.host, threaded=True)
 
 

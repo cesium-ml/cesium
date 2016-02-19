@@ -1,12 +1,6 @@
 import numpy as np
-try:
-    from ..custom_feature_tools import *
-except:
-    import sys
-    import os
-    sys.path.append(os.path.dirname(__file__))
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-    from mltsp.custom_feature_tools import *
+from mltsp.custom_feature_tools import myFeature
+
 
 @myFeature(requires=["t","m"], provides=['period','avg_mag'])
 def test_feature(t,m):
@@ -42,7 +36,3 @@ def test_feature5(f):
 def test_feature6(e):
     print("test_feature6 executing.")
     return {'q': 0, 'n':0, 'o':0}
-
-
-if __name__ == "__main__":
-    print("testfeature1.py called.")

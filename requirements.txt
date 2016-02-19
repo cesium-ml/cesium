@@ -20,3 +20,5 @@ dask>=0.7.5
 xarray
 gatspy
 supersmoother  # TODO remove if gatspy removes requirement
+tornado
+pyzmq

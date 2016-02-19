@@ -1,7 +1,7 @@
 import numpy as np
 import dask.async
 import scipy.stats as stats
-from . import cfg
+from .cfg import config
 
 
 def double_to_single_step(cads):
@@ -77,7 +77,8 @@ def peak_bin(peaks, i):
         return None
 
 
-def generate_obs_features(t, m, e, features_to_compute=cfg.features_list_obs):
+def generate_obs_features(t, m, e,
+                    features_to_compute=config['mltsp']['features_list_obs']):
     """Generate features dict from given time-series data.
 
     Parameters
@@ -100,7 +101,7 @@ def generate_obs_features(t, m, e, features_to_compute=cfg.features_list_obs):
         Dictionary containing generated time series features.
     """
     features_to_compute = [f for f in features_to_compute if f in
-                           cfg.features_list_obs]
+                           config['mltsp']['features_list_obs']]
     feature_graph = {
         'n_epochs': (len, t),
         'avg_err': (np.mean, e),

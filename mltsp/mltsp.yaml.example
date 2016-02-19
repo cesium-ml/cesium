@@ -28,3 +28,57 @@ authentication:
 
     google_client_id:
     google_client_secret:
+
+paths:
+    ## Two special variables are available below:
+    ## - {project_path} : location of the MLTSP package
+    ## - {package_path} : location of the mltsp package content
+    ##
+    ## You can also use defined paths later on (see, e.g., data_path).
+
+    data_path:        '~/.local/mltsp'
+    err_log_path:     '{data_path}/logs/errors_and_warnings.log'
+    sample_data_path: '{data_path}/sample_data'
+    models_folder:    '{data_path}/classifier_models'
+    features_folder:  '{data_path}/extracted_features'
+
+    upload_folder:    '{data_path}/flask_uploads'
+    custom_feature_script_folder: '{data_path}/flask_uploads/custom_feature_scripts'
+    temp: '/tmp/mltsp'
+
+    tmp_custom_feats_folder: '{data_path}/tmp/custom_feature_scripts'
+
+    # This is slated for deprecation
+    project_path_link: /tmp/mltsp_link
+
+
+celery:
+    celery_broker: amqp://guest@localhost//
+
+    ## The variables below are used by Celery itself
+    CELERY_RESULT_BACKEND: amqp
+    CELERY_TASK_SERIALIZER: pickle
+    CELERY_RESULT_SERIALIZER: pickle
+    CELERY_ACCEPT_CONTENT:
+        - pickle
+    CELERY_IMPORTS:
+        - mltsp
+        - celery_tasks
+    INSTALLED_APPS:
+        - mltsp
+
+database:
+    host: localhost
+    port: 28015
+
+## testing:
+##    ## Disable authentication
+##    disable_auth: 1
+##
+##    ## Use a separate test database
+##    test_db: 1
+##
+##    ## Calculate custom features without using Docker
+##    no_docker: 1
+##
+##    debug: 0

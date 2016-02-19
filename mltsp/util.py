@@ -223,3 +223,40 @@ def robust_literal_eval(val):
         return ast.literal_eval(val)
     except ValueError:
         return val
+
+
+class warn_defaultdict(dict):
+    """
+    A recursive `collections.defaultdict`, but with printed warnings when
+    an item is not found.
+
+    >>> d = warn_defaultdict({1: 2})
+    >>> d[2][3][4]
+    [config] WARNING: non-existent key "2" requested
+    [config] WARNING: non-existent key "3" requested
+    [config] WARNING: non-existent key "4" requested
+
+    >>> d = warn_defaultdict({'sub': {'a': 'b'}})
+    >>> print(d['sub']['foo'])
+    [config] WARNING: non-existent key "foo" requested
+    {}
+
+    """
+    def update(self, other):
+        for k, v in other.items():
+            self.__setitem__(k, v)
+
+    def __setitem__(self, key, value):
+        if isinstance(value, dict):
+            value = warn_defaultdict(value)
+
+        dict.__setitem__(self, key, value)
+
+    def __getitem__(self, key):
+        if not key in self.keys():
+            print('[config] WARNING: non-existent '
+                  'key "{}" requested'.format(key))
+
+            self.__setitem__(key, warn_defaultdict())
+
+        return dict.__getitem__(self, key)

@@ -1,5 +1,5 @@
 from mltsp import build_model
-from mltsp import cfg
+from mltsp.cfg import config
 from nose.tools import with_setup
 import os
 from os.path import join as pjoin
@@ -18,20 +18,20 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 def copy_classification_test_data():
     fnames = ["test_featureset.nc", "test_10_featureset.nc"]
     for fname in fnames:
-        shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
+        shutil.copy(pjoin(DATA_PATH, fname), config['paths']['features_folder'])
 
 
 def copy_regression_test_data():
     fnames = ["test_reg_featureset.nc"]
     for fname in fnames:
-        shutil.copy(pjoin(DATA_PATH, fname), cfg.FEATURES_FOLDER)
+        shutil.copy(pjoin(DATA_PATH, fname), config['paths']['features_folder'])
 
 
 def remove_test_data():
     fnames = ["test_featureset.nc", "test_10_featureset.nc",
               "test_reg_featureset.nc", "test.pkl"]
     for fname in fnames:
-        for data_dir in [cfg.FEATURES_FOLDER, cfg.MODELS_FOLDER]:
+        for data_dir in [config['paths']['features_folder'], config['paths']['models_folder']]:
             try:
                 os.remove(pjoin(data_dir, fname))
             except OSError:
@@ -43,7 +43,7 @@ def test_build_model_rfc():
     """Test main model building method - RandomForestClassifier"""
     build_model.create_and_pickle_model("test", "RandomForestClassifier",
                                         "test")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict_proba")
     assert isinstance(model, RandomForestClassifier)
 
@@ -53,7 +53,7 @@ def test_build_model_rfr():
     """Test main model building method - RandomForestRegressor"""
     build_model.create_and_pickle_model("test", "RandomForestRegressor",
                                         "test_reg")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict")
     assert isinstance(model, RandomForestRegressor)
 
@@ -62,7 +62,7 @@ def test_build_model_rfr():
 def test_build_model_lin_class():
     """Test main model building method - linear classifier"""
     build_model.create_and_pickle_model("test", "LinearSGDClassifier", "test")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict")
     assert isinstance(model, SGDClassifier)
 
@@ -71,7 +71,7 @@ def test_build_model_lin_class():
 def test_build_model_lin_reg():
     """Test main model building method - linear regressor"""
     build_model.create_and_pickle_model("test", "LinearRegressor", "test_reg")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict")
     assert isinstance(model, LinearRegression)
 
@@ -80,7 +80,7 @@ def test_build_model_lin_reg():
 def test_build_model_ridge_cv():
     """Test main model building method - Ridge Classifer CV"""
     build_model.create_and_pickle_model("test", "RidgeClassifierCV", "test")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict")
     assert isinstance(model, RidgeClassifierCV)
 
@@ -90,7 +90,7 @@ def test_build_model_ard_reg():
     """Test main model building method - ARD Regression"""
     build_model.create_and_pickle_model("test", "BayesianARDRegressor",
                                         "test_reg")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict")
     assert isinstance(model, ARDRegression)
 
@@ -100,7 +100,7 @@ def test_build_model_ard_reg():
     """Test main model building method - Bayesian Ridge Regression"""
     build_model.create_and_pickle_model("test", "BayesianRidgeRegressor",
                                         "test_reg")
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
     assert hasattr(model, "predict")
     assert isinstance(model, BayesianRidge)
 
@@ -108,7 +108,7 @@ def test_build_model_ard_reg():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_fit_existing_model():
     """Test model building helper function."""
-    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                          "test_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model = build_model.build_model_from_featureset(featureset, model)
@@ -120,7 +120,7 @@ def test_fit_existing_model():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
-    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                          "test_10_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model_options = {"criterion": "gini",
@@ -140,7 +140,7 @@ def test_fit_existing_model_optimize():
 @with_setup(copy_classification_test_data, remove_test_data)
 def test_fit_optimize():
     """Test hypeparameter optimization"""
-    featureset = xr.open_dataset(pjoin(cfg.FEATURES_FOLDER,
+    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                          "test_10_featureset.nc"))
     model_options = {"criterion": "gini",
                      "bootstrap": True}
@@ -167,7 +167,7 @@ def test_build_model_lin_class_optimize():
     build_model.create_and_pickle_model("test_10", "LinearSGDClassifier",
                                         "test_10", model_options,
                                         params_to_optimize)
-    model = joblib.load(pjoin(cfg.MODELS_FOLDER, "test_10.pkl"))
+    model = joblib.load(pjoin(config['paths']['models_folder'], "test_10.pkl"))
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict")
     assert isinstance(model, GridSearchCV)

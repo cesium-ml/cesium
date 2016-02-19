@@ -1,12 +1,18 @@
-# to be run from INSIDE a docker container
-
+# Meant to be run from INSIDE a docker containe
 from __future__ import print_function
-from .. import custom_feature_tools as cft
 
 import os
+from os.path import join as pjoin
+import sys
 import json
 
-def extract_custom_feats(data_path):
+# Add MLTSP to path
+sys.path.insert(0, pjoin(os.path.dirname(__file__), '..'))
+
+from mltsp import custom_feature_tools as cft
+
+
+def extract_custom_feats(tmp_dir):
     """Load pickled parameters and generate custom features.
 
     To be run from inside a Docker container. Pickles the extracted
@@ -19,10 +25,11 @@ def extract_custom_feats(data_path):
 
     """
     # load ts_data and known features
-    with open(os.path.join(data_path, "features_already_known.json"), "r") as f:
+    with open(os.path.join(tmp_dir, "features_already_known.json"), "r") as f:
         features_already_known = json.load(f)
 
-    script_fpath = os.path.join(data_path, "custom_feature_defs.py")
+    script_fpath = os.path.join(tmp_dir, "custom_feature_defs.py")
+
     # extract features
     all_feats = cft.execute_functions_in_order(
         features_already_known=features_already_known,
@@ -36,5 +43,11 @@ def extract_custom_feats(data_path):
 
 
 if __name__ == "__main__":
-    all_feats = extract_custom_feats()
-    print(all_feats)
+    import argparse
+
+    parser = argparse.ArgumentParser(description='MLTSP Docker scripts')
+    parser.add_argument('--tmp_dir', dest='tmp_dir', action='store', type=str)
+    args = parser.parse_args()
+
+    features = extract_custom_feats(args.tmp_dir)
+    print(features)
