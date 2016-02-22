@@ -6,7 +6,7 @@ import shutil
 import tarfile
 import numpy as np
 import xarray as xr
-from mltsp import cfg
+from mltsp.cfg import config
 from mltsp import data_management
 from mltsp import util
 
@@ -20,7 +20,7 @@ EXTRACTED_TEST_FILES = ["dotastro_218934.dat", "dotastro_218272.dat",
 
 def copy_test_data():
     for fname in INPUT_TEST_FILES:
-        shutil.copy(pjoin(DATA_PATH, fname), cfg.UPLOAD_FOLDER)
+        shutil.copy(pjoin(DATA_PATH, fname), config['paths']['upload_folder'])
 
 
 def remove_test_data():
@@ -63,7 +63,7 @@ def test_parse_headerfile():
 @with_setup(copy_test_data, remove_test_data)
 def test_parse_and_store_ts_data():
     data_file_path = pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz")
-    header_path = pjoin(cfg.UPLOAD_FOLDER,
+    header_path = pjoin(config['paths']['upload_folder'],
                         "215153_215176_218272_218934_metadata.dat")
     time_series = data_management.parse_and_store_ts_data(data_file_path,
                                                           header_path,

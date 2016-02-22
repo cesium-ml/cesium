@@ -1,6 +1,7 @@
 from sklearn.externals import joblib
 from sklearn.grid_search import GridSearchCV
 import os
+import numpy as np
 import pandas as pd
 import xarray as xr
 import tarfile
@@ -9,6 +10,7 @@ from . import build_model
 from .cfg import config
 from . import featurize
 from . import data_management
+from . import time_series
 from . import util
 
 
@@ -53,8 +55,8 @@ def model_predictions(featureset, model, return_probs=True):
         return pd.DataFrame(preds, index=feature_df.index, columns=columns)
 
 
-def predict_data_file(newpred_path, model_key, model_type, featureset_key,
-                      custom_features_script=None, metadata_path=None):
+def predict_data_files(ts_paths, model_key, featureset_key,
+                       custom_features_script=None):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
@@ -68,21 +70,16 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
 
     Parameters
     ----------
-    newpred_path : str
+    ts_paths : str
         Path to time series data file to be used in prediction.
     model_key : str
         ID of the model to be used.
-    model_type : str
-        Type (abbreviation, e.g. "RF") of the model to be used.
     featureset_key : str
         RethinkDB ID of the feature set used to create the
         above-specified model.
     custom_features_script : str, optional
         Path to custom features script to be used in feature
         generation. Defaults to None.
-    metadata_path : str, optional
-        Path to meta data file associated with provided time series
-        data. Defaults to None.
 
     Returns
     -------
@@ -99,34 +96,34 @@ def predict_data_file(newpred_path, model_key, model_type, featureset_key,
               most-probable targets and its probability.
 
     """
-    with util.extract_time_series(data_path, cleanup_archive=False,
-                                  cleanup_files=True) as ts_paths:
-        all_ts_data = {util.shorten_fname(ts_path):
-                       data_management.parse_ts_data(ts_path)
+    featureset_path = os.path.join(config['paths']['features_folder'],
+                                   '{}_featureset.nc'.format(featureset_key))
+    featureset = xr.open_dataset(featureset_path)
+    features_to_use = list(featureset.data_vars)
+    new_featureset = featurize.featurize_data_files(ts_paths,
+                         features_to_use=features_to_use,
+                         custom_script_path=custom_features_script)
+
+    model = joblib.load(os.path.join(config['paths']['models_folder'],
+                                     "{}.pkl".format(model_key)))
+    # Covert to DataFrame so we can treat 1d/2d predictions in the same way
+    preds_df = pd.DataFrame(model_predictions(new_featureset, model))
+
+    # TODO this code will go away when we stop returning all the data here,
+    # which should happen when we develop a file management system.
+    results_dict = {}
+    feature_df = build_model.rectangularize_featureset(new_featureset)
+    all_time_series = {util.shorten_fname(ts_path):
+                       time_series.from_netcdf(ts_path)
                        for ts_path in ts_paths}
+    all_ts_data = {fname: np.vstack((ts.time, ts.measurement, ts.error))
+                   for fname, ts in all_time_series.items()}
+    results_dict = {fname: {"results_str": "",
+                            "ts_data": all_ts_data[fname],
+                            "features_dict": feature_df.loc[fname].to_dict(),
+                            "pred_results": list(row.sort_values(inplace=False,
+                                                 ascending=False).iteritems())
+                                            if len(row) > 1 else row}
+                    for fname, row in preds_df.iterrows()}
 
-        featureset_path = os.path.join(config['paths']['features_folder'],
-                                       '{}_featureset.nc'.format(featureset_key))
-        featureset = xr.open_dataset(featureset_path)
-        features_to_use = list(featureset.data_vars)
-        new_featureset = featurize.featurize_data_file(newpred_path, metadata_path,
-                                                       features_to_use=features_to_use,
-                                                       custom_script_path=custom_features_script)
-
-        model = joblib.load(os.path.join(config['paths']['models_folder'],
-                                         "{}.pkl".format(model_key)))
-        # Covert to DataFrame so we can treat 1d/2d predictions in the same way
-        preds_df = pd.DataFrame(model_predictions(new_featureset, model))
-
-        # TODO this code will go away when we stop returning all the data here,
-        # which should happen when we develop a file management system.
-        results_dict = {}
-        new_feature_df = build_model.rectangularize_featureset(new_featureset)
-        results_dict = {fname: {"results_str": "",
-                                "ts_data": all_ts_data[fname],
-                                "features_dict": new_feature_df.loc[fname].to_dict(),
-                                "pred_results": list(row.sort_values(inplace=False,
-                                                     ascending=False).iteritems())
-                                                if len(row) > 1 else row}
-                        for fname, row in preds_df.iterrows()}
     return results_dict

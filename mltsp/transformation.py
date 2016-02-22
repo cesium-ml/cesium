@@ -1,31 +1,29 @@
 import os
 import numpy as np
-from mltsp import cfg
+from .cfg import config
 from mltsp import data_management
 from mltsp import time_series as tslib
 from sklearn import model_selection
 
 
-def transform_ts_files(input_paths, output_dataset_names, transform):
-    # TODO database key instead of paths? or should that be separate?
+def transform_ts_files(input_paths, dataset_keys, transform_type):
     input_time_series = [tslib.from_netcdf(path) for path in input_paths]
+    transform, _ = TRANSFORMS_INFO_DICT[transform_type]
     output_ts_lists = transform(input_time_series)
 
-    if len(output_dataset_names) != len(output_ts_lists):
-        raise ValueError("Transform produced {} datasets; {} output labels"
-                         " were provided.".format(len(output_ts_lists),
-                                                  len(output_dataset_names)))
-    for ts_list, ds_name in zip(output_ts_lists, output_dataset_names):
-        #ds_key = data_management.add_dataset_to_db(name, project_id)
-# TODO better way to organize files?
-# should this wait for next PR w/ filesystem abstraction layer?
+    if len(dataset_keys) != len(output_ts_lists):
+        raise ValueError("Transform produced {} datasets; {} output dataset "
+                         "IDs were provided.".format(len(output_ts_lists),
+                                                     len(dataset_keys)))
+    for ts_list, ds_name in zip(output_ts_lists, dataset_keys):
         for ts in ts_list:
             ts_fname = '{}_{}.nc'.format(ds_name, ts.name)
-            ts.to_netcdf(os.path.join(cfg.TS_DATA_FOLDER, ts_fname))
+            ts.to_netcdf(os.path.join(config['paths']['ts_data_folder'],
+                                      ts_fname))
     return output_ts_lists
 
 
-def train_test_split(time_series, test_size=None, train_size=None,
+def train_test_split(time_series, test_size=0.5, train_size=0.5,
                      random_state=None):
     if len(time_series) <= 1:
         return time_series, []
@@ -39,3 +37,9 @@ def train_test_split(time_series, test_size=None, train_size=None,
                                                    random_state=random_state,
                                                    stratify=stratify)
     return [time_series[i] for i in train], [time_series[j] for j in test]
+
+
+# TODO what do we think of this as the interface w/ the front end?
+# Keys=transform names, values=(transform function, [output names])
+TRANSFORMS_INFO_DICT = {'Train/Test Split': (train_test_split, ['train',
+                                                                'test'])}

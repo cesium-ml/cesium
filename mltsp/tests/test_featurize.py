@@ -18,7 +18,7 @@ TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                     "dotastro_215176_with_target.nc"]]
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
-TEST_OUTPUT_PATHS = [pjoin(cfg['paths']['features_folder'], "test_featureset.nc")]
+TEST_OUTPUT_PATHS = [pjoin(config['paths']['features_folder'], "test_featureset.nc")]
 
 
 def remove_test_data():
@@ -65,12 +65,12 @@ def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
     fset = featurize.load_and_store_feature_data(FEATURES_CSV_PATH,
                                                  featureset_id="test",
-                                                 first_N=config['TEST_N'])
+                                                 first_N=config['mltsp']['TEST_N'])
     assert("std_err" in fset)
     assert("amplitude" in fset)
     assert(all(class_name in ['class1', 'class2', 'class3']
                for class_name in fset['target']))
-    with xr.open_dataset(pjoin(config['paths']['features_folder']
+    with xr.open_dataset(pjoin(config['paths']['features_folder'],
                                "test_featureset.nc")) as loaded:
         assert("std_err" in loaded)
         assert("amplitude" in loaded)
@@ -84,7 +84,7 @@ def test_featurize_files_function():
     fset = featurize.featurize_data_files(ts_paths=TS_CLASS_PATHS,
                                           features_to_use=["std_err", "f"],
                                           featureset_id="test",
-                                          first_N=config['TEST_N'],
+                                          first_N=config['mltsp']['TEST_N'],
                                           custom_script_path=CUSTOM_SCRIPT)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
@@ -98,7 +98,7 @@ def test_featurize_files_function_regression_data():
     fset = featurize.featurize_data_files(ts_paths=TS_TARGET_PATHS,
                                           features_to_use=["std_err", "f"],
                                           featureset_id="test",
-                                          first_N=config['TEST_N'],
+                                          first_N=config['mltsp']['TEST_N'],
                                           custom_script_path=CUSTOM_SCRIPT)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
@@ -274,6 +274,25 @@ def test_featurize_time_series_default_errors():
     fset = featurize.featurize_time_series(t, m, None, features_to_use, target,
                                            meta_features, use_celery=False)
     npt.assert_array_equal(fset.channel, [0])
+
+
+def test_featurize_time_series_custom_script():
+    """Test featurize wrapper function for time series w/ custom script path"""
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    features_to_use = ['amplitude', 'std_err', 'f']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
+                                           meta_features,
+                                           custom_script_path=CUSTOM_SCRIPT,
+                                           use_celery=False)
+    npt.assert_array_equal(sorted(fset.data_vars),
+                           ['amplitude', 'f', 'meta1', 'std_err'])
+    npt.assert_array_equal(fset.channel, np.arange(n_channels))
+    npt.assert_array_equal(sorted(fset.amplitude.coords),
+                           ['channel', 'name', 'target'])
+    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_celery():

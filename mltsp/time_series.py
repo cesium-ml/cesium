@@ -3,7 +3,7 @@ import netCDF4
 import numpy as np
 import pandas as pd
 import xarray as xr
-from mltsp import cfg
+from mltsp.cfg import config
 
 
 def _default_values_like(old_values, value=None, upper=None):
@@ -36,22 +36,23 @@ def make_array(x):
     return x
 
     
-def from_netcdf(filename):
-    with netCDF4.Dataset(filename) as ds:
+def from_netcdf(netcdf_path):
+    with netCDF4.Dataset(netcdf_path) as ds:
         # TODO are the groups loaded in the order they're written...?
         channels = list(ds.groups)
 
     # First channel group stores time series metadata
-    with xr.open_dataset(filename, group=channels[0]) as ds:
+    with xr.open_dataset(netcdf_path, group=channels[0]) as ds:
         t = [ds.time.values]
         m = [ds.measurement.values]
         e = [ds.error.values]
         target = ds.attrs.get('target')
         meta_features = ds.meta_features.to_series()
         name = ds.attrs.get('name')
+        path = ds.attrs.get('path')
 
     for channel in channels[1:]:
-        with xr.open_dataset(filename, group=channel) as ds:
+        with xr.open_dataset(netcdf_path, group=channel) as ds:
             m.append(ds.measurement.values)
             if 'time' in ds:
                 t.append(ds.time.values)
@@ -59,12 +60,12 @@ def from_netcdf(filename):
                 e.append(ds.error.values)
 
     return TimeSeries(make_array(t), make_array(m), make_array(e), target,
-                      meta_features, name)
+                      meta_features, name, path)
     
 
 class TimeSeries:
     def __init__(self, t=None, m=None, e=None, target=None, meta_features={},
-                 name=None):
+                 name=None, path=None):
         if t is None and m is None:
             raise ValueError("Either times or measurements must be provided.")
         elif m is None:
@@ -74,23 +75,29 @@ class TimeSeries:
         if isinstance(m, np.ndarray) and m.ndim == 1:
             self.n_channels = 1
             if t is None:
-                t = _default_values_like(m, upper=cfg.DEFAULT_MAX_TIME)
+                t = _default_values_like(m,
+                        upper=config['mltsp']['DEFAULT_MAX_TIME'])
             if e is None:
-                e = _default_values_like(m, value=cfg.DEFAULT_ERROR_VALUE)
+                e = _default_values_like(m,
+                        value=config['mltsp']['DEFAULT_ERROR_VALUE'])
         # If m is 2-dimensional, t and e could be 1d or 2d; default is 1d
         elif isinstance(m, np.ndarray) and m.ndim == 2:
             self.n_channels = len(m)
             if t is None:
-                t = _default_values_like(m[0], upper=cfg.DEFAULT_MAX_TIME)
+                t = _default_values_like(m[0],
+                        upper=config['mltsp']['DEFAULT_MAX_TIME'])
             if e is None:
-                e = _default_values_like(m[0], value=cfg.DEFAULT_ERROR_VALUE)
+                e = _default_values_like(m[0],
+                        value=config['mltsp']['DEFAULT_ERROR_VALUE'])
         # If m is ragged (list of 1d arrays), t and e should also be ragged
         elif isinstance(m, list):
             self.n_channels = len(m)
             if t is None:
-                t = _default_values_like(m, upper=cfg.DEFAULT_MAX_TIME)
+                t = _default_values_like(m,
+                        upper=config['mltsp']['DEFAULT_MAX_TIME'])
             if e is None:
-                e = _default_values_like(m, value=cfg.DEFAULT_ERROR_VALUE)
+                e = _default_values_like(m,
+                        value=config['mltsp']['DEFAULT_ERROR_VALUE'])
         else:
             raise ValueError("...")
         
@@ -100,12 +107,10 @@ class TimeSeries:
         self.target = target
         self.meta_features = dict(meta_features)
         self.name = name
+        self.path = path
         self.channel_names = ["channel_{}".format(i)
                               for i in range(self.n_channels)]
     
-    # TODO indexing?
-    #def __getitem__(self, inds):
-
     # TODO name?
     def channels(self):
         t_channels = self.time
@@ -120,7 +125,10 @@ class TimeSeries:
             e_channels = [self.error] * self.n_channels
         return zip(t_channels, m_channels, e_channels)
 
-    def to_netcdf(self, filename):
+    def to_netcdf(self, path=None):
+        if path is None:
+            path = self.path
+
         for (t_i, m_i, e_i), channel in zip(self.channels(),
                                             range(self.n_channels)):
             dataset = xr.Dataset({'measurement': (['i'], m_i)})
@@ -149,5 +157,5 @@ class TimeSeries:
 
             # xarray won't append to a netCDF file that doesn't exist yet
             file_open_mode = 'w' if channel == 0 else 'a'
-            dataset.to_netcdf(filename, group=self.channel_names[channel],
+            dataset.to_netcdf(path, group=self.channel_names[channel],
                               engine='netcdf4', mode=file_open_mode)

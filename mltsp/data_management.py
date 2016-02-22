@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import rethinkdb as rdb
 import xarray as xr
-from . import cfg
+from .cfg import config
 from . import util
 from .time_series import TimeSeries
 
@@ -73,13 +73,13 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     elif 'class' in header:
         targets = header['class']
     else:
-        targets = None
+        targets = pd.Series([None], index=header.index)
     feature_data = header.drop(['target', 'class'], axis=1, errors='ignore')
     return targets, feature_data
 
 
 def parse_and_store_ts_data(data_path, header_path=None, dataset_id=None,
-                            cleanup_archive=True):
+                            cleanup_archive=True, cleanup_header=True):
     """
 
     
@@ -114,50 +114,14 @@ def parse_and_store_ts_data(data_path, header_path=None, dataset_id=None,
             t, m, e = parse_ts_data(ts_path)
             ts_target = targets.loc[fname]
             ts_meta_features = meta_features.loc[fname]
-            ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname)
-            ts_fname = '{}.nc'.format(fname)
+            ts_path = '{}.nc'.format(fname)
             if dataset_id:
-                ts_fname = '_'.join(dataset_id, ts_fname)
-            ts.to_netcdf(os.path.join(cfg.TS_DATA_FOLDER, ts_fname))
+                ts_path = '_'.join((dataset_id, ts_path))
+            ts_path = os.path.join(config['paths']['ts_data_folder'], ts_path)
+            ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname,
+                            ts_path)
+            ts.to_netcdf(ts_path)
             time_series.append(ts)
+    if cleanup_header:
+        util.remove_files([header_path])
     return time_series
-
-
-# TODO move into separate database module
-def add_dataset_to_db(name, project_id):
-    """Add a new entry to the rethinkDB 'datasets' table.
-
-    Parameters
-    ----------
-    name : str
-        New dataset name.
-    project_id : str
-        RethinkDB key/ID of parent project.
-
-    Returns
-    -------
-    str
-        RethinkDB key/ID of newly created dataset entry.
-
-    """
-    new_dataset_id = rdb.table('datasets').insert({
-        'projkey': project_key,
-        'name': name,
-        'created': str(rdb.now().in_timezone('-08:00').run(g.rdb_conn)),
-    }).run(g.rdb_conn)['generated_keys'][0]
-    print("Dataset %s entry added to mltsp_app db." % name)
-    return new_dataset_id
-
-
-def set_dataset_filenames_in_db(dataset_id, ts_filenames):
-    rdb.table('datasets').get(dataset_id).update({'ts_filenames':
-                                                  ts_filenames})
-
-
-def process_uploaded_ts_data(dataset_name, project_id, data_path,
-                             header_path=None):
-    dataset_id = add_dataset_to_db(dataset_name, project_id)
-    datasets, fnames = parse_and_store_ts_data(data_path, header_path,
-                                               dataset_id)
-    set_dataset_filenames_in_db(dataset_id, fnames)
-    return dataset_id

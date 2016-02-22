@@ -18,6 +18,7 @@
                 <div id='tabs' style='width:900px; display:inline-block;' class='centered'>
                     <ul>
                         <li><a href="#projectsTab" id="projectsTabButton" name="projectsTabButton">Projects</a></li>
+                        <li><a href="#uploadTab" id="uploadTabButton" name="uploadTabButton">Data</a></li>
                         <li><a href="#featurizeTab" id="featurizeTabButton" name="featurizeTabButton">Featurize</a></li>
                         <li><a href="#buildModelTab" id="buildModelTabButton" name="buildModelTabButton">Build Model</a></li>
                         <li><a href="#predictTab" id="predictTabButton" name="predictTabButton">Predict</a></li>
@@ -113,16 +114,17 @@
                     </div>
 
 
-                    <!-- Features tab -->
-                    <div id='featurizeTab' align='center'>
-                        <form id='featurizeForm' action="/uploadDataFeaturize" enctype="multipart/form-data" method="post">
-                            <table id='upload_features_data_table'>
-                                <tr><td align='left'><i><h3>Upload new time series data for featurization:</h3></i></td>
+                    <!-- Upload data tab -->
+                    <div id='uploadTab' align='center'>
+                        <form id='uploadForm' action="/uploadData" enctype="multipart/form-data" method="post">
+                            <table id='upload_data_table'>
+                                <tr>
+                                    <td align='left'><i><h3>Upload new time series data:</h3></i></td>
                                 </tr>
                                 <tr>
                                     <td align='left' colspan=2>
                                         <div><label>Select project:</label>
-                                            <select id="featureset_project_name_select" name="featureset_project_name_select">
+                                            <select id="upload_project_name_select" name="upload_project_name_select">
 
                                                 {% for PROJ_NAME in CURRENT_PROJECTS %}
                                                     <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
@@ -134,15 +136,11 @@
                                 </tr>
                                 <tr>
                                     <td align='left'>
-                                        <label>Feature Set Title<span class='small'>Enter a title for your data set:</span></label>
+                                        <label>Dataset Title<span class='small'>Enter a title for your data set:</span></label>
                                     </td>
                                     <td>
-                                        <div id="featset_name_div" style='border:1px solid #BBB;'><input type='text' name='featureset_name' id='featureset_name' class="stylized_input"></div><div id='featset_name_okay_div' name='featset_name_okay_div'></div>
+                                        <div id="dataset_name_div" style='border:1px solid #BBB;'><input type='text' name='dataset_name' id='dataset_name' class="stylized_input"></div><div id='dataset_name_okay_div' name='dataset_name_okay_div'></div>
                                     </td>
-                                    <td>
-                                        <div title="If this is checked, only the first 10 files will be featurized."><input type="checkbox" checked name="is_test" id="is_test" value="True"><label>Test run</label></div>
-                                    </td>
-                                    
                                 </tr>
                                 <tr>
                                     <td align='left'>
@@ -168,6 +166,103 @@
                                             <option value=" ">Space</option>
                                         </select></div>
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td colspan=3 align='center'>
+                                        <div align='center'><input type='button' id='upload_button' name='upload_button' value='Upload data' class='submit_button' onclick="uploadFormSubmit();" ></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </form>
+                        <BR><BR>
+                        <form id='transformDataForm' action="/transformData" enctype="multipart/form-data" method="post">
+                            <table id='transform_data_form_table'>
+                                <tr>
+                                    <td align='left'><BR><i><h3>Transform Existing Data Set:</h3></i>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align='left' colspan=2>
+                                        <div><label>Select project:</label>
+                                            <select id="transform_data_project_name_select" name="transform_data_project_name_select">
+
+                                                {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                    <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
+                                                {% endfor %}
+                                                
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div><label>Select dataset: </label>
+                                        <select id="transform_data_dataset_select" name="transform_data_dataset_select">
+
+                                        </select></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div><label>Select transformation: </label>
+                                        <select id="transform_data_transform_select" name="transform_data_transform_select">
+                                                {% for TRANSFORM in TRANSFORM_NAMES %}
+                                                    <option value="{{ TRANSFORM }} ">{{ TRANSFORM }}</option>
+                                                {% endfor %}
+                                            
+                                        </select></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div align='center'><input type='button' id='transform_data_button' name='transform_data_button' value='Transform features' class='submit_button' onclick="transformDataFormSubmit();"></div>
+                                    </td>
+                                </tr>
+                                
+                            </table>
+                        </form>
+                    </div>
+
+
+                    <!-- Features tab -->
+                    <div id='featurizeTab' align='center'>
+                        <form id='featurizeForm' action="/FeaturizeData" enctype="multipart/form-data" method="post">
+                            <table id='featurize_data_table'>
+                                <tr><td align='left'><i><h3>Featurize uploaded time series data:</h3></i></td>
+                                </tr>
+                                <tr>
+                                    <td align='left' colspan=2>
+                                        <div><label>Select project:</label>
+                                            <select id="featureset_project_name_select" name="featureset_project_name_select">
+
+                                                {% for PROJ_NAME in CURRENT_PROJECTS %}
+                                                    <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
+                                                {% endfor %}
+                                                
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align='left' colspan=2>
+                                        <div><label>Select dataset:</label>
+                                            <select id="featureset_dataset_select" name="featureset_dataset_select">
+                                                
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align='left'>
+                                        <label>Feature Set Title<span class='small'>Enter a title for your feature set:</span></label>
+                                    </td>
+                                    <td>
+                                        <div id="featset_name_div" style='border:1px solid #BBB;'><input type='text' name='featureset_name' id='featureset_name' class="stylized_input"></div><div id='featset_name_okay_div' name='featset_name_okay_div'></div>
+                                    </td>
+                                    <td>
+                                        <div title="If this is checked, only the first 10 files will be featurized."><input type="checkbox" checked name="is_test" id="is_test" value="True"><label>Test run</label></div>
+                                    </td>
+                                    
                                 </tr>
                                 <tr>
                                     <td align='left'>
@@ -224,7 +319,7 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div><label>Select data set name: </label>
+                                        <div><label>Select featureset: </label>
                                         <select id="plot_features_featset_name_select" name="plot_features_featset_name_select">
                                             
                                         </select></div>
@@ -339,7 +434,7 @@
 
                     <!-- Predict tab -->
                     <div id='predictTab' align='center'>
-                        <form id='predictForm' action="/uploadPredictionData" enctype="multipart/form-data" method="post">
+                        <form id='predictForm' action="/PredictData" enctype="multipart/form-data" method="post">
                             <table>
                                 <tr>
                                     <td align='left'>
@@ -367,36 +462,14 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td align='left'>
-                                        <label>Choose individual time-series file or tarball of files:</label>
-                                    </td>
-                                    <td align='left'>
-                                        <div>
-                                            <input type='file' name='newpred_file' id='newpred_file' class="stylized_input">
+                                    <td align='left' colspan=2>
+                                        <div><label>Select dataset:</label>
+                                            <select id="prediction_dataset_select" name="prediction_dataset_select">
+                                            </select>
                                         </div>
                                     </td>
-                                    <td align='left'>
-                                        <div><label>Separator: </label>
-                                        <select id="newpred_file_sep" name="newpred_file_sep">
-                                            <option value=",">Comma</option>
-                                            <option value="\t">Tab</option>
-                                            <option value=" ">Space</option>
-                                        </select></div>
-                                    </td>
                                 </tr>
-                                <tr style="display:none;" id='metadata_required_msg_tr'>
-                                    <td id='metadata_required_msg_td' colspan=3>
-                                        Upload metadata:
-                                    </td>
-                                </tr>
-                                <tr id='predict_metadata_tr' style="display:none;">
-                                    <td>
-                                        <label>Select metadata file: <div id="predict_metadata_format_dialog_link">(click here for example of required format)</div></label>
-                                    </td>
-                                    <td>
-                                        <input type='file' id='prediction_files_metadata' name='prediction_files_metadata'>
-                                    </td>
-                                </tr>
+                                
                                 <tr>
                                     <td colspan=3 align='center'>
                                         <div align='center'>
@@ -531,7 +604,7 @@
                 $( document ).tooltip();
             }); 
 
-            $("#plot_features_form_table").width($("#upload_features_data_table").width());
+            $("#plot_features_form_table").width($("#featurize_data_table").width());
 
             init_dialogs();
 
@@ -697,9 +770,17 @@
                     , 1000);
                     
                 });
-            
-            
-            
+
+
+            {% elif ACTION == "uploaded" %}
+                
+                $(document).ready(function(){
+                
+                    $('#results_header').html("<b>New feature set {{ featureset_name }} uploaded.</b>");
+                
+                    $('#tabs').tabs( "option", "active", false);
+                });
+                    
             
             
             
