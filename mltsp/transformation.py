@@ -3,7 +3,11 @@ import numpy as np
 from .cfg import config
 from mltsp import data_management
 from mltsp import time_series as tslib
-from sklearn import model_selection
+# TODO remove 'except' for sklearn==0.18.0
+try:
+    from sklearn.model_selection import train_test_split as sklearn_split
+except:
+    from sklearn.cross_validation import train_test_split as sklearn_split
 
 
 def transform_ts_files(input_paths, dataset_keys, transform_type):
@@ -32,10 +36,9 @@ def train_test_split(time_series, test_size=0.5, train_size=0.5,
         stratify = np.array([ts.target for ts in time_series])
     else:
         stratify = None
-    train, test = model_selection.train_test_split(inds, test_size=test_size,
-                                                   train_size=train_size,
-                                                   random_state=random_state,
-                                                   stratify=stratify)
+    train, test = sklearn_split(inds, test_size=test_size,
+                                train_size=train_size,
+                                random_state=random_state, stratify=stratify)
     return [time_series[i] for i in train], [time_series[j] for j in test]
 
 
