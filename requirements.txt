@@ -22,3 +22,4 @@ gatspy
 supersmoother  # TODO remove if gatspy removes requirement
 tornado
 pyzmq
+netCDF4
