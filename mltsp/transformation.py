@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from .cfg import config
+from six import string_types
 from mltsp import data_management
 from mltsp import time_series as tslib
 # TODO remove 'except' for sklearn==0.18.0
@@ -57,6 +57,8 @@ def train_test_split(time_series, test_size=0.5, train_size=0.5,
         Fraction of data to be included in the test set; defaults to 50/50.
     training_size : float, optional
         Fraction of data to be included in the training set; defaults to 50/50.
+    random_state : int or RandomState, optional
+        Random number generator seed or state for shuffling of indices.
 
     Returns
     -------
@@ -65,7 +67,7 @@ def train_test_split(time_series, test_size=0.5, train_size=0.5,
     if len(time_series) <= 1:
         return time_series, []
     inds = np.arange(len(time_series))
-    if isinstance(time_series[0].target, str):
+    if isinstance(time_series[0].target, string_types):
         stratify = np.array([ts.target for ts in time_series])
     else:
         stratify = None
