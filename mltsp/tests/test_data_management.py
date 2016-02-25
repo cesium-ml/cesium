@@ -3,9 +3,7 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
-import tarfile
 import numpy as np
-import xarray as xr
 from mltsp.cfg import config
 from mltsp import data_management
 from mltsp import util
@@ -46,7 +44,8 @@ def sample_time_series(size=51, channels=1):
 
 def test_parse_ts_data():
     """Test time series data file parsing."""
-    t, m, e = data_management.parse_ts_data(pjoin(DATA_PATH, "dotastro_215153.dat"))
+    t, m, e = data_management.parse_ts_data(pjoin(DATA_PATH,
+                                                  "dotastro_215153.dat"))
     assert t.ndim == 1
     assert len(t) == len(m) and len(m) == len(e)
 

@@ -638,7 +638,6 @@ function uploadFormSubmit(){
 
                 window.location.replace("http://"+location.host+"/featurizing?PID="+PID+"&featureset_key="+featureset_key+"&project_name="+project_name+"&featureset_name="+featureset_name);
 
-                
             }*/
             else{
                 $("#model_build_results").html("Upload complete.");

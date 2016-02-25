@@ -187,7 +187,7 @@ def extract_time_series(data_path, cleanup_archive=True, cleanup_files=False,
     cleanup_archive : bool, optional
         Boolean specifying whether to delete the original archive (if
         applicable). Defaults to True.
-    
+
     cleanup_files : bool, optional
         Boolean specifying whether to delete the extracted files when exiting
         the given context. Defaults to False.
@@ -215,7 +215,7 @@ def extract_time_series(data_path, cleanup_archive=True, cleanup_files=False,
     else:
         archive = None
         all_paths = [data_path]
-        
+
     if archive:
         archive.close()
         if cleanup_archive:

@@ -189,7 +189,7 @@
                                                 {% for PROJ_NAME in CURRENT_PROJECTS %}
                                                     <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
                                                 {% endfor %}
-                                                
+
                                             </select>
                                         </div>
                                     </td>
@@ -209,7 +209,7 @@
                                                 {% for TRANSFORM in TRANSFORM_NAMES %}
                                                     <option value="{{ TRANSFORM }} ">{{ TRANSFORM }}</option>
                                                 {% endfor %}
-                                            
+
                                         </select></div>
                                     </td>
                                 </tr>
@@ -218,7 +218,7 @@
                                         <div align='center'><input type='button' id='transform_data_button' name='transform_data_button' value='Transform features' class='submit_button' onclick="transformDataFormSubmit();"></div>
                                     </td>
                                 </tr>
-                                
+
                             </table>
                         </form>
                     </div>
@@ -238,7 +238,7 @@
                                                 {% for PROJ_NAME in CURRENT_PROJECTS %}
                                                     <option value="{{ PROJ_NAME }} ">{{ PROJ_NAME }}</option>
                                                 {% endfor %}
-                                                
+
                                             </select>
                                         </div>
                                     </td>
@@ -247,7 +247,7 @@
                                     <td align='left' colspan=2>
                                         <div><label>Select dataset:</label>
                                             <select id="featureset_dataset_select" name="featureset_dataset_select">
-                                                
+
                                             </select>
                                         </div>
                                     </td>
@@ -262,7 +262,7 @@
                                     <td>
                                         <div title="If this is checked, only the first 10 files will be featurized."><input type="checkbox" checked name="is_test" id="is_test" value="True"><label>Test run</label></div>
                                     </td>
-                                    
+
                                 </tr>
                                 <tr>
                                     <td align='left'>
@@ -469,7 +469,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                
+
                                 <tr>
                                     <td colspan=3 align='center'>
                                         <div align='center'>
@@ -773,15 +773,15 @@
 
 
             {% elif ACTION == "uploaded" %}
-                
+
                 $(document).ready(function(){
-                
+
                     $('#results_header').html("<b>New feature set {{ featureset_name }} uploaded.</b>");
-                
+
                     $('#tabs').tabs( "option", "active", false);
                 });
-                    
-            
+
+
             
             
             

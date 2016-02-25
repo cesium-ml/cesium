@@ -1,41 +1,26 @@
 import numpy as np
-import pandas as pd
 import xarray as xr
-import os
 import dask.async
-from mltsp.cfg import config
-from mltsp import custom_exceptions
-from mltsp import data_management
-from mltsp import util
 from mltsp import obs_feature_tools as oft
 from mltsp import science_feature_tools as sft
 from mltsp import custom_feature_tools as cft
 
 
+# TODO now that we use pickle as Celery serializer, this could return something
+# more convenient
 def featurize_single_ts(ts, features_to_use, custom_script_path=None,
                         custom_functions=None):
     """Compute feature values for a given single time-series. Data is
-    manipulated as dictionaries/lists of lists (as opposed to a more
+    returned as dictionaries/lists of lists (as opposed to a more
     convenient DataFrame/DataSet) since it will be serialized as part of
     `celery_tasks.featurize_ts_file`.
 
     Parameters
     ----------
-    t : (n,) or (p, n) array or list of (n_i,) arrays
-        Array of time values for a single time series, or a list of arrays (of
-        potentially different lengths) of time values for each channel of
-        measurement.
-    m : (n,) or (p, n) array or list of (n_i,) arrays
-        Array or list of measurement values for a single time series, each
-        containing p channels of measurements (if applicable).
-    e : (n,) or (p, n) array or list of (n_i,) arrays
-        Array or list of measurement error values for a single time series,
-        each containing p channels of measurements (if applicable).
+    ts : TimeSeries object
+        Single time series to be featurized.
     features_to_use : list of str
         List of feature names to be generated.
-    meta_features : dict
-        Dictionary of metafeature information to potentially be consumed by
-        custom feature scripts.
     custom_script_path : str, optional
         Path to custom features script .py file to be run in Docker container.
     custom_functions : dict, optional
@@ -52,7 +37,6 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
     dict
         Dictionary with feature names as keys, lists of feature values (one per
         channel) as values.
-
     """
     all_feature_lists = {feature: [0.] * ts.n_channels
                          for feature in features_to_use}
@@ -114,11 +98,9 @@ def assemble_featureset(feature_dicts, targets=None, meta_feature_dicts=None,
     feature_dicts : list
         List of dicts (one per time series file) with feature names as keys and
         lists of feature values (one per channel) as values.
-
     targets : list or pandas.Series, optional
         If provided, the `target` coordinate of the featureset xarray.Dataset
         will be set accordingly.
-
     meta_feature_dicts : list
         If provided, the columns of `metadata` will be added as data variables
         to the featureset xarray.Dataset.
@@ -128,9 +110,7 @@ def assemble_featureset(feature_dicts, targets=None, meta_feature_dicts=None,
     xarray.Dataset
         Featureset with `data_vars` containing feature values, and `coords`
         containing filenames and targets (if applicable).
-
     """
-
     feature_names = feature_dicts[0].keys() if len(feature_dicts) > 0 else []
     combined_feature_dict = {feature: (['name', 'channel'],
                                        [d[feature] for d in feature_dicts])

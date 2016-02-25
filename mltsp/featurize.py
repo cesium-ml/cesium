@@ -1,12 +1,9 @@
 import copy
 import os
 import pickle
-import tarfile
-import zipfile
 import numpy as np
 import pandas as pd
 from .cfg import config
-from . import util
 from .celery_tasks import celery_available
 from .celery_tasks import featurize_ts_data as featurize_data_task
 from .celery_tasks import featurize_ts_file as featurize_file_task
@@ -16,7 +13,11 @@ from .time_series import TimeSeries
 
 
 def write_features_to_disk(featureset, featureset_id):
-    """Store xarray.Dataset of features as netCDF using given featureset key."""
+    """Store xarray.Dataset of features as netCDF using given featureset id.
+    
+    Featureset is stored in `config['paths']['features_folder']` with filename
+    `{featureset_id}_featureset.nc`.
+    """
     featureset_path = os.path.join(config['paths']['features_folder'],
                                    "{}_featureset.nc".format(featureset_id))
     featureset.to_netcdf(featureset_path)
@@ -24,7 +25,7 @@ def write_features_to_disk(featureset, featureset_id):
 
 def load_and_store_feature_data(features_path, featureset_id="unknown",
                                 first_N=None):
-    """Read features from CSV file and store as xarray.Dataset."""
+    """Read features from CSV file and save as an xarray.Dataset."""
     targets, meta_features = data_management.parse_headerfile(features_path)
     meta_features = meta_features[:first_N]
     if targets is not None:
@@ -75,12 +76,8 @@ def featurize_data_files(ts_paths, features_to_use=[],
 
     Parameters
     ----------
-    data_path : str
-        Path to an individual time series file or tarball of multiple time
-        series files to be used for feature generation.
-    header_path : str, optional
-        Path to header file containing file names, target names, and
-        meta_features.
+    ts_paths : str
+        Path to netCDF files containing serialized TimeSeries objects.
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty
         list, which will result in only meta_features features being stored.
@@ -100,7 +97,6 @@ def featurize_data_files(ts_paths, features_to_use=[],
     xarray.Dataset
         Featureset with `data_vars` containing feature values, and `coords`
         containing filenames and targets (if applicable).
-
     """
     ts_paths = ts_paths[:first_N]
     params_list = featurize_file_task_params(ts_paths, features_to_use,
@@ -245,7 +241,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     if targets is not None:
         targets = pd.Series(targets, index=labels)
 
-    if not all([isinstance(x, (list, tuple)) for x in (times, values, errors)]):
+    if not all([isinstance(x, (list, tuple))
+                for x in (times, values, errors)]):
         raise TypeError("times, values, and errors have incompatible types")
 
     meta_features = pd.DataFrame(meta_features, index=labels)
@@ -262,9 +259,9 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
                 assert(not any(f.__module__ == '__main__'
                                for f in custom_functions.values()))
         except:
-            raise ValueError("Using Celery requires pickleable custom functions; "
-                             "please import your functions from a module or set "
-                             "`use_celery=False`.")
+            raise ValueError("Using Celery requires pickleable custom "
+                             "functions; please import your functions from a "
+                             "module or set `use_celery=False`.")
 
         params_list = prepare_celery_data_task_params(times, values, errors,
                                                       labels, features_to_use,

@@ -10,25 +10,58 @@ except:
     from sklearn.cross_validation import train_test_split as sklearn_split
 
 
-def transform_ts_files(input_paths, dataset_keys, transform_type):
-    input_time_series = [tslib.from_netcdf(path) for path in input_paths]
-    transform, _ = TRANSFORMS_INFO_DICT[transform_type]
-    output_ts_lists = transform(input_time_series)
+__all__ = ['transform_ts_files', 'train_test_split']
 
-    if len(dataset_keys) != len(output_ts_lists):
-        raise ValueError("Transform produced {} datasets; {} output dataset "
-                         "IDs were provided.".format(len(output_ts_lists),
-                                                     len(dataset_keys)))
-    for ts_list, ds_name in zip(output_ts_lists, dataset_keys):
-        for ts in ts_list:
-            ts_fname = '{}_{}.nc'.format(ds_name, ts.name)
-            ts.to_netcdf(os.path.join(config['paths']['ts_data_folder'],
-                                      ts_fname))
+
+def transform_ts_files(time_series, transform_type):
+    """Apply some transformation to a list of time series and save outputs.
+
+    Some transformations will affect each time series individually, whereas
+    some will split the input data into multiple outputs; in either case the
+    time series are returned as a list of lists.
+
+    Parameters
+    ----------
+    time_series : list of TimeSeries objects
+        Input time series to be transformed
+    transform_type : str
+        Name of transformation to be applied to input time series. Possible
+        values are the keys of `TRANSFORM_INFO_DICT`.
+
+    Returns
+    -------
+    list of lists of TimeSeries objects
+    """
+    transform, labels = TRANSFORMS_INFO_DICT[transform_type]
+    output_ts_lists = transform(time_series)
+    if len(labels) != len(output_ts_lists):
+        raise ValueError("Number of output time series groups does not match "
+                         "the number of labels provided by "
+                         "`TRANSFORMS_INFO_DICT`.")
     return output_ts_lists
 
 
 def train_test_split(time_series, test_size=0.5, train_size=0.5,
                      random_state=None):
+    """Splits input time series into training and test sets.
+
+    Samples are stratified based on `TimeSeries.target` if it is a string
+    (i.e. a class label). See the `stratify` parameter of
+    `sklearn.model_selection` for details.
+
+    Parameters
+    ----------
+    time_series : list of TimeSeries objects
+        Input time series to be split
+    test_size : float, optional
+        Fraction of data to be included in the test set; defaults to 50/50.
+    training_size : float, optional
+        Fraction of data to be included in the training set; defaults to 50/50.
+
+    Returns
+    -------
+        tuple (list of training set time series, list of test set time series)
+    """
     if len(time_series) <= 1:
         return time_series, []
     inds = np.arange(len(time_series))

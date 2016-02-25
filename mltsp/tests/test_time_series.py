@@ -2,10 +2,9 @@ from nose.tools import with_setup
 import os
 import numpy.testing as npt
 import numpy as np
-import xarray as xr
 from mltsp.cfg import config
 from mltsp import time_series
-from mltsp.time_series import TimeSeries # TODO add to mltsp?
+from mltsp.time_series import TimeSeries
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
@@ -104,7 +103,6 @@ def test_time_series_default_values():
                                   m.shape[1]))
     assert ts.n_channels == n_channels
 
-
     t = [t[i][0:i+2] for i in range(len(t))]
     m = [m[i][0:i+2] for i in range(len(m))]
     e = [e[i][0:i+2] for i in range(len(e))]
@@ -134,7 +132,6 @@ def test_channels_iterator():
         npt.assert_allclose(t_i, t[i])
         npt.assert_allclose(m_i, m[i])
         npt.assert_allclose(e_i, e[i])
-
 
     t = [t[i][0:i+2] for i in range(len(t))]
     m = [m[i][0:i+2] for i in range(len(m))]

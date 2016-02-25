@@ -3,10 +3,30 @@ import netCDF4
 import numpy as np
 import pandas as pd
 import xarray as xr
-from mltsp.cfg import config
+from .cfg import config
+
+
+__all__ = ['from_netcdf', 'TimeSeries']
 
 
 def _default_values_like(old_values, value=None, upper=None):
+    """Creates a range of default values with the same shape as the input
+    `old_values`. If `value` is provided then each entry will equal `value`;
+    if `upper` is provided then the values will be linearly-spaced from 0 to
+    `upper`.
+
+    Parameters
+    ----------
+    old_values : (n,) or (p,n) array or list of (n,) arrays
+        Input array(s), typically time series measurements for which default
+        time or error values need to be inferred.
+    value : float, optional
+        Value that each output entry will be set to (omitted if `upper` is
+        provided).
+    upper : float, optional
+        Upper bound of range of linearly-spaced output entries (omitted if
+        `value` is provided).
+    """
     if value and upper:
         raise ValueError("Only one of `value` or `upper` may be proivded.")
     elif value is not None:
@@ -28,17 +48,20 @@ def _default_values_like(old_values, value=None, upper=None):
     return new_values
 
 
-def make_array(x):
+def _make_array(x):
+    """Helper function to cast (1, n) arrays to (n,) arrrays, or uniform lists
+    of arrays to (p, n) arrays.
+    """
     try:
         x = np.asfarray(x).squeeze()
     except ValueError:
         pass
     return x
 
-    
+
 def from_netcdf(netcdf_path):
+    """Load serialized TimeSeries from netCDF file."""
     with netCDF4.Dataset(netcdf_path) as ds:
-        # TODO are the groups loaded in the order they're written...?
         channels = list(ds.groups)
 
     # First channel group stores time series metadata
@@ -59,18 +82,64 @@ def from_netcdf(netcdf_path):
             if 'error' in ds:
                 e.append(ds.error.values)
 
-    return TimeSeries(make_array(t), make_array(m), make_array(e), target,
+    return TimeSeries(_make_array(t), _make_array(m), _make_array(e), target,
                       meta_features, name, path)
-    
+
 
 class TimeSeries:
+    """Class representing a single time series of measurements and metadata.
+    
+    A `TimeSeries` object encapsulates a single set of time-domain
+    measurements, along with any metadata describing the observation.
+    Typically the observations will consist of times, measurements, and
+    (optionally) measurement errors. The measurements can be scalar- or
+    vector-valued (i.e., "multichannel"); for multichannel measurements, the 
+    times and errors can also be vector-valued, or they can be shared across
+    all channels of measurement. 
+
+    Attributes
+    ----------
+    time : (n,) or (p, n) array or list of (n,) arrays
+        Array(s) of times corresponding to measurement values. If `measurement`
+        is multidimensional, this can be one-dimensional (same times for each
+        channel) or multidimensional (different times for each channel).
+    measurement : (n,) or (p, n) array or list of (n,) arrays
+        Array(s) of measurement values; can be multidimensional for
+        multichannel data. In the case of multichannel data with different
+        numbers of measurements for each channel, `measurement` will be a list
+        of arrays instead of a single two-dimensional array.
+    error : (n,) or (p, n) array or list of (n,) arrays
+        Array(s) of measurement errors for each value. If `measurement` is
+        multidimensional, this can be one-dimensional (same times for each
+        channel) or multidimensional (different times for each channel).
+    target : str, float, or None
+        Class label or target value for the given time series (if applicable).
+    meta_features : dict
+        Dictionary of feature names/values specified independently of the
+        featurization process in `featurize`.
+    name : str or None
+        Identifying name/label for the given time series (if applicable). 
+        Typically the name of the raw data file from which the time series was
+        created.
+    path : str or None
+        Path to the file where the time series is stored on disk (if
+        applicable).
+    channel_names : list of str
+        List of names of channels of measurement; by default these are simply
+        `channel_{i}`, but can be arbitrary depending on the nature of the
+        different measurement channels.
+    """
     def __init__(self, t=None, m=None, e=None, target=None, meta_features={},
-                 name=None, path=None):
+                 name=None, path=None, channel_names=None):
+        """Create a `TimeSeries` object from measurement values/metadata.
+
+        See `TimeSeries` documentation for parameter values.
+        """
         if t is None and m is None:
             raise ValueError("Either times or measurements must be provided.")
         elif m is None:
             m = _default_values_like(t, value=np.nan)
-        
+
         # If m is 1-dimensional, so are t and e
         if isinstance(m, np.ndarray) and m.ndim == 1:
             self.n_channels = 1
@@ -100,7 +169,7 @@ class TimeSeries:
                         value=config['mltsp']['DEFAULT_ERROR_VALUE'])
         else:
             raise ValueError("...")
-        
+
         self.time = t
         self.measurement = m
         self.error = e
@@ -108,11 +177,14 @@ class TimeSeries:
         self.meta_features = dict(meta_features)
         self.name = name
         self.path = path
-        self.channel_names = ["channel_{}".format(i)
-                              for i in range(self.n_channels)]
-    
-    # TODO name?
+        if channel_names is None:
+            self.channel_names = ["channel_{}".format(i)
+                                  for i in range(self.n_channels)]
+        else:
+            self.channel_names = channel_names
+
     def channels(self):
+        """Iterates over measurement channels (whether one or multiple)."""
         t_channels = self.time
         m_channels = self.measurement
         e_channels = self.error
@@ -126,6 +198,15 @@ class TimeSeries:
         return zip(t_channels, m_channels, e_channels)
 
     def to_netcdf(self, path=None):
+        """Store TimeSeries object as a single netCDF.
+
+        Each channel of measurements is stored in a separate HDF5 group; metadata
+        describing the whole time series is stored in the group corresponding to
+        the first channel.
+
+        If `path` is omitted then the `path` attribute from the TimeSeries object
+        is used.
+        """
         if path is None:
             path = self.path
 

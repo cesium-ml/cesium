@@ -1,8 +1,8 @@
 import os
 from os.path import join as pjoin
 from nose.tools import with_setup
-import numpy as np
 from mltsp.cfg import config
+from mltsp import time_series as tslib
 from mltsp import transformation
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -34,8 +34,8 @@ def test_train_test_split():
     n_class2 = 8
     TS_MOCK_PATHS = [TS_PATHS[0]] * n_class1 + [TS_PATHS[1]] * n_class2
     transform_type = "Train/Test Split"
-    train, test = transformation.transform_ts_files(TS_MOCK_PATHS,
-                                                    ['train', 'test'],
+    time_series = [tslib.from_netcdf(path) for path in TS_MOCK_PATHS]
+    train, test = transformation.transform_ts_files(time_series,
                                                     transform_type)
     assert sum(ts.target == 'class1' for ts in train) == 1 * n_class1 / 2
     assert sum(ts.target == 'class1' for ts in test) == n_class1 / 2

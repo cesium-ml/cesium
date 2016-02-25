@@ -4,7 +4,6 @@ from nose.tools import with_setup
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
-import shutil
 import numpy as np
 import xarray as xr
 
@@ -18,7 +17,8 @@ TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                     "dotastro_215176_with_target.nc"]]
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
-TEST_OUTPUT_PATHS = [pjoin(config['paths']['features_folder'], "test_featureset.nc")]
+TEST_OUTPUT_PATHS = [pjoin(config['paths']['features_folder'],
+                           "test_featureset.nc")]
 
 
 def remove_test_data():
@@ -31,8 +31,8 @@ def remove_test_data():
 
 def sample_featureset():
     ds = xr.Dataset({'f1': ('name', [21.0, 23.4]),
-                       'f2': ('name', [0.15, 2.31])},
-                      coords={'target': ['c1', 'c2']})
+                     'f2': ('name', [0.15, 2.31])},
+                    coords={'target': ['c1', 'c2']})
     return ds
 
 

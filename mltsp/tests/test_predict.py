@@ -26,7 +26,7 @@ def copy_test_data():
     for fname in fnames:
         shutil.copy(pjoin(DATA_PATH, fname),
                     config['paths']['features_folder'])
-    
+
 
 def remove_test_data():
     fnames = ["test_featureset.nc", "test_reg_featureset.nc",
@@ -56,7 +56,8 @@ def test_predict_classification():
     """Test main predict function on multiple files (classification)"""
     classifier_types = [model_type for model_type, model_class
                         in build_model.MODELS_TYPE_DICT.items()
-                        if issubclass(model_class, sklearn.base.ClassifierMixin)]
+                        if issubclass(model_class,
+                                      sklearn.base.ClassifierMixin)]
     for model_type in classifier_types:
         build_model.create_and_pickle_model('test', model_type, 'test')
         pred_results_dict = predict.predict_data_files(TS_CLASS_PATHS, 'test',
@@ -76,7 +77,7 @@ def test_predict_regression():
     for model_type in regressor_types:
         build_model.create_and_pickle_model('test', model_type, 'test_reg')
         pred_results_dict = predict.predict_data_files(TS_TARGET_PATHS, 'test',
-                                                      'test')
+                                                       'test')
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(isinstance(el, float))
@@ -94,6 +95,8 @@ def test_predict_optimized_model():
     for fname, results in pred_results_dict.items():
         for el in results['pred_results']:
             assert(el[0] in [b'Mira', b'W_Ursae_Maj', b'Delta_Scuti',
-                             b'Beta_Lyrae', b'Herbig_AEBE', b'Classical_Cepheid']
+                             b'Beta_Lyrae', b'Herbig_AEBE',
+                             b'Classical_Cepheid']
                    or el in [b'Mira', b'W_Ursae_Maj', b'Delta_Scuti',
-                             b'Beta_Lyrae', b'Herbig_AEBE', b'Classical_Cepheid'])
+                             b'Beta_Lyrae', b'Herbig_AEBE',
+                             b'Classical_Cepheid'])

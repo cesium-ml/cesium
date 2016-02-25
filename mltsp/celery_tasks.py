@@ -1,17 +1,11 @@
 from celery import Celery
 import os
 import sys
-import numpy as np
-import pandas as pd
-import xarray as xr
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from mltsp.cfg import config
 from mltsp import time_series
 from mltsp import util
 from mltsp import featurize_tools as ft
-from mltsp import obs_feature_tools as oft
-from mltsp import science_feature_tools as sft
-from mltsp import custom_feature_tools as cft
 
 
 celery_app = Celery('celery_fit', broker=config['celery']['celery_broker'])
@@ -61,30 +55,14 @@ def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")
-def featurize_ts_data(ts, features_to_use, custom_script_path=None,
+def featurize_ts_data(time_series, features_to_use, custom_script_path=None,
                       custom_functions=None):
-    """Featurize time-series data file.
+    """Featurize time-series objects.
 
     Parameters
     ----------
-    t : (n,) or (p, n) array or list of (n_i,) arrays
-        Array of time values for a single time series, or a list of arrays (of
-        potentially different lengths) of time values for each channel of
-        measurement.
-    m : (n,) or (p, n) array or list of (n_i,) arrays
-        Array or list of measurement values for a single time series, each
-        containing p channels of measurements (if applicable).
-    e : (n,) or (p, n) array or list of (n_i,) arrays
-        Array or list of measurement error values for a single time series,
-        each containing p channels of measurements (if applicable).
-    label : str or int
-        Label identifying which time series is being featurized. Can be a
-        string (such as a filename) or an integer index.
-    features_to_use : list of str
-        List of names of features to be generated.
-    metadata : dict, optional
-        Dictionary containing metafeature names and values for the given time
-        series, if applicable.
+    time_series : TimeSeries object
+        Time series data to be featurized.
     custom_script_path : str, optional
         Path to custom features script .py file, if applicable.
     custom_functions : dict, optional
@@ -99,10 +77,10 @@ def featurize_ts_data(ts, features_to_use, custom_script_path=None,
     Returns
     -------
     tuple
-        Two-element tuple whose first element is the file name and
+        Two-element tuple whose first element is the time series name and
         second element is a dictionary of features.
 
     """
-    all_features = ft.featurize_single_ts(ts, features_to_use,
+    all_features = ft.featurize_single_ts(time_series, features_to_use,
                                           custom_script_path, custom_functions)
-    return (ts.name, all_features)
+    return (time_series.name, all_features)

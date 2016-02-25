@@ -40,6 +40,7 @@ from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import data_management
+from .. import time_series as tslib
 from .. import transformation
 from .. import featurize
 from .. import predict
@@ -1102,7 +1103,6 @@ def set_dataset_filenames(dataset_id, ts_filenames):
 def dataset_associated_files(dataset_id):
     res = rdb.table('datasets').get(dataset_id).run(rdb_conn)
     return res['ts_filenames']
-                                                  
 
 
 def add_featureset(name, projkey, pid, featlist, custom_features_script=None,
@@ -2737,11 +2737,12 @@ def transformData():
                                     projkey)
             new_ds_ids.append(new_ds_id)
         try:
-            output_ts_lists = transformation.transform_ts_files(ts_paths,
-                                                                new_ds_ids,
+            time_series = [tslib.from_netcdf(path) for path in ts_paths]
+            output_ts_lists = transformation.transform_ts_files(time_series,
                                                                 transform_type)
             for ds_id, ts_list in zip(new_ds_ids, output_ts_lists):
-                ts_filenames = [ts.name for ts in ts_list]
+                ts_filenames = data_management.save_time_series_with_prefix(
+                                   ts_list, ds_id)
                 set_dataset_filenames(ds_id, ts_filenames)
         except Exception as theErr:
             results_str = ("An error occurred while processing your request.")
