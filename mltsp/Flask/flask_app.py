@@ -2729,14 +2729,14 @@ def transformData():
         transform_type = str(request.form["transform_data_transform_select"])\
                          .strip()
         projkey = project_name_to_key(project_name)
-        ts_paths = dataset_associated_files(dataset_id)
-        _, output_labels = transformation.TRANSFORMS_INFO_DICT[transform_type]
-        new_ds_ids = []
-        for label in output_labels:
-            new_ds_id = add_dataset(dataset_name + " ({})".format(label),
-                                    projkey)
-            new_ds_ids.append(new_ds_id)
         try:
+            ts_paths = dataset_associated_files(dataset_id)
+            _, output_labels = transformation.TRANSFORMS_INFO_DICT[transform_type]
+            new_ds_ids = []
+            for label in output_labels:
+                new_ds_id = add_dataset(dataset_name + " ({})".format(label),
+                                        projkey)
+                new_ds_ids.append(new_ds_id)
             time_series = [tslib.from_netcdf(path) for path in ts_paths]
             output_ts_lists = transformation.transform_ts_files(time_series,
                                                                 transform_type)
@@ -3122,7 +3122,7 @@ def PredictData():
 
     """
     if request.method == 'POST':
-        dataset_id = str(request.form["predict_dataset_select"]).strip()
+        dataset_id = str(request.form["prediction_dataset_select"]).strip()
         project_name = (str(request.form["prediction_project_name"])
                         .split(" (created")[0])
         model_name, model_type_and_time = str(

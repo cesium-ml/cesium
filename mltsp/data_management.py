@@ -141,10 +141,11 @@ def save_time_series_with_prefix(time_series, prefix):
     
     Files are stored as `{prefix}_{TimeSeries.name}.nc`.
     """
-    ts_filenames = []
+    ts_paths = []
     for ts in time_series:
-        ts_fname = '{}_{}.nc'.format(ds_name, ts.name)
-        ts_filenames.append(ts_filename)
-        ts.to_netcdf(os.path.join(config['paths']['ts_data_folder'], ts_fname))
+        ts_fname = '{}_{}.nc'.format(prefix, ts.name)
+        ts.path = os.path.join(config['paths']['ts_data_folder'], ts_fname)
+        ts_paths.append(ts.path)
+        ts.to_netcdf(ts.path)
 
-    return ts_filenames
+    return ts_paths

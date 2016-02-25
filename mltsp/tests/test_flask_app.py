@@ -2237,7 +2237,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "name": "test"}).run(conn)
             rv = self.app.post('/PredictData',
                                content_type='multipart/form-data',
-                               data={'predict_dataset_select': 'ds1',
+                               data={'prediction_dataset_select': 'ds1',
                                      'prediction_project_name': 'abc123',
                                      'prediction_model_name_and_type':
                                      'test - RandomForestClassifier'})

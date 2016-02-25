@@ -60,7 +60,7 @@ def test_parse_headerfile():
 
 
 @with_setup(copy_test_data, remove_test_data)
-def test_parse_and_store_ts_data():
+def test_parsing_and_saving():
     data_file_path = pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz")
     header_path = pjoin(config['paths']['upload_folder'],
                         "215153_215176_218272_218934_metadata.dat")
@@ -72,3 +72,9 @@ def test_parse_and_store_ts_data():
                    for f in ts.meta_features.keys())
         assert(len(ts.time) == len(ts.measurement)
                and len(ts.time) == len(ts.error))
+
+    test_filenames = data_management.save_time_series_with_prefix(time_series,
+                                                                  'test')
+    for test_path in test_filenames:
+        assert os.path.exists(test_path)
+        os.remove(test_path)

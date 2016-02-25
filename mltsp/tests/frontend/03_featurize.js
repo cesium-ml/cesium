@@ -17,6 +17,7 @@ casper.test.begin('featurize', function suite(test) {
         casper.then(function(){
             this.evaluate(function() {
                 document.querySelector('#featureset_project_name_select').selectedIndex = 0;
+                document.querySelector('#featureset_dataset_select').selectedIndex = 0;
                 document.querySelector('#sep').selectedIndex = 0;
             });
         });
@@ -24,11 +25,6 @@ casper.test.begin('featurize', function suite(test) {
             this.fill('#featurizeForm', {
                 'featureset_name': 'test_featset'
             }, false);
-            this.page.uploadFile('#headerfile',
-                                 'mltsp/tests/data/asas_training_subset_classes.dat');
-            this.page.uploadFile('#zipfile',
-                                 'mltsp/tests/data/asas_training_subset.tar.gz');
-
 
             var disabled = this.evaluate(function(){
                 featurize_form_validation();

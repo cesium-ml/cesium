@@ -1,6 +1,7 @@
 import os
 from os.path import join as pjoin
 from nose.tools import with_setup
+import numpy.testing as npt
 from mltsp.cfg import config
 from mltsp import time_series as tslib
 from mltsp import transformation
@@ -37,7 +38,7 @@ def test_train_test_split():
     time_series = [tslib.from_netcdf(path) for path in TS_MOCK_PATHS]
     train, test = transformation.transform_ts_files(time_series,
                                                     transform_type)
-    assert sum(ts.target == 'class1' for ts in train) == 1 * n_class1 / 2
-    assert sum(ts.target == 'class1' for ts in test) == n_class1 / 2
-    assert sum(ts.target == 'class2' for ts in train) == 1 * n_class2 / 2
-    assert sum(ts.target == 'class2' for ts in test) == n_class2 / 2
+    npt.assert_equal(sum(ts.target == 'class1' for ts in train), 1 * n_class1 / 2)
+    npt.assert_equal(sum(ts.target == 'class1' for ts in test), n_class1 / 2)
+    npt.assert_equal(sum(ts.target == 'class2' for ts in train), 1 * n_class2 / 2)
+    npt.assert_equal(sum(ts.target == 'class2' for ts in test), n_class2 / 2)

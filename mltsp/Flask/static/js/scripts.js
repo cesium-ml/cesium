@@ -1157,6 +1157,30 @@ function get_lc_data_filename(filename,sep){
 
 
 
+function upload_form_validation(){
+    var headerfile_name = $("#headerfile").val();
+    var zipfile_name = $("#zipfile").val();
+    var dataset_name = $("#dataset_name").val();
+    if(headerfile_name=="" || zipfile_name=="" || $.trim(dataset_name)==""){
+	if($.trim(upload_name)==""){
+	    $('#upload_button').attr('disabled','disabled');
+	}else{
+	    $('#upload_button').removeAttr('disabled');
+	}
+
+	$("#headerfile,#zipfile").change(function(){
+	    var headerfile_name = $("#headerfile").val();
+	    var zipfile_name = $("#zipfile").val();
+	    var upload_name = $("#featureset_name").val();
+	    if(headerfile_name=="" || zipfile_name=="" || $.trim(upload_name)==""){
+		$('#upload_button').attr('disabled','disabled');
+	    }else{
+		$('#upload_button').removeAttr('disabled');
+	    }
+	});
+    }
+}
+
 
 function featurize_form_validation(){
 
