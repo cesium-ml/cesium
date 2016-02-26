@@ -386,7 +386,7 @@ def docker_extract_features(script_fpath, features_already_known):
     """
     container_id = str(uuid.uuid4())[:10]
 
-    tmp_dir = tempfile.mkdtemp(prefix='mltsp')
+    tmp_dir = tempfile.mkdtemp(dir=config['paths']['tmp_custom_feats_folder'])
 
     try:
         shutil.copy(script_fpath, pjoin(tmp_dir, "custom_feature_defs.py"))

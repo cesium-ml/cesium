@@ -1,13 +1,11 @@
-import os
-
 from mltsp.cfg import config
-
 print('[testing] Configure MLTSP to use test database')
 config['testing']['test_db'] = 1
 
 print('[testing] Configure MLTSP to disable authentication')
 config['testing']['disable_auth'] = 1
 
+import os
 from mltsp.Flask import flask_app as fa
 from mltsp import custom_exceptions
 from mltsp import build_model
@@ -16,7 +14,7 @@ import numpy.testing as npt
 import numpy as np
 from os.path import join as pjoin
 import uuid
-import rethinkdb as r
+import rethinkdb as rdb
 import unittest
 import time
 import json
@@ -31,64 +29,64 @@ TEST_PASSWORD = "TestPass15"
 
 fa.db_init(force=True)
 
+# Need at least 2 of each class for stratified splitting
+TS_FILES = ["dotastro_215153_with_class.nc", "dotastro_215176_with_class.nc",
+           "dotastro_215153_with_class_copy.nc",
+            "dotastro_215176_with_class_copy.nc"]
+CUSTOM_SCRIPT = "testfeature1.py"
 
 def featurize_setup():
-    fpaths = []
-    dest_paths = []
-    fnames = ["asas_training_subset_classes_with_metadata.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
-    for fname in fnames:
-        fpaths.append(pjoin(DATA_DIR, fname))
-    for fpath in fpaths:
+    ts_paths = [pjoin(config['paths']['upload_folder'], f) for f in TS_FILES]
+    custom_script_path = pjoin(config['paths']['upload_folder'], CUSTOM_SCRIPT)
+    for fname in TS_FILES + [CUSTOM_SCRIPT]:
+        fpath = pjoin(DATA_DIR, fname)
         shutil.copy(fpath, config['paths']['upload_folder'])
-        dest_paths.append(pjoin(config['paths']['upload_folder'], os.path.basename(fpath)))
-    return dest_paths
+    rdb.table("datasets").insert({"id": "ds1", "projkey": "111",
+                                "name": "Test dataset", "created": "111",
+                                "ts_filenames": ts_paths}).run(fa.g.rdb_conn)
+    return ts_paths, custom_script_path
 
 
 def delete_entries_by_table(table_name):
     conn = fa.g.rdb_conn
-    for e in r.table(table_name).run(conn):
-        r.table(table_name).get(e['id']).delete().run(conn)
+    for e in rdb.table(table_name).run(conn):
+        rdb.table(table_name).get(e['id']).delete().run(conn)
 
 
 def featurize_teardown():
-    fpaths = [pjoin(config['paths']['custom_feature_script_folder'],
-                    "testfeature1.py")]
-    fnames = ["asas_training_subset_classes_with_metadata.dat",
-              "asas_training_subset.tar.gz", "testfeature1.py"]
-    for fname in fnames:
-        fpaths.append(pjoin(config['paths']['upload_folder'], fname))
-    fpaths.append(pjoin(config['paths']['custom_feature_script_folder'],
-                        "testfeature1.py"))
-    for fpath in fpaths:
+    for fname in TS_FILES + [CUSTOM_SCRIPT]:
+        fpath = pjoin(config['paths']['upload_folder'], fname)
         if os.path.exists(fpath):
             os.remove(fpath)
 
 
 def build_model_setup():
     shutil.copy(pjoin(DATA_DIR, "test_featureset.nc"),
-                pjoin(config['paths']['features_folder'], "TEMP_TEST01_featureset.nc"))
+                pjoin(config['paths']['features_folder'], "test_featureset.nc"))
     shutil.copy(pjoin(DATA_DIR, "test_10_featureset.nc"),
-                pjoin(config['paths']['features_folder'], "TEMP_TEST10_featureset.nc"))
+                pjoin(config['paths']['features_folder'], "test10_featureset.nc"))
 
 
 def prediction_setup():
     shutil.copy(pjoin(DATA_DIR, "test_featureset.nc"),
-                pjoin(config['paths']['features_folder'], "TEMP_TEST01_featureset.nc"))
-    shutil.copy(pjoin(DATA_DIR, "dotastro_215153.dat"),
-                pjoin(config['paths']['upload_folder'], "TESTRUN_215153.dat"))
-    shutil.copy(pjoin(DATA_DIR, "TESTRUN_215153_metadata.dat"),
-                config['paths']['upload_folder'])
-    shutil.copy(pjoin(DATA_DIR, "testfeature1.py"),
-                pjoin(config['paths']['custom_feature_script_folder'], "TESTRUN_CF.py"))
-    build_model.create_and_pickle_model("TEMP_TEST01",
+                pjoin(config['paths']['features_folder'], "test_featureset.nc"))
+    build_model.create_and_pickle_model("test",
                                         "RandomForestClassifier",
-                                        "TEMP_TEST01")
+                                        "test")
+    ts_paths = [pjoin(config['paths']['upload_folder'], f) for f in TS_FILES]
+    custom_script_path = pjoin(config['paths']['upload_folder'], CUSTOM_SCRIPT)
+    for fname in TS_FILES:
+        fpath = pjoin(DATA_DIR, fname)
+        shutil.copy(fpath, config['paths']['upload_folder'])
+    rdb.table("datasets").insert({"id": "ds1", "projkey": "111",
+                                "name": "Test dataset", "created": "111",
+                                "ts_filenames": ts_paths}).run(fa.g.rdb_conn)
+    return ts_paths, custom_script_path
 
 
 def model_and_prediction_teardown():
-    fnames = ["TEMP_TEST01_featureset.nc", "TEMP_TEST10_featureset.nc",
-              "TEMP_TEST01.pkl"]
+    fnames = ["test_featureset.nc", "test10_featureset.nc",
+              "test.pkl"]
     for fname in fnames:
         for data_dir in [config['paths']['features_folder'], config['paths']['models_folder']]:
             try:
@@ -111,9 +109,9 @@ class FlaskAppTestCase(unittest.TestCase):
         """Reset database to initial empty state after each test. Leaves users,
         userauth intact.
         """
-        conn = r.connect(db="mltsp_testing")
-        for table_name in ["models", "features", "predictions", "projects"]:
-            r.table(table_name).delete().run(conn)
+        conn = rdb.connect(db="mltsp_testing")
+        for table_name in ["models", "features", "predictions", "projects", "datasets"]:
+            rdb.table(table_name).delete().run(conn)
 
     def login(self, username=TEST_EMAIL, password=TEST_PASSWORD, app=None):
         if app is None:
@@ -122,11 +120,6 @@ class FlaskAppTestCase(unittest.TestCase):
             login=username,
             password=password
         ), follow_redirects=True)
-
-    def test_num_lines(self):
-        """Test line counting"""
-        num_lines = fa.num_lines(os.path.join(DATA_DIR, "dotastro_215153.dat"))
-        npt.assert_equal(num_lines, 170)
 
     def test_check_job_status(self):
         """Test check job status"""
@@ -148,14 +141,14 @@ class FlaskAppTestCase(unittest.TestCase):
         table_names = ['projects', 'users', 'features',
                        'models', 'userauth', 'predictions']
         force = False
-        connection = r.connect(host=RDB_HOST, port=RDB_PORT)
-        initial_db_list = r.db_list().run(connection)
+        connection = rdb.connect(host=RDB_HOST, port=RDB_PORT)
+        initial_db_list = rdb.db_list().run(connection)
         fa.db_init(force=force)
-        assert MLTSP_DB in r.db_list().run(connection)
+        assert MLTSP_DB in rdb.db_list().run(connection)
         connection.use(MLTSP_DB)
         if force:
             for table_name in table_names:
-                npt.assert_equal(r.table(table_name).count().run(connection),
+                npt.assert_equal(rdb.table(table_name).count().run(connection),
                                  0)
         connection.close()
 
@@ -164,11 +157,11 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             fa.add_user()
-            N = r.table("users").filter({"email": TEST_EMAIL})\
+            N = rdb.table("users").filter({"email": TEST_EMAIL})\
                                 .count().run(fa.g.rdb_conn)
             npt.assert_equal(N, 1)
-            r.table('users').get(TEST_EMAIL).delete().run(fa.g.rdb_conn)
-            N = r.table("users").filter({"email": TEST_EMAIL})\
+            rdb.table('users').get(TEST_EMAIL).delete().run(fa.g.rdb_conn)
+            N = rdb.table("users").filter({"email": TEST_EMAIL})\
                                 .count().run(fa.g.rdb_conn)
             npt.assert_equal(N, 0)
 
@@ -177,31 +170,31 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            N = r.table('users').filter({'email': TEST_EMAIL}).count()\
+            N = rdb.table('users').filter({'email': TEST_EMAIL}).count()\
                                                               .run(conn)
             if N > 0:
-                r.table("users").get(TEST_EMAIL).delete().run(conn)
-                N = r.table('users').filter({'email': TEST_EMAIL}).count()\
+                rdb.table("users").get(TEST_EMAIL).delete().run(conn)
+                N = rdb.table('users').filter({'email': TEST_EMAIL}).count()\
                                                                   .run(conn)
                 npt.assert_equal(N, 0)
 
             fa.check_user_table()
-            N = r.table('users').filter({'email': TEST_EMAIL}).count()\
+            N = rdb.table('users').filter({'email': TEST_EMAIL}).count()\
                                                               .run(conn)
             npt.assert_equal(N, 1)
-            r.table("users").get(TEST_EMAIL).delete().run(conn)
-            r.table("users").insert({"id": TEST_EMAIL,
+            rdb.table("users").get(TEST_EMAIL).delete().run(conn)
+            rdb.table("users").insert({"id": TEST_EMAIL,
                                      "email": TEST_EMAIL})\
                 .run(conn)
-            N = r.table('users').filter({'email': TEST_EMAIL}).count()\
+            N = rdb.table('users').filter({'email': TEST_EMAIL}).count()\
                                                               .run(conn)
             npt.assert_equal(N, 1)
             fa.check_user_table()
-            N = r.table('users').filter({'email': TEST_EMAIL}).count()\
+            N = rdb.table('users').filter({'email': TEST_EMAIL}).count()\
                                                               .run(conn)
             npt.assert_equal(N, 1)
-            r.table("users").get(TEST_EMAIL).delete().run(conn)
-            N = r.table('users').filter({'email': TEST_EMAIL}).count()\
+            rdb.table("users").get(TEST_EMAIL).delete().run(conn)
+            N = rdb.table('users').filter({'email': TEST_EMAIL}).count()\
                                                               .run(conn)
             npt.assert_equal(N, 0)
 
@@ -211,12 +204,12 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             model_key = str(uuid.uuid4())[:10]
-            r.table("models").insert({"id": model_key}).run(conn)
+            rdb.table("models").insert({"id": model_key}).run(conn)
             fa.update_model_entry_with_pid(model_key, 9999)
-            entry_dict = r.table("models").get(model_key).run(conn)
+            entry_dict = rdb.table("models").get(model_key).run(conn)
             npt.assert_equal(entry_dict["pid"], "9999")
-            r.table("models").get(model_key).delete().run(conn)
-            npt.assert_equal(r.table("models").get(model_key).run(conn), None)
+            rdb.table("models").get(model_key).delete().run(conn)
+            npt.assert_equal(rdb.table("models").get(model_key).run(conn), None)
 
     def test_update_featset_entry_with_pid(self):
         """Test update featset entry with PID"""
@@ -224,12 +217,12 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             feat_key = str(uuid.uuid4())[:10]
-            r.table("features").insert({"id": feat_key}).run(conn)
+            rdb.table("features").insert({"id": feat_key}).run(conn)
             fa.update_featset_entry_with_pid(feat_key, 9999)
-            entry_dict = r.table("features").get(feat_key).run(conn)
+            entry_dict = rdb.table("features").get(feat_key).run(conn)
             npt.assert_equal(entry_dict["pid"], "9999")
-            r.table("features").get(feat_key).delete().run(conn)
-            npt.assert_equal(r.table("features").get(feat_key).run(conn), None)
+            rdb.table("features").get(feat_key).delete().run(conn)
+            npt.assert_equal(rdb.table("features").get(feat_key).run(conn), None)
 
     def test_update_prediction_entry_with_pid(self):
         """Test update prediction entry with PID"""
@@ -237,12 +230,12 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("predictions").insert({"id": key}).run(conn)
+            rdb.table("predictions").insert({"id": key}).run(conn)
             fa.update_prediction_entry_with_pid(key, 9999)
-            entry_dict = r.table("predictions").get(key).run(conn)
+            entry_dict = rdb.table("predictions").get(key).run(conn)
             npt.assert_equal(entry_dict["pid"], "9999")
-            r.table("predictions").get(key).delete().run(conn)
-            npt.assert_equal(r.table("predictions").get(key).run(conn), None)
+            rdb.table("predictions").get(key).delete().run(conn)
+            npt.assert_equal(rdb.table("predictions").get(key).run(conn), None)
 
     def test_update_prediction_entry_with_results(self):
         """Test update prediction entry with results"""
@@ -250,7 +243,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("predictions").insert({"id": key}).run(conn)
+            rdb.table("predictions").insert({"id": key}).run(conn)
             html_str = "<HTML></HTML>"
             features_dict = {"fname": {"feat1": 2.1}}
             ts_data = {"fname": [1, 2, 3]}
@@ -258,7 +251,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.update_prediction_entry_with_results(key, html_str,
                                                     features_dict,
                                                     ts_data, results)
-            entry_dict = r.table("predictions").get(key).run(conn)
+            entry_dict = rdb.table("predictions").get(key).run(conn)
             npt.assert_equal(entry_dict["results_str_html"], html_str)
             npt.assert_equal(entry_dict["features_dict"], features_dict)
             npt.assert_equal(entry_dict["ts_data_dict"], ts_data)
@@ -270,7 +263,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("predictions").insert({"id": key}).run(conn)
+            rdb.table("predictions").insert({"id": key}).run(conn)
             html_str = "<HTML></HTML>"
             features_dict = {"fname": {"feat1": 2.1}}
             ts_data = {"fname": [1, 2, 3]}
@@ -279,7 +272,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                                     features_dict,
                                                     ts_data, results,
                                                     "err_msg")
-            entry_dict = r.table("predictions").get(key).run(conn)
+            entry_dict = rdb.table("predictions").get(key).run(conn)
             npt.assert_equal(entry_dict["results_str_html"], html_str)
             npt.assert_equal(entry_dict["features_dict"], features_dict)
             npt.assert_equal(entry_dict["ts_data_dict"], ts_data)
@@ -292,9 +285,9 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("models").insert({"id": key}).run(conn)
+            rdb.table("models").insert({"id": key}).run(conn)
             fa.update_model_entry_with_results_msg(key, "MSG")
-            entry_dict = r.table("models").get(key).run(conn)
+            entry_dict = rdb.table("models").get(key).run(conn)
             npt.assert_equal(entry_dict["results_msg"], "MSG")
 
     def test_update_model_entry_with_results_msg_err(self):
@@ -303,9 +296,9 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("models").insert({"id": key}).run(conn)
+            rdb.table("models").insert({"id": key}).run(conn)
             fa.update_model_entry_with_results_msg(key, "MSG", err="ERR_MSG")
-            entry_dict = r.table("models").get(key).run(conn)
+            entry_dict = rdb.table("models").get(key).run(conn)
             npt.assert_equal(entry_dict["results_msg"], "MSG")
             npt.assert_equal(entry_dict["err_msg"], "ERR_MSG")
 
@@ -315,9 +308,9 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("features").insert({"id": key}).run(conn)
+            rdb.table("features").insert({"id": key}).run(conn)
             fa.update_featset_entry_with_results_msg(key, "MSG")
-            entry_dict = r.table("features").get(key).run(conn)
+            entry_dict = rdb.table("features").get(key).run(conn)
             npt.assert_equal(entry_dict["results_msg"], "MSG")
 
     def test_update_featset_entry_with_results_msg_err(self):
@@ -326,9 +319,9 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             key = str(uuid.uuid4())[:10]
-            r.table("features").insert({"id": key}).run(conn)
+            rdb.table("features").insert({"id": key}).run(conn)
             fa.update_featset_entry_with_results_msg(key, "MSG", "ERR_MSG")
-            entry_dict = r.table("features").get(key).run(conn)
+            entry_dict = rdb.table("features").get(key).run(conn)
             npt.assert_equal(entry_dict["results_msg"], "MSG")
             npt.assert_equal(entry_dict["err_msg"], "ERR_MSG")
 
@@ -337,10 +330,10 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"id": TEST_EMAIL, "email": TEST_EMAIL})\
+            rdb.table("users").insert({"id": TEST_EMAIL, "email": TEST_EMAIL})\
                             .run(conn)
             result = fa.get_current_userkey()
-            r.table("users").get(TEST_EMAIL).delete().run(conn)
+            rdb.table("users").get(TEST_EMAIL).delete().run(conn)
             npt.assert_equal(result, TEST_EMAIL)
 
     def test_get_all_projkeys(self):
@@ -352,7 +345,7 @@ class FlaskAppTestCase(unittest.TestCase):
             for i in range(3):
                 key = str(uuid.uuid4())[:10]
                 keys.append(key)
-                r.table("projects").insert({"id": key}).run(conn)
+                rdb.table("projects").insert({"id": key}).run(conn)
             all_projkeys = fa.get_all_projkeys()
             assert all(key in all_projkeys for key in keys)
 
@@ -365,11 +358,11 @@ class FlaskAppTestCase(unittest.TestCase):
             for i in range(3):
                 key = str(uuid.uuid4())[:10]
                 keys.append(key)
-                r.table("userauth").insert({"projkey": key, "id": key,
+                rdb.table("userauth").insert({"projkey": key, "id": key,
                                             "userkey": "testhandle@gmail.com",
                                             "active": "y"}).run(conn)
             authed_projkeys = fa.get_authed_projkeys("testhandle@gmail.com")
-            r.table("userauth").get_all(*keys).delete().run(conn)
+            rdb.table("userauth").get_all(*keys).delete().run(conn)
             npt.assert_equal(len(authed_projkeys), 3)
             assert all(key in authed_projkeys for key in keys)
 
@@ -382,11 +375,11 @@ class FlaskAppTestCase(unittest.TestCase):
             for i in range(3):
                 key = str(uuid.uuid4())[:10]
                 keys.append(key)
-                r.table("userauth").insert({"projkey": key, "id": key,
+                rdb.table("userauth").insert({"projkey": key, "id": key,
                                             "userkey": "testhandle@gmail.com",
                                             "active": "y"}).run(conn)
             authed_projkeys = fa.get_authed_projkeys("testhandle2@gmail.com")
-            r.table("userauth").get_all(*keys).delete().run(conn)
+            rdb.table("userauth").get_all(*keys).delete().run(conn)
             npt.assert_equal(len(authed_projkeys), 0)
             assert all(key not in authed_projkeys for key in keys)
 
@@ -399,11 +392,11 @@ class FlaskAppTestCase(unittest.TestCase):
             for i in range(3):
                 key = str(uuid.uuid4())[:10]
                 keys.append(key)
-                r.table("userauth").insert({"projkey": key, "id": key,
+                rdb.table("userauth").insert({"projkey": key, "id": key,
                                             "userkey": "testhandle@gmail.com",
                                             "active": "n"}).run(conn)
             authed_projkeys = fa.get_authed_projkeys("testhandle@gmail.com")
-            r.table("userauth").get_all(*keys).delete().run(conn)
+            rdb.table("userauth").get_all(*keys).delete().run(conn)
             npt.assert_equal(len(authed_projkeys), 0)
             assert all(key not in authed_projkeys for key in keys)
 
@@ -412,24 +405,24 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("features").insert({"id": "111", "projkey": "111",
+            rdb.table("features").insert({"id": "111", "projkey": "111",
                                         "name": "111", "created": "111",
                                         "featlist": [1, 2]}).run(conn)
             featsets = fa.list_featuresets()
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             npt.assert_equal(len(featsets), 1)
             assert "created" in featsets[0] and "abc123" in featsets[0]
 
@@ -438,24 +431,24 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("features").insert({"id": "111", "projkey": "111",
+            rdb.table("features").insert({"id": "111", "projkey": "111",
                                         "name": "111", "created": "111",
                                         "featlist": [1, 2]}).run(conn)
             featsets = fa.list_featuresets(auth_only=False, name_only=True)
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             assert len(featsets) > 1
             assert all("created" not in featset for featset in featsets)
 
@@ -464,30 +457,30 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("userauth").insert({"projkey": "111", "id": "111",
+            rdb.table("userauth").insert({"projkey": "111", "id": "111",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("features").insert({"id": "111", "projkey": "111",
+            rdb.table("features").insert({"id": "111", "projkey": "111",
                                         "name": "111", "created": "111",
                                         "featlist": [1, 2]}).run(conn)
             featsets = fa.list_featuresets(auth_only=True, by_project="abc123",
                                            as_html_table_string=True)
-            r.table("userauth").get("abc123").delete().run(conn)
-            r.table("userauth").get("111").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("111").delete().run(conn)
             assert "table id" in featsets and "abc123" in featsets
 
     def test_list_models_authed(self):
@@ -495,24 +488,24 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("models").insert({"id": "111", "projkey": "111",
+            rdb.table("models").insert({"id": "111", "projkey": "111",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
@@ -520,7 +513,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "meta_feats": ["1", "2"]}).run(conn)
             models = fa.list_models()
             npt.assert_equal(len(models), 1)
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             assert "created" in models[0] and "abc123" in models[0]
 
     def test_list_models_all(self):
@@ -528,15 +521,15 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type":
                                       "RandomForestClassifier",
@@ -544,16 +537,16 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "parameters": {},
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("models").insert({"id": "111", "projkey": "111",
+            rdb.table("models").insert({"id": "111", "projkey": "111",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "name": "111", "created": "111",
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=False, name_only=True)
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             assert len(results) > 1
             assert all("created" not in result for result in results)
 
@@ -562,19 +555,19 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("userauth").insert({"projkey": "111", "id": "111",
+            rdb.table("userauth").insert({"projkey": "111", "id": "111",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type":
                                       "RandomForestClassifier",
@@ -582,9 +575,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "parameters": {},
                                       "created": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("models").insert({"id": "111", "projkey": "111",
+            rdb.table("models").insert({"id": "111", "projkey": "111",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
@@ -592,8 +585,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "meta_feats": ["1", "2"]}).run(conn)
             results = fa.list_models(auth_only=True, by_project="abc123",
                                      as_html_table_string=True)
-            r.table("userauth").get("abc123").delete().run(conn)
-            r.table("userauth").get("111").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("111").delete().run(conn)
             assert "table id" in results and "abc123" in results
 
     def test_list_preds_authed(self):
@@ -601,15 +594,15 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -618,9 +611,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
                 .run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("predictions").insert({"id": "111", "projkey": "111",
+            rdb.table("predictions").insert({"id": "111", "projkey": "111",
                                            "name": "111",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -630,7 +623,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "results_str_html": "111HTML"})\
                 .run(conn)
             results = fa.list_predictions(auth_only=True)
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             npt.assert_equal(len(results), 1)
             assert "MODEL_NAME" in results[0]
 
@@ -639,15 +632,15 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -656,9 +649,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
                 .run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("predictions").insert({"id": "111", "projkey": "111",
+            rdb.table("predictions").insert({"id": "111", "projkey": "111",
                                            "name": "111",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -668,7 +661,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "results_str_html": "111HTML"})\
                 .run(conn)
             results = fa.list_predictions(auth_only=False, detailed=False)
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             assert len(results) > 1
             assert all("created" not in result for result in results)
 
@@ -677,19 +670,19 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
+            rdb.table("users").insert({"email": TEST_EMAIL, "id": TEST_EMAIL})\
                             .run(conn)
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("userauth").insert({"projkey": "111", "id": "111",
+            rdb.table("userauth").insert({"projkey": "111", "id": "111",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -698,9 +691,9 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "filename": "abc.txt",
                                            "results_str_html": "abcHTML"})\
                 .run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
-            r.table("predictions").insert({"id": "111", "projkey": "111",
+            rdb.table("predictions").insert({"id": "111", "projkey": "111",
                                            "name": "111",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -711,21 +704,21 @@ class FlaskAppTestCase(unittest.TestCase):
                 .run(conn)
             results = fa.list_predictions(by_project="abc123",
                                           as_html_table_string=True)
-            r.table("userauth").get("abc123").delete().run(conn)
-            r.table("userauth").get("111").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("111").delete().run(conn)
             assert "table id" in results and "abc123" in results
 
     def test_get_list_of_projects(self):
         """Test get list of projects"""
         conn = fa.rdb_conn
-        r.table("projects").insert({"id": "abc123",
+        rdb.table("projects").insert({"id": "abc123",
                                     "name": "abc123"}).run(conn)
-        r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+        rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                     "userkey": TEST_EMAIL,
                                     "email": TEST_EMAIL,
                                     "active": "y"}).run(conn)
         rv = self.app.get('/get_list_of_projects')
-        r.table("userauth").get("abc123").delete().run(conn)
+        rdb.table("userauth").get("abc123").delete().run(conn)
         assert "abc123" in json.loads(rv.data.decode())["list"]
 
     def test_list_projects_authed(self):
@@ -733,16 +726,16 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             results = fa.list_projects()
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             npt.assert_equal(len(results), 1)
             assert "abc123" in results[0]
 
@@ -751,16 +744,16 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("userauth").insert({"projkey": "abc123", "id": "abc123",
+            rdb.table("userauth").insert({"projkey": "abc123", "id": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "email": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("projects").insert({"id": "111",
+            rdb.table("projects").insert({"id": "111",
                                         "name": "111"}).run(conn)
             results = fa.list_projects(auth_only=False, name_only=True)
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             assert len(results) >= 2
             assert all("created" not in res for res in results)
 
@@ -770,15 +763,15 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             new_projkey = fa.add_project(name="TEST")
-            entry = r.table("projects").get(new_projkey).run(conn)
+            entry = rdb.table("projects").get(new_projkey).run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['description'], "")
-            cur = r.table("userauth").filter({"projkey": new_projkey})\
+            cur = rdb.table("userauth").filter({"projkey": new_projkey})\
                                      .run(conn)
             auth_entries = []
             for e in cur:
                 auth_entries.append(e)
-            r.table("userauth").get(auth_entries[0]["id"]).delete().run(conn)
+            rdb.table("userauth").get(auth_entries[0]["id"]).delete().run(conn)
             npt.assert_equal(len(auth_entries), 1)
             npt.assert_equal(auth_entries[0]["active"], "y")
 
@@ -789,16 +782,16 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             new_projkey = fa.add_project(name="TEST",
                                          addl_authed_users=["1@2.com"])
-            entry = r.table("projects").get(new_projkey).run(conn)
+            entry = rdb.table("projects").get(new_projkey).run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['description'], "")
-            cur = r.table("userauth").filter({"projkey": new_projkey})\
+            cur = rdb.table("userauth").filter({"projkey": new_projkey})\
                                      .run(conn)
             auth_entries = []
             for e in cur:
                 auth_entries.append(e)
-            r.table("userauth").get(auth_entries[0]["id"]).delete().run(conn)
-            r.table("userauth").get(auth_entries[1]["id"]).delete().run(conn)
+            rdb.table("userauth").get(auth_entries[0]["id"]).delete().run(conn)
+            rdb.table("userauth").get(auth_entries[1]["id"]).delete().run(conn)
             npt.assert_equal(len(auth_entries), 2)
             npt.assert_equal(auth_entries[0]["active"], "y")
 
@@ -809,7 +802,7 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             new_featset_key = fa.add_featureset(name="TEST", projkey="abc",
                                                 pid="2", featlist=['f1', 'f2'])
-            entry = r.table("features").get(new_featset_key).run(conn)
+            entry = rdb.table("features").get(new_featset_key).run(conn)
             npt.assert_equal(entry['name'], "TEST")
             npt.assert_equal(entry['featlist'], ['f1', 'f2'])
 
@@ -824,17 +817,17 @@ class FlaskAppTestCase(unittest.TestCase):
                                    model_type="RandomForestClassifier",
                                    model_params={},
                                    projkey="ABC", pid="2")
-            entry = r.table("models").get(new_key).run(conn)
+            entry = rdb.table("models").get(new_key).run(conn)
             npt.assert_equal(entry['name'], "TEST_NAME")
             npt.assert_equal(entry['projkey'], "ABC")
-            r.table("models").get(new_key).delete().run(conn)
+            rdb.table("models").get(new_key).delete().run(conn)
 
     def test_add_model_meta_feats(self):
         """Test add model - with meta features"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("features").insert({"id": "123",
+            rdb.table("features").insert({"id": "123",
                                         "meta_feats": ['f1', 'f2']}).run(conn)
             new_key = fa.add_model(model_name="TEST_NAME",
                                    featureset_name="TEST",
@@ -842,28 +835,27 @@ class FlaskAppTestCase(unittest.TestCase):
                                    model_type="RandomForestClassifier",
                                    model_params={},
                                    projkey="ABC", pid="2")
-            entry = r.table("models").get(new_key).run(conn)
+            entry = rdb.table("models").get(new_key).run(conn)
             npt.assert_equal(entry['name'], "TEST_NAME")
             npt.assert_equal(entry['projkey'], "ABC")
             npt.assert_equal(entry['meta_feats'], ['f1', 'f2'])
-            r.table("models").get(new_key).delete().run(conn)
+            rdb.table("models").get(new_key).delete().run(conn)
 
     def test_add_prediction(self):
         """Test add prediction entry"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             new_key = fa.add_prediction(project_name="abc123",
                                         model_key="model_key",
                                         model_name="model_name",
                                         model_type="RandomForestClassifier",
-                                        pred_filename="test.dat",
+                                        dataset_id="ds1",
                                         pid="2")
-            entry = r.table("predictions").get(new_key).run(conn)
+            entry = rdb.table("predictions").get(new_key).run(conn)
             npt.assert_equal(entry['project_name'], "abc123")
-            npt.assert_equal(entry['metadata_file'], "None")
 
     def test_get_projects_associated_files(self):
         """Test get project's associated files"""
@@ -872,12 +864,12 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             fpaths = fa.project_associated_files("abc123")
             npt.assert_equal(fpaths, [])
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
@@ -885,7 +877,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "created": "abc123",
                                       "featset_key": "abc123",
                                       "meta_feats": ["a", "b", "c"]}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "model_type":
                                            "RandomForestClassifier",
@@ -906,7 +898,7 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             fpaths = fa.model_associated_files("abc123")
             npt.assert_equal(fpaths, [])
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
@@ -926,7 +918,7 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             fpaths = fa.featset_associated_files("abc123")
             npt.assert_equal(fpaths, [])
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -948,7 +940,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -958,7 +950,7 @@ class FlaskAppTestCase(unittest.TestCase):
             assert os.path.exists(pjoin(config['paths']['features_folder'],
                                         "abc123_featureset.nc"))
             fa.delete_associated_project_data("features", "abc123")
-            count = r.table("features").filter({"id":
+            count = rdb.table("features").filter({"id":
                                                 "abc123"}).count().run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
@@ -969,7 +961,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RandomForestClassifier",
@@ -979,7 +971,7 @@ class FlaskAppTestCase(unittest.TestCase):
             open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
             assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             fa.delete_associated_project_data("models", "abc123")
-            count = r.table("models").filter({"id": "abc123"}).count()\
+            count = rdb.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(config['paths']['models_folder'],
@@ -990,7 +982,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "headerfile_path": "HEADPATH.dat",
@@ -998,7 +990,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
             fa.delete_associated_project_data("predictions", "abc123")
-            count = r.table("predictions").filter({"id": "abc123"}).count()\
+            count = rdb.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
 
@@ -1007,21 +999,21 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "headerfile_path": "HEADPATH.dat",
@@ -1036,20 +1028,20 @@ class FlaskAppTestCase(unittest.TestCase):
             assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             # Call the method being tested
             fa.delete_project("abc123")
-            count = r.table("projects").filter({"id": "abc123"}).count()\
+            count = rdb.table("projects").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
             npt.assert_equal(count, 0)
-            count = r.table("features").filter({"id": "abc123"}).count()\
+            count = rdb.table("features").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
-            count = r.table("models").filter({"id": "abc123"}).count()\
+            count = rdb.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc123.pkl"))
-            count = r.table("predictions").filter({"id": "abc123"}).count()\
+            count = rdb.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
 
@@ -1058,29 +1050,29 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("userauth").insert({"id": "abc123",
+            rdb.table("userauth").insert({"id": "abc123",
                                         "projkey": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("userauth").insert({"id": "abc123_2",
+            rdb.table("userauth").insert({"id": "abc123_2",
                                         "projkey": "abc123",
                                         "userkey": "abc@123.com",
                                         "active": "y"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "model_name": "abc123",
@@ -1090,8 +1082,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "featlist":
                                            ["a", "b", "c"]}).run(conn)
             proj_info = fa.get_project_details("abc123")
-            r.table("userauth").get("abc123").delete().run(conn)
-            r.table("userauth").get("abc123_2").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123_2").delete().run(conn)
             assert all(email in proj_info["authed_users"] for email in
                        [TEST_EMAIL, "abc@123.com"])
             assert "<table" in proj_info["featuresets"] and "abc123" in \
@@ -1107,29 +1099,29 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("userauth").insert({"id": "abc123",
+            rdb.table("userauth").insert({"id": "abc123",
                                         "projkey": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("userauth").insert({"id": "abc123_2",
+            rdb.table("userauth").insert({"id": "abc123_2",
                                         "projkey": "abc123",
                                         "userkey": "abc@123.com",
                                         "active": "y"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "model_name": "abc123",
@@ -1141,8 +1133,8 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = self.app.post("/get_project_details/abc123")
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("userauth").get("abc123").delete().run(conn)
-            r.table("userauth").get("abc123_2").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123_2").delete().run(conn)
         res_dict = json.loads(rv.data.decode())
         npt.assert_equal(res_dict['name'], "abc123")
         npt.assert_array_equal(sorted(res_dict["authed_users"]),
@@ -1155,17 +1147,17 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("userauth").insert({"id": "abc123",
+            rdb.table("userauth").insert({"id": "abc123",
                                         "projkey": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("userauth").insert({"id": "abc123_2",
+            rdb.table("userauth").insert({"id": "abc123_2",
                                         "projkey": "abc123",
                                         "userkey": "abc@123.com",
                                         "active": "y"}).run(conn)
             authed_users = fa.get_authed_users("abc123")
-            r.table("userauth").get("abc123").delete().run(conn)
-            r.table("userauth").get("abc123_2").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123_2").delete().run(conn)
             npt.assert_array_equal(sorted(authed_users),
                                    sorted([TEST_EMAIL, "abc@123.com"] +
                                           fa.sys_admin_emails))
@@ -1175,7 +1167,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123_name"}).run(conn)
             key = fa.project_name_to_key("abc123_name")
             npt.assert_equal(key, "abc123")
@@ -1185,7 +1177,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("features").insert({"id": "abc123",
+            rdb.table("features").insert({"id": "abc123",
                                         "name": "abc123_name",
                                         "projkey": "abc123"}).run(conn)
             key = fa.featureset_name_to_key("abc123_name",
@@ -1197,10 +1189,10 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("features").insert({"id": "abc123",
+            rdb.table("features").insert({"id": "abc123",
                                         "name": "abc123_name",
                                         "projkey": "abc123"}).run(conn)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123_name"}).run(conn)
             key = fa.featureset_name_to_key("abc123_name",
                                             project_name="abc123_name")
@@ -1213,20 +1205,20 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             for table_name in ("userauth", "projects"):
                 delete_entries_by_table(table_name)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("userauth").insert({"id": "abc123",
+            rdb.table("userauth").insert({"id": "abc123",
                                         "projkey": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "active": "y"}).run(conn)
-            r.table("userauth").insert({"id": "abc123_2",
+            rdb.table("userauth").insert({"id": "abc123_2",
                                         "projkey": "abc123",
                                         "userkey": "abc@123.com",
                                         "active": "y"}).run(conn)
             fa.update_project_info("abc123", "new_name", "DESC!", [])
             proj_dets = fa.get_project_details("new_name")
             npt.assert_equal(
-                r.table("userauth").filter(
+                rdb.table("userauth").filter(
                     {"id": "abc123_2"}).count().run(conn),
                 0)
             npt.assert_equal(proj_dets["description"], "DESC!")
@@ -1236,9 +1228,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -1247,8 +1239,8 @@ class FlaskAppTestCase(unittest.TestCase):
                 .close()
             fa.update_project_info("abc123", "abc123", "", [],
                                    delete_features_keys=["abc123"])
-            r.table("projects").get("abc123").delete().run(conn)
-            npt.assert_equal(r.table("features").filter({"id":"abc123"})\
+            rdb.table("projects").get("abc123").delete().run(conn)
+            npt.assert_equal(rdb.table("features").filter({"id":"abc123"})\
                              .count().run(conn), 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
@@ -1259,15 +1251,15 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             featurize_setup()
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featset_key": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -1277,7 +1269,7 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.update_project_info("abc123", "abc123", "", [],
                                    delete_model_keys=["abc123"])
             npt.assert_equal(
-                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                rdb.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
             assert not os.path.exists(
                 pjoin(config['paths']['models_folder'], "abc123.pkl"))
@@ -1287,16 +1279,16 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123"}).run(conn)
             fa.update_project_info("abc123", "abc123", "", [],
                                    delete_prediction_keys=["abc123"])
-            r.table("projects").get("abc123").delete().run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
             npt.assert_equal(
-                r.table("predictions").filter(
+                rdb.table("predictions").filter(
                     {"id": "abc123"}).count().run(conn),
                 0)
 
@@ -1307,19 +1299,19 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             d = fa.get_all_info_dict()
             npt.assert_equal(len(d['list_of_current_projects']), 0)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             d = fa.get_all_info_dict()
-            r.table("projects").get("abc123").delete().run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
             npt.assert_equal(len(d['list_of_current_projects']), 0)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("userauth").insert({"id": "abc123",
+            rdb.table("userauth").insert({"id": "abc123",
                                         "projkey": "abc123",
                                         "userkey": TEST_EMAIL,
                                         "active": "y"}).run(conn)
             d = fa.get_all_info_dict()
-            r.table("userauth").get("abc123").delete().run(conn)
+            rdb.table("userauth").get("abc123").delete().run(conn)
             npt.assert_array_equal(d['list_of_current_projects'], ["abc123"])
 
     def test_get_all_info_dict_unauthed(self):
@@ -1329,7 +1321,7 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             d = fa.get_all_info_dict()
             npt.assert_equal(len(d['list_of_current_projects']), 0)
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             d = fa.get_all_info_dict(auth_only=False)
             assert len(d["list_of_current_projects"]) > 0
@@ -1339,9 +1331,8 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             featlist = fa.get_list_of_available_features()
-            expected = sorted(
-                [x for x in config['mltsp']['features_list_science']
-                 if x not in config['mltsp']['ignore_feats_list_science']])
+            expected = sorted([x for x in config['mltsp']['features_list_science']
+                               if x not in config['ignore_feats_list_science']])
             npt.assert_array_equal(featlist, expected)
 
     def test_get_list_of_available_features_set2(self):
@@ -1349,9 +1340,8 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             featlist = fa.get_list_of_available_features_set2()
-            expected = sorted(
-                [x for x in config['mltsp']['features_list_obs']
-                 if x not in config['mltsp']['ignore_feats_list_science']])
+            expected = sorted([x for x in config['mltsp']['features_list_obs']if
+                               x not in config['ignore_feats_list_science']])
             npt.assert_array_equal(featlist, expected)
 
     def test_allowed_file(self):
@@ -1409,64 +1399,24 @@ class FlaskAppTestCase(unittest.TestCase):
                 fa.check_headerfile_and_tsdata_format(
                     pjoin(DATA_DIR, "improperlyformattedtsdata2_header.dat"),
                     pjoin(DATA_DIR, "improperlyformattedtsdata2.tar.gz"))
-
-    def test_check_prediction_tsdata_format_dataformaterr1(self):
-        """Test check prediction TS data format - DataFormatError 1"""
-        with fa.app.test_request_context():
-            fa.app.preprocess_request()
-            with self.assertRaises(custom_exceptions.DataFormatError):
-                fa.check_prediction_tsdata_format(
-                    pjoin(DATA_DIR, "improperlyformattedtsdata.tar.gz"))
-
-    def test_check_prediction_tsdata_format_dataformaterr2(self):
-        """Test check prediction TS data format - DataFormatError 2"""
-        with fa.app.test_request_context():
-            fa.app.preprocess_request()
-            with self.assertRaises(custom_exceptions.DataFormatError):
-                fa.check_prediction_tsdata_format(
-                    pjoin(DATA_DIR, "improperlyformattedtsdata2.tar.gz"))
-
-    def test_check_prediction_tsdata_format_fname_error(self):
-        """Test check prediction TS data format - file name error"""
-        with fa.app.test_request_context():
-            fa.app.preprocess_request()
-            with self.assertRaises(custom_exceptions.TimeSeriesFileNameError):
-                fa.check_prediction_tsdata_format(
-                    pjoin(DATA_DIR, "215153_215176_218272_218934.tar.gz"),
-                    pjoin(DATA_DIR, "215153_metadata.dat"))
-
-    def test_check_prediction_tsdata_format_fname_error2(self):
-        """Test check prediction TS data format - file name error #2"""
-        with fa.app.test_request_context():
-            fa.app.preprocess_request()
-            with self.assertRaises(custom_exceptions.TimeSeriesFileNameError):
-                fa.check_prediction_tsdata_format(
-                    pjoin(DATA_DIR, "dotastro_215153.dat"),
-                    pjoin(DATA_DIR, "215153_215176_218272_218934_metadata.dat"))
-
+    
     def test_featurize_proc(self):
         """Test featurize process"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            featurize_setup()
-            r.table("features").insert({"id": "TEST01", "name": "TEST01"})\
+            ts_paths, custom_script_path = featurize_setup()
+            rdb.table("features").insert({"id": "TEST01", "name": "TEST01"})\
                                .run(conn)
             try:
                 fa.featurize_proc(
-                    headerfile_path=pjoin(
-                        config['paths']['upload_folder'],
-                        "asas_training_subset_classes_with_metadata.dat"),
-                    zipfile_path=pjoin(config['paths']['upload_folder'],
-                                       "asas_training_subset.tar.gz"),
+                    ts_paths=ts_paths,
                     features_to_use=["std_err", "amplitude"],
-                    featureset_key="TEST01", is_test=True, email_user=False,
-                    already_featurized=False,
-                    custom_script_path=pjoin(config['paths']['upload_folder'],
-                                             "testfeature1.py"))
+                    featureset_key="TEST01", is_test=True,
+                    custom_script_path=custom_script_path)
             finally:
-                entry = r.table("features").get("TEST01").run(conn)
-                r.table("features").get("TEST01").delete().run(conn)
+                entry = rdb.table("features").get("TEST01").run(conn)
+                rdb.table("features").get("TEST01").delete().run(conn)
             assert(os.path.exists(pjoin(config['paths']['features_folder'],
                                         "TEST01_featureset.nc")))
             assert("results_msg" in entry)
@@ -1481,19 +1431,19 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
             build_model_setup()
-            r.table("features").insert({"id": "TEMP_TEST01",
-                                        "name": "TEMP_TEST01"}).run(conn)
-            r.table("models").insert({"id": "TEMP_TEST01",
-                                      "name": "TEMP_TEST01",
+            rdb.table("features").insert({"id": "test",
+                                        "name": "test"}).run(conn)
+            rdb.table("models").insert({"id": "test",
+                                      "name": "test",
                                       "featureset_name": "abc123",
                                       "parameters": {}}).run(conn)
-            fa.build_model_proc("TEMP_TEST01", "RandomForestClassifier", {},
-                                "TEMP_TEST01")
-            entry = r.table("models").get("TEMP_TEST01").run(conn)
+            fa.build_model_proc("test", "RandomForestClassifier", {},
+                                "test")
+            entry = rdb.table("models").get("test").run(conn)
             assert "results_msg" in entry
             assert os.path.exists(pjoin(config['paths']['models_folder'],
-                                        "TEMP_TEST01.pkl"))
-            model = joblib.load(pjoin(config['paths']['models_folder'], "TEMP_TEST01.pkl"))
+                                        "test.pkl"))
+            model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
             assert hasattr(model, "predict_proba")
             model_and_prediction_teardown()
 
@@ -1503,46 +1453,36 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
 
-            prediction_setup()
+            ts_paths, custom_script_path = prediction_setup()
 
-            r.table("features").insert({"id": "TEMP_TEST01",
-                                        "name": "TEMP_TEST01",
-                                        "projkey": "TEMP_TEST01",
+            rdb.table("features").insert({"id": "test",
+                                        "name": "test",
+                                        "projkey": "test",
                                         "featlist": ["std_err",
                                                      "amplitude"]}).run(conn)
-            r.table("models").insert({"id": "TEMP_TEST01",
-                                      "featset_key": "TEMP_TEST01",
-                                      "projkey": "TEMP_TEST01",
-                                      "name": "TEMP_TEST01",
+            rdb.table("models").insert({"id": "test",
+                                      "featset_key": "test",
+                                      "projkey": "test",
+                                      "name": "test",
                                       "type": "RandomForestClassifier"})\
                              .run(conn)
-            r.table("projects").insert({"id": "TEMP_TEST01", "name":
-                                        "TEMP_TEST01"}).run(conn)
-            r.table("predictions").insert({"id": "TEMP_TEST01"}).run(conn)
-            fa.prediction_proc(
-                pjoin(config['paths']['upload_folder'], "TESTRUN_215153.dat"),
-                "TEMP_TEST01", "TEMP_TEST01", "RandomForestClassifier",
-                "TEMP_TEST01", "TEMP_TEST01",
-                metadata_file=pjoin(config['paths']['upload_folder'],
-                                    "TESTRUN_215153_metadata.dat"))
+            rdb.table("projects").insert({"id": "test", "name":
+                                        "test"}).run(conn)
+            rdb.table("predictions").insert({"id": "test"}).run(conn)
+            fa.prediction_proc(ts_paths, "test", "test", "test")
 
-            entry = r.table("predictions").get("TEMP_TEST01").run(conn)
+            entry = rdb.table("predictions").get("test").run(conn)
             pred_results_dict = entry
             classes = np.array([el[0] for el in
-                                pred_results_dict["pred_results_dict"]["TESTRUN_215153"]],
-                               dtype='U')
+                        pred_results_dict["pred_results_dict"]["dotastro_215153_with_class"]],
+                        dtype='U')
             assert all(c in ['class1', 'class2', 'class3'] for c in classes)
 
             assert all(key in pred_results_dict for key in \
                        ("ts_data_dict", "features_dict"))
-            for fpath in [pjoin(config['paths']['upload_folder'], "TESTRUN_215153.dat"),
-                          pjoin(config['paths']['upload_folder'],
-                                "TESTRUN_215153_metadata.dat"),
-                          pjoin(config['paths']['features_folder'],
-                                "TEMP_TEST01_featureset.nc"),
-                          pjoin(config['paths']['models_folder'], "TEMP_TEST01.pkl"),
-                          pjoin(config['paths']['custom_feature_script_folder'],
-                                "TESTRUN_CF.py")]:
+            for fpath in [pjoin(config['paths']['features_folder'],
+                                "test_featureset.nc"),
+                          pjoin(config['paths']['models_folder'], "test.pkl")]:
                 try:
                     os.remove(fpath)
                 except Exception as e:
@@ -1579,7 +1519,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "TESTPROJ01",
+            rdb.table("projects").insert({"id": "TESTPROJ01",
                                         "name": "TESTPROJ01"}).run(conn)
             rv = self.app.post('/editProjectForm',
                                content_type='multipart/form-data',
@@ -1588,10 +1528,10 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'project_description_edit': 'new_desc',
                                      'addl_authed_users_edit': ''})
             res_str = str(rv.data)
-            entry = r.table("projects").get("TESTPROJ01").run(conn)
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            entry = rdb.table("projects").get("TESTPROJ01").run(conn)
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             npt.assert_equal(entry["name"], "TESTPROJ02")
             npt.assert_equal(entry["description"], "new_desc")
 
@@ -1600,9 +1540,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -1619,14 +1559,14 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'addl_authed_users_edit': '',
                                      'delete_features_key': 'abc123'})
             res_str = str(rv.data)
-            entry = r.table("projects").get("abc123").run(conn)
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            entry = rdb.table("projects").get("abc123").run(conn)
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             npt.assert_equal(entry["name"], "abc1234")
             npt.assert_equal(entry["description"], "new_desc")
             npt.assert_equal(
-                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                rdb.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
@@ -1636,23 +1576,23 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(config['paths']['features_folder'], "abc123_featureset.nc"),
                  "w").close()
-            r.table("features").insert({"id": "abc1234", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc1234", "projkey": "abc123",
                                         "name": "abc1234", "created": "abc1234",
                                         "headerfile_path": "HEADPATH4.dat",
                                         "zipfile_path": "ZIPPATH4.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             open(pjoin(config['paths']['features_folder'], "abc1234_featureset.nc"),
                  "w").close()
-            r.table("features").insert({"id": "abc1235", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc1235", "projkey": "abc123",
                                         "name": "abc1235", "created": "abc1235",
                                         "headerfile_path": "HEADPATH5.dat",
                                         "zipfile_path": "ZIPPATH5.tar.gz",
@@ -1669,25 +1609,25 @@ class FlaskAppTestCase(unittest.TestCase):
                                                              'abc1234',
                                                              'abc1235']})
             res_str = str(rv.data)
-            entry = r.table("projects").get("abc123").run(conn)
-            r.table("projects").get("abc123").delete().run(conn)
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            entry = rdb.table("projects").get("abc123").run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             npt.assert_equal(entry["name"], "abc1234")
             npt.assert_equal(entry["description"], "new_desc")
             npt.assert_equal(
-                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                rdb.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
             npt.assert_equal(
-                r.table("features").filter({"id": "abc1234"}).count().run(conn),
+                rdb.table("features").filter({"id": "abc1234"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc1234_featureset.nc"))
             npt.assert_equal(
-                r.table("features").filter({"id": "abc1235"}).count().run(conn),
+                rdb.table("features").filter({"id": "abc1235"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc1235_featureset.nc"))
@@ -1697,9 +1637,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "headerfile_path": "HEADPATH.dat",
                                       "zipfile_path": "ZIPPATH.tar.gz",
@@ -1708,13 +1648,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "parameters": {},
                                       "type": "RandomForestClassifier"})\
                              .run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
             open(pjoin(config['paths']['models_folder'], "abc123.pkl"), "w").close()
             assert os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
-            r.table("models").insert({"id": "abc1234", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc1234", "projkey": "abc123",
                                       "name": "abc1234", "created": "abc1234",
                                       "headerfile_path": "HEADPATH4.dat",
                                       "zipfile_path": "ZIPPATH4.tar.gz",
@@ -1723,13 +1663,13 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "parameters": {},
                                       "type": "RandomForestClassifier"})\
                              .run(conn)
-            r.table("features").insert({"id": "abc1234", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc1234", "projkey": "abc123",
                                         "name": "abc1234",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
             open(pjoin(config['paths']['models_folder'], "abc1234.pkl"), "w").close()
             assert os.path.exists(pjoin(config['paths']['models_folder'], "abc1234.pkl"))
-            r.table("models").insert({"id": "abc1235", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc1235", "projkey": "abc123",
                                       "name": "abc1235", "created": "abc1235",
                                       "headerfile_path": "HEADPATH5.dat",
                                       "zipfile_path": "ZIPPATH5.tar.gz",
@@ -1738,7 +1678,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "parameters": {},
                                       "type": "RandomForestClassifier"})\
                              .run(conn)
-            r.table("features").insert({"id": "abc1235", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc1235", "projkey": "abc123",
                                         "name": "abc1235",
                                         "created": "",
                                         "featlist": ["a", "b"]}).run(conn)
@@ -1753,26 +1693,26 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'delete_model_key': ['abc123', 'abc1234',
                                                           'abc1235']})
             res_str = str(rv.data)
-            r.table("features").get_all("abc123", "abc1234", "abc1235")\
+            rdb.table("features").get_all("abc123", "abc1234", "abc1235")\
                                .delete().run(conn)
-            entry = r.table("projects").get("abc123").run(conn)
-            r.table("projects").get("abc123").delete().run(conn)
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            entry = rdb.table("projects").get("abc123").run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             npt.assert_equal(entry["name"], "abc1234")
             npt.assert_equal(entry["description"], "new_desc")
             npt.assert_equal(
-                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                rdb.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['models_folder'], "abc123.pkl"))
             npt.assert_equal(
-                r.table("models").filter({"id": "abc1234"}).count().run(conn),
+                rdb.table("models").filter({"id": "abc1234"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc1234.pkl"))
             npt.assert_equal(
-                r.table("models").filter({"id": "abc1235"}).count().run(conn),
+                rdb.table("models").filter({"id": "abc1235"}).count().run(conn),
                 0)
             assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc1235.pkl"))
@@ -1782,9 +1722,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "headerfile_path": "HEADPATH.dat",
@@ -1792,7 +1732,7 @@ class FlaskAppTestCase(unittest.TestCase):
                                            "featset_key": "abc123",
                                            "type": "RandomForestClassifier"})\
                                   .run(conn)
-            r.table("predictions").insert({"id": "abc1234",
+            rdb.table("predictions").insert({"id": "abc1234",
                                            "projkey": "abc1234",
                                            "name": "abc1234",
                                            "created": "",
@@ -1806,18 +1746,18 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'delete_prediction_key': ['abc123',
                                                                'abc1234']})
             res_str = str(rv.data)
-            entry = r.table("projects").get("abc123").run(conn)
-            r.table("projects").get("abc123").delete().run(conn)
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            entry = rdb.table("projects").get("abc123").run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             npt.assert_equal(entry["name"], "abc1234")
             npt.assert_equal(entry["description"], "new_desc")
             npt.assert_equal(
-                r.table("predictions").filter({"id": "abc123"})\
+                rdb.table("predictions").filter({"id": "abc123"})\
                 .count().run(conn), 0)
             npt.assert_equal(
-                r.table("predictions").filter({"id": "abc1234"})\
+                rdb.table("predictions").filter({"id": "abc1234"})\
                 .count().run(conn), 0)
 
     def test_new_project(self):
@@ -1831,11 +1771,11 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'project_description': 'desc',
                                      'addl_authed_users': ''})
             res_str = str(rv.data)
-            entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
+            entry = rdb.table("projects").filter({"name": "abc123"}).run(conn)\
                                                                   .next()
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             assert "successfully created" in res_str
             npt.assert_equal(entry["name"], "abc123")
             npt.assert_equal(entry["description"], "desc")
@@ -1847,11 +1787,11 @@ class FlaskAppTestCase(unittest.TestCase):
             conn = fa.g.rdb_conn
             rv = self.app.get('/newProject/abc123/desc/None/%s' % TEST_EMAIL)
             res_str = str(rv.data)
-            entry = r.table("projects").filter({"name": "abc123"}).run(conn)\
+            entry = rdb.table("projects").filter({"name": "abc123"}).run(conn)\
                                                                   .next()
-            for e in r.table("userauth").filter({"userkey": TEST_EMAIL})\
+            for e in rdb.table("userauth").filter({"userkey": TEST_EMAIL})\
                                         .run(conn):
-                r.table("userauth").get(e['id']).delete().run(conn)
+                rdb.table("userauth").get(e['id']).delete().run(conn)
             assert "successfully created" in res_str
             npt.assert_equal(entry["name"], "abc123")
             npt.assert_equal(entry["description"], "desc")
@@ -1861,7 +1801,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             rv = self.app.post("/editOrDeleteProject",
                                content_type='multipart/form-data',
@@ -1877,21 +1817,21 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "abc123", "created": "abc123",
                                       "featset_key": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "abc123",
                                       "parameters": {},
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("predictions").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("predictions").insert({"id": "abc123", "projkey": "abc123",
                                            "name": "abc123",
                                            "created": "abc123",
                                            "headerfile_path": "HEADPATH.dat",
@@ -1911,20 +1851,20 @@ class FlaskAppTestCase(unittest.TestCase):
                                      'action': 'Delete'})
             res_dict = json.loads(rv.data.decode())
             npt.assert_equal(res_dict["result"], "Deleted 1 project(s).")
-            count = r.table("projects").filter({"id": "abc123"}).count()\
+            count = rdb.table("projects").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
             npt.assert_equal(count, 0)
-            count = r.table("features").filter({"id": "abc123"}).count()\
+            count = rdb.table("features").filter({"id": "abc123"}).count()\
                                                                 .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(config['paths']['features_folder'],
                                             "abc123_featureset.nc"))
-            count = r.table("models").filter({"id": "abc123"}).count()\
+            count = rdb.table("models").filter({"id": "abc123"}).count()\
                                                               .run(conn)
             npt.assert_equal(count, 0)
             assert not os.path.exists(pjoin(config['paths']['models_folder'],
                                             "abc123.pkl"))
-            count = r.table("predictions").filter({"id": "abc123"}).count()\
+            count = rdb.table("predictions").filter({"id": "abc123"}).count()\
                                                                    .run(conn)
             npt.assert_equal(count, 0)
 
@@ -1933,7 +1873,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             rv = self.app.post("/editOrDeleteProject",
                                content_type='multipart/form-data',
@@ -1947,9 +1887,9 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -1964,14 +1904,14 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123", "projkey": "abc123",
                                         "name": "abc123", "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("features").insert({"id": "abc123_2", "projkey": "abc123",
+            rdb.table("features").insert({"id": "abc123_2", "projkey": "abc123",
                                         "name": "abc123_2", "created": "abc",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
@@ -1985,16 +1925,16 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("models").insert({"id": "abc123", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123", "projkey": "abc123",
                                       "name": "model_1", "created": "abc123",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "featset1",
                                       "parameters": {},
                                       "zipfile_path": "ZIPPATH.tar.gz",
                                       "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "abc123_2", "projkey": "abc123",
+            rdb.table("models").insert({"id": "abc123_2", "projkey": "abc123",
                                       "name": "model_2", "created": "abc",
                                       "type": "RandomForestClassifier",
                                       "featureset_name": "featset1",
@@ -2013,9 +1953,9 @@ class FlaskAppTestCase(unittest.TestCase):
         """Test upload features form"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
-            build_model_setup()
+            featurize_setup()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             rv = self.app.post('/uploadFeaturesForm',
                                content_type='multipart/form-data',
@@ -2027,13 +1967,8 @@ class FlaskAppTestCase(unittest.TestCase):
                                       "test_features_with_targets.csv"),
                                      'featuresetname': 'abc123',
                                      'featureset_projname_select': 'abc123'})
-            res_dict = json.loads(rv.data.decode())
-            assert "PID" in res_dict
-            while "currently running" in fa.check_job_status(res_dict["PID"]):
-                time.sleep(1)
-            new_key = res_dict['featureset_key']
-            npt.assert_equal(res_dict["featureset_name"], "abc123")
-            npt.assert_equal(res_dict["zipfile_name"], "None")
+            new_key = list(rdb.table('features').filter({'name':
+                          'abc123'}).pluck('id').run(conn))[0]['id']
             featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
             assert(all(c in ['class1', 'class2', 'class3'] for
@@ -2041,39 +1976,46 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_array_equal(sorted(featureset.data_vars),
                                    ["amplitude", "meta1", "meta2", "meta3",
                                      "std_err"])
-            assert("New feature set files saved successfully" in
-                   res_dict["message"])
-            model_and_prediction_teardown()
+            featurize_teardown()
 
-    def test_upload_data_featurize(self):
+    def test_transform_data_form(self):
+        """Test transform data form"""
+        with fa.app.test_request_context():
+            fa.app.preprocess_request()
+            featurize_setup()
+            conn = fa.g.rdb_conn
+            rdb.table("projects").insert({"id": "abc123",
+                                        "name": "abc123"}).run(conn)
+            rv = self.app.post('/transformData',
+                               content_type='multipart/form-data',
+                               data={'transform_data_dataset_select': 'ds1',
+                                     'transform_data_project_name_select': 'abc123',
+                                     'transform_data_transform_select': 'Train/Test Split'})
+            all_ts_files = []
+            for label in ["train", "test"]:
+                ts_files = list(rdb.table('datasets').filter({'name': 'Test dataset '
+                    '({})'.format(label)}).pluck('ts_filenames').run(conn))[0]['ts_filenames']
+                all_ts_files.extend(ts_files)
+            assert len(all_ts_files) == len(TS_FILES)
+                
+
+    def test_featurize_data(self):
         """Test main upload data to featurize"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            rv = self.app.post('/uploadDataFeaturize',
+            ts_paths, custom_script_path = featurize_setup()
+            rv = self.app.post('/FeaturizeData',
                                content_type='multipart/form-data',
-                               data={'headerfile':
-                                     (open(pjoin(
-                                         DATA_DIR,
-                                         "asas_training_subset_classes.dat"),
-                                         mode='rb'),
-                                      "asas_training_subset_classes.dat"),
-                                     'zipfile':
-                                     (open(pjoin(
-                                         DATA_DIR,
-                                         "asas_training_subset.tar.gz"),
-                                         mode='rb'),
-                                      "asas_training_subset.tar.gz"),
+                               data={'featureset_dataset_select': 'ds1',
                                      'featureset_name': 'abc123',
                                      'featureset_project_name_select': 'abc123',
-                                     'sep': ',',
-                                     'features_selected': ['std_err',
-                                                           'amplitude'],
+                                     'features_selected': ['std_err', 'amplitude'],
                                      'custom_script_tested': 'yes',
                                      'custom_feat_script_file':
-                                     (open(pjoin(DATA_DIR, "testfeature1.py"),
+                                     (open(custom_script_path,
                                            mode='rb'),
                                       "testfeature1.py"),
                                      'custom_feature_checkbox': ['f'],
@@ -2087,12 +2029,11 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
-            assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                      'Delta_Scuti', 'RR_Lyrae']
+            assert(all(c in ['class1', 'class2', 'class3']
                        for c in featureset.target.values.astype('U')))
             cols = list(featureset.data_vars)
-            npt.assert_array_equal(sorted(cols), ["amplitude", "f", "std_err"])
+            npt.assert_array_equal(sorted(cols), ["amplitude", "f", "meta1",
+                                                  "meta2", "meta3", "std_err"])
             fpaths = []
             for fpath in [
                     pjoin(config['paths']['features_folder'], "%s_featureset.nc" % new_key),
@@ -2100,7 +2041,7 @@ class FlaskAppTestCase(unittest.TestCase):
                           "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
-            entry_dict = r.table("features").get(new_key).run(conn)
+            entry_dict = rdb.table("features").get(new_key).run(conn)
             for key in ("headerfile_path", "zipfile_path",
                         "custom_features_script"):
                 if entry_dict and key in entry_dict:
@@ -2109,59 +2050,48 @@ class FlaskAppTestCase(unittest.TestCase):
             for fpath in fpaths:
                 if os.path.exists(fpath):
                     os.remove(fpath)
-            e = r.table('features').get(new_key).run(conn)
-            r.table("features").get(new_key).delete().run(conn)
-            r.table("projects").get("abc123").delete().run(conn)
-            count = r.table("features").filter({"id": new_key}).count()\
+            e = rdb.table('features').get(new_key).run(conn)
+            rdb.table("features").get(new_key).delete().run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
+            count = rdb.table("features").filter({"id": new_key}).count()\
                                                                .run(conn)
             npt.assert_equal(count, 0)
             assert "pid" in e
             assert("New feature set files saved successfully" in
                    res_dict["message"])
             npt.assert_equal(e["name"], "abc123")
+            featurize_teardown()
 
-    def test_upload_data_featurize_no_custom(self):
-        """Test main upload data to featurize - no custom feats"""
+    def test_featurize_data_no_custom(self):
+        """Test main upload data to featurize (no custom feature script)"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            rv = self.app.post('/uploadDataFeaturize',
+            ts_paths, custom_script_path = featurize_setup()
+            rv = self.app.post('/FeaturizeData',
                                content_type='multipart/form-data',
-                               data={'headerfile':
-                                     (open(pjoin(
-                                         DATA_DIR,
-                                         "asas_training_subset_classes.dat"),
-                                         mode='rb'),
-                                      "asas_training_subset_classes.dat"),
-                                     'zipfile':
-                                     (open(pjoin(
-                                         DATA_DIR,
-                                         "asas_training_subset.tar.gz"),
-                                         mode='rb'),
-                                      "asas_training_subset.tar.gz"),
+                               data={'featureset_dataset_select': 'ds1',
                                      'featureset_name': 'abc123',
                                      'featureset_project_name_select': 'abc123',
-                                     'sep': ',',
-                                     'features_selected': ['std_err',
-                                                           'amplitude'],
-                                     'custom_script_tested': "no",
+                                     'features_selected': ['std_err', 'amplitude'],
+                                     'custom_script_tested': 'no',
                                      'is_test': 'True'})
             res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
+            time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
-            assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                      'Delta_Scuti', 'RR_Lyrae']
+            assert(all(c in ['class1', 'class2', 'class3']
                        for c in featureset.target.values.astype('U')))
             cols = list(featureset.data_vars)
-            npt.assert_array_equal(sorted(cols), ["amplitude", "std_err"])
+            npt.assert_array_equal(sorted(cols), ["amplitude", "meta1",
+                                                  "meta2", "meta3", "std_err"])
             fpaths = []
             for fpath in [
                     pjoin(config['paths']['features_folder'], "%s_featureset.nc" % new_key),
@@ -2169,43 +2099,38 @@ class FlaskAppTestCase(unittest.TestCase):
                           "%s_features_with_targets.csv" % new_key)]:
                 if os.path.exists(fpath):
                     fpaths.append(fpath)
-            entry_dict = r.table("features").get(new_key).run(conn)
-            for key in ("headerfile_path", "zipfile_path",
-                        "custom_features_script"):
+            entry_dict = rdb.table("features").get(new_key).run(conn)
+            for key in ("headerfile_path", "zipfile_path"):
                 if entry_dict and key in entry_dict:
                     if entry_dict[key]:
                         fpaths.append(entry_dict[key])
             for fpath in fpaths:
                 if os.path.exists(fpath):
                     os.remove(fpath)
-            e = r.table('features').get(new_key).run(conn)
-            r.table('features').get(new_key).delete().run(conn)
-            count = r.table("features").filter({"id": new_key}).count()\
+            e = rdb.table('features').get(new_key).run(conn)
+            rdb.table("features").get(new_key).delete().run(conn)
+            rdb.table("projects").get("abc123").delete().run(conn)
+            count = rdb.table("features").filter({"id": new_key}).count()\
                                                                .run(conn)
             npt.assert_equal(count, 0)
             assert "pid" in e
             assert("New feature set files saved successfully" in
                    res_dict["message"])
             npt.assert_equal(e["name"], "abc123")
-            assert not os.path.exists(pjoin(config['paths']['features_folder'],
-                                            "%s_featureset.nc" % new_key))
+            featurize_teardown()
 
     def test_featurization_page(self):
         """Test main featurization function"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            headerfile_path, zipfile_path, custom_script_path = \
-                featurize_setup()
-            headerfile_name = os.path.basename(headerfile_path)
-            zipfile_name = os.path.basename(zipfile_path)
+            ts_paths, custom_script_path = featurize_setup()
             rv = fa.featurizationPage(
                 featureset_name="abc123", project_name="abc123",
-                headerfile_name=headerfile_name, zipfile_name=zipfile_name,
-                sep=",", featlist=["avg_mag", "std_err"], is_test=True,
-                email_user=False, already_featurized=False,
+                dataset_id="ds1", featlist=["avg_mag", "std_err"],
+                is_test=True, email_user=False, already_featurized=False,
                 custom_script_path=custom_script_path)
             res_dict = json.loads(rv.data.decode())
             assert "PID" in res_dict
@@ -2215,9 +2140,7 @@ class FlaskAppTestCase(unittest.TestCase):
             npt.assert_equal(res_dict["featureset_name"], "abc123")
             featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
                                                  "%s_featureset.nc" % new_key))
-            assert(all(c in ['Mira', 'Herbig_AEBE', 'Beta_Lyrae',
-                                      'Classical_Cepheid', 'W_Ursae_Maj',
-                                      'Delta_Scuti', 'RR_Lyrae']
+            assert(all(c in ['class1', 'class2']
                        for c in featureset['target'].values.astype('U')))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
                                    ['avg_mag', 'meta1', 'meta2', 'meta3',
@@ -2228,17 +2151,14 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
             shutil.copy(pjoin(DATA_DIR, "test_features_with_targets.csv"),
                         config['paths']['upload_folder'])
             headerfile_name = "test_features_with_targets.csv"
-            headerfile_path, zipfile_path, custom_script_path = \
-                featurize_setup()
-            rv = fa.featurizationPage(
-                featureset_name="abc123", project_name="abc123",
-                headerfile_name=headerfile_name, zipfile_name=None,
-                sep=",", featlist=["std_err", "amplitude"], is_test=True,
+            ts_paths, custom_script_path = featurize_setup()
+            rv = fa.featurizationPage(featureset_name="abc123", project_name="abc123",
+                dataset_id='ds1', featlist=["std_err", "amplitude"], is_test=True,
                 email_user=False, already_featurized=True,
                 custom_script_path=custom_script_path)
             res_dict = json.loads(rv.data.decode())
@@ -2247,10 +2167,8 @@ class FlaskAppTestCase(unittest.TestCase):
                 time.sleep(1)
             new_key = res_dict['featureset_key']
             npt.assert_equal(res_dict["featureset_name"], "abc123")
-            npt.assert_equal(res_dict["zipfile_name"], "None")
-            featureset = xr.open_dataset(
-                pjoin(config['paths']['features_folder'],
-                      "%s_featureset.nc" % new_key))
+            featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
+                                                 "%s_featureset.nc" % new_key))
             assert(all(c in ["class1", "class2", "class3"]
                        for c in featureset['target'].values.astype('U')))
             npt.assert_array_equal(sorted(list(featureset.data_vars)),
@@ -2265,18 +2183,18 @@ class FlaskAppTestCase(unittest.TestCase):
             fa.app.preprocess_request()
             build_model_setup()
             conn = fa.g.rdb_conn
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "TEMP_TEST10",
+            rdb.table("features").insert({"id": "test10",
                                         "projkey": "abc123",
-                                        "name": "TEMP_TEST10",
+                                        "name": "test10",
                                         "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
             rv = fa.buildModel(model_name="NEW_MODEL_NAME",
                                project_name="abc123",
-                               featureset_name="TEMP_TEST10",
+                               featureset_name="test10",
                                model_type="RandomForestClassifier",
                                model_params={},
                                params_to_optimize={"n_estimators":
@@ -2285,125 +2203,101 @@ class FlaskAppTestCase(unittest.TestCase):
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             new_model_key = res_dict["new_model_key"]
-            entry = r.table("models").get(new_model_key).run(conn)
+            entry = rdb.table("models").get(new_model_key).run(conn)
             assert "results_msg" in entry
             model = joblib.load(pjoin(config['paths']['models_folder'],
                                       "{}.pkl".format(new_model_key)))
             assert hasattr(model, "predict_proba")
             model_and_prediction_teardown()
-            r.table("models").get(new_model_key).delete().run(conn)
+            rdb.table("models").get(new_model_key).delete().run(conn)
 
-    def test_upload_prediction_data(self):
-        """Test upload prediction data"""
+    def test_predict_data(self):
+        """Test predict data"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            prediction_setup()
+            ts_paths, custom_script_path = prediction_setup()
             delete_entries_by_table("projects")
             delete_entries_by_table("features")
-            r.table("projects").insert({"id": "abc123",
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "TEMP_TEST01",
+            rdb.table("features").insert({"id": "test",
                                         "projkey": "abc123",
-                                        "name": "TEMP_TEST01",
+                                        "name": "test",
                                         "created": "abc123",
                                         "headerfile_path": "HEADPATH.dat",
                                         "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "TEMP_TEST01",
+            rdb.table("models").insert({"id": "test",
                                       "type": "RandomForestClassifier",
-                                      "featset_key": "TEMP_TEST01",
+                                      "featset_key": "test",
                                       "featureset_name": "abc123",
                                       "projkey": "abc123",
                                       "parameters": {},
-                                      "name": "TEMP_TEST01"}).run(conn)
-            rv = self.app.post('/uploadPredictionData',
+                                      "name": "test"}).run(conn)
+            rv = self.app.post('/PredictData',
                                content_type='multipart/form-data',
-                               data={'newpred_file':
-                                     (open(pjoin(
-                                         DATA_DIR,
-                                         "dotastro_215153.dat"),
-                                         mode='rb'),
-                                      "dotastro_215153.dat"),
-                                     'prediction_files_metadata':
-                                     (open(pjoin(
-                                         DATA_DIR,
-                                         "215153_metadata.dat"),
-                                         mode='rb'),
-                                      "215153_metadata.dat"),
-                                     'newpred_file_sep': ',',
+                               data={'prediction_dataset_select': 'ds1',
                                      'prediction_project_name': 'abc123',
                                      'prediction_model_name_and_type':
-                                     'TEMP_TEST01 - RandomForestClassifier'})
+                                     'test - RandomForestClassifier'})
             res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
-            entry = r.table('predictions').get(new_key).run(conn)
+            entry = rdb.table('predictions').get(new_key).run(conn)
             model_and_prediction_teardown()
             pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
             classes = np.array([el[0] for fname in pred_results
                                 for el in pred_results[fname]], dtype='U')
             assert all(c in ['class1', 'class2', 'class3'] for c in classes)
-            assert "std_err" in feats_dict["dotastro_215153"]
+            assert "std_err" in feats_dict["dotastro_215153_with_class"]
 
     def test_prediction_page(self):
         """Test main prediction function"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            prediction_setup()
-            r.table("projects").insert({"id": "abc123",
+            ts_paths, custom_script_path = prediction_setup()
+            rdb.table("projects").insert({"id": "abc123",
                                         "name": "abc123"}).run(conn)
-            r.table("features").insert({"id": "TEMP_TEST01",
+            rdb.table("features").insert({"id": "test",
                                         "projkey": "abc123",
-                                        "name": "TEMP_TEST01",
+                                        "name": "test",
                                         "created": "abc123",
-                                        "headerfile_path": "HEADPATH.dat",
-                                        "zipfile_path": "ZIPPATH.tar.gz",
                                         "featlist": ["a", "b", "c"]}).run(conn)
-            r.table("models").insert({"id": "TEMP_TEST01",
+            rdb.table("models").insert({"id": "test",
                                       "type": "RandomForestClassifier",
-                                      "featset_key": "TEMP_TEST01",
+                                      "featset_key": "test",
                                       "featureset_name": "abc123",
                                       "parameters": {},
-                                      "name": "TEMP_TEST01"}).run(conn)
-            dsts = [pjoin(config['paths']['upload_folder'],
-                          "TESTRUN_215153.dat"),
-                    pjoin(config['paths']['upload_folder'],
-                          "TESTRUN_215153_metadata.dat")]
-            rv = fa.predictionPage(dsts[0],
+                                      "name": "test"}).run(conn)
+            rv = fa.predictionPage(dataset_id='ds1',
                                    project_name="abc123",
-                                   model_key="TEMP_TEST01",
-                                   model_name="TEMP_TEST01",
-                                   model_type="RandomForestClassifier",
-                                   metadata_file_path=dsts[1])
+                                   model_key="test",
+                                   model_name="test",
+                                   model_type="RandomForestClassifier")
             res_dict = json.loads(rv.data.decode())
             while "currently running" in fa.check_job_status(res_dict["PID"]):
                 time.sleep(1)
             time.sleep(1)
             new_key = res_dict["prediction_entry_key"]
-            entry = r.table('predictions').get(new_key).run(conn)
-            for f in dsts:
-                try:
-                    os.remove(f)
-                except OSError:
-                    pass
+            entry = rdb.table('predictions').get(new_key).run(conn)
             model_and_prediction_teardown()
             pred_results = entry["pred_results_dict"]
             feats_dict = entry["features_dict"]
             classes = np.array([el[0] for fname in pred_results
                                 for el in pred_results[fname]], dtype='U')
             assert all(c in ['class1', 'class2', 'class3'] for c in classes)
-            assert "std_err" in feats_dict["TESTRUN_215153"]
+            assert "std_err" in feats_dict["dotastro_215153_with_class"]
 
     def test_load_source_data(self):
         """Test load source data"""
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('predictions').insert({'id': 'abc123',
+            rdb.table('predictions').insert({'id': 'abc123',
                                            'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1}}).run(conn)
@@ -2417,7 +2311,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('predictions').insert({'id': 'abc123',
+            rdb.table('predictions').insert({'id': 'abc123',
                                            'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1}}).run(conn)
@@ -2431,7 +2325,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('predictions').insert({'id': 'abc123',
+            rdb.table('predictions').insert({'id': 'abc123',
                                            'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1},
@@ -2449,7 +2343,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('predictions').insert({'id': 'abc123',
+            rdb.table('predictions').insert({'id': 'abc123',
                                            'pred_results_dict': {'a': 1},
                                            'features_dict': {'a': 1},
                                            'ts_data_dict': {'a': 1},
@@ -2467,7 +2361,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('models').insert({'id': 'abc123',
+            rdb.table('models').insert({'id': 'abc123',
                                       'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
@@ -2502,7 +2396,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('models').insert({'id': 'abc123',
+            rdb.table('models').insert({'id': 'abc123',
                                       'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
@@ -2513,7 +2407,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = fa.load_model_build_results("abc123")
             res_dict = json.loads(rv.data.decode())
             npt.assert_equal(
-                r.table("models").filter({"id": "abc123"}).count().run(conn),
+                rdb.table("models").filter({"id": "abc123"}).count().run(conn),
                 0)
             npt.assert_equal(res_dict, {'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
@@ -2529,7 +2423,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('models').insert({'id': 'abc123',
+            rdb.table('models').insert({'id': 'abc123',
                                       'pred_results_dict': {'a': 1},
                                       'features_dict': {'a': 1},
                                       'ts_data_dict': {'a': 1},
@@ -2553,7 +2447,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('features').insert({'id': 'abc123',
+            rdb.table('features').insert({'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
@@ -2573,7 +2467,7 @@ class FlaskAppTestCase(unittest.TestCase):
         with fa.app.test_request_context():
             fa.app.preprocess_request()
             conn = fa.g.rdb_conn
-            r.table('features').insert({'id': 'abc123',
+            rdb.table('features').insert({'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
@@ -2605,7 +2499,7 @@ class FlaskAppTestCase(unittest.TestCase):
                 tmp_files.append(os.path.join("/tmp",
                                               "%s.dat" % str(uuid.uuid4())[:8]))
                 open(tmp_files[-1], "w").close()
-            r.table('features').insert({'id': 'abc123',
+            rdb.table('features').insert({'id': 'abc123',
                                         'pred_results_dict': {'a': 1},
                                         'features_dict': {'a': 1},
                                         'ts_data_dict': {'a': 1},
@@ -2617,7 +2511,7 @@ class FlaskAppTestCase(unittest.TestCase):
             rv = fa.load_featurization_results("abc123")
             res_dict = json.loads(rv.data.decode())
             npt.assert_equal(
-                r.table("features").filter({"id": "abc123"}).count().run(conn),
+                rdb.table("features").filter({"id": "abc123"}).count().run(conn),
                 0)
             npt.assert_equal(res_dict, {'id': 'abc123',
                                         'pred_results_dict': {'a': 1},

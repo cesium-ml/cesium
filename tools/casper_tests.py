@@ -3,6 +3,7 @@
 import subprocess
 import glob
 import os
+import socket
 import sys
 import time
 try:
@@ -57,11 +58,16 @@ if __name__ == '__main__':
 
         for timeout in range(10):
             conn = http.HTTPConnection("localhost", 5000)
-            conn.request('HEAD', '/')
-            status = conn.getresponse().status
-            if status == 200:
-                break
+            try:
+                conn.request('HEAD', '/')
+                status = conn.getresponse().status
+                if status == 200:
+                    break
+            except socket.error:
+                pass
             time.sleep(1)
+        else:
+            raise socket.error("Could not connect to localhost:5000.")
 
         if status != 200:
             print('[test_frontend] Server status is {} instead of 200'.format(

@@ -208,7 +208,6 @@ function uploadFeaturesFormDialog(){
         });
     });
 
-
 }
 
 
@@ -287,6 +286,13 @@ function editOrDeleteProjectFormSubmit(){
                               </td> \
                               </tr> \
                               <tr> <td><BR></td></tr><tr>\
+                              <td align='left' colspan=3> \
+                              <div onclick=\"$('#datasets_table').toggle('slow');\"><label>Data sets (click to show/hide table):</label></div> \
+                              </td> \
+                              </tr> \
+                              </table> \
+                              " + response['datasets'] + " \
+                              <table><tr> <td><BR></td></tr><tr> \
                               <td align='left' colspan=3> \
                               <div onclick=\"$('#features_table').toggle('slow');\"><label>Feature sets (click to show/hide table):</label></div> \
                               </td> \
@@ -435,6 +441,19 @@ function populate_select_options(select_id,option_vals_list){
 
 }
 
+function populate_select_names_ids(select_id,option_vals_list){
+    var $selector = $("#"+select_id);
+    $selector.empty().append(function(){
+        var optionval = "";
+        $.each(option_vals_list, function(index){
+            var option = option_vals_list[index];
+            optionval += "<option value='" + option.id + "'>" + option.name + "</option>"
+        });
+        return optionval;
+    }).change();
+
+}
+
 function prediction_metadata_required_validate(TrueOrFalse){
 
 
@@ -573,6 +592,85 @@ function resetFormElement(e){
 
 
 
+function uploadFormSubmit(){
+
+    $("#model_build_results").html("<img src='/static/media/spinner_black.gif'> Uploading files...");
+
+    $("#uploadForm").ajaxSubmit({
+        /* error: function(response){
+            var x = confirm("error:");
+            var x = confirm(response);
+            return true;
+        }, */
+        success: function(response){
+
+            // var x = confirm(response["featureset_key"]);
+            // var x = confirm(response["msg"]);
+
+            if("type" in response){
+                if(response["type"]=="error"){
+                    var is_error = true;
+                }else{
+                    var is_error = false;
+                }
+
+            }else{
+                var is_error = false;
+            }
+
+            if(is_error==true){
+
+                alert(response["message"]);
+                $("#model_build_results").html(response["message"]);
+
+                resetFormElement($("#headerfile"));
+                resetFormElement($("#zipfile"));
+
+            }/*else{
+
+                var PID = response["PID"];
+                var featureset_name = response["featureset_name"];
+                var featureset_key = response["featureset_key"];
+                var project_name = response["project_name"];
+                var headerfile_name = response["headerfile_name"];
+                var zipfile_name = response["zipfile_name"];
+
+
+                window.location.replace("http://"+location.host+"/featurizing?PID="+PID+"&featureset_key="+featureset_key+"&project_name="+project_name+"&featureset_name="+featureset_name);
+
+            }*/
+            else{
+                $("#model_build_results").html("Upload complete.");
+            }
+
+        }
+    });
+}
+
+
+function transformDataFormSubmit(){
+
+    $("#model_build_results").html("<img src='/static/media/spinner_black.gif'> Transforming files...");
+
+    $("#transformDataForm").ajaxSubmit({
+        /* error: function(response){
+            var x = confirm("error:");
+            var x = confirm(response);
+            return true;
+        }, */
+        success: function(response){
+
+            // var x = confirm(response["featureset_key"]);
+            // var x = confirm(response["msg"]);
+
+            $("#model_build_results").html("Transformation complete.");
+
+        }
+    });
+}
+
+
+
 function featurizeFormSubmit(){
 
     $("#model_build_results").html("<img src='/static/media/spinner_black.gif'> Uploading files...");
@@ -660,8 +758,7 @@ function predictFormSubmit(){
                 alert(response["message"]);
                 $("#pred_results").html(response["message"]);
 
-                resetFormElement($("#newpred_file"));
-                resetFormElement($("#prediction_files_metadata"));
+                resetFormElement($("#predict_dataset_select"));
 
 
             }else{
@@ -1060,29 +1157,40 @@ function get_lc_data_filename(filename,sep){
 
 
 
+function upload_form_validation(){
+    var headerfile_name = $("#headerfile").val();
+    var zipfile_name = $("#zipfile").val();
+    var dataset_name = $("#dataset_name").val();
+    if(headerfile_name=="" || zipfile_name=="" || $.trim(dataset_name)==""){
+	if($.trim(upload_name)==""){
+	    $('#upload_button').attr('disabled','disabled');
+	}else{
+	    $('#upload_button').removeAttr('disabled');
+	}
+
+	$("#headerfile,#zipfile").change(function(){
+	    var headerfile_name = $("#headerfile").val();
+	    var zipfile_name = $("#zipfile").val();
+	    var upload_name = $("#featureset_name").val();
+	    if(headerfile_name=="" || zipfile_name=="" || $.trim(upload_name)==""){
+		$('#upload_button').attr('disabled','disabled');
+	    }else{
+		$('#upload_button').removeAttr('disabled');
+	    }
+	});
+    }
+}
+
 
 function featurize_form_validation(){
 
 
-    var headerfile_name = $("#headerfile").val();
-    var zipfile_name = $("#zipfile").val();
     var featset_name = $("#featureset_name").val();
-    if(headerfile_name=="" || zipfile_name=="" || $.trim(featset_name)==""){
+    if($.trim(featset_name)==""){
         $('#featurize_button').attr('disabled','disabled');
     }else{
         $('#featurize_button').removeAttr('disabled');
     }
-
-    $("#headerfile,#zipfile").change(function(){
-        var headerfile_name = $("#headerfile").val();
-        var zipfile_name = $("#zipfile").val();
-        var featset_name = $("#featureset_name").val();
-        if(headerfile_name=="" || zipfile_name=="" || $.trim(featset_name)==""){
-            $('#featurize_button').attr('disabled','disabled');
-        }else{
-            $('#featurize_button').removeAttr('disabled');
-        }
-    });
 }
 
 
@@ -1283,6 +1391,45 @@ function populate_select_options_multiple(){
     $("#prediction_model_name_and_type").change( function(){
         pred_model_select_change(); });
 
+
+    $.get("/get_list_of_datasets_by_project/"+String($("#prediction_project_name").val()), function(data){
+        var selected_project_datasets = data['dataset_list'];
+        populate_select_names_ids('prediction_dataset_select',selected_project_datasets);
+    });
+
+    $("#prediction_project_name").change( function(){
+
+        $.get("/get_list_of_datasets_by_project/"+String($("#prediction_project_name").val()), function(data){
+            var selected_project_datasets = data['dataset_list'];
+            populate_select_names_ids('prediction_dataset_select',selected_project_datasets);
+        });
+    });
+
+    $.get("/get_list_of_datasets_by_project/"+String($("#transform_data_project_name_select").val()), function(data){
+        var selected_project_datasets = data['dataset_list'];
+        populate_select_names_ids('transform_data_dataset_select',selected_project_datasets);
+    });
+
+    $("#transform_data_project_name_select").change( function(){
+
+        $.get("/get_list_of_datasets_by_project/"+String($("#transform_data_project_name_select").val()), function(data){
+            var selected_project_datasets = data['dataset_list'];
+            populate_select_names_ids('transform_data_dataset_select',selected_project_datasets);
+        });
+    });
+
+    $.get("/get_list_of_datasets_by_project/"+String($("#featureset_project_name_select").val()), function(data){
+        var selected_project_datasets = data['dataset_list'];
+        populate_select_names_ids('featureset_dataset_select',selected_project_datasets);
+    });
+
+    $("#featureset_project_name_select").change( function(){
+
+        $.get("/get_list_of_datasets_by_project/"+String($("#featureset_project_name_select").val()), function(data){
+            var selected_project_datasets = data['dataset_list'];
+            populate_select_names_ids('featureset_dataset_select',selected_project_datasets);
+        });
+    });
 }
 
 

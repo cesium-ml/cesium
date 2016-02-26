@@ -41,6 +41,7 @@ paths:
     sample_data_path: '{data_path}/sample_data'
     models_folder:    '{data_path}/classifier_models'
     features_folder:  '{data_path}/extracted_features'
+    ts_data_folder:  '{data_path}/ts_data'
 
     upload_folder:    '{data_path}/flask_uploads'
     custom_feature_script_folder: '{data_path}/flask_uploads/custom_feature_scripts'

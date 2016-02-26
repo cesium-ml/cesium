@@ -1,6 +1,6 @@
 from mltsp.cfg import config
+from mltsp import data_management
 from mltsp import science_feature_tools as sft
-from mltsp import featurize_tools as ft
 
 import numpy as np
 import numpy.testing as npt
@@ -82,9 +82,9 @@ def test_feature_generation():
     features_extracted = None
     values_computed = None
     for i, ts_data_file_path in enumerate(test_files):
-        t, m, e = ft.parse_ts_data(ts_data_file_path)
-        features = sft.generate_science_features(
-            t, m, e, config['mltsp']['features_list_science'])
+        t, m, e = data_management.parse_ts_data(ts_data_file_path)
+        features = sft.generate_science_features(t, m, e,
+            config['mltsp']['features_list_science'])
         sorted_features = sorted(features.items())
         if features_extracted is None:
             features_extracted = [f[0] for f in sorted_features]
