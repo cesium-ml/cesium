@@ -1,6 +1,5 @@
 from mltsp import custom_feature_tools as cft
 from mltsp import featurize_tools as ft
-from mltsp.cfg import config
 from mltsp import util
 from mltsp import custom_feature_tools as cft
 from mltsp import data_management
@@ -17,12 +16,16 @@ from numpy.testing import decorators as dec
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+USE_DOCKER = None
 
 
 def setup():
-    shutil.copy(pjoin(DATA_PATH, "testfeature1.py"),
-                pjoin(config['paths']['custom_feature_script_folder'],
-                      "custom_feature_defs.py"))
+    global USE_DOCKER
+    if util.docker_images_available():
+        USE_DOCKER = True
+    else:
+        USE_DOCKER = False
+        print("WARNING: computing custom features outside Docker container...")
 
 
 def test_parse_for_req_prov_params():
@@ -65,13 +68,13 @@ def test_execute_functions_in_order():
     assert(all(x in feats for x in ["a", "l", "o"]))
 
 
-@dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
+@dec.skipif(not USE_DOCKER, "Docker testing turned off")
 def test_docker_installed():
     """Test check to see if Docker is installed on local machine"""
     assert(util.docker_images_available())
 
 
-@dec.skipif(config['testing']['no_docker'], "Docker testing turned off")
+@dec.skipif(not USE_DOCKER, "Docker testing turned off")
 def test_docker_extract_features():
     """Test main Docker extract features method"""
     script_fpath = pjoin(DATA_PATH, "testfeature1.py")
@@ -93,7 +96,7 @@ def test_assemble_test_data():
 
 def test_verify_new_script():
     """Test verify_new_script"""
-    feats = cft.verify_new_script(pjoin(DATA_PATH, "testfeature1.py"))
+    feats = cft.verify_new_script(pjoin(DATA_PATH, "testfeature1.py"), use_docker=False)
     npt.assert_almost_equal(feats["avg_mag"], 10.347417647058824)
 
 
@@ -110,17 +113,5 @@ def test_generate_custom_features():
     t, m, e = data_management.parse_ts_data(pjoin(DATA_PATH,
                                                   "dotastro_215153.dat"))
     feats = cft.generate_custom_features(pjoin(DATA_PATH, "testfeature1.py"),
-                                         t, m, e)
+                                         t, m, e, use_docker=USE_DOCKER)
     npt.assert_almost_equal(feats["avg_mag"], 10.347417647058824)
-
-
-def teardown():
-    """Tear-down - remove tmp files"""
-    pass
-    ## for f in glob.glob(pjoin(config['paths']['tmp_custom_feats_folder'],
-    ##                          'testfeature*'))
-
-    ##     [pjoin(config['paths']['package_path'],
-    ##                 "custom_feature_scripts/custom_feature_defs.py")]:
-    ##     if os.path.isfile(f):
-    ##         os.remove(f)

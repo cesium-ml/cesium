@@ -3,10 +3,14 @@ import netCDF4
 import numpy as np
 import pandas as pd
 import xarray as xr
-from .cfg import config
 
 
-__all__ = ['from_netcdf', 'TimeSeries']
+__all__ = ['from_netcdf', 'TimeSeries', 'DEFAULT_MAX_TIME',
+           'DEFAULT_ERROR_VALUE']
+
+
+DEFAULT_MAX_TIME = 1.0
+DEFAULT_ERROR_VALUE = 1e-4
 
 
 def _default_values_like(old_values, value=None, upper=None):
@@ -144,29 +148,23 @@ class TimeSeries:
         if isinstance(m, np.ndarray) and m.ndim == 1:
             self.n_channels = 1
             if t is None:
-                t = _default_values_like(m,
-                        upper=config['mltsp']['DEFAULT_MAX_TIME'])
+                t = _default_values_like(m, upper=DEFAULT_MAX_TIME)
             if e is None:
-                e = _default_values_like(m,
-                        value=config['mltsp']['DEFAULT_ERROR_VALUE'])
+                e = _default_values_like(m, value=DEFAULT_ERROR_VALUE)
         # If m is 2-dimensional, t and e could be 1d or 2d; default is 1d
         elif isinstance(m, np.ndarray) and m.ndim == 2:
             self.n_channels = len(m)
             if t is None:
-                t = _default_values_like(m[0],
-                        upper=config['mltsp']['DEFAULT_MAX_TIME'])
+                t = _default_values_like(m[0], upper=DEFAULT_MAX_TIME)
             if e is None:
-                e = _default_values_like(m[0],
-                        value=config['mltsp']['DEFAULT_ERROR_VALUE'])
+                e = _default_values_like(m[0], value=DEFAULT_ERROR_VALUE)
         # If m is ragged (list of 1d arrays), t and e should also be ragged
         elif isinstance(m, list):
             self.n_channels = len(m)
             if t is None:
-                t = _default_values_like(m,
-                        upper=config['mltsp']['DEFAULT_MAX_TIME'])
+                t = _default_values_like(m, upper=DEFAULT_MAX_TIME)
             if e is None:
-                e = _default_values_like(m,
-                        value=config['mltsp']['DEFAULT_ERROR_VALUE'])
+                e = _default_values_like(m, value=DEFAULT_ERROR_VALUE)
         else:
             raise ValueError("...")
 

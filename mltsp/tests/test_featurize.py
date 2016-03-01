@@ -1,9 +1,11 @@
-from mltsp.cfg import config
 from mltsp import featurize
+from mltsp import util
 from nose.tools import with_setup
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
+import shutil
+import tempfile
 import numpy as np
 import xarray as xr
 
@@ -17,14 +19,28 @@ TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                     "dotastro_215176_with_target.nc"]]
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
-TEST_OUTPUT_PATHS = [pjoin(config['paths']['features_folder'],
-                           "test_featureset.nc")]
+USE_DOCKER = None
+TEMP_DIR = None
 
 
-def remove_test_data():
-    for f in TEST_OUTPUT_PATHS:
+def setup():
+    global USE_DOCKER, TEMP_DIR
+    if util.docker_images_available():
+        USE_DOCKER = True
+    else:
+        USE_DOCKER = False
+        print("WARNING: computing custom features outside Docker container...")
+    TEMP_DIR = tempfile.mkdtemp()
+
+
+def teardown():
+    shutil.rmtree(TEMP_DIR)
+
+
+def remove_output():
+    for f in ['test_featureset.nc']:
         try:
-            os.remove(f)
+            os.remove(pjoin(TEMP_DIR, f))
         except OSError:
             pass
 
@@ -47,59 +63,47 @@ def sample_time_series(size=51, channels=1):
     return times, values, errors
 
 
-@with_setup(teardown=remove_test_data)
-def test_write_features_to_disk():
-    """Test writing features to disk"""
-    featurize.write_features_to_disk(sample_featureset(), "test")
-    with xr.open_dataset(pjoin(config['paths']['features_folder'],
-                               "test_featureset.nc")) as fset:
-        npt.assert_equal(sorted(fset.data_vars), ['f1', 'f2'])
-        npt.assert_equal(sorted(fset.coords), ['name', 'target'])
-        npt.assert_equal(fset['f1'].values, [21.0, 23.4])
-        npt.assert_equal(fset['f2'].values, [0.15, 2.31])
-        npt.assert_equal(fset['target'].values.astype('U'), ['c1', 'c2'])
-
-
-@with_setup(teardown=remove_test_data)
+@with_setup(teardown=remove_output)
 def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
+    fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
     fset = featurize.load_and_store_feature_data(FEATURES_CSV_PATH,
-                                                 featureset_id="test",
-                                                 first_N=config['mltsp']['TEST_N'])
+                                                 output_path=fset_path)
     assert("std_err" in fset)
     assert("amplitude" in fset)
     assert(all(class_name in ['class1', 'class2', 'class3']
                for class_name in fset['target']))
-    with xr.open_dataset(pjoin(config['paths']['features_folder'],
-                               "test_featureset.nc")) as loaded:
+    with xr.open_dataset(fset_path) as loaded:
         assert("std_err" in loaded)
         assert("amplitude" in loaded)
         assert(all(class_name in ['class1', 'class2', 'class3']
                    for class_name in loaded['target']))
 
 
-@with_setup(teardown=remove_test_data)
+@with_setup(teardown=remove_output)
 def test_featurize_files_function():
     """Test featurize function for on-disk time series"""
+    fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
     fset = featurize.featurize_data_files(ts_paths=TS_CLASS_PATHS,
+                                          output_path=fset_path,
                                           features_to_use=["std_err", "f"],
-                                          featureset_id="test",
-                                          first_N=config['mltsp']['TEST_N'],
-                                          custom_script_path=CUSTOM_SCRIPT)
+                                          custom_script_path=CUSTOM_SCRIPT,
+                                          use_docker=USE_DOCKER)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(class_name in ['class1', 'class2']
                for class_name in fset['target'].values))
 
 
-@with_setup(teardown=remove_test_data)
+@with_setup(teardown=remove_output)
 def test_featurize_files_function_regression_data():
     """Test featurize function for on-disk time series - regression data"""
+    fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
     fset = featurize.featurize_data_files(ts_paths=TS_TARGET_PATHS,
+                                          output_path=fset_path,
                                           features_to_use=["std_err", "f"],
-                                          featureset_id="test",
-                                          first_N=config['mltsp']['TEST_N'],
-                                          custom_script_path=CUSTOM_SCRIPT)
+                                          custom_script_path=CUSTOM_SCRIPT,
+                                          use_docker=USE_DOCKER)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(target in [1.0, 3.0] for target in fset['target'].values))
@@ -286,6 +290,7 @@ def test_featurize_time_series_custom_script():
     fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
                                            meta_features,
                                            custom_script_path=CUSTOM_SCRIPT,
+                                           use_docker=USE_DOCKER,
                                            use_celery=False)
     npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'f', 'meta1', 'std_err'])

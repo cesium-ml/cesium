@@ -3,32 +3,23 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
+import tempfile
 import numpy as np
-from mltsp.cfg import config
 from mltsp import data_management
 from mltsp import util
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-INPUT_TEST_FILES = ["215153_215176_218272_218934_metadata.dat",
-                    "215153_215176_218272_218934.tar.gz", "247327.dat"]
-EXTRACTED_TEST_FILES = ["dotastro_218934.dat", "dotastro_218272.dat",
-                        "dotastro_215176.dat", "dotastro_215153.dat"]
+TEMP_DIR = None
 
 
-def copy_test_data():
-    for fname in INPUT_TEST_FILES:
-        shutil.copy(pjoin(DATA_PATH, fname), config['paths']['upload_folder'])
+def setup():
+    global TEMP_DIR
+    TEMP_DIR = tempfile.mkdtemp()
 
 
-def remove_test_data():
-    ts_data_paths = [pjoin(DATA_PATH, util.shorten_fname(fname) + '.nc')
-                     for fname in EXTRACTED_TEST_FILES]
-    for fname in INPUT_TEST_FILES + ts_data_paths:
-        try:
-            os.remove(fname)
-        except OSError:
-            pass
+def teardown():
+    shutil.rmtree(TEMP_DIR)
 
 
 def sample_time_series(size=51, channels=1):
@@ -59,22 +50,14 @@ def test_parse_headerfile():
     npt.assert_almost_equal(metadata.loc["230395"].meta1, 0.270056761691)
 
 
-@with_setup(copy_test_data, remove_test_data)
 def test_parsing_and_saving():
     data_file_path = pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz")
-    header_path = pjoin(config['paths']['upload_folder'],
-                        "215153_215176_218272_218934_metadata.dat")
+    header_path = pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat")
     time_series = data_management.parse_and_store_ts_data(data_file_path,
-                                                          header_path,
-                                                          cleanup_archive=False)
+                      TEMP_DIR, header_path, cleanup_archive=False,
+                      cleanup_header=False)
     for ts in time_series:
         assert all(f in ['meta1', 'meta2', 'meta3']
                    for f in ts.meta_features.keys())
         assert(len(ts.time) == len(ts.measurement)
                and len(ts.time) == len(ts.error))
-
-    test_filenames = data_management.save_time_series_with_prefix(time_series,
-                                                                  'test')
-    for test_path in test_filenames:
-        assert os.path.exists(test_path)
-        os.remove(test_path)

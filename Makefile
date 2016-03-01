@@ -34,28 +34,23 @@ external/casperjs:
 
 
 test_backend: db celery
-	rm *_test_*.yaml
+	rm -f *_test_*.yaml
 	nosetests -v mltsp
-
-test_backend_no_docker: db celery
-	echo -e "testing:\n    no_docker: 1\n    test_db: 1" > "mltsp-_test_.yaml"
-	nosetests -v -s mltsp
 
 test_frontend: external/casperjs db celery
 	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "mltsp-_test_.yaml"
 	@PYTHONPATH="." tools/casper_tests.py
 
 test_frontend_no_docker: external/casperjs db celery
-	echo -e "testing:\n    no_docker: 1\n    test_db: 1" > "mltsp-_test_.yaml"
-	echo -e "    disable_auth: 1" >> "mltsp-_test_.yaml"
-	@PYTHONPATH="." tools/casper_tests.py
+	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "mltsp-_test_.yaml"
+	@PYTHONPATH="." NO_DOCKER=1 tools/casper_tests.py
 
 test_entrypoint:
 	mltsp --version
 
 test: | test_entrypoint test_backend test_frontend
 
-test_no_docker: | test_backend_no_docker test_frontend_no_docker
+test_no_docker: | test_backend test_frontend_no_docker
 
 install:
 	pip install -r requirements.txt

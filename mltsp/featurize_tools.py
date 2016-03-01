@@ -9,7 +9,7 @@ from mltsp import custom_feature_tools as cft
 # TODO now that we use pickle as Celery serializer, this could return something
 # more convenient
 def featurize_single_ts(ts, features_to_use, custom_script_path=None,
-                        custom_functions=None):
+                        custom_functions=None, use_docker=True):
     """Compute feature values for a given single time-series. Data is
     returned as dictionaries/lists of lists (as opposed to a more
     convenient DataFrame/DataSet) since it will be serialized as part of
@@ -31,6 +31,9 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
 
     Returns
     -------
@@ -50,7 +53,8 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
                 custom_script_path, t_i, m_i, e_i,
                 features_already_known=dict(list(obs_features.items()) +
                                             list(science_features.items()) +
-                                            list(ts.meta_features.items())))
+                                            list(ts.meta_features.items())),
+                use_docker=use_docker)
             custom_features = {key: custom_features[key]
                                for key in custom_features.keys()
                                if key in features_to_use}

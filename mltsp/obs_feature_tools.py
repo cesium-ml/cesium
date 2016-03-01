@@ -1,7 +1,26 @@
 import numpy as np
 import dask.async
 import scipy.stats as stats
-from .cfg import config
+
+
+FEATURES_LIST = [
+    "n_epochs","avg_err","med_err","std_err",
+    "total_time","avgt","cads_std","avg_mag",
+    "cads_avg","cads_med","cad_probs_1",
+    "cad_probs_10","cad_probs_20","cad_probs_30",
+    "cad_probs_40","cad_probs_50","cad_probs_100",
+    "cad_probs_500","cad_probs_1000","cad_probs_5000",
+    "cad_probs_10000","cad_probs_50000","cad_probs_100000",
+    "cad_probs_500000","cad_probs_1000000","cad_probs_5000000",
+    "cad_probs_10000000","med_double_to_single_step",
+    "avg_double_to_single_step","std_double_to_single_step",
+    "all_times_hist_peak_val","all_times_hist_peak_bin",
+    "all_times_nhist_numpeaks","all_times_nhist_peak_val",
+    "all_times_nhist_peak_1_to_2","all_times_nhist_peak_1_to_3",
+    "all_times_nhist_peak_2_to_3","all_times_nhist_peak_1_to_4",
+    "all_times_nhist_peak_2_to_4","all_times_nhist_peak_3_to_4",
+    "all_times_nhist_peak1_bin","all_times_nhist_peak2_bin",
+    "all_times_nhist_peak3_bin","all_times_nhist_peak4_bin"]
 
 
 def double_to_single_step(cads):
@@ -77,8 +96,7 @@ def peak_bin(peaks, i):
         return None
 
 
-def generate_obs_features(t, m, e,
-                    features_to_compute=config['mltsp']['features_list_obs']):
+def generate_obs_features(t, m, e, features_to_compute=FEATURES_LIST):
     """Generate features dict from given time-series data.
 
     Parameters
@@ -100,8 +118,8 @@ def generate_obs_features(t, m, e,
     dict
         Dictionary containing generated time series features.
     """
-    features_to_compute = [f for f in features_to_compute if f in
-                           config['mltsp']['features_list_obs']]
+    features_to_compute = [f for f in features_to_compute
+                           if f in FEATURES_LIST]
     feature_graph = {
         'n_epochs': (len, t),
         'avg_err': (np.mean, e),

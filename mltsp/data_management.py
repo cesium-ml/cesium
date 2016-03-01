@@ -1,9 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
-from .cfg import config
 from . import custom_exceptions
 from . import util
+from . import time_series
 from .time_series import TimeSeries
 
 
@@ -16,9 +16,9 @@ def parse_ts_data(filepath, sep=","):
        - For data containing three columns (time, measurement, error), all
          three are returned
        - For data containing two columns, a dummy error column is added with
-         value `config['mltsp']['DEFAULT_ERROR_VALUE']`
+         value `time_series.DEFAULT_ERROR_VALUE`
        - For data containing one column, a time column is also added with
-         values evenly spaced from 0 to `config['mltsp']['DEFAULT_MAX_TIME']`
+         values evenly spaced from 0 to `time_series.DEFAULT_MAX_TIME`
          """
     with open(filepath) as f:
         ts_data = np.loadtxt(f, delimiter=sep, ndmin=2)
@@ -28,14 +28,14 @@ def parse_ts_data(filepath, sep=","):
                                                 formatted time series data file
                                                 provided.""")
     elif ts_data.shape[1] == 1:
-        ts_data = np.c_[np.linspace(0, config['mltsp']['DEFAULT_MAX_TIME'],
+        ts_data = np.c_[np.linspace(0, time_series.DEFAULT_MAX_TIME,
                                     len(ts_data)),
                         ts_data,
-                        np.repeat(config['mltsp']['DEFAULT_ERROR_VALUE'],
+                        np.repeat(time_series.DEFAULT_ERROR_VALUE,
                                   len(ts_data))]
     elif ts_data.shape[1] == 2:
         ts_data = np.c_[ts_data,
-                        np.repeat(config['mltsp']['DEFAULT_ERROR_VALUE'],
+                        np.repeat(time_series.DEFAULT_ERROR_VALUE,
                                   len(ts_data))]
     return ts_data.T
 
@@ -79,24 +79,22 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     return targets, feature_data
 
 
-def parse_and_store_ts_data(data_path, header_path=None, dataset_id=None,
+def parse_and_store_ts_data(data_path, output_dir, header_path=None,
                             cleanup_archive=True, cleanup_header=True):
-    """
-    Parses raw time series data from a single file or archive and loads
+    """Parses raw time series data from a single file or archive and loads
     metadata from header file (if applicable). Data is returned as TimeSeries
-    objects and stored as files with prefix `dataset_id` (if provided).
+    objects and stored as files within `output_dir`.
 
     Parameters
     ----------
     data_path : str
         Path to an individual time series file or tarball of multiple time
         series files to be used for feature generation.
+    output_dir : str
+        Directory in which time series netCDF files will be saved.
     header_path : str, optional
         Path to header file containing file names, target names, and
         meta_features.
-    dataset_id : str, optional
-        Prefix to be prepended to time series filenames when saving; typically
-        a RethinkDB dataset id.
     cleanup_archive : bool, optional
         Boolean specifying whether to delete the uploaded data file/archive
         (defaults to True).
@@ -117,35 +115,18 @@ def parse_and_store_ts_data(data_path, header_path=None, dataset_id=None,
             targets = pd.Series([None], index=short_fnames)
             meta_features = pd.DataFrame(index=short_fnames)
 
-        time_series = []
+        all_time_series = []
         for ts_path in ts_paths:
             fname = util.shorten_fname(ts_path)
             t, m, e = parse_ts_data(ts_path)
             ts_target = targets.loc[fname]
             ts_meta_features = meta_features.loc[fname]
             ts_path = '{}.nc'.format(fname)
-            if dataset_id:
-                ts_path = '_'.join((dataset_id, ts_path))
-            ts_path = os.path.join(config['paths']['ts_data_folder'], ts_path)
+            ts_path = os.path.join(output_dir, ts_path)
             ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname,
                             ts_path)
             ts.to_netcdf(ts_path)
-            time_series.append(ts)
+            all_time_series.append(ts)
     if cleanup_header:
         util.remove_files([header_path])
-    return time_series
-
-
-def save_time_series_with_prefix(time_series, prefix):
-    """Save TimeSeries objects in `config['paths']['ts_data_folder']`.
-    
-    Files are stored as `{prefix}_{TimeSeries.name}.nc`.
-    """
-    ts_paths = []
-    for ts in time_series:
-        ts_fname = '{}_{}.nc'.format(prefix, ts.name)
-        ts.path = os.path.join(config['paths']['ts_data_folder'], ts_fname)
-        ts_paths.append(ts.path)
-        ts.to_netcdf(ts.path)
-
-    return ts_paths
+    return all_time_series

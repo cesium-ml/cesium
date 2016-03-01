@@ -1,174 +1,98 @@
 from mltsp import build_model
-from mltsp.cfg import config
 from nose.tools import with_setup
 import os
 from os.path import join as pjoin
+import shutil
+import tempfile
 from sklearn.externals import joblib
 from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
-import shutil
+from mltsp.ext.sklearn_models import model_descriptions
 import xarray as xr
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
+TEMP_DIR = None
 
 
-def copy_classification_test_data():
-    fnames = ["test_featureset.nc", "test_10_featureset.nc"]
+def setup():
+    global TEMP_DIR
+    TEMP_DIR = tempfile.mkdtemp()
+
+
+def remove_output():
+    fnames = ["test.pkl"]
     for fname in fnames:
-        shutil.copy(pjoin(DATA_PATH, fname), config['paths']['features_folder'])
+        try:
+            os.remove(pjoin(TEMP_DIR, fname))
+        except OSError:
+            pass
 
 
-def copy_regression_test_data():
-    fnames = ["test_reg_featureset.nc"]
-    for fname in fnames:
-        shutil.copy(pjoin(DATA_PATH, fname), config['paths']['features_folder'])
+@with_setup(teardown=remove_output)
+def test_build_model():
+    """Test main model building method - various types"""
+    for model_dict in model_descriptions:
+        if model_dict['type'] == 'classifier':
+            fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
+        else:
+            fset = xr.open_dataset(pjoin(DATA_PATH, "test_reg_featureset.nc"))
+        model_path = pjoin(TEMP_DIR, "test.pkl")
+        build_model.create_and_pickle_model(fset, model_dict['name'],
+                                            model_path)
+        model = joblib.load(model_path)
+        assert isinstance(model,
+                          build_model.MODELS_TYPE_DICT[model_dict['name']])
+        os.remove(pjoin(TEMP_DIR, "test.pkl"))
 
 
-def remove_test_data():
-    fnames = ["test_featureset.nc", "test_10_featureset.nc",
-              "test_reg_featureset.nc", "test.pkl"]
-    for fname in fnames:
-        for data_dir in [config['paths']['features_folder'], config['paths']['models_folder']]:
-            try:
-                os.remove(pjoin(data_dir, fname))
-            except OSError:
-                pass
-
-
-@with_setup(copy_classification_test_data, remove_test_data)
-def test_build_model_rfc():
-    """Test main model building method - RandomForestClassifier"""
-    build_model.create_and_pickle_model("test", "RandomForestClassifier",
-                                        "test")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict_proba")
-    assert isinstance(model, RandomForestClassifier)
-
-
-@with_setup(copy_regression_test_data, remove_test_data)
-def test_build_model_rfr():
-    """Test main model building method - RandomForestRegressor"""
-    build_model.create_and_pickle_model("test", "RandomForestRegressor",
-                                        "test_reg")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict")
-    assert isinstance(model, RandomForestRegressor)
-
-
-@with_setup(copy_classification_test_data, remove_test_data)
-def test_build_model_lin_class():
-    """Test main model building method - linear classifier"""
-    build_model.create_and_pickle_model("test", "LinearSGDClassifier", "test")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict")
-    assert isinstance(model, SGDClassifier)
-
-
-@with_setup(copy_regression_test_data, remove_test_data)
-def test_build_model_lin_reg():
-    """Test main model building method - linear regressor"""
-    build_model.create_and_pickle_model("test", "LinearRegressor", "test_reg")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict")
-    assert isinstance(model, LinearRegression)
-
-
-@with_setup(copy_classification_test_data, remove_test_data)
-def test_build_model_ridge_cv():
-    """Test main model building method - Ridge Classifer CV"""
-    build_model.create_and_pickle_model("test", "RidgeClassifierCV", "test")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict")
-    assert isinstance(model, RidgeClassifierCV)
-
-
-@with_setup(copy_regression_test_data, remove_test_data)
-def test_build_model_ard_reg():
-    """Test main model building method - ARD Regression"""
-    build_model.create_and_pickle_model("test", "BayesianARDRegressor",
-                                        "test_reg")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict")
-    assert isinstance(model, ARDRegression)
-
-
-@with_setup(copy_regression_test_data, remove_test_data)
-def test_build_model_ard_reg():
-    """Test main model building method - Bayesian Ridge Regression"""
-    build_model.create_and_pickle_model("test", "BayesianRidgeRegressor",
-                                        "test_reg")
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test.pkl"))
-    assert hasattr(model, "predict")
-    assert isinstance(model, BayesianRidge)
-
-
-@with_setup(copy_classification_test_data, remove_test_data)
+@with_setup(teardown=remove_output)
 def test_fit_existing_model():
     """Test model building helper function."""
-    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
-                                         "test_featureset.nc"))
+    fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
-    model = build_model.build_model_from_featureset(featureset, model)
-    assert hasattr(model, "n_features_")
-    assert hasattr(model, "predict_proba")
+    model = build_model.build_model_from_featureset(fset, model)
     assert isinstance(model, RandomForestClassifier)
 
 
-@with_setup(copy_classification_test_data, remove_test_data)
+@with_setup(teardown=remove_output)
 def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
-    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
-                                         "test_10_featureset.nc"))
+    fset = xr.open_dataset(pjoin(DATA_PATH, "test_10_featureset.nc"))
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model_options = {"criterion": "gini",
                      "bootstrap": True}
     params_to_optimize = {"n_estimators": [10, 50, 100],
                           "min_samples_split": [2, 5],
                           "max_features": ["auto", 3]}
-    model = build_model.build_model_from_featureset(
-        featureset, model=model, model_options=model_options,
-        params_to_optimize=params_to_optimize)
+    model = build_model.build_model_from_featureset(fset, model, None,
+                                                    model_options,
+                                                    params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
     assert isinstance(model, GridSearchCV)
     assert isinstance(model.best_estimator_, RandomForestClassifier)
 
 
-@with_setup(copy_classification_test_data, remove_test_data)
+@with_setup(teardown=remove_output)
 def test_fit_optimize():
     """Test hypeparameter optimization"""
-    featureset = xr.open_dataset(pjoin(config['paths']['features_folder'],
-                                         "test_10_featureset.nc"))
-    model_options = {"criterion": "gini",
-                     "bootstrap": True}
+    fset = xr.open_dataset(pjoin(DATA_PATH, "test_10_featureset.nc"))
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
+    model_options = {"criterion": "gini", "bootstrap": True}
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']\
             (**model_options)
-    feature_df = build_model.rectangularize_featureset(featureset)
+    feature_df = build_model.rectangularize_featureset(fset)
     params_to_optimize = {"n_estimators": [10, 50, 100],
                           "min_samples_split": [2, 5],
                           "max_features": ["auto", 3]}
-    model = build_model.fit_model_optimize_hyperparams(
-        feature_df, featureset['target'], model, params_to_optimize)
+    model = build_model.fit_model_optimize_hyperparams(feature_df,
+                                                       fset['target'], model,
+                                                       params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
     assert isinstance(model, GridSearchCV)
     assert isinstance(model.best_estimator_, RandomForestClassifier)
-
-
-@with_setup(copy_classification_test_data, remove_test_data)
-def test_build_model_lin_class_optimize():
-    """Test main model building method - linear classifier - w/ optimization"""
-    model_options = {"learning_rate": "optimal"}
-    params_to_optimize = {"alpha": [0.1, 0.001, 0.0001, 0.0000001],
-                          "epsilon": [0.001, 0.01, 0.1, 0.5]}
-    build_model.create_and_pickle_model("test_10", "LinearSGDClassifier",
-                                        "test_10", model_options,
-                                        params_to_optimize)
-    model = joblib.load(pjoin(config['paths']['models_folder'], "test_10.pkl"))
-    assert hasattr(model, "best_params_")
-    assert hasattr(model, "predict")
-    assert isinstance(model, GridSearchCV)
-    assert isinstance(model.best_estimator_, SGDClassifier)

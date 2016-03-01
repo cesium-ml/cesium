@@ -9,7 +9,7 @@ from os.path import join as pjoin
 # list of (Google) admin accounts to have access to all projects
 sys_admin_emails = ['a.crellinquick@gmail.com']
 
-from ..cfg import config
+from ..config import cfg
 
 import shutil
 import time
@@ -24,9 +24,11 @@ from flask import (
 from werkzeug import secure_filename
 import uuid
 import numpy as np
+from sklearn.externals import joblib
+import xarray as xr
 
 import yaml
-if config['testing']['disable_auth']:
+if cfg['testing']['disable_auth']:
     print('[mltsp] Disabling front-end authentication')
     from ..ext import stormpath_mock as stormpath
 else:
@@ -37,6 +39,8 @@ import multiprocessing
 import rethinkdb as rdb
 from rethinkdb.errors import RqlRuntimeError, RqlDriverError
 
+from .. import obs_feature_tools as oft
+from .. import science_feature_tools as sft
 from .. import custom_feature_tools as cft
 from .. import custom_exceptions
 from .. import data_management
@@ -49,8 +53,7 @@ from ..version import version
 from .. import util
 from ..ext import sklearn_models
 
-all_available_features_list = (config['mltsp']['features_list_obs'] +
-                               config['mltsp']['features_list_science'])
+all_available_features_list = oft.FEATURES_LIST + sft.FEATURES_LIST
 
 # Flask initialization
 app = Flask(__name__, static_folder=None)
@@ -59,23 +62,23 @@ app.add_url_rule(
     '/static/<path:filename>', endpoint='static',
     view_func=app.send_static_file)
 
-app.config['SECRET_KEY'] = config['flask']['secret-key']
+app.config['SECRET_KEY'] = cfg['flask']['secret-key']
 app.config['STORMPATH_API_KEY_ID'] = \
-    config['authentication']['stormpath_api_key_id']
+    cfg['authentication']['stormpath_api_key_id']
 app.config['STORMPATH_API_KEY_SECRET'] = \
-    config['authentication']['stormpath_api_key_secret']
+    cfg['authentication']['stormpath_api_key_secret']
 app.config['STORMPATH_APPLICATION'] = \
-    config['authentication']['stormpath_application']
+    cfg['authentication']['stormpath_application']
 try:
-    config['authentication']['google_client_id']
+    cfg['authentication']['google_client_id']
 except KeyError:
-    config['authentication']['google_client_id'] = None
-if config['authentication']['google_client_id'] is not None:
+    cfg['authentication']['google_client_id'] = None
+if cfg['authentication']['google_client_id'] is not None:
     app.config['STORMPATH_ENABLE_GOOGLE'] = True
     app.config['STORMPATH_SOCIAL'] = {
         'GOOGLE': {
-            'client_id': config['authentication']['google_client_id'],
-            'client_secret': config['authentication']['google_client_secret'],
+            'client_id': cfg['authentication']['google_client_id'],
+            'client_secret': cfg['authentication']['google_client_secret'],
         }
     }
 else:
@@ -89,15 +92,15 @@ stormpath_manager = stormpath.StormpathManager()
 stormpath_manager.init_app(app)
 
 
-app.config['UPLOAD_FOLDER'] = config['paths']['upload_folder']
+app.config['UPLOAD_FOLDER'] = cfg['paths']['upload_folder']
 
-logging.basicConfig(filename=config['paths']['err_log_path'],
+logging.basicConfig(filename=cfg['paths']['err_log_path'],
                     level=logging.WARNING)
 
-# RethinkDB config:
-RDB_HOST = config['database']['host']
-RDB_PORT = config['database']['port']
-if config['testing']['test_db']:
+# RethinkDB cfg:
+RDB_HOST = cfg['database']['host']
+RDB_PORT = cfg['database']['port']
+if cfg['testing']['test_db']:
     print('[mltsp] Using test database')
     MLTSP_DB = "mltsp_testing"
 else:
@@ -131,7 +134,7 @@ def user_can_access_features_file(filename):
 @stormpath.login_required
 def custom_static_features_data(filename):
     if user_can_access_features_file(filename):
-        return send_from_directory(config['paths']['features_folder'], filename)
+        return send_from_directory(cfg['paths']['features_folder'], filename)
     else:
         abort(403)
 
@@ -1313,7 +1316,7 @@ def model_associated_files(model_key):
     try:
         entry_dict = rdb.table("models").get(model_key).run(g.rdb_conn)
         featset_key = entry_dict["featset_key"]
-        fpaths = [pjoin(config['paths']['models_folder'],
+        fpaths = [pjoin(cfg['paths']['models_folder'],
                                "{}.pkl".format(model_key))]
         fpaths += featset_associated_files(featset_key)
     except:
@@ -1339,7 +1342,7 @@ def featset_associated_files(featset_key):
 
     """
     fpaths = []
-    fpath = pjoin(config['paths']['features_folder'],
+    fpath = pjoin(cfg['paths']['features_folder'],
                          "%s_featureset.nc" % featset_key)
     if os.path.exists(fpath):
         fpaths.append(fpath)
@@ -1843,14 +1846,11 @@ def get_all_info_dict(auth_only=True):
 
 def get_list_of_available_features():
     """Return list of built-in time-series features available."""
-    return sorted([feat for feat in config['mltsp']['features_list_science']
-                   if feat not in config['mltsp']['ignore_feats_list_science']])
-
+    return sorted(sft.FEATURES_LIST)
 
 def get_list_of_available_features_set2():
     """Return list of additional built-in time-series features."""
-    return sorted([feat for feat in config['mltsp']['features_list_obs']
-                   if feat not in config['mltsp']['ignore_feats_list_science']])
+    return sorted(oft.FEATURES_LIST)
 
 
 def allowed_file(filename):
@@ -1956,7 +1956,7 @@ def check_headerfile_and_tsdata_format(headerfile_path, zipfile_path):
 
 
 def featurize_proc(ts_paths, features_to_use, featureset_key, is_test,
-                   custom_script_path):
+                   custom_script_path, use_docker=True):
     """Generate features and update feature set entry with results.
 
     To be executed in a subprocess using the multiprocessing module's
@@ -1976,17 +1976,21 @@ def featurize_proc(ts_paths, features_to_use, featureset_key, is_test,
         Boolean indicating whether to run as test.
     custom_script_path : str
         Path to custom features definition script, or "None".
-
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
     """
     # needed to establish database connection because we're now in a
     # subprocess that is separate from main app:
     before_request()
     try:
-        first_N = config['mltsp']['TEST_N'] if is_test else None
+        fset_path = pjoin(cfg['paths']['features_folder'],
+                          '{}_featureset.nc'.format(featureset_key))
+        first_N = cfg['mltsp']['TEST_N'] if is_test else None
         featurize.featurize_data_files(
             ts_paths, features_to_use=features_to_use,
-            featureset_id=featureset_key, first_N=first_N,
-            custom_script_path=custom_script_path)
+            output_path=fset_path, first_N=first_N,
+            custom_script_path=custom_script_path, use_docker=use_docker)
         results_str = "Featurization of timeseries data complete."
     except Exception as theErr:
         results_str = ("An error occurred while processing your request. "
@@ -2043,10 +2047,16 @@ def build_model_proc(model_key, model_type, model_params, featureset_key,
     before_request()
     print("Building model...")
     try:
-        model_built_msg = build_model.create_and_pickle_model(
-            model_key=model_key, model_type=model_type,
-            model_options=model_params, featureset_key=featureset_key,
+        fset_path = pjoin(cfg['paths']['features_folder'],
+                          '{}_featureset.nc'.format(featureset_key))
+        model_path = pjoin(cfg['paths']['models_folder'],
+                           '{}.pkl'.format(model_key))
+        with xr.open_dataset(fset_path) as fset:
+            build_model.create_and_pickle_model(fset, model_type=model_type,
+            output_path=model_path, model_options=model_params,
             params_to_optimize=params_to_optimize)
+        model_built_msg = ("New model successfully created. Click the Predict tab to "
+                           "start using it.")
         print("Done!")
     except Exception as theErr:
         print("  #########   Error: flask_app.build_model_proc() -", theErr)
@@ -2090,16 +2100,16 @@ def prediction_proc(ts_paths, project_name, model_key, prediction_entry_key):
     # Needed to establish database connect because we're now in a subprocess
     # that is separate from main app:
     before_request()
-    n_cols_html_table = 5
     featset_key = model_key_to_featset_key(model_key)
     entry = rdb.table("features").get(featset_key).run(g.rdb_conn)
     features_to_use = list(entry['featlist'])
     custom_features_script = entry.get('custom_features_script')
     try:
-        results_dict = predict.predict_data_files(
-            ts_paths, model_key=model_key,
-            featureset_key=featset_key,
-            custom_features_script=custom_features_script)
+        model_path = pjoin(cfg['paths']['models_folder'],
+                           '{}.pkl'.format(model_key))
+        model = joblib.load(model_path)
+        results_dict = predict.predict_data_files(ts_paths, features_to_use,
+            model, custom_features_script=custom_features_script)
     except Exception as theErr:
         msg = (
             "An error occurred while processing your "
@@ -2189,7 +2199,7 @@ def verifyNewScript():
         scriptfile = request.files['custom_feat_script_file']
         scriptfile_name = secure_filename(scriptfile.filename)
         scriptfile_path = pjoin(
-                config['paths']['upload_folder'], "custom_feature_scripts",
+                cfg['paths']['upload_folder'], "custom_feature_scripts",
                 str(uuid.uuid4())[:10] + "_" + str(scriptfile_name))
         scriptfile.save(scriptfile_path)
         try:
@@ -2542,7 +2552,7 @@ def uploadFeaturesForm():
         projkey = project_name_to_key(project_name)
         features_file_name = (str(uuid.uuid4()) +
                               str(secure_filename(features_file.filename)))
-        feat_path = pjoin(config['paths']['upload_folder'], features_file_name)
+        feat_path = pjoin(cfg['paths']['upload_folder'], features_file_name)
         features_file.save(feat_path)
         print("Saved", feat_path)
         try:
@@ -2555,12 +2565,15 @@ def uploadFeaturesForm():
             with open(feat_path) as f:
                 # TODO this is not good
                 featlist = f.readline().strip().split(',')[1:]
-            first_N = config['mltsp']['TEST_N'] if is_test else None
+            first_N = cfg['mltsp']['TEST_N'] if is_test else None
             new_featset_key = add_featureset(name=featureset_name,
                                              projkey=projkey, pid="None",
                                              featlist=featlist)
+            output_path = pjoin(cfg['paths']['features_folder'],
+                                '{}_featureset.nc'.format(new_featset_key))
             fset = featurize.load_and_store_feature_data(feat_path,
-                       featureset_id=new_featset_key, first_N=first_N)
+                                                         output_path,
+                                                         first_N=first_N)
             results_str = "Upload of feature data complete."
             update_featset_entry_with_results_msg(new_featset_key, results_str)
         except Exception as theErr:
@@ -2632,8 +2645,8 @@ def uploadData(dataset_name=None, headerfile=None, zipfile=None, sep=None, proje
         if not sep or sep == "":
             print(filename, "uploaded but no sep info. Setting sep=,")
             sep = ","
-        headerfile_path = pjoin(config['paths']['upload_folder'], headerfile_name)
-        zipfile_path = pjoin(config['paths']['upload_folder'], zipfile_name)
+        headerfile_path = pjoin(cfg['paths']['upload_folder'], headerfile_name)
+        zipfile_path = pjoin(cfg['paths']['upload_folder'], zipfile_name)
         headerfile.save(headerfile_path)
         zipfile.save(zipfile_path)
         print("Saved", headerfile_name, "and", zipfile_name)
@@ -2692,13 +2705,13 @@ def uploadingPage(dataset_name, project_name, headerfile_name, zipfile_name,
 
     """
     projkey = project_name_to_key(project_name)
-    headerfile_path = pjoin(config['paths']['upload_folder'],
+    headerfile_path = pjoin(cfg['paths']['upload_folder'],
                                    headerfile_name)
-    zipfile_path = pjoin(config['paths']['upload_folder'], zipfile_name)
+    zipfile_path = pjoin(cfg['paths']['upload_folder'], zipfile_name)
     new_dataset_id = add_dataset(name=dataset_name, projkey=projkey)
     time_series = data_management.parse_and_store_ts_data(zipfile_path,
-                                                          headerfile_path,
-                                                          new_dataset_id)
+                      cfg['paths']['ts_data_folder'], headerfile_path,
+                      new_dataset_id)
     ts_paths = [ts.path for ts in time_series]
     set_dataset_filenames(new_dataset_id, ts_paths)
     print("NEW DATASET ADDED WITH dataset_id =", new_dataset_id)
@@ -2741,9 +2754,11 @@ def transformData():
             output_ts_lists = transformation.transform_ts_files(time_series,
                                                                 transform_type)
             for ds_id, ts_list in zip(new_ds_ids, output_ts_lists):
-                ts_filenames = data_management.save_time_series_with_prefix(
-                                   ts_list, ds_id)
-                set_dataset_filenames(ds_id, ts_filenames)
+                for ts in ts_list:
+                    ts_fname = '{}_{}.nc'.format(ds_id, ts.name)
+                    ts.path = os.path.join(cfg['paths']['ts_data_folder'], ts_fname)
+                    ts.to_netcdf(ts.path)
+                set_dataset_filenames(ds_id, [ts.path for ts in ts_list])
         except Exception as theErr:
             results_str = ("An error occurred while processing your request.")
             print(("   #########      Error:    flask_app.transformDataForm: %s" %
@@ -2809,7 +2824,7 @@ def FeaturizeData(
             customscript_fname = str(secure_filename(custom_script.filename))
             print(customscript_fname, 'uploaded.')
             customscript_path = pjoin(
-                    config['paths']['upload_folder'], "custom_feature_scripts",
+                    cfg['paths']['upload_folder'], "custom_feature_scripts",
                     str(uuid.uuid4()) + "_" + str(customscript_fname))
             custom_script.save(customscript_path)
             custom_features = request.form.getlist("custom_feature_checkbox")
@@ -3542,12 +3557,12 @@ def run_main(args=None):
         db_init(force=args.force)
         sys.exit(0)
 
-    if args.debug or config['testing']['debug']:
+    if args.debug or cfg['testing']['debug']:
         app.config['DEBUG'] = True
         app.config['WTF_CSRF_ENABLED'] = False
 
     print("Launching server on %s:%s" % (args.host, args.port))
-    print("Logging to:", config['paths']['err_log_path'])
+    print("Logging to:", cfg['paths']['err_log_path'])
     app.run(port=args.port, host=args.host, threaded=True)
 
 

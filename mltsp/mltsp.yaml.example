@@ -47,27 +47,6 @@ paths:
     custom_feature_script_folder: '{data_path}/flask_uploads/custom_feature_scripts'
     temp: '/tmp/mltsp'
 
-    tmp_custom_feats_folder: '{data_path}/tmp/custom_feature_scripts'
-
-    # This is slated for deprecation
-    project_path_link: /tmp/mltsp_link
-
-
-celery:
-    celery_broker: amqp://guest@localhost//
-
-    ## The variables below are used by Celery itself
-    CELERY_RESULT_BACKEND: amqp
-    CELERY_TASK_SERIALIZER: pickle
-    CELERY_RESULT_SERIALIZER: pickle
-    CELERY_ACCEPT_CONTENT:
-        - pickle
-    CELERY_IMPORTS:
-        - mltsp
-        - celery_tasks
-    INSTALLED_APPS:
-        - mltsp
-
 database:
     host: localhost
     port: 28015
@@ -78,8 +57,5 @@ database:
 ##
 ##    ## Use a separate test database
 ##    test_db: 1
-##
-##    ## Calculate custom features without using Docker
-##    no_docker: 1
 ##
 ##    debug: 0
