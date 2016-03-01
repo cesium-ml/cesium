@@ -19,22 +19,19 @@ TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                     "dotastro_215176_with_target.nc"]]
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
-USE_DOCKER = None
-TEMP_DIR = None
+if util.docker_images_available():
+    USE_DOCKER = True
+else:
+    USE_DOCKER = False
+    print("WARNING: computing custom features outside Docker container...")
 
 
-def setup():
-    global USE_DOCKER, TEMP_DIR
-    if util.docker_images_available():
-        USE_DOCKER = True
-    else:
-        USE_DOCKER = False
-        print("WARNING: computing custom features outside Docker container...")
-    TEMP_DIR = tempfile.mkdtemp()
+def setup(module):
+    module.TEMP_DIR = tempfile.mkdtemp()
 
 
-def teardown():
-    shutil.rmtree(TEMP_DIR)
+def teardown(module):
+    shutil.rmtree(module.TEMP_DIR)
 
 
 def remove_output():

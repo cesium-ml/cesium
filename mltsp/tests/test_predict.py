@@ -18,15 +18,10 @@ TS_CLASS_PATHS = [pjoin(DATA_PATH, f) for f in
 TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                    ["dotastro_215153_with_target.nc",
                     "dotastro_215176_with_target.nc"]]
-USE_DOCKER = None
-
-
-def setup():
-    global USE_DOCKER
-    if util.docker_images_available():
-        USE_DOCKER = True
-    else:
-        USE_DOCKER = False
+if util.docker_images_available():
+    USE_DOCKER = True
+else:
+    USE_DOCKER = False
 
 
 def test_model_predictions():

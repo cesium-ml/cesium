@@ -38,15 +38,11 @@ TS_FILES = ["dotastro_215153_with_class.nc", "dotastro_215176_with_class.nc",
            "dotastro_215153_with_class_copy.nc",
             "dotastro_215176_with_class_copy.nc"]
 CUSTOM_SCRIPT = "testfeature1.py"
-USE_DOCKER = None
-
-def setup():
-    global USE_DOCKER
-    if util.docker_images_available():
-        USE_DOCKER = True
-    else:
-        USE_DOCKER = False
-        print("WARNING: computing custom features outside Docker container...")
+if util.docker_images_available():
+    USE_DOCKER = True
+else:
+    USE_DOCKER = False
+    print("WARNING: computing custom features outside Docker container...")
 
 def featurize_setup():
     ts_paths = [pjoin(cfg['paths']['upload_folder'], f) for f in TS_FILES]

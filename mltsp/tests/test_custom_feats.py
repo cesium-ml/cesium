@@ -16,16 +16,11 @@ from numpy.testing import decorators as dec
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-USE_DOCKER = None
-
-
-def setup():
-    global USE_DOCKER
-    if util.docker_images_available():
-        USE_DOCKER = True
-    else:
-        USE_DOCKER = False
-        print("WARNING: computing custom features outside Docker container...")
+if util.docker_images_available():
+    USE_DOCKER = True
+else:
+    USE_DOCKER = False
+    print("WARNING: computing custom features outside Docker container...")
 
 
 def test_parse_for_req_prov_params():

@@ -14,12 +14,14 @@ import xarray as xr
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-TEMP_DIR = None
 
 
-def setup():
-    global TEMP_DIR
-    TEMP_DIR = tempfile.mkdtemp()
+def setup(module):
+    module.TEMP_DIR = tempfile.mkdtemp()
+
+
+def teardown(module):
+    shutil.rmtree(module.TEMP_DIR)
 
 
 def remove_output():

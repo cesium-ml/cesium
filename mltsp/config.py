@@ -70,17 +70,13 @@ del yaml, os, sys, print_function, config_files, multiprocessing
 
 cfg['mltsp'] = locals()
 
-# Celery does not like getting empty dictionaries for configuration
-# variables
-dict.__setitem__(cfg, 'celery', dict(cfg['celery']))
-
 
 def show_config():
     print()
     print("=" * 78)
     print("MLTSP configuration")
 
-    for key in ('paths', 'celery', 'database', 'testing'):
+    for key in ('paths', 'database', 'testing'):
         if key in cfg:
             print("-" * 78)
             print(key)

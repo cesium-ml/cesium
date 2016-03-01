@@ -10,16 +10,14 @@ from mltsp import util
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-TEMP_DIR = None
 
 
-def setup():
-    global TEMP_DIR
-    TEMP_DIR = tempfile.mkdtemp()
+def setup(module):
+    module.TEMP_DIR = tempfile.mkdtemp()
 
 
-def teardown():
-    shutil.rmtree(TEMP_DIR)
+def teardown(module):
+    shutil.rmtree(module.TEMP_DIR)
 
 
 def sample_time_series(size=51, channels=1):
