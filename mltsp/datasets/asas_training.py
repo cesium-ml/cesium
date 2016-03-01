@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from sklearn.externals import joblib
 
-from ..cfg import config
 from .. import util
 from .. import data_management
 from . import util as dsutil
@@ -77,14 +76,13 @@ def download_asas_training(data_dir):
 
 
 def fetch_asas_training(data_dir=None):
-    """Download (if not already downloaded) and load an example light curve dataset.
+    """Download (if not already downloaded) and load example light curve data.
 
     Parameters
     ----------
     data_dir: str, optional
         Path where downloaded data should be stored. Defaults to
-        a subdirectory `datasets/asas_training` within
-        `config['paths']['data_path']`.
+        a subdirectory `datasets/asas_training` within `dsutil.DATA_PATH`.
 
     Returns
     -------
@@ -107,8 +105,7 @@ def fetch_asas_training(data_dir=None):
     """
 
     if data_dir is None:
-        data_dir = os.path.join(config['paths']['data_path'],
-                                "datasets/asas_training")
+        data_dir = os.path.join(dsutil.DATA_PATH, "datasets/asas_training")
     cache_path = os.path.join(data_dir, CACHE_NAME)
 
     try:

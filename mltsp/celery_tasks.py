@@ -1,15 +1,24 @@
 from celery import Celery
 import os
 import sys
+import yaml
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from mltsp.cfg import config
 from mltsp import time_series
 from mltsp import util
 from mltsp import featurize_tools as ft
 
 
-celery_app = Celery('celery_fit', broker=config['celery']['celery_broker'])
-celery_app.config_from_object(config['celery'])
+celery_config = {
+    'CELERY_ACCEPT_CONTENT': ['pickle'],
+    'CELERY_IMPORTS': ['mltsp', 'celery_tasks'],
+    'CELERY_RESULT_BACKEND': 'amqp',
+    'CELERY_RESULT_SERIALIZER': 'pickle',
+    'CELERY_TASK_SERIALIZER': 'pickle',
+    'INSTALLED_APPS': ['mltsp'],
+    'CELERY_BROKER': 'amqp://guest@localhost//'
+}
+celery_app = Celery('celery_fit', broker=celery_config['CELERY_BROKER'])
+celery_app.config_from_object(celery_config)
 
 
 @celery_app.task(name="celery_tasks.check_celery")
@@ -28,7 +37,8 @@ def celery_available():
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_file")
-def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
+def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None,
+                      use_docker=True):
     """Featurize time-series data file.
 
     Parameters
@@ -39,6 +49,9 @@ def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
         List of names of features to be generated.
     custom_script_path : str, optional
         Path to custom features script .py file, if applicable.
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
 
     Returns
     -------
@@ -50,19 +63,22 @@ def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
     short_fname = util.shorten_fname(ts_file_path)
     ts = time_series.from_netcdf(ts_file_path)
     all_features = ft.featurize_single_ts(ts, features_to_use,
-                                          custom_script_path)
+                                          custom_script_path,
+                                          use_docker=use_docker)
     return (short_fname, all_features, ts.target, ts.meta_features)
 
 
 @celery_app.task(name="celery_tasks.featurize_ts_data")
 def featurize_ts_data(time_series, features_to_use, custom_script_path=None,
-                      custom_functions=None):
+                      custom_functions=None, use_docker=True):
     """Featurize time-series objects.
 
     Parameters
     ----------
     time_series : TimeSeries object
         Time series data to be featurized.
+    features_to_use : list of str
+        List of names of features to be generated.
     custom_script_path : str, optional
         Path to custom features script .py file, if applicable.
     custom_functions : dict, optional
@@ -73,6 +89,9 @@ def featurize_ts_data(time_series, features_to_use, custom_script_path=None,
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
 
     Returns
     -------
@@ -82,5 +101,6 @@ def featurize_ts_data(time_series, features_to_use, custom_script_path=None,
 
     """
     all_features = ft.featurize_single_ts(time_series, features_to_use,
-                                          custom_script_path, custom_functions)
+                                          custom_script_path, custom_functions,
+                                          use_docker=use_docker)
     return (time_series.name, all_features)

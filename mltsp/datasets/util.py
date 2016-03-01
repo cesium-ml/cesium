@@ -12,6 +12,9 @@ except:
     import urllib2 as request
 
 
+DATA_PATH = os.path.expanduser('~/.local/')
+
+
 def _md5sum_file(path):
     """Calculate the MD5 sum of a file."""
     with open(path, 'rb') as f:

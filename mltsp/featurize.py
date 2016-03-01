@@ -3,28 +3,17 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-from .cfg import config
+from celery import group
 from .celery_tasks import celery_available
 from .celery_tasks import featurize_ts_data as featurize_data_task
 from .celery_tasks import featurize_ts_file as featurize_file_task
 from . import data_management
 from . import featurize_tools as ft
+from . import time_series
 from .time_series import TimeSeries
 
 
-def write_features_to_disk(featureset, featureset_id):
-    """Store xarray.Dataset of features as netCDF using given featureset id.
-    
-    Featureset is stored in `config['paths']['features_folder']` with filename
-    `{featureset_id}_featureset.nc`.
-    """
-    featureset_path = os.path.join(config['paths']['features_folder'],
-                                   "{}_featureset.nc".format(featureset_id))
-    featureset.to_netcdf(featureset_path)
-
-
-def load_and_store_feature_data(features_path, featureset_id="unknown",
-                                first_N=None):
+def load_and_store_feature_data(features_path, output_path, first_N=None):
     """Read features from CSV file and save as an xarray.Dataset."""
     targets, meta_features = data_management.parse_headerfile(features_path)
     meta_features = meta_features[:first_N]
@@ -32,47 +21,21 @@ def load_and_store_feature_data(features_path, featureset_id="unknown",
         targets = targets[:first_N]
     meta_feature_dicts = meta_features.to_dict(orient='record')
     featureset = ft.assemble_featureset([], targets, meta_feature_dicts)
-    write_features_to_disk(featureset, featureset_id)
+    featureset.to_netcdf(output_path)
     return featureset
 
 
-def prepare_celery_data_task_params(times, values, errors, labels,
-                                    features_to_use, meta_features={},
-                                    custom_script_path=None,
-                                    custom_functions=None):
-    """Create list of tuples containing params for `featurize_data_task`.
-
-    See `featurize_time_series` for parameter descriptions.
-    """
-    params_list = []
-    for t, m, e, label in zip(times, values, errors, labels):
-        ts = TimeSeries(t, m, e, meta_features=meta_features.loc[label],
-                        name=label)
-        params_list.append((ts, features_to_use, custom_script_path,
-                            custom_functions))
-    return params_list
-
-
-def featurize_file_task_params(ts_paths, features_to_use,
-                               custom_script_path=None):
-    """Create list of tuples containing params for `featurize_file_task`."""
-    params_list = [(ts_path, features_to_use, custom_script_path)
-                   for ts_path in ts_paths]
-    return params_list
-
-
-def featurize_data_files(ts_paths, features_to_use=[],
-                         featureset_id=None, first_N=None,
-                         custom_script_path=None):
+def featurize_data_files(ts_paths, features_to_use=[], output_path=None,
+                         first_N=None, custom_script_path=None,
+                         use_docker=True):
     """Generate features for labeled time series data.
 
     Each file should consist of one comma-separated line of per data point,
     where each line contains either pairs (time, value) or triples (time,
     value, error).
 
-    If `featureset_id` is provided, Features are saved as an xarray.Dataset in
-    netCDF format to the file ``"%s_featureset.nc" % featureset_id`` in the
-    directory `config['paths']['features_folder']`.
+    If `output_path` is provided, features are saved as an xarray.Dataset in
+    netCDF format.
 
     Parameters
     ----------
@@ -81,9 +44,9 @@ def featurize_data_files(ts_paths, features_to_use=[],
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty
         list, which will result in only meta_features features being stored.
-    featureset_id : str, optional
-        RethinkDB ID of the new feature set entry. If provided, the feature set
-        will be saved to a file with prefix `featureset_id`.
+    output_path : str, optional
+        Path to which the output xarray.Dataset of feature data will be saved
+        (if applicable).
     first_N : int, optional
         Integer indicating the maximum number of time series to featurize.
         Can be used to reduce the number of files for testing purposes. If
@@ -91,6 +54,9 @@ def featurize_data_files(ts_paths, features_to_use=[],
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
 
     Returns
     -------
@@ -99,31 +65,28 @@ def featurize_data_files(ts_paths, features_to_use=[],
         containing filenames and targets (if applicable).
     """
     ts_paths = ts_paths[:first_N]
-    params_list = featurize_file_task_params(ts_paths, features_to_use,
-                                             custom_script_path)
     if not celery_available():
         raise RuntimeError("Celery not available")
-    celery_res = featurize_file_task.chunks(params_list,
-                                            config['mltsp']['N_CORES']).delay()
-    # Returns list of list of pairs [fname, {feature: [values]]
+    celery_res = group(featurize_file_task.s(ts_path, features_to_use,
+                                             custom_script_path, use_docker)
+                       for ts_path in ts_paths)()
     res_list = celery_res.get()
-    res_flat = [elem for chunk in res_list for elem in chunk]
-    fnames, feature_dicts, targets, meta_feature_dicts = zip(*res_flat)
+    fnames, feature_dicts, targets, meta_feature_dicts = zip(*res_list)
     featureset = ft.assemble_featureset(feature_dicts, targets,
                                         meta_feature_dicts, fnames)
 
-    if featureset_id:
-        write_features_to_disk(featureset, featureset_id)
+    if output_path:
+        featureset.to_netcdf(output_path)
 
     return featureset
 
 
 # TODO should this be changed to use TimeSeries objects? or maybe an optional
-# argument for TimeSeries?
+# argument for TimeSeries? some redundancy here...
 def featurize_time_series(times, values, errors=None, features_to_use=[],
                           targets=None, meta_features={}, labels=None,
                           custom_script_path=None, custom_functions=None,
-                          use_celery=False):
+                          use_docker=True, use_celery=False):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -188,6 +151,9 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
     use_celery : bool, optional
         Boolean to control whether to distribute tasks to Celery workers (if
         Celery is available). Defaults to True.
@@ -202,31 +168,30 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         times = copy.deepcopy(values)
         if isinstance(times, np.ndarray) and (times.ndim == 1
                                               or 1 in times.shape):
-            times[:] = np.linspace(0., config['mltsp']['DEFAULT_MAX_TIME'],
+            times[:] = np.linspace(0., time_series.DEFAULT_MAX_TIME,
                                    times.size)
         else:
             for t in times:
                 if isinstance(t, np.ndarray) and (t.ndim == 1 or 1 in t.shape):
-                    t[:] = np.linspace(0., config['mltsp']['DEFAULT_MAX_TIME'],
+                    t[:] = np.linspace(0., time_series.DEFAULT_MAX_TIME,
                                        t.size)
                 else:
                     for t_i in t:
-                        t_i[:] = np.linspace(
-                            0., config['mltsp']['DEFAULT_MAX_TIME'], t_i.size
-                            )
+                        t_i[:] = np.linspace(0., time_series.DEFAULT_MAX_TIME,
+                                             t_i.size)
 
     if errors is None:
         errors = copy.deepcopy(values)
         if isinstance(errors, np.ndarray) and (errors.ndim == 1
                                                or 1 in errors.shape):
-            errors[:] = config['mltsp']['DEFAULT_ERROR_VALUE']
+            errors[:] = time_series.DEFAULT_ERROR_VALUE
         else:
             for e in errors:
                 if isinstance(e, np.ndarray) and (e.ndim == 1 or 1 in e.shape):
-                    e[:] = config['mltsp']['DEFAULT_ERROR_VALUE']
+                    e[:] = time_series.DEFAULT_ERROR_VALUE
                 else:
                     for e_i in e:
-                        e_i[:] = config['mltsp']['DEFAULT_ERROR_VALUE']
+                        e_i[:] = time_series.DEFAULT_ERROR_VALUE
 
     if labels is None:
         if isinstance(times, (list, tuple)):
@@ -263,17 +228,16 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
                              "functions; please import your functions from a "
                              "module or set `use_celery=False`.")
 
-        params_list = prepare_celery_data_task_params(times, values, errors,
-                                                      labels, features_to_use,
-                                                      meta_features,
-                                                      custom_script_path,
-                                                      custom_functions)
-        celery_res = featurize_data_task.chunks(
-            params_list, config['mltsp']['N_CORES']).delay()
-        # Returns list of list of pairs [label, {feature: [values]]
+        all_time_series = [TimeSeries(t, m, e, meta_features.loc[label],
+                                      name=label)
+                           for t, m, e, label in zip(times, values, errors,
+                                                     labels)]
+        celery_res = group(featurize_data_task.s(ts, features_to_use,
+                                                 custom_script_path,
+                                                 custom_functions, use_docker)
+                           for ts in all_time_series)()
         res_list = celery_res.get()
-        res_flat = [elem for chunk in res_list for elem in chunk]
-        labels, feature_dicts = zip(*res_flat)
+        labels, feature_dicts = zip(*res_list)
         if targets is not None:
             targets = targets.loc[list(labels)]
         meta_features = meta_features.loc[list(labels)]
@@ -285,7 +249,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
             ts = TimeSeries(t, m, e, meta_features=meta_features.loc[label])
             feature_dict = ft.featurize_single_ts(ts, features_to_use,
                                                   custom_script_path=custom_script_path,
-                                                  custom_functions=custom_functions)
+                                                  custom_functions=custom_functions,
+                                                  use_docker=use_docker)
             feature_dicts.append(feature_dict)
             meta_feature_dicts.append(ts.meta_features)
     return ft.assemble_featureset(feature_dicts, targets, meta_feature_dicts,

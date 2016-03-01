@@ -1,6 +1,5 @@
 import os
 import xarray as xr
-from .cfg import config
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
@@ -77,25 +76,19 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
     return model
 
 
-def create_and_pickle_model(model_key, model_type, featureset_key,
+def create_and_pickle_model(featureset, model_type, output_path,
                             model_options={}, params_to_optimize=None):
-    """Build a `scikit-learn` model.
-
-    Builds the specified model and pickles it in the file
-    whose name is given by
-    ``'%s_%s.pkl' % (featureset_key, model_type)``
-    in the directory `config['paths']['models_folder']`.
-
+    """Build a `scikit-learn` model for the given featureset and store in
+    serialized joblib format at the specified path.
 
     Parameters
     ----------
-    model_key : str
-        Unique model ID.
-    featureset_key: str
-        RethinkDB ID of the associated feature set from which to build
-        the model, which will also become the ID/key for the model.
+    featureset : xarray.Dataset
+        Features for training model.
     model_type : str
         Abbreviation of the type of model to be created.
+    output_path : str
+        Path where output model is saved as in joblib pickle format.
     model_options : dict, optional
         Dictionary specifying `scikit-learn` model parameters to be used.
     params_to_optimize : dict or list of dict, optional
@@ -104,21 +97,10 @@ def create_and_pickle_model(model_key, model_type, featureset_key,
 
     Returns
     -------
-    str
-        Human-readable message indicating successful completion.
-
+    scikit-learn model
     """
-
-    featureset_path = os.path.join(config['paths']['features_folder'],
-                                   '{}_featureset.nc'.format(featureset_key))
-    featureset = xr.open_dataset(featureset_path)
-
     model = build_model_from_featureset(featureset, model_type=model_type,
                                         model_options=model_options,
                                         params_to_optimize=params_to_optimize)
-
-    # Store the model:
-    foutname = os.path.join(config['paths']['models_folder'], '{}.pkl'.format(model_key))
-    joblib.dump(model, foutname, compress=3)
-    return("New model successfully created. Click the Predict tab to "
-           "start using it.")
+    joblib.dump(model, output_path, compress=3)
+    return model

@@ -2,7 +2,6 @@ from nose.tools import with_setup
 import os
 import numpy.testing as npt
 import numpy as np
-from mltsp.cfg import config
 from mltsp import time_series
 from mltsp.time_series import TimeSeries
 
@@ -87,19 +86,19 @@ def test_time_series_default_values():
     t, m, e = sample_time_series(channels=n_channels)
     ts = TimeSeries(None, m[0], None)
     npt.assert_allclose(ts.time,
-                        np.linspace(0., config['mltsp']['DEFAULT_MAX_TIME'],
+                        np.linspace(0., time_series.DEFAULT_MAX_TIME,
                                     m.shape[1]))
     npt.assert_allclose(ts.error,
-                        np.repeat(config['mltsp']['DEFAULT_ERROR_VALUE'],
+                        np.repeat(time_series.DEFAULT_ERROR_VALUE,
                                   m.shape[1]))
     assert ts.n_channels == 1
 
     ts = TimeSeries(None, m, None)
     npt.assert_allclose(ts.time,
-                        np.linspace(0., config['mltsp']['DEFAULT_MAX_TIME'],
+                        np.linspace(0., time_series.DEFAULT_MAX_TIME,
                                     m.shape[1]))
     npt.assert_allclose(ts.error,
-                        np.repeat(config['mltsp']['DEFAULT_ERROR_VALUE'],
+                        np.repeat(time_series.DEFAULT_ERROR_VALUE,
                                   m.shape[1]))
     assert ts.n_channels == n_channels
 
@@ -109,11 +108,10 @@ def test_time_series_default_values():
     ts = TimeSeries(None, m, None)
     for i in range(n_channels):
         npt.assert_allclose(ts.time[i],
-                            np.linspace(0.,
-                                        config['mltsp']['DEFAULT_MAX_TIME'],
+                            np.linspace(0., time_series.DEFAULT_MAX_TIME,
                                         len(m[i])))
         npt.assert_allclose(ts.error[i],
-                            np.repeat(config['mltsp']['DEFAULT_ERROR_VALUE'],
+                            np.repeat(time_series.DEFAULT_ERROR_VALUE,
                                       len(m[i])))
     assert ts.n_channels == n_channels
 

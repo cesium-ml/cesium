@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from . import build_model
-from .cfg import config
 from . import featurize
 from . import time_series
 from . import util
@@ -52,8 +51,8 @@ def model_predictions(featureset, model, return_probs=True):
         return pd.DataFrame(preds, index=feature_df.index, columns=columns)
 
 
-def predict_data_files(ts_paths, model_key, featureset_key,
-                       custom_features_script=None):
+def predict_data_files(ts_paths, features_to_use, model,
+                       custom_features_script=None, use_docker=True):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
@@ -70,14 +69,16 @@ def predict_data_files(ts_paths, model_key, featureset_key,
     ts_paths : str
         Path to netCDF files containing seriealized TimeSeries objects to be
         used in prediction.
-    model_key : str
-        ID of the model to be used.
-    featureset_key : str
-        RethinkDB ID of the feature set used to create the
-        above-specified model.
+    features_to_use : list of str
+        List of features to extract for new time series data
+    model : scikit-learn model
+        Model to use for making predictions on new input time series
     custom_features_script : str, optional
         Path to custom features script to be used in feature
         generation. Defaults to None.
+    use_docker : bool, optional
+        Bool specifying whether to generate custom features inside a Docker
+        container. Defaults to True.
 
     Returns
     -------
@@ -93,16 +94,11 @@ def predict_data_files(ts_paths, model_key, featureset_key,
             - "pred_results": A list of lists, each containing one of the
               most-probable targets and its probability.
     """
-    featureset_path = os.path.join(config['paths']['features_folder'],
-                                   '{}_featureset.nc'.format(featureset_key))
-    featureset = xr.open_dataset(featureset_path)
-    features_to_use = list(featureset.data_vars)
     new_featureset = featurize.featurize_data_files(ts_paths,
                                                     features_to_use=features_to_use,
-                                                    custom_script_path=custom_features_script)
+                                                    custom_script_path=custom_features_script,
+                                                    use_docker=use_docker)
 
-    model = joblib.load(os.path.join(config['paths']['models_folder'],
-                                     "{}.pkl".format(model_key)))
     # Covert to DataFrame so we can treat 1d/2d predictions in the same way
     preds_df = pd.DataFrame(model_predictions(new_featureset, model))
 
