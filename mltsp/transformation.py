@@ -77,7 +77,6 @@ def train_test_split(time_series, test_size=0.5, train_size=0.5,
     return [time_series[i] for i in train], [time_series[j] for j in test]
 
 
-# TODO what do we think of this as the interface w/ the front end?
 # Keys=transform names, values=(transform function, [output names])
 TRANSFORMS_INFO_DICT = {'Train/Test Split': (train_test_split, ['train',
                                                                 'test'])}

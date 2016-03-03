@@ -51,6 +51,7 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf api/
+	rm -rf EEG_Example*
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -114,7 +115,7 @@ epub:
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
-latex: api
+latex:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."

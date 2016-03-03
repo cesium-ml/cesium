@@ -1,5 +1,6 @@
-sphinx>=1.4a1
+sphinx
 recommonmark
 numpydoc
-PyStemmer
 sphinx-rtd-theme
+notedown
+jupytercontrib

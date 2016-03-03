@@ -5,6 +5,7 @@ Machine Learning Time-Series Platform Documentation
    :maxdepth: 2
 
    Installation <install>
+   EEG Example <EEG_Example>
    API <api/api>
 
 .. Indices and tables

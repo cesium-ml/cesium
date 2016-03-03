@@ -15,6 +15,7 @@ mltsp.egg-info
 !mltsp/tests/data
 external
 doc/_build
+doc/api
 dist
 .eggs
 .coverage

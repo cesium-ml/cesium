@@ -17,6 +17,12 @@ except ImportError:
 import requests
 
 
+__all__ = ['make_list', 'shorten_fname', 'get_docker_client',
+           'docker_images_available', 'is_running_in_docker',
+           'check_model_param_types', 'remove_files', 'extract_time_series',
+           'robust_literal_eval', 'warn_defaultdict']
+
+
 def make_list(x):
     import collections
     if isinstance(x, collections.Iterable) and not isinstance(x, str):

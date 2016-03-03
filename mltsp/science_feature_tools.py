@@ -3,6 +3,9 @@ import dask.async
 from . import science_features as sf
 
 
+__all__ = ['FEATURES_LIST', 'generate_science_features']
+
+
 FEATURES_LIST = [
     'amplitude',
     'percent_beyond_1_std',

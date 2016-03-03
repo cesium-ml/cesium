@@ -32,7 +32,6 @@ db:
 external/casperjs:
 	@tools/casper_install.sh
 
-
 test_backend: db celery
 	rm -f *_test_*.yaml
 	nosetests -v mltsp
@@ -55,6 +54,9 @@ test_no_docker: | test_backend test_frontend_no_docker
 install:
 	pip install -r requirements.txt
 
-html:
-	pip install -q -r requirements.readthedocs.txt
+html: celery
+	pip install -q -r requirements.docs.txt
+	notedown examples/EEG_Example.md > doc/EEG_Example.ipynb
+	jupyter nbconvert --execute --inplace doc/EEG_Example.ipynb --ExecutePreprocessor.timeout=300
+	jupyter nbconvert --to=mdoutput --output=EEG_Example.md --output-dir=doc doc/EEG_Example.ipynb
 	export SPHINXOPTS=-W; make -C doc html

@@ -7,6 +7,11 @@ from sklearn.externals import joblib
 from sklearn import grid_search
 
 
+__all__ = ['MODELS_TYPE_DICT', 'rectangularize_featureset',
+           'fit_model_optimize_hyperparams', 'build_model_from_featureset',
+           'create_and_pickle_model']
+
+
 MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
                     'RandomForestRegressor': RandomForestRegressor,
                     'LinearSGDClassifier': SGDClassifier,
