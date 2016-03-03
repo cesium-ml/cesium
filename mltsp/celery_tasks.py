@@ -6,11 +6,12 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from mltsp import time_series
 from mltsp import util
 from mltsp import featurize_tools as ft
+from mltsp import _patch_celery
 
 
 celery_config = {
     'CELERY_ACCEPT_CONTENT': ['pickle'],
-    'CELERY_IMPORTS': ['mltsp', 'celery_tasks'],
+    'CELERY_IMPORTS': ['mltsp', '_patch_celery', 'celery_tasks'],
     'CELERY_RESULT_BACKEND': 'amqp',
     'CELERY_RESULT_SERIALIZER': 'pickle',
     'CELERY_TASK_SERIALIZER': 'pickle',
