@@ -51,7 +51,7 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf api/
-	rm -rf EEG_Example*
+	rm -rf examples/EEG_Example_files examples/EEG_Example.ipynb
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
