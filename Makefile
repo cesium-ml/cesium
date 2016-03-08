@@ -58,6 +58,6 @@ html: celery
 	pip install -q -r requirements.docs.txt
 	notedown doc/examples/EEG_Example.md > doc/examples/EEG_Example.ipynb
 	jupyter nbconvert --execute --inplace doc/examples/EEG_Example.ipynb --ExecutePreprocessor.timeout=300
-	jupyter nbconvert --to=mdoutput --output=EEG_Example.md --output-dir=doc/examples doc/examples/EEG_Example.ipynb
+	jupyter nbconvert --to=mdoutput --output=EEG_Example_output.md --output-dir=doc/examples doc/examples/EEG_Example.ipynb
 	export SPHINXOPTS=-W; make -C doc html
 	cp doc/examples/EEG_Example.ipynb doc/_build/html/examples/
