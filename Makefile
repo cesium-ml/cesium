@@ -3,6 +3,7 @@
 SHELL = /bin/bash
 PY_VER = $(shell python -c 'import sys; print(sys.version_info.major)')
 CLEAN_TEST_CONFIG = $(shell rm -f mltsp-_test_.yaml)
+EXAMPLE_DIR = doc/examples
 
 celery:
 	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
@@ -54,10 +55,18 @@ test_no_docker: | test_backend test_frontend_no_docker
 install:
 	pip install -r requirements.txt
 
-html: celery
+MARKDOWNS = $(wildcard $(EXAMPLE_DIR)/*Example.md)
+NOTEBOOKS = $(patsubst %Example.md, %Example.ipynb, $(MARKDOWNS))
+MD_OUTPUTS = $(patsubst %.md, %_output.md, $(MARKDOWNS))
+
+%Example.ipynb:%Example.md
+	notedown $< > $@
+	jupyter nbconvert --execute --inplace $@ --ExecutePreprocessor.timeout=-1
+
+%_output.md:%.ipynb
+	jupyter nbconvert --to=mdoutput --output=`basename $@` --output-dir=$(EXAMPLE_DIR) $<
+
+html: | celery $(NOTEBOOKS) $(MD_OUTPUTS)
 	pip install -q -r requirements.docs.txt
-	notedown doc/examples/EEG_Example.md > doc/examples/EEG_Example.ipynb
-	jupyter nbconvert --execute --inplace doc/examples/EEG_Example.ipynb --ExecutePreprocessor.timeout=300
-	jupyter nbconvert --to=mdoutput --output=EEG_Example_output.md --output-dir=doc/examples doc/examples/EEG_Example.ipynb
 	export SPHINXOPTS=-W; make -C doc html
-	cp doc/examples/EEG_Example.ipynb doc/_build/html/examples/
+	cp $(EXAMPLE_DIR)/*.ipynb doc/_build/html/examples/

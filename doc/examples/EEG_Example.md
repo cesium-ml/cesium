@@ -9,9 +9,9 @@ ictal (S) signals.
 
 The overall workflow consists of three steps: first, we "featurize" the time series by
 selecting some set of mathematical functions to apply to each; next, we build some
-classification models which uses these feature input to distinguish between classes; and
-finally, we validate our models by generating predictions for some unseen holdout set
-and comparing them to the true class labels.
+classification models which use these features to distinguish between classes;
+finally, we validate our models by generating predictions for some unseen
+holdout set and comparing them to the true class labels.
 
 First, we'll load the data and inspect a representative time series from each class:
 
@@ -24,10 +24,13 @@ import seaborn; seaborn.set()
 from mltsp import datasets
 
 eeg = datasets.fetch_andrzejak()
+
+# Group together classes (Z, O), (N, F), (S) as normal, interictal, ictal
 eeg["classes"] = eeg["classes"].astype('U16') #  allocate memory for longer class names
 eeg["classes"][np.logical_or(eeg["classes"]=="Z", eeg["classes"]=="O")] = "Normal"
 eeg["classes"][np.logical_or(eeg["classes"]=="N", eeg["classes"]=="F")] = "Interictal"
 eeg["classes"][eeg["classes"]=="S"] = "Ictal"
+
 fig, ax = plt.subplots(1, len(np.unique(eeg["classes"])), sharey=True)
 for label, subplot in zip(np.unique(eeg["classes"]), ax):
     i = np.where(eeg["classes"] == label)[0][0]
@@ -59,9 +62,9 @@ features_to_use = ['amplitude',
                    'skew',
                    'std',
                    'weighted_average']
-fset_mltsp = featurize.featurize_time_series(eeg["times"], eeg["measurements"], None,
-                                             features_to_use, eeg["classes"],
-                                             use_celery=True)
+fset_mltsp = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
+                                             errors=None, features_to_use=features_to_use,
+                                             targets=eeg["classes"], use_celery=True)
 print(fset_mltsp)
 ```
 
@@ -114,9 +117,11 @@ guo_features = {
     'skew': skew_signal
 }
 
-fset_guo = featurize.featurize_time_series(eeg["times"], eeg["measurements"], None,
-                                           list(guo_features.keys()), eeg["classes"],
-                                           custom_functions=guo_features, use_celery=True)
+fset_guo = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
+                                           errors=None, targets=eeg["classes"], 
+                                           features_to_use=list(guo_features.keys()),
+                                           custom_functions=guo_features,
+                                           use_celery=True)
 print(fset_guo)
 ```
 
@@ -135,8 +140,9 @@ import pywt
 n_channels = 5
 eeg["dwts"] = [pywt.wavedec(m, pywt.Wavelet('db1'), level=n_channels-1)
                for m in eeg["measurements"]]
-fset_dwt = featurize.featurize_time_series(None, eeg["dwts"], None,
-                                           list(guo_features.keys()), eeg["classes"],
+fset_dwt = featurize.featurize_time_series(times=None, values=eeg["dwts"], errors=None,
+                                           features_to_use=list(guo_features.keys()),
+                                           targets=eeg["classes"],
                                            custom_functions=guo_features)
 print(fset_dwt)
 ```
@@ -194,6 +200,7 @@ and then predictions are made based on these features using
 [`predict.model_predictions`](https://mltsp.readthedocs.org/en/latest/api/mltsp.predict.html#mltsp.predict.model_predictions),
 
 ```python
+from sklearn.metrics import accuracy_score
 from mltsp.predict import model_predictions
 
 preds_mltsp = model_predictions(fset_mltsp, model_mltsp, return_probs=False)
@@ -201,20 +208,20 @@ preds_guo = model_predictions(fset_guo, model_guo, return_probs=False)
 preds_dwt = model_predictions(fset_dwt, model_dwt, return_probs=False)
 
 print("Built-in MLTSP features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          np.mean(preds_mltsp[train] == eeg["classes"][train]),
-          np.mean(preds_mltsp[test] == eeg["classes"][test])))
+          accuracy_score(preds_mltsp[train], eeg["classes"][train]),
+          accuracy_score(preds_mltsp[test], eeg["classes"][test])))
 print("Guo et al. features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          np.mean(preds_guo[train] == eeg["classes"][train]),
-          np.mean(preds_guo[test] == eeg["classes"][test])))
+          accuracy_score(preds_guo[train], eeg["classes"][train]),
+          accuracy_score(preds_guo[test], eeg["classes"][test])))
 print("Wavelet transform features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          np.mean(preds_dwt[train] == eeg["classes"][train]),
-          np.mean(preds_dwt[test] == eeg["classes"][test])))
+          accuracy_score(preds_dwt[train], eeg["classes"][train]),
+          accuracy_score(preds_dwt[test], eeg["classes"][test])))
 ```
 
 The workflow presented here is intentionally simplistic and omits many important steps
 such as feature selection, model parameter selection, etc. Since we make use of standard
-`scikit-learn` models, additional steps can be incorporated in exactly the way as for any
-other (non-time domain) machine learning problem.
+`scikit-learn` models, additional steps can be incorporated in the same way they would be
+for any other (non-time domain) machine learning problem.
 
 
 IPython notebook: <a href="EEG_Example.ipynb" download="EEG_Example.ipynb">download</a>

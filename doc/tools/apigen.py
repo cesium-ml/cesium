@@ -55,31 +55,6 @@ class ApiDocWriter(object):
         root_module = self._import(package_name)
         self.root_path = root_module.__path__[-1]
 
-#    def get_package_name(self):
-#        return self._package_name
-#
-#    def set_package_name(self, package_name):
-#        ''' Set package_name
-#
-#        >>> docwriter = ApiDocWriter('sphinx')
-#        >>> import sphinx
-#        >>> docwriter.root_path == sphinx.__path__[0]
-#        True
-#        >>> docwriter.package_name = 'docutils'
-#        >>> import docutils
-#        >>> docwriter.root_path == docutils.__path__[0]
-#        True
-#        '''
-#        # It's also possible to imagine caching the module parsing here
-#        self._package_name = package_name
-#        root_module = self._import(package_name)
-#        self.root_path = root_module.__path__[-1]
-#        self.written_modules = None
-#
-#    package_name = property(get_package_name, set_package_name, None,
-#                            'get/set package_name')
-
-
     def _import(self, name):
         ''' Import namespace package '''
         mod = __import__(name)

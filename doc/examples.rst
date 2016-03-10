@@ -1,11 +1,6 @@
 Examples
 ========
 
-.. toctree::
-   :hidden:
-
-   EEG Example <examples/EEG_Example_output>
-
 Examples of how to use the :code:`mltsp` library to perform machine learning
 for time series data.
 
