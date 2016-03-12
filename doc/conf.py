@@ -312,44 +312,20 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 
-# -- MLTSP package configuration (mock out dependencies) ------------------
+# -- Build MLTSP API documentation ----------------------------------------
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__name__), 'tools'))
 from apigen import ApiDocWriter
 import mltsp
-try:
-    import mock
-except:
-    import unittest.mock as mock
-
-old_import = __import__
-def mock_import(name, *args, **kwargs):
-    try:
-        return old_import(name, *args, **kwargs)
-    except (ImportError, KeyError) as ie:
-        if 'mltsp' in name:  # Don't skip failure for a real API module
-            raise ie
-        else:
-            return mock.MagicMock(name=name)
-    # Pass on other types of exceptions to avoid repeated pandas imports
-    except Exception as e:
-        pass
-__builtins__['__import__'] = mock_import
-
-
-# -- Build MLTSP API documentation ----------------------------------------
 package = 'mltsp'
 module = sys.modules[package]
 
 outdir = 'api'
-# Unlike skimage, for now we just manually specify which files to inspect
-modules = ['mltsp', 'mltsp.datasets', 'mltsp.featurize', #'mltsp.custom_feature_tools',
-           'mltsp.obs_feature_tools', 'mltsp.science_feature_tools',
-           'mltsp.science_features', 'mltsp.build_model', 'mltsp.predict',
-           'mltsp.util']
-
-docwriter = ApiDocWriter(package, modules)
-#    docwriter.package_skip_patterns += [r'filter$']
+docwriter = ApiDocWriter(package)
 docwriter.write_api_docs(outdir)
 docwriter.write_index(outdir, 'api', relative_to='api')
 print('%d files written' % len(docwriter.written_modules))
+
+
+def setup(app):
+    app.add_stylesheet("output_cells.css")

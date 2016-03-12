@@ -28,10 +28,8 @@ class ApiDocWriter(object):
 
     def __init__(self,
                  package_name,
-                 modules,
                  rst_extension='.txt',
-                 package_skip_patterns=None,
-                 module_skip_patterns=None,
+                 skip_patterns=['.*__', '.*tests$'],
                  ):
         ''' Initialize package for parsing
 
@@ -40,19 +38,9 @@ class ApiDocWriter(object):
         package_name : string
             Name of the top-level package.  *package_name* must be the
             name of an importable package
-        modules : sequence
-            Names of submodules for which documentation is to be generated.
         rst_extension : string, optional
             Extension for reST files, default '.rst'
-        package_skip_patterns : None or sequence of {strings, regexps}
-            Sequence of strings giving URIs of packages to be excluded
-            Operates on the package path, starting at (including) the
-            first dot in the package path, after *package_name* - so,
-            if *package_name* is ``sphinx``, then ``sphinx.util`` will
-            result in ``.util`` being passed for earching by these
-            regexps.  If is None, gives default. Default is:
-            ['\.tests$']
-        module_skip_patterns : None or sequence
+        skip_patterns : None or sequence
             Sequence of strings giving URIs of modules to be excluded
             Operates on the module name including preceding URI path,
             back to the first dot after *package_name*.  For example
@@ -61,39 +49,11 @@ class ApiDocWriter(object):
             If is None, gives default. Default is:
             ['\.setup$', '\._']
         '''
-        if package_skip_patterns is None:
-            package_skip_patterns = ['\\.tests$']
-        if module_skip_patterns is None:
-            module_skip_patterns = ['\\.setup$', '\\._']
-        self.modules = modules
         self.package_name = package_name
+        self.skip_patterns = skip_patterns
         self.rst_extension = rst_extension
-        self.package_skip_patterns = package_skip_patterns
-        self.module_skip_patterns = module_skip_patterns
-
-    def get_package_name(self):
-        return self._package_name
-
-    def set_package_name(self, package_name):
-        ''' Set package_name
-
-        >>> docwriter = ApiDocWriter('sphinx')
-        >>> import sphinx
-        >>> docwriter.root_path == sphinx.__path__[0]
-        True
-        >>> docwriter.package_name = 'docutils'
-        >>> import docutils
-        >>> docwriter.root_path == docutils.__path__[0]
-        True
-        '''
-        # It's also possible to imagine caching the module parsing here
-        self._package_name = package_name
         root_module = self._import(package_name)
         self.root_path = root_module.__path__[-1]
-        self.written_modules = None
-
-    package_name = property(get_package_name, set_package_name, None,
-                            'get/set package_name')
 
     def _import(self, name):
         ''' Import namespace package '''
@@ -222,48 +182,16 @@ class ApiDocWriter(object):
                   '  .. automethod:: __init__\n'
         return ad
 
-    def _survives_exclude(self, matchstr, match_type):
+    def _survives_exclude(self, matchstr):
         ''' Returns True if *matchstr* does not match patterns
 
         ``self.package_name`` removed from front of string if present
-
-        Examples
-        --------
-        >>> dw = ApiDocWriter('sphinx')
-        >>> dw._survives_exclude('sphinx.okpkg', 'package')
-        True
-        >>> dw.package_skip_patterns.append('^\\.badpkg$')
-        >>> dw._survives_exclude('sphinx.badpkg', 'package')
-        False
-        >>> dw._survives_exclude('sphinx.badpkg', 'module')
-        True
-        >>> dw._survives_exclude('sphinx.badmod', 'module')
-        True
-        >>> dw.module_skip_patterns.append('^\\.badmod$')
-        >>> dw._survives_exclude('sphinx.badmod', 'module')
-        False
         '''
-        if match_type == 'module':
-            patterns = self.module_skip_patterns
-        elif match_type == 'package':
-            patterns = self.package_skip_patterns
-        else:
-            raise ValueError('Cannot interpret match type "%s"'
-                             % match_type)
-        # Match to URI without package name
-        L = len(self.package_name)
-        if matchstr[:L] == self.package_name:
-            matchstr = matchstr[L:]
-        for pat in patterns:
-            try:
-                pat.search
-            except AttributeError:
-                pat = re.compile(pat)
-            if pat.search(matchstr):
+        for pat in self.skip_patterns:
+            if re.compile(pat).search(matchstr):
                 return False
         return True
 
-    """
     def _uri2path(self, uri):
         ''' Convert uri to absolute filepath
 
@@ -333,26 +261,31 @@ class ApiDocWriter(object):
         >>> mods = dw.discover_modules()
         >>> 'sphinx.util' in mods
         True
-        >>> dw.package_skip_patterns.append('\.util$')
+        >>> dw.skip_patterns.append('\.util$')
         >>> 'sphinx.util' in dw.discover_modules()
         False
         >>>
         '''
         modules = [self.package_name]
         # raw directory parsing
-        for dirpath, dirnames, filenames in os.walk(self.root_path):
+        for dirpath, dirnames, filenames in os.walk(self.root_path,
+                                                    topdown=False):
             # Check directory names for packages
             root_uri = self._path2uri(os.path.join(self.root_path,
                                                    dirpath))
-            for dirname in dirnames[:]: # copy list - we modify inplace
-                package_uri = '.'.join((root_uri, dirname))
+            filenames = [f for f in filenames if f.endswith('.py')]
+            uris = [u.strip('.py') for u in dirnames + filenames]
+            for uri in uris:
+                package_uri = '.'.join((root_uri, uri))
                 if (self._uri2path(package_uri) and
-                    self._survives_exclude(package_uri, 'package')):
-                    modules.append(package_uri)
-                else:
-                    dirnames.remove(dirname)
+                    self._survives_exclude(package_uri)):
+                    try:
+                        mod = __import__(package_uri, fromlist=['mltsp'])
+                        mod.__all__
+                        modules.append(package_uri)
+                    except (ImportError, AttributeError):
+                        pass
         return sorted(modules)
-    """
 
     def write_modules_api(self, modules, outdir):
         # write the list
@@ -390,7 +323,7 @@ class ApiDocWriter(object):
         if not os.path.exists(outdir):
             os.mkdir(outdir)
         # compose list of modules
-        modules = self.modules
+        modules = self.discover_modules()
         self.write_modules_api(modules, outdir)
 
     def write_index(self, outdir, froot='gen', relative_to=None):

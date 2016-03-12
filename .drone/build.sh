@@ -19,17 +19,6 @@ echo "[Drone] Installing base requirements"
 pip install --upgrade pip requests six python-dateutil nose nose-exclude mock
 hash -d pip  # find upgraded pip
 
-echo "[Drone] Build HTML documentation"
-# Build before installing requirements since readthedocs doesn't install them
-set +e
-errors=`make html 2>&1 | tee errors.log | grep -i error`
-set -e
-cat errors.log
-if [[ -n $errors ]]; then
-    echo "Errors detected in Sphinx build; exiting..."
-    exit 1;
-fi
-
 echo "[Drone] Installing MLTSP requirements"
 sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
@@ -55,6 +44,16 @@ make db && sleep 1
 
 echo "[Drone] Initialize database"
 mltsp --db-init
+
+#echo "[Drone] Build HTML documentation"
+#set +e
+#errors=`make html 2>&1 | tee errors.log | grep -i error`
+#set -e
+#cat errors.log
+#if [[ -n $errors ]]; then
+#    echo "Errors detected in Sphinx build; exiting..."
+#    exit 1;
+#fi
 
 echo "[Drone] Run test suite"
 export C_FORCE_ROOT=1 # override warning about running Celery+pickle as root

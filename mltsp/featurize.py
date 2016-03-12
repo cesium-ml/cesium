@@ -1,6 +1,5 @@
 import copy
 import os
-import pickle
 import numpy as np
 import pandas as pd
 from celery import group
@@ -11,6 +10,10 @@ from . import data_management
 from . import featurize_tools as ft
 from . import time_series
 from .time_series import TimeSeries
+
+
+__all__ = ['load_and_store_feature_data', 'featurize_data_files',
+           'featurize_time_series']
 
 
 def load_and_store_feature_data(features_path, output_path, first_N=None):
@@ -90,20 +93,22 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
-        - times:  (n,) array or (p, n) array (for p channels of measurement)
-        - values: (n,) array or (p, n) array (for p channels of measurement)
-        - errors: (n,) array or (p, n) array (for p channels of measurement)
+
+    - `times`:  (n,) array or (p, n) array (for p channels of measurement)
+    - `values`: (n,) array or (p, n) array (for p channels of measurement)
+    - `errors`: (n,) array or (p, n) array (for p channels of measurement)
 
     For multiple time series, inputs may have the form:
-        - times: list of (n,) arrays, list of (p, n) arrays (for p channels of
-          measurement), or list of lists of (n,) arrays (for
-          multichannel data with different time values per channel)
-        - values: list of (n,) arrays, list of (p, n) arrays (for p channels of
-          measurement), or list of lists of (n,) arrays (for
-          multichannel data with different time values per channel)
-        - errors: list of (n,) arrays, list of (p, n) arrays (for p channels of
-          measurement), or list of lists of (n,) arrays (for
-          multichannel data with different time values per channel)
+
+    - `times`: list of (n,) arrays, list of (p, n) arrays (for p channels of
+      measurement), or list of lists of (n,) arrays (for
+      multichannel data with different time values per channel)
+    - `values`: list of (n,) arrays, list of (p, n) arrays (for p channels of
+      measurement), or list of lists of (n,) arrays (for
+      multichannel data with different time values per channel)
+    - `errors`: list of (n,) arrays, list of (p, n) arrays (for p channels of
+      measurement), or list of lists of (n,) arrays (for
+      multichannel data with different time values per channel)
 
     In the case of multichannel measurements, each channel will be
     featurized separately, and the data variables of the output
@@ -216,17 +221,6 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         if not celery_available():
             raise RuntimeError("Celery unavailable; please check your Celery "
                                "configuration or set `use_celery=False`.")
-        try:
-            pickle.loads(pickle.dumps(custom_functions))
-            # If a function was defined outside a module, it will fail to load
-            # properly on a Celery worker (even if it's pickleable)
-            if custom_functions:
-                assert(not any(f.__module__ == '__main__'
-                               for f in custom_functions.values()))
-        except:
-            raise ValueError("Using Celery requires pickleable custom "
-                             "functions; please import your functions from a "
-                             "module or set `use_celery=False`.")
 
         all_time_series = [TimeSeries(t, m, e, meta_features.loc[label],
                                       name=label)

@@ -3,6 +3,11 @@ import dask.async
 import scipy.stats as stats
 
 
+__all__ = ['FEATURES_LIST', 'double_to_single_step', 'cad_prob',
+           'delta_t_hist', 'normalize_hist', 'find_sorted_peaks', 'peak_ratio',
+           'peak_bin', 'generate_obs_features']
+
+
 FEATURES_LIST = [
     "n_epochs","avg_err","med_err","std_err",
     "total_time","avgt","cads_std","avg_mag",

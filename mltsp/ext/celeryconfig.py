@@ -1,8 +1,0 @@
-CELERY_RESULT_BACKEND = 'amqp'
-CELERY_TASK_SERIALIZER = 'pickle'
-CELERY_RESULT_SERIALIZER = 'pickle'
-CELERY_ACCEPT_CONTENT = ['pickle']
-
-INSTALLED_APPS = ['mltsp']
-
-CELERY_IMPORTS = ('mltsp', 'celery_tasks')

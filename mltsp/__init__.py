@@ -7,8 +7,10 @@ from .version import version as __version__
 
 
 def install():
-    """Install MLTSP config file in ~/.config/mltsp/mltsp.yaml.
+    """Install MLTSP config file and create data folders.
 
+    Copies mltsp.yaml.example to ~/.config/mltsp/mltsp.yaml and creates data
+    directories as described in `mltsp.config.cfg['paths']`
     """
     import os
     import shutil

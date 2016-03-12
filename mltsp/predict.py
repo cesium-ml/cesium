@@ -10,6 +10,9 @@ from . import time_series
 from . import util
 
 
+__all__ = ['model_predictions', 'predict_data_files']
+
+
 def model_predictions(featureset, model, return_probs=True):
     """Construct a DataFrame of model predictions for given featureset.
 

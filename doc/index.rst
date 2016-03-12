@@ -5,6 +5,7 @@ Machine Learning Time-Series Platform Documentation
    :maxdepth: 2
 
    Installation <install>
+   Examples <examples>
    API <api/api>
 
 .. Indices and tables

@@ -7,19 +7,35 @@ from . import time_series
 from .time_series import TimeSeries
 
 
-__all__ = ['parse_ts_data', 'parse_headerfile', 'parse_and_store_ts_data',
-           'save_time_series_with_prefix']
+__all__ = ['parse_ts_data', 'parse_headerfile', 'parse_and_store_ts_data']
 
 
 def parse_ts_data(filepath, sep=","):
-    """Parses time series data file and returns np.ndarray with 3 columns:
-       - For data containing three columns (time, measurement, error), all
-         three are returned
-       - For data containing two columns, a dummy error column is added with
-         value `time_series.DEFAULT_ERROR_VALUE`
-       - For data containing one column, a time column is also added with
-         values evenly spaced from 0 to `time_series.DEFAULT_MAX_TIME`
-         """
+    """Parses raw time series data file and returns an (n, 3) array of values.
+
+    Data is expected as text in tabular format with separator `sep`. The output
+    will always have three columns (time, measurement, error), even if the data
+    file contains two or fewer:
+
+    - For data containing three columns (time, measurement, error), all
+      three are returned.
+    - For data containing two columns, a dummy error column is added with
+      value `time_series.DEFAULT_ERROR_VALUE`.
+    - For data containing one column, a time column is also added with
+      values evenly spaced from 0 to `time_series.DEFAULT_MAX_TIME`.
+
+    Parameters
+    ----------
+    filename : str
+        Path to raw time series data to be parsed.
+    sep : str, optional
+        Separator of columns in data file; defaults to ','.
+
+    Returns
+    -------
+    np.ndarray
+        3-column array of (time, measurement, error) values.
+    """
     with open(filepath) as f:
         ts_data = np.loadtxt(f, delimiter=sep, ndmin=2)
     ts_data = ts_data[:, :3]  # Only using T, M, E
