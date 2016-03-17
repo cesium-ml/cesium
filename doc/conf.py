@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# MLTSP documentation build configuration file, created by
+# cesium documentation build configuration file, created by
 # sphinx-quickstart on Thu Jul 23 13:00:45 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -60,16 +60,16 @@ source_suffix = ['.rst', '.md', '.txt']
 master_doc = 'index'
 
 # General information about the project.
-project = 'MLTSP'
-copyright = '2015, The MLTSP Team'
-author = 'The MLTSP Team'
+project = 'cesium'
+copyright = '2015, The cesium Team'
+author = 'The cesium Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 
-setup_lines = open('../mltsp/__init__.py').readlines()
+setup_lines = open('../cesium/__init__.py').readlines()
 version = 'vUndefined'
 for l in setup_lines:
     if l.startswith('__version__'):
@@ -228,7 +228,7 @@ html_show_sourcelink = False
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'MLTSPdoc'
+htmlhelp_basename = 'cesiumdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -250,8 +250,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'MLTSP.tex', 'MLTSP Documentation',
-   'The MLTSP Team', 'manual'),
+  (master_doc, 'cesium.tex', 'cesium Documentation',
+   'The cesium Team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -280,7 +280,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mltsp', 'MLTSP Documentation',
+    (master_doc, 'cesium', 'cesium Documentation',
      [author], 1)
 ]
 
@@ -294,8 +294,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'MLTSP', 'MLTSP Documentation',
-   author, 'MLTSP', 'One line description of project.',
+  (master_doc, 'cesium', 'cesium Documentation',
+   author, 'cesium', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -312,12 +312,12 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 
-# -- Build MLTSP API documentation ----------------------------------------
+# -- Build cesium API documentation ----------------------------------------
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__name__), 'tools'))
 from apigen import ApiDocWriter
-import mltsp
-package = 'mltsp'
+import cesium
+package = 'cesium'
 module = sys.modules[package]
 
 outdir = 'api'

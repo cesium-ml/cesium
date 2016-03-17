@@ -2,18 +2,18 @@
 
 descr = """Machine Learning Time Series Platform
 
-https://github.com/mltsp
+https://github.com/cesium
 
 """
 
-DISTNAME            = 'mltsp'
+DISTNAME            = 'cesium'
 DESCRIPTION         = 'Machine Learning Time-Series Platform'
 LONG_DESCRIPTION    = descr
-MAINTAINER          = 'MLTSP Team'
+MAINTAINER          = 'cesium Team'
 MAINTAINER_EMAIL    = 'stefanv@berkeley.edu'
-URL                 = 'http://mltsp.io'
+URL                 = 'http://cesium.io'
 LICENSE             = 'Modified BSD'
-DOWNLOAD_URL        = 'https://github.com/mltsp/mltsp'
+DOWNLOAD_URL        = 'https://github.com/cesium/cesium'
 PYTHON_VERSION      = (3, 4)
 
 import os
@@ -36,12 +36,12 @@ def configuration(parent_package='', top_path=None):
             delegate_options_to_subpackages=True,
             quiet=True)
 
-    config.add_subpackage('mltsp')
+    config.add_subpackage('cesium')
 
     return config
 
 
-with open('mltsp/version.py') as fid:
+with open('cesium/version.py') as fid:
     for line in fid:
         if line.startswith('version'):
             VERSION = line.strip().split('=')[-1][1:-1]
@@ -74,14 +74,14 @@ if __name__ == "__main__":
             # For these actions, NumPy is not required.
             #
             # They are required to succeed without Numpy for example when
-            # pip is used to install mltsp when Numpy is not yet
+            # pip is used to install cesium when Numpy is not yet
             # present in the system.
             try:
                 from setuptools import setup
             except ImportError:
                 from distutils.core import setup
         else:
-            print('To install mltsp from source, you will need numpy.\n' +
+            print('To install cesium from source, you will need numpy.\n' +
                   'Install numpy with pip:\n' +
                   '  pip install numpy\n'
                   'Or using conda:\n'
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         cmdclass={'build_py': build_py},
 
         entry_points={
-            'console_scripts': ['mltsp = mltsp.Flask.flask_app:run_main'],
+            'console_scripts': ['cesium = cesium.Flask.flask_app:run_main'],
         },
 
     )

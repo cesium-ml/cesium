@@ -7,7 +7,7 @@ fi
 images=`ls -d dockerfiles/*`
 
 for image in $images; do
-    container="mltsp/`basename $image`"
+    container="cesium/`basename $image`"
     docker pull $container
 done
 

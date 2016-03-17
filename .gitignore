@@ -10,9 +10,9 @@
 .#*
 .noseids
 rethinkdb_data
-mltsp.yaml
-mltsp.egg-info
-!mltsp/tests/data
+cesium.yaml
+cesium.egg-info
+!cesium/tests/data
 external
 doc/_build
 doc/api

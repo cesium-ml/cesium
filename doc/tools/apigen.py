@@ -280,7 +280,7 @@ class ApiDocWriter(object):
                 if (self._uri2path(package_uri) and
                     self._survives_exclude(package_uri)):
                     try:
-                        mod = __import__(package_uri, fromlist=['mltsp'])
+                        mod = __import__(package_uri, fromlist=['cesium'])
                         mod.__all__
                         modules.append(package_uri)
                     except (ImportError, AttributeError):

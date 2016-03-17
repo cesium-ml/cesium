@@ -6,10 +6,10 @@ from os.path import join as pjoin
 import sys
 import json
 
-# Add MLTSP to path
+# Add cesium to path
 sys.path.insert(0, pjoin(os.path.dirname(__file__), '..'))
 
-from mltsp import custom_feature_tools as cft
+from cesium import custom_feature_tools as cft
 
 
 def extract_custom_feats(tmp_dir):
@@ -45,7 +45,7 @@ def extract_custom_feats(tmp_dir):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description='MLTSP Docker scripts')
+    parser = argparse.ArgumentParser(description='cesium Docker scripts')
     parser.add_argument('--tmp_dir', dest='tmp_dir', action='store', type=str)
     args = parser.parse_args()
 

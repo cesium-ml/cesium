@@ -2,12 +2,12 @@
 
 SHELL = /bin/bash
 PY_VER = $(shell python -c 'import sys; print(sys.version_info.major)')
-CLEAN_TEST_CONFIG = $(shell rm -f mltsp-_test_.yaml)
+CLEAN_TEST_CONFIG = $(shell rm -f cesium-_test_.yaml)
 EXAMPLE_DIR = doc/examples
 
 celery:
 	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
-		PYTHONPATH="./mltsp" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
+		PYTHONPATH="./cesium" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
 	else \
 		echo "[Celery] is already running"; \
 	fi
@@ -21,11 +21,11 @@ clean:
 	find . -name "*.so" | xargs rm -f
 
 webapp: db celery
-	@rm -f mltsp-_test_.yaml
+	@rm -f cesium-_test_.yaml
 	PYTHONPATH=. $(MAKE) -C web_client
 
 init: db celery
-	mltsp --db-init --force
+	cesium --db-init --force
 
 db:
 	@if [[ -n `rethinkdb --daemon 2>&1 | grep "already in use"` ]]; then echo "[RethinkDB] is (probably) already running"; fi
@@ -35,18 +35,18 @@ external/casperjs:
 
 test_backend: db celery
 	rm -f *_test_*.yaml
-	nosetests -v mltsp
+	nosetests -v cesium
 
 test_frontend: external/casperjs db celery
-	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "mltsp-_test_.yaml"
+	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "cesium-_test_.yaml"
 	@PYTHONPATH="." tools/casper_tests.py
 
 test_frontend_no_docker: external/casperjs db celery
-	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "mltsp-_test_.yaml"
+	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "cesium-_test_.yaml"
 	@PYTHONPATH="." NO_DOCKER=1 tools/casper_tests.py
 
 test_entrypoint:
-	mltsp --version
+	cesium --version
 
 test: | test_entrypoint test_backend test_frontend
 

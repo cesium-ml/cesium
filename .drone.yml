@@ -1,12 +1,12 @@
 build:
-    image: mltsp/drone
+    image: cesium/drone
     commands:
         - git log -1
         - ./.drone/build.sh
 
 clone:
   depth: 1
-  path: github.com/mltsp/mltsp
+  path: github.com/cesium-ml/cesium
 
 notify:
     gitter:
