@@ -1,4 +1,4 @@
-FROM mltsp/base
+FROM cesium/base
 
 RUN sed -i 's/archive.ubuntu.com/us.archive.ubuntu.com/g' /etc/apt/sources.list
 

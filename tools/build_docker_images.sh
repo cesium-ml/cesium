@@ -14,7 +14,7 @@ images=`ls -d dockerfiles/* | grep -v base_`
 
 
 build_image () {
-    container="mltp/`basename $1`"
+    container="cesium/`basename $1`"
     echo '**********************************************'
     echo Building: $container
     echo '**********************************************'

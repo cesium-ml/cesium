@@ -12,14 +12,14 @@ echo "[Drone] ----------------------------------------------------"
 
 echo "[Drone] Creating Python virtual environment"
 pip install virtualenv
-virtualenv /envs/mltsp -p python${PYTHON_VERSION}
-source /envs/mltsp/bin/activate
+virtualenv /envs/cesium -p python${PYTHON_VERSION}
+source /envs/cesium/bin/activate
 
 echo "[Drone] Installing base requirements"
 pip install --upgrade pip requests six python-dateutil nose nose-exclude mock
 hash -d pip  # find upgraded pip
 
-echo "[Drone] Installing MLTSP requirements"
+echo "[Drone] Installing cesium requirements"
 sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
@@ -30,11 +30,11 @@ echo "[Drone] Build extension"
 pip install $WHEELHOUSE cython==0.23.4
 python setup.py build_ext -i
 
-echo "[Drone] Installing mltsp in-place"
+echo "[Drone] Installing cesium in-place"
 pip install -e .
 
-echo "[Drone] Configure MLTSP"
-mltsp --install
+echo "[Drone] Configure cesium"
+cesium --install
 
 echo "[Drone] Launch RabbitMQ"
 rabbitmq-server &
@@ -43,7 +43,7 @@ echo "[Drone] Launch RethinkDB"
 make db && sleep 1
 
 echo "[Drone] Initialize database"
-mltsp --db-init
+cesium --db-init
 
 #echo "[Drone] Build HTML documentation"
 #set +e

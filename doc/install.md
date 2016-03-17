@@ -1,12 +1,12 @@
 # Installation
 ## Installation (library)
 
-The latest version of `mltsp` can be installed via `pip`:
+The latest version of `cesium` can be installed via `pip`:
 ```
-pip install mltsp
+pip install cesium
 ```
 
-The MLTSP library has the following dependencies:
+The cesium library has the following dependencies:
 - [numpy](http://www.numpy.org/)
 - [scipy](http://www.scipy.org/)
 - [pandas](http://pandas.pydata.org)
@@ -20,7 +20,7 @@ The easiest way to install the necessary dependencies is using `conda`:
 conda install numpy scipy pandas scikit-learn cython dask xarray
 ```
 
-The `mltsp` library is compatible with both Python 2 and 3. 
+The `cesium` library is compatible with both Python 2 and 3. 
 
 ## Installation (web app)
 
@@ -41,16 +41,16 @@ conda install numpy scipy pandas scikit-learn cython dask xarray
   * Alternatively (but this takes much longer), build the images on your own machine:
   `tools/build_docker_images.sh`
 
-* Install the `mltsp` package (from source)
-  * Clone the (git repo)[https://github.com/mltsp/mltsp]:
-    `git clone https://github.com/mltsp/mltsp.git`
+* Install the `cesium` package (from source)
+  * Clone the (git repo)[https://github.com/cesium/cesium]:
+    `git clone https://github.com/cesium/cesium.git`
   * Within the source directory, install via `pip install -e .`
 
-* Setup sample data and configuration files: `mltsp --install`
-  * Optional: locate `~/.config/mltsp/mltsp.yaml` and customize authentication tokens
+* Setup sample data and configuration files: `cesium --install`
+  * Optional: locate `~/.config/cesium/cesium.yaml` and customize authentication tokens
 
 ## Starting the web app
-* Create the MLTSP database: `mltsp --db-init`
+* Create the cesium database: `cesium --db-init`
 
 * Launch the web platform: `cd web_client && make`
 * User authentication is required by default; disable by modifying

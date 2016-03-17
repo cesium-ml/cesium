@@ -30,8 +30,8 @@ def reset_db():
     """
     Re-initialize all tables in the test database
     """
-    os.environ["MLTSP_TEST_DB"] = "1"
-    from mltsp.Flask import flask_app
+    os.environ["CESIUM_TEST_DB"] = "1"
+    from cesium.Flask import flask_app
     flask_app.db_init(force=True)
 
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
             print('[test_frontend] Verified server availability')
 
         print('[test_frontend] Launching CasperJS...')
-        tests = sorted(glob.glob(pjoin(parent_path, 'mltsp/tests/frontend/*.js')))
+        tests = sorted(glob.glob(pjoin(parent_path, 'cesium/tests/frontend/*.js')))
         status = subprocess.call([casperjs_path, '--verbose',
                                  '--log-level=debug', 'test'] + tests,
                                  cwd=parent_path, env=env)

@@ -1,6 +1,6 @@
 # Epilepsy Detection Using EEG Data
 
-In this example we'll use the [`mltsp`](http://github.com/mltsp/mltsp/) library to compare
+In this example we'll use the [`cesium`](http://github.com/cesium-ml/cesium/) library to compare
 various techniques for epilepsy detection using a classic EEG time series dataset from
 [Andrzejak et al.](http://www.meb.uni-bonn.de/epileptologie/science/physik/eegdata.html).
 The raw data are separated into five classes: Z, O, N, F, and S; we will consider a
@@ -21,7 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn; seaborn.set()
 
-from mltsp import datasets
+from cesium import datasets
 
 eeg = datasets.fetch_andrzejak()
 
@@ -40,7 +40,7 @@ for label, subplot in zip(np.unique(eeg["classes"]), ax):
 
 ## Featurization
 Once the data is loaded, we can generate features for each time series using the
-[`mltsp.featurize`](https://mltsp.readthedocs.org/en/latest/api/mltsp.featurize.html)
+[`cesium.featurize`](https://cesium.readthedocs.org/en/latest/api/cesium.featurize.html)
 module. The `featurize` module includes many built-in choices of features which can be applied
 for any type of time series data; here we've chosen a few generic features that do not have
 any special biological significance.
@@ -50,7 +50,7 @@ and featurized in parallel; setting `use_celery=False` will cause the time serie
 featurized serially.
 
 ```python
-from mltsp import featurize
+from cesium import featurize
 features_to_use = ['amplitude',
                    'percent_beyond_1_std',
                    'maximum',
@@ -62,26 +62,26 @@ features_to_use = ['amplitude',
                    'skew',
                    'std',
                    'weighted_average']
-fset_mltsp = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
+fset_cesium = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
                                              errors=None, features_to_use=features_to_use,
                                              targets=eeg["classes"], use_celery=True)
-print(fset_mltsp)
+print(fset_cesium)
 ```
 
 The output of
-[`featurize_time_series`](https://mltsp.readthedocs.org/en/latest/api/mltsp.featurize.html#mltsp.featurize.featurize_time_series)
+[`featurize_time_series`](https://cesium.readthedocs.org/en/latest/api/cesium.featurize.html#cesium.featurize.featurize_time_series)
 is an `xarray.Dataset` which contains all the feature information needed to train a machine
 learning model: feature values are stored as data variables, and the time series index/class
 label are stored as coordinates (a `channel` coordinate will also be used later for
 multi-channel data).
 
 ### Custom feature functions
-Custom feature functions not built into `mltsp` may be passed in using the
+Custom feature functions not built into `cesium` may be passed in using the
 `custom_functions` keyword, either as a dictionary `{feature_name: function}`, or as a
 [dask graph](http://dask.pydata.org/en/latest/custom-graphs.html). Functions should take
 three arrays `times, measurements, errors` as inputs; details can be found in the
-`mltsp.featurize`
-[documentation](https://mltsp.readthedocs.org/en/latest/api/mltsp.featurize.html).
+`cesium.featurize`
+[documentation](https://cesium.readthedocs.org/en/latest/api/cesium.featurize.html).
 Here we'll compute five standard features for EEG analysis provided by [Guo et al.
 (2012)](http://linkinghub.elsevier.com/retrieve/pii/S0957417411003253):
 
@@ -128,7 +128,7 @@ print(fset_guo)
 ### Multi-channel time series
 The EEG time series considered here consist of univariate signal measurements along a
 uniform time grid. But
-[`featurize_time_series`](https://mltsp.readthedocs.org/en/latest/api/mltsp.featurize.html#mltsp.featurize.featurize_time_series)
+[`featurize_time_series`](https://cesium.readthedocs.org/en/latest/api/cesium.featurize.html#cesium.featurize.featurize_time_series)
 also accepts multi-channel data; to demonstrate this, we will decompose each signal into
 five frequency bands using a discrete wavelet transform as suggested by [Subasi
 (2005)](http://www.sciencedirect.com/science/article/pii/S0957417404001745), and then
@@ -149,29 +149,29 @@ print(fset_dwt)
 
 The output featureset has the same form as before, except now the `channel` coordinate is
 used to index the features by the corresponding frequency band. The functions in
-[`mltsp.build_model`](https://mltsp.readthedocs.org/en/latest/api/mltsp.build_model.html)
-and [`mltsp.predict`](https://mltsp.readthedocs.org/en/latest/api/mltsp.predict.html)
+[`cesium.build_model`](https://cesium.readthedocs.org/en/latest/api/cesium.build_model.html)
+and [`cesium.predict`](https://cesium.readthedocs.org/en/latest/api/cesium.predict.html)
 all accept featuresets from single- or multi-channel data, so no additional steps are
 required to train models or make predictions for multichannel featuresets using the
-`mltsp` library.
+`cesium` library.
 
 ## Model Building
-Model building in `mltsp` is handled by the
-[`build_model_from_featureset`](https://mltsp.readthedocs.org/en/latest/api/mltsp.build_model.html#mltsp.build_model.build_model_from_featureset)
-function in the `mltsp.build_model` submodule. The featureset output by
-[`featurize_time_series`](https://mltsp.readthedocs.org/en/latest/api/mltsp.featurize.html#mltsp.featurize.featurize_time_series)
+Model building in `cesium` is handled by the
+[`build_model_from_featureset`](https://cesium.readthedocs.org/en/latest/api/cesium.build_model.html#cesium.build_model.build_model_from_featureset)
+function in the `cesium.build_model` submodule. The featureset output by
+[`featurize_time_series`](https://cesium.readthedocs.org/en/latest/api/cesium.featurize.html#cesium.featurize.featurize_time_series)
 contains both the feature and target information needed to train a
 model; `build_model_from_featureset` is simply a wrapper that calls the `fit` method of a
 given `scikit-learn` model with the appropriate inputs. In the case of multichannel
 features, it also handles reshaping the featureset into a (rectangular) form that is
 compatible with `scikit-learn`.
 
-For this example, we'll test a random forest classifier for the built-in `mltsp` features,
+For this example, we'll test a random forest classifier for the built-in `cesium` features,
 and a 3-nearest neighbors classifier for the others, as suggested by [Guo et al.
 (2012)](http://linkinghub.elsevier.com/retrieve/pii/S0957417411003253).
 
 ```python
-from mltsp.build_model import build_model_from_featureset
+from cesium.build_model import build_model_from_featureset
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cross_validation import train_test_split
@@ -179,7 +179,7 @@ from sklearn.cross_validation import train_test_split
 train, test = train_test_split(np.arange(len(eeg["classes"])), random_state=0)
 
 rfc_param_grid = {'n_estimators': [8, 16, 32, 64, 128, 256, 512, 1024]}
-model_mltsp = build_model_from_featureset(fset_mltsp.isel(name=train),
+model_cesium = build_model_from_featureset(fset_cesium.isel(name=train),
                                           RandomForestClassifier(max_features='auto',
                                                                  random_state=0),
                                           params_to_optimize=rfc_param_grid)
@@ -195,21 +195,21 @@ model_dwt = build_model_from_featureset(fset_dwt.isel(name=train),
 ## Prediction
 Making predictions for new time series based on these models follows the same pattern:
 first the time series are featurized using
-[`featurize_timeseries`](https://mltsp.readthedocs.org/en/latest/api/mltsp.featurize.html#mltsp.featurize.featurize_time_series),
+[`featurize_timeseries`](https://cesium.readthedocs.org/en/latest/api/cesium.featurize.html#cesium.featurize.featurize_time_series),
 and then predictions are made based on these features using
-[`predict.model_predictions`](https://mltsp.readthedocs.org/en/latest/api/mltsp.predict.html#mltsp.predict.model_predictions),
+[`predict.model_predictions`](https://cesium.readthedocs.org/en/latest/api/cesium.predict.html#cesium.predict.model_predictions),
 
 ```python
 from sklearn.metrics import accuracy_score
-from mltsp.predict import model_predictions
+from cesium.predict import model_predictions
 
-preds_mltsp = model_predictions(fset_mltsp, model_mltsp, return_probs=False)
+preds_cesium = model_predictions(fset_cesium, model_cesium, return_probs=False)
 preds_guo = model_predictions(fset_guo, model_guo, return_probs=False)
 preds_dwt = model_predictions(fset_dwt, model_dwt, return_probs=False)
 
-print("Built-in MLTSP features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_mltsp[train], eeg["classes"][train]),
-          accuracy_score(preds_mltsp[test], eeg["classes"][test])))
+print("Built-in cesium features: training accuracy={:.2%}, test accuracy={:.2%}".format(
+          accuracy_score(preds_cesium[train], eeg["classes"][train]),
+          accuracy_score(preds_cesium[test], eeg["classes"][test])))
 print("Guo et al. features: training accuracy={:.2%}, test accuracy={:.2%}".format(
           accuracy_score(preds_guo[train], eeg["classes"][train]),
           accuracy_score(preds_guo[test], eeg["classes"][test])))
