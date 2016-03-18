@@ -1,9 +1,8 @@
-beautifulsoup4
 flask
 stormpath>=2.1.9
 git+git://github.com/stormpath/stormpath-flask.git@develop  # replace with Flask-Stormpath once they make a release with the Python 3 version
 docker-py
-numpy>=1.8.1
+numpy>=1.10.4
 scipy>=0.16.0
 scikit-learn>=0.17.0
 pandas>=0.17.0

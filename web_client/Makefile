@@ -11,6 +11,7 @@ all: supervisord
 paths:
 	mkdir -p log run
 	mkdir -p log/sv_child
+	mkdir -p ~/.local/cesium/logs
 
 supervisord: paths
 	$(SUPERVISORD) -c supervisord.conf
@@ -19,5 +20,8 @@ logs: paths
 	rm -f log/*.log
 	touch `cat supervisord.conf | grep "\.log" | cut -d '=' -f 2`
 	tail -F log/*.log 2>/dev/null &
+	echo ~
+	touch ~/.local/cesium/logs/errors_and_warnings.log
+	tail -F ~/.local/cesium/logs/* 2>/dev/null &
 
 monitor: | logs supervisord
