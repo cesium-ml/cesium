@@ -3,4 +3,5 @@ recommonmark
 numpydoc
 sphinx-rtd-theme
 notedown
-jupytercontrib
+git+git://github.com/jupyter/nbconvert.git@master
+jupytercontrib>=0.0.5
