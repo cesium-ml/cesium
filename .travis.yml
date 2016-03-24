@@ -35,7 +35,7 @@
 
 
 language: python
-dist: trusty
+#dist: trusty
 sudo: true
 cache:
   # See http://docs.travis-ci.com/user/caching/#pip-cache
@@ -48,15 +48,17 @@ addons:
     packages:
     - ccache
     - wget
-    - rethinkdb
-    - rabbitmq-server
+    #- rethinkdb
     - nginx
     - libzmq3-dev
     - libhdf5-serial-dev
     - libnetcdf-dev
+    #- supervisor
+    #- libhdf5-serial-dev
+    #- libnetcdf-dev
     # For PhantomJS
     - fontconfig-config
-    - fonts-dejavu-core
+    #- fonts-dejavu-core
     - libfontconfig1
     - libfreetype6
     - libjpeg-turbo8
@@ -81,6 +83,7 @@ before_install:
   - ccache -s
   - export PATH=/usr/lib/ccache:${PATH}
   - which python; python --version
+  - sudo add-apt-repository -y ppa:nschloe/netcdf-nightly
   - source .drone/travis_funcs.sh
 
 install:

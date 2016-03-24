@@ -17,11 +17,12 @@ supervisord: paths
 	$(SUPERVISORD) -c supervisord.conf
 
 logs: paths
-	rm -f log/*.log
 	touch `cat supervisord.conf | grep "\.log" | cut -d '=' -f 2`
+	touch log/{error,nginx-access,nginx-error}.log
 	tail -F log/*.log 2>/dev/null &
 	echo ~
 	touch ~/.local/cesium/logs/errors_and_warnings.log
 	tail -F ~/.local/cesium/logs/* 2>/dev/null &
+	tail -F /var/log/nginx/error.log 2>/dev/null &
 
 monitor: | logs supervisord
