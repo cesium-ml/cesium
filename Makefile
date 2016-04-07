@@ -7,7 +7,7 @@ EXAMPLE_DIR = doc/examples
 
 celery:
 	@if [[ -z `ps ax | grep -v grep | grep -v make | grep celery_tasks` ]]; then \
-		PYTHONPATH="./cesium" celery worker -A celery_tasks -l info >>/tmp/celery.log 2>&1 & \
+		PYTHONPATH="./cesium" celery worker -A celery_tasks -l info & \
 	else \
 		echo "[Celery] is already running"; \
 	fi
