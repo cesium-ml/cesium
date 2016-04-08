@@ -55,7 +55,7 @@ def model_predictions(featureset, model, return_probs=True):
 
 
 def predict_data_files(ts_paths, features_to_use, model,
-                       custom_features_script=None, use_docker=True):
+                       custom_features_script=None):
     """Generate features from new TS data and perform model prediction.
 
     Generates features for new time series file, loads saved
@@ -79,9 +79,6 @@ def predict_data_files(ts_paths, features_to_use, model,
     custom_features_script : str, optional
         Path to custom features script to be used in feature
         generation. Defaults to None.
-    use_docker : bool, optional
-        Bool specifying whether to generate custom features inside a Docker
-        container. Defaults to True.
 
     Returns
     -------
@@ -99,8 +96,7 @@ def predict_data_files(ts_paths, features_to_use, model,
     """
     new_featureset = featurize.featurize_data_files(ts_paths,
                                                     features_to_use=features_to_use,
-                                                    custom_script_path=custom_features_script,
-                                                    use_docker=use_docker)
+                                                    custom_script_path=custom_features_script)
 
     # Covert to DataFrame so we can treat 1d/2d predictions in the same way
     preds_df = pd.DataFrame(model_predictions(new_featureset, model))

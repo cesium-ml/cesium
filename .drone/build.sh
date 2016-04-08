@@ -33,17 +33,8 @@ python setup.py build_ext -i
 echo "[Drone] Installing cesium in-place"
 pip install -e .
 
-echo "[Drone] Configure cesium"
-cesium --install
-
 echo "[Drone] Launch RabbitMQ"
 rabbitmq-server &
-
-echo "[Drone] Launch RethinkDB"
-make db && sleep 1
-
-echo "[Drone] Initialize database"
-cesium --db-init
 
 #echo "[Drone] Build HTML documentation"
 #set +e
@@ -57,4 +48,4 @@ cesium --db-init
 
 echo "[Drone] Run test suite"
 export C_FORCE_ROOT=1 # override warning about running Celery+pickle as root
-make test_no_docker
+make test
