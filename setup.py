@@ -11,9 +11,9 @@ DESCRIPTION         = 'Machine Learning Time-Series Platform'
 LONG_DESCRIPTION    = descr
 MAINTAINER          = 'cesium Team'
 MAINTAINER_EMAIL    = 'stefanv@berkeley.edu'
-URL                 = 'http://cesium.io'
+URL                 = 'http://cesium.ml'
 LICENSE             = 'Modified BSD'
-DOWNLOAD_URL        = 'https://github.com/cesium/cesium'
+DOWNLOAD_URL        = 'https://github.com/cesium-ml/cesium'
 PYTHON_VERSION      = (3, 4)
 
 import os
@@ -123,9 +123,4 @@ if __name__ == "__main__":
         include_package_data=True,
         zip_safe=False,
         cmdclass={'build_py': build_py},
-
-        entry_points={
-            'console_scripts': ['cesium = cesium.Flask.flask_app:run_main'],
-        },
-
     )
