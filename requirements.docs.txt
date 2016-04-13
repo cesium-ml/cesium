@@ -3,5 +3,8 @@ recommonmark
 numpydoc
 sphinx-rtd-theme
 notedown
-git+git://github.com/jupyter/nbconvert.git@master
+nbconvert[execute]>=4.2.0
+ipykernel>=4.2.0
 jupytercontrib>=0.0.5
+seaborn
+pywavelets

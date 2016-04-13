@@ -71,18 +71,15 @@ def test_predict_regression():
 
 def test_predict_optimized_model():
     """Test main predict function (classification) w/ optimized model"""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "test_10_featureset.nc"))
+    fset = xr.open_dataset(pjoin(DATA_PATH, "asas_training_subset_featureset.nc"))
     model = build_model.build_model_from_featureset(fset,
                 model_type="RandomForestClassifier",
-                params_to_optimize={"n_estimators": [10, 50, 100]})
+                params_to_optimize={"n_estimators": [10, 50, 100]}, cv=2)
     pred_results_dict = predict.predict_data_files(TS_TARGET_PATHS,
                                                    list(fset.data_vars), model,
                                                    custom_features_script=None)
     for fname, results in pred_results_dict.items():
         for el in results['pred_results']:
-            assert(el[0] in [b'Mira', b'W_Ursae_Maj', b'Delta_Scuti',
-                             b'Beta_Lyrae', b'Herbig_AEBE',
-                             b'Classical_Cepheid']
-                   or el in [b'Mira', b'W_Ursae_Maj', b'Delta_Scuti',
-                             b'Beta_Lyrae', b'Herbig_AEBE',
-                             b'Classical_Cepheid'])
+            print(el)
+            assert(el[0] in ['Mira', 'W_Ursae_Maj', 'Classical_Cepheid']
+                   or el in ['Mira', 'W_Ursae_Maj', 'Classical_Cepheid'])
