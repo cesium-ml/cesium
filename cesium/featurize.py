@@ -11,6 +11,7 @@ from dask import delayed
 from . import data_management
 from . import time_series
 from . import util
+from .featureset import Featureset
 from .time_series import TimeSeries
 from . import obs_feature_tools as oft
 from . import science_feature_tools as sft
@@ -137,7 +138,7 @@ def assemble_featureset(feature_dicts, time_series=None, targets=None,
         featureset.coords['name'] = ('name', np.array(names))
     if targets is not None and any(targets):
         featureset.coords['target'] = ('name', np.array(targets))
-    return featureset
+    return Featureset(featureset)
 
 
 def load_and_store_feature_data(features_path, output_path):
@@ -147,7 +148,7 @@ def load_and_store_feature_data(features_path, output_path):
     featureset = assemble_featureset([], targets=targets,
                                      meta_feature_dicts=meta_feature_dicts)
     featureset.to_netcdf(output_path)
-    return featureset
+    return Featureset(featureset)
 
 
 # TODO should this be changed to use TimeSeries objects? or maybe an optional
