@@ -10,7 +10,7 @@ if [[ -d "casperjs" ]]; then
 else
     echo "Installing CasperJS into $EXTERNAL_DIR"
     echo
-    wget https://github.com/n1k0/casperjs/tarball/master -O - | tar -xz
-    mv n1k0-casperjs-* casperjs
+    wget https://github.com/casperjs/casperjs/tarball/master -O - | tar -xz
+    mv casperjs-casperjs-* casperjs
 fi
 
