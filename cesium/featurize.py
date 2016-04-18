@@ -29,8 +29,7 @@ def load_and_store_feature_data(features_path, output_path, first_N=None):
 
 
 def featurize_data_files(ts_paths, features_to_use=[], output_path=None,
-                         first_N=None, custom_script_path=None,
-                         use_docker=True):
+                         first_N=None, custom_script_path=None):
     """Generate features for labeled time series data.
 
     Each file should consist of one comma-separated line of per data point,
@@ -57,9 +56,6 @@ def featurize_data_files(ts_paths, features_to_use=[], output_path=None,
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
-    use_docker : bool, optional
-        Bool specifying whether to generate custom features inside a Docker
-        container. Defaults to True.
 
     Returns
     -------
@@ -71,7 +67,7 @@ def featurize_data_files(ts_paths, features_to_use=[], output_path=None,
     if not celery_available():
         raise RuntimeError("Celery not available")
     celery_res = group(featurize_file_task.s(ts_path, features_to_use,
-                                             custom_script_path, use_docker)
+                                             custom_script_path)
                        for ts_path in ts_paths)()
     res_list = celery_res.get()
     fnames, feature_dicts, targets, meta_feature_dicts = zip(*res_list)
@@ -89,7 +85,7 @@ def featurize_data_files(ts_paths, features_to_use=[], output_path=None,
 def featurize_time_series(times, values, errors=None, features_to_use=[],
                           targets=None, meta_features={}, labels=None,
                           custom_script_path=None, custom_functions=None,
-                          use_docker=True, use_celery=False):
+                          use_celery=False):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -156,9 +152,6 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
-    use_docker : bool, optional
-        Bool specifying whether to generate custom features inside a Docker
-        container. Defaults to True.
     use_celery : bool, optional
         Boolean to control whether to distribute tasks to Celery workers (if
         Celery is available). Defaults to True.
@@ -228,7 +221,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
                                                      labels)]
         celery_res = group(featurize_data_task.s(ts, features_to_use,
                                                  custom_script_path,
-                                                 custom_functions, use_docker)
+                                                 custom_functions)
                            for ts in all_time_series)()
         res_list = celery_res.get()
         labels, feature_dicts = zip(*res_list)
@@ -243,8 +236,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
             ts = TimeSeries(t, m, e, meta_features=meta_features.loc[label])
             feature_dict = ft.featurize_single_ts(ts, features_to_use,
                                                   custom_script_path=custom_script_path,
-                                                  custom_functions=custom_functions,
-                                                  use_docker=use_docker)
+                                                  custom_functions=custom_functions)
             feature_dicts.append(feature_dict)
             meta_feature_dicts.append(ts.meta_features)
     return ft.assemble_featureset(feature_dicts, targets, meta_feature_dicts,

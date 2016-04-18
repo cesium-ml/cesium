@@ -19,11 +19,6 @@ TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                     "dotastro_215176_with_target.nc"]]
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
-if util.docker_images_available():
-    USE_DOCKER = True
-else:
-    USE_DOCKER = False
-    print("WARNING: computing custom features outside Docker container...")
 
 
 def setup(module):
@@ -84,8 +79,7 @@ def test_featurize_files_function():
     fset = featurize.featurize_data_files(ts_paths=TS_CLASS_PATHS,
                                           output_path=fset_path,
                                           features_to_use=["std_err", "f"],
-                                          custom_script_path=CUSTOM_SCRIPT,
-                                          use_docker=USE_DOCKER)
+                                          custom_script_path=CUSTOM_SCRIPT)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(class_name in ['class1', 'class2']
@@ -99,8 +93,7 @@ def test_featurize_files_function_regression_data():
     fset = featurize.featurize_data_files(ts_paths=TS_TARGET_PATHS,
                                           output_path=fset_path,
                                           features_to_use=["std_err", "f"],
-                                          custom_script_path=CUSTOM_SCRIPT,
-                                          use_docker=USE_DOCKER)
+                                          custom_script_path=CUSTOM_SCRIPT)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(target in [1.0, 3.0] for target in fset['target'].values))
@@ -287,7 +280,6 @@ def test_featurize_time_series_custom_script():
     fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
                                            meta_features,
                                            custom_script_path=CUSTOM_SCRIPT,
-                                           use_docker=USE_DOCKER,
                                            use_celery=False)
     npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'f', 'meta1', 'std_err'])

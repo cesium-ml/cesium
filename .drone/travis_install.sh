@@ -2,13 +2,6 @@
 
 set -ex
 
-section "upgrade.system.supervisor"
-pip2.7 install supervisor --upgrade --user
-export PATH=$PATH:~/.local/bin/
-supervisord --version
-section_end "upgrade.system.supervisor"
-
-
 section "create.virtualenv"
 python${TRAVIS_PYTHON_VERSION} -m venv ~/envs/cesium
 source ~/envs/cesium/bin/activate
@@ -42,17 +35,10 @@ section_end "install.hdf5.netcdf4"
 
 
 section "install.cesium.requirements"
-# RethinkDB
-#source /etc/lsb-release && echo "deb http://download.rethinkdb.com/apt $DISTRIB_CODENAME main" | sudo tee /etc/apt/sources.list.d/rethinkdb.list
-#wget -qO- http://download.rethinkdb.com/apt/pubkey.gpg | sudo apt-key add -
-#sudo apt-get update -qq
-#sudo apt-get install rethinkdb -y --force-yes
-
-# Python requirements
 sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--no-index --trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
-WHEELBINARIES="numpy scipy matplotlib scikit-learn pandas pyzmq"
+WHEELBINARIES="numpy scipy matplotlib scikit-learn pandas"
 for requirement in $WHEELBINARIES; do
     WHEELS="$WHEELS $(grep $requirement requirements.txt)"
 done
@@ -70,18 +56,4 @@ section_end "build.cython.extensions"
 
 section "configure.cesium"
 pip install -e .
-cesium --install
 section_end "configure.cesium"
-
-
-#section "configure.services"
-#make db && sleep 1
-#cesium --db-init
-#section_end "configure.services"
-
-
-#section "start.nginx"
-#sudo mkdir -p /var/lib/nginx/body
-#sudo chmod 777 /var/lib/nginx /var/lib/nginx/body
-#( cd web_client ; sudo nginx -c nginx.conf -p . -g "daemon off;" & )
-#section_end "start.nginx"
