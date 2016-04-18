@@ -18,19 +18,23 @@ section_end "install.base.requirements"
 section "install.hdf5.netcdf4"
 export HDF5_DIR=/home/travis/.local
 export PATH=$PATH:/home/travis/.local/bin
-wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.16.tar.gz
-tar -xzf hdf5-1.8.16.tar.gz
-(cd hdf5-1.8.16/ &&
-./configure --prefix=$HDF5_DIR --enable-shared --enable-hl &&
-make &&
-make install)
-
-wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.0.tar.gz
-tar -xzf netcdf-4.4.0.tar.gz
-(cd netcdf-4.4.0/ &&
-LDFLAGS=-L$HDF5_DIR/lib CPPFLAGS=-I$HDF5_DIR/include ./configure --enable-netcdf-4 --enable-dap --enable-shared --prefix=$HDF5_DIR &&
-make &&
-make install)
+if [[ -f $HDF5_DIR/lib/libhdf5.so ]]; then
+    echo "Using cached HDF5/netCDF4."
+else
+    echo "Compiling HDF5/netCDF4 from source."
+    wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.16.tar.gz
+    tar -xzf hdf5-1.8.16.tar.gz
+    (cd hdf5-1.8.16/ &&
+    ./configure --prefix=$HDF5_DIR --enable-shared --enable-hl &&
+    make &&
+    make install)
+    wget ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.0.tar.gz
+    tar -xzf netcdf-4.4.0.tar.gz
+    (cd netcdf-4.4.0/ &&
+    LDFLAGS=-L$HDF5_DIR/lib CPPFLAGS=-I$HDF5_DIR/include ./configure --enable-netcdf-4 --enable-dap --enable-shared --prefix=$HDF5_DIR &&
+    make &&
+    make install)
+fi
 section_end "install.hdf5.netcdf4"
 
 
