@@ -20,40 +20,15 @@ all:
 clean:
 	find . -name "*.so" | xargs rm -f
 
-webapp: db celery
-	@rm -f cesium-_test_.yaml
-	PYTHONPATH=. $(MAKE) -C web_client
-
-init: db celery
-	cesium --db-init --force
-
-db:
-	@if [[ -n `rethinkdb --daemon 2>&1 | grep "already in use"` ]]; then echo "[RethinkDB] is (probably) already running"; fi
-
-external/casperjs:
-	@tools/casper_install.sh
-
-test_backend: db celery
+test: celery
 	rm -f *_test_*.yaml
 	nosetests -v cesium
 
-test_frontend: external/casperjs db celery
-	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "cesium-_test_.yaml"
-	@PYTHONPATH="." tools/casper_tests.py
-
-test_frontend_no_docker: external/casperjs db celery
-	echo -e "testing:\n    disable_auth: 1\n    test_db: 1" > "cesium-_test_.yaml"
-	@PYTHONPATH="." NO_DOCKER=1 tools/casper_tests.py
-
-test_entrypoint:
-	cesium --version
-
-test: | test_entrypoint test_backend test_frontend
-
-test_no_docker: | test_backend test_frontend_no_docker
-
 install:
 	pip install -r requirements.txt
+
+doc_reqs:
+	pip install -q -r requirements.docs.txt
 
 MARKDOWNS = $(wildcard $(EXAMPLE_DIR)/*Example.md)
 NOTEBOOKS = $(patsubst %Example.md, %Example.ipynb, $(MARKDOWNS))
@@ -66,7 +41,6 @@ MD_OUTPUTS = $(patsubst %.md, %_output.md, $(MARKDOWNS))
 %_output.md:%.ipynb
 	jupyter nbconvert --to=mdoutput --output=`basename $@` --output-dir=$(EXAMPLE_DIR) $<
 
-html: | celery $(NOTEBOOKS) $(MD_OUTPUTS)
-	pip install -q -r requirements.docs.txt
+html: | celery doc_reqs $(NOTEBOOKS) $(MD_OUTPUTS)
 	export SPHINXOPTS=-W; make -C doc html
 	cp $(EXAMPLE_DIR)/*.ipynb doc/_build/html/examples/

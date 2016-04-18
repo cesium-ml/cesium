@@ -3,13 +3,12 @@ import xarray as xr
 import dask.async
 from . import obs_feature_tools as oft
 from . import science_feature_tools as sft
-from . import custom_feature_tools as cft
 
 
 # TODO now that we use pickle as Celery serializer, this could return something
 # more convenient
 def featurize_single_ts(ts, features_to_use, custom_script_path=None,
-                        custom_functions=None, use_docker=True):
+                        custom_functions=None):
     """Compute feature values for a given single time-series. Data is
     returned as dictionaries/lists of lists (as opposed to a more
     convenient DataFrame/DataSet) since it will be serialized as part of
@@ -21,8 +20,6 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         Single time series to be featurized.
     features_to_use : list of str
         List of feature names to be generated.
-    custom_script_path : str, optional
-        Path to custom features script .py file to be run in Docker container.
     custom_functions : dict, optional
         Dictionary of custom feature functions to be evaluated for the given
         time series, or a dictionary representing a dask graph of function
@@ -31,9 +28,6 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
-    use_docker : bool, optional
-        Bool specifying whether to generate custom features inside a Docker
-        container. Defaults to True.
 
     Returns
     -------
@@ -48,17 +42,7 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
                                                  features_to_use)
         science_features = sft.generate_science_features(t_i, m_i, e_i,
                                                          features_to_use)
-        if custom_script_path:
-            custom_features = cft.generate_custom_features(
-                custom_script_path, t_i, m_i, e_i,
-                features_already_known=dict(list(obs_features.items()) +
-                                            list(science_features.items()) +
-                                            list(ts.meta_features.items())),
-                use_docker=use_docker)
-            custom_features = {key: custom_features[key]
-                               for key in custom_features.keys()
-                               if key in features_to_use}
-        elif custom_functions:
+        if custom_functions:
             # If all values in custom_functions are functions, evaluate each
             if all(hasattr(v, '__call__') for v in custom_functions.values()):
                 custom_features = {feature: f(t_i, m_i, e_i)

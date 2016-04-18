@@ -18,10 +18,6 @@ TS_CLASS_PATHS = [pjoin(DATA_PATH, f) for f in
 TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
                    ["dotastro_215153_with_target.nc",
                     "dotastro_215176_with_target.nc"]]
-if util.docker_images_available():
-    USE_DOCKER = True
-else:
-    USE_DOCKER = False
 
 
 def test_model_predictions():
@@ -47,7 +43,8 @@ def test_predict_classification():
                                                         model_type=model_type)
         pred_results_dict = predict.predict_data_files(TS_CLASS_PATHS,
                                                        list(fset.data_vars),
-                                                       model, None, USE_DOCKER)
+                                                       model,
+                                                       custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(el[0] in [b'class1', b'class2', b'class3']
@@ -65,7 +62,8 @@ def test_predict_regression():
                                                         model_type=model_type)
         pred_results_dict = predict.predict_data_files(TS_TARGET_PATHS,
                                                        list(fset.data_vars),
-                                                       model, None, USE_DOCKER)
+                                                       model,
+                                                       custom_features_script=None)
         for fname, results in pred_results_dict.items():
             for el in results['pred_results']:
                 assert(isinstance(el, float))
@@ -79,7 +77,7 @@ def test_predict_optimized_model():
                 params_to_optimize={"n_estimators": [10, 50, 100]})
     pred_results_dict = predict.predict_data_files(TS_TARGET_PATHS,
                                                    list(fset.data_vars), model,
-                                                   None, USE_DOCKER)
+                                                   custom_features_script=None)
     for fname, results in pred_results_dict.items():
         for el in results['pred_results']:
             assert(el[0] in [b'Mira', b'W_Ursae_Maj', b'Delta_Scuti',
