@@ -293,7 +293,7 @@ def extract_feats_in_docker_container(container_name, tmp_dir):
     try:
         # Spin up Docker contain and extract custom feats
         # Instantiate Docker client
-        client = util.get_docker_client()
+        client = docker_util.get_docker_client()
 
         proj_mount_path = os.path.expanduser(
             os.path.dirname(os.path.dirname(__file__)))
@@ -393,8 +393,7 @@ def docker_extract_features(script_fpath, features_already_known):
 def assemble_test_data():
     """
     """
-    fname = pjoin(os.path.dirname(__file__),
-                  'data/sample_data/dotastro_215153.dat')
+    fname = pjoin(os.path.dirname(__file__), 'tests/data/dotastro_215153.dat')
     t, m, e = np.loadtxt(fname, delimiter=',').T
     features_already_known = {'t': list(t), 'm': list(m), 'e': list(e)}
     return features_already_known
@@ -501,7 +500,7 @@ def generate_custom_features(custom_script_path, t, m, e,
     features_already_known['e'] = list(e)
 
     if use_docker:
-        if util.docker_images_available():
+        if docker_util.docker_images_available():
             all_new_features = docker_extract_features(
                 script_fpath=custom_script_path,
                 features_already_known=features_already_known)

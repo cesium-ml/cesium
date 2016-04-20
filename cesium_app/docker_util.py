@@ -1,6 +1,9 @@
 __all__ = ['get_docker_client', 'docker_images_available', 'is_running_in_docker']
 
 
+import os
+import requests
+import subprocess
 try:
     import docker
     dockerpy_installed = True

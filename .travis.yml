@@ -49,8 +49,15 @@ addons:
     packages:
     - ccache
     - wget
-    - libhdf5-serial-dev
-    - libnetcdf-dev
+    - nginx
+    - libzmq3-dev
+    # For PhantomJS
+    - fontconfig-config
+    #- fonts-dejavu-core
+    - libfontconfig1
+    - libfreetype6
+    - libjpeg-turbo8
+    - libjpeg8
 
 services: rabbitmq
 

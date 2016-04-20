@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
         import cesium
         sample_data = pjoin(os.path.dirname(cesium.__file__),
-                            'data/sample_data')
+                            'tests/data')
         data_flag = '--data-path={}'.format(sample_data)
 
         print('[test_frontend] Launching CasperJS...')
