@@ -36,7 +36,8 @@ def rectangularize_featureset(featureset):
     return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
-def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize):
+def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
+                                   cv=None):
     """Optimize estimator hyperparameters.
 
     Perform hyperparamter optimization using
@@ -53,19 +54,23 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize):
     params_to_optimize : dict or list of dict
         Dictionary with parameter names as keys and lists of values to try
         as values, or a list of such dictionaries.
+    cv : int, cross-validation generator or an iterable, optional
+        Number of folds (defaults to 3) or an iterable yielding train/test
+        splits. See documentation for `GridSearchCV` for details.
 
     Returns
     -------
     `sklearn.grid_search.GridSearchCV` estimator object
 
     """
-    optimized_model = grid_search.GridSearchCV(model, params_to_optimize)
+    optimized_model = grid_search.GridSearchCV(model, params_to_optimize, cv=cv)
     optimized_model.fit(data, targets)
     return optimized_model
 
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
-                                model_options={}, params_to_optimize=None):
+                                model_options={}, params_to_optimize=None,
+                                cv=None):
     """Build model from (non-rectangular) xarray.Dataset of features."""
     if model is None:
         if model_type:
@@ -75,7 +80,7 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
     feature_df = rectangularize_featureset(featureset)
     if params_to_optimize:
         model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
-                                               model, params_to_optimize)
+                                               model, params_to_optimize, cv)
     else:
         model.fit(feature_df, featureset['target'])
     return model

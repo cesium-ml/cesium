@@ -36,33 +36,23 @@
 
 language: python
 #dist: trusty
-sudo: true
+sudo: false
 cache:
   # See http://docs.travis-ci.com/user/caching/#pip-cache
   directories:
     - $HOME/.cache/pip
     - $HOME/.cache/sphinx
     - $HOME/.ccache
+    - $HOME/.local
 addons:
   apt:
     packages:
     - ccache
     - wget
-    #- rethinkdb
-    - nginx
-    - libzmq3-dev
     - libhdf5-serial-dev
     - libnetcdf-dev
-    #- supervisor
-    #- libhdf5-serial-dev
-    #- libnetcdf-dev
-    # For PhantomJS
-    - fontconfig-config
-    #- fonts-dejavu-core
-    - libfontconfig1
-    - libfreetype6
-    - libjpeg-turbo8
-    - libjpeg8
+
+services: rabbitmq
 
 notifications:
   webhooks:
@@ -77,16 +67,15 @@ matrix:
     - python: 3.5
       env:
         - WITH_DOC=1
-        - TEST_TARGET=test_no_docker
+        - TEST_TARGET=test
 
 before_install:
   - ccache -s
   - export PATH=/usr/lib/ccache:${PATH}
   - which python; python --version
-  - sudo add-apt-repository -y ppa:nschloe/netcdf-nightly
   - source .drone/travis_funcs.sh
 
 install:
   - .drone/travis_install.sh
 
-script: .drone/travis_test.sh
+script: .drone/travis_script.sh
