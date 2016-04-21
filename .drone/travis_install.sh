@@ -2,6 +2,13 @@
 
 set -ex
 
+section "upgrade.system.supervisor"
+export PATH=$PATH:/home/travis/.local/bin
+pip2.7 install supervisor --upgrade --user
+supervisord --version
+section_end "upgrade.system.supervisor"
+
+
 section "create.virtualenv"
 python${TRAVIS_PYTHON_VERSION} -m venv ~/envs/cesium
 source ~/envs/cesium/bin/activate
@@ -15,9 +22,20 @@ pip install --retries 3 -q requests six python-dateutil nose nose-exclude mock
 section_end "install.base.requirements"
 
 
-section "install.hdf5.netcdf4"
-export HDF5_DIR=/home/travis/.local
+section "install.libraries"
+mkdir -p ~/.local
 export PATH=$PATH:/home/travis/.local/bin
+if [[ -n `which rethinkdb` ]]; then
+    echo "Using cached RethinkDB."
+else
+    echo "Downloading RethinkDB binary."
+    wget http://download.rethinkdb.com/apt/pool/precise/main/r/rethinkdb/rethinkdb_2.3.0~0precise_amd64.deb
+    mkdir -p ~/rethinkdb
+    dpkg -x rethinkdb_2.3.0~0precise_amd64.deb ~/rethinkdb
+    cp -rf ~/rethinkdb/usr/* ~/.local/
+fi
+
+export HDF5_DIR=/home/travis/.local
 if [[ -f $HDF5_DIR/lib/libhdf5.so ]]; then
     echo "Using cached HDF5/netCDF4."
 else
@@ -39,25 +57,41 @@ section_end "install.hdf5.netcdf4"
 
 
 section "install.cesium.requirements"
-sed -i 's/>=/==/g' requirements.txt
+curl https://raw.githubusercontent.com/cesium-ml/cesium/master/requirements.txt \
+    -o requirements_cesium.txt
+sed -i 's/>=/==/g' requirements_cesium.txt
 WHEELHOUSE="--no-index --trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
 WHEELBINARIES="numpy scipy matplotlib scikit-learn pandas"
 for requirement in $WHEELBINARIES; do
-    WHEELS="$WHEELS $(grep $requirement requirements.txt)"
+    WHEELS="$WHEELS $(grep $requirement requirements_cesium.txt)"
 done
 pip install --retries 3 -q $WHEELHOUSE $WHEELS
-pip install --retries 3 -q -r requirements.txt
+pip install --retries 3 -q -r requirements.txt  # also installs cesium
 pip list
 section_end "install.cesium.requirements"
 
 
-section "build.cython.extensions"
-pip install --retries 3 -q $WHEELHOUSE cython==0.23.4
-python setup.py build_ext -i
-section_end "build.cython.extensions"
+section "configure.services"
+sudo rabbitmq-server &
+make db && sleep 1
+cesium --db-init
+section_end "configure.services"
+
+
+section "install.testing.tools"
+# Use pre-packaged 1.9.8 for now
+phantomjs --version
+section_end "install.testing.tools"
+
+
+section "start.nginx"
+sudo mkdir -p /var/lib/nginx/body
+sudo chmod 777 /var/lib/nginx /var/lib/nginx/body
+( cd web_client ; sudo nginx -c nginx.conf -p . -g "daemon off;" & )
+section_end "start.nginx"
 
 
 section "configure.cesium"
-pip install -e .
+cesium --install
 section_end "configure.cesium"

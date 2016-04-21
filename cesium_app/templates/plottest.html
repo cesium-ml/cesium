@@ -1,0 +1,115 @@
+<html>
+	<head>
+		
+		
+		
+		
+
+
+		<link rel="stylesheet" type='text/css' href="../static/bootstrap/css/bootstrap.less">
+
+
+
+		<script type="text/javascript" src="../static/js/jquery-1.7.2.js"></script>
+		<script type="text/javascript" src="../static/jquery-ui/js/jquery-ui-1.8.22.custom.min.js"></script>
+		<script type="text/javascript" src="../static/js/ajaxfileupload.js"></script>
+		<script type="text/javascript" src="../static/js/d3.v3.min.js"></script>
+		<script type="text/javascript" src="../static/js/nv.d3.js"></script>
+		<script type="text/javascript" src="../static/js/jquery.ba-outside-events.js"></script>
+		<script type="text/javascript" src="../static/js/flot/jquery.flot.js"></script>
+		<script type="text/javascript" src="../static/js/flot/jquery.flot.errorbars.js"></script>
+		<script type="text/javascript" src="../static/js/flot/jquery.flot.selection.js"></script>
+		<script type="text/javascript" src="../static/js/json2.js"></script>
+		<script type="text/javascript" src="../static/js/jcanvas.min.js"></script>
+		<script type="text/javascript" src="../static/js/scripts.js"></script>
+		<LINK href="../static/jquery-ui/css/smoothness/jquery-ui-1.8.22.custom.css" rel="stylesheet" type="text/css">
+		<LINK href="../static/css/styles.css" rel="stylesheet" type="text/css">
+
+
+
+
+		<script type="text/javascript">
+				
+				
+				
+			function scatterPlotTest(){
+				
+				var data = [2,4,5];
+				
+				
+				var width = 260,
+				height = 260,
+				size = 150,
+				padding = 19.5;
+
+				var x = d3.scale.linear()
+					.range([padding / 2, size - padding / 2]);
+
+				var y = d3.scale.linear()
+					.range([size - padding / 2, padding / 2]);
+
+				var xAxis = d3.svg.axis()
+					.scale(x)
+					.orient("bottom")
+					.ticks(5);
+
+				var yAxis = d3.svg.axis()
+					.scale(y)
+					.orient("left")
+					.ticks(5);
+
+				var color = d3.scale.category10();
+
+
+
+				var svg = d3.select("#visualizationDiv")
+					.append("svg")
+					.attr("width",width)
+					.attr("height",height);
+
+				var circles = svg.selectAll("circle")
+					.data(data)
+					.enter()
+					.append("circle")
+					.attr('cx',function(d,i){ return i*50+25;})
+					.attr('cy',height/2)
+					.attr('r',function(d){ return d; })
+					.attr('fill','blue');
+
+				var leg = svg.selectAll(".legend")
+					.data(data)
+					.enter()
+					.append("g")
+					.attr('class','legend')
+					.attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+				
+				leg.append('rect')
+					.attr('x',width-10)
+					.attr('height',10)
+					.attr('width',10)
+					.style('fill',function(d,i){ return color(d); });
+
+			}
+
+		</script>
+		
+		
+		
+		
+		
+	</head>
+	<body>
+		
+		<div id='visualizationDiv' name='visualizationDiv'>
+			Plot goes here:<BR>
+		</div>
+		<script type="text/javascript">
+			
+			scatterPlotTest();
+			//drawScatterplotMatrix("../static/data/asas_test_features_with_classes.csv");
+			
+		</script>
+		
+		
+	</body>
+</html>
