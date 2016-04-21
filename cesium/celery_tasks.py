@@ -8,7 +8,7 @@ from cesium import _patch_celery
 
 celery_config = {
     'CELERY_ACCEPT_CONTENT': ['pickle'],
-    'CELERY_IMPORTS': ['cesium', '_patch_celery', 'celery_tasks'],
+    'CELERY_IMPORTS': ['cesium', 'cesium._patch_celery', 'cesium.celery_tasks'],
     'CELERY_RESULT_BACKEND': 'amqp',
     'CELERY_RESULT_SERIALIZER': 'pickle',
     'CELERY_TASK_SERIALIZER': 'pickle',
