@@ -28,7 +28,7 @@ def test_remove_files():
     assert not os.path.exists(fpath)
 
     # Pass in list of paths
-    open(fpath, "w").close()
+    f = open(fpath, "w").close()
     assert os.path.exists(fpath)
     util.remove_files([fpath])
     assert not os.path.exists(fpath)
