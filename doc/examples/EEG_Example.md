@@ -1,5 +1,7 @@
 # Epilepsy Detection Using EEG Data
 
+> IPython notebook: <a href="{attach}notebooks/EEG_Example.ipynb" download="EEG_Example.ipynb">download</a>
+
 In this example we'll use the [`cesium`](http://github.com/cesium-ml/cesium/) library to compare
 various techniques for epilepsy detection using a classic EEG time series dataset from
 [Andrzejak et al.](http://www.meb.uni-bonn.de/epileptologie/science/physik/eegdata.html).
@@ -62,9 +64,11 @@ features_to_use = ['amplitude',
                    'skew',
                    'std',
                    'weighted_average']
-fset_cesium = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
-                                             errors=None, features_to_use=features_to_use,
-                                             targets=eeg["classes"], use_celery=True)
+fset_cesium = featurize.featurize_time_series(times=eeg["times"],
+                                              values=eeg["measurements"],
+                                              errors=None,
+                                              features_to_use=features_to_use,
+                                              targets=eeg["classes"], use_celery=True)
 print(fset_cesium)
 ```
 
@@ -219,9 +223,10 @@ print("Wavelet transform features: training accuracy={:.2%}, test accuracy={:.2%
 ```
 
 The workflow presented here is intentionally simplistic and omits many important steps
-such as feature selection, model parameter selection, etc. Since we make use of standard
-`scikit-learn` models, additional steps can be incorporated in the same way they would be
-for any other (non-time domain) machine learning problem.
-
-
-IPython notebook: <a href="EEG_Example.ipynb" download="EEG_Example.ipynb">download</a>
+such as feature selection, model parameter selection, etc., which may all be
+incorporated just as they would for any other `scikit-learn` analysis.
+But with essentially three function calls (`featurize_time_series`,
+`build_model_from_featureset`, and `model_predictions`), we are able to build a
+model from a set of time series and make predictions on new, unlabeled data. In
+upcoming posts we'll introduce the web frontend for `cesium` and describe how
+the same analysis can be performed in a browser with no setup or coding required.
