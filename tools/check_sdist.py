@@ -12,7 +12,7 @@ p = subprocess.Popen("python setup.py sdist".split(),
                      stdout=subprocess.PIPE)
 out, err = p.communicate()
 
-data = out.split('\n')
+data = out.decode('utf-8').split('\n')
 data = [l for l in data if l.startswith('hard linking')]
 data = [l.replace('hard linking ', '') for l in data]
 data = ['./' + l.split(' ->')[0] for l in data]
@@ -20,7 +20,8 @@ data = ['./' + l.split(' ->')[0] for l in data]
 ignore_exts = ['.pyc', '.so', '.o', '#', '~']
 ignore_dirs = ['./dist', './tools', './doc']
 ignore_files = ['./TODO.md', './README.md', './.drone.yml',
-                './run_script_in_container.py', './.gitignore']
+                './run_script_in_container.py', './.gitignore',
+                './.travis.yml']
 
 
 missing = []
