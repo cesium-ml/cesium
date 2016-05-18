@@ -1,6 +1,6 @@
 # Epilepsy Detection Using EEG Data
 
-> IPython notebook: <a href="{attach}notebooks/EEG_Example.ipynb" download="EEG_Example.ipynb">download</a>
+> IPython notebook: <a href="EEG_Example.ipynb" download="EEG_Example.ipynb">download</a>
 
 In this example we'll use the [`cesium`](http://github.com/cesium-ml/cesium/) library to compare
 various techniques for epilepsy detection using a classic EEG time series dataset from
