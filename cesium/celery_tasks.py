@@ -1,25 +1,11 @@
-from celery import Celery
-
 from cesium import time_series
 from cesium import util
 from cesium import featurize_tools as ft
-from cesium import _patch_celery
+
+from cesium.celery_app import app
 
 
-celery_config = {
-    'CELERY_ACCEPT_CONTENT': ['pickle'],
-    'CELERY_IMPORTS': ['cesium', 'cesium._patch_celery', 'cesium.celery_tasks'],
-    'CELERY_RESULT_BACKEND': 'amqp',
-    'CELERY_RESULT_SERIALIZER': 'pickle',
-    'CELERY_TASK_SERIALIZER': 'pickle',
-    'INSTALLED_APPS': ['cesium'],
-    'CELERY_BROKER': 'amqp://guest@localhost//'
-}
-celery_app = Celery('celery_fit', broker=celery_config['CELERY_BROKER'])
-celery_app.config_from_object(celery_config)
-
-
-@celery_app.task(name="celery_tasks.check_celery")
+@app.task()
 def check_celery():
     """Test task."""
     return "OK"
@@ -34,7 +20,7 @@ def celery_available():
         return False
 
 
-@celery_app.task(name="celery_tasks.featurize_ts_file")
+@app.task()
 def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
     """Featurize time-series data file.
 
@@ -61,7 +47,7 @@ def featurize_ts_file(ts_file_path, features_to_use, custom_script_path=None):
     return (short_fname, all_features, ts.target, ts.meta_features)
 
 
-@celery_app.task(name="celery_tasks.featurize_ts_data")
+@app.task()
 def featurize_ts_data(time_series, features_to_use, custom_script_path=None,
                       custom_functions=None):
     """Featurize time-series objects.

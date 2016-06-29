@@ -26,9 +26,10 @@ def test_model_predictions():
     model = build_model.build_model_from_featureset(
         fset, model_type='RandomForestClassifier')
     preds = predict.model_predictions(fset, model)
-    assert(preds.shape[0] == len(fset.name))
-    assert(preds.shape[1] == len(np.unique(fset.target.values)))
-    assert(preds.values.dtype == np.dtype('float'))
+    assert(all(preds.name == fset.name))
+    assert(preds.prediction.values.shape == (len(fset.name),
+                                             len(np.unique(fset.target))))
+    assert(preds.prediction.values.dtype == np.dtype('float'))
 
 
 def test_predict_classification():
@@ -41,14 +42,17 @@ def test_predict_classification():
     for model_type in classifier_types:
         model = build_model.build_model_from_featureset(fset,
                                                         model_type=model_type)
-        pred_results_dict = predict.predict_data_files(TS_CLASS_PATHS,
-                                                       list(fset.data_vars),
-                                                       model,
-                                                       custom_features_script=None)
-        for fname, results in pred_results_dict.items():
-            for el in results['pred_results']:
-                assert(el[0] in [b'class1', b'class2', b'class3']
-                       or el in [b'class1', b'class2', b'class3'])
+        preds = predict.predict_data_files(TS_CLASS_PATHS,
+                                           list(fset.data_vars), model,
+                                           custom_features_script=None)
+        if preds.prediction.values.ravel()[0].dtype == np.dtype('float'):
+            assert(all(preds.prediction.class_label == [b'class1', b'class2',
+                                                        b'class3']))
+            assert(preds.prediction.values.shape ==
+                   (len(TS_CLASS_PATHS), len(np.unique(fset.target))))
+        else:
+            assert(all(p in [b'class1', b'class2', b'class3'] for p in
+                       preds.prediction))
 
 
 def test_predict_regression():
@@ -60,13 +64,11 @@ def test_predict_regression():
     for model_type in regressor_types:
         model = build_model.build_model_from_featureset(fset,
                                                         model_type=model_type)
-        pred_results_dict = predict.predict_data_files(TS_TARGET_PATHS,
-                                                       list(fset.data_vars),
-                                                       model,
-                                                       custom_features_script=None)
-        for fname, results in pred_results_dict.items():
-            for el in results['pred_results']:
-                assert(isinstance(el, float))
+        preds = predict.predict_data_files(TS_TARGET_PATHS,
+                                           list(fset.data_vars), model,
+                                           custom_features_script=None)
+        assert(preds.prediction.values.shape == (len(TS_CLASS_PATHS),))
+        assert(p.dtype == np.dtype('float') for p in preds.prediction)
 
 
 def test_predict_optimized_model():
@@ -75,11 +77,9 @@ def test_predict_optimized_model():
     model = build_model.build_model_from_featureset(fset,
                 model_type="RandomForestClassifier",
                 params_to_optimize={"n_estimators": [10, 50, 100]}, cv=2)
-    pred_results_dict = predict.predict_data_files(TS_TARGET_PATHS,
-                                                   list(fset.data_vars), model,
-                                                   custom_features_script=None)
-    for fname, results in pred_results_dict.items():
-        for el in results['pred_results']:
-            print(el)
-            assert(el[0] in ['Mira', 'W_Ursae_Maj', 'Classical_Cepheid']
-                   or el in ['Mira', 'W_Ursae_Maj', 'Classical_Cepheid'])
+    preds = predict.predict_data_files(TS_TARGET_PATHS, list(fset.data_vars),
+                                       model, custom_features_script=None)
+    assert(all(preds.prediction.class_label == ['Classical_Cepheid', 'Mira',
+                                                'W_Ursae_Maj']))
+    assert(preds.prediction.values.shape == (len(TS_CLASS_PATHS),
+                                             len(np.unique(fset.target))))

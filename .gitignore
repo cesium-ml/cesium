@@ -8,6 +8,8 @@
 *.c
 *#
 .#*
+*.swp
+**/.DS_STORE
 .noseids
 rethinkdb_data
 cesium.yaml

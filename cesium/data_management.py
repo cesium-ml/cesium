@@ -10,6 +10,7 @@ from .time_series import TimeSeries
 __all__ = ['parse_ts_data', 'parse_headerfile', 'parse_and_store_ts_data']
 
 
+# TODO more robust error handling
 def parse_ts_data(filepath, sep=","):
     """Parses raw time series data file and returns an (n, 3) array of values.
 
