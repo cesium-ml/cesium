@@ -22,9 +22,9 @@ if [[ -f $HDF5_DIR/lib/libhdf5.so ]]; then
     echo "Using cached HDF5/netCDF4."
 else
     echo "Compiling HDF5/netCDF4 from source."
-    wget http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.16.tar.gz
-    tar -xzf hdf5-1.8.16.tar.gz
-    (cd hdf5-1.8.16/ &&
+    wget https://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.17/src/hdf5-1.8.17.tar.gz
+    tar -xzf hdf5-1.8.17.tar.gz
+    (cd hdf5-1.8.17/ &&
     ./configure --prefix=$HDF5_DIR --enable-shared --enable-hl &&
     make &&
     make install)

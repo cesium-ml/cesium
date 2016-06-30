@@ -28,6 +28,9 @@ def download_asas_training(data_dir):
         - asas_training.csv (header file containing class labels)
         - asas_training.pkl (cached data for faster loading from disk)
 
+     Meta-features `meta1`, `meta2`, and `meta3` are randomly generated for
+     testing purposes only.
+
     Parameters
     ----------
     data_dir: str
@@ -98,10 +101,11 @@ def fetch_asas_training(data_dir=None):
 
     References
     ----------
-    Andrzejak, Ralph G., et al. "Indications of nonlinear deterministic and
-    finite-dimensional structures in time series of brain electrical activity:
-    Dependence on recording region and brain state." Physical Review E 64.6
-    (2001): 061907.
+    Richards, J. W., Starr, D. L., Miller, A. a., Bloom, J. S., Butler, N. R.,
+    Brink, H., & Crellin-Quick, A. (2012). Construction of a Calibrated
+    Probabilistic Classification Catalog: Application to 50k Variable Sources
+    in the All-Sky Automated Survey. The Astrophysical Journal Supplement
+    Series, 203(2), 32. http://doi.org/10.1088/0067-0049/203/2/32
     """
 
     if data_dir is None:

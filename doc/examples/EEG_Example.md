@@ -212,14 +212,14 @@ preds_guo = model_predictions(fset_guo, model_guo, return_probs=False)
 preds_dwt = model_predictions(fset_dwt, model_dwt, return_probs=False)
 
 print("Built-in cesium features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_cesium[train], eeg["classes"][train]),
-          accuracy_score(preds_cesium[test], eeg["classes"][test])))
+          accuracy_score(preds_cesium.prediction.values[train], eeg["classes"][train]),
+          accuracy_score(preds_cesium.prediction.values[test], eeg["classes"][test])))
 print("Guo et al. features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_guo[train], eeg["classes"][train]),
-          accuracy_score(preds_guo[test], eeg["classes"][test])))
+          accuracy_score(preds_guo.prediction.values[train], eeg["classes"][train]),
+          accuracy_score(preds_guo.prediction.values[test], eeg["classes"][test])))
 print("Wavelet transform features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_dwt[train], eeg["classes"][train]),
-          accuracy_score(preds_dwt[test], eeg["classes"][test])))
+          accuracy_score(preds_dwt.prediction.values[train], eeg["classes"][train]),
+          accuracy_score(preds_dwt.prediction.values[test], eeg["classes"][test])))
 ```
 
 The workflow presented here is intentionally simplistic and omits many important steps
