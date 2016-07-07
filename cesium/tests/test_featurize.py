@@ -1,5 +1,3 @@
-from cesium import featurize
-from cesium import util
 from nose.tools import with_setup
 import numpy.testing as npt
 import os
@@ -8,6 +6,10 @@ import shutil
 import tempfile
 import numpy as np
 import xarray as xr
+
+from cesium import featurize
+from cesium import util
+from cesium.celery_tasks import featurize_task
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -76,10 +78,9 @@ def test_already_featurized_data():
 def test_featurize_files_function():
     """Test featurize function for on-disk time series"""
     fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
-    fset = featurize.featurize_data_files(ts_paths=TS_CLASS_PATHS,
-                                          output_path=fset_path,
-                                          features_to_use=["std_err", "f"],
-                                          custom_script_path=CUSTOM_SCRIPT)
+    fset = featurize_task(TS_CLASS_PATHS, features_to_use=["std_err", "f"],
+                          output_path=fset_path,
+                          custom_script_path=CUSTOM_SCRIPT)().get()
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(class_name in ['class1', 'class2']
@@ -90,10 +91,10 @@ def test_featurize_files_function():
 def test_featurize_files_function_regression_data():
     """Test featurize function for on-disk time series - regression data"""
     fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
-    fset = featurize.featurize_data_files(ts_paths=TS_TARGET_PATHS,
-                                          output_path=fset_path,
-                                          features_to_use=["std_err", "f"],
-                                          custom_script_path=CUSTOM_SCRIPT)
+    fset = featurize_task(ts_paths=TS_TARGET_PATHS,
+                          features_to_use=["std_err", "f"],
+                          output_path=fset_path,
+                          custom_script_path=CUSTOM_SCRIPT)().get()
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(target in [1.0, 3.0] for target in fset['target'].values))

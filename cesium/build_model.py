@@ -8,8 +8,7 @@ from sklearn import grid_search
 
 
 __all__ = ['MODELS_TYPE_DICT', 'rectangularize_featureset',
-           'fit_model_optimize_hyperparams', 'build_model_from_featureset',
-           'create_and_pickle_model']
+           'fit_model_optimize_hyperparams', 'build_model_from_featureset']
 
 
 MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
@@ -83,34 +82,4 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
                                                model, params_to_optimize, cv)
     else:
         model.fit(feature_df, featureset['target'])
-    return model
-
-
-def create_and_pickle_model(featureset, model_type, output_path,
-                            model_options={}, params_to_optimize=None):
-    """Build a `scikit-learn` model for the given featureset and store in
-    serialized joblib format at the specified path.
-
-    Parameters
-    ----------
-    featureset : xarray.Dataset
-        Features for training model.
-    model_type : str
-        Abbreviation of the type of model to be created.
-    output_path : str
-        Path where output model is saved as in joblib pickle format.
-    model_options : dict, optional
-        Dictionary specifying `scikit-learn` model parameters to be used.
-    params_to_optimize : dict or list of dict, optional
-        Dictionary with parameter names as keys and lists of values to try
-        as values, or a list of such dictionaries. Defaults to None.
-
-    Returns
-    -------
-    scikit-learn model
-    """
-    model = build_model_from_featureset(featureset, model_type=model_type,
-                                        model_options=model_options,
-                                        params_to_optimize=params_to_optimize)
-    joblib.dump(model, output_path, compress=3)
     return model

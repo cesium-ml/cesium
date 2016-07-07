@@ -1,4 +1,3 @@
-from cesium import build_model
 from nose.tools import with_setup
 import os
 from os.path import join as pjoin
@@ -10,6 +9,9 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
 import xarray as xr
+
+from cesium import build_model
+from cesium.celery_tasks import build_model_task
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -36,21 +38,20 @@ def remove_output():
 
 
 @with_setup(teardown=remove_output)
-def test_build_model():
+def test_build_model_task():
     """Test main model building method - various types"""
     for model_type in MODEL_TYPES:
         if 'Classifier' in model_type:
-            fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
+            fset_path = pjoin(DATA_PATH, "test_featureset.nc")
         elif 'Regressor' in model_type:
-            fset = xr.open_dataset(pjoin(DATA_PATH, "test_reg_featureset.nc"))
+            fset_path = pjoin(DATA_PATH, "test_reg_featureset.nc")
         else:
             raise ValueError("Unrecognized scikit-learn model type.")
-        model_path = pjoin(TEMP_DIR, "test.pkl")
-        build_model.create_and_pickle_model(fset, model_type, model_path)
-        model = joblib.load(model_path)
-        assert isinstance(model,
-                          build_model.MODELS_TYPE_DICT[model_type])
-        os.remove(pjoin(TEMP_DIR, "test.pkl"))
+        output_path = pjoin(TEMP_DIR, "test.pkl")
+        res = build_model_task.delay(model_type, {}, fset_path,
+                                     output_path).get()
+        model = joblib.load(output_path)
+        assert isinstance(model, build_model.MODELS_TYPE_DICT[model_type])
 
 
 @with_setup(teardown=remove_output)

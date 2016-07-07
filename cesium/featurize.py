@@ -12,71 +12,15 @@ from . import time_series
 from .time_series import TimeSeries
 
 
-__all__ = ['load_and_store_feature_data', 'featurize_data_files',
-           'featurize_time_series']
+__all__ = ['load_and_store_feature_data', 'featurize_time_series']
 
 
-def load_and_store_feature_data(features_path, output_path, first_N=None):
+def load_and_store_feature_data(features_path, output_path):
     """Read features from CSV file and save as an xarray.Dataset."""
     targets, meta_features = data_management.parse_headerfile(features_path)
-    meta_features = meta_features[:first_N]
-    if targets is not None:
-        targets = targets[:first_N]
     meta_feature_dicts = meta_features.to_dict(orient='record')
     featureset = ft.assemble_featureset([], targets, meta_feature_dicts)
     featureset.to_netcdf(output_path)
-    return featureset
-
-
-def featurize_data_files(ts_paths, features_to_use=[], output_path=None,
-                         first_N=None, custom_script_path=None):
-    """Generate features for labeled time series data.
-
-    Each file should consist of one comma-separated line of per data point,
-    where each line contains either pairs (time, value) or triples (time,
-    value, error).
-
-    If `output_path` is provided, features are saved as an xarray.Dataset in
-    netCDF format.
-
-    Parameters
-    ----------
-    ts_paths : str
-        Path to netCDF files containing serialized TimeSeries objects.
-    features_to_use : list of str, optional
-        List of feature names to be generated. Defaults to an empty
-        list, which will result in only meta_features features being stored.
-    output_path : str, optional
-        Path to which the output xarray.Dataset of feature data will be saved
-        (if applicable).
-    first_N : int, optional
-        Integer indicating the maximum number of time series to featurize.
-        Can be used to reduce the number of files for testing purposes. If
-        `first_N` is None then all time series will be featurized.
-    custom_script_path : str, optional
-        Path to Python script containing function definitions for the
-        generation of any custom features. Defaults to None.
-
-    Returns
-    -------
-    xarray.Dataset
-        Featureset with `data_vars` containing feature values, and `coords`
-        containing filenames and targets (if applicable).
-    """
-    ts_paths = ts_paths[:first_N]
-    if not celery_available():
-        raise RuntimeError("Celery not available")
-    celery_res = group(featurize_file_task.s(ts_path, features_to_use,
-                                             custom_script_path)
-                       for ts_path in ts_paths)()
-    res_list = celery_res.get()
-    fnames, feature_dicts, targets, meta_feature_dicts = zip(*res_list)
-    featureset = ft.assemble_featureset(feature_dicts, targets,
-                                        meta_feature_dicts, fnames)
-
-    if output_path:
-        featureset.to_netcdf(output_path)
-
     return featureset
 
 

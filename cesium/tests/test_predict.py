@@ -1,14 +1,16 @@
-from cesium import predict
-from cesium import build_model
-from cesium import util
 from nose.tools import with_setup
 import os
 from os.path import join as pjoin
 import shutil
 import tempfile
 import numpy as np
-import xarray as xr
 import sklearn.base
+import xarray as xr
+
+from cesium import predict
+from cesium import build_model
+from cesium import util
+from cesium.celery_tasks import prediction_task
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -42,9 +44,8 @@ def test_predict_classification():
     for model_type in classifier_types:
         model = build_model.build_model_from_featureset(fset,
                                                         model_type=model_type)
-        preds = predict.predict_data_files(TS_CLASS_PATHS,
-                                           list(fset.data_vars), model,
-                                           custom_features_script=None)
+        preds = prediction_task(TS_CLASS_PATHS, list(fset.data_vars), model,
+                                custom_features_script=None)().get()
         if preds.prediction.values.ravel()[0].dtype == np.dtype('float'):
             assert(all(preds.prediction.class_label == [b'class1', b'class2',
                                                         b'class3']))
@@ -64,9 +65,8 @@ def test_predict_regression():
     for model_type in regressor_types:
         model = build_model.build_model_from_featureset(fset,
                                                         model_type=model_type)
-        preds = predict.predict_data_files(TS_TARGET_PATHS,
-                                           list(fset.data_vars), model,
-                                           custom_features_script=None)
+        preds = prediction_task(TS_TARGET_PATHS, list(fset.data_vars), model,
+                                custom_features_script=None)().get()
         assert(preds.prediction.values.shape == (len(TS_CLASS_PATHS),))
         assert(p.dtype == np.dtype('float') for p in preds.prediction)
 
@@ -77,8 +77,8 @@ def test_predict_optimized_model():
     model = build_model.build_model_from_featureset(fset,
                 model_type="RandomForestClassifier",
                 params_to_optimize={"n_estimators": [10, 50, 100]}, cv=2)
-    preds = predict.predict_data_files(TS_TARGET_PATHS, list(fset.data_vars),
-                                       model, custom_features_script=None)
+    preds = prediction_task(TS_TARGET_PATHS, list(fset.data_vars), model,
+                            custom_features_script=None)().get()
     assert(all(preds.prediction.class_label == ['Classical_Cepheid', 'Mira',
                                                 'W_Ursae_Maj']))
     assert(preds.prediction.values.shape == (len(TS_CLASS_PATHS),
