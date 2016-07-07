@@ -9,3 +9,4 @@ xarray
 gatspy>=0.3.0
 netCDF4
 cloudpickle
+joblib
