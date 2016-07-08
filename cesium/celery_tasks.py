@@ -138,7 +138,7 @@ def build_model_task(model_type, model_params, fset_path, output_path=None,
         return model
 
 
-def prediction_task(ts_paths, features_to_use, model, output_path=None,
+def prediction_task(ts_paths, features_to_use, model_path, output_path=None,
                     custom_features_script=None):
     """Generate features from new TS data and perform model prediction.
 
@@ -153,8 +153,8 @@ def prediction_task(ts_paths, features_to_use, model, output_path=None,
         used in prediction.
     features_to_use : list of str
         List of features to extract for new time series data
-    model : scikit-learn model
-        Model to use for making predictions on new input time series
+    model_path : str
+        Path to pickled model to use for making predictions on new input time series
     output_path
     custom_features_script : str, optional
         Path to custom features script to be used in feature
@@ -163,6 +163,7 @@ def prediction_task(ts_paths, features_to_use, model, output_path=None,
     Returns
     -------
     """
+    model = joblib.load(model_path)
     return (featurize_task(ts_paths, features_to_use=features_to_use,
                            custom_script_path=custom_features_script) |
             predict_featureset.s(model, output_path) | forward.s())
