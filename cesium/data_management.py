@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from . import custom_exceptions
+from .custom_exceptions import DataFormatError
 from . import util
 from . import time_series
 from .time_series import TimeSeries
@@ -41,9 +41,8 @@ def parse_ts_data(filepath, sep=","):
         ts_data = np.loadtxt(f, delimiter=sep, ndmin=2)
     ts_data = ts_data[:, :3]  # Only using T, M, E
     if ts_data.shape[1] == 0:
-        raise custom_exceptions.DataFormatError("""Incomplete or improperly
-                                                formatted time series data file
-                                                provided.""")
+        raise DataFormatError("""Incomplete or improperly formatted time series
+                              data file provided.""")
     elif ts_data.shape[1] == 1:
         ts_data = np.c_[np.linspace(0, time_series.DEFAULT_MAX_TIME,
                                     len(ts_data)),
@@ -78,14 +77,24 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     pandas.DataFrame
         Feature data from other columns besides filename, target (can be empty)
     """
-    header = pd.read_csv(headerfile_path, comment='#')
+    try:
+        header = pd.read_csv(headerfile_path, comment='#')
+    except:
+        raise DataFormatError("Improperly formatted header file.")
     if 'filename' in header:
         header.index = [util.shorten_fname(str(f)) for f in header['filename']]
         header.drop('filename', axis=1, inplace=True)
     if files_to_include:
         short_fnames_to_include = [util.shorten_fname(str(f))
                                    for f in files_to_include]
-        header = header.loc[short_fnames_to_include]
+        try:
+            header = header.loc[short_fnames_to_include]
+        except:
+            raise DataFormatError("Incomplete header file: make sure your "
+                                  "header contains an entry for each time "
+                                  "series file in the uploaded archive, and "
+                                  "that the file names match the first column "
+                                  "of the header.")
     if 'target' in header:
         targets = header['target']
     elif 'class' in header:
@@ -144,6 +153,6 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
                             ts_path)
             ts.to_netcdf(ts_path)
             all_time_series.append(ts)
-    if cleanup_header:
+    if header_path and cleanup_header:
         util.remove_files([header_path])
     return all_time_series

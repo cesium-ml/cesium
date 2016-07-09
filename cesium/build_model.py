@@ -22,8 +22,8 @@ MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
 
 def rectangularize_featureset(featureset):
     """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
-    featureset = featureset.drop([coord for coord in ['target', 'class']
-                                  if coord in featureset])
+    featureset = featureset.drop([coord for coord in featureset.coords
+                                  if coord not in ['name', 'channel']])
     feature_df = featureset.to_dataframe()
     if 'channel' in featureset:
         feature_df = feature_df.unstack(level='channel')

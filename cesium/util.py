@@ -1,9 +1,12 @@
+import collections
 import contextlib
 import errno
 import os
 import tarfile
 import tempfile
 import zipfile
+
+from .custom_exceptions import DataFormatError
 
 
 __all__ = ['shorten_fname', 'remove_files', 'extract_time_series']
@@ -15,7 +18,6 @@ def shorten_fname(file_path):
 
 
 def make_list(x):
-    import collections
     if isinstance(x, collections.Iterable) and not isinstance(x, str):
         return x
     else:
