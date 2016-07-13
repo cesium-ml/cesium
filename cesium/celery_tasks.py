@@ -169,6 +169,35 @@ def prediction_task(ts_paths, features_to_use, model_path, output_path=None,
             predict_featureset.s(model, output_path) | forward.s())
 
 
+def predict_prefeaturized_task(featureset_path, model_path, output_path=None,
+                               custom_features_script=None):
+    """Perform model predictions for pre-featurized data.
+
+    Loads saved model, calculates target predictions with extracted features,
+    and returns Dataset containing features and predictions.
+
+    Parameters
+    ----------
+    ts_paths : str
+        Path to netCDF files containing seriealized TimeSeries objects to be
+        used in prediction.
+    features_to_use : list of str
+        List of features to extract for new time series data
+    model_path : str
+        Path to pickled model to use for making predictions on new input time series
+    output_path
+    custom_features_script : str, optional
+        Path to custom features script to be used in feature
+        generation. Defaults to None.
+
+    Returns
+    -------
+    """
+    fset = xr.open_dataset(featureset_path).load()
+    model = joblib.load(model_path)
+    return predict_featureset.s(fset, model, output_path)
+
+
 @app.task()
 def forward(x):
     """Workaround for https://github.com/celery/celery/issues/3191.

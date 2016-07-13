@@ -11,7 +11,7 @@ import xarray as xr
 from cesium import predict
 from cesium import build_model
 from cesium import util
-from cesium.celery_tasks import prediction_task
+from cesium.celery_tasks import prediction_task, predict_prefeaturized_task
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -111,4 +111,19 @@ def test_predict_optimized_model():
     assert(all(preds.prediction.class_label == ['Classical_Cepheid', 'Mira',
                                                 'W_Ursae_Maj']))
     assert(preds.prediction.values.shape == (len(TS_CLASS_PATHS),
+
+
+@with_setup(teardown=remove_output)
+def test_predict_prefeaturized():
+    featureset_path = pjoin(DATA_PATH, "test_featureset.nc")
+    fset = xr.open_dataset(featureset_path).load()
+    model = build_model.build_model_from_featureset(
+        fset, model_type='RandomForestClassifier')
+    model_path = pjoin(TEMP_DIR, "test.pkl")
+    joblib.dump(model, model_path, compress=3)
+    preds = predict_prefeaturized_task(featureset_path, model_path)()
+
+    assert(all(preds.name == fset.name))
+    assert(preds.prediction.values.shape == (len(fset.name),
                                              len(np.unique(fset.target))))
+    assert(preds.prediction.values.dtype == np.dtype('float'))
