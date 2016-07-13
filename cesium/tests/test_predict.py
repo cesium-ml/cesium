@@ -111,6 +111,7 @@ def test_predict_optimized_model():
     assert(all(preds.prediction.class_label == ['Classical_Cepheid', 'Mira',
                                                 'W_Ursae_Maj']))
     assert(preds.prediction.values.shape == (len(TS_CLASS_PATHS),
+                                             len(np.unique(fset.target))))
 
 
 @with_setup(teardown=remove_output)
