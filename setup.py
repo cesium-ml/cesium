@@ -2,7 +2,7 @@
 
 descr = """Machine Learning Time Series Platform
 
-https://github.com/cesium
+https://github.com/cesium-ml/cesium
 
 """
 
