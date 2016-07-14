@@ -108,6 +108,7 @@ if __name__ == "__main__":
             'License :: OSI Approved :: BSD License',
             'Programming Language :: C',
             'Programming Language :: Python :: 2',
+            'Programming Language :: Python :: 3',
             'Topic :: Scientific/Engineering',
             'Operating System :: Microsoft :: Windows',
             'Operating System :: POSIX',
