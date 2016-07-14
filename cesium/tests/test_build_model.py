@@ -48,9 +48,8 @@ def test_build_model_task():
         else:
             raise ValueError("Unrecognized scikit-learn model type.")
         output_path = pjoin(TEMP_DIR, "test.pkl")
-        res = build_model_task.delay(model_type, {}, fset_path,
-                                     output_path).get()
-        model = joblib.load(output_path)
+        model = build_model_task.delay(model_type, {}, fset_path,
+                                       output_path).get()
         assert isinstance(model, build_model.MODELS_TYPE_DICT[model_type])
 
 
