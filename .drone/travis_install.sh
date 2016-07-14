@@ -42,7 +42,7 @@ section "install.cesium.requirements"
 sed -i 's/>=/==/g' requirements.txt
 WHEELHOUSE="--no-index --trusted-host travis-wheels.scikit-image.org \
             --find-links=http://travis-wheels.scikit-image.org/"
-WHEELBINARIES="numpy scipy matplotlib scikit-learn pandas"
+WHEELBINARIES="numpy scipy scikit-learn pandas"
 for requirement in $WHEELBINARIES; do
     WHEELS="$WHEELS $(grep $requirement requirements.txt)"
 done
