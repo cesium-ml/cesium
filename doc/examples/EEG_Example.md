@@ -47,9 +47,10 @@ module. The `featurize` module includes many built-in choices of features which 
 for any type of time series data; here we've chosen a few generic features that do not have
 any special biological significance.
 
-If Celery is running, the time series will automatically be split among the available workers
-and featurized in parallel; setting `use_celery=False` will cause the time series to be
-featurized serially.
+By default, the time series will featurized in parallel using the
+`dask.multiprocessing` scheduler; other approaches, including serial and
+distributed approaches, can be implemented by passing in other `dask`
+schedulers as the `get` argument to `featurize_time_series`.
 
 ```python
 from cesium import featurize
@@ -68,7 +69,7 @@ fset_cesium = featurize.featurize_time_series(times=eeg["times"],
                                               values=eeg["measurements"],
                                               errors=None,
                                               features_to_use=features_to_use,
-                                              targets=eeg["classes"], use_celery=True)
+                                              targets=eeg["classes"])
 print(fset_cesium)
 ```
 
@@ -124,8 +125,7 @@ guo_features = {
 fset_guo = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
                                            errors=None, targets=eeg["classes"], 
                                            features_to_use=list(guo_features.keys()),
-                                           custom_functions=guo_features,
-                                           use_celery=True)
+                                           custom_functions=guo_features)
 print(fset_guo)
 ```
 

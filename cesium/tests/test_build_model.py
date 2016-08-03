@@ -11,7 +11,6 @@ from sklearn.linear_model import LinearRegression, SGDClassifier,\
 import xarray as xr
 
 from cesium import build_model
-from cesium.celery_tasks import build_model_task
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -35,22 +34,6 @@ def remove_output():
             os.remove(pjoin(TEMP_DIR, fname))
         except OSError:
             pass
-
-
-@with_setup(teardown=remove_output)
-def test_build_model_task():
-    """Test main model building method - various types"""
-    for model_type in MODEL_TYPES:
-        if 'Classifier' in model_type:
-            fset_path = pjoin(DATA_PATH, "test_featureset.nc")
-        elif 'Regressor' in model_type:
-            fset_path = pjoin(DATA_PATH, "test_reg_featureset.nc")
-        else:
-            raise ValueError("Unrecognized scikit-learn model type.")
-        output_path = pjoin(TEMP_DIR, "test.pkl")
-        model = build_model_task.delay(model_type, {}, fset_path,
-                                       output_path).get()
-        assert isinstance(model, build_model.MODELS_TYPE_DICT[model_type])
 
 
 @with_setup(teardown=remove_output)

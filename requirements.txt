@@ -2,8 +2,8 @@ numpy>=1.10.4
 scipy>=0.16.0
 scikit-learn>=0.17.0
 pandas>=0.17.0
-celery
-dask>=0.7.5
+dask
+toolz
 xarray==0.7.2
 gatspy>=0.3.0
 netCDF4

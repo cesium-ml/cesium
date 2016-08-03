@@ -19,14 +19,27 @@ def teardown():
 
 def sample_time_series(size=51, channels=1):
     times = np.array([np.sort(np.random.random(size))
-                      for i in range(channels)])
-    values = np.array([np.random.normal(size=size) for i in range(channels)])
+                      for i in range(channels)]).squeeze()
+    values = np.array([np.random.normal(size=size)
+                       for i in range(channels)]).squeeze()
     errors = np.array([np.random.exponential(size=size)
-                       for i in range(channels)])
-    if channels == 1:
-        values = values[0]
-        errors = errors[0]
+                       for i in range(channels)]).squeeze()
     return times, values, errors
+
+
+def test__compatible_shapes():
+    assert time_series._compatible_shapes(np.arange(5), np.arange(5))
+    assert not time_series._compatible_shapes(np.arange(5), np.arange(6))
+
+    assert time_series._compatible_shapes([np.arange(5)] * 5, [np.arange(5)] * 5)
+    assert not time_series._compatible_shapes([np.arange(5)] * 5, [np.arange(5)] * 6)
+    assert not time_series._compatible_shapes([np.arange(5)] * 5, [np.arange(6)] * 5)
+    assert not time_series._compatible_shapes(np.arange(5), [np.arange(6)] * 5)
+
+    assert time_series._compatible_shapes([[0, 1], [0, 1]], [[0, 1], [0, 1]])
+    assert not time_series._compatible_shapes([[0, 1], [0, 1]], [[0], [0, 1]])
+
+    assert time_series._compatible_shapes([0, 1], np.arange(2))
 
 
 def assert_ts_equal(ts1, ts2):
@@ -62,9 +75,9 @@ def test_time_series_init_2d():
     assert ts.n_channels == n_channels
 
     ts = TimeSeries(t[0], m, e[0])
-    assert ts.time.shape == t[0].shape and np.allclose(ts.time, t[0])
+    assert ts.time.shape == m.shape and np.allclose(ts.time[0], t[0])
     assert ts.measurement.shape == m.shape and np.allclose(ts.measurement, m)
-    assert ts.error.shape == e[0].shape and np.allclose(ts.error, e[0])
+    assert ts.error.shape == m.shape and np.allclose(ts.error[0], e[0])
     assert ts.n_channels == n_channels
 
 
@@ -94,10 +107,10 @@ def test_time_series_default_values():
     assert ts.n_channels == 1
 
     ts = TimeSeries(None, m, None)
-    npt.assert_allclose(ts.time,
+    npt.assert_allclose(ts.time[0],
                         np.linspace(0., time_series.DEFAULT_MAX_TIME,
                                     m.shape[1]))
-    npt.assert_allclose(ts.error,
+    npt.assert_allclose(ts.error[0],
                         np.repeat(time_series.DEFAULT_ERROR_VALUE,
                                   m.shape[1]))
     assert ts.n_channels == n_channels
