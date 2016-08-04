@@ -4,7 +4,7 @@ scikit-learn>=0.17.0
 pandas>=0.17.0
 celery
 dask>=0.7.5
-xarray
+xarray==0.7.2
 gatspy>=0.3.0
 netCDF4
 cloudpickle
