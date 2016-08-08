@@ -1,4 +1,5 @@
 import copy
+from collections import Iterable
 import netCDF4
 import numpy as np
 import pandas as pd
@@ -11,6 +12,26 @@ __all__ = ['from_netcdf', 'TimeSeries', 'DEFAULT_MAX_TIME',
 
 DEFAULT_MAX_TIME = 1.0
 DEFAULT_ERROR_VALUE = 1e-4
+
+
+def _ndim(x):
+    """Return number of dimensions for a (possibly ragged) array."""
+    n = 0
+    while isinstance(x, Iterable):
+        x = x[0]
+        n += 1
+    return n
+
+
+def _compatible_shapes(x, y):
+    """Check recursively that iterables x and y (and each iterable contained
+    within, if applicable), have compatible sizes.
+    """
+    if hasattr(x, 'shape') and hasattr(y, 'shape'):
+        return x.shape == y.shape
+    else:
+        return (len(x) == len(y) and all(np.shape(x_i) == np.shape(y_i)
+                                         for x_i, y_i in zip(x, y)))
 
 
 def _default_values_like(old_values, value=None, upper=None):
@@ -42,8 +63,8 @@ def _default_values_like(old_values, value=None, upper=None):
         raise ValueError("Either `value` or `upper` must be provided.")
 
     new_values = copy.deepcopy(old_values)
-    if (isinstance(old_values, np.ndarray) and (old_values.ndim == 1
-                                                or 1 in old_values.shape)):
+    if _ndim(old_values) == 1 or (isinstance(old_values, np.ndarray) and 1 in
+                                  old_values.shape):
         new_values[:] = np.linspace(lower, upper, len(new_values))
     else:
         for new_array in new_values:
@@ -52,7 +73,7 @@ def _default_values_like(old_values, value=None, upper=None):
     return new_values
 
 
-def _make_array(x):
+def _make_array_if_possible(x):
     """Helper function to cast (1, n) arrays to (n,) arrrays, or uniform lists
     of arrays to (p, n) arrays.
     """
@@ -86,8 +107,7 @@ def from_netcdf(netcdf_path):
             if 'error' in ds:
                 e.append(ds.error.values)
 
-    return TimeSeries(_make_array(t), _make_array(m), _make_array(e), target,
-                      meta_features, name, path)
+    return TimeSeries(t, m, e, target, meta_features, name, path)
 
 
 class TimeSeries:
@@ -105,17 +125,21 @@ class TimeSeries:
     ----------
     time : (n,) or (p, n) array or list of (n,) arrays
         Array(s) of times corresponding to measurement values. If `measurement`
-        is multidimensional, this can be one-dimensional (same times for each
-        channel) or multidimensional (different times for each channel).
+        is two-dimensional, this can be one-dimensional (same times for each
+        channel) or two-dimensional (different times for each channel). If
+        `time` is one-dimensional then it will be broadcast to match
+        `measurement.shape`.
     measurement : (n,) or (p, n) array or list of (n,) arrays
-        Array(s) of measurement values; can be multidimensional for
+        Array(s) of measurement values; can be two-dimensional for
         multichannel data. In the case of multichannel data with different
         numbers of measurements for each channel, `measurement` will be a list
         of arrays instead of a single two-dimensional array.
     error : (n,) or (p, n) array or list of (n,) arrays
         Array(s) of measurement errors for each value. If `measurement` is
-        multidimensional, this can be one-dimensional (same times for each
-        channel) or multidimensional (different times for each channel).
+        two-dimensional, this can be one-dimensional (same times for each
+        channel) or two-dimensional (different times for each channel).
+        If `error` is one-dimensional then it will be broadcast match
+        `measurement.shape`.
     target : str, float, or None
         Class label or target value for the given time series (if applicable).
     meta_features : dict
@@ -145,7 +169,7 @@ class TimeSeries:
             m = _default_values_like(t, value=np.nan)
 
         # If m is 1-dimensional, so are t and e
-        if isinstance(m, np.ndarray) and m.ndim == 1:
+        if _ndim(m) == 1:
             self.n_channels = 1
             if t is None:
                 t = _default_values_like(m, upper=DEFAULT_MAX_TIME)
@@ -159,18 +183,40 @@ class TimeSeries:
             if e is None:
                 e = _default_values_like(m[0], value=DEFAULT_ERROR_VALUE)
         # If m is ragged (list of 1d arrays), t and e should also be ragged
-        elif isinstance(m, list):
+        elif _ndim(m) == 2:
             self.n_channels = len(m)
             if t is None:
                 t = _default_values_like(m, upper=DEFAULT_MAX_TIME)
             if e is None:
                 e = _default_values_like(m, value=DEFAULT_ERROR_VALUE)
         else:
-            raise ValueError("...")
+            raise ValueError("m must be a 1D or 2D array, or a 2D list of"
+                             " arrays.")
 
-        self.time = t
-        self.measurement = m
-        self.error = e
+        self.time = _make_array_if_possible(t)
+        self.measurement = _make_array_if_possible(m)
+        self.error = _make_array_if_possible(e)
+
+        if _ndim(self.time) == 1 and _ndim(self.measurement) == 2:
+            if isinstance(self.measurement, np.ndarray):
+                self.time = np.broadcast_to(self.time, self.measurement.shape)
+            else:
+                raise ValueError("Times for each channel must be provided if m"
+                                 " is a ragged array.")
+                                 
+        if _ndim(self.error) == 1 and _ndim(self.measurement) == 2:
+            if isinstance(self.measurement, np.ndarray):
+                self.error = np.broadcast_to(self.error, self.measurement.shape)
+            else:
+                raise ValueError("Errors for each channel must be provided if m"
+                                 " is a ragged array.")
+                                 
+        if not (_compatible_shapes(self.measurement, self.time) and
+                _compatible_shapes(self.measurement, self.error)):
+            raise ValueError("times, values, errors are not of compatible"
+                             " types/sizes. Please refer to the docstring"
+                             " for list of allowed input types.")
+
         self.target = target
         self.meta_features = dict(meta_features)
         self.name = name
