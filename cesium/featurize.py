@@ -86,33 +86,47 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
     return all_feature_lists
 
 
-def assemble_featureset(feature_dicts, targets=None, meta_feature_dicts=None,
-                        names=None):
+def assemble_featureset(feature_dicts, time_series=None, targets=None,
+                        meta_feature_dicts=None, names=None):
     """Transforms raw feature data (as returned by `featurize_single_ts`) into
     an xarray.Dataset.
 
     Parameters
     ----------
-    feature_dicts : list
+    feature_dicts : list of dict
         List of dicts (one per time series file) with feature names as keys and
         lists of feature values (one per channel) as values.
+    time_series : list of TimeSeries
+        If provided, the target, name, and metafeatures from the time series
+        objects will be used, overriding the `targets`, `meta_feature_dicts`,
+        and `names` values.
     targets : list or pandas.Series, optional
         If provided, the `target` coordinate of the featureset xarray.Dataset
         will be set accordingly.
-    meta_feature_dicts : list
+    meta_feature_dicts : list of dict
         If provided, the columns of `metadata` will be added as data variables
         to the featureset xarray.Dataset.
+    names : list of str
+        If provided, the `name` coordinate of the featureset xarray.Dataset
+        will be set accordingly.
 
     Returns
     -------
     xarray.Dataset
         Featureset with `data_vars` containing feature values, and `coords`
-        containing filenames and targets (if applicable).
+        containing names and targets (if applicable).
     """
     feature_names = feature_dicts[0].keys() if len(feature_dicts) > 0 else []
     combined_feature_dict = {feature: (['name', 'channel'],
                                        [d[feature] for d in feature_dicts])
                              for feature in feature_names}
+
+    if time_series is not None:
+        targets, meta_feature_dicts, names = zip(*[(ts.target,
+                                                    ts.meta_features, ts.name)
+                                                   for ts in time_series])
+
+
     if meta_feature_dicts is not None:
         meta_feature_names = meta_feature_dicts[0].keys()
         combined_feature_dict.update({feature: (['name'], [d[feature] for d in
@@ -130,7 +144,8 @@ def load_and_store_feature_data(features_path, output_path):
     """Read features from CSV file and save as an xarray.Dataset."""
     targets, meta_features = data_management.parse_headerfile(features_path)
     meta_feature_dicts = meta_features.to_dict(orient='record')
-    featureset = assemble_featureset([], targets, meta_feature_dicts)
+    featureset = assemble_featureset([], targets=targets,
+                                     meta_feature_dicts=meta_feature_dicts)
     featureset.to_netcdf(output_path)
     return featureset
 
@@ -266,7 +281,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     meta_features = pd.DataFrame(meta_features, index=labels)
 
-    all_time_series = [delayed(TimeSeries(t, m, e, meta_features.loc[label],
+    all_time_series = [delayed(TimeSeries(t, m, e, target=targets.loc[label],
+                                          meta_features=meta_features.loc[label],
                                           name=label), pure=True)
                        for t, m, e, label in zip(times, values, errors,
                                                  labels)]
@@ -275,13 +291,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
                                                             custom_script_path,
                                                             custom_functions)
                     for ts in all_time_series]
-    if targets is not None:
-        targets = targets.loc[list(labels)]
-    meta_features = meta_features.loc[list(labels)]
-    meta_feature_dicts = meta_features.to_dict(orient='record')
-    result = delayed(assemble_featureset, pure=True)(all_features, targets,
-                                                     meta_feature_dicts,
-                                                     labels)
+    result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     return result.compute(get=scheduler)
 
 
@@ -334,12 +344,7 @@ def featurize_ts_files(ts_paths, features_to_use, output_path=None,
                                                             custom_script_path,
                                                             custom_functions)
                     for ts in all_time_series]
-    targets, meta_feature_dicts, names = zip(*[(delayed(ts.target),
-                                                delayed(ts.meta_features),
-                                                delayed(ts.name))
-                                               for ts in all_time_series])
-    result = delayed(assemble_featureset, pure=True)(all_features, targets,
-                                                     meta_feature_dicts, names)
+    result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     fset = result.compute(get=scheduler)
     if output_path:
         fset.to_netcdf(output_path)
