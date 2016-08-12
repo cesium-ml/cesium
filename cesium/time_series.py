@@ -89,23 +89,29 @@ def from_netcdf(netcdf_path):
     with netCDF4.Dataset(netcdf_path) as ds:
         channels = list(ds.groups)
 
-    # First channel group stores time series metadata
-    with xr.open_dataset(netcdf_path, group=channels[0]) as ds:
-        t = [ds.time.values]
-        m = [ds.measurement.values]
-        e = [ds.error.values]
-        target = ds.attrs.get('target')
-        meta_features = ds.meta_features.to_series()
-        name = ds.attrs.get('name')
-        path = ds.attrs.get('path')
+        # First channel group stores time series metadata
+        metadata = ds[channels[0]]
+        target = None
+        name = None
+        path = None
+        if hasattr(metadata, 'target'):
+            target = metadata.target
+        if hasattr(metadata, 'ts_name'):
+            name = metadata.ts_name
+        if hasattr(metadata, 'ts_path'):
+            path = metadata.ts_path
+        meta_features = {k: v for k, v in zip(metadata['feature'],
+                                              metadata['meta_features'])}
 
-    for channel in channels[1:]:
-        with xr.open_dataset(netcdf_path, group=channel) as ds:
-            m.append(ds.measurement.values)
-            if 'time' in ds:
-                t.append(ds.time.values)
-            if 'error' in ds:
-                e.append(ds.error.values)
+        t = []
+        m = []
+        e = []
+        for channel in channels:
+            m.append(ds[channel]['measurement'][:])
+            if 'time' in ds[channel].variables:
+                t.append(ds[channel]['time'][:])
+            if 'error' in ds[channel].variables:
+                e.append(ds[channel]['error'][:])
 
     return TimeSeries(t, m, e, target, meta_features, name, path)
 
@@ -263,7 +269,9 @@ class TimeSeries:
                 dataset['meta_features'] = xr.DataArray(meta_feat_series,
                                                         dims='feature')
                 if self.name:
-                    dataset.attrs['name'] = self.name
+                    dataset.attrs['ts_name'] = self.name
+                if self.path:
+                    dataset.attrs['ts_path'] = self.path
                 if self.target:
                     dataset.attrs['target'] = self.target
             # If time is a 1d array, only store once (in the first group)
