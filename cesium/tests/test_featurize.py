@@ -39,13 +39,6 @@ def remove_output():
             pass
 
 
-def sample_featureset():
-    ds = xr.Dataset({'f1': ('name', [21.0, 23.4]),
-                     'f2': ('name', [0.15, 2.31])},
-                    coords={'target': ['c1', 'c2']})
-    return ds
-
-
 def sample_time_series(size=51, channels=1):
     times = np.sort(np.random.random(size))
     values = np.array([np.random.normal(size=size) for i in range(channels)])
