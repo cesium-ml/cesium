@@ -52,7 +52,9 @@ addons:
     - libhdf5-serial-dev
     - libnetcdf-dev
 
-services: rabbitmq
+env:
+    global:
+        - GH_REF: github.com/cesium-ml/docs
 
 notifications:
   webhooks:
