@@ -42,6 +42,7 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.cache/sphinx
+    - $HOME/.cache/matplotlib
     - $HOME/.ccache
     - $HOME/.local
 addons:

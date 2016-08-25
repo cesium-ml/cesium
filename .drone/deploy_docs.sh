@@ -15,7 +15,8 @@ then
     git config user.email "travis@travis-ci.com"
     git config user.name "Travis Bot"
 
-    git commit -a -m "Deployed to GitHub Pages"
+    git add -A
+    git commit -m "Deployed to GitHub Pages"
     git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" gh-pages > /dev/null 2>&1
     )
 else
