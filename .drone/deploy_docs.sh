@@ -9,15 +9,13 @@ then
 
     (
     git clone --quiet --branch=gh-pages https://${GH_REF} doc_build
-    rm -r doc_build/dev
-    cp -r doc/build/html doc_build/dev
+    cp -r doc/_build/html/* doc_build/
 
     cd doc_build
     git config user.email "travis@travis-ci.com"
     git config user.name "Travis Bot"
 
-    git add dev
-    git commit -m "Deployed to GitHub Pages"
+    git commit -a -m "Deployed to GitHub Pages"
     git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" gh-pages > /dev/null 2>&1
     )
 else
