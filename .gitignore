@@ -12,7 +12,6 @@
 **/.DS_STORE
 .noseids
 rethinkdb_data
-cesium.yaml
 cesium.egg-info
 !cesium/tests/data
 external
@@ -23,4 +22,3 @@ dist
 .coverage
 MANIFEST
 .ipynb_checkpoints
-*_test_*.yaml

@@ -2,7 +2,6 @@
 
 SHELL = /bin/bash
 PY_VER = $(shell python -c 'import sys; print(sys.version_info.major)')
-CLEAN_TEST_CONFIG = $(shell rm -f cesium-_test_.yaml)
 EXAMPLE_DIR = doc/examples
 
 .DEFAULT_GOAL := all
@@ -14,7 +13,6 @@ clean:
 	find . -name "*.so" | xargs rm -f
 
 test:
-	rm -f *_test_*.yaml
 	nosetests -v cesium
 
 install:
