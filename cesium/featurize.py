@@ -269,16 +269,14 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         times, values, errors = [times], [values], [errors]
 
     if labels is None:
-        if isinstance(times, (list, tuple)):
-            labels = np.arange(len(times))
-        else:
-            labels = np.array([0])
+        labels = np.arange(len(times))
+
+    if targets is None:
+        targets = [None] * len(times)
+    targets = pd.Series(targets, index=labels)
 
     if isinstance(meta_features, pd.Series):
         meta_features = meta_features.to_dict()
-    if targets is not None:
-        targets = pd.Series(targets, index=labels)
-
     meta_features = pd.DataFrame(meta_features, index=labels)
 
     all_time_series = [delayed(TimeSeries(t, m, e, target=targets.loc[label],

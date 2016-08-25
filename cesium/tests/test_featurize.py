@@ -289,3 +289,17 @@ def test_featurize_time_series_custom_script():
     npt.assert_array_equal(sorted(fset.amplitude.coords),
                            ['channel', 'name', 'target'])
     npt.assert_array_equal(fset.target.values, ['class1'])
+
+
+def test_featurize_time_series_no_targets():
+    t, m, e = sample_time_series()
+    features_to_use = ['amplitude', 'std_err']
+    target = 'class1'
+    meta_features = {'meta1': 0.5}
+    fset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                           targets=None,
+                                           meta_features=meta_features,
+                                           scheduler=get_sync)
+    npt.assert_array_equal(sorted(fset.data_vars),
+                           ['amplitude', 'meta1', 'std_err'])
+    npt.assert_array_equal(fset.target.values, [None])
