@@ -50,6 +50,9 @@ addons:
     packages:
     - ccache
     - wget
+    - fontconfig
+    - libfreetype6-dev
+    - libxft-dev
     - libhdf5-serial-dev
     - libnetcdf-dev
 

@@ -6,6 +6,6 @@ notedown
 nbconvert[execute]>=4.2.0
 ipykernel>=4.2.0
 jupytercontrib>=0.0.5
-matplotlib
+matplotlib==1.5.0
 seaborn
 pywavelets
