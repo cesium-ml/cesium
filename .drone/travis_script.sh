@@ -11,6 +11,5 @@ section_end "Tests"
 section "Build.docs"
 
 make html
-.drone/deploy_docs.sh
 
 section_end "Build.docs"
