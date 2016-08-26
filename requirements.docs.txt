@@ -3,8 +3,10 @@ recommonmark
 numpydoc
 sphinx-rtd-theme
 notedown
+ipython>=5.1.0
+notebook>=4.2.2
+ipykernel>=4.4.1
 nbconvert[execute]>=4.2.0
-ipykernel>=4.2.0
 jupytercontrib>=0.0.5
 matplotlib==1.5.0
 seaborn
