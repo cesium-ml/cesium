@@ -11,15 +11,7 @@ import xarray as xr
 from cesium import predict
 from cesium import build_model
 from cesium import util
-
-
-DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-TS_CLASS_PATHS = [pjoin(DATA_PATH, f) for f in
-                  ["dotastro_215153_with_class.nc",
-                   "dotastro_215176_with_class.nc"]]
-TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
-                   ["dotastro_215153_with_target.nc",
-                    "dotastro_215176_with_target.nc"]]
+from cesium.tests.fixtures import sample_featureset
 
 
 def setup(module):
@@ -41,7 +33,7 @@ def remove_output():
 
 def test_model_classification():
     """Test model prediction function: classification"""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
+    fset = sample_featureset(10, ['amplitude'], ['class1', 'class2'])
     model = build_model.build_model_from_featureset(
         fset, model_type='RandomForestClassifier')
     preds = predict.model_predictions(fset, model)
@@ -58,7 +50,7 @@ def test_model_classification():
 
 def test_model_regression():
     """Test model prediction function: classification"""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
+    fset = sample_featureset(10, ['amplitude'], ['class1', 'class2'])
     fset.target.values = np.random.random(len(fset.target.values))
     model = build_model.build_model_from_featureset(fset,
                                                     model_type='RandomForestRegressor')
@@ -70,7 +62,7 @@ def test_model_regression():
 @with_setup(teardown=remove_output)
 def test_predict_optimized_model():
     """Test main predict function (classification) w/ optimized model"""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
+    fset = sample_featureset(10, ['amplitude'], ['class1', 'class2'])
     model = build_model.build_model_from_featureset(fset,
         model_type='RandomForestClassifier',
         params_to_optimize={"n_estimators": [10, 50, 100]}, cv=2)

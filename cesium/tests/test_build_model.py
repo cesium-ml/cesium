@@ -11,6 +11,7 @@ from sklearn.linear_model import LinearRegression, SGDClassifier,\
 import xarray as xr
 
 from cesium import build_model
+from cesium.tests.fixtures import sample_featureset
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -39,7 +40,7 @@ def remove_output():
 @with_setup(teardown=remove_output)
 def test_fit_existing_model():
     """Test model building helper function."""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "test_featureset.nc"))
+    fset = sample_featureset(10, ['amplitude'], ['class1', 'class2'])
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     model = build_model.build_model_from_featureset(fset, model)
     assert isinstance(model, RandomForestClassifier)
@@ -48,11 +49,10 @@ def test_fit_existing_model():
 @with_setup(teardown=remove_output)
 def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "asas_training_subset_featureset.nc"))
+    fset = sample_featureset(10, ['amplitude', 'maximum', 'minimum', 'median'],
+                             ['class1', 'class2'])
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
-    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
-    model_options = {"criterion": "gini",
-                     "bootstrap": True}
+    model_options = {"criterion": "gini", "bootstrap": True}
     params_to_optimize = {"n_estimators": [10, 50, 100],
                           "min_samples_split": [2, 5],
                           "max_features": ["auto", 3]}
@@ -68,8 +68,8 @@ def test_fit_existing_model_optimize():
 @with_setup(teardown=remove_output)
 def test_fit_optimize():
     """Test hypeparameter optimization"""
-    fset = xr.open_dataset(pjoin(DATA_PATH, "asas_training_subset_featureset.nc"))
-    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
+    fset = sample_featureset(10, ['amplitude', 'maximum', 'minimum', 'median'],
+                             ['class1', 'class2'])
     model_options = {"criterion": "gini", "bootstrap": True}
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']\
             (**model_options)
