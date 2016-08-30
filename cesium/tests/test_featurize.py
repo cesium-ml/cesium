@@ -10,17 +10,12 @@ from dask.async import get_sync
 
 from cesium import featurize
 from cesium import util
+from cesium.tests.fixtures import sample_values, sample_ts_files
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-TS_CLASS_PATHS = [pjoin(DATA_PATH, f) for f in
-                  ["dotastro_215153_with_class.nc",
-                   "dotastro_215176_with_class.nc"]]
-TS_TARGET_PATHS = [pjoin(DATA_PATH, f) for f in
-                   ["dotastro_215153_with_target.nc",
-                    "dotastro_215176_with_target.nc"]]
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
-CUSTOM_SCRIPT = pjoin(DATA_PATH, "testfeature1.py")
+CUSTOM_SCRIPT = None  #pjoin(DATA_PATH, "testfeature1.py")
 
 
 def setup(module):
@@ -32,28 +27,17 @@ def teardown(module):
 
 
 def remove_output():
-    for f in ['test_featureset.nc']:
+    for f in ['output_featureset.nc']:
         try:
             os.remove(pjoin(TEMP_DIR, f))
         except OSError:
             pass
 
 
-def sample_time_series(size=51, channels=1):
-    times = np.sort(np.random.random(size))
-    values = np.array([np.random.normal(size=size) for i in range(channels)])
-    errors = np.array([np.random.exponential(size=size)
-                       for i in range(channels)])
-    if channels == 1:
-        values = values[0]
-        errors = errors[0]
-    return times, values, errors
-
-
 @with_setup(teardown=remove_output)
 def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
-    fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
+    fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
     fset = featurize.load_and_store_feature_data(FEATURES_CSV_PATH,
                                                  output_path=fset_path)
     assert("std_err" in fset)
@@ -70,12 +54,13 @@ def test_already_featurized_data():
 @with_setup(teardown=remove_output)
 def test_featurize_files_function():
     """Test featurize function for on-disk time series"""
-    fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
-    fset = featurize.featurize_ts_files(TS_CLASS_PATHS,
-                                        features_to_use=["std_err", "f"],
-                                        output_path=fset_path,
-                                        custom_script_path=CUSTOM_SCRIPT,
-                                        scheduler=get_sync)
+    fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
+    with sample_ts_files(size=4, targets=['class1', 'class2']) as ts_paths:
+        fset = featurize.featurize_ts_files(ts_paths,
+                                            features_to_use=["std_err", "f"],
+                                            output_path=fset_path,
+                                            custom_script_path=CUSTOM_SCRIPT,
+                                            scheduler=get_sync)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
     assert(all(class_name in ['class1', 'class2']
@@ -85,20 +70,21 @@ def test_featurize_files_function():
 @with_setup(teardown=remove_output)
 def test_featurize_files_function_regression_data():
     """Test featurize function for on-disk time series - regression data"""
-    fset_path = pjoin(TEMP_DIR, 'test_featureset.nc')
-    fset = featurize.featurize_ts_files(TS_TARGET_PATHS,
-                                        features_to_use=["std_err", "f"],
-                                        output_path=fset_path,
-                                        custom_script_path=CUSTOM_SCRIPT,
-                                        scheduler=get_sync)
+    fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
+    with sample_ts_files(size=4, targets=[1.0, 2.0]) as ts_paths:
+        fset = featurize.featurize_ts_files(ts_paths,
+                                            features_to_use=["std_err", "f"],
+                                            output_path=fset_path,
+                                            custom_script_path=CUSTOM_SCRIPT,
+                                            scheduler=get_sync)
     assert("std_err" in fset.data_vars)
     assert("f" in fset.data_vars)
-    assert(all(target in [1.0, 3.0] for target in fset['target'].values))
+    assert(all(target in [1.0, 2.0] for target in fset['target'].values))
 
 
 def test_featurize_time_series_single():
     """Test featurize wrapper function for single time series"""
-    t, m, e = sample_time_series()
+    t, m, e = sample_values()
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {'meta1': 0.5}
@@ -112,7 +98,7 @@ def test_featurize_time_series_single():
 def test_featurize_time_series_single_multichannel():
     """Test featurize wrapper function for single multichannel time series"""
     n_channels = 3
-    t, m, e = sample_time_series(channels=n_channels)
+    t, m, e = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {'meta1': 0.5}
@@ -129,7 +115,7 @@ def test_featurize_time_series_single_multichannel():
 def test_featurize_time_series_multiple():
     """Test featurize wrapper function for multiple time series"""
     n_series = 5
-    list_of_series = [sample_time_series() for i in range(n_series)]
+    list_of_series = [sample_values() for i in range(n_series)]
     times, values, errors = [list(x) for x in zip(*list_of_series)]
     features_to_use = ['amplitude', 'std_err']
     targets = np.array(['class1'] * n_series)
@@ -146,7 +132,7 @@ def test_featurize_time_series_multiple_multichannel():
     """Test featurize wrapper function for multiple multichannel time series"""
     n_series = 5
     n_channels = 3
-    list_of_series = [sample_time_series(channels=n_channels)
+    list_of_series = [sample_values(channels=n_channels)
                       for i in range(n_series)]
     times, values, errors = [list(x) for x in zip(*list_of_series)]
     features_to_use = ['amplitude', 'std_err']
@@ -166,7 +152,7 @@ def test_featurize_time_series_multiple_multichannel():
 def test_featurize_time_series_uneven_multichannel():
     """Test featurize wrapper function for uneven-length multichannel data"""
     n_channels = 3
-    t, m, e = sample_time_series(channels=n_channels)
+    t, m, e = sample_values(channels=n_channels)
     t = [[t, t[0:-5], t[0:-10]]]
     m = [[m[0], m[1][0:-5], m[2][0:-10]]]
     e = [[e[0], e[1][0:-5], e[2][0:-10]]]
@@ -186,7 +172,7 @@ def test_featurize_time_series_uneven_multichannel():
 def test_featurize_time_series_custom_functions():
     """Test featurize wrapper function for time series w/ custom functions"""
     n_channels = 3
-    t, m, e = sample_time_series(channels=n_channels)
+    t, m, e = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err', 'test_f']
     target = 'class1'
     meta_features = {'meta1': 0.5}
@@ -207,7 +193,7 @@ def test_featurize_time_series_custom_functions():
 def test_featurize_time_series_custom_dask_graph():
     """Test featurize wrapper function for time series w/ custom dask graph"""
     n_channels = 3
-    t, m, e = sample_time_series(channels=n_channels)
+    t, m, e = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err', 'test_f']
     target = 'class1'
     meta_features = {'meta1': 0.5}
@@ -227,7 +213,7 @@ def test_featurize_time_series_custom_dask_graph():
 def test_featurize_time_series_default_times():
     """Test featurize wrapper function for time series w/ missing times"""
     n_channels = 3
-    _, m, e = sample_time_series(channels=n_channels)
+    _, m, e = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {}
@@ -251,7 +237,7 @@ def test_featurize_time_series_default_times():
 def test_featurize_time_series_default_errors():
     """Test featurize wrapper function for time series w/ missing errors"""
     n_channels = 3
-    t, m, _ = sample_time_series(channels=n_channels)
+    t, m, _ = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {}
@@ -275,7 +261,7 @@ def test_featurize_time_series_default_errors():
 def test_featurize_time_series_custom_script():
     """Test featurize wrapper function for time series w/ custom script path"""
     n_channels = 3
-    t, m, e = sample_time_series(channels=n_channels)
+    t, m, e = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err', 'f']
     target = 'class1'
     meta_features = {'meta1': 0.5}
@@ -292,7 +278,7 @@ def test_featurize_time_series_custom_script():
 
 
 def test_featurize_time_series_no_targets():
-    t, m, e = sample_time_series()
+    t, m, e = sample_values()
     features_to_use = ['amplitude', 'std_err']
     target = 'class1'
     meta_features = {'meta1': 0.5}

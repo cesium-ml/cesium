@@ -20,17 +20,6 @@ def teardown(module):
     shutil.rmtree(module.TEMP_DIR)
 
 
-def sample_time_series(size=51, channels=1):
-    times = np.sort(np.random.random(size))
-    values = np.array([np.random.normal(size=size) for i in range(channels)])
-    errors = np.array([np.random.exponential(size=size)
-                       for i in range(channels)])
-    if channels == 1:
-        values = values[0]
-        errors = errors[0]
-    return times, values, errors
-
-
 def test_parse_ts_data():
     """Test time series data file parsing."""
     t, m, e = data_management.parse_ts_data(pjoin(DATA_PATH,
