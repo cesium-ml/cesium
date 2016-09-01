@@ -146,7 +146,7 @@ def load_and_store_feature_data(features_path, output_path):
     meta_feature_dicts = meta_features.to_dict(orient='record')
     featureset = assemble_featureset([], targets=targets,
                                      meta_feature_dicts=meta_feature_dicts)
-    featureset.to_netcdf(output_path)
+    featureset.to_netcdf(output_path, engine='h5netcdf')
     return featureset
 
 
@@ -345,6 +345,6 @@ def featurize_ts_files(ts_paths, features_to_use, output_path=None,
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     fset = result.compute(get=scheduler)
     if output_path:
-        fset.to_netcdf(output_path)
+        fset.to_netcdf(output_path, engine='h5netcdf')
 
     return fset

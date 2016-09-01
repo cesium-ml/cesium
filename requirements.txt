@@ -6,6 +6,6 @@ dask
 toolz
 xarray>=0.8.1
 gatspy>=0.3.0
-netCDF4
 cloudpickle
 joblib
+-e git://github.com/shoyer/h5netcdf.git#egg=h5netcdf

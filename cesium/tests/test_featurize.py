@@ -44,7 +44,7 @@ def test_already_featurized_data():
     assert("amplitude" in fset)
     assert(all(class_name in ['class1', 'class2', 'class3']
                for class_name in fset['target']))
-    with xr.open_dataset(fset_path) as loaded:
+    with xr.open_dataset(fset_path, engine='h5netcdf') as loaded:
         assert("std_err" in loaded)
         assert("amplitude" in loaded)
         assert(all(class_name in ['class1', 'class2', 'class3']

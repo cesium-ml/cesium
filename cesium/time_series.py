@@ -1,6 +1,6 @@
 import copy
 from collections import Iterable
-import netCDF4
+import h5netcdf.legacyapi as netCDF4
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -91,17 +91,12 @@ def from_netcdf(netcdf_path):
 
         # First channel group stores time series metadata
         metadata = ds[channels[0]]
-        target = None
-        name = None
-        path = None
-        if hasattr(metadata, 'target'):
-            target = metadata.target
-        if hasattr(metadata, 'ts_name'):
-            name = metadata.ts_name
-        if hasattr(metadata, 'ts_path'):
-            path = metadata.ts_path
-        meta_features = {k: v for k, v in zip(metadata['feature'],
-                                              metadata['meta_features'])}
+        target = metadata.attrs.get('target')
+        name = metadata.attrs.get('ts_name')
+        path = metadata.attrs.get('ts_path')
+        # `_h5ds` is a workaround: https://github.com/shoyer/h5netcdf/issues/9
+        meta_features = {k.decode(): v for k, v in zip(metadata['feature']._h5ds,
+                                                       metadata['meta_features']._h5ds)}
 
         t = []
         m = []
@@ -291,4 +286,4 @@ class TimeSeries:
             # xarray won't append to a netCDF file that doesn't exist yet
             file_open_mode = 'w' if channel == 0 else 'a'
             dataset.to_netcdf(path, group=self.channel_names[channel],
-                              engine='netcdf4', mode=file_open_mode)
+                              engine='h5netcdf', mode=file_open_mode)
