@@ -3,7 +3,6 @@ import xarray as xr
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
-from sklearn.externals import joblib
 from sklearn import grid_search
 
 

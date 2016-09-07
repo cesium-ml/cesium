@@ -3,7 +3,6 @@ import os
 from os.path import join as pjoin
 import shutil
 import tempfile
-import joblib
 import numpy as np
 import sklearn.base
 import xarray as xr

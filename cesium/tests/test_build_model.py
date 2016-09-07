@@ -3,7 +3,6 @@ import os
 from os.path import join as pjoin
 import shutil
 import tempfile
-from sklearn.externals import joblib
 from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\

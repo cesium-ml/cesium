@@ -8,4 +8,3 @@ xarray>=0.8.1
 gatspy>=0.3.0
 netCDF4
 cloudpickle
-joblib

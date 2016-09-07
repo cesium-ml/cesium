@@ -1,4 +1,3 @@
-from sklearn.externals import joblib
 from sklearn.grid_search import GridSearchCV
 import os
 import numpy as np
