@@ -12,6 +12,8 @@ def lomb_scargle_fast_period(t, m, e):
     """
     dt = t.max() - t.min()
     opt_args = {'period_range': (2 * dt / len(t), dt), 'quiet': True}
-    model = gatspy.periodic.LombScargleFast(fit_period=True, optimizer_kwds=opt_args)
+    model = gatspy.periodic.LombScargleFast(fit_period=True,
+                                            optimizer_kwds=opt_args,
+                                            silence_warnings=True)
     model.fit(t, m, e)
     return model.best_period
