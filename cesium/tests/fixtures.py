@@ -39,7 +39,7 @@ def sample_ts_files(size, targets=[None]):
 
 
 def sample_featureset(size, features=[], targets=None):
-    ts_names = np.arange(size)
+    ts_names = np.arange(size).astype('str')
     feat_dict = {f: (['channel', 'name'], [np.random.random(size)]) for f in features}
     fset = xr.Dataset(feat_dict)
     fset.coords['name'] = ('name', ts_names)
