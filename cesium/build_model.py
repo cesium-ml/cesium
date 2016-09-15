@@ -31,6 +31,8 @@ def rectangularize_featureset(featureset):
         else:
             feature_df.columns = ['_'.join([str(el) for el in pair])
                                   for pair in feature_df.columns]
+    # sort columns by name for consistent ordering
+    feature_df = feature_df[sorted(feature_df.columns)]
     return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
