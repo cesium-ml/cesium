@@ -72,6 +72,9 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
                                 model_options={}, params_to_optimize=None,
                                 cv=None):
     """Build model from (non-rectangular) xarray.Dataset of features."""
+    if featureset.get('target') is None:
+        raise ValueError("Cannot build model for unlabeled feature set.")
+
     if model is None:
         if model_type:
             model = MODELS_TYPE_DICT[model_type](**model_options)
