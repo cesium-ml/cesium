@@ -13,7 +13,6 @@ How to make a new release of ``cesium``
 
 - Publish on PyPi::
 
-   python setup.py register
    python setup.py sdist upload
 
 - Go to https://travis-ci.org/cesium-ml/wheel_builder and build a wheel for the new version
