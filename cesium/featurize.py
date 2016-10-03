@@ -135,7 +135,7 @@ def assemble_featureset(feature_dicts, time_series=None, targets=None,
     featureset = xr.Dataset(combined_feature_dict)
     if names is not None:
         featureset.coords['name'] = ('name', np.array(names))
-    if targets is not None:
+    if targets is not None and any(targets):
         featureset.coords['target'] = ('name', np.array(targets))
     return featureset
 

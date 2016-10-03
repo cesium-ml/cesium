@@ -288,4 +288,4 @@ def test_featurize_time_series_no_targets():
                                            scheduler=get_sync)
     npt.assert_array_equal(sorted(fset.data_vars),
                            ['amplitude', 'meta1', 'std_err'])
-    npt.assert_array_equal(fset.target.values, [None])
+    assert('target' not in fset)
