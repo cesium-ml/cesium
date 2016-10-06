@@ -1,8 +1,3 @@
-from nose.tools import with_setup
-import os
-from os.path import join as pjoin
-import shutil
-import tempfile
 from sklearn.grid_search import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
@@ -13,30 +8,11 @@ from cesium import build_model
 from cesium.tests.fixtures import sample_featureset
 
 
-DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 MODEL_TYPES = ['RandomForestClassifier', 'RandomForestRegressor',
                'LinearSGDClassifier', 'LinearRegressor', 'RidgeClassifierCV',
                'BayesianARDRegressor', 'BayesianRidgeRegressor']
 
 
-def setup(module):
-    module.TEMP_DIR = tempfile.mkdtemp()
-
-
-def teardown(module):
-    shutil.rmtree(module.TEMP_DIR)
-
-
-def remove_output():
-    fnames = ["test.pkl"]
-    for fname in fnames:
-        try:
-            os.remove(pjoin(TEMP_DIR, fname))
-        except OSError:
-            pass
-
-
-@with_setup(teardown=remove_output)
 def test_fit_existing_model():
     """Test model building helper function."""
     fset = sample_featureset(10, ['amplitude'], ['class1', 'class2'])
@@ -45,7 +21,6 @@ def test_fit_existing_model():
     assert isinstance(model, RandomForestClassifier)
 
 
-@with_setup(teardown=remove_output)
 def test_fit_existing_model_optimize():
     """Test model building helper function - with param. optimization"""
     fset = sample_featureset(10, ['amplitude', 'maximum', 'minimum', 'median'],
@@ -64,7 +39,6 @@ def test_fit_existing_model_optimize():
     assert isinstance(model.best_estimator_, RandomForestClassifier)
 
 
-@with_setup(teardown=remove_output)
 def test_fit_optimize():
     """Test hypeparameter optimization"""
     fset = sample_featureset(10, ['amplitude', 'maximum', 'minimum', 'median'],
