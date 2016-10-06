@@ -1,5 +1,4 @@
-import os
-import xarray as xr
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
@@ -81,9 +80,19 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
         else:
             raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
-    if params_to_optimize:
-        model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
-                                               model, params_to_optimize, cv)
-    else:
-        model.fit(feature_df, featureset['target'])
+    try:
+        if params_to_optimize:
+            model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
+                                                   model, params_to_optimize, cv)
+        else:
+            model.fit(feature_df, featureset['target'])
+    except ValueError as e:
+        nan_feats = np.isnan(feature_df).any()
+        inf_feats = np.isinf(feature_df).any()
+        message = "Invalid feature values detected:"
+        if nan_feats.any():
+            message += " NaN in {}.".format(", ".join(feature_df.columns[nan_feats]))
+        if inf_feats.any():
+            message += " Inf in {}.".format(", ".join(feature_df.columns[inf_feats]))
+        raise ValueError(message)
     return model
