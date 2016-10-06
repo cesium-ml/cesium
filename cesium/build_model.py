@@ -20,7 +20,19 @@ MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
 
 
 def rectangularize_featureset(featureset):
-    """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
+    """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn.
+
+    Params
+    ------
+    featureset : xarray.Dataset
+        The xarray.Dataset object containing features.
+
+    Returns
+    -------
+    Pandas.DataFrame
+        2-D, sklearn-compatible Dataframe containing features.
+
+    """
     featureset = featureset.drop([coord for coord in featureset.coords
                                   if coord not in ['name', 'channel']])
     feature_df = featureset.to_dataframe()
@@ -71,7 +83,38 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
 def build_model_from_featureset(featureset, model=None, model_type=None,
                                 model_options={}, params_to_optimize=None,
                                 cv=None):
-    """Build model from (non-rectangular) xarray.Dataset of features."""
+    """Build model from (non-rectangular) xarray.Dataset of features.
+
+    Parameters
+    ----------
+    featureset : xarray.Dataset of features
+        Features for training model.
+    model : scikit-learn model, optional
+        Instantiated scikit-learn model. If None, `model_type` must not be.
+        Defaults to None.
+    model_type : str, optional
+        String indicating model to be used, e.g. "RandomForestClassifier".
+        If None, `model` must not be. Defaults to None.
+    model_options : dict, optional
+        Dictionary with hyperparameter values to be used in model building.
+        Keys are parameter names, values are the associated values.
+    params_to_optimize : list of str, optional
+        List of parameters to be optimized (whose corresponding entries
+        in `model_options` would be a list of values to try). If None,
+        parameters specified in `model_options` will be passed to model
+        constructor as-is (i.e. they are assumed not to be lists/grids of
+        values to try). Defaults to None.
+    cv : int, cross-validation generator or an iterable, optional
+        Number of folds (defaults to 3 if None) or an iterable yielding
+        train/test splits. See documentation for `GridSearchCV` for details.
+        Defaults to None (yielding 3 folds).
+
+    Returns
+    -------
+    sklearn estimator object
+        The fitted sklearn model.
+
+    """
     if featureset.get('target') is None:
         raise ValueError("Cannot build model for unlabeled feature set.")
 
