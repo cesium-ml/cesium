@@ -7,6 +7,7 @@ from os.path import join as pjoin
 import numpy as np
 import xarray as xr
 
+from cesium.featureset import Featureset
 from cesium.time_series import TimeSeries
 
 
@@ -38,7 +39,8 @@ def sample_ts_files(size, targets=[None]):
     shutil.rmtree(temp_dir)
 
 
-def sample_featureset(size, n_channels=1, features=[], targets=None):
+def sample_featureset(size, n_channels=1, features=[], targets=None,
+                      labels=None):
     ts_names = np.arange(size).astype('str')
     feat_dict = {f: (['channel', 'name'], [np.random.random(size)
                                            for i in range(n_channels)])
@@ -48,5 +50,7 @@ def sample_featureset(size, n_channels=1, features=[], targets=None):
     if targets:
         ts_targets = np.array(list(islice(cycle(targets), size)))
         fset.coords['target'] = ('name', ts_targets)
+    if labels:
+        fset.name.values = labels
 
-    return fset
+    return Featureset(fset)
