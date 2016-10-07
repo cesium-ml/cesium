@@ -38,9 +38,11 @@ def sample_ts_files(size, targets=[None]):
     shutil.rmtree(temp_dir)
 
 
-def sample_featureset(size, features=[], targets=None):
+def sample_featureset(size, n_channels=1, features=[], targets=None):
     ts_names = np.arange(size).astype('str')
-    feat_dict = {f: (['channel', 'name'], [np.random.random(size)]) for f in features}
+    feat_dict = {f: (['channel', 'name'], [np.random.random(size)
+                                           for i in range(n_channels)])
+                 for f in features}
     fset = xr.Dataset(feat_dict)
     fset.coords['name'] = ('name', ts_names)
     if targets:
