@@ -81,7 +81,7 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
 
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
-                                model_options={}, params_to_optimize=None,
+                                model_parameters={}, params_to_optimize=None,
                                 cv=None):
     """Build model from (non-rectangular) xarray.Dataset of features.
 
@@ -95,15 +95,22 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
     model_type : str, optional
         String indicating model to be used, e.g. "RandomForestClassifier".
         If None, `model` must not be. Defaults to None.
-    model_options : dict, optional
+    model_parameters : dict, optional
         Dictionary with hyperparameter values to be used in model building.
-        Keys are parameter names, values are the associated values.
-    params_to_optimize : list of str, optional
-        List of parameters to be optimized (whose corresponding entries
-        in `model_options` would be a list of values to try). If None,
-        parameters specified in `model_options` will be passed to model
-        constructor as-is (i.e. they are assumed not to be lists/grids of
-        values to try). Defaults to None.
+        Keys are parameter names, values are the associated parameter values.
+        These hyperparameters will be passed to the model constructor as-is
+        (for hyperparameter optimization, see `params_to_optimize`).
+        If None, default values will be used (see scikit-learn documentation
+        for specifics).
+    params_to_optimize : dict or list of dict, optional
+        During hyperparameter optimization, various model parameters
+        are adjusted to give an optimal fit. This dictionary gives the
+        different values that should be explored for each parameter. E.g.,
+        `{'alpha': [1, 2], 'beta': [4, 5, 6]}` would fit models on all
+        6 combinations of alpha and beta and compare the resulting models'
+        goodness-of-fit. If None, only those hyperparameters specified in
+        `model_parameters` will be used (passed to model constructor as-is).
+        Defaults to None.
     cv : int, cross-validation generator or an iterable, optional
         Number of folds (defaults to 3 if None) or an iterable yielding
         train/test splits. See documentation for `GridSearchCV` for details.
@@ -120,7 +127,7 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
 
     if model is None:
         if model_type:
-            model = MODELS_TYPE_DICT[model_type](**model_options)
+            model = MODELS_TYPE_DICT[model_type](**model_parameters)
         else:
             raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
