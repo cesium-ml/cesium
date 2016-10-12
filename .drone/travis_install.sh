@@ -3,7 +3,8 @@
 set -ex
 
 section "create.virtualenv"
-python${TRAVIS_PYTHON_VERSION} -m venv ~/envs/cesium
+#python -m venv ~/envs/cesium
+virtualenv -p python ~/envs/cesium
 source ~/envs/cesium/bin/activate
 section_end "create.virtualenv"
 
