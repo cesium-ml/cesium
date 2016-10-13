@@ -13,19 +13,52 @@ __all__ = ['shorten_fname', 'remove_files', 'extract_time_series']
 
 
 def shorten_fname(file_path):
-    """Extract the name of a file (omitting directory names and extensions)."""
+    """Extract the name of a file (omitting directory names and extensions).
+
+    Parameters
+    ----------
+    file_path : str
+        Absolute or relative path to a file.
+
+    Returns
+    -------
+    str
+       The name of the file with directory names and extensions removed.
+
+    """
     return os.path.splitext(os.path.basename(file_path))[0]
 
 
 def make_list(x):
-    if isinstance(x, collections.Iterable) and not isinstance(x, str):
+    """Wrap `x` in a list if it isn't already a list or tuple.
+
+    Parameters
+    ----------
+    x : any valid object
+        The parameter to be wrapped in a list.
+
+    Returns
+    -------
+    list or tuple
+        Returns `[x]` if `x` is not already a list or tuple, otherwise
+        returns `x`.
+
+    """
+    if isinstance(x, collections.Iterable) and not isinstance(x, (str, dict)):
         return x
     else:
-        return [x,]
+        return [x]
 
 
 def remove_files(paths):
-    """Remove specified files from disk."""
+    """Remove specified file(s) from disk.
+
+    Parameters
+    ----------
+    paths : str or list of str
+        Path(s) to file(s) to be removed from disk.
+
+    """
     paths = make_list(paths)
     for path in paths:
         try:

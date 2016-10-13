@@ -19,7 +19,19 @@ MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
 
 
 def rectangularize_featureset(featureset):
-    """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn."""
+    """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn.
+
+    Params
+    ------
+    featureset : xarray.Dataset
+        The xarray.Dataset object containing features.
+
+    Returns
+    -------
+    Pandas.DataFrame
+        2-D, sklearn-compatible Dataframe containing features.
+
+    """
     featureset = featureset.drop([coord for coord in featureset.coords
                                   if coord not in ['name', 'channel']])
     feature_df = featureset.to_dataframe()
@@ -68,15 +80,53 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
 
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
-                                model_options={}, params_to_optimize=None,
+                                model_parameters={}, params_to_optimize=None,
                                 cv=None):
-    """Build model from (non-rectangular) xarray.Dataset of features."""
+    """Build model from (non-rectangular) xarray.Dataset of features.
+
+    Parameters
+    ----------
+    featureset : xarray.Dataset of features
+        Features for training model.
+    model : scikit-learn model, optional
+        Instantiated scikit-learn model. If None, `model_type` must not be.
+        Defaults to None.
+    model_type : str, optional
+        String indicating model to be used, e.g. "RandomForestClassifier".
+        If None, `model` must not be. Defaults to None.
+    model_parameters : dict, optional
+        Dictionary with hyperparameter values to be used in model building.
+        Keys are parameter names, values are the associated parameter values.
+        These hyperparameters will be passed to the model constructor as-is
+        (for hyperparameter optimization, see `params_to_optimize`).
+        If None, default values will be used (see scikit-learn documentation
+        for specifics).
+    params_to_optimize : dict or list of dict, optional
+        During hyperparameter optimization, various model parameters
+        are adjusted to give an optimal fit. This dictionary gives the
+        different values that should be explored for each parameter. E.g.,
+        `{'alpha': [1, 2], 'beta': [4, 5, 6]}` would fit models on all
+        6 combinations of alpha and beta and compare the resulting models'
+        goodness-of-fit. If None, only those hyperparameters specified in
+        `model_parameters` will be used (passed to model constructor as-is).
+        Defaults to None.
+    cv : int, cross-validation generator or an iterable, optional
+        Number of folds (defaults to 3 if None) or an iterable yielding
+        train/test splits. See documentation for `GridSearchCV` for details.
+        Defaults to None (yielding 3 folds).
+
+    Returns
+    -------
+    sklearn estimator object
+        The fitted sklearn model.
+
+    """
     if featureset.get('target') is None:
         raise ValueError("Cannot build model for unlabeled feature set.")
 
     if model is None:
         if model_type:
-            model = MODELS_TYPE_DICT[model_type](**model_options)
+            model = MODELS_TYPE_DICT[model_type](**model_parameters)
         else:
             raise ValueError("If model is None, model_type must be specified")
     feature_df = rectangularize_featureset(featureset)
