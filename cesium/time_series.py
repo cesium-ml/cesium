@@ -116,7 +116,7 @@ def from_netcdf(netcdf_path):
     return TimeSeries(t, m, e, target, meta_features, name, path)
 
 
-class TimeSeries:
+class TimeSeries(object):
     """Class representing a single time series of measurements and metadata.
     
     A `TimeSeries` object encapsulates a single set of time-domain

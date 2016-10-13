@@ -81,9 +81,9 @@ class Featureset(xr.Dataset):
         if (isinstance(key, (slice, int))
             or (hasattr(key, '__iter__') and all(isinstance(el, int)
                                                  for el in key))):
-            return super().isel(name=key)
+            return xr.Dataset.isel(self, name=key)
         elif ((hasattr(key, '__iter__') and all(el in names for el in key)) or
               key in names):
-            return super().sel(name=key)
+            return xr.Dataset.sel(self, name=key)
         else:
-            return super().__getitem__(key)
+            return xr.Dataset.__getitem__(self, key)

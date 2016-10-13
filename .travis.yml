@@ -70,9 +70,14 @@ notifications:
 
 matrix:
   include:
+    - python: 2.7
+      env:
+        - TEST_TARGET=test
+    - python: 3.4
+      env:
+        - TEST_TARGET=test
     - python: 3.5
       env:
-        - WITH_DOC=1
         - TEST_TARGET=test
 
 before_install:
