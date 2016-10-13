@@ -13,8 +13,7 @@ from . import time_series
 from . import util
 from .featureset import Featureset
 from .time_series import TimeSeries
-from . import obs_feature_tools as oft
-from . import science_feature_tools as sft
+from .features import generate_dask_graph
 
 __all__ = ['load_and_store_feature_data', 'featurize_time_series',
            'featurize_single_ts', 'assemble_featureset']
@@ -46,42 +45,30 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         Dictionary with feature names as keys, lists of feature values (one per
         channel) as values.
     """
+    # Initialize empty feature array for all channels
     all_feature_lists = {feature: [0.] * ts.n_channels
                          for feature in features_to_use}
     for (t_i, m_i, e_i), i in zip(ts.channels(), range(ts.n_channels)):
-        obs_features = oft.generate_obs_features(t_i, m_i, e_i,
-                                                 features_to_use)
-        science_features = sft.generate_science_features(t_i, m_i, e_i,
-                                                         features_to_use)
+        feature_graph = generate_dask_graph(t_i, m_i, e_i)
+        feature_graph.update(ts.meta_features)
+
         if custom_functions:
-            # If all values in custom_functions are functions, evaluate each
+            # If values in custom_functions are functions, add calls to graph
             if all(hasattr(v, '__call__') for v in custom_functions.values()):
-                custom_features = {feature: f(t_i, m_i, e_i)
-                                   for feature, f in custom_functions.items()
-                                   if feature in features_to_use}
-            # Otherwise, custom_functions is a dask graph
+                feature_graph.update({feat: f(t_i, m_i, e_i)
+                                      for feat, f in custom_functions.items()})
+            # Otherwise, custom_functions is another dask graph
             else:
-                dask_graph = {key: value
-                              for key, value in custom_functions.items()
-                              if key in features_to_use}
-                dask_keys = list(dask_graph.keys())
-                dask_graph['t'] = t_i
-                dask_graph['m'] = m_i
-                dask_graph['e'] = e_i
-                dask_graph.update(dict(list(obs_features.items()) +
-                                       list(science_features.items()) +
-                                       list(ts.meta_features.items())))
-                custom_features = dict(zip(dask_keys,
-                                           dask.async.get_sync(dask_graph,
-                                                               dask_keys)))
-        else:
-            custom_features = {}
+                feature_graph.update(custom_functions)
+
+        # Do not execute in parallel; parallelization has already taken place at
+        # the level of time series, so we compute features for a single time series
+        # in serial.
+        values = dask.async.get_sync(feature_graph, features_to_use)
 
         # We set values in this order so that custom features take priority
         # over cesium features in the case of name conflicts
-        for feature, value in (list(obs_features.items()) +
-                               list(science_features.items()) +
-                               list(custom_features.items())):
+        for feature, value in zip(features_to_use, values):
             all_feature_lists[feature][i] = value
 
     return all_feature_lists

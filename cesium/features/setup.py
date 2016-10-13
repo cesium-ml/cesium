@@ -7,7 +7,7 @@ base_path = os.path.abspath(os.path.dirname(__file__))
 
 def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
-    config = Configuration('science_features', parent_package, top_path)
+    config = Configuration('features', parent_package, top_path)
 
     cythonize(os.path.join(base_path, '_lomb_scargle.pyx'))
 
