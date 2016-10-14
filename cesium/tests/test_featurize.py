@@ -15,7 +15,6 @@ from cesium.tests.fixtures import sample_values, sample_ts_files
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
-CUSTOM_SCRIPT = None  #pjoin(DATA_PATH, "testfeature1.py")
 
 
 def setup(module):
@@ -57,12 +56,10 @@ def test_featurize_files_function():
     fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
     with sample_ts_files(size=4, targets=['class1', 'class2']) as ts_paths:
         fset = featurize.featurize_ts_files(ts_paths,
-                                            features_to_use=["std_err", "f"],
+                                            features_to_use=["std_err"],
                                             output_path=fset_path,
-                                            custom_script_path=CUSTOM_SCRIPT,
                                             scheduler=get_sync)
     assert("std_err" in fset.data_vars)
-    assert("f" in fset.data_vars)
     assert(all(class_name in ['class1', 'class2']
                for class_name in fset['target'].values))
 
@@ -73,12 +70,10 @@ def test_featurize_files_function_regression_data():
     fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
     with sample_ts_files(size=4, targets=[1.0, 2.0]) as ts_paths:
         fset = featurize.featurize_ts_files(ts_paths,
-                                            features_to_use=["std_err", "f"],
+                                            features_to_use=["std_err"],
                                             output_path=fset_path,
-                                            custom_script_path=CUSTOM_SCRIPT,
                                             scheduler=get_sync)
     assert("std_err" in fset.data_vars)
-    assert("f" in fset.data_vars)
     assert(all(target in [1.0, 2.0] for target in fset['target'].values))
 
 
@@ -197,7 +192,8 @@ def test_featurize_time_series_custom_dask_graph():
     features_to_use = ['amplitude', 'std_err', 'test_f']
     target = 'class1'
     meta_features = {'meta1': 0.5}
-    custom_functions = {'test_f': (lambda x: x.min() - x.max(), 'amplitude')}
+    custom_functions = {'test_f': (lambda x: x.min() - x.max(), 'amplitude'),
+                        'test_meta': (lambda x: 2. * x, 'meta1')}
     fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
                                            meta_features,
                                            custom_functions=custom_functions,
@@ -256,25 +252,6 @@ def test_featurize_time_series_default_errors():
     fset = featurize.featurize_time_series(t, m, None, features_to_use, target,
                                            meta_features, scheduler=get_sync)
     npt.assert_array_equal(fset.channel, [0])
-
-
-def test_featurize_time_series_custom_script():
-    """Test featurize wrapper function for time series w/ custom script path"""
-    n_channels = 3
-    t, m, e = sample_values(channels=n_channels)
-    features_to_use = ['amplitude', 'std_err', 'f']
-    target = 'class1'
-    meta_features = {'meta1': 0.5}
-    fset = featurize.featurize_time_series(t, m, e, features_to_use, target,
-                                           meta_features,
-                                           custom_script_path=CUSTOM_SCRIPT,
-                                           scheduler=get_sync)
-    npt.assert_array_equal(sorted(fset.data_vars),
-                           ['amplitude', 'f', 'meta1', 'std_err'])
-    npt.assert_array_equal(fset.channel, np.arange(n_channels))
-    npt.assert_array_equal(sorted(fset.amplitude.coords),
-                           ['channel', 'name', 'target'])
-    npt.assert_array_equal(fset.target.values, ['class1'])
 
 
 def test_featurize_time_series_no_targets():

@@ -8,7 +8,7 @@ def lomb_scargle_fast_period(t, m, e):
         y(t) = A sin(2*pi*w*t + phi) + c
 
     and returns the estimated period 1/w. Much faster than fitting the
-    full multi-frequency model used by `science_features.lomb_scargle`.
+    full multi-frequency model used by `features.lomb_scargle`.
     """
     dt = t.max() - t.min()
     opt_args = {'period_range': (2 * dt / len(t), dt), 'quiet': True}
