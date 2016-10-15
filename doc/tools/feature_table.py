@@ -9,8 +9,8 @@ def feature_graph_to_rst_table(graph, category_name):
     header = [category_name, 'Description']
     table = []
     for feature_name in sorted(
-            graph.keys(), key=lambda s: [int(t) if t.isdigit() else t
-                                         for t in re.split('(\d+)', s)]):
+            graph, key=lambda s: [int(t) if t.isdigit() else t
+                                  for t in re.split('(\d+)', s)]):
         table.append([feature_name, graph[feature_name][0].__doc__.split('\n')[0]])
 
     return tabulate(table, headers=header, tablefmt='rst')
