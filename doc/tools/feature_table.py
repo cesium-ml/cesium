@@ -1,7 +1,6 @@
 from tabulate import tabulate
 import re
-from cesium.features.graphs import (CADENCE_GRAPH, GENERAL_GRAPH,
-                                    LOMB_SCARGLE_GRAPH)
+from cesium.features.graphs import feature_categories, dask_feature_graph
 
 
 def feature_graph_to_rst_table(graph, category_name):
@@ -21,7 +20,11 @@ def write_feature_tables():
         f.write('================\n'
                 'Cesium Features\n'
                 '================\n\n')
-        for graph, category in [[CADENCE_GRAPH, 'Cadence/Error'],
-                                [GENERAL_GRAPH, 'General'],
-                                [LOMB_SCARGLE_GRAPH, 'LOMB_SCARGLE']]:
+
+        dfg = dask_feature_graph
+
+        for category in ['cadence', 'general', 'lomb_scargle']:
+            graph = {feature: dfg[feature]
+                         for feature in feature_categories[category]}
+
             f.write(feature_graph_to_rst_table(graph, category) + '\n')
