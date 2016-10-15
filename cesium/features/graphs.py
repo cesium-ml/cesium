@@ -2,12 +2,21 @@ import numpy as np
 
 from .cadence_features import (cad_prob, delta_t_hist, double_to_single_step,
                                normalize_hist, find_sorted_peaks, peak_bin,
-                               peak_ratio)
+                               peak_ratio, n_epochs, average_err, median_err,
+                               std_err, total_time, average_time, cadences,
+                               cads_std, cads_avg, cads_med,
+                               avg_double_to_single_step,
+                               med_double_to_single_step,
+                               std_double_to_single_step,
+                               all_times_hist_peak_val,
+                               all_times_hist_peak_bin,
+                               nhist_peaks_numpeaks,
+                               nhist_peaks_peak_val)
 
 from .common_functions import (maximum, median, max_slope,
                                median_absolute_deviation, minimum,
                                percent_beyond_1_std, percent_close_to_median,
-                               skew, std, weighted_average)
+                               skew, std, weighted_average, average)
 from .amplitude import (amplitude, percent_amplitude, flux_percentile_ratio,
                         percent_difference_flux_percentile)
 from .qso_model import (qso_fit, get_qso_log_chi2_qsonu,
@@ -22,7 +31,7 @@ from .lomb_scargle import (lomb_scargle_model, get_lomb_frequency,
                            get_lomb_y_offset)
 from .lomb_scargle_fast import lomb_scargle_fast_period
 from .num_alias import num_alias
-from .periodic_model import (periodic_model, get_max_delta_mags, 
+from .periodic_model import (periodic_model, get_max_delta_mags,
     get_min_delta_mags, get_model_phi1_phi2)
 from .period_folding import (period_folding, get_fold2P_slope_percentile,
                              get_medperc90_2p_p, p2p_model,
@@ -59,17 +68,17 @@ CADENCE_FEATS = [
     'all_times_nhist_peak3_bin','all_times_nhist_peak4_bin']
 
 CADENCE_GRAPH = {
-    'n_epochs': (len, 't'),
-    'avg_err': (np.mean, 'e'),
-    'med_err': (np.median, 'e'),
-    'std_err': (np.std, 'e'),
-    'total_time': (lambda x: np.max(x) - np.min(x), 't'),
-    'avgt': (np.mean, 't'),
-    'cads': (np.diff, 't'),
-    'cads_std': (np.std, 'cads'),
-    'avg_mag': (np.mean, 'm'),
-    'cads_avg': (np.mean, 'cads'),
-    'cads_med': (np.median, 'cads'),
+    'n_epochs': (n_epochs, 't'),
+    'avg_err': (average_err, 'e'),
+    'med_err': (median_err, 'e'),
+    'std_err': (std_err, 'e'),
+    'total_time': (total_time, 't'),
+    'avgt': (average_time, 't'),
+    'cads': (cadences, 't'),
+    'cads_std': (cads_std, 'cads'),
+    'avg_mag': (average, 'm'),
+    'cads_avg': (cads_avg, 'cads'),
+    'cads_med': (cads_med, 'cads'),
     'cad_probs_1': (cad_prob, 'cads', 1),
     'cad_probs_10': (cad_prob, 'cads', 10),
     'cad_probs_20': (cad_prob, 'cads', 20),
@@ -88,18 +97,21 @@ CADENCE_GRAPH = {
     'cad_probs_5000000': (cad_prob, 'cads', 5000000),
     'cad_probs_10000000': (cad_prob, 'cads', 10000000),
     'double_to_single_step': (double_to_single_step, 'cads'),
-    'avg_double_to_single_step': (np.mean, 'double_to_single_step'),
-    'med_double_to_single_step': (np.median, 'double_to_single_step'),
-    'std_double_to_single_step': (np.std, 'double_to_single_step'),
+    'avg_double_to_single_step': (avg_double_to_single_step,
+                                  'double_to_single_step'),
+    'med_double_to_single_step': (med_double_to_single_step,
+                                  'double_to_single_step'),
+    'std_double_to_single_step': (std_double_to_single_step,
+                                  'double_to_single_step'),
     'delta_t_hist': (delta_t_hist, 't'),
     'delta_t_nhist': (normalize_hist, 'delta_t_hist', 'total_time'),
     'nhist_peaks': (find_sorted_peaks, 'delta_t_nhist'),
-    'all_times_hist_peak_val': (np.max, 'delta_t_hist'),
+    'all_times_hist_peak_val': (all_times_hist_peak_val, 'delta_t_hist'),
     # Can''t' JSON serialize np.int64 under Python3 (yet?), cast as int first
-    'all_times_hist_peak_bin': (lambda x: int(np.argmax(x)),
+    'all_times_hist_peak_bin': (all_times_hist_peak_bin,
                                 'delta_t_hist'),
-    'all_times_nhist_numpeaks': (len, 'nhist_peaks'),
-    'all_times_nhist_peak_val': (np.max, 'delta_t_nhist'),
+    'all_times_nhist_numpeaks': (nhist_peaks_numpeaks, 'nhist_peaks'),
+    'all_times_nhist_peak_val': (nhist_peaks_peak_val, 'delta_t_nhist'),
     'all_times_nhist_peak_1_to_2': (peak_ratio, 'nhist_peaks', 1, 2),
     'all_times_nhist_peak_1_to_3': (peak_ratio, 'nhist_peaks', 1, 3),
     'all_times_nhist_peak_2_to_3': (peak_ratio, 'nhist_peaks', 2, 3),

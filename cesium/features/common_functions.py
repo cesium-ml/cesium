@@ -59,7 +59,7 @@ def weighted_average_std_err(x, e):
     """
     Standard deviation of the sample weighted average of values x with
     measurement errors e.
-    
+
     Note: this is not the same as the weighted sample standard deviation;
     this value only quantifies the measurement errors, not the dispersion of
     the data.
@@ -71,3 +71,8 @@ def weighted_std_dev(x, e):
     """Standard deviation of observed values, weighted by measurement errors."""
     return np.sqrt(np.average((x - weighted_average(x, e))**2,
                               weights=1. / (e**2)))
+
+
+def average(m):
+    """Average of observed values."""
+    return np.mean(m)

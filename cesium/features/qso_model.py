@@ -272,8 +272,10 @@ def qso_fit(time, data, error, filter='g', mag0=19., sys_err=0.0, return_model=F
 
 
 def get_qso_log_chi2_qsonu(qso_model):
+    """"""
     return qso_model['log_chi2_qsonu']
 
 
 def get_qso_log_chi2nuNULL_chi2nu(qso_model):
+    """"""
     return qso_model['log_chi2nuNULL_chi2nu']
