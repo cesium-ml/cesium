@@ -21,8 +21,8 @@ MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
 def rectangularize_featureset(featureset):
     """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn.
 
-    Params
-    ------
+    Parameters
+    ----------
     featureset : xarray.Dataset
         The xarray.Dataset object containing features.
 
