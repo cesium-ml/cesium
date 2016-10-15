@@ -7,8 +7,73 @@ __all__ = ['double_to_single_step', 'cad_prob', 'delta_t_hist',
 
 
 def double_to_single_step(cads):
-    """Ratios t[i+2] - t[i] / (t[i+2] - t[i+1])."""
+    """Ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1])."""
     return (cads[1:] + cads[:-1]) / cads[1:]
+
+
+def avg_double_to_single_step(x):
+    """Mean value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1])."""
+    return np.mean(x)
+
+
+def med_double_to_single_step(x):
+    """Median value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1])."""
+    return np.median(x)
+
+
+def std_double_to_single_step(x):
+    """Standard deviation of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1])."""
+    return np.std(x)
+
+
+def n_epochs(t):
+    """Total number of observed values."""
+    return len(t)
+
+
+def average_err(e):
+    """Mean of the error estimates."""
+    return np.mean(e)
+
+
+def median_err(e):
+    """Median of error estimates."""
+    return np.median(e)
+
+
+def std_err(e):
+    """Standard deviation of the error estimates."""
+    return np.std(e)
+
+
+def total_time(t):
+    """Absolute difference between max and min of time values."""
+    return (np.max(t) - np.min(t))
+
+
+def average_time(t):
+    """Mean of the time values."""
+    return np.mean(t)
+
+
+def cadences(t):
+    """List of differences between successive time values (`np.diff(t)`)."""
+    return np.diff(t)
+
+
+def cads_std(cads):
+    """Standard deviation of `cads` (discrete difference between times)."""
+    return np.std(cads)
+
+
+def cads_avg(cads):
+    """Mean value of `cads` (discrete difference between times)."""
+    return np.mean(cads)
+
+
+def cads_med(cads):
+    """Median value of `cads` (discrete difference between times)."""
+    return np.median(cads)
 
 
 def cad_prob(cads, time):
@@ -17,7 +82,7 @@ def cad_prob(cads, time):
     """
     return stats.percentileofscore(cads, float(time) / (24.0 * 60.0)) / 100.0
 
- 
+
 def delta_t_hist(t, nbins=50):
     """Build histogram of all possible delta_t's without storing every value"""
     hist = np.zeros(nbins, dtype='int')
@@ -26,6 +91,16 @@ def delta_t_hist(t, nbins=50):
         hist += np.histogram(t[i] - t[:i], bins=bins)[0]
         hist += np.histogram(t[i+1:] - t[i], bins=bins)[0]
     return hist / 2 # Double-counts since we loop over every pair twice
+
+
+def all_times_hist_peak_val(d):
+    """Peak value of histogram of all possible delta_t's."""
+    return np.max(d)
+
+
+def all_times_hist_peak_bin(d):
+    """Bin number of peak of of histogram of all possible delta_t's."""
+    return np.argmax(d)
 
 
 def normalize_hist(hist, total_time):
@@ -61,6 +136,16 @@ def find_sorted_peaks(x):
                     peak_inds.append(i)
     sorted_peak_inds = sorted(peak_inds, key=lambda i: x[i], reverse=True)
     return list(zip(sorted_peak_inds, x[sorted_peak_inds]))
+
+
+def nhist_peaks_numpeaks(nhist_peaks):
+    """Number of peaks (local maxima) in histogram of all possible delta_t's."""
+    return len(nhist_peaks)
+
+
+def nhist_peaks_peak_val(nhist_peaks):
+    """Number of peaks (local maxima) in histogram of all possible delta_t's."""
+    return np.max(nhist_peaks)
 
 
 def peak_ratio(peaks, i, j):
