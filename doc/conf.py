@@ -328,7 +328,7 @@ print('%d files written' % len(docwriter.written_modules))
 
 # -- Write feature tables --------------------------------------------------
 from feature_table import write_feature_tables
-write_feature_tables()
+write_feature_tables('./api/feature_table.txt')
 
 def setup(app):
     app.add_stylesheet("output_cells.css")

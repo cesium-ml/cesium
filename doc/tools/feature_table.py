@@ -15,8 +15,8 @@ def feature_graph_to_rst_table(graph, category_name):
     return tabulate(table, headers=header, tablefmt='rst')
 
 
-def write_feature_tables():
-    with open('../features.rst', 'w') as f:
+def write_feature_tables(fname):
+    with open(fname, 'w') as f:
         f.write('================\n'
                 'Cesium Features\n'
                 '================\n\n')
