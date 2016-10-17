@@ -2,21 +2,12 @@ import numpy as np
 
 from .cadence_features import (cad_prob, delta_t_hist, double_to_single_step,
                                normalize_hist, find_sorted_peaks, peak_bin,
-                               peak_ratio, n_epochs, average_err, median_err,
-                               std_err, total_time, average_time, cadences,
-                               cads_std, cads_avg, cads_med,
-                               avg_double_to_single_step,
-                               med_double_to_single_step,
-                               std_double_to_single_step,
-                               all_times_hist_peak_val,
-                               all_times_hist_peak_bin,
-                               nhist_peaks_numpeaks,
-                               nhist_peaks_peak_val)
+                               peak_ratio)
 
 from .common_functions import (maximum, median, max_slope,
                                median_absolute_deviation, minimum,
                                percent_beyond_1_std, percent_close_to_median,
-                               skew, std, weighted_average, average)
+                               skew, std, weighted_average)
 from .amplitude import (amplitude, percent_amplitude, flux_percentile_ratio,
                         percent_difference_flux_percentile)
 from .qso_model import (qso_fit, get_qso_log_chi2_qsonu,
@@ -108,17 +99,17 @@ LOMB_SCARGLE_FEATS = feature_categories['lomb_scargle']
 # See http://dask.pydata.org/en/latest/custom-graphs.html
 
 dask_feature_graph = {
-    'n_epochs': (n_epochs, 't'),
-    'avg_err': (average_err, 'e'),
-    'med_err': (median_err, 'e'),
-    'std_err': (std_err, 'e'),
-    'total_time': (total_time, 't'),
-    'avgt': (average_time, 't'),
-    'cads': (cadences, 't'),
-    'cads_std': (cads_std, 'cads'),
-    'avg_mag': (average, 'm'),
-    'cads_avg': (cads_avg, 'cads'),
-    'cads_med': (cads_med, 'cads'),
+    'n_epochs': (len, 't'),
+    'avg_err': (np.mean, 'e'),
+    'med_err': (np.median, 'e'),
+    'std_err': (np.std, 'e'),
+    'total_time': (lambda x: np.max(x) - np.min(x), 't'),
+    'avgt': (np.mean, 't'),
+    'cads': (np.diff, 't'),
+    'cads_std': (np.std, 'cads'),
+    'avg_mag': (np.mean, 'm'),
+    'cads_avg': (np.mean, 'cads'),
+    'cads_med': (np.median, 'cads'),
     'cad_probs_1': (cad_prob, 'cads', 1),
     'cad_probs_10': (cad_prob, 'cads', 10),
     'cad_probs_20': (cad_prob, 'cads', 20),
@@ -136,35 +127,29 @@ dask_feature_graph = {
     'cad_probs_1000000': (cad_prob, 'cads', 1000000),
     'cad_probs_5000000': (cad_prob, 'cads', 5000000),
     'cad_probs_10000000': (cad_prob, 'cads', 10000000),
-
-    '_double_to_single_step': (double_to_single_step, 'cads'),
-
-    'avg_double_to_single_step': (avg_double_to_single_step,
-                                  'double_to_single_step'),
-    'med_double_to_single_step': (med_double_to_single_step,
-                                  'double_to_single_step'),
-    'std_double_to_single_step': (std_double_to_single_step,
-                                  'double_to_single_step'),
-
-    '_delta_t_hist': (delta_t_hist, 't'),
-    '_delta_t_nhist': (normalize_hist, '_delta_t_hist', 'total_time'),
-    '_nhist_peaks': (find_sorted_peaks, '_delta_t_nhist'),
-
-    'all_times_hist_peak_val': (all_times_hist_peak_val, '_delta_t_hist'),
+    'double_to_single_step': (double_to_single_step, 'cads'),
+    'avg_double_to_single_step': (np.mean, 'double_to_single_step'),
+    'med_double_to_single_step': (np.median, 'double_to_single_step'),
+    'std_double_to_single_step': (np.std, 'double_to_single_step'),
+    'delta_t_hist': (delta_t_hist, 't'),
+    'delta_t_nhist': (normalize_hist, 'delta_t_hist', 'total_time'),
+    'nhist_peaks': (find_sorted_peaks, 'delta_t_nhist'),
+    'all_times_hist_peak_val': (np.max, 'delta_t_hist'),
     # Can''t' JSON serialize np.int64 under Python3 (yet?), cast as int first
-    'all_times_hist_peak_bin': (all_times_hist_peak_bin, '_delta_t_hist'),
-    'all_times_nhist_numpeaks': (nhist_peaks_numpeaks, '_nhist_peaks'),
-    'all_times_nhist_peak_val': (nhist_peaks_peak_val, '_delta_t_nhist'),
-    'all_times_nhist_peak_1_to_2': (peak_ratio, '_nhist_peaks', 1, 2),
-    'all_times_nhist_peak_1_to_3': (peak_ratio, '_nhist_peaks', 1, 3),
-    'all_times_nhist_peak_2_to_3': (peak_ratio, '_nhist_peaks', 2, 3),
-    'all_times_nhist_peak_1_to_4': (peak_ratio, '_nhist_peaks', 1, 4),
-    'all_times_nhist_peak_2_to_4': (peak_ratio, '_nhist_peaks', 2, 4),
-    'all_times_nhist_peak_3_to_4': (peak_ratio, '_nhist_peaks', 3, 4),
-    'all_times_nhist_peak1_bin': (peak_bin, '_nhist_peaks', 1),
-    'all_times_nhist_peak2_bin': (peak_bin, '_nhist_peaks', 2),
-    'all_times_nhist_peak3_bin': (peak_bin, '_nhist_peaks', 3),
-    'all_times_nhist_peak4_bin': (peak_bin, '_nhist_peaks', 4),
+    'all_times_hist_peak_bin': (lambda x: int(np.argmax(x)),
+                                'delta_t_hist'),
+    'all_times_nhist_numpeaks': (len, 'nhist_peaks'),
+    'all_times_nhist_peak_val': (np.max, 'delta_t_nhist'),
+    'all_times_nhist_peak_1_to_2': (peak_ratio, 'nhist_peaks', 1, 2),
+    'all_times_nhist_peak_1_to_3': (peak_ratio, 'nhist_peaks', 1, 3),
+    'all_times_nhist_peak_2_to_3': (peak_ratio, 'nhist_peaks', 2, 3),
+    'all_times_nhist_peak_1_to_4': (peak_ratio, 'nhist_peaks', 1, 4),
+    'all_times_nhist_peak_2_to_4': (peak_ratio, 'nhist_peaks', 2, 4),
+    'all_times_nhist_peak_3_to_4': (peak_ratio, 'nhist_peaks', 3, 4),
+    'all_times_nhist_peak1_bin': (peak_bin, 'nhist_peaks', 1),
+    'all_times_nhist_peak2_bin': (peak_bin, 'nhist_peaks', 2),
+    'all_times_nhist_peak3_bin': (peak_bin, 'nhist_peaks', 3),
+    'all_times_nhist_peak4_bin': (peak_bin, 'nhist_peaks', 4),
 
     # Standalone features (disconnected nodes)
     'amplitude': (amplitude, 'm'),
@@ -189,13 +174,14 @@ dask_feature_graph = {
     'stetson_k': (stetson_k, 'm'),
     'weighted_average': (weighted_average, 'm', 'e'),
 
-     # QSO model features
-    '_qso_model': (qso_fit, 't', 'm', 'e'),
-    'qso_log_chi2_qsonu': (get_qso_log_chi2_qsonu, '_qso_model'),
-    'qso_log_chi2nuNULL_chi2nu': (get_qso_log_chi2nuNULL_chi2nu, '_qso_model'),
+    # QSO model features
+   'qso_model': (qso_fit, 't', 'm', 'e'),
+    'qso_log_chi2_qsonu': (get_qso_log_chi2_qsonu, 'qso_model'),
+    'qso_log_chi2nuNULL_chi2nu': (get_qso_log_chi2nuNULL_chi2nu,
+                                  'qso_model'),
 
-     # Fast Lomb-Scargle from Gatspy
-     'period_fast': (lomb_scargle_fast_period, 't', 'm', 'e'),
+    # Fast Lomb-Scargle from Gatspy
+    'period_fast': (lomb_scargle_fast_period, 't', 'm', 'e'),
 
      '_lomb_model': (lomb_scargle_model, 't', 'm', 'e'),
      # These could easily be programmatically generated, but this is more readable
@@ -266,3 +252,31 @@ def generate_dask_graph(t, m, e):
     full_graph = {'t': t, 'm': m, 'e': e}
     full_graph.update(dask_feature_graph)
     return full_graph
+
+
+extra_feature_docs = {
+    'n_epochs': 'Total number of observed values.',
+    'avg_err': 'Mean of the error estimates.',
+    'med_err': 'Median of error estimates.',
+    'std_err': 'Standard deviation of the error estimates.',
+    'total_time': 'Absolute difference between max and min of time values.',
+    'avgt': 'Mean of the time values.',
+    'avg_mag': 'Average of observed values.',
+    'cads': 'List of differences between successive time values (`np.diff(t)`).',
+    'cads_std': 'Standard deviation of `cads` (discrete difference between times).',
+    'cads_avg': 'Mean value of `cads` (discrete difference between times).',
+    'cads_med': 'Median value of `cads` (discrete difference between times).',
+    'avg_double_to_single_step':
+    'Mean value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
+    'med_double_to_single_step':
+    'Median value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
+    'std_double_to_single_step':
+    'Standard deviation of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
+    'all_times_hist_peak_val': 'Peak value of histogram of all possible delta_t\'s.',
+    'all_times_hist_peak_bin':
+    'Bin number of peak of of histogram of all possible delta_t\'s.',
+    'all_times_nhist_numpeaks':
+    'Number of peaks (local maxima) in histogram of all possible delta_t\'s.',
+    'all_times_nhist_peak_val':
+    'Peak value in histogram of all possible delta_t\'s.'
+}
