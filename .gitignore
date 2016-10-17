@@ -17,6 +17,7 @@ cesium.egg-info
 external
 doc/_build
 doc/api
+doc/feature_table.rst
 dist
 .eggs
 .coverage
