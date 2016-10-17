@@ -266,3 +266,31 @@ def generate_dask_graph(t, m, e):
     full_graph = {'t': t, 'm': m, 'e': e}
     full_graph.update(dask_feature_graph)
     return full_graph
+
+
+extra_feature_docs = {
+    'n_epochs': 'Total number of observed values.',
+    'avg_err': 'Mean of the error estimates.',
+    'med_err': 'Median of error estimates.',
+    'std_err': 'Standard deviation of the error estimates.',
+    'total_time': 'Absolute difference between max and min of time values.',
+    'avgt': 'Mean of the time values.',
+    'avg_mag': 'Average of observed values.',
+    'cads': 'List of differences between successive time values (`np.diff(t)`).',
+    'cads_std': 'Standard deviation of `cads` (discrete difference between times).',
+    'cads_avg': 'Mean value of `cads` (discrete difference between times).',
+    'cads_med': 'Median value of `cads` (discrete difference between times).',
+    'avg_double_to_single_step':
+    'Mean value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
+    'med_double_to_single_step':
+    'Median value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
+    'std_double_to_single_step':
+    'Standard deviation of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
+    'all_times_hist_peak_val': 'Peak value of histogram of all possible delta_t\'s.',
+    'all_times_hist_peak_bin':
+    'Bin number of peak of of histogram of all possible delta_t\'s.',
+    'all_times_nhist_numpeaks':
+    'Number of peaks (local maxima) in histogram of all possible delta_t\'s.',
+    'all_times_nhist_peak_val':
+    'Peak value in histogram of all possible delta_t\'s.'
+}
