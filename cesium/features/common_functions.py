@@ -71,8 +71,3 @@ def weighted_std_dev(x, e):
     """Standard deviation of observed values, weighted by measurement errors."""
     return np.sqrt(np.average((x - weighted_average(x, e))**2,
                               weights=1. / (e**2)))
-
-
-def average(m):
-    """Average of observed values."""
-    return np.mean(m)
