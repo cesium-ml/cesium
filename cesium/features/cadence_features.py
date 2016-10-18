@@ -7,7 +7,7 @@ __all__ = ['double_to_single_step', 'cad_prob', 'delta_t_hist',
 
 
 def double_to_single_step(cads):
-    """Ratios t[i+2] - t[i] / (t[i+2] - t[i+1])."""
+    """Ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1])."""
     return (cads[1:] + cads[:-1]) / cads[1:]
 
 
@@ -17,7 +17,7 @@ def cad_prob(cads, time):
     """
     return stats.percentileofscore(cads, float(time) / (24.0 * 60.0)) / 100.0
 
- 
+
 def delta_t_hist(t, nbins=50):
     """Build histogram of all possible delta_t's without storing every value"""
     hist = np.zeros(nbins, dtype='int')
@@ -41,10 +41,9 @@ def find_sorted_peaks(x):
     they are greater than their only neighbor. In the case of ties, we
     (arbitrarily) choose the first index in the sequence of equal values as the
     peak.
-
     Returns a list of tuples (i, x[i]) of peak indices i and values x[i],
     sorted in decreasing order by peak value.
-     """
+    """
     peak_inds = []
     nbins = len(x)
     for i in range(nbins):

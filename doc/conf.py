@@ -326,6 +326,9 @@ docwriter.write_api_docs(outdir)
 docwriter.write_index(outdir, 'api', relative_to='api')
 print('%d files written' % len(docwriter.written_modules))
 
+# -- Write feature tables --------------------------------------------------
+from feature_table import write_feature_tables
+write_feature_tables('./feature_table.rst')
 
 def setup(app):
     app.add_stylesheet("output_cells.css")

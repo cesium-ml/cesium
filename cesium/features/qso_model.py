@@ -15,8 +15,7 @@ def lprob2sigma(lprob):
 
 
 def chol_inverse_diag(t):
-    """
-    Computes inverse of matrix given its Cholesky upper Triangular decomposition t.
+    """Computes inverse of matrix given its Cholesky upper Triangular decomposition t.
     matrix form: ab[u + i - j, j] == a[i,j] (here u=1)
     (quick version: only calculates diagonal and neighboring elements)
     """
@@ -32,8 +31,7 @@ def chol_inverse_diag(t):
 
 
 def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
-    """
-    Calculates the fit quality of a damped random walk to a qso lightcurve.
+    """Calculates the fit quality of a damped random walk to a qso lightcurve.
     The formalism is from Rybicki & Press (1994; arXiv:comp-gas/9405004)
 
     Data are modelled with a covariance function
@@ -201,8 +199,7 @@ def qso_engine(time,data,error,ltau=3.,lvar=-1.7,sys_err=0.,return_model=False):
 
 
 def qso_fit(time, data, error, filter='g', mag0=19., sys_err=0.0, return_model=False):
-    """
-    Best-fit qso model determined for Sesar Strip82, ugriz-bands (default r).
+    """Best-fit qso model determined for Sesar Strip82, ugriz-bands (default r).
     See additional notes for underlying code qso_engine.
 
     Input:
@@ -217,7 +214,7 @@ def qso_fit(time, data, error, filter='g', mag0=19., sys_err=0.0, return_model=F
 
         signif_qso - significance chi^2/nu<chi^2/nu_NULL (rule out false alarm)
         signif_not_qso - significance chi^2/nu>1 (rule out qso)
-        signif_vary - significance that source is variable at all 
+        signif_vary - significance that source is variable at all
         class - source type (ambiguous, not_qso, qso)
 
         model - time series prediction for each datum given all others (iff return_model==True)
@@ -272,8 +269,10 @@ def qso_fit(time, data, error, filter='g', mag0=19., sys_err=0.0, return_model=F
 
 
 def get_qso_log_chi2_qsonu(qso_model):
+    """Natural log of goodness of fit of qso-model given fixed parameters."""
     return qso_model['log_chi2_qsonu']
 
 
 def get_qso_log_chi2nuNULL_chi2nu(qso_model):
+    """Natural log of expected chi2/nu for non-qso variable."""
     return qso_model['log_chi2nuNULL_chi2nu']
