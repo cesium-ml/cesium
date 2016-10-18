@@ -4,9 +4,9 @@
 [![Build Status](https://travis-ci.org/cesium-ml/cesium.svg?branch=master)](https://travis-ci.org/cesium-ml/cesium)
 
 ## Summary
-Cesium allows for the application of machine learning methods to timeseries data by doing three things:
+Cesium allows for the application of machine learning methods to time-series data by doing three things:
 
-1. Extracting features from timeseries data (i.e. turning timeseries into feature sets)
+1. Extracting features from time-series data (i.e. turning time-series into feature sets)
 2. Building models on the basis of these features. The model-building capabilities of Cesium are drawn from [scikit-learn](www.github.com/scikit-learn/scikit-learn).
 3. Using these models for prediction. 
 
