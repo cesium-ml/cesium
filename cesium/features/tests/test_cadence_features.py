@@ -43,3 +43,27 @@ def test_find_sorted_peaks():
 
     x = np.array([0,3,3,5,0]) # Tie is a peak only if greater than next value
     npt.assert_allclose(cf.find_sorted_peaks(x), np.array([[3,5]]))
+
+def test_peak_ratio():
+    """ Test peak ratio method."""
+    x = np.array([0,5,2,3,1])
+    peaks1 = cf.find_sorted_peaks(x)
+    npt.assert_almost_equal(cf.peak_ratio(peaks1,0,1), 5/3)
+    resultstr = str(cf.peak_ratio(peaks1,1,6))
+    nonestr = str(None)
+    npt.assert_string_equal(resultstr, nonestr)
+    peaks2 = []
+    resultstr2 = str(cf.peak_ratio(peaks2, 1, 2))
+    npt.assert_string_equal(resultstr2, nonestr)
+
+
+def test_peak_bins():
+    """ Test peak bins method """
+    x = np.array([0,5,2,3,1])
+    peaks1 = cf.find_sorted_peaks(x)
+    npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
+    npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
+    result1 = str(cf.peak_bin(peaks1, 6))
+    nonestr = str(None)
+    npt.assert_string_equal(result1, nonestr)
+

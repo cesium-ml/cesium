@@ -27,3 +27,20 @@ def test_train_test_split():
     npt.assert_equal(sum(ts.target == 'class1' for ts in test), n_class1 / 2)
     npt.assert_equal(sum(ts.target == 'class2' for ts in train), 1 * n_class2 / 2)
     npt.assert_equal(sum(ts.target == 'class2' for ts in test), n_class2 / 2)
+
+def test_transform_ts_files():
+    n_class1 = 4
+    n_class2 = 8
+    transform_type = "Train/Test Split"
+    time_series = []
+    for i in range(n_class1):
+        t, m, e = sample_values()
+        time_series.append(TimeSeries(t, m, e, target='class1'))
+    for i in range(n_class2):
+        t, m, e = sample_values()
+        time_series.append(TimeSeries(t, m, e, target='class2'))
+    output = transformation.transform_ts_files(time_series, transform_type)
+    npt.assert_equal(len(output), 2)
+
+def test_train_test_split_basecase():
+    npt.assert_equal(transformation.train_test_split([]), ([], []))
