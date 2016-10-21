@@ -93,4 +93,6 @@ install:
 
 script: .drone/travis_script.sh
 
-after_success: .drone/deploy_docs.sh
+after_success: 
+  - .drone/deploy_docs.sh
+  - codecov
