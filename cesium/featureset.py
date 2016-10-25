@@ -71,13 +71,10 @@ class Featureset(xr.Dataset):
         - Next, if we pass in a set of labels that are all present in `name`,
           return data for those time series with `name`s present in `key`.
         - Otherwise, fall back on standard `xarray.Dataset` indexing.
-
-        NOTE: the warning `FutureWarning: elementwise comparison failed;
-        returning scalar instead, but in the future will perform elementwise
-        comparison` is due to a bug in `numpy`:
-        https://github.com/numpy/numpy/issues/6784
         """
-        names = self._construct_dataarray('name').values
+        # Convert names to list to suppress warning when using `in`
+        # cf. https://github.com/numpy/numpy/issues/6784
+        names = list(self._construct_dataarray('name').values)
         if (isinstance(key, (slice, int))
             or (hasattr(key, '__iter__') and all(isinstance(el, int)
                                                  for el in key))):
