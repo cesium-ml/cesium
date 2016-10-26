@@ -2,7 +2,10 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
-from sklearn import model_selection
+try:
+    from sklearn.model_selection import GridSearchCV
+except:
+    from sklearn.grid_search import GridSearchCV
 
 
 __all__ = ['MODELS_TYPE_DICT', 'rectangularize_featureset',
