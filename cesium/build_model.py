@@ -77,7 +77,7 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
     `sklearn.model_selection.GridSearchCV` estimator object
 
     """
-    optimized_model = model_selection.GridSearchCV(model, params_to_optimize, cv=cv)
+    optimized_model = GridSearchCV(model, params_to_optimize, cv=cv)
     optimized_model.fit(data, targets)
     return optimized_model
 
