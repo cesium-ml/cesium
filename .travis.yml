@@ -57,8 +57,8 @@ addons:
     - libnetcdf-dev
 
 env:
-    global:
-        - GH_REF: github.com/cesium-ml/docs
+  global:
+    - secure: "VrkgU7RqU2yVSzmJGFQbGq0g1PtkfxSNcJrBPcVovIHtvChmxqSo8n+K+d/fEQPAMugty+qCLJe5h8xhVVMztKfzZ0XaTOO/FmaElTFEhM01LBm5YB7HOS3nLmdkEOxT3DNwmBHsi2pgQ/tlTJ25Q8pqlOLLK2yGbA4IBB/3sog="
 
 notifications:
   webhooks:
