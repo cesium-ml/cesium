@@ -67,10 +67,3 @@ def test_peak_bins():
     nonestr = str(None)
     npt.assert_string_equal(result1, nonestr)
 
-def test_double_to_single_step():
-    cads = np.array([0,5,2,3,1])
-    pass 
-    
-def test_cad_prob():
-    pass
-

@@ -8,6 +8,7 @@ __all__ = ['double_to_single_step', 'cad_prob', 'delta_t_hist',
 
 def double_to_single_step(cads):
     """Ratios (t[i+2] - t[i]) / (t[i+1] - t[i])."""
+    cads = np.asarray(cads)
     return (cads[2:] + cads[:-2]) / (cads[1:-1] - cads[:-2])
 
 
