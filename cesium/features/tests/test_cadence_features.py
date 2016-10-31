@@ -53,8 +53,7 @@ def test_peak_ratio():
     nonestr = str(None)
     npt.assert_string_equal(resultstr, nonestr)
     peaks2 = []
-    resultstr2 = str(cf.peak_ratio(peaks2, 1, 2))
-    npt.assert_string_equal(resultstr2, nonestr)
+    assert cf.peak_ratio(peaks2, 1, 2) is None
 
 
 def test_peak_bins():
@@ -63,7 +62,6 @@ def test_peak_bins():
     peaks1 = cf.find_sorted_peaks(x)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
-    result1 = str(cf.peak_bin(peaks1, 6))
-    nonestr = str(None)
-    npt.assert_string_equal(result1, nonestr)
+    result1 = cf.peak_bin(peaks1, 6)
+    assert cf.peak_bin(peaks1, 6) is None
 

@@ -64,8 +64,8 @@ def find_sorted_peaks(x):
 
 
 def peak_ratio(peaks, i, j):
-    """Compute the ratio of the values of the ith and jth largest peaks. Peaks is in the same format
-    as the output from find_sorted_peaks."""
+    """Compute the ratio of the values of the ith and jth largest peaks. Peaks is a list of tuples (i, x[i]) of peak indices i and values x[i],
+    sorted in decreasing order by peak value."""
     if len(peaks) > i and len(peaks) > j:
         return peaks[i][1] / peaks[j][1]
     else:
@@ -73,8 +73,8 @@ def peak_ratio(peaks, i, j):
 
 
 def peak_bin(peaks, i):
-    """Return the (bin) index of the ith largest peak. Peaks is in the same format
-    as the output from find_sorted_peaks."""
+    """Return the (bin) index of the ith largest peak. Peaks is a list of tuples (i, x[i]) of peak indices i and values x[i],
+    sorted in decreasing order by peak value."""
     if len(peaks) > i:
         return peaks[i][0]
     else:
