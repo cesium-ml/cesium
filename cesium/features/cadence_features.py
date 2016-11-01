@@ -7,8 +7,8 @@ __all__ = ['double_to_single_step', 'cad_prob', 'delta_t_hist',
 
 
 def double_to_single_step(cads):
-    """Ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1])."""
-    return (cads[1:] + cads[:-1]) / cads[1:]
+    """Ratios (t[i+2] - t[i]) / (t[i+1] - t[i])."""
+    return (cads[2:] + cads[:-2]) / (cads[1:-1] - cads[:-2])
 
 
 def cad_prob(cads, time):
