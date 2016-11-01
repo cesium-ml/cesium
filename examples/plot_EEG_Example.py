@@ -96,7 +96,7 @@ print(fset_cesium)
 # ``cesium.featurize``
 # `documentation <http://cesium.ml/docs/api/cesium.featurize.html>`_.
 # Here we'll compute five standard features for EEG analysis provided by
-# `Guo et al. (2012) # <http://linkinghub.elsevier.com/retrieve/pii/S0957417411003253)>`_:
+# `Guo et al. (2012) <http://linkinghub.elsevier.com/retrieve/pii/S0957417411003253)>`_:
 
 import numpy as np
 import scipy.stats
