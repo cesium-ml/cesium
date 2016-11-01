@@ -58,7 +58,7 @@ addons:
 
 env:
   global:
-    - secure: "VrkgU7RqU2yVSzmJGFQbGq0g1PtkfxSNcJrBPcVovIHtvChmxqSo8n+K+d/fEQPAMugty+qCLJe5h8xhVVMztKfzZ0XaTOO/FmaElTFEhM01LBm5YB7HOS3nLmdkEOxT3DNwmBHsi2pgQ/tlTJ25Q8pqlOLLK2yGbA4IBB/3sog="
+    - secure: "Fsx12sYNJG2MCvy1wPhYQOlOXTp9sUCqeD19P4h0hl7Cx7/URqOXzGbYG/fSBjQOVYiICuiEHH4Ln6Eo6+hSGRzbshb1J+dvDGA7BAiGo4l5RQwZDr/2vzFZSFqZeR3DcV9OchTCVKBLUqY309Yu0WyjX0H3KjQA1GLWVqulEtY="
 
 notifications:
   webhooks:
