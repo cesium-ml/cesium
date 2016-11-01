@@ -6,7 +6,7 @@ Machine Learning Time-Series Platform Documentation
 
    Installation <install>
    Time-Series Features <feature_table>
-   Examples <examples>
+   Examples <auto_examples/index>
    API <api/api>
 
 .. Indices and tables

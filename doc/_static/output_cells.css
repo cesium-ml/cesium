@@ -1,3 +1,13 @@
-div.highlight-output {
+.sphx-glr-script-out {
     background-color: #EAEAF2;
+}
+
+.sphx-glr-script-out .highlight pre {
+    background-color: #EAEAF2;
+}
+
+div.sphx-glr-download a {
+    background-color: #EAEAF2;
+    border-color: #EAEAF2;
+    background-image: none;
 }
