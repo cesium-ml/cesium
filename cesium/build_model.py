@@ -2,7 +2,10 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
-from sklearn import grid_search
+try:
+    from sklearn.model_selection import GridSearchCV
+except:
+    from sklearn.grid_search import GridSearchCV
 
 
 __all__ = ['MODELS_TYPE_DICT', 'rectangularize_featureset',
@@ -52,7 +55,7 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
     """Optimize estimator hyperparameters.
 
     Perform hyperparamter optimization using
-    `sklearn.grid_search.GridSearchCV`.
+    `sklearn.model_selection.GridSearchCV`.
 
     Parameters
     ----------
@@ -71,10 +74,10 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
 
     Returns
     -------
-    `sklearn.grid_search.GridSearchCV` estimator object
+    `sklearn.model_selection.GridSearchCV` estimator object
 
     """
-    optimized_model = grid_search.GridSearchCV(model, params_to_optimize, cv=cv)
+    optimized_model = GridSearchCV(model, params_to_optimize, cv=cv)
     optimized_model.fit(data, targets)
     return optimized_model
 
