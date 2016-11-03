@@ -120,8 +120,8 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
 
     Returns
     -------
-    sklearn estimator object
-        The fitted sklearn model.
+    tuple of (sklearn estimator object, score)
+        The fitted sklearn model and its training score.
 
     """
     if featureset.get('target') is None:
@@ -148,4 +148,5 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
         if inf_feats.any():
             message += " Inf in {}.".format(", ".join(feature_df.columns[inf_feats]))
         raise ValueError(message)
-    return model
+    train_score = model.score(feature_df, featureset['target'])
+    return (model, train_score)

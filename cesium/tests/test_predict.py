@@ -33,7 +33,7 @@ def remove_output():
 def test_model_classification():
     """Test model prediction function: classification"""
     fset = sample_featureset(10, 1, ['amplitude'], ['class1', 'class2'])
-    model = build_model.build_model_from_featureset(
+    model, score = build_model.build_model_from_featureset(
         fset, model_type='RandomForestClassifier')
     preds = predict.model_predictions(fset, model)
     assert(all(preds.name == fset.name))
@@ -51,7 +51,7 @@ def test_model_regression():
     """Test model prediction function: classification"""
     fset = sample_featureset(10, 1, ['amplitude'], ['class1', 'class2'])
     fset.target.values = np.random.random(len(fset.target.values))
-    model = build_model.build_model_from_featureset(fset,
+    model, score = build_model.build_model_from_featureset(fset,
                                                     model_type='RandomForestRegressor')
     preds = predict.model_predictions(fset, model)
     assert(all(preds.name == fset.name))
@@ -62,7 +62,7 @@ def test_model_regression():
 def test_predict_optimized_model():
     """Test main predict function (classification) w/ optimized model"""
     fset = sample_featureset(10, 1, ['amplitude'], ['class1', 'class2'])
-    model = build_model.build_model_from_featureset(fset,
+    model, score = build_model.build_model_from_featureset(fset,
         model_type='RandomForestClassifier',
         params_to_optimize={"n_estimators": [10, 50, 100]}, cv=2)
     preds = predict.model_predictions(fset, model)

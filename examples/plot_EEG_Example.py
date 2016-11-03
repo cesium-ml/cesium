@@ -188,17 +188,17 @@ from sklearn.cross_validation import train_test_split
 train, test = train_test_split(np.arange(len(eeg["classes"])), random_state=0)
 
 rfc_param_grid = {'n_estimators': [8, 16, 32, 64, 128, 256, 512, 1024]}
-model_cesium = build_model_from_featureset(fset_cesium.isel(name=train),
-                                          RandomForestClassifier(max_features='auto',
-                                                                 random_state=0),
-                                          params_to_optimize=rfc_param_grid)
+model_cesium, cesium_train_score = build_model_from_featureset(
+    fset_cesium.isel(name=train),
+    RandomForestClassifier(max_features='auto', random_state=0),
+    params_to_optimize=rfc_param_grid)
 knn_param_grid = {'n_neighbors': [1, 2, 3, 4]}
-model_guo = build_model_from_featureset(fset_guo.isel(name=train),
-                                        KNeighborsClassifier(),
-                                        params_to_optimize=knn_param_grid)
-model_dwt = build_model_from_featureset(fset_dwt.isel(name=train),
-                                        KNeighborsClassifier(),
-                                        params_to_optimize=knn_param_grid)
+model_guo, guo_train_score = build_model_from_featureset(
+    fset_guo.isel(name=train), KNeighborsClassifier(),
+    params_to_optimize=knn_param_grid)
+model_dwt, dwt_train_score = build_model_from_featureset(
+    fset_dwt.isel(name=train), KNeighborsClassifier(),
+    params_to_optimize=knn_param_grid)
 
 ###############################################################################
 # Prediction
@@ -216,14 +216,14 @@ preds_guo = model_predictions(fset_guo, model_guo, return_probs=False)
 preds_dwt = model_predictions(fset_dwt, model_dwt, return_probs=False)
 
 print("Built-in cesium features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_cesium.prediction.values[train], eeg["classes"][train]),
-          accuracy_score(preds_cesium.prediction.values[test], eeg["classes"][test])))
+    cesium_train_score,
+    accuracy_score(preds_cesium.prediction.values[test], eeg["classes"][test])))
 print("Guo et al. features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_guo.prediction.values[train], eeg["classes"][train]),
-          accuracy_score(preds_guo.prediction.values[test], eeg["classes"][test])))
+    guo_train_score,
+    accuracy_score(preds_guo.prediction.values[test], eeg["classes"][test])))
 print("Wavelet transform features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_dwt.prediction.values[train], eeg["classes"][train]),
-          accuracy_score(preds_dwt.prediction.values[test], eeg["classes"][test])))
+    dwt_train_score,
+    accuracy_score(preds_dwt.prediction.values[test], eeg["classes"][test])))
 
 ###############################################################################
 # The workflow presented here is intentionally simplistic and omits many important steps
