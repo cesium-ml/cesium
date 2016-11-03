@@ -90,3 +90,13 @@ def test_invalid_feature_values():
 
     model = build_model.build_model_from_featureset(fset.drop(['x_inf', 'x_nan']), model)
     assert isinstance(model, RandomForestClassifier)
+
+
+def test_score_model():
+    """Test calculation of model training score."""
+    fset = sample_featureset(10, 1, ['amplitude', 'maximum', 'minimum', 'median'],
+                             ['class1', 'class2'])
+    model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
+    model = build_model.build_model_from_featureset(fset, model)
+    score = build_model.score_model(model, fset)
+    assert isinstance(score, float)
