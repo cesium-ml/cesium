@@ -22,8 +22,9 @@ def test_fit_existing_model():
     fset = sample_featureset(10, 1, ['amplitude', 'maximum', 'minimum', 'median'],
                              ['class1', 'class2'])
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
-    model = build_model.build_model_from_featureset(fset, model)
+    model, score = build_model.build_model_from_featureset(fset, model)
     assert isinstance(model, RandomForestClassifier)
+    assert isinstance(score, float)
 
 
 def test_fit_existing_model_optimize():
@@ -35,13 +36,14 @@ def test_fit_existing_model_optimize():
     params_to_optimize = {"n_estimators": [10, 50, 100],
                           "min_samples_split": [2, 5],
                           "max_features": ["auto", 3]}
-    model = build_model.build_model_from_featureset(fset, model, None,
+    model, score = build_model.build_model_from_featureset(fset, model, None,
                                                     model_options,
                                                     params_to_optimize)
     assert hasattr(model, "best_params_")
     assert hasattr(model, "predict_proba")
     assert isinstance(model, GridSearchCV)
     assert isinstance(model.best_estimator_, RandomForestClassifier)
+    assert isinstance(score, float)
 
 
 def test_fit_optimize():
@@ -69,8 +71,9 @@ def test_fit_multichannel():
     fset = sample_featureset(10, 3, ['amplitude', 'maximum', 'minimum', 'median'],
                              ['class1', 'class2'])
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
-    model = build_model.build_model_from_featureset(fset, model)
+    model, score = build_model.build_model_from_featureset(fset, model)
     assert isinstance(model, RandomForestClassifier)
+    assert isinstance(score, float)
 
 
 def test_invalid_feature_values():
@@ -80,7 +83,7 @@ def test_invalid_feature_values():
     fset.x_nan.values[0, 0] = np.nan
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']()
     try:
-        model = build_model.build_model_from_featureset(fset, model)
+        model, score = build_model.build_model_from_featureset(fset, model)
     except ValueError as e:
         assert 'x_valid' not in str(e)
         assert 'x_inf' in str(e)
@@ -88,5 +91,6 @@ def test_invalid_feature_values():
     else:
         raise AssertionError("Exception should have been raised for invalid data.")
 
-    model = build_model.build_model_from_featureset(fset.drop(['x_inf', 'x_nan']), model)
+    model, score = build_model.build_model_from_featureset(fset.drop(['x_inf', 'x_nan']), model)
     assert isinstance(model, RandomForestClassifier)
+    assert isinstance(score, float)
