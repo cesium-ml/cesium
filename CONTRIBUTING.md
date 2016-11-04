@@ -2,7 +2,7 @@
 
 ## Contributing Time-Series Features
 
-We gratefulgly accept contributions of new time-series features, be they
+We gratefully accept contributions of new time-series features, be they
 domain-specific or general.
 
 To add your features to the project, please follow the guidelines below:
@@ -10,7 +10,8 @@ To add your features to the project, please follow the guidelines below:
 1. Add your code to a new or existing file in `cesium/features/`.
 2. In `cesium/features/graphs.py`, add your features to the
    `dask_feature_graph`.
-3. Optionally, add your features into the categories & tag dictionaries.
+3. Add your features to the `feature_categories` & (optionally)
+   `feature_tags` dictionaries in `cesium/features/graphs.py`.
 
 Notes:
 
