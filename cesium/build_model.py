@@ -149,3 +149,24 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
             message += " Inf in {}.".format(", ".join(feature_df.columns[inf_feats]))
         raise ValueError(message)
     return model
+
+
+def score_model(model, featureset, sample_weight=None):
+    """Compute the model training score.
+
+    Parameters
+    ----------
+    model : scikit-learn model object
+        The fitted model.
+    featureset : xarray.Dataset of features
+        Feature set used for training model.
+    sample_weight : array-like, shape = [n_samples], optional
+        Sample weights. Defaults to None.
+
+    Returns
+    -------
+    float
+        Normalized training score.
+    """
+    feature_df = rectangularize_featureset(featureset)
+    return model.score(feature_df, featureset['target'], sample_weight)
