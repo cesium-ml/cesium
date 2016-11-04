@@ -29,7 +29,7 @@ def write_feature_tables(fname):
 
         dfg = dask_feature_graph
 
-        for category in ['cadence', 'general', 'lomb_scargle']:
+        for category in feature_categories:
             graph = {feature: dfg[feature]
                          for feature in feature_categories[category]}
 

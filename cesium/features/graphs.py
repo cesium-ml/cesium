@@ -36,7 +36,7 @@ __all__ = ['CADENCE_FEATS', 'GENERAL_FEATS', 'LOMB_SCARGLE_FEATS',
            'generate_dask_graph', 'feature_categories', 'dask_feature_graph']
 
 feature_categories = {
-    'cadence': [
+    'Cadence/Error': [
         'n_epochs','avg_err','med_err','std_err',
         'total_time','avgt','cads_std','mean',
         'cads_avg','cads_med','cad_probs_1',
@@ -56,7 +56,7 @@ feature_categories = {
         'all_times_nhist_peak3_bin','all_times_nhist_peak4_bin'
         ],
 
-    'general': [
+    'General': [
         'amplitude', 'flux_percentile_ratio_mid20',
         'flux_percentile_ratio_mid35', 'flux_percentile_ratio_mid50',
         'flux_percentile_ratio_mid65', 'flux_percentile_ratio_mid80',
@@ -68,7 +68,7 @@ feature_categories = {
         'std', 'stetson_j', 'stetson_k', 'weighted_average'
         ],
 
-    'lomb_scargle': [
+    'Lomb-Scargle (Periodic)': [
         'fold2P_slope_10percentile', 'fold2P_slope_90percentile',
         'freq1_amplitude1', 'freq1_amplitude2', 'freq1_amplitude3',
         'freq1_amplitude4', 'freq1_freq', 'freq1_lambda',
@@ -91,9 +91,9 @@ feature_categories = {
     ]
 }
 
-CADENCE_FEATS = feature_categories['cadence']
-GENERAL_FEATS = feature_categories['general']
-LOMB_SCARGLE_FEATS = feature_categories['lomb_scargle']
+CADENCE_FEATS = feature_categories['Cadence/Error']
+GENERAL_FEATS = feature_categories['General']
+LOMB_SCARGLE_FEATS = feature_categories['Lomb-Scargle (Periodic)']
 
 
 # See http://dask.pydata.org/en/latest/custom-graphs.html
