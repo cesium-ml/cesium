@@ -33,12 +33,10 @@ def test_transform_ts_files():
     n_class2 = 8
     transform_type = "Train/Test Split"
     time_series = []
-    for i in range(n_class1):
-        t, m, e = sample_values()
-        time_series.append(TimeSeries(t, m, e, target='class1'))
-    for i in range(n_class2):
-        t, m, e = sample_values()
-        time_series.append(TimeSeries(t, m, e, target='class2'))
+    class1samples = np.array([sample_values() for i in range(n_class1)])
+    class2samples = np.array([sample_values() for i in range(n_class2)])
+    time_series.extend([TimeSeries(x[0],x[1],x[2],target='class1') for x in class1samples])
+    time_series.extend([TimeSeries(x[0],x[1],x[2],target='class2') for x in class2samples])
     output = transformation.transform_ts_files(time_series, transform_type)
     npt.assert_equal(len(output), 2)
 
@@ -50,12 +48,10 @@ def test_train_test_split_ratios():
     n_class2 = 8
     transform_type = "Train/Test Split"
     time_series = []
-    for i in range(n_class1):
-        t, m, e = sample_values()
-        time_series.append(TimeSeries(t, m, e, target='class1'))
-    for i in range(n_class2):
-        t, m, e = sample_values()
-        time_series.append(TimeSeries(t, m, e, target='class2'))
+    class1samples = np.array([sample_values() for i in range(n_class1)])
+    class2samples = np.array([sample_values() for i in range(n_class2)])
+    time_series.extend([TimeSeries(x[0], x[1], x[2], target='class1') for x in class1samples])
+    time_series.extend([TimeSeries(x[0], x[1], x[2], target='class2') for x in class2samples])
     outputs = transformation.train_test_split(time_series, test_size = 0.5, train_size= 0.5)
     npt.assert_equal(len(outputs[1]), len(time_series)/2)
     npt.assert_equal(len(outputs[0]), len(time_series)/2)
