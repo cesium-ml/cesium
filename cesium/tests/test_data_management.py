@@ -40,11 +40,9 @@ def test_parse_headerfile():
 def test_parsing_and_saving():
     data_file_path = pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz")
     header_path = pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat")
-    time_series = data_management.parse_and_store_ts_data(data_file_path,
-                      TEMP_DIR, header_path, cleanup_archive=False,
-                      cleanup_header=False)
+    time_series = data_management.parse_and_store_ts_data(
+        data_file_path, TEMP_DIR, header_path, cleanup_archive=False,
+        cleanup_header=False)
     for ts in time_series:
-        assert all(f in ['meta1', 'meta2', 'meta3']
-                   for f in ts.meta_features.keys())
-        assert(len(ts.time) == len(ts.measurement)
-               and len(ts.time) == len(ts.error))
+        assert isinstance(ts, str)
+        assert os.path.exists(ts)

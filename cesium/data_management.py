@@ -108,8 +108,8 @@ def parse_headerfile(headerfile_path, files_to_include=None):
 def parse_and_store_ts_data(data_path, output_dir, header_path=None,
                             cleanup_archive=True, cleanup_header=True):
     """Parses raw time series data from a single file or archive and loads
-    metadata from header file (if applicable). Data is returned as TimeSeries
-    objects and stored as files within `output_dir`.
+    metadata from header file (if applicable). Data is stored as files within
+    `output_dir`, and the list of these paths is returned.
 
     Parameters
     ----------
@@ -130,7 +130,7 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
 
     Returns
     -------
-    List of TimeSeries objects
+    List of paths to netCDF files
     """
     with util.extract_time_series(data_path, cleanup_archive=cleanup_archive,
                                   cleanup_files=True) as ts_paths:
@@ -152,7 +152,9 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
             ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname,
                             ts_path)
             ts.to_netcdf(ts_path)
-            all_time_series.append(ts)
+            all_time_series.append(ts_path)
+
     if header_path and cleanup_header:
         util.remove_files([header_path])
+
     return all_time_series
