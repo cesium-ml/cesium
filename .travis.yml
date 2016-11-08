@@ -77,8 +77,10 @@ matrix:
     - python: 3.4
       env:
         - TEST_TARGET=test
+        - COVERAGE = 1
     - python: 3.5
-      env:
+      env: 
+        - COVERAGE = 1
         - TEST_TARGET=test
         - DEPLOY_DOCS=1
 
@@ -95,4 +97,4 @@ script: .drone/travis_script.sh
 
 after_success: 
   - .drone/deploy_docs.sh
-  - codecov
+  - .drone/coverage_build.sh
