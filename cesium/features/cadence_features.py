@@ -75,7 +75,7 @@ def peak_ratio(peaks, i, j):
     if len(peaks) > i and len(peaks) > j:
         return peaks[i][1] / peaks[j][1]
     else:
-        return None
+        return np.nan
 
 
 def peak_bin(peaks, i):
@@ -84,4 +84,4 @@ def peak_bin(peaks, i):
     if len(peaks) > i:
         return peaks[i][0]
     else:
-        return None
+        return np.nan

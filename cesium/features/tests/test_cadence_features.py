@@ -51,9 +51,9 @@ def test_peak_ratio():
     x = np.array([0, 5, 2, 3, 1])
     peaks1 = cf.find_sorted_peaks(x)
     npt.assert_almost_equal(cf.peak_ratio(peaks1, 0, 1), 5 / 3)
-    assert cf.peak_ratio(peaks1, 1, 6) is None
+    assert cf.peak_ratio(peaks1, 1, 6) is np.nan
     peaks2 = []
-    assert cf.peak_ratio(peaks2, 1, 2) is None
+    assert cf.peak_ratio(peaks2, 1, 2) is np.nan
 
 
 def test_peak_bins():
@@ -63,4 +63,4 @@ def test_peak_bins():
     npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
     result1 = cf.peak_bin(peaks1, 6)
-    assert cf.peak_bin(peaks1, 6) is None
+    assert cf.peak_bin(peaks1, 6) is np.nan
