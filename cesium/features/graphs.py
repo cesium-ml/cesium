@@ -47,7 +47,6 @@ feature_categories = {
         'cad_probs_500000','cad_probs_1000000','cad_probs_5000000',
         'cad_probs_10000000','med_double_to_single_step',
         'avg_double_to_single_step','std_double_to_single_step',
-        'all_times_hist_peak_val','all_times_hist_peak_bin',
         'all_times_nhist_numpeaks','all_times_nhist_peak_val',
         'all_times_nhist_peak_1_to_2','all_times_nhist_peak_1_to_3',
         'all_times_nhist_peak_2_to_3','all_times_nhist_peak_1_to_4',
@@ -134,10 +133,6 @@ dask_feature_graph = {
     'delta_t_hist': (delta_t_hist, 't'),
     'delta_t_nhist': (normalize_hist, 'delta_t_hist', 'total_time'),
     'nhist_peaks': (find_sorted_peaks, 'delta_t_nhist'),
-    'all_times_hist_peak_val': (np.max, 'delta_t_hist'),
-    # Can''t' JSON serialize np.int64 under Python3 (yet?), cast as int first
-    'all_times_hist_peak_bin': (lambda x: int(np.argmax(x)),
-                                'delta_t_hist'),
     'all_times_nhist_numpeaks': (len, 'nhist_peaks'),
     'all_times_nhist_peak_val': (np.max, 'delta_t_nhist'),
     'all_times_nhist_peak_1_to_2': (peak_ratio, 'nhist_peaks', 1, 2),
@@ -272,9 +267,6 @@ extra_feature_docs = {
     'Median value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
     'std_double_to_single_step':
     'Standard deviation of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).',
-    'all_times_hist_peak_val': 'Peak value of histogram of all possible delta_t\'s.',
-    'all_times_hist_peak_bin':
-    'Bin number of peak of of histogram of all possible delta_t\'s.',
     'all_times_nhist_numpeaks':
     'Number of peaks (local maxima) in histogram of all possible delta_t\'s.',
     'all_times_nhist_peak_val':
@@ -318,9 +310,6 @@ feature_tags = {
     'delta_t_hist': ['Astronomy', 'General', 'Cadence'],
     'delta_t_nhist': ['Astronomy', 'General', 'Cadence'],
     'nhist_peaks': ['Astronomy', 'General', 'Cadence'],
-    'all_times_hist_peak_val': ['Astronomy', 'General', 'Cadence'],
-    # Can''t' JSON serialize np.int64 under Python3 (yet?), cast as int first
-    'all_times_hist_peak_bin': ['Astronomy', 'General', 'Cadence'],
     'all_times_nhist_numpeaks': ['Astronomy', 'General', 'Cadence'],
     'all_times_nhist_peak_val': ['Astronomy', 'General', 'Cadence'],
     'all_times_nhist_peak_1_to_2': ['Astronomy', 'General', 'Cadence'],

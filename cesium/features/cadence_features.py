@@ -19,14 +19,19 @@ def cad_prob(cads, time):
     return stats.percentileofscore(cads, float(time) / (24.0 * 60.0)) / 100.0
 
 
-def delta_t_hist(t, nbins=50):
-    """Build histogram of all possible delta_t's without storing every value"""
-    hist = np.zeros(nbins, dtype='int')
-    bins = np.linspace(0, max(t) - min(t), nbins + 1)
-    for i in range(len(t)):
-        hist += np.histogram(t[i] - t[:i], bins=bins)[0]
-        hist += np.histogram(t[i + 1:] - t[i], bins=bins)[0]
-    return hist / 2  # Double-counts since we loop over every pair twice
+def delta_t_hist(t, nbins=50, conv_oversample=50):
+    """Build histogram of all possible |t_i - t_j|'s.
+
+    For efficiency, we construct the histogram via a convolution of the PDF
+    rather than by actually computing all the differences. For better accuracy
+    we use a factor `conv_oversample` more bins when performing the convolution
+    and then aggregate the result to have `nbins` total values.
+    """
+    f, x = np.histogram(t, bins=conv_oversample * nbins)
+    g = np.convolve(f, f[::-1])[len(f) - 1:]  # Discard negative domain
+    g[0] -= len(t)  # First bin is double-counted because of i=j terms
+    hist = g.reshape((-1, conv_oversample)).sum(axis=1)  # Combine bins
+    return hist
 
 
 def normalize_hist(hist, total_time):
@@ -70,7 +75,7 @@ def peak_ratio(peaks, i, j):
     if len(peaks) > i and len(peaks) > j:
         return peaks[i][1] / peaks[j][1]
     else:
-        return None
+        return np.nan
 
 
 def peak_bin(peaks, i):
@@ -79,4 +84,4 @@ def peak_bin(peaks, i):
     if len(peaks) > i:
         return peaks[i][0]
     else:
-        return None
+        return np.nan

@@ -7,24 +7,24 @@ from cesium.features.tests.util import irregular_random
 
 def test_delta_t_hist():
     """Test histogram of all time lags."""
-    times, values, errors = irregular_random()
+    times, values, errors = irregular_random(500)
     delta_ts = [pair[1] - pair[0] for pair in itertools.combinations(times, 2)]
     nbins = 50
     bins = np.linspace(0, max(times) - min(times), nbins + 1)
-    npt.assert_allclose(cf.delta_t_hist(times, nbins), np.histogram(delta_ts,
-                                                                    bins=bins)[0])
+    npt.assert_allclose(cf.delta_t_hist(times, nbins),
+                        np.histogram(delta_ts, bins=bins)[0], atol=2)
 
 
 def test_normalize_hist():
     """Test normalization of histogram."""
-    times, values, errors = irregular_random()
+    times, values, errors = irregular_random(500)
     delta_ts = [pair[1] - pair[0] for pair in itertools.combinations(times, 2)]
     nbins = 50
     bins = np.linspace(0, max(times) - min(times), nbins + 1)
-    nhist = cf.normalize_hist(cf.delta_t_hist(times, nbins), max(times) -
-                              min(times))
-    npt.assert_allclose(nhist, np.histogram(delta_ts,
-                                            bins=bins, density=True)[0])
+    nhist = cf.normalize_hist(cf.delta_t_hist(times, nbins),
+                              max(times) - min(times))
+    npt.assert_allclose(nhist, np.histogram(delta_ts, bins=bins,
+                                            density=True)[0], atol=0.01)
 
 
 def test_find_sorted_peaks():
@@ -51,9 +51,9 @@ def test_peak_ratio():
     x = np.array([0, 5, 2, 3, 1])
     peaks1 = cf.find_sorted_peaks(x)
     npt.assert_almost_equal(cf.peak_ratio(peaks1, 0, 1), 5 / 3)
-    assert cf.peak_ratio(peaks1, 1, 6) is None
+    assert cf.peak_ratio(peaks1, 1, 6) is np.nan
     peaks2 = []
-    assert cf.peak_ratio(peaks2, 1, 2) is None
+    assert cf.peak_ratio(peaks2, 1, 2) is np.nan
 
 
 def test_peak_bins():
@@ -63,4 +63,4 @@ def test_peak_bins():
     npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
     result1 = cf.peak_bin(peaks1, 6)
-    assert cf.peak_bin(peaks1, 6) is None
+    assert cf.peak_bin(peaks1, 6) is np.nan
