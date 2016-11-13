@@ -72,16 +72,13 @@ matrix:
   include:
     - python: 2.7
       env:
-        - TEST_TARGET=test
         - SKIP_DOCS=1
     - python: 3.4
       env:
-        - TEST_TARGET=test
         - COVERAGE = 1
     - python: 3.5
       env: 
         - COVERAGE = 1
-        - TEST_TARGET=test
         - DEPLOY_DOCS=1
 
 before_install:
