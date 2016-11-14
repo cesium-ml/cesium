@@ -32,6 +32,3 @@ section "configure.cesium"
 pip install -e .
 section_end "configure.cesium"
 
-section "coverage"
-pip install coverage
-section_end "coverage"
