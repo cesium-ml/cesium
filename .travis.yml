@@ -74,8 +74,6 @@ matrix:
       env:
         - SKIP_DOCS=1
     - python: 3.4
-      env:
-        - COVERAGE = 1
     - python: 3.5
       env: 
         - COVERAGE = 1
