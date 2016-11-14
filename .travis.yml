@@ -76,7 +76,7 @@ matrix:
     - python: 3.4
     - python: 3.5
       env: 
-        - COVERAGE = 1
+        - COVERAGE=1
         - DEPLOY_DOCS=1
 
 before_install:
