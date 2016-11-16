@@ -30,7 +30,7 @@ def period_folding(x, y, dy, lomb_model, sys_err=0.05):
     ytest_2p -= fit['model']
     for i in range(1, lomb_model['nfreq']):
         fit = ls.fit_lomb_scargle(x, ytest_2p, dy0, lomb_model['f0'],
-                lomb_model['df'], lomb_model['numf'], 
+                lomb_model['df'], lomb_model['numf'],
                 lambda0_range=lambda0_range, nharm=lomb_model['nharm'],
                 detrend_order=0)
         ytest_2p -= fit['model']
@@ -86,7 +86,7 @@ def p2p_model(x, y, frequency):
     out_dict = {}
     out_dict['scatter_2praw'] = sumsqr_diff_2per_fold / sumsqr_diff_unfold
     out_dict['scatter_over_mad'] = median_diff / mad
-    out_dict['ssqr_diff_over_var'] = sumsqr_diff_unfold / ((len(y) - 1) 
+    out_dict['ssqr_diff_over_var'] = sumsqr_diff_unfold / ((len(y) - 1)
             * np.var(y))
     out_dict['scatter_pfold_over_mad'] = median_1per_fold_diff / mad
     return out_dict

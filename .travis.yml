@@ -75,7 +75,7 @@ matrix:
         - SKIP_DOCS=1
     - python: 3.4
     - python: 3.5
-      env: 
+      env:
         - COVERAGE=1
         - DEPLOY_DOCS=1
 
@@ -90,7 +90,7 @@ install:
 
 script: .drone/travis_script.sh
 
-after_success: 
+after_success:
   - .drone/deploy_docs.sh
   - pip install codecov
   - codecov

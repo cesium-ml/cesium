@@ -203,7 +203,7 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
             sinx_step, cosx_step, sinx_back, cosx_back, sinx_smallstep,
             cosx_smallstep, hat_matr, hat_hat, hat0, soln, chi0, freq_zoom,
             psdmin, tone_control, lambda0, lambda0_range, Tr, ifreq)
-    
+
     hat_hat /= s0
     ii = np.arange(nharm, dtype='int32')
     soln[0:nharm] /= (1. + ii)**2
@@ -307,7 +307,7 @@ def get_lomb_amplitude_ratio(lomb_model, i):
     Get the ratio of the amplitudes of the first harmonic for the ith and first
     frequencies from a fitted Lomb-Scargle model.
     """
-    return (lomb_model['freq_fits'][i-1]['amplitude'][0] / 
+    return (lomb_model['freq_fits'][i-1]['amplitude'][0] /
             lomb_model['freq_fits'][0]['amplitude'][0])
 
 
@@ -316,7 +316,7 @@ def get_lomb_frequency_ratio(lomb_model, i):
     Get the ratio of the ith and first frequencies from a fitted Lomb-Scargle
     model.
     """
-    return (lomb_model['freq_fits'][i-1]['freq'] / 
+    return (lomb_model['freq_fits'][i-1]['freq'] /
             lomb_model['freq_fits'][0]['freq'])
 
 
@@ -325,7 +325,7 @@ def get_lomb_signif_ratio(lomb_model, i):
     Get the ratio of the significances (in sigmas) of the ith and first
     frequencies from a fitted Lomb-Scargle model.
     """
-    return (lomb_model['freq_fits'][i-1]['signif'] / 
+    return (lomb_model['freq_fits'][i-1]['signif'] /
             lomb_model['freq_fits'][0]['signif'])
 
 

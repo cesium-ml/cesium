@@ -51,7 +51,7 @@ for label, subplot in zip(np.unique(eeg["classes"]), ax):
 # choices of features which can be applied for any type of time series data;
 # here we've chosen a few generic features that do not have any special
 # biological significance.
-# 
+#
 # By default, the time series will featurized in parallel using the
 # ``dask.multiprocessing`` scheduler; other approaches, including serial and
 # distributed approaches, can be implemented by passing in other ``dask``
@@ -129,7 +129,7 @@ guo_features = {
 }
 
 fset_guo = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
-                                           errors=None, targets=eeg["classes"], 
+                                           errors=None, targets=eeg["classes"],
                                            features_to_use=list(guo_features.keys()),
                                            custom_functions=guo_features)
 print(fset_guo)

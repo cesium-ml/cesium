@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def download_andrzejak(data_dir):
     """Download sample EEG data.
-    
+
     Three files are created within `data_dir`:
         - andrzejak.tar.gz (containing .dat files for each time series)
         - andrzejak.csv (header file containing class labels)
