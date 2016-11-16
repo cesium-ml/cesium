@@ -75,7 +75,7 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
 
 
 def assemble_featureset(feature_dicts, time_series=None, targets=None,
-                        meta_feature_dicts=None, names=None):
+                        meta_feature_dicts=None, names=None, impute=False):
     """Transforms raw feature data (as returned by `featurize_single_ts`) into
     an xarray.Dataset.
 
@@ -97,6 +97,10 @@ def assemble_featureset(feature_dicts, time_series=None, targets=None,
     names : list of str
         If provided, the `name` coordinate of the featureset xarray.Dataset
         will be set accordingly.
+    impute : bool, optional
+        Boolean indicating whether to impute NaN and Inf occurrences. If True,
+        will impute using `featureset.Featureset`'s `impute` method with default
+        parameters. Defaults to False.
 
     Returns
     -------
@@ -125,7 +129,10 @@ def assemble_featureset(feature_dicts, time_series=None, targets=None,
         featureset.coords['name'] = ('name', np.array(names))
     if targets is not None and any(targets):
         featureset.coords['target'] = ('name', np.array(targets))
-    return Featureset(featureset)
+    featureset = Featureset(featureset)
+    if impute:
+        featureset = featureset.impute()
+    return featureset
 
 
 def load_and_store_feature_data(features_path, output_path):
