@@ -51,7 +51,7 @@ def test_fit_optimize():
     model_options = {"criterion": "gini", "bootstrap": True}
     model = build_model.MODELS_TYPE_DICT['RandomForestClassifier']\
             (**model_options)
-    feature_df = build_model.rectangularize_featureset(fset)
+    feature_df = fset.to_dataframe()
     params_to_optimize = {"n_estimators": [10, 50, 100],
                           "min_samples_split": [2, 5],
                           "max_features": ["auto", 3]}

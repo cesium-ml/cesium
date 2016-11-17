@@ -6,7 +6,6 @@ import os
 import numpy as np
 import pandas as pd
 import xarray as xr
-from . import build_model
 from . import time_series
 from . import util
 
@@ -36,7 +35,7 @@ def model_predictions(featureset, model, return_probs=True):
         contains either a single class/target prediction or (for probabilistic
         predictions) a list of class probabilities.
     """
-    feature_df = build_model.rectangularize_featureset(featureset)
+    feature_df = featureset.to_dataframe()
     if return_probs and hasattr(model, 'predict_proba'):
         preds = model.predict_proba(feature_df)
     else:
