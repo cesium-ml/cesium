@@ -1,6 +1,7 @@
 # `cesium`: Open-Source Platform for Time Series Inference
 [![Join the chat at https://gitter.im/cesium-ml/cesium](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cesium-ml/cesium?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/cesium-ml/cesium.svg?branch=master)](https://travis-ci.org/cesium-ml/cesium)
+[![codecov.io](http://codecov.io/github/cesium-ml/cesium/coverage.svg?branch=master)](http://codecov.io/github/cesium-ml/cesium?branch=master)
 
 ## Summary
 `cesium` is an open source library that allows users to:
