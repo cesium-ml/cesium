@@ -8,8 +8,8 @@ except:
     from sklearn.grid_search import GridSearchCV
 
 
-__all__ = ['MODELS_TYPE_DICT', 'rectangularize_featureset',
-           'fit_model_optimize_hyperparams', 'build_model_from_featureset']
+__all__ = ['MODELS_TYPE_DICT', 'fit_model_optimize_hyperparams',
+           'build_model_from_featureset']
 
 
 MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
@@ -19,35 +19,6 @@ MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
                     'RidgeClassifierCV': RidgeClassifierCV,
                     'BayesianARDRegressor': ARDRegression,
                     'BayesianRidgeRegressor': BayesianRidge}
-
-
-def rectangularize_featureset(featureset):
-    """Convert xarray.Dataset into (2d) Pandas.DataFrame for use with sklearn.
-
-    Parameters
-    ----------
-    featureset : xarray.Dataset
-        The xarray.Dataset object containing features.
-
-    Returns
-    -------
-    Pandas.DataFrame
-        2-D, sklearn-compatible Dataframe containing features.
-
-    """
-    featureset = featureset.drop([coord for coord in featureset.coords
-                                  if coord not in ['name', 'channel']])
-    feature_df = featureset.to_dataframe()
-    if 'channel' in featureset:
-        feature_df = feature_df.unstack(level='channel')
-        if len(featureset.channel) == 1:
-            feature_df.columns = [pair[0] for pair in feature_df.columns]
-        else:
-            feature_df.columns = ['_'.join([str(el) for el in pair])
-                                  for pair in feature_df.columns]
-    # sort columns by name for consistent ordering
-    feature_df = feature_df[sorted(feature_df.columns)]
-    return feature_df.loc[featureset.name]  # preserve original row ordering
 
 
 def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
@@ -132,7 +103,7 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
             model = MODELS_TYPE_DICT[model_type](**model_parameters)
         else:
             raise ValueError("If model is None, model_type must be specified")
-    feature_df = rectangularize_featureset(featureset)
+    feature_df = featureset.to_dataframe()
     try:
         if params_to_optimize:
             model = fit_model_optimize_hyperparams(feature_df, featureset['target'],
@@ -168,5 +139,8 @@ def score_model(model, featureset, sample_weight=None):
     float
         Normalized training score.
     """
-    feature_df = rectangularize_featureset(featureset)
-    return model.score(feature_df, featureset['target'], sample_weight)
+    feature_df = featureset.to_dataframe()
+    if isinstance(model, GridSearchCV):
+        return model.best_estimator_.score(feature_df, featureset['target'], sample_weight)
+    else:
+        return model.score(feature_df, featureset['target'], sample_weight)
