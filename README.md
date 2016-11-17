@@ -1,30 +1,25 @@
-# Machine Learning Time-series Platform
-
+# `cesium`: Open-Source Platform for Time Series Inference
 [![Join the chat at https://gitter.im/cesium-ml/cesium](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cesium-ml/cesium?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/cesium-ml/cesium.svg?branch=master)](https://travis-ci.org/cesium-ml/cesium)
 
 ## Summary
-Cesium allows for the application of machine learning methods to time-series data by doing three things:
+`cesium` is an open source library that allows users to:
+- extract features from raw time series data ([see list](http://cesium.ml/docs/feature_table.html)),
+- build machine learning models from these features, and
+- generate predictions for new data.
 
-1. Extracting features from time-series data (i.e. turning time-series into feature sets)
-2. Building models on the basis of these features. The model-building capabilities of Cesium are drawn from [scikit-learn](www.github.com/scikit-learn/scikit-learn).
-3. Using these models for prediction. 
+The `cesium` library also powers computations within the [`cesium` web interface](https://github.com/cesium-ml/cesium_web), 
+which allows similar time series analyses to be performed entirely within the browser.
 
-Here's an [example](http://cesium.ml/docs/examples/EEG_Example_output.html).
-
-This package is distinct from [Cesium Web](www.github.com/cesium-ml/cesium_web), which is a front-end web application that allows people to do all three of the above through a web browser by running computations through Cesium. 
+More information and [examples](http://cesium.ml/docs/auto_examples/index.html) can be found on our [home page](http://cesium.ml).
 
 ## Installation from binaries:
-- `pip install cesium`
+- Wheels for Mac and Linux can be installed via `pip install cesium`.
 
 ## Installation from source:
-
 1. Install [Cython](http://cython.readthedocs.io/en/latest/src/quickstart/install.html)
-2. Clone the repository `git clone https://github.com/cesium-ml/cesium.git`
-3. Enter the newly cloned repository.
-4. Run `pip install -e .`
+2. Clone the repository: `git clone https://github.com/cesium-ml/cesium.git`
+3. `cd cesium && pip install -e .`
 
 ## License:
-
-Cesium uses the 3-clause BSD licence. The full license may be found in LICENSE.txt.
-
+`cesium` uses the 3-clause BSD licence. The full license may be found in LICENSE.txt.
