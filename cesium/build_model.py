@@ -74,12 +74,12 @@ def fit_model_optimize_hyperparams(data, targets, model, params_to_optimize,
 
     Returns
     -------
-    `sklearn.model_selection.GridSearchCV` estimator object
+    `sklearn.model_selection.GridSearchCV.best_estimator_` estimator object
 
     """
     optimized_model = GridSearchCV(model, params_to_optimize, cv=cv)
     optimized_model.fit(data, targets)
-    return optimized_model
+    return optimized_model.best_estimator_
 
 
 def build_model_from_featureset(featureset, model=None, model_type=None,
