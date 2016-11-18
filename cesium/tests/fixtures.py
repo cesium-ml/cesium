@@ -40,7 +40,7 @@ def sample_ts_files(size, targets=[None]):
 
 
 def sample_featureset(size, n_channels=1, features=[], targets=None,
-                      labels=None):
+                      labels=None, meta_features=[]):
     ts_names = np.arange(size).astype('str')
     feat_dict = {f: (['channel', 'name'], [np.random.random(size)
                                            for i in range(n_channels)])
@@ -52,5 +52,7 @@ def sample_featureset(size, n_channels=1, features=[], targets=None,
         fset.coords['target'] = ('name', ts_targets)
     if labels:
         fset.name.values = labels
+    for feat in meta_features:
+        fset[feat] = ('name', np.random.random(size))
 
     return Featureset(fset)

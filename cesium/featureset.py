@@ -54,7 +54,7 @@ class Featureset(xr.Dataset):
         if strategy == 'constant':
             if value is None:
                 # If no fill-in value is provided, use a large negative value
-                abs_values = np.abs(np.array([v.values for v in
+                abs_values = np.abs(np.array([v.values.ravel() for v in
                                               self.data_vars.values()]))
                 value = -2. * abs_values.max()
             return masked.fillna(value)

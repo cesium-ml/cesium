@@ -20,7 +20,7 @@ def test_repr():
 def test_impute():
     """Test imputation of missing Featureset values."""
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
-                             labels=['a', 'b', 'c'])
+                             labels=['a', 'b', 'c'], meta_features=['meta1'])
 
     imputed = fset.impute()
     npt.assert_allclose(fset.amplitude.values, imputed.amplitude.values)
