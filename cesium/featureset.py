@@ -52,10 +52,11 @@ class Featureset(xr.Dataset):
         """
         masked = Featureset(self.where(abs(self) < np.inf))
         if strategy == 'constant':
-            if value == None:
+            if value is None:
                 # If no fill-in value is provided, use a large negative value
-                max_by_var = abs(masked).max()
-                value = -2. * np.array([v.values for v in max_by_var.values()]).max()
+                abs_values = np.abs(np.array([v.values for v in
+                                              self.data_vars.values()]))
+                value = -2. * abs_values.max()
             return masked.fillna(value)
         elif strategy in ('mean', 'median', 'most_frequent'):
             imputer = Imputer(strategy=strategy, axis=1)
