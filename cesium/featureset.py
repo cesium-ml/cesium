@@ -3,7 +3,13 @@ from sklearn.preprocessing import Imputer
 import xarray as xr
 
 
-__all__ = ['Featureset']
+__all__ = ['Featureset', 'from_netcdf']
+
+
+def from_netcdf(netcdf_path, engine='netcdf4'):
+    """Load serialized Featureset from netCDF file."""
+    dset = xr.open_dataset(netcdf_path, engine=engine).load()
+    return Featureset(dset)
 
 
 class Featureset(xr.Dataset):
@@ -44,7 +50,7 @@ class Featureset(xr.Dataset):
         cesium.Featureset
             Featureset wth no missing/infinite values.
         """
-        masked = self.where(abs(self) < np.inf)
+        masked = Featureset(self.where(abs(self) < np.inf))
         if strategy == 'constant':
             if value == None:
                 # If no fill-in value is provided, use a large negative value

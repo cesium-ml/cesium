@@ -183,7 +183,7 @@ print(fset_dwt)
 from cesium.build_model import build_model_from_featureset
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 train, test = train_test_split(np.arange(len(eeg["classes"])), random_state=0)
 
