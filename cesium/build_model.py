@@ -6,6 +6,7 @@ try:
     from sklearn.model_selection import GridSearchCV
 except:
     from sklearn.grid_search import GridSearchCV
+from cesium.featureset import Featureset
 
 
 __all__ = ['MODELS_TYPE_DICT', 'fit_model_optimize_hyperparams',
@@ -60,7 +61,7 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
 
     Parameters
     ----------
-    featureset : xarray.Dataset of features
+    featureset : Featureset or xarray.Dataset of features
         Features for training model.
     model : scikit-learn model, optional
         Instantiated scikit-learn model. If None, `model_type` must not be.
@@ -95,6 +96,7 @@ def build_model_from_featureset(featureset, model=None, model_type=None,
         The fitted sklearn model.
 
     """
+    featureset = Featureset(featureset)  # cast if it's still an xr.Dataset
     if featureset.get('target') is None:
         raise ValueError("Cannot build model for unlabeled feature set.")
 

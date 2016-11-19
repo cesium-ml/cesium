@@ -30,6 +30,11 @@ def test_impute():
     fset.amplitude.values[0, 1] = np.nan
     values = fset.amplitude.values[0, 2:]
 
+    imputed = fset.impute(strategy='constant', value=None)
+    npt.assert_allclose(-2 * np.nanmax(np.abs(fset.amplitude.values)),
+                        imputed.amplitude.values[0, 0:2])
+    assert isinstance(imputed, Featureset)
+
     imputed = fset.impute(strategy='constant', value=-1e4)
     npt.assert_allclose(-1e4, imputed.amplitude.values[0, 0:2])
     assert isinstance(imputed, Featureset)
