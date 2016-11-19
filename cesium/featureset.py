@@ -55,7 +55,7 @@ class Featureset(xr.Dataset):
             if value is None:
                 # If no fill-in value is provided, use a large negative value
                 abs_values = np.abs(np.array([v.values.ravel() for v in
-                                              self.data_vars.values()]))
+                                              masked.data_vars.values()]))
                 value = -2. * np.nanmax(abs_values)
             return masked.fillna(value)
         elif strategy in ('mean', 'median', 'most_frequent'):
