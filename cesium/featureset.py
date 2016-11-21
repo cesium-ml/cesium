@@ -103,15 +103,16 @@ class Featureset(xr.Dataset):
           return data for those time series with `name`s present in `key`.
         - Otherwise, fall back on standard `xarray.Dataset` indexing.
         """
+        dset = xr.Dataset(self)
         # Convert names to list to suppress warning when using `in`
         # cf. https://github.com/numpy/numpy/issues/6784
-        names = list(self._construct_dataarray('name').values)
+        names = list(np.atleast_1d(dset.name.values))
         if (isinstance(key, (slice, int))
             or (hasattr(key, '__iter__') and all(isinstance(el, int)
                                                  for el in key))):
-            return xr.Dataset.isel(self, name=key)
+            return dset.isel(name=key)
         elif ((hasattr(key, '__iter__') and all(el in names for el in key)) or
               key in names):
-            return xr.Dataset.sel(self, name=key)
+            return dset.sel(name=key)
         else:
-            return xr.Dataset.__getitem__(self, key)
+            return dset.__getitem__(key)
