@@ -1,7 +1,4 @@
-try:
-    from sklearn.model_selection import GridSearchCV
-except:
-    from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import GridSearchCV
 import os
 import numpy as np
 import pandas as pd
