@@ -53,8 +53,6 @@ addons:
     - fontconfig
     - libfreetype6-dev
     - libxft-dev
-    - libhdf5-serial-dev
-    - libnetcdf-dev
 
 env:
   global:
