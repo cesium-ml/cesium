@@ -15,4 +15,4 @@ How to make a new release of ``cesium``
 
    python setup.py sdist upload
 
-- Go to https://travis-ci.org/cesium-ml/wheel_builder and build a wheel for the new version
+- Update the version in `wheel_builder/.travis.yml` and go to https://travis-ci.org/cesium-ml/wheel_builder and build a new wheel
