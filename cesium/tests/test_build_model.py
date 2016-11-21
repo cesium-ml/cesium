@@ -1,8 +1,5 @@
 import numpy as np
-try:
-    from sklearn.model_selection import GridSearchCV
-except:
-    from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge

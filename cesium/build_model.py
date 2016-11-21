@@ -2,10 +2,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, SGDClassifier,\
     RidgeClassifierCV, ARDRegression, BayesianRidge
-try:
-    from sklearn.model_selection import GridSearchCV
-except:
-    from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from cesium.featureset import Featureset
 
 
