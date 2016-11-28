@@ -62,22 +62,24 @@ def test_find_children():
     npt.assert_array_equal(second_successors, true_second)
 
 
+def test_find_children_null():
+    G = nx.DiGraph()
+    dmat = np.array([[]])
+    successors = dtw.find_children(0, 0, dmat)
+    npt.assert_array_equal([], successors)
+
+
 def test_extend_digraph():
+    # TODO: find a way to test all the individual edges. counter needs to be changed
+    # somehow to allow for reliable access of nodes.
     G = nx.DiGraph()
     dmat = np.array([[0, 1, 8, 2, 2, 4, 8],
                      [-1, 0, 7, 1, 1, 3, 7],
                      [-7, -6, 1, -5, -5, -3, 1],
                      [-5, -4, 3, -3, -3, -1, 3],
                      [-7, -6, 1, -5, -5, -3, 1]])
-    pass
-
-
-def test_extend_digraph2():
-    G = nx.DiGraph()
-    dmat = np.array([[0, 1, 8, 2, 2, 4, 8],
-                     [-1, 0, 7, 1, 1, 3, 7],
-                     [-7, -6, 1, -5, -5, -3, 1],
-                     [-5, -4, 3, -3, -3, -1, 3],
-                     [-7, -6, 1, -5, -5, -3, 1]])
-
-    pass
+    G.add_node('source', value=0, index=(0, 0))
+    dtw.extend_digraph(G, dmat, 0, 0, dtw.linkcost, 0)
+    print(G.nodes(data=True))
+    npt.assert_equal(len(G.edges()), 6)
+    npt.assert_equal(len(G.nodes()), 7)

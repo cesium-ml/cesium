@@ -6,12 +6,10 @@ import numpy as np
 
 """
 TODO:
+2) labeling nodes in a consistent fashion.
 3) implement shortest distance - use in built networkx method. [DONE]
 4) write tests
 """
-
-# global variable that is used to name nodes.
-counter = 0
 
 
 def _defaultdist(x, y):
@@ -69,34 +67,44 @@ def construct_graph(D, cost=linkcost):
     row, col = D.shape
     diff = col - row
     graphList = [nx.DiGraph() for i in range(diff)]
-    sourceList = D[0, :diff]
-    sourceDict = {}
+    # sourceList = D[0, :diff]
+    # sourceDict = {}
     # add sources and their locations within the distance matrix to a
-    # dictionary.
-    for source in sourceList:
-        sourceDict[source] = (0, D[0, :].index(source))
-
-    for i in range(len(graphList)):
-        graphList[i].add_node('source', value=sourceList[i])
+    # # dictionary.
+    # for source in sourceList:
+    #     sourceDict[source] = (0, D[0, :].index(source))
+    # # adding sources to the graphs
+    # for i in range(len(graphList)):
+    #     graphList[i].add_node('source', value=sourceList[
+    #                           i], index=sourceDict[sourceList[i]])
 
     # NOTE: if using node-by-node extension, then this needs to change.
     # processing matrix row by row, and extending the graph each time.
     for graph in graphList:
-        graphIndex = graphList.index(graph)
-        for i in range(len(row)):
+        counter = 0
+        for i in range(1, len(row)):
+            for j in range(i, len(col)):
+                extend_digraph(graph, D, i, j, cost, counter)
+                counter += 1
+    return graphList
 
 
-def extend_digraph(G, D, i, j, cost):
+def extend_digraph(G, D, i, j, cost, counter):
     """ extends digraph node-by-node rather than row-by-row. i,j are the indices of the node that
     is the subject of the extension."""
-    children_indices = find_children(i, j)
-    prev = counter
-    G.add_node(current, value=D[i, j])
+    children_indices = find_children(i, j, D)
+    if counter == 0:
+        prev = 'source'
+    else:
+        prev = counter
+    G.add_node(prev, value=D[i, j], index=(i, j))
     counter += 1
+    if not children_indices:
+        return G
     for child in children_indices:
         k, l = child
         current = counter
-        G.add_node(current, value=D[k, l])
+        G.add_node(current, value=D[k, l], index=(k, l))
         G.add_edge(prev, current, weight=cost(D[i, j], D[k, l]))
         counter += 1
 
@@ -105,6 +113,8 @@ def find_children(i, j, D):
     """finds the indices of valid successors"""
     row, col = D.shape
     # not reached boundaries of the distance matrix
+    if D is None:
+        return []
     if i + 1 < row and j + 1 < col:
         return [(i + 1, k) for k in range(j + 1, col)]
     else:
