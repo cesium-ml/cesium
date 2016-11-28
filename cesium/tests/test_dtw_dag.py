@@ -41,7 +41,9 @@ def test_computation():
 
 
 def test_graph_construction():
-    pass
+    # construct each graph individually, append them all into a list
+    # hash them and check that outputs are exactly the same if graphs do not
+    # implement comparable.
 
 
 def test_find_children():
@@ -80,6 +82,7 @@ def test_extend_digraph():
                      [-7, -6, 1, -5, -5, -3, 1]])
     G.add_node('source', value=0, index=(0, 0))
     dtw.extend_digraph(G, dmat, 0, 0, dtw.linkcost, 0)
-    print(G.nodes(data=True))
+    print(G.edges(data=True))
+    # npt.assert_equal(1, 0)
     npt.assert_equal(len(G.edges()), 6)
     npt.assert_equal(len(G.nodes()), 7)

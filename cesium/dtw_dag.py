@@ -6,7 +6,7 @@ import numpy as np
 
 """
 TODO:
-2) labeling nodes in a consistent fashion.
+2) labeling nodes in a consistent fashion. [DONE]
 3) implement shortest distance - use in built networkx method. [DONE]
 4) write tests
 """
@@ -78,8 +78,6 @@ def construct_graph(D, cost=linkcost):
     #     graphList[i].add_node('source', value=sourceList[
     #                           i], index=sourceDict[sourceList[i]])
 
-    # NOTE: if using node-by-node extension, then this needs to change.
-    # processing matrix row by row, and extending the graph each time.
     for graph in graphList:
         counter = 0
         for i in range(1, len(row)):
