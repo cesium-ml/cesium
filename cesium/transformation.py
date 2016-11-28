@@ -3,11 +3,7 @@ import numpy as np
 from six import string_types
 from . import data_management
 from . import time_series as tslib
-# TODO remove 'except' for sklearn==0.18.0
-try:
-    from sklearn.model_selection import train_test_split as sklearn_split
-except:
-    from sklearn.cross_validation import train_test_split as sklearn_split
+from sklearn.model_selection import train_test_split as sklearn_split
 
 
 __all__ = ['transform_ts_files', 'train_test_split']

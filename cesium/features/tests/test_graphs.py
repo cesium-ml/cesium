@@ -8,7 +8,7 @@ from cesium.features.tests.util import generate_features
 
 
 # Fixed set of features w/ known values
-SCIENCE_FEATS = graphs.GENERAL_FEATS + graphs.LOMB_SCARGLE_FEATS 
+SCIENCE_FEATS = graphs.GENERAL_FEATS + graphs.LOMB_SCARGLE_FEATS
 
 
 def test_feature_generation():

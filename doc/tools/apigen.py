@@ -104,7 +104,7 @@ class ApiDocWriter(object):
             if obj_str not in mod.__dict__:
                 continue
             obj = mod.__dict__[obj_str]
-            if (hasattr(obj, '__module__') 
+            if (hasattr(obj, '__module__')
                 and self.package_name not in obj.__module__):
                 continue
 

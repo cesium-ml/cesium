@@ -48,9 +48,8 @@ def test_model_classification():
 
 
 def test_model_regression():
-    """Test model prediction function: classification"""
-    fset = sample_featureset(10, 1, ['amplitude'], ['class1', 'class2'])
-    fset.target.values = np.random.random(len(fset.target.values))
+    """Test model prediction function: regression"""
+    fset = sample_featureset(10, 1, ['amplitude'], [0.1, 0.5])
     model = build_model.build_model_from_featureset(fset,
                                                     model_type='RandomForestRegressor')
     preds = predict.model_predictions(fset, model)

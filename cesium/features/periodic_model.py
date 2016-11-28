@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import optimize
 
-        
+
 # TODO what is this exactly?
 def periodic_model(lomb_model):
     """

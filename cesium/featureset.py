@@ -3,7 +3,13 @@ from sklearn.preprocessing import Imputer
 import xarray as xr
 
 
-__all__ = ['Featureset']
+__all__ = ['Featureset', 'from_netcdf']
+
+
+def from_netcdf(netcdf_path, engine='netcdf4'):
+    """Load serialized Featureset from netCDF file."""
+    dset = xr.open_dataset(netcdf_path, engine=engine).load()
+    return Featureset(dset)
 
 
 class Featureset(xr.Dataset):
@@ -44,12 +50,13 @@ class Featureset(xr.Dataset):
         cesium.Featureset
             Featureset wth no missing/infinite values.
         """
-        masked = self.where(abs(self) < np.inf)
+        masked = Featureset(self.where(abs(self) < np.inf))
         if strategy == 'constant':
-            if value == None:
+            if value is None:
                 # If no fill-in value is provided, use a large negative value
-                max_by_var = abs(masked).max()
-                value = -2. * np.array([v.values for v in max_by_var.values()]).max()
+                abs_values = np.abs(np.array([v.values.ravel() for v in
+                                              masked.data_vars.values()]))
+                value = -2. * np.nanmax(abs_values)
             return masked.fillna(value)
         elif strategy in ('mean', 'median', 'most_frequent'):
             imputer = Imputer(strategy=strategy, axis=1)
@@ -59,6 +66,30 @@ class Featureset(xr.Dataset):
         else:
             raise NotImplementedError("Imputation strategy '{}' not"
                                       "recognized.".format(strategy))
+
+    def to_dataframe(self):
+        """Convert underlying xarray.Dataset into (2d) Pandas.DataFrame for use
+        with sklearn.
+
+        Returns
+        -------
+        Pandas.DataFrame
+            2-D, sklearn-compatible Dataframe containing features.
+
+        """
+        fset = self.drop([coord for coord in self.coords
+                          if coord not in ['name', 'channel']])
+        feature_df = xr.Dataset.to_dataframe(fset)
+        if 'channel' in fset:
+            feature_df = feature_df.unstack(level='channel')
+            if len(fset.channel) == 1:
+                feature_df.columns = [pair[0] for pair in feature_df.columns]
+            else:
+                feature_df.columns = ['_'.join([str(el) for el in pair])
+                                      for pair in feature_df.columns]
+        # sort columns by name for consistent ordering
+        feature_df = feature_df[sorted(feature_df.columns)]
+        return feature_df.loc[fset.name]  # preserve original row ordering
 
     def __getitem__(self, key):
         """Overloads indexing of `xarray.Dataset` to handle special cases for
@@ -72,15 +103,16 @@ class Featureset(xr.Dataset):
           return data for those time series with `name`s present in `key`.
         - Otherwise, fall back on standard `xarray.Dataset` indexing.
         """
+        dset = xr.Dataset(self)
         # Convert names to list to suppress warning when using `in`
         # cf. https://github.com/numpy/numpy/issues/6784
-        names = list(self._construct_dataarray('name').values)
+        names = list(np.atleast_1d(dset.name.values))
         if (isinstance(key, (slice, int))
             or (hasattr(key, '__iter__') and all(isinstance(el, int)
                                                  for el in key))):
-            return xr.Dataset.isel(self, name=key)
+            return dset.isel(name=key)
         elif ((hasattr(key, '__iter__') and all(el in names for el in key)) or
               key in names):
-            return xr.Dataset.sel(self, name=key)
+            return dset.sel(name=key)
         else:
-            return xr.Dataset.__getitem__(self, key)
+            return dset.__getitem__(key)

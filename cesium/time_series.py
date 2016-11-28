@@ -118,14 +118,14 @@ def from_netcdf(netcdf_path):
 
 class TimeSeries(object):
     """Class representing a single time series of measurements and metadata.
-    
+
     A `TimeSeries` object encapsulates a single set of time-domain
     measurements, along with any metadata describing the observation.
     Typically the observations will consist of times, measurements, and
     (optionally) measurement errors. The measurements can be scalar- or
-    vector-valued (i.e., "multichannel"); for multichannel measurements, the 
+    vector-valued (i.e., "multichannel"); for multichannel measurements, the
     times and errors can also be vector-valued, or they can be shared across
-    all channels of measurement. 
+    all channels of measurement.
 
     Attributes
     ----------
@@ -152,7 +152,7 @@ class TimeSeries(object):
         Dictionary of feature names/values specified independently of the
         featurization process in `featurize`.
     name : str or None
-        Identifying name/label for the given time series (if applicable). 
+        Identifying name/label for the given time series (if applicable).
         Typically the name of the raw data file from which the time series was
         created.
     path : str or None
@@ -209,14 +209,14 @@ class TimeSeries(object):
             else:
                 raise ValueError("Times for each channel must be provided if m"
                                  " is a ragged array.")
-                                 
+
         if _ndim(self.error) == 1 and _ndim(self.measurement) == 2:
             if isinstance(self.measurement, np.ndarray):
                 self.error = np.broadcast_to(self.error, self.measurement.shape)
             else:
                 raise ValueError("Errors for each channel must be provided if m"
                                  " is a ragged array.")
-                                 
+
         if not (_compatible_shapes(self.measurement, self.time) and
                 _compatible_shapes(self.measurement, self.error)):
             raise ValueError("times, values, errors are not of compatible"

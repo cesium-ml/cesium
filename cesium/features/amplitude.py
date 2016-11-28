@@ -6,7 +6,7 @@ def amplitude(x):
     return (np.max(x) - np.min(x)) / 2.0
 
 
-# TODO old comment did not match code; is this the quantity we want to compute? 
+# TODO old comment did not match code; is this the quantity we want to compute?
 def percent_amplitude(x, base=10., exponent=-0.4):
     """Returns the largest distance from the median value, measured
     as a percentage of the median.

@@ -27,7 +27,7 @@ def stetson_j(x, y=[], dx=0.1, dy=0.1):
     x0 = stetson_mean(x, 1./dx**2)
     delta_x = np.sqrt(n / (n - 1.)) * (x - x0) / dx
 
-    if (len(y) > 0): 
+    if (len(y) > 0):
         y0 = stetson_mean(y, 1./dy**2)
         delta_y = np.sqrt(n / (n - 1.)) * (y - y0) / dy
         p_k = delta_x * delta_y

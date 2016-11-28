@@ -5,6 +5,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('features')
     config.add_data_dir('tests')
     config.add_data_dir('tests/data')
+    config.add_data_dir('features/tests/data')
     return config
 
 
