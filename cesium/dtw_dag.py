@@ -6,8 +6,14 @@ import numpy as np
 
 """
 TODO:
-2) labeling nodes in a consistent fashion. [DONE]
-3) implement shortest distance - use in built networkx method. [DONE]
+2) Convert the distance matrix into a matrix of networkx nodes, with labeling specified in some clever way
+    - gets rid of a lot of the problems that are being faced. define [0,:diff] as sources, [m-1, diff:n-1] as sinks, build labels into the matrix so that this can be done easily.
+    - maybe label the nodes as the vertices themselves?
+
+3) implement shortest distance - use in built networkx method.
+    - return both the COST of the shortest path and the path itself.
+        returning path should be easy since nodes have their indices in them
+
 4) write tests
 """
 
@@ -47,6 +53,10 @@ def getDistanceMatrix(x, y, dist=_defaultdist):
 def linkcost(x, y):
     """ Default cost of edges between nodes"""
     return (y**2)
+
+
+def distance_matrix_to_nodes(D):
+    nodeMatrix = np.zeros(shape=(D.shape))
 
 
 def construct_graph(D, cost=linkcost):
@@ -121,4 +131,4 @@ def find_children(i, j, D):
 
 def findShortestPath(G):
     """ checks for the shortest path starting at indices 1...diff and ending at n-m...n"""
-    pass
+    sources =

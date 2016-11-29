@@ -86,3 +86,11 @@ def test_extend_digraph():
     # npt.assert_equal(1, 0)
     npt.assert_equal(len(G.edges()), 6)
     npt.assert_equal(len(G.nodes()), 7)
+
+    G2 = nx.DiGraph()
+    G2.add_node('source'. value=1, index=(0, 1))
+    dtw.extend_digraph(G2, dmat, 0, 1, dtw.linkcost, 0)
+    npt.assert_equal(len(G.edges()), 5)
+    npt.assert_equal(len(G.nodes()), 6)
+
+    # check individual edges
