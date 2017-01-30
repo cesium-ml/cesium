@@ -152,7 +152,7 @@ class TimeSeries(object):
         Dictionary of feature names/values specified independently of the
         featurization process in `featurize`.
     name : str or None
-        Identifying name/label for the given time series (if applicable).
+        Identifying name for the given time series (if applicable).
         Typically the name of the raw data file from which the time series was
         created.
     path : str or None

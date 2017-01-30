@@ -8,8 +8,9 @@ __all__ = ['Featureset', 'from_netcdf']
 
 def from_netcdf(netcdf_path, engine='netcdf4'):
     """Load serialized Featureset from netCDF file."""
-    dset = xr.open_dataset(netcdf_path, engine=engine).load()
-    return Featureset(dset)
+    with xr.open_dataset(netcdf_path, engine=engine) as dset:
+        fset = Featureset(dset.load())
+    return fset
 
 
 class Featureset(xr.Dataset):
@@ -99,7 +100,7 @@ class Featureset(xr.Dataset):
 
         - First, if we pass in indices/slice, return data corresponding to
           `name[key]`.
-        - Next, if we pass in a set of labels that are all present in `name`,
+        - Next, if we pass in a set of names that are all present in `name`,
           return data for those time series with `name`s present in `key`.
         - Otherwise, fall back on standard `xarray.Dataset` indexing.
         """

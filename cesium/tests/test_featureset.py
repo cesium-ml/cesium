@@ -20,7 +20,7 @@ def test_repr():
 def test_impute():
     """Test imputation of missing Featureset values."""
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
-                             labels=['a', 'b', 'c'], meta_features=['meta1'])
+                             names=['a', 'b', 'c'], meta_features=['meta1'])
 
     imputed = fset.impute()
     npt.assert_allclose(fset.amplitude.values, imputed.amplitude.values)
@@ -61,7 +61,7 @@ def test_impute():
 
 def test_indexing():
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
-                             labels=['a', 'b', 'c'])
+                             names=['a', 'b', 'c'])
     """Test indexing overloading (__getattr__)."""
     assert all(fset[0] == fset.isel(name=0))
     assert all(fset[0:2] == fset.isel(name=[0, 1]))
@@ -73,7 +73,7 @@ def test_indexing():
 
 def test_to_dataframe():
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
-                             labels=['a', 'b', 'c'])
+                             names=['a', 'b', 'c'])
     df = fset.to_dataframe()
     npt.assert_allclose(fset['amplitude'].values.ravel(), df['amplitude'])
     assert 'target' not in df
@@ -81,7 +81,7 @@ def test_to_dataframe():
 
 def test_from_netcdf():
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
-                             labels=['a', 'b', 'c'])
+                             names=['a', 'b', 'c'])
     data_dir = tempfile.mkdtemp()
     fset.to_netcdf(pjoin(data_dir, 'test.nc'))
     loaded = featureset.from_netcdf(pjoin(data_dir, 'test.nc'))

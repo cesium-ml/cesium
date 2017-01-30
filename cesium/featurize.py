@@ -148,7 +148,7 @@ def load_and_store_feature_data(features_path, output_path):
 # TODO should this be changed to use TimeSeries objects? or maybe an optional
 # argument for TimeSeries? some redundancy here...
 def featurize_time_series(times, values, errors=None, features_to_use=[],
-                          targets=None, meta_features={}, labels=None,
+                          targets=None, meta_features={}, names=None,
                           custom_script_path=None, custom_functions=None,
                           scheduler=dask.multiprocessing.get):
     """Versatile feature generation function for one or more time series.
@@ -203,8 +203,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         dict/Series (for a single time series) or DataFrame (for multiple time
         series) of metafeature information; features are added to the output
         featureset, and their values are consumable by custom feature scripts.
-    labels : str or list of str, optional
-        Label or list of labels for each time series, if applicable; will be
+    names : str or list of str, optional
+        Name or list of names for each time series, if applicable; will be
         stored in the `name` coordinate of the resulting `xarray.Dataset`.
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
@@ -225,7 +225,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     -------
     xarray.Dataset
         Featureset with `data_vars` containing feature values and `coords`
-        containing labels (`name`) and targets (`target`), if applicable.
+        containing names (`name`) and targets (`target`), if applicable.
     """
     if times is None:
         times = copy.deepcopy(values)
@@ -263,22 +263,22 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     elif isinstance(values, np.ndarray) and values.ndim == 2:
         times, values, errors = [times], [values], [errors]
 
-    if labels is None:
-        labels = np.arange(len(times))
+    if names is None:
+        names = np.arange(len(times))
 
     if targets is None:
         targets = [None] * len(times)
-    targets = pd.Series(targets, index=labels)
+    targets = pd.Series(targets, index=names)
 
     if isinstance(meta_features, pd.Series):
         meta_features = meta_features.to_dict()
-    meta_features = pd.DataFrame(meta_features, index=labels)
+    meta_features = pd.DataFrame(meta_features, index=names)
 
-    all_time_series = [delayed(TimeSeries(t, m, e, target=targets.loc[label],
-                                          meta_features=meta_features.loc[label],
-                                          name=label), pure=True)
-                       for t, m, e, label in zip(times, values, errors,
-                                                 labels)]
+    all_time_series = [delayed(TimeSeries(t, m, e, target=targets.loc[name],
+                                          meta_features=meta_features.loc[name],
+                                          name=name), pure=True)
+                       for t, m, e, name in zip(times, values, errors,
+                                                 names)]
 
     all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
                                                             custom_script_path,
@@ -329,7 +329,7 @@ def featurize_ts_files(ts_paths, features_to_use, output_path=None,
     -------
     xarray.Dataset
         Featureset with `data_vars` containing feature values and `coords`
-        containing labels (`name`) and targets (`target`), if applicable.
+        containing names (`name`) and targets (`target`), if applicable.
     """
     all_time_series = [delayed(time_series.from_netcdf, pure=True)(ts_path)
                        for ts_path in ts_paths]
