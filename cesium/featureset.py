@@ -1,3 +1,4 @@
+import numbers
 import numpy as np
 from sklearn.preprocessing import Imputer
 import xarray as xr
@@ -108,8 +109,8 @@ class Featureset(xr.Dataset):
         # Convert names to list to suppress warning when using `in`
         # cf. https://github.com/numpy/numpy/issues/6784
         names = list(np.atleast_1d(dset.name.values))
-        if (isinstance(key, (slice, int))
-            or (hasattr(key, '__iter__') and all(isinstance(el, int)
+        if (isinstance(key, (slice, numbers.Integral))
+            or (hasattr(key, '__iter__') and all(isinstance(el, numbers.Integral)
                                                  for el in key))):
             return dset.isel(name=key)
         elif ((hasattr(key, '__iter__') and all(el in names for el in key)) or

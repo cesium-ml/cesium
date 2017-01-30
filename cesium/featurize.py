@@ -268,7 +268,9 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     if targets is None:
         targets = [None] * len(times)
-    targets = pd.Series(targets, index=names)
+
+    targets = pd.Series(targets)
+    targets.index = names  # relabel index, keeping order the same (cf. reindex)
 
     if isinstance(meta_features, pd.Series):
         meta_features = meta_features.to_dict()

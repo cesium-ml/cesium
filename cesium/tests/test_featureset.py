@@ -65,6 +65,8 @@ def test_indexing():
     """Test indexing overloading (__getattr__)."""
     assert all(fset[0] == fset.isel(name=0))
     assert all(fset[0:2] == fset.isel(name=[0, 1]))
+    assert all(fset[[0, 2]] == fset.isel(name=[0, 2]))
+    assert all(fset[np.array([0, 2])] == fset.isel(name=[0, 2]))
     assert all(fset['a'] == fset.sel(name='a'))
     assert all(fset[['a', 'b']] == fset.sel(name=['a', 'b']))
     npt.assert_allclose(fset['amplitude'].values.ravel(),
