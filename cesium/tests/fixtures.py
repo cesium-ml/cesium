@@ -46,7 +46,8 @@ def sample_featureset(size, n_channels=1, features=[], targets=None,
                                            for i in range(n_channels)])
                  for f in features}
     fset = xr.Dataset(feat_dict)
-    fset.coords['name'] = ('name', ts_names)
+    fset.coords['name'] = ts_names
+    fset.coords['channel'] = range(n_channels)
     if targets:
         ts_targets = np.array(list(islice(cycle(targets), size)))
         fset.coords['target'] = ('name', ts_targets)

@@ -50,19 +50,19 @@ class Featureset(xr.Dataset):
         cesium.Featureset
             Featureset wth no missing/infinite values.
         """
-        masked = Featureset(self.where(abs(self) < np.inf))
+        masked = self.where(abs(self) < np.inf)
         if strategy == 'constant':
             if value is None:
                 # If no fill-in value is provided, use a large negative value
                 abs_values = np.abs(np.array([v.values.ravel() for v in
                                               masked.data_vars.values()]))
                 value = -2. * np.nanmax(abs_values)
-            return masked.fillna(value)
+            return Featureset(masked.fillna(value))
         elif strategy in ('mean', 'median', 'most_frequent'):
             imputer = Imputer(strategy=strategy, axis=1)
             for var, values in masked.data_vars.items():
                 values[:] = imputer.fit_transform(values)
-            return masked
+            return Featureset(masked)
         else:
             raise NotImplementedError("Imputation strategy '{}' not"
                                       "recognized.".format(strategy))

@@ -104,7 +104,13 @@ def assemble_featureset(feature_dicts, time_series=None, targets=None,
         Featureset with `data_vars` containing feature values, and `coords`
         containing names and targets (if applicable).
     """
-    feature_names = feature_dicts[0].keys() if len(feature_dicts) > 0 else []
+    if len(feature_dicts) > 0:
+        n_channels = max(len(f) for f in feature_dicts[0].values())
+        feature_names = feature_dicts[0].keys()
+    else:
+        n_channels = 0
+        feature_names = []
+
     combined_feature_dict = {feature: (['name', 'channel'],
                                        [d[feature] for d in feature_dicts])
                              for feature in feature_names}
@@ -125,6 +131,7 @@ def assemble_featureset(feature_dicts, time_series=None, targets=None,
         featureset.coords['name'] = ('name', np.array(names))
     if targets is not None and any(targets):
         featureset.coords['target'] = ('name', np.array(targets))
+    featureset.coords['channel'] = ('channel', range(n_channels))
     return Featureset(featureset)
 
 
