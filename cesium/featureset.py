@@ -1,3 +1,4 @@
+import numbers
 import numpy as np
 from sklearn.preprocessing import Imputer
 import xarray as xr
@@ -8,8 +9,9 @@ __all__ = ['Featureset', 'from_netcdf']
 
 def from_netcdf(netcdf_path, engine='netcdf4'):
     """Load serialized Featureset from netCDF file."""
-    dset = xr.open_dataset(netcdf_path, engine=engine).load()
-    return Featureset(dset)
+    with xr.open_dataset(netcdf_path, engine=engine) as dset:
+        fset = Featureset(dset.load())
+    return fset
 
 
 class Featureset(xr.Dataset):
@@ -99,7 +101,7 @@ class Featureset(xr.Dataset):
 
         - First, if we pass in indices/slice, return data corresponding to
           `name[key]`.
-        - Next, if we pass in a set of labels that are all present in `name`,
+        - Next, if we pass in a set of names that are all present in `name`,
           return data for those time series with `name`s present in `key`.
         - Otherwise, fall back on standard `xarray.Dataset` indexing.
         """
@@ -107,8 +109,8 @@ class Featureset(xr.Dataset):
         # Convert names to list to suppress warning when using `in`
         # cf. https://github.com/numpy/numpy/issues/6784
         names = list(np.atleast_1d(dset.name.values))
-        if (isinstance(key, (slice, int))
-            or (hasattr(key, '__iter__') and all(isinstance(el, int)
+        if (isinstance(key, (slice, numbers.Integral))
+            or (hasattr(key, '__iter__') and all(isinstance(el, numbers.Integral)
                                                  for el in key))):
             return dset.isel(name=key)
         elif ((hasattr(key, '__iter__') and all(el in names for el in key)) or
