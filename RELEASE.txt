@@ -15,4 +15,12 @@ How to make a new release of ``cesium``
 
    python setup.py sdist upload
 
-- Update the version in `wheel_builder/.travis.yml` and go to https://travis-ci.org/cesium-ml/wheel_builder and build a new wheel
+- Update the version in `wheel_builder/.travis.yml` to build new wheels
+
+- Download wheels from wheels.scipy.org:
+
+CESIUM=0.8.0
+wget -r --no-parent -A "cesium-$CESIUM*whl" http://wheels.scipy.org
+for WHEEL in `ls wheels.scipy.org`; do
+  twine upload wheels.scipy.org/$WHEEL
+done
