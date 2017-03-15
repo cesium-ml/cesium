@@ -234,7 +234,7 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     out_dict['chi2'] = (chi0 - psd[j]) * s0
     out_dict['psd'] = psd[j] * 0.5 / varcn
     out_dict['lambda'] = lambda0 * s0
-    out_dict['gcv_weight'] = (1 - 3. / ntime) / Tr
+#    out_dict['gcv_weight'] = (1 - 3. / ntime) / Tr
     out_dict['trace'] = Tr
     out_dict['nu0'] = ntime - npar
     npars = (1 - Tr) * ntime / 2.
