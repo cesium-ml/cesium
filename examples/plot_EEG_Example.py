@@ -58,7 +58,7 @@ for label, subplot in zip(np.unique(eeg["classes"]), ax):
 # schedulers as the ``get`` argument to ``featurize_time_series``.
 #
 # .. |cesium.featurize| replace:: ``cesium.featurize``
-# .. _cesium.featurize: http://cesium.ml/docs/api/cesium.featurize.html
+# .. _cesium.featurize: http://cesium-ml.org/docs/api/cesium.featurize.html
 
 from cesium import featurize
 features_to_use = ['amplitude',
@@ -94,7 +94,7 @@ print(fset_cesium)
 # `dask graph <http://dask.pydata.org/en/latest/custom-graphs.html>`_. Functions should take
 # three arrays ``times, measurements, errors`` as inputs; details can be found in the
 # ``cesium.featurize``
-# `documentation <http://cesium.ml/docs/api/cesium.featurize.html>`_.
+# `documentation <http://cesium-ml.org/docs/api/cesium.featurize.html>`_.
 # Here we'll compute five standard features for EEG analysis provided by
 # `Guo et al. (2012) <http://linkinghub.elsevier.com/retrieve/pii/S0957417411003253)>`_:
 

@@ -5,14 +5,14 @@
 
 ## Summary
 `cesium` is an open source library that allows users to:
-- extract features from raw time series data ([see list](http://cesium.ml/docs/feature_table.html)),
+- extract features from raw time series data ([see list](http://cesium-ml.org/docs/feature_table.html)),
 - build machine learning models from these features, and
 - generate predictions for new data.
 
 The `cesium` library also powers computations within the [`cesium` web interface](https://github.com/cesium-ml/cesium_web), 
 which allows similar time series analyses to be performed entirely within the browser.
 
-More information and [examples](http://cesium.ml/docs/auto_examples/index.html) can be found on our [home page](http://cesium.ml).
+More information and [examples](http://cesium-ml.org/docs/auto_examples/index.html) can be found on our [home page](http://cesium-ml.org).
 
 ## Installation from binaries:
 - Wheels for Mac and Linux can be installed via `pip install cesium`.
