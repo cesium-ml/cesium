@@ -71,6 +71,7 @@ def test_indexing():
     assert all(fset[['a', 'b']] == fset.sel(name=['a', 'b']))
     npt.assert_allclose(fset['amplitude'].values.ravel(),
                         fset.data_vars['amplitude'].values.ravel())
+    assert isinstance(fset[[0, 2]], Featureset)
 
 
 def test_to_dataframe():

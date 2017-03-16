@@ -63,7 +63,7 @@ class Featureset(xr.Dataset):
         elif strategy in ('mean', 'median', 'most_frequent'):
             imputer = Imputer(strategy=strategy, axis=1)
             for var, values in masked.data_vars.items():
-                values[:] = imputer.fit_transform(values)
+                values[:] = imputer.fit_transform(np.atleast_2d(values))
             return Featureset(masked)
         else:
             raise NotImplementedError("Imputation strategy '{}' not"
@@ -112,9 +112,9 @@ class Featureset(xr.Dataset):
         if (isinstance(key, (slice, numbers.Integral))
             or (hasattr(key, '__iter__') and all(isinstance(el, numbers.Integral)
                                                  for el in key))):
-            return dset.isel(name=key)
+            return Featureset(dset.isel(name=key))
         elif ((hasattr(key, '__iter__') and all(el in names for el in key)) or
               key in names):
-            return dset.sel(name=key)
+            return Featureset(dset.sel(name=key))
         else:
             return dset.__getitem__(key)
