@@ -82,7 +82,7 @@ class Featureset(xr.Dataset):
         fset = self.drop([coord for coord in self.coords
                           if coord not in ['name', 'channel']])
         feature_df = xr.Dataset.to_dataframe(fset)
-        if 'channel' in fset:
+        if 'channel' in fset.dims:
             feature_df = feature_df.unstack(level='channel')
             if len(fset.channel) == 1:
                 feature_df.columns = [pair[0] for pair in feature_df.columns]
@@ -91,7 +91,7 @@ class Featureset(xr.Dataset):
                                       for pair in feature_df.columns]
         # sort columns by name for consistent ordering
         feature_df = feature_df[sorted(feature_df.columns)]
-        return feature_df.loc[fset.name]  # preserve original row ordering
+        return feature_df.loc[list(fset.name.values)]  # preserve original row ordering
 
     def __getitem__(self, key):
         """Overloads indexing of `xarray.Dataset` to handle special cases for
