@@ -1,4 +1,3 @@
-from nose.tools import with_setup
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
@@ -12,11 +11,11 @@ from cesium import util
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 
 
-def setup(module):
+def setup_module(module):
     module.TEMP_DIR = tempfile.mkdtemp()
 
 
-def teardown(module):
+def teardown_module(module):
     shutil.rmtree(module.TEMP_DIR)
 
 

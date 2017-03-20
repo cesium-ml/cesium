@@ -1,6 +1,5 @@
 import os
 from os.path import join as pjoin
-from nose.tools import with_setup
 import numpy as np
 import numpy.testing as npt
 from cesium.time_series import TimeSeries

@@ -13,15 +13,15 @@ from cesium import util
 from cesium.tests.fixtures import sample_featureset
 
 
-def setup(module):
+def setup_module(module):
     module.TEMP_DIR = tempfile.mkdtemp()
 
 
-def teardown(module):
+def teardown_module(module):
     shutil.rmtree(module.TEMP_DIR)
 
 
-def remove_output():
+def teardown_function():
     fnames = ["test.pkl"]
     for fname in fnames:
         try:
@@ -57,7 +57,6 @@ def test_model_regression():
     assert(preds.prediction.values.dtype == np.dtype('float'))
 
 
-@with_setup(teardown=remove_output)
 def test_predict_optimized_model():
     """Test main predict function (classification) w/ optimized model"""
     fset = sample_featureset(10, 1, ['amplitude'], ['class1', 'class2'])

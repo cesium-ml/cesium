@@ -1,4 +1,3 @@
-from nose.tools import with_setup
 import os
 import numpy.testing as npt
 import numpy as np
@@ -10,7 +9,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
 TEST_TS_PATH = os.path.join(DATA_PATH, "test.nc")
 
 
-def teardown():
+def teardown_function():
     try:
         os.remove(TEST_TS_PATH)
     except OSError:
@@ -154,7 +153,6 @@ def test_channels_iterator():
         npt.assert_allclose(e_i, e[i])
 
 
-@with_setup(teardown=teardown)
 def test_time_series_netCDF():
     n_channels = 3
     t, m, e = sample_time_series(channels=n_channels)

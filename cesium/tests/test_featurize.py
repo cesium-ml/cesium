@@ -1,4 +1,3 @@
-from nose.tools import with_setup
 import numpy.testing as npt
 import os
 from os.path import join as pjoin
@@ -17,15 +16,15 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 
 
-def setup(module):
+def setup_module(module):
     module.TEMP_DIR = tempfile.mkdtemp()
 
 
-def teardown(module):
+def teardown_module(module):
     shutil.rmtree(module.TEMP_DIR)
 
 
-def remove_output():
+def teardown_function():
     for f in ['output_featureset.nc']:
         try:
             os.remove(pjoin(TEMP_DIR, f))
@@ -33,7 +32,6 @@ def remove_output():
             pass
 
 
-@with_setup(teardown=remove_output)
 def test_already_featurized_data():
     """Test featurize function for pre-featurized data"""
     fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
@@ -50,7 +48,6 @@ def test_already_featurized_data():
                    for class_name in loaded['target']))
 
 
-@with_setup(teardown=remove_output)
 def test_featurize_files_function():
     """Test featurize function for on-disk time series"""
     fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
@@ -64,7 +61,6 @@ def test_featurize_files_function():
                for class_name in fset['target'].values))
 
 
-@with_setup(teardown=remove_output)
 def test_featurize_files_function_regression_data():
     """Test featurize function for on-disk time series - regression data"""
     fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
