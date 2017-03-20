@@ -13,7 +13,7 @@ clean:
 	find . -name "*.so" | xargs rm -f
 
 test:
-	nosetests -v cesium
+	PYTHONPATH=. pytest -v cesium
 
 install:
 	pip install -r requirements.txt
