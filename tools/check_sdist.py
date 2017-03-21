@@ -19,7 +19,7 @@ data = ['./' + l.split(' ->')[0] for l in data]
 
 ignore_exts = ['.pyc', '.so', '.o', '#', '~']
 ignore_dirs = ['./dist', './tools', './doc']
-ignore_files = ['./TODO.md', './README.md', './.drone.yml',
+ignore_files = ['./TODO.md', './README.md',
                 './run_script_in_container.py', './.gitignore',
                 './.travis.yml']
 
