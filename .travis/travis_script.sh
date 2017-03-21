@@ -8,9 +8,11 @@ source ~/envs/cesium/bin/activate
 section "Tests"
 
 if [[ $COVERAGE==1 ]]; then
-    NOSE_FLAGS='--with-coverage'
+    # NOSE_FLAGS='--with-coverage'
 fi
-nosetests -v --exe $NOSE_FLAGS
+#nosetests -v --exe $NOSE_FLAGS
+# Need to add code coverage
+PYTHONPATH=. pytest -v cesium
 
 section_end "Tests"
 
