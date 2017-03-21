@@ -19,7 +19,7 @@ retry () {
 
 section () {
     echo -en "travis_fold:start:$1\r"
-    .drone/header.py $1
+    .travis/header.py $1
 }
 
 section_end () {
