@@ -1,6 +1,5 @@
 import os
 from os.path import join as pjoin
-import tempfile
 import numpy as np
 import numpy.testing as npt
 import scipy.stats
@@ -82,12 +81,11 @@ def test_to_dataframe():
     assert 'target' not in df
 
 
-def test_from_netcdf():
+def test_from_netcdf(tmpdir):
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
                              names=['a', 'b', 'c'])
-    data_dir = tempfile.mkdtemp()
-    fset.to_netcdf(pjoin(data_dir, 'test.nc'))
-    loaded = featureset.from_netcdf(pjoin(data_dir, 'test.nc'))
+    fset.to_netcdf(pjoin(str(tmpdir), 'test.nc'))
+    loaded = featureset.from_netcdf(pjoin(str(tmpdir), 'test.nc'))
     assert isinstance(loaded, Featureset)
     assert set(fset.data_vars) == set(loaded.data_vars)
     assert set(fset.coords) == set(loaded.coords)

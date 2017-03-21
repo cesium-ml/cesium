@@ -2,7 +2,6 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
-import tempfile
 import numpy as np
 import xarray as xr
 from dask.async import get_sync
@@ -16,25 +15,9 @@ DATA_PATH = pjoin(os.path.dirname(__file__), "data")
 FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 
 
-def setup_module(module):
-    module.TEMP_DIR = tempfile.mkdtemp()
-
-
-def teardown_module(module):
-    shutil.rmtree(module.TEMP_DIR)
-
-
-def teardown_function():
-    for f in ['output_featureset.nc']:
-        try:
-            os.remove(pjoin(TEMP_DIR, f))
-        except OSError:
-            pass
-
-
-def test_already_featurized_data():
+def test_already_featurized_data(tmpdir):
     """Test featurize function for pre-featurized data"""
-    fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
+    fset_path = pjoin(str(tmpdir), 'output_featureset.nc')
     fset = featurize.load_and_store_feature_data(FEATURES_CSV_PATH,
                                                  output_path=fset_path)
     assert("std_err" in fset)
@@ -48,9 +31,9 @@ def test_already_featurized_data():
                    for class_name in loaded['target']))
 
 
-def test_featurize_files_function():
+def test_featurize_files_function(tmpdir):
     """Test featurize function for on-disk time series"""
-    fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
+    fset_path = pjoin(str(tmpdir), 'output_featureset.nc')
     with sample_ts_files(size=4, targets=['class1', 'class2']) as ts_paths:
         fset = featurize.featurize_ts_files(ts_paths,
                                             features_to_use=["std_err"],
@@ -61,9 +44,9 @@ def test_featurize_files_function():
                for class_name in fset['target'].values))
 
 
-def test_featurize_files_function_regression_data():
+def test_featurize_files_function_regression_data(tmpdir):
     """Test featurize function for on-disk time series - regression data"""
-    fset_path = pjoin(TEMP_DIR, 'output_featureset.nc')
+    fset_path = pjoin(str(tmpdir), 'output_featureset.nc')
     with sample_ts_files(size=4, targets=[1.0, 2.0]) as ts_paths:
         fset = featurize.featurize_ts_files(ts_paths,
                                             features_to_use=["std_err"],

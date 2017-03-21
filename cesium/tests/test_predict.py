@@ -1,7 +1,6 @@
 import os
 from os.path import join as pjoin
 import shutil
-import tempfile
 import numpy as np
 import sklearn.base
 import xarray as xr
@@ -10,23 +9,6 @@ from cesium import predict
 from cesium import build_model
 from cesium import util
 from cesium.tests.fixtures import sample_featureset
-
-
-def setup_module(module):
-    module.TEMP_DIR = tempfile.mkdtemp()
-
-
-def teardown_module(module):
-    shutil.rmtree(module.TEMP_DIR)
-
-
-def teardown_function():
-    fnames = ["test.pkl"]
-    for fname in fnames:
-        try:
-            os.remove(pjoin(TEMP_DIR, fname))
-        except OSError:
-            pass
 
 
 def test_model_classification():

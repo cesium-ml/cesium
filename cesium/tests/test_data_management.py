@@ -2,21 +2,12 @@ import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
-import tempfile
 import numpy as np
 from cesium import data_management
 from cesium import util
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
-
-
-def setup_module(module):
-    module.TEMP_DIR = tempfile.mkdtemp()
-
-
-def teardown_module(module):
-    shutil.rmtree(module.TEMP_DIR)
 
 
 def test_parse_ts_data():
@@ -36,11 +27,11 @@ def test_parse_headerfile():
     npt.assert_almost_equal(metadata.loc["224635"].meta1, 0.330610932539)
 
 
-def test_parsing_and_saving():
+def test_parsing_and_saving(tmpdir):
     data_file_path = pjoin(DATA_PATH, "215153_215176_218272_218934.tar.gz")
     header_path = pjoin(DATA_PATH, "215153_215176_218272_218934_metadata.dat")
     time_series = data_management.parse_and_store_ts_data(
-        data_file_path, TEMP_DIR, header_path, cleanup_archive=False,
+        data_file_path, str(tmpdir), header_path, cleanup_archive=False,
         cleanup_header=False)
     for ts in time_series:
         assert isinstance(ts, str)
