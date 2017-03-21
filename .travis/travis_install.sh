@@ -12,7 +12,7 @@ section_end "create.virtualenv"
 section "install.base.requirements"
 pip install --upgrade pip
 hash -d pip  # find upgraded pip
-pip install --retries 3 -q requests six python-dateutil pytest \
+pip install --retries 3 -q requests six python-dateutil pytest pytest-cov \
                            mock coverage
 section_end "install.base.requirements"
 
