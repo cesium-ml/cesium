@@ -1,4 +1,3 @@
-from nose.tools import with_setup
 import os
 from os.path import join as pjoin
 import shutil
