@@ -10,7 +10,6 @@
 .#*
 *.swp
 **/.DS_STORE
-.noseids
 rethinkdb_data
 cesium.egg-info
 !cesium/tests/data

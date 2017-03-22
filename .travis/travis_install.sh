@@ -12,7 +12,7 @@ section_end "create.virtualenv"
 section "install.base.requirements"
 pip install --upgrade pip
 hash -d pip  # find upgraded pip
-pip install --retries 3 -q requests six python-dateutil nose nose-exclude \
+pip install --retries 3 -q requests six python-dateutil pytest pytest-cov \
                            mock coverage
 section_end "install.base.requirements"
 
@@ -32,4 +32,3 @@ section_end "build.cython.extensions"
 section "configure.cesium"
 pip install -e .
 section_end "configure.cesium"
-

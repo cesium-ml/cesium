@@ -1,8 +1,6 @@
-from nose.tools import with_setup
 import os
 from os.path import join as pjoin
 import shutil
-import tempfile
 import numpy as np
 import sklearn.base
 import xarray as xr
@@ -11,23 +9,6 @@ from cesium import predict
 from cesium import build_model
 from cesium import util
 from cesium.tests.fixtures import sample_featureset
-
-
-def setup(module):
-    module.TEMP_DIR = tempfile.mkdtemp()
-
-
-def teardown(module):
-    shutil.rmtree(module.TEMP_DIR)
-
-
-def remove_output():
-    fnames = ["test.pkl"]
-    for fname in fnames:
-        try:
-            os.remove(pjoin(TEMP_DIR, fname))
-        except OSError:
-            pass
 
 
 def test_model_classification():
@@ -57,7 +38,6 @@ def test_model_regression():
     assert(preds.prediction.values.dtype == np.dtype('float'))
 
 
-@with_setup(teardown=remove_output)
 def test_predict_optimized_model():
     """Test main predict function (classification) w/ optimized model"""
     fset = sample_featureset(10, 1, ['amplitude'], ['class1', 'class2'])

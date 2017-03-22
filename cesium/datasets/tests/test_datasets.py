@@ -1,6 +1,5 @@
 import os
 import shutil
-import tempfile
 import tarfile
 from zipfile import ZipFile
 
@@ -63,12 +62,11 @@ def _mock_andrzejak_url(*args):
 
 
 @urlpatch(_mock_andrzejak_url)
-def test_fetch_andrzejak(self):
+def test_fetch_andrzejak(self, tmpdir):
     """Test EEG data download."""
     num_files = len(andrzejak.ZIP_FILES)
-    data_dir = tempfile.mkdtemp()
     andrzejak.MD5SUMS = None
-    data = andrzejak.fetch_andrzejak(data_dir)
+    data = andrzejak.fetch_andrzejak(str(tmpdir))
     assert(data['archive'].endswith('andrzejak.tar.gz')
            and os.path.exists(data['archive']))
     header = pd.read_csv(data['header'])
@@ -78,7 +76,6 @@ def test_fetch_andrzejak(self):
     assert(len(data['times']) == num_files)
     assert(len(data['classes']) == num_files)
     assert(all(c in ['Z', 'N', 'O', 'S', 'F'] for c in data['classes']))
-    shutil.rmtree(data_dir)
 
 
 def _mock_asas_training_url(*args):
@@ -86,12 +83,11 @@ def _mock_asas_training_url(*args):
 
 
 @urlpatch(_mock_asas_training_url)
-def test_fetch_asas_training(self):
+def test_fetch_asas_training(self, tmpdir):
     """Test ASAS training data download."""
     num_files = 1
-    data_dir = tempfile.mkdtemp()
     asas_training.MD5SUMS = None
-    data = asas_training.fetch_asas_training(data_dir)
+    data = asas_training.fetch_asas_training(str(tmpdir))
     assert(data['archive'].endswith('asas_training_set.tar.gz')
            and os.path.exists(data['archive']))
     header = pd.read_csv(data['header'])
@@ -103,4 +99,3 @@ def test_fetch_asas_training(self):
     assert(len(data['classes']) == num_files)
     assert(len(data['metadata']) == num_files)
     assert(all(c in ['a'] for c in data['classes']))
-    shutil.rmtree(data_dir)

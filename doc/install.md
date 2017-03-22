@@ -19,6 +19,5 @@ The `cesium` library runs on Python 2 and 3.
 
 ## Testing
 
-- `pip install nose nose-exclude mock`
+- `pip install pytest pytest-cov mock`
 - `make test`
-
