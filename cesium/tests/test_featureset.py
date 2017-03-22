@@ -9,13 +9,6 @@ from cesium.featureset import Featureset
 from cesium.tests.fixtures import sample_featureset
 
 
-def test_repr():
-    """Testing Featureset printing."""
-    fset = sample_featureset(10, 3, ['amplitude', 'maximum', 'minimum'],
-                             ['class1', 'class2'])
-    repr(fset)
-
-
 def test_impute():
     """Test imputation of missing Featureset values."""
     fset = sample_featureset(3, 1, ['amplitude'], ['class1', 'class2'],
