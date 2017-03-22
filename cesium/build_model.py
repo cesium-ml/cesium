@@ -11,7 +11,11 @@ __all__ = ['MODELS_TYPE_DICT', 'fit_model_optimize_hyperparams',
 
 
 MODELS_TYPE_DICT = {'RandomForestClassifier': RandomForestClassifier,
+                    'RandomForestClassifier (fast)': RandomForestClassifier,
+                    'RandomForestClassifier (comprehensive)': RandomForestClassifier,
                     'RandomForestRegressor': RandomForestRegressor,
+                    'RandomForestRegressor (fast)': RandomForestRegressor,
+                    'RandomForestRegressor (comprehensive)': RandomForestRegressor,
                     'LinearSGDClassifier': SGDClassifier,
                     'LinearRegressor': LinearRegression,
                     'RidgeClassifierCV': RidgeClassifierCV,
