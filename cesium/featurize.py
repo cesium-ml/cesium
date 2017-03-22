@@ -1,22 +1,18 @@
 import copy
-import os
 from collections import Iterable
 import numpy as np
 import pandas as pd
-import xarray as xr
 import dask.async
 import dask.multiprocessing
 from dask import delayed
+from sklearn.preprocessing import Imputer
 
-from . import data_management
 from . import time_series
-from . import util
-from .featureset import Featureset
 from .time_series import TimeSeries
 from .features import generate_dask_graph
 
-__all__ = ['load_and_store_feature_data', 'featurize_time_series',
-           'featurize_single_ts', 'assemble_featureset']
+__all__ = ['featurize_time_series', 'featurize_single_ts',
+           'assemble_featureset']
 
 
 def featurize_single_ts(ts, features_to_use, custom_script_path=None,
@@ -45,9 +41,9 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         Dictionary with feature names as keys, lists of feature values (one per
         channel) as values.
     """
+    # TODO what happens if features_to_use has duplicate entries?
     # Initialize empty feature array for all channels
-    all_feature_lists = {feature: [0.] * ts.n_channels
-                         for feature in features_to_use}
+    feature_values = np.empty((len(features_to_use), ts.n_channels))
     for (t_i, m_i, e_i), i in zip(ts.channels(), range(ts.n_channels)):
         feature_graph = generate_dask_graph(t_i, m_i, e_i)
         feature_graph.update(ts.meta_features)
@@ -61,94 +57,61 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
             else:
                 feature_graph.update(custom_functions)
 
-        # Do not execute in parallel; parallelization has already taken place at
-        # the level of time series, so we compute features for a single time series
-        # in serial.
-        values = dask.async.get_sync(feature_graph, features_to_use)
+        # Do not execute in parallel; parallelization has already taken place
+        # at the level of time series, so we compute features for a single time
+        # series in serial.
+        feature_values[:, i] = dask.async.get_sync(feature_graph, features_to_use)
 
-        # We set values in this order so that custom features take priority
-        # over cesium features in the case of name conflicts
-        for feature, value in zip(features_to_use, values):
-            all_feature_lists[feature][i] = value
-
-    return all_feature_lists
+    index = pd.MultiIndex.from_product((features_to_use, range(ts.n_channels)),
+                                       names=('feature', 'channel'))
+    return pd.Series(feature_values.ravel(), index=index)
 
 
-def assemble_featureset(feature_dicts, time_series=None, targets=None,
-                        meta_feature_dicts=None, names=None):
+def assemble_featureset(features_list, time_series=None,
+                        meta_features_list=None, names=None):
     """Transforms raw feature data (as returned by `featurize_single_ts`) into
-    an xarray.Dataset.
+    a pd.DataFrame.
 
     Parameters
     ----------
-    feature_dicts : list of dict
-        List of dicts (one per time series file) with feature names as keys and
-        lists of feature values (one per channel) as values.
+    features_list : list of pd.Series
+        List of series (one per time series file) with (feature name, channel)
+        multiindex.
     time_series : list of TimeSeries
-        If provided, the target, name, and metafeatures from the time series
-        objects will be used, overriding the `targets`, `meta_feature_dicts`,
-        and `names` values.
-    targets : list or pandas.Series, optional
-        If provided, the `target` coordinate of the featureset xarray.Dataset
-        will be set accordingly.
-    meta_feature_dicts : list of dict
-        If provided, the columns of `metadata` will be added as data variables
-        to the featureset xarray.Dataset.
+        If provided, the name and metafeatures from the time series objects
+        will be used, overriding the `meta_features_list`,and `names` values.
+    meta_features_list : list of dict
+        If provided, the columns of `metadata` will be added to the featureset.
     names : list of str
-        If provided, the `name` coordinate of the featureset xarray.Dataset
-        will be set accordingly.
+        If provided, the (row) index of the featureset will be set accordingly.
 
     Returns
     -------
-    xarray.Dataset
-        Featureset with `data_vars` containing feature values, and `coords`
-        containing names and targets (if applicable).
+    pd.DataFrame
+        DataFrame with columns containing feature values, indexed by name.
     """
-    if len(feature_dicts) > 0:
-        n_channels = max(len(f) for f in feature_dicts[0].values())
-        feature_names = feature_dicts[0].keys()
-    else:
-        n_channels = 0
-        feature_names = []
-
-    combined_feature_dict = {feature: (['name', 'channel'],
-                                       [d[feature] for d in feature_dicts])
-                             for feature in feature_names}
-
     if time_series is not None:
-        targets, meta_feature_dicts, names = zip(*[(ts.target,
-                                                    ts.meta_features, ts.name)
-                                                   for ts in time_series])
+        meta_features_list, names = zip(*[(ts.meta_features, ts.name)
+                                          for ts in time_series])
+    if len(features_list) > 0:
+        feat_df = pd.concat(features_list, axis=1, ignore_index=True).T
+        feat_df.index = names
+    else:
+        feat_df = pd.DataFrame(index=names)
 
+    if meta_features_list and any(meta_features_list):  # not all empty dicts
+        meta_df = pd.DataFrame(list(meta_features_list), index=names)
+        meta_df.columns = pd.MultiIndex.from_tuples([(c, '') for c in meta_df],
+                                                    names=['feature', 'channel'])
+        feat_df = pd.concat((feat_df, meta_df), axis=1)
 
-    if meta_feature_dicts is not None:
-        meta_feature_names = meta_feature_dicts[0].keys()
-        combined_feature_dict.update({feature: (['name'], [d[feature] for d in
-                                                           meta_feature_dicts])
-                                      for feature in meta_feature_names})
-    featureset = xr.Dataset(combined_feature_dict)
-    if names is not None:
-        featureset.coords['name'] = ('name', np.array(names))
-    if targets is not None and any(targets):
-        featureset.coords['target'] = ('name', np.array(targets))
-    featureset.coords['channel'] = ('channel', range(n_channels))
-    return Featureset(featureset)
-
-
-def load_and_store_feature_data(features_path, output_path):
-    """Read features from CSV file and save as an xarray.Dataset."""
-    targets, meta_features = data_management.parse_headerfile(features_path)
-    meta_feature_dicts = meta_features.to_dict(orient='record')
-    featureset = assemble_featureset([], targets=targets,
-                                     meta_feature_dicts=meta_feature_dicts)
-    featureset.to_netcdf(output_path)
-    return Featureset(featureset)
+    return feat_df
 
 
 # TODO should this be changed to use TimeSeries objects? or maybe an optional
 # argument for TimeSeries? some redundancy here...
 def featurize_time_series(times, values, errors=None, features_to_use=[],
-                          targets=None, meta_features={}, names=None,
+                          meta_features={}, names=None,
                           custom_script_path=None, custom_functions=None,
                           scheduler=dask.multiprocessing.get):
     """Versatile feature generation function for one or more time series.
@@ -172,8 +135,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
       multichannel data with different time values per channel)
 
     In the case of multichannel measurements, each channel will be
-    featurized separately, and the data variables of the output
-    `xarray.Dataset` will be indexed by a `channel` coordinate.
+    featurized separately, and the index of the output featureset will contain
+    a `channel` coordinate.
 
     Parameters
     ----------
@@ -195,17 +158,13 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty list, which
         will result in only meta_features features being stored.
-    targets : str/float or array-like, optional
-        Target or sequence of targets, one per time series (if applicable);
-        will be stored in the `target` coordinate of the resulting
-        `xarray.Dataset`.
     meta_features : dict/Pandas.Series or list of dicts/Pandas.DataFrame
         dict/Series (for a single time series) or DataFrame (for multiple time
         series) of metafeature information; features are added to the output
         featureset, and their values are consumable by custom feature scripts.
     names : str or list of str, optional
         Name or list of names for each time series, if applicable; will be
-        stored in the `name` coordinate of the resulting `xarray.Dataset`.
+        stored in the (row) index of the featureset.
     custom_script_path : str, optional
         Path to Python script containing function definitions for the
         generation of any custom features. Defaults to None.
@@ -223,9 +182,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     Returns
     -------
-    xarray.Dataset
-        Featureset with `data_vars` containing feature values and `coords`
-        containing names (`name`) and targets (`target`), if applicable.
+    pd.DataFrame
+        DataFrame with columns containing feature values, indexed by name.
     """
     if times is None:
         times = copy.deepcopy(values)
@@ -266,21 +224,14 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     if names is None:
         names = np.arange(len(times))
 
-    if targets is None:
-        targets = [None] * len(times)
-
-    targets = pd.Series(targets)
-    targets.index = names  # relabel index, keeping order the same (cf. reindex)
-
     if isinstance(meta_features, pd.Series):
         meta_features = meta_features.to_dict()
     meta_features = pd.DataFrame(meta_features, index=names)
 
-    all_time_series = [delayed(TimeSeries(t, m, e, target=targets.loc[name],
+    all_time_series = [delayed(TimeSeries(t, m, e,
                                           meta_features=meta_features.loc[name],
                                           name=name), pure=True)
-                       for t, m, e, name in zip(times, values, errors,
-                                                 names)]
+                       for t, m, e, name in zip(times, values, errors, names)]
 
     all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
                                                             custom_script_path,
@@ -290,8 +241,8 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     return result.compute(get=scheduler)
 
 
-def featurize_ts_files(ts_paths, features_to_use, output_path=None,
-                       custom_script_path=None, custom_functions=None,
+def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
+                       custom_functions=None,
                        scheduler=dask.multiprocessing.get):
     """Feature generation function for on-disk time series (NetCDF) files.
 
@@ -301,14 +252,14 @@ def featurize_ts_files(ts_paths, features_to_use, output_path=None,
     or `dask.distributed.Executor.get` for distributed computation.
 
     In the case of multichannel measurements, each channel will be
-    featurized separately, and the data variables of the output
-    `xarray.Dataset` will be indexed by a `channel` coordinate.
+    featurized separately, and the index of the output featureset will contain
+    a `channel` coordinate.
 
     Parameters
     ----------
     ts_paths : list of str
-        List of paths to time series data, stored in NetCDF format. See
-        `time_series.from_netcdf` for details.
+        List of paths to time series data, stored in `numpy` .npz format.
+        See `time_series.load` for details.
     features_to_use : list of str, optional
         List of feature names to be generated. Defaults to an empty list, which
         will result in only meta_features features being stored.
@@ -329,11 +280,10 @@ def featurize_ts_files(ts_paths, features_to_use, output_path=None,
 
     Returns
     -------
-    xarray.Dataset
-        Featureset with `data_vars` containing feature values and `coords`
-        containing names (`name`) and targets (`target`), if applicable.
+    pd.DataFrame
+        DataFrame with columns containing feature values, indexed by name.
     """
-    all_time_series = [delayed(time_series.from_netcdf, pure=True)(ts_path)
+    all_time_series = [delayed(time_series.load, pure=True)(ts_path)
                        for ts_path in ts_paths]
     all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
                                                             custom_script_path,
@@ -341,7 +291,110 @@ def featurize_ts_files(ts_paths, features_to_use, output_path=None,
                     for ts in all_time_series]
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     fset = result.compute(get=scheduler)
-    if output_path:
-        fset.to_netcdf(output_path)
 
     return fset
+
+
+def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
+                      inplace=False):
+    """Replace NaN/Inf values with imputed values as defined by `strategy`.
+    Output should satisfy `sklearn.validation.assert_all_finite` so that
+    training a model will not produce an error.
+
+    Parameters
+    ----------
+    strategy : str, optional
+    The imputation strategy. Defaults to 'constant'.
+
+        - 'constant': replace all missing with `value`
+        - 'mean': replace all missing with mean along `axis`
+        - 'median': replace all missing with median along `axis`
+        - 'most_frequent': replace all missing with mode along `axis`
+
+    value : float or None, optional
+        Replacement value to use for `strategy='constant'`. Defaults to
+        `None`, in which case a very large negative value is used (a
+        good choice for e.g. random forests).
+
+    max_value : float, optional
+        Maximum (absolute) value above which values are treated as infinite.
+        Used to prevent overflow when fitting `sklearn` models.
+
+    Returns
+    -------
+    pd.DataFrame
+        Feature data frame wth no missing/infinite values.
+    """
+    if not inplace:
+        fset = fset.copy()
+    fset.values[np.isnan(fset)] = np.inf  # avoid NaN comparison warnings
+    fset.values[np.abs(fset) > max_value] = np.nan
+    if strategy == 'constant':
+        if value is None:
+            # If no fill-in value is provided, use a large negative value
+            value = -2. * np.nanmax(np.abs(fset.values))
+        fset.fillna(value, inplace=True)
+    elif strategy in ('mean', 'median', 'most_frequent'):
+        imputer = Imputer(strategy=strategy, axis=0)
+        fset.values[:] = imputer.fit_transform(fset.values)
+    else:
+        raise NotImplementedError("Imputation strategy '{}' not"
+                                  "recognized.".format(strategy))
+    return fset
+
+
+def save_featureset(fset, path, targets=[], preds=[], pred_probs=[]):
+    """Save feature DataFrame in .npz format.
+
+    Can optionally store targets/class labels and predictions, if provided.
+
+    Parameters
+    ----------
+    fset : pd.DataFrame
+        Feature dataframe to be saved.
+    path : str
+        Path to store feature data.
+    targets : list or array-like of str or float, optional
+        Class labels or regression targets, if applicable
+    preds : list or (N,) array of str or float, optional
+        Predicted class labels or targets, if applicable
+    pred_probs : (N, K) array of float, optional
+        Predicted probabilities for each class, if applicable.
+    """
+    features, channels = zip(*fset.columns)
+    np.savez(path, values=fset.values, index=fset.index.values.astype(str),
+             features=features, channels=channels, targets=targets,
+             preds=preds, pred_probs=pred_probs)
+
+
+def load_featureset(path):
+    """Load feature DataFrame from .npz file.
+
+    Targets/class labels and predictions will also be returned, if they were
+    passed to `save_featureset` (otherwise the corresponding lists will be
+    empty).
+
+    Parameters
+    ----------
+    path : str
+        Path where feature data is stored.
+
+    Returns
+    -------
+    fset : pd.DataFrame
+        Feature dataframe to be saved.
+    targets : list or array-like of str or float, optional
+        Class labels or regression targets, if applicable
+    preds : list or (N,) array of str or float, optional
+        Predicted class labels or targets, if applicable
+    pred_probs : (N, K) array of float, optional
+        Predicted probabilities for each class, if applicable.
+    """
+    with np.load(path, allow_pickle=False) as data:
+        features = data['features']
+        channels = [int(c) if len(c) > 0 else '' for c in data['channels']]
+        columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
+                                            names=['feature', 'channel'])
+        fset = pd.DataFrame(data['values'], index=data['index'],
+                            columns=columns)
+    return fset, data['targets'], data['preds'], data['pred_probs']

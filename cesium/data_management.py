@@ -117,7 +117,7 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
         Path to an individual time series file or tarball of multiple time
         series files to be used for feature generation.
     output_dir : str
-        Directory in which time series netCDF files will be saved.
+        Directory in which time series files will be saved.
     header_path : str, optional
         Path to header file containing file names, target names, and
         meta_features.
@@ -130,7 +130,7 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
 
     Returns
     -------
-    List of paths to netCDF files
+    List of paths to time series files
     """
     with util.extract_time_series(data_path, cleanup_archive=cleanup_archive,
                                   cleanup_files=True) as ts_paths:
@@ -147,11 +147,11 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
             t, m, e = parse_ts_data(ts_path)
             ts_target = targets.loc[fname]
             ts_meta_features = meta_features.loc[fname]
-            ts_path = '{}.nc'.format(fname)
+            ts_path = '{}.npz'.format(fname)
             ts_path = os.path.join(output_dir, ts_path)
             ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname,
                             ts_path)
-            ts.to_netcdf(ts_path)
+            ts.save(ts_path)
             all_time_series.append(ts_path)
 
     if header_path and cleanup_header:

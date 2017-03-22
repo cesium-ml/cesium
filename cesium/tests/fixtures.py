@@ -5,9 +5,8 @@ from contextlib import contextmanager
 from itertools import cycle, islice
 from os.path import join as pjoin
 import numpy as np
-import xarray as xr
+import pandas as pd
 
-from cesium.featureset import Featureset
 from cesium.time_series import TimeSeries
 
 
@@ -29,9 +28,9 @@ def sample_ts_files(size, targets=[None]):
     for target in islice(cycle(targets), size):
         t, m, e = sample_values()
         name = str(uuid.uuid4())
-        path = pjoin(temp_dir, '{}.nc'.format(name))
+        path = pjoin(temp_dir, '{}.npz'.format(name))
         ts = TimeSeries(t, m, e, target=target, path=path, name=name)
-        ts.to_netcdf(path)
+        ts.to_npz(path)
         paths.append(path)
 
     yield paths
@@ -39,21 +38,18 @@ def sample_ts_files(size, targets=[None]):
     shutil.rmtree(temp_dir)
 
 
-def sample_featureset(size, n_channels=1, features=[], targets=None,
+def sample_featureset(size, n_channels=1, features=['mean'], targets=None,
                       names=None, meta_features=[]):
     ts_names = np.arange(size).astype('str')
-    feat_dict = {f: (['channel', 'name'], [np.random.random(size)
-                                           for i in range(n_channels)])
-                 for f in features}
-    fset = xr.Dataset(feat_dict)
-    fset.coords['name'] = ts_names
-    fset.coords['channel'] = range(n_channels)
+    index = pd.MultiIndex.from_tuples([(f, i) for f in features for i in range(n_channels)],
+                                      names=['feature', 'channel'])
+    fset = pd.DataFrame(np.random.random((size, len(features) * n_channels)),
+                        columns=index)
     if targets:
-        ts_targets = np.array(list(islice(cycle(targets), size)))
-        fset.coords['target'] = ('name', ts_targets)
+        targets = np.array(list(islice(cycle(targets), size)))
     if names:
-        fset.name.values = names 
+        fset.index = names
     for feat in meta_features:
-        fset[feat] = ('name', np.random.random(size))
+        fset[feat] = np.random.random(size)
 
-    return Featureset(fset)
+    return fset, targets

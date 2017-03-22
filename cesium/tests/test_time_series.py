@@ -6,7 +6,7 @@ from cesium.time_series import TimeSeries
 
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-TEST_TS_PATH = os.path.join(DATA_PATH, "test.nc")
+TEST_TS_PATH = os.path.join(DATA_PATH, "test.npz")
 
 
 def teardown_function():
@@ -153,23 +153,23 @@ def test_channels_iterator():
         npt.assert_allclose(e_i, e[i])
 
 
-def test_time_series_netCDF():
+def test_time_series_npz():
     n_channels = 3
     t, m, e = sample_time_series(channels=n_channels)
     ts = TimeSeries(t[0], m[0], e[0])
-    ts.to_netcdf(TEST_TS_PATH)
-    ts_nc = time_series.from_netcdf(TEST_TS_PATH)
-    assert_ts_equal(ts, ts_nc)
+    ts.to_npz(TEST_TS_PATH)
+    ts_loaded = time_series.from_npz(TEST_TS_PATH)
+    assert_ts_equal(ts, ts_loaded)
 
     ts = TimeSeries(t[0], m, e[0])
-    ts.to_netcdf(TEST_TS_PATH)
-    ts_nc = time_series.from_netcdf(TEST_TS_PATH)
-    assert_ts_equal(ts, ts_nc)
+    ts.to_npz(TEST_TS_PATH)
+    ts_loaded = time_series.from_npz(TEST_TS_PATH)
+    assert_ts_equal(ts, ts_loaded)
 
     t = [t[i][0:i+2] for i in range(len(t))]
     m = [m[i][0:i+2] for i in range(len(m))]
     e = [e[i][0:i+2] for i in range(len(e))]
     ts = TimeSeries(t, m, e)
-    ts.to_netcdf(TEST_TS_PATH)
-    ts_nc = time_series.from_netcdf(TEST_TS_PATH)
-    assert_ts_equal(ts, ts_nc)
+    ts.to_npz(TEST_TS_PATH)
+    ts_loaded = time_series.from_npz(TEST_TS_PATH)
+    assert_ts_equal(ts, ts_loaded)

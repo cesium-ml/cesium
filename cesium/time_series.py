@@ -1,12 +1,9 @@
 import copy
 from collections import Iterable
-import netCDF4
 import numpy as np
-import pandas as pd
-import xarray as xr
 
 
-__all__ = ['from_netcdf', 'TimeSeries', 'DEFAULT_MAX_TIME',
+__all__ = ['load', 'TimeSeries', 'DEFAULT_MAX_TIME',
            'DEFAULT_ERROR_VALUE']
 
 
@@ -84,36 +81,27 @@ def _make_array_if_possible(x):
     return x
 
 
-def from_netcdf(netcdf_path):
-    """Load serialized TimeSeries from netCDF file."""
-    with netCDF4.Dataset(netcdf_path) as ds:
-        channels = list(ds.groups)
+def load(ts_path):
+    """Load serialized TimeSeries from .npz file."""
+    with np.load(ts_path) as npz_file:
+        data = dict(npz_file)
 
-        # First channel group stores time series metadata
-        metadata = ds[channels[0]]
-        target = None
-        name = None
-        path = None
-        if hasattr(metadata, 'target'):
-            target = metadata.target
-        if hasattr(metadata, 'ts_name'):
-            name = metadata.ts_name
-        if hasattr(metadata, 'ts_path'):
-            path = metadata.ts_path
-        meta_features = {k: v for k, v in zip(metadata['feature'],
-                                              metadata['meta_features'])}
+    for key in ['time', 'measurement', 'error']:
+        if key not in data:  # combine channel arrays into list
+            n_channels = sum(1 for c in data.keys() if key in c)  # time0, ...
+            data[key] = [data[key + str(i)] for i in range(n_channels)]
 
-        t = []
-        m = []
-        e = []
-        for channel in channels:
-            m.append(ds[channel]['measurement'][:])
-            if 'time' in ds[channel].variables:
-                t.append(ds[channel]['time'][:])
-            if 'error' in ds[channel].variables:
-                e.append(ds[channel]['error'][:])
+    # Convert 0d arrays to single values
+    if 'name' in data:
+        data['name'] = data['name'].item()
+    if 'target' in data:
+        data['target'] = data['target'].item()
 
-    return TimeSeries(t, m, e, target, meta_features, name, path)
+    return TimeSeries(t=data.get('time'), m=data.get('measurement'),
+                      e=data.get('error'),
+                      meta_features=dict(zip(data['meta_feat_names'],
+                                             data['meta_feat_values'])),
+                      name=data.get('name'), target=data.get('target'))
 
 
 class TimeSeries(object):
@@ -214,8 +202,8 @@ class TimeSeries(object):
             if isinstance(self.measurement, np.ndarray):
                 self.error = np.broadcast_to(self.error, self.measurement.shape)
             else:
-                raise ValueError("Errors for each channel must be provided if m"
-                                 " is a ragged array.")
+                raise ValueError("Errors for each channel must be provided if"
+                                 " m is a ragged array.")
 
         if not (_compatible_shapes(self.measurement, self.time) and
                 _compatible_shapes(self.measurement, self.error)):
@@ -239,56 +227,48 @@ class TimeSeries(object):
         m_channels = self.measurement
         e_channels = self.error
         if isinstance(self.time, np.ndarray) and self.time.ndim == 1:
-            t_channels = [self.time] * self.n_channels
-        if (isinstance(self.measurement, np.ndarray)
-            and self.measurement.ndim == 1):
-            m_channels = [self.measurement] * self.n_channels
+            t_channels = np.broadcast_to(self.time,
+                                         (self.n_channels, len(self.time)))
+        if (isinstance(self.measurement, np.ndarray) and
+                self.measurement.ndim == 1):
+            m_channels = np.broadcast_to(self.measurement,
+                                         (self.n_channels, len(self.measurement)))
         if isinstance(self.error, np.ndarray) and self.error.ndim == 1:
-            e_channels = [self.error] * self.n_channels
+            e_channels = np.broadcast_to(self.error,
+                                         (self.n_channels, len(self.error)))
         return zip(t_channels, m_channels, e_channels)
 
-    def to_netcdf(self, path=None):
-        """Store TimeSeries object as a single netCDF.
+    def save(self, path=None):
+        """Store TimeSeries object as a single .npz file.
 
-        Each channel of measurements is stored in a separate HDF5 group; metadata
-        describing the whole time series is stored in the group corresponding to
-        the first channel.
+        Attributes are stored in the following arrays:
+            - time
+            - measurement
+            - error
+            - meta_feat_names
+            - meta_feat_values
+            - name
+            - target
 
-        If `path` is omitted then the `path` attribute from the TimeSeries object
-        is used.
+        If `path` is omitted then the `path` attribute from the TimeSeries
+        object is used.
         """
         if path is None:
             path = self.path
 
-        for (t_i, m_i, e_i), channel in zip(self.channels(),
-                                            range(self.n_channels)):
-            dataset = xr.Dataset({'measurement': (['i'], m_i)})
-            # Store meta_features, name, target in first group only
-            if channel == 0:
-                meta_feat_series = pd.Series(self.meta_features)
-                dataset['meta_features'] = xr.DataArray(meta_feat_series,
-                                                        dims='feature')
-                if self.name:
-                    dataset.attrs['ts_name'] = self.name
-                if self.path:
-                    dataset.attrs['ts_path'] = self.path
-                if self.target:
-                    dataset.attrs['target'] = self.target
-            # If time is a 1d array, only store once (in the first group)
-            if isinstance(self.time, np.ndarray) and self.time.ndim == 1:
-                if channel == 0:
-                    dataset['time'] = (['i'], t_i)
-            # Otherwise time is multi-dimensional; store it for every channel
-            else:
-                dataset['time'] = (['i'], t_i)
-            # Same logic as above for time
-            if isinstance(self.error, np.ndarray) and self.error.ndim == 1:
-                if channel == 0:
-                    dataset['error'] = (['i'], e_i)
-            else:
-                dataset['error'] = (['i'], e_i)
+        data = {'meta_feat_names': list(self.meta_features.keys()),
+                'meta_feat_values': list(self.meta_features.values())}
 
-            # xarray won't append to a netCDF file that doesn't exist yet
-            file_open_mode = 'w' if channel == 0 else 'a'
-            dataset.to_netcdf(path, group=self.channel_names[channel],
-                              engine='netcdf4', mode=file_open_mode)
+        for key in ['time', 'measurement', 'error']:
+            value = getattr(self, key)
+            if isinstance(value, np.ndarray):
+                data[key] = value
+            else:  # list of arrays -> save each channel separately
+                for i, value_i in enumerate(value):
+                    data[key + str(i)] = value_i
+
+        if self.name:
+            data['name'] = self.name
+        if self.target:
+            data['target'] = self.target
+        np.savez(path, **data)

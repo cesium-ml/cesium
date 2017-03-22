@@ -12,12 +12,6 @@ def test_shorten_fname():
     npt.assert_equal(util.shorten_fname("fname"), "fname")
 
 
-def test_make_list():
-    """Test util.make_list"""
-    npt.assert_equal(util.make_list(1), [1])
-    npt.assert_equal(util.make_list([1]), [1])
-
-
 def test_remove_files(tmpdir):
     """Test util.remove_files"""
     # Pass in single path (non-list)
