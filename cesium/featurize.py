@@ -343,10 +343,10 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
     return fset
 
 
-def save_featureset(fset, path, targets=[], preds=[], pred_probs=[]):
+def save_featureset(fset, path, labels=[]):
     """Save feature DataFrame in .npz format.
 
-    Can optionally store targets/class labels and predictions, if provided.
+    Can optionally store class labels/targets, if provided.
 
     Parameters
     ----------
@@ -354,25 +354,19 @@ def save_featureset(fset, path, targets=[], preds=[], pred_probs=[]):
         Feature dataframe to be saved.
     path : str
         Path to store feature data.
-    targets : list or array-like of str or float, optional
-        Class labels or regression targets, if applicable
-    preds : list or (N,) array of str or float, optional
-        Predicted class labels or targets, if applicable
-    pred_probs : (N, K) array of float, optional
-        Predicted probabilities for each class, if applicable.
+    labels : list or array-like of str or float, optional
+        Class labels or regression targets, if applicable.
     """
     features, channels = zip(*fset.columns)
     np.savez(path, values=fset.values, index=fset.index.values.astype(str),
-             features=features, channels=channels, targets=targets,
-             preds=preds, pred_probs=pred_probs)
+             features=features, channels=channels, labels=labels)
 
 
 def load_featureset(path):
     """Load feature DataFrame from .npz file.
 
-    Targets/class labels and predictions will also be returned, if they were
-    passed to `save_featureset` (otherwise the corresponding lists will be
-    empty).
+    Class labels/regression targets will also be returned, if they were passed
+    to `save_featureset` (otherwise the corresponding lists will be empty).
 
     Parameters
     ----------
@@ -383,12 +377,8 @@ def load_featureset(path):
     -------
     fset : pd.DataFrame
         Feature dataframe to be saved.
-    targets : list or array-like of str or float, optional
-        Class labels or regression targets, if applicable
-    preds : list or (N,) array of str or float, optional
-        Predicted class labels or targets, if applicable
-    pred_probs : (N, K) array of float, optional
-        Predicted probabilities for each class, if applicable.
+    labels : list or array-like of str or float, optional
+        Class labels or regression targets, if applicable.
     """
     with np.load(path, allow_pickle=False) as data:
         features = data['features']
@@ -397,4 +387,4 @@ def load_featureset(path):
                                             names=['feature', 'channel'])
         fset = pd.DataFrame(data['values'], index=data['index'],
                             columns=columns)
-    return fset, data['targets'], data['preds'], data['pred_probs']
+        return fset, data['labels']

@@ -169,7 +169,7 @@ def test_featurize_time_series_default_errors():
 
 def test_impute():
     """Test imputation of missing Featureset values."""
-    fset, targets = sample_featureset(5, 1, ['amplitude'], ['class1', 'class2'],
+    fset, labels = sample_featureset(5, 1, ['amplitude'], ['class1', 'class2'],
                                       names=['a', 'b', 'c', 'd', 'e'],
                                       meta_features=['meta1'])
 
@@ -210,15 +210,15 @@ def test_impute():
 def test_roundtrip_featureset(tmpdir):
     fset_path = os.path.join(str(tmpdir), 'test.npz')
     for n_channels in [1, 3]:
-        for targets in [['class1', 'class2'], []]:
-            fset, targets = sample_featureset(3, n_channels, ['amplitude'],
-                                              targets, names=['a', 'b', 'c'],
+        for labels in [['class1', 'class2'], []]:
+            fset, labels = sample_featureset(3, n_channels, ['amplitude'],
+                                              labels, names=['a', 'b', 'c'],
                                               meta_features=['meta1'])
 
-            featurize.save_featureset(fset, fset_path, targets)
-            fset_loaded, targets_loaded = featurize.load_featureset(fset_path)
+            featurize.save_featureset(fset, fset_path, labels)
+            fset_loaded, labels_loaded = featurize.load_featureset(fset_path)
             npt.assert_allclose(fset.values, fset_loaded.values)
             npt.assert_array_equal(fset.index, fset_loaded.index)
             npt.assert_array_equal(fset.columns, fset_loaded.columns)
             assert isinstance(fset_loaded, pd.DataFrame)
-            npt.assert_array_equal(targets, targets_loaded)
+            npt.assert_array_equal(labels, labels_loaded)

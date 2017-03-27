@@ -20,10 +20,10 @@ def test_parse_ts_data():
 
 def test_parse_headerfile():
     """Test header file parsing."""
-    targets, metadata = data_management.parse_headerfile(
+    labels, metadata = data_management.parse_headerfile(
         pjoin(DATA_PATH, "asas_training_subset_classes_with_metadata.dat"))
     npt.assert_array_equal(metadata.keys(), ["meta1", "meta2", "meta3"])
-    npt.assert_equal(targets.loc["217801"], "Mira")
+    npt.assert_equal(labels.loc["217801"], "Mira")
     npt.assert_almost_equal(metadata.loc["224635"].meta1, 0.330610932539)
 
 

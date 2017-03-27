@@ -22,15 +22,15 @@ def sample_values(size=51, channels=1):
 
 
 @contextmanager
-def sample_ts_files(size, targets=[None]):
+def sample_ts_files(size, labels=[None]):
     temp_dir = tempfile.mkdtemp()
     paths = []
-    for target in islice(cycle(targets), size):
+    for label in islice(cycle(labels), size):
         t, m, e = sample_values()
         name = str(uuid.uuid4())
         path = pjoin(temp_dir, '{}.npz'.format(name))
-        ts = TimeSeries(t, m, e, target=target, path=path, name=name)
-        ts.to_npz(path)
+        ts = TimeSeries(t, m, e, label=label, path=path, name=name)
+        ts.save(path)
         paths.append(path)
 
     yield paths
@@ -38,18 +38,18 @@ def sample_ts_files(size, targets=[None]):
     shutil.rmtree(temp_dir)
 
 
-def sample_featureset(size, n_channels=1, features=['mean'], targets=None,
+def sample_featureset(size, n_channels=1, features=['mean'], labels=None,
                       names=None, meta_features=[]):
     ts_names = np.arange(size).astype('str')
     index = pd.MultiIndex.from_tuples([(f, i) for f in features for i in range(n_channels)],
                                       names=['feature', 'channel'])
     fset = pd.DataFrame(np.random.random((size, len(features) * n_channels)),
                         columns=index)
-    if targets:
-        targets = np.array(list(islice(cycle(targets), size)))
+    if labels:
+        labels = np.array(list(islice(cycle(labels), size)))
     if names:
         fset.index = names
     for feat in meta_features:
         fset[feat] = np.random.random(size)
 
-    return fset, targets
+    return fset, labels

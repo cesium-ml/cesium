@@ -94,14 +94,14 @@ def load(ts_path):
     # Convert 0d arrays to single values
     if 'name' in data:
         data['name'] = data['name'].item()
-    if 'target' in data:
-        data['target'] = data['target'].item()
+    if 'label' in data:
+        data['label'] = data['label'].item()
 
     return TimeSeries(t=data.get('time'), m=data.get('measurement'),
                       e=data.get('error'),
                       meta_features=dict(zip(data['meta_feat_names'],
                                              data['meta_feat_values'])),
-                      name=data.get('name'), target=data.get('target'))
+                      name=data.get('name'), label=data.get('label'))
 
 
 class TimeSeries(object):
@@ -134,8 +134,8 @@ class TimeSeries(object):
         channel) or two-dimensional (different times for each channel).
         If `error` is one-dimensional then it will be broadcast match
         `measurement.shape`.
-    target : str, float, or None
-        Class label or target value for the given time series (if applicable).
+    label : str, float, or None
+        Class label or regression target for the given time series (if applicable).
     meta_features : dict
         Dictionary of feature names/values specified independently of the
         featurization process in `featurize`.
@@ -151,7 +151,7 @@ class TimeSeries(object):
         `channel_{i}`, but can be arbitrary depending on the nature of the
         different measurement channels.
     """
-    def __init__(self, t=None, m=None, e=None, target=None, meta_features={},
+    def __init__(self, t=None, m=None, e=None, label=None, meta_features={},
                  name=None, path=None, channel_names=None):
         """Create a `TimeSeries` object from measurement values/metadata.
 
@@ -211,7 +211,7 @@ class TimeSeries(object):
                              " types/sizes. Please refer to the docstring"
                              " for list of allowed input types.")
 
-        self.target = target
+        self.label = label
         self.meta_features = dict(meta_features)
         self.name = name
         self.path = path
@@ -248,7 +248,7 @@ class TimeSeries(object):
             - meta_feat_names
             - meta_feat_values
             - name
-            - target
+            - label
 
         If `path` is omitted then the `path` attribute from the TimeSeries
         object is used.
@@ -269,6 +269,6 @@ class TimeSeries(object):
 
         if self.name:
             data['name'] = self.name
-        if self.target:
-            data['target'] = self.target
+        if self.label:
+            data['label'] = self.label
         np.savez(path, **data)

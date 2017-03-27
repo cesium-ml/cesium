@@ -72,10 +72,10 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     Returns
     -------
     pandas.Series
-        Target column from header file (if missing, all values are None)
+        Class labels/targets from header file (if missing, all values are None)
 
     pandas.DataFrame
-        Feature data from other columns besides filename, target (can be empty)
+        Feature data from other columns besides filename, label (can be empty)
     """
     try:
         header = pd.read_csv(headerfile_path, comment='#')
@@ -95,14 +95,12 @@ def parse_headerfile(headerfile_path, files_to_include=None):
                                   "series file in the uploaded archive, and "
                                   "that the file names match the first column "
                                   "of the header.")
-    if 'target' in header:
-        targets = header['target']
-    elif 'class' in header:
-        targets = header['class']
-    else:
-        targets = pd.Series([None], index=header.index)
-    feature_data = header.drop(['target', 'class'], axis=1, errors='ignore')
-    return targets, feature_data
+    header.rename(columns={c: 'label' for c in ['label', 'target', 'class',
+                                                'class_label']}, inplace=True)
+    labels = (header.label if 'label' in header
+              else pd.Series([None], index=header.index))
+    feature_data = header.drop(['label', 'class'], axis=1, errors='ignore')
+    return labels, feature_data
 
 
 def parse_and_store_ts_data(data_path, output_dir, header_path=None,
@@ -119,7 +117,7 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
     output_dir : str
         Directory in which time series files will be saved.
     header_path : str, optional
-        Path to header file containing file names, target names, and
+        Path to header file containing file names, labels/targets, and
         meta_features.
     cleanup_archive : bool, optional
         Boolean specifying whether to delete the uploaded data file/archive
@@ -136,20 +134,20 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
                                   cleanup_files=True) as ts_paths:
         short_fnames = [util.shorten_fname(f) for f in ts_paths]
         if header_path:
-            targets, meta_features = parse_headerfile(header_path, ts_paths)
+            labels, meta_features = parse_headerfile(header_path, ts_paths)
         else:
-            targets = pd.Series([None], index=short_fnames)
+            labels = pd.Series([None], index=short_fnames)
             meta_features = pd.DataFrame(index=short_fnames)
 
         all_time_series = []
         for ts_path in ts_paths:
             fname = util.shorten_fname(ts_path)
             t, m, e = parse_ts_data(ts_path)
-            ts_target = targets.loc[fname]
+            ts_label = labels.loc[fname]
             ts_meta_features = meta_features.loc[fname]
             ts_path = '{}.npz'.format(fname)
             ts_path = os.path.join(output_dir, ts_path)
-            ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname,
+            ts = TimeSeries(t, m, e, ts_label, ts_meta_features, fname,
                             ts_path)
             ts.save(ts_path)
             all_time_series.append(ts_path)

@@ -50,7 +50,7 @@ def assert_ts_equal(ts1, ts2):
         else:
             assert all(np.array_equal(x1_i, x2_i)
                        for x1_i, x2_i in zip(x1, x2))
-    assert ts1.target == ts2.target
+    assert ts1.label == ts2.label
     assert ts1.meta_features == ts2.meta_features
     assert ts1.name == ts2.name
 
@@ -157,19 +157,19 @@ def test_time_series_npz():
     n_channels = 3
     t, m, e = sample_time_series(channels=n_channels)
     ts = TimeSeries(t[0], m[0], e[0])
-    ts.to_npz(TEST_TS_PATH)
-    ts_loaded = time_series.from_npz(TEST_TS_PATH)
+    ts.save(TEST_TS_PATH)
+    ts_loaded = time_series.load(TEST_TS_PATH)
     assert_ts_equal(ts, ts_loaded)
 
     ts = TimeSeries(t[0], m, e[0])
-    ts.to_npz(TEST_TS_PATH)
-    ts_loaded = time_series.from_npz(TEST_TS_PATH)
+    ts.save(TEST_TS_PATH)
+    ts_loaded = time_series.load(TEST_TS_PATH)
     assert_ts_equal(ts, ts_loaded)
 
     t = [t[i][0:i+2] for i in range(len(t))]
     m = [m[i][0:i+2] for i in range(len(m))]
     e = [e[i][0:i+2] for i in range(len(e))]
     ts = TimeSeries(t, m, e)
-    ts.to_npz(TEST_TS_PATH)
-    ts_loaded = time_series.from_npz(TEST_TS_PATH)
+    ts.save(TEST_TS_PATH)
+    ts_loaded = time_series.load(TEST_TS_PATH)
     assert_ts_equal(ts, ts_loaded)
