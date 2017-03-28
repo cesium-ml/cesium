@@ -79,7 +79,7 @@ def assemble_featureset(features_list, time_series=None,
         multiindex.
     time_series : list of TimeSeries
         If provided, the name and metafeatures from the time series objects
-        will be used, overriding the `meta_features_list`,and `names` values.
+        will be used, overriding the `meta_features_list` and `names` values.
     meta_features_list : list of dict
         If provided, the columns of `metadata` will be added to the featureset.
     names : list of str
@@ -343,10 +343,11 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
     return fset
 
 
-def save_featureset(fset, path, labels=[]):
+def save_featureset(fset, path, **kwargs):
     """Save feature DataFrame in .npz format.
 
-    Can optionally store class labels/targets, if provided.
+    Can optionally store class labels/targets and other metadata; all other
+    keyword arguments will be passed on to `np.savez`.
 
     Parameters
     ----------
@@ -354,19 +355,21 @@ def save_featureset(fset, path, labels=[]):
         Feature dataframe to be saved.
     path : str
         Path to store feature data.
-    labels : list or array-like of str or float, optional
-        Class labels or regression targets, if applicable.
     """
     features, channels = zip(*fset.columns)
+    for v in [fset.values, features, channels] + list(kwargs.values()):
+        if np.array(v).dtype == np.object:
+            raise ValueError("Cannot save objects in .npz format.")
     np.savez(path, values=fset.values, index=fset.index.values.astype(str),
-             features=features, channels=channels, labels=labels)
+             features=features, channels=channels, **kwargs)
 
 
 def load_featureset(path):
     """Load feature DataFrame from .npz file.
 
-    Class labels/regression targets will also be returned, if they were passed
-    to `save_featureset` (otherwise the corresponding lists will be empty).
+    Feature information is returned as a single DataFrame, while any other
+    arrays that were saved (class labels/predictions, etc.) are returned in a
+    single dictionary.
 
     Parameters
     ----------
@@ -375,16 +378,17 @@ def load_featureset(path):
 
     Returns
     -------
-    fset : pd.DataFrame
+    pd.DataFrame
         Feature dataframe to be saved.
-    labels : list or array-like of str or float, optional
-        Class labels or regression targets, if applicable.
+    dict
+        Additional variables passed to `save_featureset`, including labels, etc.
     """
-    with np.load(path, allow_pickle=False) as data:
-        features = data['features']
-        channels = [int(c) if len(c) > 0 else '' for c in data['channels']]
-        columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
-                                            names=['feature', 'channel'])
-        fset = pd.DataFrame(data['values'], index=data['index'],
-                            columns=columns)
-        return fset, data['labels']
+    with np.load(path, allow_pickle=False) as npz_file:
+        data = dict(npz_file)
+    features = data.pop('features')
+    channels = [int(c) if c != '' else '' for c in data.pop('channels')]
+    columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
+                                        names=['feature', 'channel'])
+    fset = pd.DataFrame(data.pop('values'), index=data.pop('index'),
+                        columns=columns)
+    return fset, data

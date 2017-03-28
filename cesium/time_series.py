@@ -135,7 +135,8 @@ class TimeSeries(object):
         If `error` is one-dimensional then it will be broadcast match
         `measurement.shape`.
     label : str, float, or None
-        Class label or regression target for the given time series (if applicable).
+        Class label or regression target for the given time series (if
+        applicable).
     meta_features : dict
         Dictionary of feature names/values specified independently of the
         featurization process in `featurize`.

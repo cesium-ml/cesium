@@ -27,18 +27,20 @@ def sample_time_series(size=51, channels=1):
 
 
 def test__compatible_shapes():
-    assert time_series._compatible_shapes(np.arange(5), np.arange(5))
-    assert not time_series._compatible_shapes(np.arange(5), np.arange(6))
+    compat = time_series._compatible_shapes
 
-    assert time_series._compatible_shapes([np.arange(5)] * 5, [np.arange(5)] * 5)
-    assert not time_series._compatible_shapes([np.arange(5)] * 5, [np.arange(5)] * 6)
-    assert not time_series._compatible_shapes([np.arange(5)] * 5, [np.arange(6)] * 5)
-    assert not time_series._compatible_shapes(np.arange(5), [np.arange(6)] * 5)
+    assert compat(np.arange(5), np.arange(5))
+    assert not compat(np.arange(5), np.arange(6))
 
-    assert time_series._compatible_shapes([[0, 1], [0, 1]], [[0, 1], [0, 1]])
-    assert not time_series._compatible_shapes([[0, 1], [0, 1]], [[0], [0, 1]])
+    assert compat([np.arange(5)] * 5, [np.arange(5)] * 5)
+    assert not compat([np.arange(5)] * 5, [np.arange(5)] * 6)
+    assert not compat([np.arange(5)] * 5, [np.arange(6)] * 5)
+    assert not compat(np.arange(5), [np.arange(6)] * 5)
 
-    assert time_series._compatible_shapes([0, 1], np.arange(2))
+    assert compat([[0, 1], [0, 1]], [[0, 1], [0, 1]])
+    assert not compat([[0, 1], [0, 1]], [[0], [0, 1]])
+
+    assert compat([0, 1], np.arange(2))
 
 
 def assert_ts_equal(ts1, ts2):

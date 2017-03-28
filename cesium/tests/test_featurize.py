@@ -43,7 +43,7 @@ def test_featurize_time_series_single_multichannel():
     t, m, e = sample_values(channels=n_channels)
     features_to_use = ['amplitude', 'std_err']
     meta_features = {'meta1': 0.5}
-    fset = featurize.featurize_time_series(t, m, e, features_to_use, 
+    fset = featurize.featurize_time_series(t, m, e, features_to_use,
                                            meta_features, scheduler=get_sync)
     assert ('amplitude', 0) in fset.columns
     assert 'meta1' in fset.columns
@@ -170,8 +170,8 @@ def test_featurize_time_series_default_errors():
 def test_impute():
     """Test imputation of missing Featureset values."""
     fset, labels = sample_featureset(5, 1, ['amplitude'], ['class1', 'class2'],
-                                      names=['a', 'b', 'c', 'd', 'e'],
-                                      meta_features=['meta1'])
+                                     names=['a', 'b', 'c', 'd', 'e'],
+                                     meta_features=['meta1'])
 
     imputed = featurize.impute_featureset(fset)
     npt.assert_allclose(fset.amplitude.values, imputed.amplitude.values)
@@ -182,11 +182,13 @@ def test_impute():
     amp_values = fset.amplitude.values[2:]
     other_values = fset.values.T.ravel()[2:]
 
-    imputed = featurize.impute_featureset(fset, strategy='constant', value=None)
+    imputed = featurize.impute_featureset(fset, strategy='constant',
+                                          value=None)
     npt.assert_allclose(-2 * np.nanmax(np.abs(other_values)),
                         imputed.amplitude.values[0:2])
 
-    imputed = featurize.impute_featureset(fset, strategy='constant', value=-1e4)
+    imputed = featurize.impute_featureset(fset, strategy='constant',
+                                          value=-1e4)
     npt.assert_allclose(-1e4, imputed.amplitude.values[0:2])
 
     imputed = featurize.impute_featureset(fset, strategy='mean')
@@ -212,13 +214,13 @@ def test_roundtrip_featureset(tmpdir):
     for n_channels in [1, 3]:
         for labels in [['class1', 'class2'], []]:
             fset, labels = sample_featureset(3, n_channels, ['amplitude'],
-                                              labels, names=['a', 'b', 'c'],
-                                              meta_features=['meta1'])
+                                             labels, names=['a', 'b', 'c'],
+                                             meta_features=['meta1'])
 
-            featurize.save_featureset(fset, fset_path, labels)
-            fset_loaded, labels_loaded = featurize.load_featureset(fset_path)
+            featurize.save_featureset(fset, fset_path, labels=labels)
+            fset_loaded, data_loaded = featurize.load_featureset(fset_path)
             npt.assert_allclose(fset.values, fset_loaded.values)
             npt.assert_array_equal(fset.index, fset_loaded.index)
             npt.assert_array_equal(fset.columns, fset_loaded.columns)
             assert isinstance(fset_loaded, pd.DataFrame)
-            npt.assert_array_equal(labels, labels_loaded)
+            npt.assert_array_equal(labels, data_loaded['labels'])
