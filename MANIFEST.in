@@ -5,7 +5,7 @@ include Makefile
 recursive-include cesium *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt *.yaml .example
 recursive-include dockerfiles Dockerfile *.config *.conf *.py *.sh *.txt *.patch *.md
 recursive-include tools
-recursive-include cesium *.csv *.dat *.js *.tar.gz *.dat *.html *.nc
+recursive-include cesium *.csv *.dat *.js *.tar.gz *.dat *.html *.nc *.npz
 
 include doc/Makefile
 recursive-include doc/source *.txt

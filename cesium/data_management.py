@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-from .custom_exceptions import DataFormatError
 from . import util
 from . import time_series
 from .time_series import TimeSeries
@@ -37,12 +36,11 @@ def parse_ts_data(filepath, sep=","):
     np.ndarray
         3-column array of (time, measurement, error) values.
     """
-    with open(filepath) as f:
-        ts_data = np.loadtxt(f, delimiter=sep, ndmin=2)
+    ts_data = np.loadtxt(filepath, delimiter=sep, ndmin=2)
     ts_data = ts_data[:, :3]  # Only using T, M, E
-    if ts_data.shape[1] == 0:
-        raise DataFormatError("""Incomplete or improperly formatted time series
-                              data file provided.""")
+    if ts_data.shape[0] == 0 or ts_data.shape[1] == 0:
+        raise ValueError("Incomplete or improperly formatted time series data"
+                         " file provided.")
     elif ts_data.shape[1] == 1:
         ts_data = np.c_[np.linspace(0, time_series.DEFAULT_MAX_TIME,
                                     len(ts_data)),
@@ -72,15 +70,15 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     Returns
     -------
     pandas.Series
-        Target column from header file (if missing, all values are None)
+        Class labels/targets from header file (if missing, all values are None)
 
     pandas.DataFrame
-        Feature data from other columns besides filename, target (can be empty)
+        Feature data from other columns besides filename, label (can be empty)
     """
     try:
         header = pd.read_csv(headerfile_path, comment='#')
     except:
-        raise DataFormatError("Improperly formatted header file.")
+        raise ValueError("Improperly formatted header file.")
     if 'filename' in header:
         header.index = [util.shorten_fname(str(f)) for f in header['filename']]
         header.drop('filename', axis=1, inplace=True)
@@ -90,19 +88,17 @@ def parse_headerfile(headerfile_path, files_to_include=None):
         try:
             header = header.loc[short_fnames_to_include]
         except:
-            raise DataFormatError("Incomplete header file: make sure your "
-                                  "header contains an entry for each time "
-                                  "series file in the uploaded archive, and "
-                                  "that the file names match the first column "
-                                  "of the header.")
-    if 'target' in header:
-        targets = header['target']
-    elif 'class' in header:
-        targets = header['class']
-    else:
-        targets = pd.Series([None], index=header.index)
-    feature_data = header.drop(['target', 'class'], axis=1, errors='ignore')
-    return targets, feature_data
+            raise ValueError("Incomplete header file: make sure your "
+                              "header contains an entry for each time "
+                              "series file in the uploaded archive, and "
+                              "that the file names match the first column "
+                              "of the header.")
+    header.rename(columns={c: 'label' for c in ['label', 'target', 'class',
+                                                'class_label']}, inplace=True)
+    labels = (header.label if 'label' in header
+              else pd.Series([None], index=header.index))
+    feature_data = header.drop(['label', 'class'], axis=1, errors='ignore')
+    return labels, feature_data
 
 
 def parse_and_store_ts_data(data_path, output_dir, header_path=None,
@@ -117,9 +113,9 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
         Path to an individual time series file or tarball of multiple time
         series files to be used for feature generation.
     output_dir : str
-        Directory in which time series netCDF files will be saved.
+        Directory in which time series files will be saved.
     header_path : str, optional
-        Path to header file containing file names, target names, and
+        Path to header file containing file names, labels/targets, and
         meta_features.
     cleanup_archive : bool, optional
         Boolean specifying whether to delete the uploaded data file/archive
@@ -130,28 +126,28 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
 
     Returns
     -------
-    List of paths to netCDF files
+    List of paths to time series files
     """
     with util.extract_time_series(data_path, cleanup_archive=cleanup_archive,
                                   cleanup_files=True) as ts_paths:
         short_fnames = [util.shorten_fname(f) for f in ts_paths]
         if header_path:
-            targets, meta_features = parse_headerfile(header_path, ts_paths)
+            labels, meta_features = parse_headerfile(header_path, ts_paths)
         else:
-            targets = pd.Series([None], index=short_fnames)
+            labels = pd.Series([None], index=short_fnames)
             meta_features = pd.DataFrame(index=short_fnames)
 
         all_time_series = []
         for ts_path in ts_paths:
             fname = util.shorten_fname(ts_path)
             t, m, e = parse_ts_data(ts_path)
-            ts_target = targets.loc[fname]
+            ts_label = labels.loc[fname]
             ts_meta_features = meta_features.loc[fname]
-            ts_path = '{}.nc'.format(fname)
+            ts_path = '{}.npz'.format(fname)
             ts_path = os.path.join(output_dir, ts_path)
-            ts = TimeSeries(t, m, e, ts_target, ts_meta_features, fname,
+            ts = TimeSeries(t, m, e, ts_label, ts_meta_features, fname,
                             ts_path)
-            ts.to_netcdf(ts_path)
+            ts.save(ts_path)
             all_time_series.append(ts_path)
 
     if header_path and cleanup_header:
