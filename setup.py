@@ -44,7 +44,7 @@ def configuration(parent_package='', top_path=None):
 with open('cesium/version.py') as fid:
     for line in fid:
         if line.startswith('version'):
-            VERSION = line.strip().split('=')[-1][1:-1]
+            VERSION = line.split('=')[-1].strip(' \'"\n')
             break
 
 with open('requirements.txt') as fid:
