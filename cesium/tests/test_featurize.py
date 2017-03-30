@@ -1,4 +1,3 @@
-import numpy.testing as npt
 import os
 from os.path import join as pjoin
 import shutil
@@ -11,6 +10,9 @@ from cesium import featurize
 from cesium import util
 from cesium.tests.fixtures import (sample_values, sample_ts_files,
                                    sample_featureset)
+
+import numpy.testing as npt
+import pytest
 
 
 DATA_PATH = pjoin(os.path.dirname(__file__), "data")
@@ -167,6 +169,43 @@ def test_featurize_time_series_default_errors():
                                            meta_features, scheduler=get_sync)
 
 
+
+def test_featurize_time_series_multiple():
+    """Test featurize wrapper function for multiple time series"""
+    n_series = 5
+    list_of_series = [sample_values() for i in range(n_series)]
+    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    features_to_use = ['amplitude', 'std_err']
+    meta_features = [{'meta1': 0.5}] * n_series
+    fset = featurize.featurize_time_series(times, values, errors,
+                                           features_to_use,
+                                           meta_features, scheduler=get_sync)
+    npt.assert_array_equal(sorted(fset.columns.get_level_values('feature')),
+                           ['amplitude', 'meta1', 'std_err'])
+
+
+def test_featurize_time_series_pandas_metafeatures():
+    """Test featurize function for metafeatures passed as Series/DataFrames."""
+    t, m, e = sample_values()
+    features_to_use = ['amplitude', 'std_err']
+    meta_features = pd.Series({'meta1': 0.5})
+    fset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                           meta_features, scheduler=get_sync)
+    npt.assert_allclose(fset['meta1'], 0.5)
+
+    n_series = 5
+    list_of_series = [sample_values() for i in range(n_series)]
+    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    features_to_use = ['amplitude', 'std_err']
+    meta_features = pd.DataFrame({'meta1': [0.5] * n_series,
+                                  'meta2': [0.8] * n_series})
+    fset = featurize.featurize_time_series(times, values, errors,
+                                           features_to_use,
+                                           meta_features, scheduler=get_sync)
+    npt.assert_allclose(fset['meta1'], 0.5)
+    npt.assert_allclose(fset['meta2'], 0.8)
+
+
 def test_impute():
     """Test imputation of missing Featureset values."""
     fset, labels = sample_featureset(5, 1, ['amplitude'], ['class1', 'class2'],
@@ -207,6 +246,9 @@ def test_impute():
     featurize.impute_featureset(fset, strategy='constant', value=-1e4,
                                 inplace=True)
     npt.assert_allclose(-1e4, fset.amplitude.values[0:2])
+
+    with pytest.raises(NotImplementedError):
+        featurize.impute_featureset(fset, strategy='blah')
 
 
 def test_roundtrip_featureset(tmpdir):

@@ -34,6 +34,6 @@ coverage:
       default:
         enabled: yes             # must be yes|true to enable this status
         branches: null           # -> see "branch patterns" below
-        if_no_uploads: error
+        if_no_uploads: success
         if_not_found: success
         if_ci_failed: error
