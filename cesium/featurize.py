@@ -327,8 +327,8 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
     """
     if not inplace:
         fset = fset.copy()
-    fset.values[np.isnan(fset)] = np.inf  # avoid NaN comparison warnings
-    fset.values[np.abs(fset) > max_value] = np.nan
+    fset.values[np.isnan(fset.values)] = np.inf  # avoid NaN comparison warnings
+    fset.values[np.abs(fset.values) > max_value] = np.nan
     if strategy == 'constant':
         if value is None:
             # If no fill-in value is provided, use a large negative value
