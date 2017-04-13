@@ -12,7 +12,7 @@ from .time_series import TimeSeries
 from .features import generate_dask_graph
 
 __all__ = ['featurize_time_series', 'featurize_single_ts',
-           'assemble_featureset']
+           'featurize_ts_files', 'assemble_featureset']
 
 
 def featurize_single_ts(ts, features_to_use, custom_script_path=None,
@@ -292,7 +292,10 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     fset = result.compute(get=scheduler)
 
-    return fset
+    labels = [delayed(lambda x: x.label)(ts).compute(get=scheduler)
+              for ts in all_time_series]
+
+    return fset, labels
 
 
 def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
@@ -346,22 +349,39 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
 def save_featureset(fset, path, **kwargs):
     """Save feature DataFrame in .npz format.
 
-    Can optionally store class labels/targets and other metadata; all other
-    keyword arguments will be passed on to `np.savez`.
+    Can optionally store class labels/targets and other metadata. All other
+    keyword arguments will be passed on to `np.savez`; data frames are saved as
+    record arrays and converted back into data frames by `load_featureset`.
 
     Parameters
     ----------
     fset : pd.DataFrame
-        Feature dataframe to be saved.
+        Feature data frame to be saved.
     path : str
         Path to store feature data.
+    kwargs : dict of array or data frame
+        Additional keyword arguments, e.g.:
+        labels -> class labels
+        preds -> predicted class labels
+        pred_probs -> (n_sample, n_class) data frame of class probabilities
     """
-    features, channels = zip(*fset.columns)
-    for v in [fset.values, features, channels] + list(kwargs.values()):
-        if np.array(v).dtype == np.object:
-            raise ValueError("Cannot save objects in .npz format.")
-    np.savez(path, values=fset.values, index=fset.index.values.astype(str),
-             features=features, channels=channels, **kwargs)
+    # Transpose to properly handle MultiIndex columns
+    kwargs['features'] = fset.T
+
+    for k, v in kwargs.items():
+        if isinstance(v, pd.DataFrame):
+            arr = v.to_records()
+            dt_list = arr.dtype.descr
+            # Change type of indices from object to str
+            for i, (name, dt) in enumerate(dt_list):
+                if dt.endswith('O'):
+                    size = max(len(x) for x in arr['index'])
+                    dt_list[i] = (name, 'U' + str(size))
+            kwargs[k] = arr.astype(dt_list)
+
+    # Bypass savez to allow for `allow_pickle` keyword
+    # See https://github.com/numpy/numpy/pull/5770
+    np.lib.npyio._savez(path, [], kwargs, compress=True, allow_pickle=False)
 
 
 def load_featureset(path):
@@ -379,16 +399,23 @@ def load_featureset(path):
     Returns
     -------
     pd.DataFrame
-        Feature dataframe to be saved.
+        Feature data frame to be saved.
     dict
         Additional variables passed to `save_featureset`, including labels, etc.
     """
     with np.load(path, allow_pickle=False) as npz_file:
         data = dict(npz_file)
-    features = data.pop('features')
-    channels = [int(c) if c != '' else '' for c in data.pop('channels')]
-    columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
-                                        names=['feature', 'channel'])
-    fset = pd.DataFrame(data.pop('values'), index=data.pop('index'),
-                        columns=columns)
+
+    # Transpose to properly handle MultiIndex columns
+    fset = pd.DataFrame.from_records(data.pop('features'),
+                                     index=['feature', 'channel']).T
+    features, channels = zip(*fset.columns)
+    channels = [int(c) if c != '' else '' for c in channels]
+    fset.columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
+                                             names=['feature', 'channel'])
+
+    for k, v in data.items():
+        if len(v.dtype) > 0:
+            data[k] = pd.DataFrame.from_records(v, index='index')
+
     return fset, data
