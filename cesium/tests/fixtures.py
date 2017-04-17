@@ -41,10 +41,11 @@ def sample_ts_files(size, labels=[None]):
 def sample_featureset(size, n_channels=1, features=['mean'], labels=None,
                       names=None, meta_features=[]):
     ts_names = np.arange(size).astype('str')
-    index = pd.MultiIndex.from_tuples([(f, i) for f in features for i in range(n_channels)],
-                                      names=['feature', 'channel'])
+    columns = pd.MultiIndex.from_tuples([(f, i) for f in features
+                                         for i in range(n_channels)],
+                                        names=['feature', 'channel'])
     fset = pd.DataFrame(np.random.random((size, len(features) * n_channels)),
-                        columns=index)
+                        columns=columns)
     if labels:
         labels = np.array(list(islice(cycle(labels), size)))
     if names:

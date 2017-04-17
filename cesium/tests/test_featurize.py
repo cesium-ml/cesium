@@ -1,13 +1,11 @@
 import os
 from os.path import join as pjoin
-import shutil
 import numpy as np
 import pandas as pd
 import scipy.stats
 from dask.async import get_sync
 
 from cesium import featurize
-from cesium import util
 from cesium.tests.fixtures import (sample_values, sample_ts_files,
                                    sample_featureset)
 
@@ -21,12 +19,13 @@ FEATURES_CSV_PATH = pjoin(DATA_PATH, "test_features_with_targets.csv")
 
 def test_featurize_files_function(tmpdir):
     """Test featurize function for on-disk time series"""
-    with sample_ts_files(size=4) as ts_paths:
-        fset = featurize.featurize_ts_files(ts_paths,
-                                            features_to_use=["std_err"],
-                                            scheduler=get_sync)
+    with sample_ts_files(size=4, labels=['A', 'B']) as ts_paths:
+        fset, labels = featurize.featurize_ts_files(ts_paths,
+                                                    features_to_use=["std_err"],
+                                                    scheduler=get_sync)
     assert "std_err" in fset
     assert fset.shape == (4, 1)
+    npt.assert_array_equal(labels, ['A', 'B', 'A', 'B'])
 
 
 def test_featurize_time_series_single():
@@ -147,6 +146,7 @@ def test_featurize_time_series_default_times():
     e = e[0][0]
     fset = featurize.featurize_time_series(None, m, e, features_to_use,
                                            meta_features, scheduler=get_sync)
+    assert ('amplitude', 0) in fset.columns
 
 
 def test_featurize_time_series_default_errors():
@@ -167,21 +167,7 @@ def test_featurize_time_series_default_errors():
     m = m[0][0]
     fset = featurize.featurize_time_series(t, m, None, features_to_use,
                                            meta_features, scheduler=get_sync)
-
-
-
-def test_featurize_time_series_multiple():
-    """Test featurize wrapper function for multiple time series"""
-    n_series = 5
-    list_of_series = [sample_values() for i in range(n_series)]
-    times, values, errors = [list(x) for x in zip(*list_of_series)]
-    features_to_use = ['amplitude', 'std_err']
-    meta_features = [{'meta1': 0.5}] * n_series
-    fset = featurize.featurize_time_series(times, values, errors,
-                                           features_to_use,
-                                           meta_features, scheduler=get_sync)
-    npt.assert_array_equal(sorted(fset.columns.get_level_values('feature')),
-                           ['amplitude', 'meta1', 'std_err'])
+    assert ('amplitude', 0) in fset.columns
 
 
 def test_featurize_time_series_pandas_metafeatures():
@@ -259,10 +245,18 @@ def test_roundtrip_featureset(tmpdir):
                                              labels, names=['a', 'b', 'c'],
                                              meta_features=['meta1'])
 
-            featurize.save_featureset(fset, fset_path, labels=labels)
+            pred_probs = pd.DataFrame(np.random.random((len(fset), 2)),
+                                      index=fset.index.values,
+                                      columns=['class1', 'class2'])
+
+            featurize.save_featureset(fset, fset_path, labels=labels,
+                                      pred_probs=pred_probs)
             fset_loaded, data_loaded = featurize.load_featureset(fset_path)
             npt.assert_allclose(fset.values, fset_loaded.values)
             npt.assert_array_equal(fset.index, fset_loaded.index)
             npt.assert_array_equal(fset.columns, fset_loaded.columns)
             assert isinstance(fset_loaded, pd.DataFrame)
             npt.assert_array_equal(labels, data_loaded['labels'])
+            npt.assert_allclose(pred_probs, data_loaded['pred_probs'])
+            npt.assert_array_equal(pred_probs.columns,
+                                   data_loaded['pred_probs'].columns)
