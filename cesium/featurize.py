@@ -379,6 +379,10 @@ def save_featureset(fset, path, **kwargs):
                     dt_list[i] = (name, 'U' + str(size))
             kwargs[k] = arr.astype(dt_list)
 
+        # Ignore null values, e.g. for unlabeled data
+        if all(el is None for el in v):
+            kwargs[k] = []
+
     # Bypass savez to allow for `allow_pickle` keyword
     # See https://github.com/numpy/numpy/pull/5770
     np.lib.npyio._savez(path, [], kwargs, compress=True, allow_pickle=False)
