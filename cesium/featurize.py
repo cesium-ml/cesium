@@ -244,7 +244,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
                        custom_functions=None,
                        scheduler=dask.multiprocessing.get):
-    """Feature generation function for on-disk time series (NetCDF) files.
+    """Feature generation function for on-disk time series (.npz) files.
 
     By default, computes features concurrently using the
     `dask.multiprocessing.get` scheduler. Other possible options include
@@ -290,10 +290,8 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
                                                             custom_functions)
                     for ts in all_time_series]
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
-    fset = result.compute(get=scheduler)
-
-    labels = [delayed(lambda x: x.label)(ts).compute(get=scheduler)
-              for ts in all_time_series]
+    all_labels = [ts.label for ts in all_time_series]
+    fset, labels = dask.compute(result, all_labels, get=scheduler)
 
     return fset, labels
 
