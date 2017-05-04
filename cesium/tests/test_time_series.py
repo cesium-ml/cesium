@@ -1,19 +1,9 @@
 import os
+from uuid import uuid4
 import numpy.testing as npt
 import numpy as np
 from cesium import time_series
 from cesium.time_series import TimeSeries
-
-
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data")
-TEST_TS_PATH = os.path.join(DATA_PATH, "test.npz")
-
-
-def teardown_function():
-    try:
-        os.remove(TEST_TS_PATH)
-    except OSError:
-        pass
 
 
 def sample_time_series(size=51, channels=1):
@@ -155,23 +145,27 @@ def test_channels_iterator():
         npt.assert_allclose(e_i, e[i])
 
 
-def test_time_series_npz():
+def test_time_series_npz(tmpdir):
     n_channels = 3
     t, m, e = sample_time_series(channels=n_channels)
+
     ts = TimeSeries(t[0], m[0], e[0])
-    ts.save(TEST_TS_PATH)
-    ts_loaded = time_series.load(TEST_TS_PATH)
+    ts_path = os.path.join(str(tmpdir), str(uuid4()) + '.npz')
+    ts.save(ts_path)
+    ts_loaded = time_series.load(ts_path)
     assert_ts_equal(ts, ts_loaded)
 
     ts = TimeSeries(t[0], m, e[0])
-    ts.save(TEST_TS_PATH)
-    ts_loaded = time_series.load(TEST_TS_PATH)
+    ts_path = os.path.join(str(tmpdir), str(uuid4()) + '.npz')
+    ts.save(ts_path)
+    ts_loaded = time_series.load(ts_path)
     assert_ts_equal(ts, ts_loaded)
 
     t = [t[i][0:i+2] for i in range(len(t))]
     m = [m[i][0:i+2] for i in range(len(m))]
     e = [e[i][0:i+2] for i in range(len(e))]
     ts = TimeSeries(t, m, e)
-    ts.save(TEST_TS_PATH)
-    ts_loaded = time_series.load(TEST_TS_PATH)
+    ts_path = os.path.join(str(tmpdir), str(uuid4()) + '.npz')
+    ts.save(ts_path)
+    ts_loaded = time_series.load(ts_path)
     assert_ts_equal(ts, ts_loaded)
