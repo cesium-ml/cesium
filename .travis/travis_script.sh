@@ -2,15 +2,12 @@
 
 set -ex
 
-source ~/envs/cesium/bin/activate
-
-
 section "Tests"
 
-if [[ $COVERAGE==1 ]]; then
+if [[ -n $COVERAGE ]]; then
     PYTEST_FLAGS='--cov=./'
 fi
-PYTHONPATH=. pytest -v cesium $PYTEST_FLAGS
+python -m pytest -v $PYTEST_FLAGS
 
 section_end "Tests"
 

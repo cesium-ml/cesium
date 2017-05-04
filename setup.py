@@ -117,7 +117,7 @@ if __name__ == "__main__":
         ],
 
         install_requires=INSTALL_REQUIRES,
-        setup_requires=['cython>=0.21'],
+        setup_requires=['cython>=0.25'],
         requires=REQUIRES,
         configuration=configuration,
         packages=setuptools.find_packages(exclude=['doc']),

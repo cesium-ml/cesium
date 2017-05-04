@@ -73,6 +73,7 @@ matrix:
         - SKIP_DOCS=1
     - python: 3.4
     - python: 3.5
+    - python: 3.6
       env:
         - COVERAGE=1
         - DEPLOY_DOCS=1

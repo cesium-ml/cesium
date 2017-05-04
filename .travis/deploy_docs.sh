@@ -2,8 +2,6 @@
 
 set -e
 
-source ~/envs/cesium/bin/activate
-
 if [[ $TRAVIS_PULL_REQUEST == false && \
       $TRAVIS_BRANCH == "master" && \
       $DEPLOY_DOCS == 1 ]]
