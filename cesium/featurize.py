@@ -2,7 +2,7 @@ import copy
 from collections import Iterable
 import numpy as np
 import pandas as pd
-import dask.async
+import dask
 import dask.multiprocessing
 from dask import delayed
 from sklearn.preprocessing import Imputer
@@ -60,7 +60,7 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         # Do not execute in parallel; parallelization has already taken place
         # at the level of time series, so we compute features for a single time
         # series in serial.
-        feature_values[:, i] = dask.async.get_sync(feature_graph, features_to_use)
+        feature_values[:, i] = dask.get(feature_graph, features_to_use)
 
     index = pd.MultiIndex.from_product((features_to_use, range(ts.n_channels)),
                                        names=('feature', 'channel'))
@@ -248,7 +248,7 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
 
     By default, computes features concurrently using the
     `dask.multiprocessing.get` scheduler. Other possible options include
-    `dask.async.get_sync` for synchronous computation (e.g., when debugging),
+    `dask.local.get` for synchronous computation (e.g., when debugging),
     or `dask.distributed.Executor.get` for distributed computation.
 
     In the case of multichannel measurements, each channel will be
@@ -375,6 +375,7 @@ def save_featureset(fset, path, **kwargs):
                 if dt.endswith('O'):
                     size = max(len(x) for x in arr['index'])
                     dt_list[i] = (name, 'U' + str(size))
+                dt_list[i] = (str(name),) + dt_list[i][1:]  # avoid Py2 unicode
             kwargs[k] = arr.astype(dt_list)
 
         # Ignore null values, e.g. for unlabeled data

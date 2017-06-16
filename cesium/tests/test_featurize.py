@@ -3,7 +3,7 @@ from os.path import join as pjoin
 import numpy as np
 import pandas as pd
 import scipy.stats
-from dask.async import get_sync
+import dask
 
 from cesium import featurize
 from cesium.tests.fixtures import (sample_values, sample_ts_files,
@@ -22,7 +22,7 @@ def test_featurize_files_function(tmpdir):
     with sample_ts_files(size=4, labels=['A', 'B']) as ts_paths:
         fset, labels = featurize.featurize_ts_files(ts_paths,
                                                     features_to_use=["std_err"],
-                                                    scheduler=get_sync)
+                                                    scheduler=dask.get)
     assert "std_err" in fset
     assert fset.shape == (4, 1)
     npt.assert_array_equal(labels, ['A', 'B', 'A', 'B'])
@@ -34,7 +34,7 @@ def test_featurize_time_series_single():
     features_to_use = ['amplitude', 'std_err']
     meta_features = {'meta1': 0.5}
     fset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     assert fset['amplitude'].values.dtype == np.float64
 
 
@@ -45,7 +45,7 @@ def test_featurize_time_series_single_multichannel():
     features_to_use = ['amplitude', 'std_err']
     meta_features = {'meta1': 0.5}
     fset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     assert ('amplitude', 0) in fset.columns
     assert 'meta1' in fset.columns
 
@@ -59,7 +59,7 @@ def test_featurize_time_series_multiple():
     meta_features = [{'meta1': 0.5}] * n_series
     fset = featurize.featurize_time_series(times, values, errors,
                                            features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     npt.assert_array_equal(sorted(fset.columns.get_level_values('feature')),
                            ['amplitude', 'meta1', 'std_err'])
 
@@ -75,7 +75,7 @@ def test_featurize_time_series_multiple_multichannel():
     meta_features = {'meta1': 0.5}
     fset = featurize.featurize_time_series(times, values, errors,
                                            features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     assert ('amplitude', 0) in fset.columns
     assert 'meta1' in fset.columns
 
@@ -90,7 +90,7 @@ def test_featurize_time_series_uneven_multichannel():
     features_to_use = ['amplitude', 'std_err']
     meta_features = {'meta1': 0.5}
     fset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     assert ('amplitude', 0) in fset.columns
     assert 'meta1' in fset.columns
 
@@ -105,7 +105,7 @@ def test_featurize_time_series_custom_functions():
     fset = featurize.featurize_time_series(t, m, e, features_to_use,
                                            meta_features,
                                            custom_functions=custom_functions,
-                                           scheduler=get_sync)
+                                           scheduler=dask.get)
     npt.assert_array_equal(fset['test_f', 0], np.pi)
     assert ('amplitude', 0) in fset.columns
     assert 'meta1' in fset.columns
@@ -122,7 +122,7 @@ def test_featurize_time_series_custom_dask_graph():
     fset = featurize.featurize_time_series(t, m, e, features_to_use,
                                            meta_features,
                                            custom_functions=custom_functions,
-                                           scheduler=get_sync)
+                                           scheduler=dask.get)
     assert ('amplitude', 0) in fset.columns
     assert ('test_f', 0) in fset.columns
     assert ('test_meta', 0) in fset.columns
@@ -135,17 +135,17 @@ def test_featurize_time_series_default_times():
     features_to_use = ['amplitude', 'std_err']
     meta_features = {}
     fset = featurize.featurize_time_series(None, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
 
     m = [[m[0], m[1][0:-5], m[2][0:-10]]]
     e = [[e[0], e[1][0:-5], e[2][0:-10]]]
     fset = featurize.featurize_time_series(None, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
 
     m = m[0][0]
     e = e[0][0]
     fset = featurize.featurize_time_series(None, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     assert ('amplitude', 0) in fset.columns
 
 
@@ -156,17 +156,17 @@ def test_featurize_time_series_default_errors():
     features_to_use = ['amplitude', 'std_err']
     meta_features = {}
     fset = featurize.featurize_time_series(t, m, None, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
 
     t = [[t, t[0:-5], t[0:-10]]]
     m = [[m[0], m[1][0:-5], m[2][0:-10]]]
     fset = featurize.featurize_time_series(t, m, None, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
 
     t = t[0][0]
     m = m[0][0]
     fset = featurize.featurize_time_series(t, m, None, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     assert ('amplitude', 0) in fset.columns
 
 
@@ -176,7 +176,7 @@ def test_featurize_time_series_pandas_metafeatures():
     features_to_use = ['amplitude', 'std_err']
     meta_features = pd.Series({'meta1': 0.5})
     fset = featurize.featurize_time_series(t, m, e, features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     npt.assert_allclose(fset['meta1'], 0.5)
 
     n_series = 5
@@ -187,7 +187,7 @@ def test_featurize_time_series_pandas_metafeatures():
                                   'meta2': [0.8] * n_series})
     fset = featurize.featurize_time_series(times, values, errors,
                                            features_to_use,
-                                           meta_features, scheduler=get_sync)
+                                           meta_features, scheduler=dask.get)
     npt.assert_allclose(fset['meta1'], 0.5)
     npt.assert_allclose(fset['meta2'], 0.8)
 

@@ -1,4 +1,4 @@
-import dask.async
+import dask
 import numpy as np
 
 from cesium.features import generate_dask_graph
@@ -7,7 +7,7 @@ from cesium.features import generate_dask_graph
 def generate_features(t, m, e, features_to_use):
     """Utility function that generates features from a dask DAG."""
     graph = generate_dask_graph(t, m, e)
-    values = dask.async.get_sync(graph, features_to_use)
+    values = dask.get(graph, features_to_use)
     return dict(zip(features_to_use, values))
 
 
