@@ -289,8 +289,11 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
                                                             custom_script_path,
                                                             custom_functions)
                     for ts in all_time_series]
-    result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
-    all_labels = [ts.label for ts in all_time_series]
+    names, meta_feats, all_labels = zip(*[(ts.name, ts.meta_features, ts.label)
+                                          for ts in all_time_series])
+    result = delayed(assemble_featureset, pure=True)(all_features,
+                                                     meta_features_list=meta_feats,
+                                                     names=names)
     fset, labels = dask.compute(result, all_labels, get=scheduler)
 
     return fset, labels
