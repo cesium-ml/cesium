@@ -3,7 +3,7 @@ from collections import Iterable
 import numpy as np
 import pandas as pd
 import dask
-import dask.multiprocessing
+import dask.threaded
 from dask import delayed
 from sklearn.preprocessing import Imputer
 
@@ -113,7 +113,7 @@ def assemble_featureset(features_list, time_series=None,
 def featurize_time_series(times, values, errors=None, features_to_use=[],
                           meta_features={}, names=None,
                           custom_script_path=None, custom_functions=None,
-                          scheduler=dask.multiprocessing.get):
+                          scheduler=dask.threaded.get):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -178,7 +178,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         will be computed.
     scheduler : function, optional
         `dask` scheduler function used to perform feature extraction
-        computation. Defaults to `dask.multiprocessing.get`.
+        computation. Defaults to `dask.threaded.get`.
 
     Returns
     -------
@@ -243,11 +243,11 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
 def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
                        custom_functions=None,
-                       scheduler=dask.multiprocessing.get):
+                       scheduler=dask.threaded.get):
     """Feature generation function for on-disk time series (.npz) files.
 
     By default, computes features concurrently using the
-    `dask.multiprocessing.get` scheduler. Other possible options include
+    `dask.threaded.get` scheduler. Other possible options include
     `dask.local.get` for synchronous computation (e.g., when debugging),
     or `dask.distributed.Executor.get` for distributed computation.
 
@@ -276,7 +276,7 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
         will be computed.
     scheduler : function, optional
         `dask` scheduler function used to perform feature extraction
-        computation. Defaults to `dask.multiprocessing.get`.
+        computation. Defaults to `dask.threaded.get`.
 
     Returns
     -------

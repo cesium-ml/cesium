@@ -53,7 +53,7 @@ for label, subplot in zip(np.unique(eeg["classes"]), ax):
 # biological significance.
 #
 # By default, the time series will featurized in parallel using the
-# ``dask.multiprocessing`` scheduler; other approaches, including serial and
+# ``dask.threaded`` scheduler; other approaches, including serial and
 # distributed approaches, can be implemented by passing in other ``dask``
 # schedulers as the ``get`` argument to ``featurize_time_series``.
 #
