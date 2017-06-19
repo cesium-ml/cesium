@@ -169,3 +169,27 @@ def test_time_series_npz(tmpdir):
     ts.save(ts_path)
     ts_loaded = time_series.load(ts_path)
     assert_ts_equal(ts, ts_loaded)
+
+
+def test_time_series_sort():
+    t, m, e = sample_time_series(channels=1)
+    t[:2] = t[1::-1]
+    ts = TimeSeries(t, m, e)
+    npt.assert_allclose(ts.time, np.sort(t))
+    npt.assert_allclose(ts.measurement, m[np.argsort(t)])
+    npt.assert_allclose(ts.error, e[np.argsort(t)])
+
+    n_channels = 3
+    t, m, e = sample_time_series(channels=n_channels)
+    t[:, :2] = t[:, 1::-1]
+    ts = TimeSeries(t, m, e)
+    for i in range(len(m)):
+        npt.assert_allclose(ts.time[i], np.sort(t[i]))
+        npt.assert_allclose(ts.measurement[i], m[i][np.argsort(t[i])])
+        npt.assert_allclose(ts.error[i], e[i][np.argsort(t[i])])
+
+    ts = TimeSeries(t[0], m, e[0])
+    for i in range(len(m)):
+        npt.assert_allclose(ts.time[i], np.sort(t[0]))
+        npt.assert_allclose(ts.measurement[i], m[i][np.argsort(t[0])])
+        npt.assert_allclose(ts.error[i], e[0][np.argsort(t[0])])
