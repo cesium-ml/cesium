@@ -191,6 +191,7 @@ class TimeSeries(object):
         self.time = _make_array_if_possible(t)
         self.measurement = _make_array_if_possible(m)
         self.error = _make_array_if_possible(e)
+        self.sort()  # re-order by time before broadcasting
 
         if _ndim(self.time) == 1 and _ndim(self.measurement) == 2:
             if isinstance(self.measurement, np.ndarray):
@@ -238,6 +239,29 @@ class TimeSeries(object):
             e_channels = np.broadcast_to(self.error,
                                          (self.n_channels, len(self.error)))
         return zip(t_channels, m_channels, e_channels)
+
+    def sort(self):
+        """Sort times, measurements, and errors by time."""
+        if _ndim(self.time) == 1:
+            inds = np.argsort(self.time)
+            self.time = self.time[inds]
+            if _ndim(self.measurement) == 1:
+                self.measurement = self.measurement[inds]
+            else:
+                for i in range(len(self.measurement)):
+                   self.measurement[i] = self.measurement[i][inds]
+            if _ndim(self.error) == 1:
+                self.error = self.error[inds]
+            else:
+                for i in range(len(self.error)):
+                   self.error[i] = self.error[i][inds]
+        else:  # if time is 2d, so are measurement and error
+            for i in range(len(self.time)):
+                inds = np.argsort(self.time[i])
+                self.time[i] = self.time[i][inds]
+                self.measurement[i] = self.measurement[i][inds]
+                self.error[i] = self.error[i][inds]
+
 
     def save(self, path=None):
         """Store TimeSeries object as a single .npz file.
