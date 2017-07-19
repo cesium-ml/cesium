@@ -1,7 +1,7 @@
 How to make a new release of ``cesium``
 =======================================
 
-- Update the version number in ``cesium/version.py`` and ``doc/conf.py`` and commit
+- Update the version number in ``cesium/version.py`` and commit
 
 - Add the version number as a tag in git::
 
