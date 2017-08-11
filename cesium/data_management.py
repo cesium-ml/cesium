@@ -102,7 +102,7 @@ def parse_headerfile(headerfile_path, files_to_include=None):
 
 
 def parse_and_store_ts_data(data_path, output_dir, header_path=None,
-                            cleanup_archive=True, cleanup_header=True):
+                            cleanup_archive=True, cleanup_header=True, sep=','):
     """Parses raw time series data from a single file or archive and loads
     metadata from header file (if applicable). Data is stored as files within
     `output_dir`, and the list of these paths is returned.
@@ -123,6 +123,8 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
     cleanup_header : bool, optional
         Boolean specifying whether to delete the uploaded header file (defaults
         to True).
+    sep : str, optional
+        Separator of columns in data file; defaults to ','.
 
     Returns
     -------
@@ -140,7 +142,7 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
         all_time_series = []
         for ts_path in ts_paths:
             fname = util.shorten_fname(ts_path)
-            t, m, e = parse_ts_data(ts_path)
+            t, m, e = parse_ts_data(ts_path, sep)
             ts_label = labels.loc[fname]
             ts_meta_features = meta_features.loc[fname]
             ts_path = '{}.npz'.format(fname)
