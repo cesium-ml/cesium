@@ -260,3 +260,24 @@ def test_roundtrip_featureset(tmpdir):
             npt.assert_allclose(pred_probs, data_loaded['pred_probs'])
             npt.assert_array_equal(pred_probs.columns,
                                    data_loaded['pred_probs'].columns)
+
+
+def test_ignore_exceptions():
+    import cesium.features.graphs
+    def raise_exc(x):
+        raise ValueError()
+    old_value = cesium.features.graphs.dask_feature_graph['mean']
+    try:
+        cesium.features.graphs.dask_feature_graph['mean'] = (raise_exc, 't')
+        t, m, e = sample_values()
+        features_to_use = ['mean']
+        with pytest.raises(ValueError):
+            fset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                                   scheduler=dask.get,
+                                                   raise_exceptions=True)
+        fset = featurize.featurize_time_series(t, m, e, features_to_use,
+                                               scheduler=dask.get,
+                                               raise_exceptions=False)
+        assert np.isnan(fset.values).all()
+    finally:
+        cesium.features.graphs.dask_feature_graph['mean'] = old_value

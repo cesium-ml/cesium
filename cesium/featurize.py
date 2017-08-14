@@ -5,6 +5,8 @@ import pandas as pd
 import dask
 import dask.threaded
 from dask import delayed
+from dask.compatibility import reraise
+from dask.threaded import pack_exception
 from sklearn.preprocessing import Imputer
 
 from . import time_series
@@ -16,7 +18,7 @@ __all__ = ['featurize_time_series', 'featurize_single_ts',
 
 
 def featurize_single_ts(ts, features_to_use, custom_script_path=None,
-                        custom_functions=None):
+                        custom_functions=None, raise_exceptions=True):
     """Compute feature values for a given single time-series. Data is
     returned as dictionaries/lists of lists.
 
@@ -34,6 +36,10 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         dask graph, these arrays should be referenced as 't', 'm', 'e',
         respectively, and any values with keys present in `features_to_use`
         will be computed.
+    raise_exceptions : bool, optional
+        If True, exceptions during feature computation are raised immediately;
+        if False, exceptions are supressed and `np.nan` is returned for the
+        given feature and any dependent features. Defaults to True.
 
     Returns
     -------
@@ -41,7 +47,6 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         Dictionary with feature names as keys, lists of feature values (one per
         channel) as values.
     """
-    # TODO what happens if features_to_use has duplicate entries?
     # Initialize empty feature array for all channels
     feature_values = np.empty((len(features_to_use), ts.n_channels))
     for (t_i, m_i, e_i), i in zip(ts.channels(), range(ts.n_channels)):
@@ -60,8 +65,15 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         # Do not execute in parallel; parallelization has already taken place
         # at the level of time series, so we compute features for a single time
         # series in serial.
-        feature_values[:, i] = dask.get(feature_graph, features_to_use)
-
+        if raise_exceptions:
+            raise_callback = reraise
+        else:
+            raise_callback = lambda e, tb: None
+        dask_values = dask.get(feature_graph, features_to_use,
+                               raise_exception=raise_callback,
+                               pack_exception=pack_exception)
+        feature_values[:, i] = [x if not isinstance(x, Exception) else np.nan
+                                for x in dask_values]
     index = pd.MultiIndex.from_product((features_to_use, range(ts.n_channels)),
                                        names=('feature', 'channel'))
     return pd.Series(feature_values.ravel(), index=index)
@@ -113,7 +125,7 @@ def assemble_featureset(features_list, time_series=None,
 def featurize_time_series(times, values, errors=None, features_to_use=[],
                           meta_features={}, names=None,
                           custom_script_path=None, custom_functions=None,
-                          scheduler=dask.threaded.get):
+                          scheduler=dask.threaded.get, raise_exceptions=True):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -179,6 +191,10 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     scheduler : function, optional
         `dask` scheduler function used to perform feature extraction
         computation. Defaults to `dask.threaded.get`.
+    raise_exceptions : bool, optional
+        If True, exceptions during feature computation are raised immediately;
+        if False, exceptions are supressed and `np.nan` is returned for the
+        given feature and any dependent features. Defaults to True.
 
     Returns
     -------
@@ -235,15 +251,16 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
 
     all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
                                                             custom_script_path,
-                                                            custom_functions)
+                                                            custom_functions,
+                                                            raise_exceptions)
                     for ts in all_time_series]
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     return result.compute(get=scheduler)
 
 
 def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
-                       custom_functions=None,
-                       scheduler=dask.threaded.get):
+                       custom_functions=None, scheduler=dask.threaded.get,
+                       raise_exceptions=True):
     """Feature generation function for on-disk time series (.npz) files.
 
     By default, computes features concurrently using the
@@ -277,6 +294,10 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
     scheduler : function, optional
         `dask` scheduler function used to perform feature extraction
         computation. Defaults to `dask.threaded.get`.
+    raise_exceptions : bool, optional
+        If True, exceptions during feature computation are raised immediately;
+        if False, exceptions are supressed and `np.nan` is returned for the
+        given feature and any dependent features. Defaults to True.
 
     Returns
     -------
@@ -287,7 +308,8 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
                        for ts_path in ts_paths]
     all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
                                                             custom_script_path,
-                                                            custom_functions)
+                                                            custom_functions,
+                                                            raise_exceptions)
                     for ts in all_time_series]
     names, meta_feats, all_labels = zip(*[(ts.name, ts.meta_features, ts.label)
                                           for ts in all_time_series])
