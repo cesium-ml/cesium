@@ -31,7 +31,7 @@ def minimum(x):
 def percent_beyond_1_std(x, e):
     """Percentage of values more than 1 std. dev. from the weighted average."""
     dists_from_mu = x - weighted_average(x, e)
-    return np.mean(dists_from_mu > weighted_std_dev(x, e))
+    return np.mean(np.abs(dists_from_mu) > weighted_std_dev(x, e))
 
 
 def percent_close_to_median(x, window_frac=0.1):

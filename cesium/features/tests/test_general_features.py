@@ -262,4 +262,5 @@ def test_weighted_average():
 
     f = generate_features(times, values, errors,
                                       ['percent_beyond_1_std'])
-    npt.assert_equal(f['percent_beyond_1_std'], np.mean(stds_from_weighted_avg > 1.))
+    npt.assert_equal(f['percent_beyond_1_std'],
+                     np.mean(np.abs(stds_from_weighted_avg) > 1.))
