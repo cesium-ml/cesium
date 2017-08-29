@@ -346,6 +346,9 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
         Maximum (absolute) value above which values are treated as infinite.
         Used to prevent overflow when fitting `sklearn` models.
 
+    inplace : bool, optional
+        If True, fill in place. If False, return a copy.
+
     Returns
     -------
     pd.DataFrame
