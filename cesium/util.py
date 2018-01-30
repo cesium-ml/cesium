@@ -83,12 +83,17 @@ def extract_time_series(data_path, cleanup_archive=True, cleanup_files=False,
 
     if tarfile.is_tarfile(data_path):
         archive = tarfile.open(data_path)
-        archive.extractall(path=extract_dir)
-        all_paths = [os.path.join(extract_dir, f) for f in archive.getnames()]
+        members_to_extract = [x for x in archive.getmembers() if not
+                              x.name.startswith(('.', '/'))]
+        extracted_names = [x.name for x in members_to_extract]
+        archive.extractall(path=extract_dir, members=members_to_extract)
+        all_paths = [os.path.join(extract_dir, f) for f in extracted_names]
     elif zipfile.is_zipfile(data_path):
         archive = zipfile.ZipFile(data_path)
-        archive.extractall(path=extract_dir)
-        all_paths = [os.path.join(extract_dir, f) for f in archive.namelist()]
+        members_to_extract = [x for x in archive.namelist() if not
+                              x.startswith(('.', '/'))]
+        archive.extractall(path=extract_dir, members=members_to_extract)
+        all_paths = [os.path.join(extract_dir, f) for f in members_to_extract]
     else:
         archive = None
         all_paths = [data_path]
