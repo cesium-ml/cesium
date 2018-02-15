@@ -441,7 +441,7 @@ def load_featureset(path):
     fset = pd.DataFrame.from_records(data.pop('features'),
                                      index=['feature', 'channel']).T
     features, channels = zip(*fset.columns)
-    channels = [int(c) if c != '' else '' for c in channels]
+    channels = [int(c) if str(c).isdigit() else '' for c in channels]
     fset.columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
                                              names=['feature', 'channel'])
 
