@@ -1,10 +1,10 @@
 #include <math.h>
 
-inline double SQR(double a) {
+static inline double SQR(double a) {
     return (a == 0.0 ? 0.0 : a*a);
 }
 
-inline double SIGN(double a,double b) {
+static inline double SIGN(double a,double b) {
     return ((b) >= 0.0 ? fabs(a) : -fabs(a));
 }
 
