@@ -13,6 +13,8 @@ def lomb_scargle_model(
     tone_control=5.0,
     normalize=False,
     default_order=1,
+    freq_grid="auto",
+    freq_grid_param=None,
 ):
     """Simultaneous fit of a sum of sinusoids by weighted least squares.
 
@@ -51,6 +53,13 @@ def lomb_scargle_model(
         Order of polynomial to fit to the data while
         fitting the dominant frequency. Defaults to 1.
 
+    freq_grid : str
+        How to set the frequency grid for the search.
+        "auto" will use default.
+
+    freq_grid_param : dict
+        The grid parameters if freq_grid != "auto"
+        
     Returns
     -------
     dict
@@ -73,14 +82,18 @@ def lomb_scargle_model(
     dy0 = np.sqrt(error**2 + sys_err**2)
     wt = 1.0 / dy0**2
     chi0 = np.dot(signal**2, wt)
+    if freq_grid == "auto":
+        f0 = 1. / max(time)
+        df = 0.8 / max(time)  # 20120202 :    0.1/Xmax
+        fmax = 33.  # pre 20120126: 10. # 25
+        numf = int((fmax - f0) / df) + 1
+    else:
+        f0 = freq_grid_param["f0"]
+        df = freq_grid_param["df"]
+        fmax = freq_grid_param["fmax"]
+        numf = freq_grid_param["numf"]
 
-    # TODO parametrize?
-    f0 = 1.0 / max(time)
-    df = 0.8 / max(time)  # 20120202 :    0.1/Xmax
-    fmax = 33.0  # pre 20120126: 10. # 25
-    numf = int((fmax - f0) / df)  # TODO !!! this is off by 1 point, fix?
-
-    model_dict = {"freq_fits": []}
+    model_dict = {'freq_fits': []}
     lambda0_range = [
         -np.log10(len(time)),
         8,
