@@ -96,7 +96,7 @@ def parse_headerfile(headerfile_path, files_to_include=None):
     header.rename(columns={c: 'label' for c in ['label', 'target', 'class',
                                                 'class_label']}, inplace=True)
     labels = (header.label if 'label' in header
-              else pd.Series([None], index=header.index))
+              else pd.Series([None]*len(header.index), index=header.index))
     feature_data = header.drop(['label', 'class'], axis=1, errors='ignore')
     return labels, feature_data
 
@@ -136,7 +136,7 @@ def parse_and_store_ts_data(data_path, output_dir, header_path=None,
         if header_path:
             labels, meta_features = parse_headerfile(header_path, ts_paths)
         else:
-            labels = pd.Series([None], index=short_fnames)
+            labels = pd.Series([None]*len(short_fnames), index=short_fnames)
             meta_features = pd.DataFrame(index=short_fnames)
 
         all_time_series = []
