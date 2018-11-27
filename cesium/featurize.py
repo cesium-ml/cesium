@@ -255,7 +255,7 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
                                                             raise_exceptions)
                     for ts in all_time_series]
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
-    return result.compute(get=scheduler)
+    return result.compute(scheduler=scheduler)
 
 
 def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
@@ -316,7 +316,7 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
     result = delayed(assemble_featureset, pure=True)(all_features,
                                                      meta_features_list=meta_feats,
                                                      names=names)
-    fset, labels = dask.compute(result, all_labels, get=scheduler)
+    fset, labels = dask.compute(result, all_labels, scheduler=scheduler)
 
     return fset, labels
 
