@@ -71,7 +71,6 @@ matrix:
     - python: 2.7
       env:
         - SKIP_DOCS=1
-    - python: 3.4
     - python: 3.5
     - python: 3.6
       env:
