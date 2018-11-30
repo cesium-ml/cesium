@@ -11,10 +11,6 @@ How to make a new release of ``cesium``
 
    git push --tags origin master
 
-- Publish on PyPi::
-
-   python setup.py sdist upload
-
 - Update the version in `wheel_builder/.travis.yml` to build new wheels
 
 - Download wheels from wheels.scipy.org, e.g.:
@@ -24,3 +20,7 @@ wget -r --no-parent -A "cesium-$CESIUM*whl" http://wheels.scipy.org
 for WHEEL in `ls wheels.scipy.org`; do
   twine upload wheels.scipy.org/$WHEEL
 done
+
+- Publish on PyPi::
+
+   python setup.py sdist upload
