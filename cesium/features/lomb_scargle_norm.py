@@ -38,17 +38,14 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     time = time.copy() - min(time) # speeds up lomb_scargle code to have min(time)==0
     signal = signal.copy()
     
-    ### NORMALIZATION ###
+    ### Normalization ###
     mmean  = np.nanmean(signal)
     mscale = np.nanstd(signal)
-    #signal_init = signal.copy()  ## store initial measurements
-    #error_init  = error.copy()   ## store initial errors
     if opt_normalize:
         signal = (signal-mmean)/mscale
         error  = error/mscale
 
         
-    ## RUN
     dy0 = np.sqrt(error**2 + sys_err**2)
     wt = 1. / dy0**2
     chi0 = np.dot(signal**2, wt)
@@ -79,7 +76,7 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
         signal = norm_residual
         
         # store current estim_freq results, [**RESCALED for first fund freq]
-        current_fit = rescale_LSmodel(fit, mmean, mscale) if (opt_normalize&(i==0)) else fit
+        current_fit = rescale_lomb_model(fit, mmean, mscale) if (opt_normalize&(i==0)) else fit
         model_dict['freq_fits'].append(current_fit)
         model_dict['freq_fits'][-1]['resid'] = norm_residual
         
@@ -100,18 +97,25 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     return model_dict
 
 
-def rescale_LSmodel(norm_model, mmean, mscale):
+def rescale_lomb_model(norm_model, mmean, mscale):
     """ Rescale Lomb-Scargle model if compiled on normalized data.
     
     Parameters
     ----------
-        norm_model : dict, Lomb-Scargle model
-        mmean      : float64, mean of input_signal
-        mscale     : float64, standard-deviation of input_signal
+        norm_model : dict
+            Lomb-Scargle model computed on normalized data
+            
+        mmean      : float64, 
+            mean of input_signal
+            
+        mscale     : float64, 
+            standard-deviation of input_signal
     
     Returns
     -------
-        dict, rescaled Lomb-Scargle model (in adequacy with the input_signal)
+        rescaled_model: dict
+            rescaled Lomb-Scargle model (in adequacy with the input_signal)
+        
     """
     rescaled_model = norm_model.copy()
     ## unchanged : 'psd', 'chi0', 'freq', 'chi2', 'trace', 'nu0', 'nu', 'npars', 
