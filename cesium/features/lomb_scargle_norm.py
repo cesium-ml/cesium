@@ -418,3 +418,15 @@ def get_lomb_trend(lomb_model):
 def get_lomb_y_offset(lomb_model):
     """Get the y-intercept of a fitted Lomb-Scargle model."""
     return lomb_model['freq_fits'][0]['y_offset']
+
+
+def get_lomb_psd(lomb_model):
+    """Get the power spectrum of a fitted Lomb-Scargle model."""
+    dict_psd={}
+    for i in range(lomb_model['nfreq']):
+        dict_psd[i] = {'freqs_vector': lomb_model['freq_fits'][i]['freqs_vector'], 
+                        'psd_vector': lomb_model['freq_fits'][i]['psd_vector'] }
+    return dict_psd 
+
+
+
