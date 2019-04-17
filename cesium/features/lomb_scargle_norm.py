@@ -3,36 +3,6 @@ import scipy.stats as stats
 from ._lomb_scargle import lomb_scargle
 
     
-def rescale_LSmodel(norm_model, mmean, mscale):
-    """ Rescale Lomb-Scargle model if compiled on normalized data.
-    
-    Parameters
-    ----------
-        norm_model : dict, Lomb-Scargle model
-        mmean      : float64, mean of input_signal
-        mscale     : float64, standard-deviation of input_signal
-    
-    Returns
-    -------
-        dict, rescaled Lomb-Scargle model (in adequacy with the input_signal)
-    """
-    rescaled_model = norm_model.copy()
-    ## unchanged : 'psd', 'chi0', 'freq', 'chi2', 'trace', 'nu0', 'nu', 'npars', 
-    ##             'rel_phase', 'rel_phase_error', 'time0', 'signif'
-    rescaled_model['s0'] = rescaled_model['s0']/mscale**2
-    rescaled_model['lambda'] = rescaled_model['lambda']/mscale**2
-    rescaled_model['model'] = rescaled_model['model']*mscale+mmean
-    rescaled_model['model_error'] = rescaled_model['model_error']*mscale
-    rescaled_model['trend'] = rescaled_model['trend']*mscale+mmean
-    rescaled_model['trend_error'] = rescaled_model['trend_error']*mscale
-    rescaled_model['trend_coef'] = rescaled_model['trend_coef']*mscale+mmean
-    rescaled_model['amplitude'] = rescaled_model['amplitude']*mscale
-    rescaled_model['amplitude_error'] = rescaled_model['amplitude_error']*mscale
-    rescaled_model['y_offset'] = rescaled_model['y_offset']*mscale
-    
-    return rescaled_model
-
-
 def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0, opt_normalize=False):
     """Simultaneous fit of a sum of sinusoids by weighted least squares:
            y(t) = Sum_k Ck*t^k + Sum_i Sum_j A_ij sin(2*pi*j*fi*(t-t0)+phi_j),
@@ -127,8 +97,37 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     model_dict['numf']  = numf
     
         
-
     return model_dict
+
+
+def rescale_LSmodel(norm_model, mmean, mscale):
+    """ Rescale Lomb-Scargle model if compiled on normalized data.
+    
+    Parameters
+    ----------
+        norm_model : dict, Lomb-Scargle model
+        mmean      : float64, mean of input_signal
+        mscale     : float64, standard-deviation of input_signal
+    
+    Returns
+    -------
+        dict, rescaled Lomb-Scargle model (in adequacy with the input_signal)
+    """
+    rescaled_model = norm_model.copy()
+    ## unchanged : 'psd', 'chi0', 'freq', 'chi2', 'trace', 'nu0', 'nu', 'npars', 
+    ##             'rel_phase', 'rel_phase_error', 'time0', 'signif'
+    rescaled_model['s0'] = rescaled_model['s0']/mscale**2
+    rescaled_model['lambda'] = rescaled_model['lambda']/mscale**2
+    rescaled_model['model'] = rescaled_model['model']*mscale+mmean
+    rescaled_model['model_error'] = rescaled_model['model_error']*mscale
+    rescaled_model['trend'] = rescaled_model['trend']*mscale+mmean
+    rescaled_model['trend_error'] = rescaled_model['trend_error']*mscale
+    rescaled_model['trend_coef'] = rescaled_model['trend_coef']*mscale+mmean
+    rescaled_model['amplitude'] = rescaled_model['amplitude']*mscale
+    rescaled_model['amplitude_error'] = rescaled_model['amplitude_error']*mscale
+    rescaled_model['y_offset'] = rescaled_model['y_offset']*mscale
+    
+    return rescaled_model
 
 
 def lprob2sigma(lprob):
