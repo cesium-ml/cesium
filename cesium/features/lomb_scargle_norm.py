@@ -34,7 +34,6 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
         fit_lomb_scargle(...)
 
     """
-
     time = time.copy() - min(time) # speeds up lomb_scargle code to have min(time)==0
     signal = signal.copy()
     
@@ -44,12 +43,10 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     if opt_normalize:
         signal = (signal-mmean)/mscale
         error  = error/mscale
-
         
     dy0 = np.sqrt(error**2 + sys_err**2)
     wt = 1. / dy0**2
     chi0 = np.dot(signal**2, wt)
-    
     
     # TODO parametrize?
     f0 =  1. / max(time)
@@ -93,7 +90,6 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     model_dict['df']    = df
     model_dict['numf']  = numf
     
-        
     return model_dict
 
 
@@ -134,6 +130,7 @@ def rescale_lomb_model(norm_model, mmean, mscale):
     return rescaled_model
 
 
+
 def lprob2sigma(lprob):
     """Translate a log_e(probability) to units of Gaussian sigmas."""
     if lprob > -36.:
@@ -143,6 +140,7 @@ def lprob2sigma(lprob):
         f = 0.5 * np.log(2. / np.pi) - 0.5 * sigma**2 - np.log(sigma) - lprob
         sigma += f / (sigma + 1. / sigma)
     return sigma
+
 
 
 def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detrend_order=0,
@@ -424,7 +422,9 @@ def get_lomb_y_offset(lomb_model):
 
 
 def get_lomb_psd(lomb_model):
-    """Get the power spectrum of a fitted Lomb-Scargle model."""
+    """
+    Get the power spectrum of a fitted Lomb-Scargle model per fitted frequency.
+    """
     dict_psd={}
     for i in range(lomb_model['nfreq']):
         dict_psd[i] = {'freqs_vector': lomb_model['freq_fits'][i]['freqs_vector'], 
