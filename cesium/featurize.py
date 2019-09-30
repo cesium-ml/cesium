@@ -5,7 +5,7 @@ import pandas as pd
 import dask
 import dask.threaded
 from dask import delayed
-from dask.compatibility import reraise
+from dask.local import reraise
 from dask.threaded import pack_exception
 from sklearn.preprocessing import Imputer
 

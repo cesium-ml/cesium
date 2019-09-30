@@ -2,7 +2,7 @@ numpy>=1.14.3
 scipy>=0.16.0
 scikit-learn>=0.18.1
 pandas>=0.17.0
-dask>=1.0.0
+dask>=2.5.0
 toolz
 gatspy>=0.3.0
 cloudpickle
