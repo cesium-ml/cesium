@@ -7,7 +7,7 @@ import dask.threaded
 from dask import delayed
 from dask.local import reraise
 from dask.threaded import pack_exception
-from sklearn.preprocessing import Imputer
+from sklearn.impute import SimpleImputer as Imputer
 
 from . import time_series
 from .time_series import TimeSeries
@@ -364,7 +364,7 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
             value = -2. * np.nanmax(np.abs(fset.values))
         fset.fillna(value, inplace=True)
     elif strategy in ('mean', 'median', 'most_frequent'):
-        imputer = Imputer(strategy=strategy, axis=0)
+        imputer = Imputer(strategy=strategy)
         fset.values[:] = imputer.fit_transform(fset.values)
     else:
         raise NotImplementedError("Imputation strategy '{}' not"
