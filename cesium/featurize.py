@@ -7,6 +7,7 @@ import dask.threaded
 from dask import delayed
 from dask.local import reraise
 from dask.threaded import pack_exception
+from dask.optimization import cull
 from sklearn.impute import SimpleImputer as Imputer
 
 from . import time_series
@@ -69,7 +70,8 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
             raise_callback = reraise
         else:
             raise_callback = lambda e, tb: None
-        dask_values = dask.get(feature_graph, features_to_use,
+        culled_feature_graph, _ = cull(feature_graph, features_to_use)
+        dask_values = dask.get(culled_feature_graph, features_to_use,
                                raise_exception=raise_callback,
                                pack_exception=pack_exception)
         feature_values[:, i] = [x if not isinstance(x, Exception) else np.nan
