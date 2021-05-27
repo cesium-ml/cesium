@@ -16,4 +16,3 @@ repos:
     hooks:
       - id: flake8
         pass_filenames: true
-        exclude: doc/conf.py
