@@ -19,8 +19,8 @@ import os
 import shlex
 import cesium
 
-from .tools.apigen import ApiDocWriter
-from .tools.feature_table import write_feature_tables
+from tools.apigen import ApiDocWriter
+from tools.feature_table import write_feature_tables
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
