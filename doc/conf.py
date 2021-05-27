@@ -33,55 +33,55 @@ import cesium
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    "sphinx.ext.mathjax",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     #    'sphinx.ext.pngmath',
-    'numpydoc',
+    "numpydoc",
     #    'plot2rst',
     #    'sphinx.ext.intersphinx',
     #    'sphinx.ext.linkcode',
-    'sphinx_gallery.gen_gallery',
+    "sphinx_gallery.gen_gallery",
 ]
 
 sphinx_gallery_conf = {
     # path to your examples scripts
-    'examples_dirs': '../examples',
+    "examples_dirs": "../examples",
     # path where to save gallery generated examples
-    'gallery_dirs': 'auto_examples',
+    "gallery_dirs": "auto_examples",
 }
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 
 source_parsers = {
-    '.md': CommonMarkParser,
+    ".md": CommonMarkParser,
 }
 
-source_suffix = ['.rst', '.md', '.txt']
+source_suffix = [".rst", ".md", ".txt"]
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'cesium'
-copyright = '2015, The cesium Team'
-author = 'The cesium Team'
+project = "cesium"
+copyright = "2015, The cesium Team"
+author = "The cesium Team"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 
-setup_lines = open('../cesium/__init__.py').readlines()
-version = 'vUndefined'
+setup_lines = open("../cesium/__init__.py").readlines()
+version = "vUndefined"
 for l in setup_lines:
-    if l.startswith('__version__'):
+    if l.startswith("__version__"):
         version = l.split("'")[1]
         break
 
@@ -103,7 +103,7 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ["_build"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -121,7 +121,7 @@ exclude_patterns = ['_build']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -137,11 +137,11 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 # Per https://github.com/snide/sphinx_rtd_theme: specify theme if not on RTD
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
 
-    html_theme = 'sphinx_rtd_theme'
+    html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -170,7 +170,7 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -233,7 +233,7 @@ html_show_sourcelink = False
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'cesiumdoc'
+htmlhelp_basename = "cesiumdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -252,7 +252,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'cesium.tex', 'cesium Documentation', 'The cesium Team', 'manual'),
+    (master_doc, "cesium.tex", "cesium Documentation", "The cesium Team", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -280,7 +280,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, 'cesium', 'cesium Documentation', [author], 1)]
+man_pages = [(master_doc, "cesium", "cesium Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -294,12 +294,12 @@ man_pages = [(master_doc, 'cesium', 'cesium Documentation', [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        'cesium',
-        'cesium Documentation',
+        "cesium",
+        "cesium Documentation",
         author,
-        'cesium',
-        'One line description of project.',
-        'Miscellaneous',
+        "cesium",
+        "One line description of project.",
+        "Miscellaneous",
     ),
 ]
 
@@ -317,21 +317,21 @@ texinfo_documents = [
 
 
 # -- Build cesium API documentation ----------------------------------------
-sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
-sys.path.append(os.path.join(os.path.dirname(__name__), 'tools'))
-package = 'cesium'
+sys.path.append(os.path.join(os.path.dirname(__name__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__name__), "tools"))
+package = "cesium"
 module = sys.modules[package]
 from feature_table import write_feature_tables
 from apigen import ApiDocWriter
 
-outdir = 'api'
+outdir = "api"
 docwriter = ApiDocWriter(package)
 docwriter.write_api_docs(outdir)
-docwriter.write_index(outdir, 'api', relative_to='api')
-print('%d files written' % len(docwriter.written_modules))
+docwriter.write_index(outdir, "api", relative_to="api")
+print("%d files written" % len(docwriter.written_modules))
 
 # -- Write feature tables --------------------------------------------------
-write_feature_tables('./feature_table.rst')
+write_feature_tables("./feature_table.rst")
 
 
 def setup(app):
