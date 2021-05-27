@@ -13,9 +13,14 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from recommonmark.parser import CommonMarkParser
 import sys
 import os
 import shlex
+import cesium
+
+from tools.apigen import ApiDocWriter
+from tools.feature_table import write_feature_tables
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -34,25 +39,24 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-#    'sphinx.ext.pngmath',
+    #    'sphinx.ext.pngmath',
     'numpydoc',
-#    'plot2rst',
-#    'sphinx.ext.intersphinx',
-#    'sphinx.ext.linkcode',
+    #    'plot2rst',
+    #    'sphinx.ext.intersphinx',
+    #    'sphinx.ext.linkcode',
     'sphinx_gallery.gen_gallery'
 ]
 
 sphinx_gallery_conf = {
     # path to your examples scripts
-    'examples_dirs' : '../examples',
+    'examples_dirs': '../examples',
     # path where to save gallery generated examples
-    'gallery_dirs'  : 'auto_examples'}
+    'gallery_dirs': 'auto_examples'}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
-from recommonmark.parser import CommonMarkParser
 
 source_parsers = {
     '.md': CommonMarkParser,
@@ -235,25 +239,25 @@ htmlhelp_basename = 'cesiumdoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    # 'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    # 'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    # 'preamble': '',
 
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
+    # Latex figure (float) alignment
+    # 'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'cesium.tex', 'cesium Documentation',
-   'The cesium Team', 'manual'),
+    (master_doc, 'cesium.tex', 'cesium Documentation',
+     'The cesium Team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -296,9 +300,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'cesium', 'cesium Documentation',
-   author, 'cesium', 'One line description of project.',
-   'Miscellaneous'),
+    (master_doc, 'cesium', 'cesium Documentation',
+     author, 'cesium', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -317,8 +321,6 @@ texinfo_documents = [
 # -- Build cesium API documentation ----------------------------------------
 sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__name__), 'tools'))
-from apigen import ApiDocWriter
-import cesium
 package = 'cesium'
 module = sys.modules[package]
 
@@ -329,8 +331,8 @@ docwriter.write_index(outdir, 'api', relative_to='api')
 print('%d files written' % len(docwriter.written_modules))
 
 # -- Write feature tables --------------------------------------------------
-from feature_table import write_feature_tables
 write_feature_tables('./feature_table.rst')
 
+
 def setup(app):
-    app.add_stylesheet("output_cells.css")
+    app.add_css_file("output_cells.css")
