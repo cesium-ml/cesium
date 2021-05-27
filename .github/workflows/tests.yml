@@ -1,0 +1,56 @@
+name: Run cesium test suite
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    name: Test cesium
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "3.8"
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache
+            ~/.local
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Checkout branch being tested
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+          clean: false
+
+      - name: Install dependencies & configure cesium
+        run: |
+          pip install --upgrade pip
+          pip install wheel numpy requests six python-dateutil pytest pytest-cov mock coverage
+          make install
+          pip install cython==0.29.23
+          python setup.py build_ext -i
+          pip install -e .
+
+          which python; python --version
+
+      - name: Run test suite
+        run: |
+          if [[ -n $COVERAGE ]]; then
+            PYTEST_FLAGS='--cov=./'
+          fi
+          PYTHONPATH=. python -m pytest -v $PYTEST_FLAGS
+
+      - name: Build docs
+        run: |
+          if [[ $SKIP_DOCS != 1 ]]; then
+            pip install matplotlib
+            make html
+          fi
