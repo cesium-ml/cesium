@@ -4,9 +4,10 @@ from ._lomb_scargle import lomb_scargle
 
 
 def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0, opt_normalize=False):
-    """Simultaneous fit of a sum of sinusoids by weighted least squares:
-           y(t) = Sum_k Ck*t^k + Sum_i Sum_j A_ij sin(2*pi*j*fi*(t-t0)+phi_j),
-           i=[1,nfreq], j=[1,nharm]
+    """Simultaneous fit of a sum of sinusoids by weighted least squares.
+
+    y(t) = Sum_k Ck*t^k + Sum_i Sum_j A_ij sin(2*pi*j*fi*(t-t0)+phi_j),
+    i=[1,nfreq], j=[1,nharm]
 
     Parameters
     ----------
@@ -19,11 +20,20 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     error : array_like
         Array containing measurement error values.
 
-    nharm : int
-        Number of harmonics to fit for each frequency.
+    sys_err : float, optional
+        Defaults to 0.05
 
-    nfreq : int
-        Number of frequencies to fit.
+    nharm : int, optional
+        Number of harmonics to fit for each frequency. Defaults to 8.
+
+    nfreq : int, optional
+        Number of frequencies to fit. Defaults to 3.
+
+    tone_control : float, optional
+        Defaults to 5.0
+
+    opt_normalize : boolean, optional
+        Defaults to False.
 
     Returns
     -------
@@ -94,23 +104,23 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
 
 
 def rescale_lomb_model(norm_model, mmean, mscale):
-    """ Rescale Lomb-Scargle model if compiled on normalized data.
+    """Rescale Lomb-Scargle model if compiled on normalized data.
 
     Parameters
     ----------
-        norm_model : dict
-            Lomb-Scargle model computed on normalized data
+    norm_model : dict
+        Lomb-Scargle model computed on normalized data
 
-        mmean      : float64, 
-            mean of input_signal
+    mmean : float64
+        mean of input_signal
 
-        mscale     : float64, 
-            standard-deviation of input_signal
+    mscale : float64
+        standard-deviation of input_signal
 
     Returns
     -------
-        rescaled_model: dict
-            rescaled Lomb-Scargle model (in adequacy with the input_signal)
+    rescaled_model: dict
+        rescaled Lomb-Scargle model (in adequacy with the input_signal)
 
     """
     rescaled_model = norm_model.copy()
@@ -148,7 +158,8 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     lomb_scargle_model in order to produce a fit with multiple distinct
     frequencies.
 
-    Inputs:
+    Parameters
+    ----------
     time : array_like
         Array containing time values.
 
@@ -308,25 +319,18 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
 
     vmodl = vcn / s0 + np.dot((hat_matr / wth0).T, np.dot(hat_hat, hat_matr / wth0))
     vmodl0 = vcn / s0 + np.dot((hat_matr0 / wth0).T, np.dot(hat_hat, hat_matr0 / wth0))
-    out_dict["model_error"] = np.sqrt(np.diag(vmodl))
-    out_dict["trend_error"] = np.sqrt(np.diag(vmodl0))
+    out_dict['model_error'] = np.sqrt(np.diag(vmodl))
+    out_dict['trend_error'] = np.sqrt(np.diag(vmodl0))
 
     amp = np.sqrt(A0**2 + B0**2)
     damp = np.sqrt(A0**2 * vA0 + B0**2 * vB0 + 2.0 * A0 * B0 * covA0B0) / amp
     phase = np.arctan2(B0, A0)
-    rel_phase = phase - phase[0] * (1.0 + ii)
+    rel_phase = phase - phase[0] * (1. + ii)
     rel_phase = np.arctan2(np.sin(rel_phase), np.cos(rel_phase))
-    dphase = 0.0 * rel_phase
+    dphase = 0. * rel_phase
     for i in range(nharm - 1):
         j = i + 1
-        v = np.array(
-            [
-                -A0[0] * (1.0 + j) / amp[0] ** 2,
-                B0[0] * (1.0 + j) / amp[0] ** 2,
-                A0[j] / amp[j] ** 2,
-                -B0[j] / amp[j] ** 2,
-            ]
-        )
+        v = np.array([-A0[0] * (1. + j) / amp[0]**2, B0[0] * (1. + j) / amp[0]**2, A0[j] / amp[j]**2, -B0[j] / amp[j]**2])
         jj = np.array([0, nharm, j, j + nharm])
         m = hat_hat[np.ix_(jj, jj)]
         dphase[j] = np.sqrt(np.dot(np.dot(v, m), v))
@@ -338,24 +342,18 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     out_dict["time0"] = -phase[0] / (2 * np.pi * freq)
 
     ncp = norm.cumprod()
-    out_dict["trend_coef"] = coef / ncp
-    out_dict["y_offset"] = out_dict["trend_coef"][0] - cn0
+    out_dict['trend_coef'] = coef / ncp
+    out_dict['y_offset'] = out_dict['trend_coef'][0] - cn0
 
-    prob = stats.f.sf(
-        0.5
-        * (ntime - 1.0 - detrend_order)
-        * (1.0 - out_dict["chi2"] / out_dict["chi0"]),
-        2,
-        ntime - 1 - detrend_order,
-    )
-    out_dict["signif"] = lprob2sigma(np.log(prob))
+    prob = stats.f.sf(0.5 * (ntime - 1. - detrend_order) * (1. - out_dict['chi2'] / out_dict['chi0']), 2, ntime - 1 - detrend_order)
+    out_dict['signif'] = lprob2sigma(np.log(prob))
 
     return out_dict
 
 
 def get_lomb_frequency(lomb_model, i):
     """Get the ith frequency from a fitted Lomb-Scargle model."""
-    return lomb_model["freq_fits"][i - 1]["freq"]
+    return lomb_model['freq_fits'][i - 1]['freq']
 
 
 def get_lomb_amplitude(lomb_model, i, j):
@@ -363,7 +361,7 @@ def get_lomb_amplitude(lomb_model, i, j):
     Get the amplitude of the jth harmonic of the ith frequency from a fitted
     Lomb-Scargle model.
     """
-    return lomb_model["freq_fits"][i - 1]["amplitude"][j - 1]
+    return lomb_model['freq_fits'][i - 1]['amplitude'][j - 1]
 
 
 def get_lomb_rel_phase(lomb_model, i, j):
@@ -371,7 +369,7 @@ def get_lomb_rel_phase(lomb_model, i, j):
     Get the relative phase of the jth harmonic of the ith frequency from a
     fitted Lomb-Scargle model.
     """
-    return lomb_model["freq_fits"][i - 1]["rel_phase"][j - 1]
+    return lomb_model['freq_fits'][i - 1]['rel_phase'][j - 1]
 
 
 def get_lomb_amplitude_ratio(lomb_model, i):
@@ -379,10 +377,8 @@ def get_lomb_amplitude_ratio(lomb_model, i):
     Get the ratio of the amplitudes of the first harmonic for the ith and first
     frequencies from a fitted Lomb-Scargle model.
     """
-    return (
-        lomb_model["freq_fits"][i - 1]["amplitude"][0]
-        / lomb_model["freq_fits"][0]["amplitude"][0]
-    )
+    return (lomb_model['freq_fits'][i - 1]['amplitude'][0] /
+            lomb_model['freq_fits'][0]['amplitude'][0])
 
 
 def get_lomb_frequency_ratio(lomb_model, i):
@@ -390,7 +386,8 @@ def get_lomb_frequency_ratio(lomb_model, i):
     Get the ratio of the ith and first frequencies from a fitted Lomb-Scargle
     model.
     """
-    return lomb_model["freq_fits"][i - 1]["freq"] / lomb_model["freq_fits"][0]["freq"]
+    return (lomb_model['freq_fits'][i - 1]['freq'] /
+            lomb_model['freq_fits'][0]['freq'])
 
 
 def get_lomb_signif_ratio(lomb_model, i):
@@ -398,9 +395,8 @@ def get_lomb_signif_ratio(lomb_model, i):
     Get the ratio of the significances (in sigmas) of the ith and first
     frequencies from a fitted Lomb-Scargle model.
     """
-    return (
-        lomb_model["freq_fits"][i - 1]["signif"] / lomb_model["freq_fits"][0]["signif"]
-    )
+    return (lomb_model['freq_fits'][i - 1]['signif'] /
+            lomb_model['freq_fits'][0]['signif'])
 
 
 def get_lomb_lambda(lomb_model):
