@@ -1,4 +1,4 @@
-name: Run cesium test suite
+name: Build cesium docs
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Test cesium
+    name: Build docs
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -39,11 +39,9 @@ jobs:
           python setup.py build_ext -i
           pip install -e .
 
-          which python; python --version
-
-      - name: Run test suite
+      - name: Build docs
         run: |
-          if [[ -n $COVERAGE ]]; then
-            PYTEST_FLAGS='--cov=./'
+          if [[ $SKIP_DOCS != 1 ]]; then
+            pip install matplotlib
+            make html
           fi
-          PYTHONPATH=. python -m pytest -v $PYTEST_FLAGS
