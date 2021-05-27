@@ -35,17 +35,11 @@ jobs:
           pip install --upgrade pip
           pip install wheel numpy requests six python-dateutil pytest pytest-cov mock coverage
           make install
-          pip install --retries 3 -q cython==0.25.2
+          pip install cython==0.29.23
           python setup.py build_ext -i
           pip install -e .
 
           which python; python --version
-
-      - name: Formatting and linting checks
-        if: github.ref != 'refs/heads/master'
-        run: |
-          pip install pre-commit
-          pre-commit run --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
 
       - name: Run test suite
         run: |
