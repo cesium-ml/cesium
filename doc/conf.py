@@ -19,9 +19,6 @@ import os
 import shlex
 import cesium
 
-from apigen import ApiDocWriter
-from feature_table import write_feature_tables
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -323,6 +320,8 @@ sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 sys.path.append(os.path.join(os.path.dirname(__name__), 'tools'))
 package = 'cesium'
 module = sys.modules[package]
+from feature_table import write_feature_tables
+from apigen import ApiDocWriter
 
 outdir = 'api'
 docwriter = ApiDocWriter(package)
