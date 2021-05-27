@@ -1,4 +1,4 @@
-name: Run cesium test suite
+name: Test Cesium
 
 on:
   push:

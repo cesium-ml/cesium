@@ -1,4 +1,4 @@
-name: Build cesium docs
+name: Build docs
 
 on:
   push:
