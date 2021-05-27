@@ -3,7 +3,16 @@ import scipy.stats as stats
 from ._lomb_scargle import lomb_scargle
 
 
-def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0, opt_normalize=False):
+def lomb_scargle_model(
+    time,
+    signal,
+    error,
+    sys_err=0.05,
+    nharm=8,
+    nfreq=3,
+    tone_control=5.0,
+    opt_normalize=False,
+):
     """Simultaneous fit of a sum of sinusoids by weighted least squares.
 
     y(t) = Sum_k Ck*t^k + Sum_i Sum_j A_ij sin(2*pi*j*fi*(t-t0)+phi_j),
@@ -54,44 +63,71 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
         signal = (signal - mmean) / mscale
         error = error / mscale
 
-    dy0 = np.sqrt(error**2 + sys_err**2)
-    wt = 1. / dy0**2
-    chi0 = np.dot(signal**2, wt)
+    dy0 = np.sqrt(error ** 2 + sys_err ** 2)
+    wt = 1.0 / dy0 ** 2
+    chi0 = np.dot(signal ** 2, wt)
 
     # TODO parametrize?
-    f0 = 1. / max(time)
-    df = 0.8 / max(time)          # 20120202 :    0.1/Xmax
-    fmax = 33.                    # pre 20120126: 10. # 25
+    f0 = 1.0 / max(time)
+    df = 0.8 / max(time)  # 20120202 :    0.1/Xmax
+    fmax = 33.0  # pre 20120126: 10. # 25
     numf = int((fmax - f0) / df)  # TODO !!! this is off by 1 point, fix?
 
     model_dict = {'freq_fits': []}
-    lambda0_range = [-np.log10(len(time)), 8]  # these numbers "fix" the strange-amplitude effect
+    lambda0_range = [
+        -np.log10(len(time)),
+        8,
+    ]  # these numbers "fix" the strange-amplitude effect
     for i in range(nfreq):
         if i == 0:
-            fit = fit_lomb_scargle(time, signal, dy0, f0, df, numf,
-                                   tone_control=tone_control, lambda0_range=lambda0_range,
-                                   nharm=nharm, detrend_order=1)
+            fit = fit_lomb_scargle(
+                time,
+                signal,
+                dy0,
+                f0,
+                df,
+                numf,
+                tone_control=tone_control,
+                lambda0_range=lambda0_range,
+                nharm=nharm,
+                detrend_order=1,
+            )
             model_dict['trend'] = fit['trend_coef'][1]
         #
         else:
-            fit = fit_lomb_scargle(time, signal, dy0, f0, df, numf,
-                                   tone_control=tone_control, lambda0_range=lambda0_range,
-                                   nharm=nharm, detrend_order=0)
+            fit = fit_lomb_scargle(
+                time,
+                signal,
+                dy0,
+                f0,
+                df,
+                numf,
+                tone_control=tone_control,
+                lambda0_range=lambda0_range,
+                nharm=nharm,
+                detrend_order=0,
+            )
 
         # remove current estim_freq for next run [**NORM]
-        norm_residual = (signal - fit['model'])
+        norm_residual = signal - fit['model']
         signal = norm_residual
 
         # store current estim_freq results, [**RESCALED for first fund freq]
-        current_fit = rescale_lomb_model(fit, mmean, mscale) if (opt_normalize & (i == 0)) else fit
+        current_fit = (
+            rescale_lomb_model(fit, mmean, mscale)
+            if (opt_normalize & (i == 0))
+            else fit
+        )
         model_dict['freq_fits'].append(current_fit)
         model_dict['freq_fits'][-1]['resid'] = norm_residual
 
-        if (opt_normalize & (i == 0)):
+        if opt_normalize & (i == 0):
             model_dict['freq_fits'][-1]['resid'] *= mscale
 
         if i == 0:
-            model_dict['varrat'] = np.dot(norm_residual**2, wt) / chi0  # no need to rescale
+            model_dict['varrat'] = (
+                np.dot(norm_residual ** 2, wt) / chi0
+            )  # no need to rescale
 
     model_dict['nfreq'] = nfreq
     model_dict['nharm'] = nharm
@@ -126,8 +162,8 @@ def rescale_lomb_model(norm_model, mmean, mscale):
     rescaled_model = norm_model.copy()
     # unchanged : 'psd', 'chi0', 'freq', 'chi2', 'trace', 'nu0', 'nu', 'npars',
     ##             'rel_phase', 'rel_phase_error', 'time0', 'signif'
-    rescaled_model['s0'] = rescaled_model['s0'] / mscale**2
-    rescaled_model['lambda'] = rescaled_model['lambda'] / mscale**2
+    rescaled_model['s0'] = rescaled_model['s0'] / mscale ** 2
+    rescaled_model['lambda'] = rescaled_model['lambda'] / mscale ** 2
     rescaled_model['model'] = rescaled_model['model'] * mscale + mmean
     rescaled_model['model_error'] = rescaled_model['model_error'] * mscale
     rescaled_model['trend'] = rescaled_model['trend'] * mscale + mmean
@@ -146,13 +182,26 @@ def lprob2sigma(lprob):
         sigma = stats.norm.ppf(1.0 - 0.5 * np.exp(lprob))
     else:
         sigma = np.sqrt(np.log(2.0 / np.pi) - 2.0 * np.log(8.2) - 2.0 * lprob)
-        f = 0.5 * np.log(2.0 / np.pi) - 0.5 * sigma**2 - np.log(sigma) - lprob
+        f = 0.5 * np.log(2.0 / np.pi) - 0.5 * sigma ** 2 - np.log(sigma) - lprob
         sigma += f / (sigma + 1.0 / sigma)
     return sigma
 
 
-def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detrend_order=0,
-                     freq_zoom=10., tone_control=5., lambda0=1., lambda0_range=[-8, 6]):
+def fit_lomb_scargle(
+    time,
+    signal,
+    error,
+    f0,
+    df,
+    numf,
+    nharm=8,
+    psdmin=6.0,
+    detrend_order=0,
+    freq_zoom=10.0,
+    tone_control=5.0,
+    lambda0=1.0,
+    lambda0_range=[-8, 6],
+):
     """Calls C implementation of Lomb Scargle sinusoid fitting, which fits a
     single frequency with nharm harmonics to the data. Called repeatedly by
     lomb_scargle_model in order to produce a fit with multiple distinct
@@ -205,7 +254,7 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     ntime = len(time)
 
     # For some reason we round this to the nearest even integer
-    freq_zoom = round(freq_zoom / 2.) * 2.
+    freq_zoom = round(freq_zoom / 2.0) * 2.0
 
     # Polynomial terms
     coef = np.zeros(detrend_order + 1, dtype='float64')
@@ -223,11 +272,13 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     vcn = 1.0
 
     # np.sin's and cosin's for later
-    tt = 2. * np.pi * time
+    tt = 2.0 * np.pi * time
     sinx, cosx = np.sin(tt * f0) * wth0, np.cos(tt * f0) * wth0
     sinx_step, cosx_step = np.sin(tt * df), np.cos(tt * df)
-    sinx_back, cosx_back = -np.sin(tt * df / 2.), np.cos(tt * df / 2)
-    sinx_smallstep, cosx_smallstep = np.sin(tt * df / freq_zoom), np.cos(tt * df / freq_zoom)
+    sinx_back, cosx_back = -np.sin(tt * df / 2.0), np.cos(tt * df / 2)
+    sinx_smallstep, cosx_smallstep = np.sin(tt * df / freq_zoom), np.cos(
+        tt * df / freq_zoom
+    )
 
     npar = 2 * nharm
     hat_matr = np.zeros((npar, ntime), dtype='float64')
@@ -252,26 +303,51 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
         coef[i + 1] = np.dot(cn, f)
         cn -= coef[i + 1] * f
         wth[i + 1, :] = f
-        vcn += (f / wth0)**2
+        vcn += (f / wth0) ** 2
 
     chi0 = np.dot(cn, cn)
     varcn = chi0 / (ntime - 1 - detrend_order)
     psdmin *= 2 * varcn
 
-    Tr = np.array(0., dtype='float64')
+    Tr = np.array(0.0, dtype='float64')
     ifreq = np.array(0, dtype='int32')
     lambda0 = np.array(lambda0 / s0, dtype='float64')
-    lambda0_range = 10**np.array(lambda0_range, dtype='float64') / s0
+    lambda0_range = 10 ** np.array(lambda0_range, dtype='float64') / s0
 
-    lomb_scargle(ntime, numf, nharm, detrend_order, psd, cn, wth, sinx, cosx,
-                 sinx_step, cosx_step, sinx_back, cosx_back, sinx_smallstep,
-                 cosx_smallstep, hat_matr, hat_hat, hat0, soln, chi0, freq_zoom,
-                 psdmin, tone_control, lambda0, lambda0_range, Tr, ifreq)
+    lomb_scargle(
+        ntime,
+        numf,
+        nharm,
+        detrend_order,
+        psd,
+        cn,
+        wth,
+        sinx,
+        cosx,
+        sinx_step,
+        cosx_step,
+        sinx_back,
+        cosx_back,
+        sinx_smallstep,
+        cosx_smallstep,
+        hat_matr,
+        hat_hat,
+        hat0,
+        soln,
+        chi0,
+        freq_zoom,
+        psdmin,
+        tone_control,
+        lambda0,
+        lambda0_range,
+        Tr,
+        ifreq,
+    )
 
     hat_hat /= s0
     ii = np.arange(nharm, dtype='int32')
-    soln[0:nharm] /= (1. + ii)**2
-    soln[nharm:] /= (1. + ii)**2
+    soln[0:nharm] /= (1.0 + ii) ** 2
+    soln[nharm:] /= (1.0 + ii) ** 2
     hat_matr0 = np.outer(hat0[:, 0], wth0)
     for i in range(detrend_order):
         hat_matr0 += np.outer(hat0[:, i + 1], wth[i + 1, :])
@@ -291,8 +367,8 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     out_dict['model'] = modl / wth0 + out_dict['trend']
 
     j = psd.argmax()
-    freq = f0 + df * j + (ifreq / freq_zoom - 1 / 2.) * df
-    tt = (time * freq) % 1.
+    freq = f0 + df * j + (ifreq / freq_zoom - 1 / 2.0) * df
+    tt = (time * freq) % 1.0
     out_dict['freq'] = freq
     out_dict['s0'] = s0
     out_dict['chi2'] = (chi0 - psd[j]) * s0
@@ -301,18 +377,23 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     #    out_dict['gcv_weight'] = (1 - 3. / ntime) / Tr
     out_dict['trace'] = Tr
     out_dict['nu0'] = ntime - npar
-    npars = (1 - Tr) * ntime / 2.
+    npars = (1 - Tr) * ntime / 2.0
     out_dict['nu'] = ntime - npars
     out_dict['npars'] = npars
 
     ## -------------------- Added -------------------- ##
-    allfreqs = [f0 + df * ii + (ifreq / freq_zoom - 1 / 2.) * df for ii in range(len(psd))]
+    allfreqs = [
+        f0 + df * ii + (ifreq / freq_zoom - 1 / 2.0) * df for ii in range(len(psd))
+    ]
     out_dict['freqs_vector'] = np.asarray(allfreqs)
     out_dict['psd_vector'] = psd
     ## ---------------------------------------------- ##
 
     A0, B0 = soln[0:nharm], soln[nharm:]
-    hat_hat /= np.outer(np.hstack(((1. + ii)**2, (1. + ii)**2)), np.hstack(((1. + ii)**2, (1. + ii)**2)))
+    hat_hat /= np.outer(
+        np.hstack(((1.0 + ii) ** 2, (1.0 + ii) ** 2)),
+        np.hstack(((1.0 + ii) ** 2, (1.0 + ii) ** 2)),
+    )
     err2 = np.diag(hat_hat)
     vA0, vB0 = err2[0:nharm], err2[nharm:]
     covA0B0 = hat_hat[(ii, nharm + ii)]
@@ -322,15 +403,22 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     out_dict['model_error'] = np.sqrt(np.diag(vmodl))
     out_dict['trend_error'] = np.sqrt(np.diag(vmodl0))
 
-    amp = np.sqrt(A0**2 + B0**2)
-    damp = np.sqrt(A0**2 * vA0 + B0**2 * vB0 + 2.0 * A0 * B0 * covA0B0) / amp
+    amp = np.sqrt(A0 ** 2 + B0 ** 2)
+    damp = np.sqrt(A0 ** 2 * vA0 + B0 ** 2 * vB0 + 2.0 * A0 * B0 * covA0B0) / amp
     phase = np.arctan2(B0, A0)
-    rel_phase = phase - phase[0] * (1. + ii)
+    rel_phase = phase - phase[0] * (1.0 + ii)
     rel_phase = np.arctan2(np.sin(rel_phase), np.cos(rel_phase))
-    dphase = 0. * rel_phase
+    dphase = 0.0 * rel_phase
     for i in range(nharm - 1):
         j = i + 1
-        v = np.array([-A0[0] * (1. + j) / amp[0]**2, B0[0] * (1. + j) / amp[0]**2, A0[j] / amp[j]**2, -B0[j] / amp[j]**2])
+        v = np.array(
+            [
+                -A0[0] * (1.0 + j) / amp[0] ** 2,
+                B0[0] * (1.0 + j) / amp[0] ** 2,
+                A0[j] / amp[j] ** 2,
+                -B0[j] / amp[j] ** 2,
+            ]
+        )
         jj = np.array([0, nharm, j, j + nharm])
         m = hat_hat[np.ix_(jj, jj)]
         dphase[j] = np.sqrt(np.dot(np.dot(v, m), v))
@@ -345,7 +433,13 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     out_dict['trend_coef'] = coef / ncp
     out_dict['y_offset'] = out_dict['trend_coef'][0] - cn0
 
-    prob = stats.f.sf(0.5 * (ntime - 1. - detrend_order) * (1. - out_dict['chi2'] / out_dict['chi0']), 2, ntime - 1 - detrend_order)
+    prob = stats.f.sf(
+        0.5
+        * (ntime - 1.0 - detrend_order)
+        * (1.0 - out_dict['chi2'] / out_dict['chi0']),
+        2,
+        ntime - 1 - detrend_order,
+    )
     out_dict['signif'] = lprob2sigma(np.log(prob))
 
     return out_dict
@@ -377,8 +471,10 @@ def get_lomb_amplitude_ratio(lomb_model, i):
     Get the ratio of the amplitudes of the first harmonic for the ith and first
     frequencies from a fitted Lomb-Scargle model.
     """
-    return (lomb_model['freq_fits'][i - 1]['amplitude'][0] /
-            lomb_model['freq_fits'][0]['amplitude'][0])
+    return (
+        lomb_model['freq_fits'][i - 1]['amplitude'][0]
+        / lomb_model['freq_fits'][0]['amplitude'][0]
+    )
 
 
 def get_lomb_frequency_ratio(lomb_model, i):
@@ -386,8 +482,7 @@ def get_lomb_frequency_ratio(lomb_model, i):
     Get the ratio of the ith and first frequencies from a fitted Lomb-Scargle
     model.
     """
-    return (lomb_model['freq_fits'][i - 1]['freq'] /
-            lomb_model['freq_fits'][0]['freq'])
+    return lomb_model['freq_fits'][i - 1]['freq'] / lomb_model['freq_fits'][0]['freq']
 
 
 def get_lomb_signif_ratio(lomb_model, i):
@@ -395,8 +490,9 @@ def get_lomb_signif_ratio(lomb_model, i):
     Get the ratio of the significances (in sigmas) of the ith and first
     frequencies from a fitted Lomb-Scargle model.
     """
-    return (lomb_model['freq_fits'][i - 1]['signif'] /
-            lomb_model['freq_fits'][0]['signif'])
+    return (
+        lomb_model['freq_fits'][i - 1]['signif'] / lomb_model['freq_fits'][0]['signif']
+    )
 
 
 def get_lomb_lambda(lomb_model):
@@ -434,11 +530,10 @@ def get_lomb_psd(lomb_model):
     """
     Get the power spectrum of a fitted Lomb-Scargle model per fitted frequency.
     """
-    dict_psd={}
+    dict_psd = {}
     for i in range(lomb_model['nfreq']):
-        dict_psd[i] = {'freqs_vector': lomb_model['freq_fits'][i]['freqs_vector'], 
-                        'psd_vector': lomb_model['freq_fits'][i]['psd_vector'] }
-    return dict_psd 
-
-
-
+        dict_psd[i] = {
+            'freqs_vector': lomb_model['freq_fits'][i]['freqs_vector'],
+            'psd_vector': lomb_model['freq_fits'][i]['psd_vector'],
+        }
+    return dict_psd
