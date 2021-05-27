@@ -10,9 +10,9 @@ repos:
     hooks:
       - id: black
         pass_filenames: true
-        exclude: doc/conf.py
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.4
     hooks:
       - id: flake8
         pass_filenames: true
+        exclude: doc/conf.py
