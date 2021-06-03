@@ -2,10 +2,9 @@ scanner:
   diff_only: True  # Errors caused by only the patch are shown, not the whole file
 
 pycodestyle:
-  max-line-length: 80  # Default is 79 in PEP8
+  max-line-length: 90  # Default is 79 in PEP8
   ignore:  # Errors and warnings to ignore
     - W391
     - E203
 
 no_blank_comment: True  # If True, no comment is made when the bot does not find any pep8 errors
-
