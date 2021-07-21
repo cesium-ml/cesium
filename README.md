@@ -20,7 +20,7 @@ More information and [examples](http://cesium-ml.org/docs/auto_examples/index.ht
 2. Clone the repository: `git clone https://github.com/cesium-ml/cesium.git`
 3. `cd cesium && pip install -e .`
 
-Note that cesium requires a C99 compiler, which in particular excludes MSVC. On Windows, a different compiler like MinGW has to be used. Please see the following instructions for installing Cython & MinGW on Windows: https://cython.readthedocs.io/en/latest/src/tutorial/appendix.html#appendix-installing-mingw-on-windows
+Note that cesium requires a C99 compiler, which in particular excludes MSVC. On Windows, a different compiler like MinGW has to be used. Please refer to the [instructions for installing Cython & MinGW on Windows](https://cython.readthedocs.io/en/latest/src/tutorial/appendix.html#appendix-installing-mingw-on-windows).
 
 ## License:
 `cesium` uses the 3-clause BSD licence. The full license may be found in LICENSE.txt.
