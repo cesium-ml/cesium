@@ -207,8 +207,8 @@ class TimeSeries(object):
                 raise ValueError("Errors for each channel must be provided if"
                                  " m is a ragged array.")
 
-        if not (_compatible_shapes(self.measurement, self.time) and
-                _compatible_shapes(self.measurement, self.error)):
+        if not (_compatible_shapes(self.measurement, self.time)
+                and _compatible_shapes(self.measurement, self.error)):
             raise ValueError("times, values, errors are not of compatible"
                              " types/sizes. Please refer to the docstring"
                              " for list of allowed input types.")
@@ -231,8 +231,8 @@ class TimeSeries(object):
         if isinstance(self.time, np.ndarray) and self.time.ndim == 1:
             t_channels = np.broadcast_to(self.time,
                                          (self.n_channels, len(self.time)))
-        if (isinstance(self.measurement, np.ndarray) and
-                self.measurement.ndim == 1):
+        if (isinstance(self.measurement, np.ndarray)
+            and self.measurement.ndim == 1):
             m_channels = np.broadcast_to(self.measurement,
                                          (self.n_channels, len(self.measurement)))
         if isinstance(self.error, np.ndarray) and self.error.ndim == 1:
@@ -249,19 +249,18 @@ class TimeSeries(object):
                 self.measurement = self.measurement[inds]
             else:
                 for i in range(len(self.measurement)):
-                   self.measurement[i] = self.measurement[i][inds]
+                    self.measurement[i] = self.measurement[i][inds]
             if _ndim(self.error) == 1:
                 self.error = self.error[inds]
             else:
                 for i in range(len(self.error)):
-                   self.error[i] = self.error[i][inds]
+                    self.error[i] = self.error[i][inds]
         else:  # if time is 2d, so are measurement and error
             for i in range(len(self.time)):
                 inds = np.argsort(self.time[i])
                 self.time[i] = self.time[i][inds]
                 self.measurement[i] = self.measurement[i][inds]
                 self.error[i] = self.error[i][inds]
-
 
     def save(self, path=None):
         """Store TimeSeries object as a single .npz file.
