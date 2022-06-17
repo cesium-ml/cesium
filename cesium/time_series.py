@@ -232,7 +232,7 @@ class TimeSeries(object):
             t_channels = np.broadcast_to(self.time,
                                          (self.n_channels, len(self.time)))
         if (isinstance(self.measurement, np.ndarray)
-            and self.measurement.ndim == 1):
+                and self.measurement.ndim == 1):
             m_channels = np.broadcast_to(self.measurement,
                                          (self.n_channels, len(self.measurement)))
         if isinstance(self.error, np.ndarray) and self.error.ndim == 1:
