@@ -102,9 +102,7 @@ def load(ts_path):
         t=data.get("time"),
         m=data.get("measurement"),
         e=data.get("error"),
-        meta_features=dict(
-            zip(data["meta_feat_names"], data["meta_feat_values"])
-        ),
+        meta_features=dict(zip(data["meta_feat_names"], data["meta_feat_values"])),
         name=data.get("name"),
         label=data.get("label"),
     )
@@ -201,9 +199,7 @@ class TimeSeries(object):
             if e is None:
                 e = _default_values_like(m, value=DEFAULT_ERROR_VALUE)
         else:
-            raise ValueError(
-                "m must be a 1D or 2D array, or a 2D list of" " arrays."
-            )
+            raise ValueError("m must be a 1D or 2D array, or a 2D list of" " arrays.")
 
         self.time = _make_array_if_possible(t)
         self.measurement = _make_array_if_possible(m)
@@ -215,8 +211,7 @@ class TimeSeries(object):
                 self.time = np.broadcast_to(self.time, self.measurement.shape)
             else:
                 raise ValueError(
-                    "Times for each channel must be provided if m"
-                    " is a ragged array."
+                    "Times for each channel must be provided if m" " is a ragged array."
                 )
 
         if _ndim(self.error) == 1 and _ndim(self.measurement) == 2:
@@ -255,20 +250,13 @@ class TimeSeries(object):
         m_channels = self.measurement
         e_channels = self.error
         if isinstance(self.time, np.ndarray) and self.time.ndim == 1:
-            t_channels = np.broadcast_to(
-                self.time, (self.n_channels, len(self.time))
-            )
-        if (
-            isinstance(self.measurement, np.ndarray)
-            and self.measurement.ndim == 1
-        ):
+            t_channels = np.broadcast_to(self.time, (self.n_channels, len(self.time)))
+        if isinstance(self.measurement, np.ndarray) and self.measurement.ndim == 1:
             m_channels = np.broadcast_to(
                 self.measurement, (self.n_channels, len(self.measurement))
             )
         if isinstance(self.error, np.ndarray) and self.error.ndim == 1:
-            e_channels = np.broadcast_to(
-                self.error, (self.n_channels, len(self.error))
-            )
+            e_channels = np.broadcast_to(self.error, (self.n_channels, len(self.error)))
         return zip(t_channels, m_channels, e_channels)
 
     def sort(self):
