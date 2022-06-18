@@ -1,10 +1,9 @@
 import copy
-from collections import Iterable
+from collections.abc import Iterable
+
 import numpy as np
 
-
-__all__ = ['load', 'TimeSeries', 'DEFAULT_MAX_TIME',
-           'DEFAULT_ERROR_VALUE']
+__all__ = ["load", "TimeSeries", "DEFAULT_MAX_TIME", "DEFAULT_ERROR_VALUE"]
 
 
 DEFAULT_MAX_TIME = 1.0
@@ -24,11 +23,12 @@ def _compatible_shapes(x, y):
     """Check recursively that iterables x and y (and each iterable contained
     within, if applicable), have compatible sizes.
     """
-    if hasattr(x, 'shape') and hasattr(y, 'shape'):
+    if hasattr(x, "shape") and hasattr(y, "shape"):
         return x.shape == y.shape
     else:
-        return (len(x) == len(y) and all(np.shape(x_i) == np.shape(y_i)
-                                         for x_i, y_i in zip(x, y)))
+        return len(x) == len(y) and all(
+            np.shape(x_i) == np.shape(y_i) for x_i, y_i in zip(x, y)
+        )
 
 
 def _default_values_like(old_values, value=None, upper=None):
@@ -55,13 +55,14 @@ def _default_values_like(old_values, value=None, upper=None):
         lower = value
         upper = value
     elif upper is not None:
-        lower = 0.
+        lower = 0.0
     else:
         raise ValueError("Either `value` or `upper` must be provided.")
 
     new_values = copy.deepcopy(old_values)
-    if _ndim(old_values) == 1 or (isinstance(old_values, np.ndarray) and 1 in
-                                  old_values.shape):
+    if _ndim(old_values) == 1 or (
+        isinstance(old_values, np.ndarray) and 1 in old_values.shape
+    ):
         new_values[:] = np.linspace(lower, upper, len(new_values))
     else:
         for new_array in new_values:
@@ -86,22 +87,25 @@ def load(ts_path):
     with np.load(ts_path) as npz_file:
         data = dict(npz_file)
 
-    for key in ['time', 'measurement', 'error']:
+    for key in ["time", "measurement", "error"]:
         if key not in data:  # combine channel arrays into list
             n_channels = sum(1 for c in data.keys() if key in c)  # time0, ...
             data[key] = [data[key + str(i)] for i in range(n_channels)]
 
     # Convert 0d arrays to single values
-    if 'name' in data:
-        data['name'] = data['name'].item()
-    if 'label' in data:
-        data['label'] = data['label'].item()
+    if "name" in data:
+        data["name"] = data["name"].item()
+    if "label" in data:
+        data["label"] = data["label"].item()
 
-    return TimeSeries(t=data.get('time'), m=data.get('measurement'),
-                      e=data.get('error'),
-                      meta_features=dict(zip(data['meta_feat_names'],
-                                             data['meta_feat_values'])),
-                      name=data.get('name'), label=data.get('label'))
+    return TimeSeries(
+        t=data.get("time"),
+        m=data.get("measurement"),
+        e=data.get("error"),
+        meta_features=dict(zip(data["meta_feat_names"], data["meta_feat_values"])),
+        name=data.get("name"),
+        label=data.get("label"),
+    )
 
 
 class TimeSeries(object):
@@ -152,8 +156,18 @@ class TimeSeries(object):
         `channel_{i}`, but can be arbitrary depending on the nature of the
         different measurement channels.
     """
-    def __init__(self, t=None, m=None, e=None, label=None, meta_features={},
-                 name=None, path=None, channel_names=None):
+
+    def __init__(
+        self,
+        t=None,
+        m=None,
+        e=None,
+        label=None,
+        meta_features={},
+        name=None,
+        path=None,
+        channel_names=None,
+    ):
         """Create a `TimeSeries` object from measurement values/metadata.
 
         See `TimeSeries` documentation for parameter values.
@@ -185,8 +199,7 @@ class TimeSeries(object):
             if e is None:
                 e = _default_values_like(m, value=DEFAULT_ERROR_VALUE)
         else:
-            raise ValueError("m must be a 1D or 2D array, or a 2D list of"
-                             " arrays.")
+            raise ValueError("m must be a 1D or 2D array, or a 2D list of" " arrays.")
 
         self.time = _make_array_if_possible(t)
         self.measurement = _make_array_if_possible(m)
@@ -197,29 +210,37 @@ class TimeSeries(object):
             if isinstance(self.measurement, np.ndarray):
                 self.time = np.broadcast_to(self.time, self.measurement.shape)
             else:
-                raise ValueError("Times for each channel must be provided if m"
-                                 " is a ragged array.")
+                raise ValueError(
+                    "Times for each channel must be provided if m" " is a ragged array."
+                )
 
         if _ndim(self.error) == 1 and _ndim(self.measurement) == 2:
             if isinstance(self.measurement, np.ndarray):
                 self.error = np.broadcast_to(self.error, self.measurement.shape)
             else:
-                raise ValueError("Errors for each channel must be provided if"
-                                 " m is a ragged array.")
+                raise ValueError(
+                    "Errors for each channel must be provided if"
+                    " m is a ragged array."
+                )
 
-        if not (_compatible_shapes(self.measurement, self.time) and
-                _compatible_shapes(self.measurement, self.error)):
-            raise ValueError("times, values, errors are not of compatible"
-                             " types/sizes. Please refer to the docstring"
-                             " for list of allowed input types.")
+        if not (
+            _compatible_shapes(self.measurement, self.time)
+            and _compatible_shapes(self.measurement, self.error)
+        ):
+            raise ValueError(
+                "times, values, errors are not of compatible"
+                " types/sizes. Please refer to the docstring"
+                " for list of allowed input types."
+            )
 
         self.label = label
         self.meta_features = dict(meta_features)
         self.name = name
         self.path = path
         if channel_names is None:
-            self.channel_names = ["channel_{}".format(i)
-                                  for i in range(self.n_channels)]
+            self.channel_names = [
+                "channel_{}".format(i) for i in range(self.n_channels)
+            ]
         else:
             self.channel_names = channel_names
 
@@ -229,15 +250,13 @@ class TimeSeries(object):
         m_channels = self.measurement
         e_channels = self.error
         if isinstance(self.time, np.ndarray) and self.time.ndim == 1:
-            t_channels = np.broadcast_to(self.time,
-                                         (self.n_channels, len(self.time)))
-        if (isinstance(self.measurement, np.ndarray) and
-                self.measurement.ndim == 1):
-            m_channels = np.broadcast_to(self.measurement,
-                                         (self.n_channels, len(self.measurement)))
+            t_channels = np.broadcast_to(self.time, (self.n_channels, len(self.time)))
+        if isinstance(self.measurement, np.ndarray) and self.measurement.ndim == 1:
+            m_channels = np.broadcast_to(
+                self.measurement, (self.n_channels, len(self.measurement))
+            )
         if isinstance(self.error, np.ndarray) and self.error.ndim == 1:
-            e_channels = np.broadcast_to(self.error,
-                                         (self.n_channels, len(self.error)))
+            e_channels = np.broadcast_to(self.error, (self.n_channels, len(self.error)))
         return zip(t_channels, m_channels, e_channels)
 
     def sort(self):
@@ -249,19 +268,18 @@ class TimeSeries(object):
                 self.measurement = self.measurement[inds]
             else:
                 for i in range(len(self.measurement)):
-                   self.measurement[i] = self.measurement[i][inds]
+                    self.measurement[i] = self.measurement[i][inds]
             if _ndim(self.error) == 1:
                 self.error = self.error[inds]
             else:
                 for i in range(len(self.error)):
-                   self.error[i] = self.error[i][inds]
+                    self.error[i] = self.error[i][inds]
         else:  # if time is 2d, so are measurement and error
             for i in range(len(self.time)):
                 inds = np.argsort(self.time[i])
                 self.time[i] = self.time[i][inds]
                 self.measurement[i] = self.measurement[i][inds]
                 self.error[i] = self.error[i][inds]
-
 
     def save(self, path=None):
         """Store TimeSeries object as a single .npz file.
@@ -281,10 +299,12 @@ class TimeSeries(object):
         if path is None:
             path = self.path
 
-        data = {'meta_feat_names': list(self.meta_features.keys()),
-                'meta_feat_values': list(self.meta_features.values())}
+        data = {
+            "meta_feat_names": list(self.meta_features.keys()),
+            "meta_feat_values": list(self.meta_features.values()),
+        }
 
-        for key in ['time', 'measurement', 'error']:
+        for key in ["time", "measurement", "error"]:
             value = getattr(self, key)
             if isinstance(value, np.ndarray):
                 data[key] = value
@@ -293,7 +313,7 @@ class TimeSeries(object):
                     data[key + str(i)] = value_i
 
         if self.name:
-            data['name'] = self.name
+            data["name"] = self.name
         if self.label:
-            data['label'] = self.label
+            data["label"] = self.label
         np.savez(path, **data)
