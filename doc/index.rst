@@ -15,4 +15,3 @@ Machine Learning Time-Series Platform Documentation
 .. * :ref:`genindex`
 .. * :ref:`modindex`
 .. * :ref:`search`
-

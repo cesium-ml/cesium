@@ -2,8 +2,15 @@ import numpy as np
 import scipy.stats as stats
 
 
-__all__ = ['double_to_single_step', 'cad_prob', 'delta_t_hist',
-           'normalize_hist', 'find_sorted_peaks', 'peak_ratio', 'peak_bin']
+__all__ = [
+    "double_to_single_step",
+    "cad_prob",
+    "delta_t_hist",
+    "normalize_hist",
+    "find_sorted_peaks",
+    "peak_ratio",
+    "peak_bin",
+]
 
 
 def double_to_single_step(cads):
@@ -28,7 +35,7 @@ def delta_t_hist(t, nbins=50, conv_oversample=50):
     and then aggregate the result to have `nbins` total values.
     """
     f, x = np.histogram(t, bins=conv_oversample * nbins)
-    g = np.convolve(f, f[::-1])[len(f) - 1:]  # Discard negative domain
+    g = np.convolve(f, f[::-1])[len(f) - 1 :]  # Discard negative domain
     g[0] -= len(t)  # First bin is double-counted because of i=j terms
     hist = g.reshape((-1, conv_oversample)).sum(axis=1)  # Combine bins
     return hist

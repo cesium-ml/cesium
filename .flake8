@@ -14,3 +14,5 @@
 max-line-length = 88
 select = C,E,F,W,B,B950
 ignore = E501, W503, E203
+per-file-ignores:
+  examples/*.py: E402

@@ -1,8 +1,6 @@
 import logging
 import os
 
-import numpy as np
-import pandas as pd
 import joblib
 
 from .. import util
@@ -51,9 +49,9 @@ def download_asas_training(data_dir):
     logger.warning("Downloading data from {}".format(BASE_URL))
 
     header_path = dsutil.download_file(data_dir, BASE_URL, HEADER_FILE)
-    ts_paths = dsutil.download_and_extract_archives(data_dir, BASE_URL,
-                                                    [ARCHIVE_NAME], MD5SUMS,
-                                                    remove_archive=False)
+    ts_paths = dsutil.download_and_extract_archives(
+        data_dir, BASE_URL, [ARCHIVE_NAME], MD5SUMS, remove_archive=False
+    )
     archive_path = os.path.join(data_dir, ARCHIVE_NAME)
 
     times = []
@@ -64,16 +62,20 @@ def download_asas_training(data_dir):
         times.append(t)
         measurements.append(m)
         errors.append(e)
-    header = pd.read_csv(header_path, dtype={'filename': str})
-    extract_dir = os.path.join(data_dir, os.path.basename(ARCHIVE_NAME))
     util.remove_files(ts_paths)
 
     classes, metadata = data_management.parse_headerfile(header_path, ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
-    data = dict(times=times, measurements=measurements, errors=errors,
-                classes=classes, metadata=metadata, archive=archive_path,
-                header=header_path)
+    data = dict(
+        times=times,
+        measurements=measurements,
+        errors=errors,
+        classes=classes,
+        metadata=metadata,
+        archive=archive_path,
+        header=header_path,
+    )
     joblib.dump(data, cache_path, compress=3)
     return data
 
@@ -115,6 +117,6 @@ def fetch_asas_training(data_dir=None):
     try:
         data = joblib.load(cache_path)
         logger.warning("Loaded data from cached archive.")
-    except (ValueError, IOError): #  missing or incompatible cache
+    except (ValueError, IOError):  # missing or incompatible cache
         data = download_asas_training(data_dir)
     return data

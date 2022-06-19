@@ -20,18 +20,19 @@ DEBUG = True
 
 
 class ApiDocWriter(object):
-    ''' Class for automatic detection and parsing of API docs
-    to Sphinx-parsable reST format'''
+    """Class for automatic detection and parsing of API docs
+    to Sphinx-parsable reST format"""
 
     # only separating first two levels
-    rst_section_levels = ['*', '=', '-', '~', '^']
+    rst_section_levels = ["*", "=", "-", "~", "^"]
 
-    def __init__(self,
-                 package_name,
-                 rst_extension='.txt',
-                 skip_patterns=['.*__', '.*tests$'],
-                 ):
-        ''' Initialize package for parsing
+    def __init__(
+        self,
+        package_name,
+        rst_extension=".txt",
+        skip_patterns=[".*__", ".*tests$"],
+    ):
+        r"""Initialize package for parsing
 
         Parameters
         ----------
@@ -48,7 +49,7 @@ class ApiDocWriter(object):
             ``.util.console``
             If is None, gives default. Default is:
             ['\.setup$', '\._']
-        '''
+        """
         self.package_name = package_name
         self.skip_patterns = skip_patterns
         self.rst_extension = rst_extension
@@ -56,15 +57,15 @@ class ApiDocWriter(object):
         self.root_path = root_module.__path__[-1]
 
     def _import(self, name):
-        ''' Import namespace package '''
+        """Import namespace package"""
         mod = __import__(name)
-        components = name.split('.')
+        components = name.split(".")
         for comp in components[1:]:
             mod = getattr(mod, comp)
         return mod
 
     def _get_object_name(self, line):
-        ''' Get second token in line
+        """Get second token in line
         >>> docwriter = ApiDocWriter('sphinx')
         >>> docwriter._get_object_name("  def func():  ")
         'func'
@@ -72,11 +73,11 @@ class ApiDocWriter(object):
         'Klass'
         >>> docwriter._get_object_name("  class Klass:  ")
         'Klass'
-        '''
-        name = line.split()[1].split('(')[0].strip()
+        """
+        name = line.split()[1].split("(")[0].strip()
         # in case we have classes which are not derived from object
         # ie. old style classes
-        return name.rstrip(':')
+        return name.rstrip(":")
 
     def _parse_module_with_import(self, uri):
         """Look for functions and classes in an importable module.
@@ -94,9 +95,9 @@ class ApiDocWriter(object):
         classes : list of str
             A list of (public) class names in the module.
         """
-        mod = __import__(uri, fromlist=[uri.split('.')[-1]])
+        mod = __import__(uri, fromlist=[uri.split(".")[-1]])
         # find all public objects in the module.
-        obj_strs = [obj for obj in dir(mod) if not obj.startswith('_')]
+        obj_strs = [obj for obj in dir(mod) if not obj.startswith("_")]
         functions = []
         classes = []
         for obj_str in obj_strs:
@@ -104,8 +105,7 @@ class ApiDocWriter(object):
             if obj_str not in mod.__dict__:
                 continue
             obj = mod.__dict__[obj_str]
-            if (hasattr(obj, '__module__')
-                and self.package_name not in obj.__module__):
+            if hasattr(obj, "__module__") and self.package_name not in obj.__module__:
                 continue
 
             # figure out if obj is a function or class
@@ -121,7 +121,7 @@ class ApiDocWriter(object):
         return functions, classes
 
     def generate_api_doc(self, uri):
-        '''Make autodoc documentation template string for a module
+        """Make autodoc documentation template string for a module
 
         Parameters
         ----------
@@ -132,68 +132,74 @@ class ApiDocWriter(object):
         -------
         S : string
             Contents of API doc
-        '''
+        """
         # get the names of all classes and functions
         functions, classes = self._parse_module_with_import(uri)
         if not len(functions) and not len(classes) and DEBUG:
-            print('WARNING: Empty -', uri)  # dbg
-            return ''
+            print("WARNING: Empty -", uri)  # dbg
+            return ""
 
         # Make a shorter version of the uri that omits the package name for
         # titles
-        uri_short = re.sub(r'^%s\.' % self.package_name,'',uri)
+        uri_short = re.sub(rf"^{self.package_name}\.", "", uri)
 
-        ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
+        ad = ".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n"
 
         # Set the chapter title to read 'module' for all modules except for the
         # main packages
-        if '.' in uri:
-            title = 'Module: :mod:`' + uri_short + '`'
+        if "." in uri:
+            title = "Module: :mod:`" + uri_short + "`"
         else:
-            title = ':mod:`' + uri_short + '`'
-        ad += title + '\n' + self.rst_section_levels[1] * len(title)
+            title = ":mod:`" + uri_short + "`"
+        ad += title + "\n" + self.rst_section_levels[1] * len(title)
 
-        ad += '\n.. automodule:: ' + uri + '\n'
-        ad += '\n.. currentmodule:: ' + uri + '\n'
-        ad += '.. autosummary::\n\n'
+        ad += "\n.. automodule:: " + uri + "\n"
+        ad += "\n.. currentmodule:: " + uri + "\n"
+        ad += ".. autosummary::\n\n"
         for f in functions:
-            ad += '   ' + uri + '.' + f + '\n'
-        ad += '\n'
+            ad += "   " + uri + "." + f + "\n"
+        ad += "\n"
         for c in classes:
-            ad += '   ' + uri + '.' + c + '\n'
-        ad += '\n'
+            ad += "   " + uri + "." + c + "\n"
+        ad += "\n"
 
         for f in functions:
             # must NOT exclude from index to keep cross-refs working
-            full_f = uri + '.' + f
-            ad += f + '\n'
-            ad += self.rst_section_levels[2] * len(f) + '\n'
-            ad += '\n.. autofunction:: ' + full_f + '\n\n'
+            full_f = uri + "." + f
+            ad += f + "\n"
+            ad += self.rst_section_levels[2] * len(f) + "\n"
+            ad += "\n.. autofunction:: " + full_f + "\n\n"
         for c in classes:
-            ad += '\n:class:`' + c + '`\n' \
-                  + self.rst_section_levels[2] * \
-                  (len(c)+9) + '\n\n'
-            ad += '\n.. autoclass:: ' + c + '\n'
+            ad += (
+                "\n:class:`"
+                + c
+                + "`\n"
+                + self.rst_section_levels[2] * (len(c) + 9)
+                + "\n\n"
+            )
+            ad += "\n.. autoclass:: " + c + "\n"
             # must NOT exclude from index to keep cross-refs working
-            ad += '  :members:\n' \
-                  '  :undoc-members:\n' \
-                  '  :show-inheritance:\n' \
-                  '\n' \
-                  '  .. automethod:: __init__\n'
+            ad += (
+                "  :members:\n"
+                "  :undoc-members:\n"
+                "  :show-inheritance:\n"
+                "\n"
+                "  .. automethod:: __init__\n"
+            )
         return ad
 
     def _survives_exclude(self, matchstr):
-        ''' Returns True if *matchstr* does not match patterns
+        """Returns True if *matchstr* does not match patterns
 
         ``self.package_name`` removed from front of string if present
-        '''
+        """
         for pat in self.skip_patterns:
             if re.compile(pat).search(matchstr):
                 return False
         return True
 
     def _uri2path(self, uri):
-        ''' Convert uri to absolute filepath
+        """Convert uri to absolute filepath
 
         Parameters
         ----------
@@ -219,31 +225,31 @@ class ApiDocWriter(object):
         True
         >>> docwriter._uri2path('sphinx.does_not_exist')
 
-        '''
+        """
         if uri == self.package_name:
-            return os.path.join(self.root_path, '__init__.py')
-        path = uri.replace(self.package_name + '.', '')
-        path = path.replace('.', os.path.sep)
+            return os.path.join(self.root_path, "__init__.py")
+        path = uri.replace(self.package_name + ".", "")
+        path = path.replace(".", os.path.sep)
         path = os.path.join(self.root_path, path)
         # XXX maybe check for extensions as well?
-        if os.path.exists(path + '.py'): # file
-            path += '.py'
-        elif os.path.exists(os.path.join(path, '__init__.py')):
-            path = os.path.join(path, '__init__.py')
+        if os.path.exists(path + ".py"):  # file
+            path += ".py"
+        elif os.path.exists(os.path.join(path, "__init__.py")):
+            path = os.path.join(path, "__init__.py")
         else:
             return None
         return path
 
     def _path2uri(self, dirpath):
-        ''' Convert directory path to uri '''
-        package_dir = self.package_name.replace('.', os.path.sep)
+        """Convert directory path to uri"""
+        package_dir = self.package_name.replace(".", os.path.sep)
         relpath = dirpath.replace(self.root_path, package_dir)
         if relpath.startswith(os.path.sep):
             relpath = relpath[1:]
-        return relpath.replace(os.path.sep, '.')
+        return relpath.replace(os.path.sep, ".")
 
     def discover_modules(self):
-        ''' Return module sequence discovered from ``self.package_name``
+        r"""Return module sequence discovered from ``self.package_name``
 
 
         Parameters
@@ -261,26 +267,23 @@ class ApiDocWriter(object):
         >>> mods = dw.discover_modules()
         >>> 'sphinx.util' in mods
         True
-        >>> dw.skip_patterns.append('\.util$')
+        >>> dw.skip_patterns.append(r'\.util$')
         >>> 'sphinx.util' in dw.discover_modules()
         False
         >>>
-        '''
+        """
         modules = [self.package_name]
         # raw directory parsing
-        for dirpath, dirnames, filenames in os.walk(self.root_path,
-                                                    topdown=False):
+        for dirpath, dirnames, filenames in os.walk(self.root_path, topdown=False):
             # Check directory names for packages
-            root_uri = self._path2uri(os.path.join(self.root_path,
-                                                   dirpath))
-            filenames = [f for f in filenames if f.endswith('.py')]
-            uris = [u.strip('.py') for u in dirnames + filenames]
+            root_uri = self._path2uri(os.path.join(self.root_path, dirpath))
+            filenames = [f for f in filenames if f.endswith(".py")]
+            uris = [u.strip(".py") for u in dirnames + filenames]
             for uri in uris:
-                package_uri = '.'.join((root_uri, uri))
-                if (self._uri2path(package_uri) and
-                    self._survives_exclude(package_uri)):
+                package_uri = ".".join((root_uri, uri))
+                if self._uri2path(package_uri) and self._survives_exclude(package_uri):
                     try:
-                        mod = __import__(package_uri, fromlist=['cesium'])
+                        mod = __import__(package_uri, fromlist=["cesium"])
                         mod.__all__
                         modules.append(package_uri)
                     except (ImportError, AttributeError):
@@ -295,9 +298,8 @@ class ApiDocWriter(object):
             if not api_str:
                 continue
             # write out to file
-            outfile = os.path.join(outdir,
-                                   m + self.rst_extension)
-            fileobj = open(outfile, 'wt')
+            outfile = os.path.join(outdir, m + self.rst_extension)
+            fileobj = open(outfile, "wt")
             fileobj.write(api_str)
             fileobj.close()
             written_modules.append(m)
@@ -326,7 +328,7 @@ class ApiDocWriter(object):
         modules = self.discover_modules()
         self.write_modules_api(modules, outdir)
 
-    def write_index(self, outdir, froot='gen', relative_to=None):
+    def write_index(self, outdir, froot="gen", relative_to=None):
         """Make a reST API index file from written files
 
         Parameters
@@ -345,23 +347,23 @@ class ApiDocWriter(object):
             leave path as it is.
         """
         if self.written_modules is None:
-            raise ValueError('No modules written')
+            raise ValueError("No modules written")
         # Get full filename path
-        path = os.path.join(outdir, froot+self.rst_extension)
+        path = os.path.join(outdir, froot + self.rst_extension)
         # Path written into index is relative to rootpath
         if relative_to is not None:
-            relpath = (outdir + os.path.sep).replace(relative_to + os.path.sep, '')
+            relpath = (outdir + os.path.sep).replace(relative_to + os.path.sep, "")
         else:
             relpath = outdir
         print("outdir: ", relpath)
-        idx = open(path,'wt')
+        idx = open(path, "wt")
         w = idx.write
-        w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
+        w(".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n")
 
         title = "API Reference"
         w(title + "\n")
         w("=" * len(title) + "\n\n")
-        w('.. toctree::\n\n')
+        w(".. toctree::\n\n")
         for f in self.written_modules:
-            w('   %s\n' % os.path.join(relpath,f))
+            w("   %s\n" % os.path.join(relpath, f))
         idx.close()

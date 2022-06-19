@@ -26,9 +26,9 @@ def regular_periodic(freqs, amplitudes, phase, size=501):
     """
     times = np.linspace(0, 2, size)
     values = np.zeros(size)
-    for (i,j), amplitude in np.ndenumerate(amplitudes):
-        values += amplitude * np.sin(2*np.pi*times*freqs[i]*(j+1) + phase)
-    errors = 1e-4*np.ones(size)
+    for (i, j), amplitude in np.ndenumerate(amplitudes):
+        values += amplitude * np.sin(2 * np.pi * times * freqs[i] * (j + 1) + phase)
+    errors = 1e-4 * np.ones(size)
     return times, values, errors
 
 
@@ -41,8 +41,8 @@ def irregular_periodic(freqs, amplitudes, phase, seed=0, size=501):
     values = np.zeros(size)
     for i in range(freqs.shape[0]):
         for j in range(amplitudes.shape[1]):
-            values += amplitudes[i,j] * np.sin(2*np.pi*times*freqs[i]*(j+1)+phase)
+            values += amplitudes[i, j] * np.sin(
+                2 * np.pi * times * freqs[i] * (j + 1) + phase
+            )
     errors = state.exponential(1e-2, size)
     return times, values, errors
-
-

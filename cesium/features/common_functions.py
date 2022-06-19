@@ -52,7 +52,7 @@ def std(x):
 
 def weighted_average(x, e):
     """Arithmetic mean of observed values, weighted by measurement errors."""
-    return np.average(x, weights=1. / (e**2))
+    return np.average(x, weights=1.0 / (e**2))
 
 
 def weighted_average_std_err(x, e):
@@ -69,5 +69,6 @@ def weighted_average_std_err(x, e):
 
 def weighted_std_dev(x, e):
     """Standard deviation of observed values, weighted by measurement errors."""
-    return np.sqrt(np.average((x - weighted_average(x, e))**2,
-                              weights=1. / (e**2)))
+    return np.sqrt(
+        np.average((x - weighted_average(x, e)) ** 2, weights=1.0 / (e**2))
+    )

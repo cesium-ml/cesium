@@ -24,17 +24,20 @@ First, we'll load the data and inspect a representative time series from each cl
 
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn; seaborn.set()
-
+import seaborn
 from cesium import datasets
+
+seaborn.set()
 
 eeg = datasets.fetch_andrzejak()
 
 # Group together classes (Z, O), (N, F), (S) as normal, interictal, ictal
-eeg["classes"] = eeg["classes"].astype("U16") #  allocate memory for longer class names
-eeg["classes"][np.logical_or(eeg["classes"]=="Z", eeg["classes"]=="O")] = "Normal"
-eeg["classes"][np.logical_or(eeg["classes"]=="N", eeg["classes"]=="F")] = "Interictal"
-eeg["classes"][eeg["classes"]=="S"] = "Ictal"
+eeg["classes"] = eeg["classes"].astype("U16")  # allocate memory for longer class names
+eeg["classes"][np.logical_or(eeg["classes"] == "Z", eeg["classes"] == "O")] = "Normal"
+eeg["classes"][
+    np.logical_or(eeg["classes"] == "N", eeg["classes"] == "F")
+] = "Interictal"
+eeg["classes"][eeg["classes"] == "S"] = "Ictal"
 
 fig, ax = plt.subplots(1, len(np.unique(eeg["classes"])), sharey=True)
 for label, subplot in zip(np.unique(eeg["classes"]), ax):
@@ -61,21 +64,26 @@ for label, subplot in zip(np.unique(eeg["classes"]), ax):
 # .. _cesium.featurize: http://cesium-ml.org/docs/api/cesium.featurize.html
 
 from cesium import featurize
-features_to_use = ["amplitude",
-                   "percent_beyond_1_std",
-                   "maximum",
-                   "max_slope",
-                   "median",
-                   "median_absolute_deviation",
-                   "percent_close_to_median",
-                   "minimum",
-                   "skew",
-                   "std",
-                   "weighted_average"]
-fset_cesium = featurize.featurize_time_series(times=eeg["times"],
-                                              values=eeg["measurements"],
-                                              errors=None,
-                                              features_to_use=features_to_use)
+
+features_to_use = [
+    "amplitude",
+    "percent_beyond_1_std",
+    "maximum",
+    "max_slope",
+    "median",
+    "median_absolute_deviation",
+    "percent_close_to_median",
+    "minimum",
+    "skew",
+    "std",
+    "weighted_average",
+]
+fset_cesium = featurize.featurize_time_series(
+    times=eeg["times"],
+    values=eeg["measurements"],
+    errors=None,
+    features_to_use=features_to_use,
+)
 print(fset_cesium.head())
 
 ###############################################################################
@@ -100,20 +108,26 @@ print(fset_cesium.head())
 import numpy as np
 import scipy.stats
 
+
 def mean_signal(t, m, e):
     return np.mean(m)
+
 
 def std_signal(t, m, e):
     return np.std(m)
 
+
 def mean_square_signal(t, m, e):
-    return np.mean(m ** 2)
+    return np.mean(m**2)
+
 
 def abs_diffs_signal(t, m, e):
     return np.sum(np.abs(np.diff(m)))
 
+
 def skew_signal(t, m, e):
     return scipy.stats.skew(m)
+
 
 ###############################################################################
 # Now we'll pass the desired feature functions as a dictionary via the
@@ -124,13 +138,16 @@ guo_features = {
     "std": std_signal,
     "mean2": mean_square_signal,
     "abs_diffs": abs_diffs_signal,
-    "skew": skew_signal
+    "skew": skew_signal,
 }
 
-fset_guo = featurize.featurize_time_series(times=eeg["times"], values=eeg["measurements"],
-                                           errors=None,
-                                           features_to_use=list(guo_features.keys()),
-                                           custom_functions=guo_features)
+fset_guo = featurize.featurize_time_series(
+    times=eeg["times"],
+    values=eeg["measurements"],
+    errors=None,
+    features_to_use=list(guo_features.keys()),
+    custom_functions=guo_features,
+)
 print(fset_guo.head())
 
 ###############################################################################
@@ -146,11 +163,17 @@ print(fset_guo.head())
 import pywt
 
 n_channels = 5
-eeg["dwts"] = [pywt.wavedec(m, pywt.Wavelet("db1"), level=n_channels-1)
-               for m in eeg["measurements"]]
-fset_dwt = featurize.featurize_time_series(times=None, values=eeg["dwts"], errors=None,
-                                           features_to_use=list(guo_features.keys()),
-                                           custom_functions=guo_features)
+eeg["dwts"] = [
+    pywt.wavedec(m, pywt.Wavelet("db1"), level=n_channels - 1)
+    for m in eeg["measurements"]
+]
+fset_dwt = featurize.featurize_time_series(
+    times=None,
+    values=eeg["dwts"],
+    errors=None,
+    features_to_use=list(guo_features.keys()),
+    custom_functions=guo_features,
+)
 print(fset_dwt.head())
 
 ###############################################################################
@@ -173,8 +196,9 @@ from sklearn.model_selection import train_test_split
 
 train, test = train_test_split(np.arange(len(eeg["classes"])), random_state=0)
 
-model_cesium = RandomForestClassifier(n_estimators=128, max_features="auto",
-                                      random_state=0)
+model_cesium = RandomForestClassifier(
+    n_estimators=128, max_features="auto", random_state=0
+)
 model_cesium.fit(fset_cesium.iloc[train], eeg["classes"][train])
 
 model_guo = KNeighborsClassifier(3)
@@ -197,15 +221,24 @@ preds_cesium = model_cesium.predict(fset_cesium)
 preds_guo = model_guo.predict(fset_guo)
 preds_dwt = model_dwt.predict(fset_dwt)
 
-print("Built-in cesium features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_cesium[train], eeg["classes"][train]),
-          accuracy_score(preds_cesium[test], eeg["classes"][test])))
-print("Guo et al. features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_guo[train], eeg["classes"][train]),
-          accuracy_score(preds_guo[test], eeg["classes"][test])))
-print("Wavelet transform features: training accuracy={:.2%}, test accuracy={:.2%}".format(
-          accuracy_score(preds_dwt[train], eeg["classes"][train]),
-          accuracy_score(preds_dwt[test], eeg["classes"][test])))
+print(
+    "Built-in cesium features: training accuracy={:.2%}, test accuracy={:.2%}".format(
+        accuracy_score(preds_cesium[train], eeg["classes"][train]),
+        accuracy_score(preds_cesium[test], eeg["classes"][test]),
+    )
+)
+print(
+    "Guo et al. features: training accuracy={:.2%}, test accuracy={:.2%}".format(
+        accuracy_score(preds_guo[train], eeg["classes"][train]),
+        accuracy_score(preds_guo[test], eeg["classes"][test]),
+    )
+)
+print(
+    "Wavelet transform features: training accuracy={:.2%}, test accuracy={:.2%}".format(
+        accuracy_score(preds_dwt[train], eeg["classes"][train]),
+        accuracy_score(preds_dwt[test], eeg["classes"][test]),
+    )
+)
 
 ###############################################################################
 # The workflow presented here is intentionally simplistic and omits many important steps
