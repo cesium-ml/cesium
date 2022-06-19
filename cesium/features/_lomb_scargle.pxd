@@ -1,5 +1,5 @@
 cdef extern from "_lomb_scargle.h":
-     void lomb_scargle(int numt, int numf, int nharm, int detrend_order,
+     void lomb_scargle(int numt, unsigned int numf, int nharm, int detrend_order,
                        double psd[], double cn[], double wth[],
                        double sinx[], double cosx[], double sinx_step[],
                        double cosx_step[], double sinx_back[],

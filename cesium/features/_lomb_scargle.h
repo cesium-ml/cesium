@@ -77,7 +77,7 @@ static inline double do_lomb_zoom(int numt, int detrend_order, double *cn, doubl
 }
 
 static inline void def_hat(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double sinx[], double cosx[], double wt[], double cn[], double hat_hat[], double vec[], double lambda0) {
-    int i,j=numt*nharm,k,j1,npar=2*nharm,dord1=detrend_order+1;
+    int i,j=numt*nharm,k,npar=2*nharm,dord1=detrend_order+1;
     double sx0[numt],cx0[numt],ct,st,sum;
     for (i=0;i<numt;i++) {
         sx0[i] = (hat_matr[i]=sinx[i])/wt[i]; cx0[i] = (hat_matr[i+j]=cosx[i])/wt[i];
@@ -110,7 +110,7 @@ static inline void def_hat(int numt, int nharm, int detrend_order, double hat_ma
 static inline double optimize_px(int n, int numt, double p[], double hat_hat[], double eigs[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Trace) {
     int i,j,k,niter=50;
     double px,lambda,dlambda,lambda_best,eigs1,px_max=0.,start=lambda0_range[0],stop=lambda0_range[1];
-    double m[n][n],s1,s2,s3,sum,v[n],tcn=tc/numt,Tr,Tr0=(1-3./numt)/(1.+tcn);
+    double m[n][n],s1,s2,s3,v[n],tcn=tc/numt,Tr,Tr0=(1-3./numt)/(1.+tcn);
 
     for (i=0;i<n;i++) {
       for (j=i;j<n;j++) m[j][i] = 0.;
@@ -122,7 +122,7 @@ static inline double optimize_px(int n, int numt, double p[], double hat_hat[], 
         }
     }
     lambda = start; dlambda = exp(log(stop/start)/niter);
-    for (k=0;k<3;k++) {
+     for (k=0;k<3;k++) {
         for (j=0;j<=niter;j++) {
           Tr = 1-2.*n/numt; px=chi0; s1=0; s2=0, s3=0;
           for (i=0;i<n;i++) {
@@ -147,7 +147,7 @@ static inline double optimize_px(int n, int numt, double p[], double hat_hat[], 
         else break;
         dlambda = exp(log(stop/start)/niter);
     }
-   *lambda0 = lambda_best;
+    *lambda0 = lambda_best;
     return px_max;
 }
 
@@ -168,7 +168,7 @@ static inline void inv_hat(int n, double hat_hat[], double vec[], double vec1[],
 }
 
 static inline double refine_psd(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double hat_hat[], double sinx[], double cosx[], double wt[], double cn[], double vec1[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Tr, int inv) {
-    int i,j,k,npar=2*nharm;
+    int i,j,npar=2*nharm;
     double p[npar],vec[npar],eigs[npar],sum,px,lambda00=*lambda0;
     def_hat(numt,nharm,detrend_order,hat_matr,hat0,sinx,cosx,wt,cn,hat_hat,vec,*lambda0);
     get_eigs(npar,hat_hat,eigs);
@@ -181,7 +181,7 @@ static inline double refine_psd(int numt, int nharm, int detrend_order, double h
     return px;
 }
 
-void lomb_scargle(int numt, int numf, int nharm, int detrend_order,
+void lomb_scargle(int numt, unsigned int numf, int nharm, int detrend_order,
                   double psd[], double cn[], double wth[], double sinx[],
                   double cosx[], double sinx_step[], double cosx_step[],
                   double sinx_back[], double cosx_back[],
@@ -192,11 +192,11 @@ void lomb_scargle(int numt, int numf, int nharm, int detrend_order,
                   double lambda0[], double lambda0_range[],
                   double Tr[], int ifreq[])
 {
-  int i,k,npar=2*(int)nharm,ifr=(int)(freq_zoom)/2;
+  int ifr=(int)(freq_zoom)/2;
   unsigned long j;
   unsigned long jmax=0;
   *ifreq = ifr;
-  double psdmax=0.,psd0max=0.,Trace,sinx1[numt],cosx1[numt],sinx2[numt],cosx2[numt],lambda,px,pxmax;
+  double psdmax=0.,psd0max=0.,Trace,sinx1[numt],cosx1[numt],sinx2[numt],cosx2[numt],lambda;
   for (j=0;j<numf;j++) {
       // do a simple lomb-scargle, sin+cos fit
       psd[j] = do_lomb(numt,detrend_order,cn,sinx,cosx,wth);
@@ -208,7 +208,7 @@ void lomb_scargle(int numt, int numf, int nharm, int detrend_order,
       // refine the fit around significant sin+cos fits
       if (psd[j]>(double)psdmin) {
           // first let the frequency vary slightly
-          px = do_lomb_zoom(numt,detrend_order, cn, sinx, cosx, sinx1, cosx1, sinx_back, cosx_back, sinx_smallstep, cosx_smallstep, wth, freq_zoom, &ifr);
+          do_lomb_zoom(numt,detrend_order, cn, sinx, cosx, sinx1, cosx1, sinx_back, cosx_back, sinx_smallstep, cosx_smallstep, wth, freq_zoom, &ifr);
           lambda = *lambda0;
           // now fit a multi-harmonic model with generalized cross-validation to avoid over-fitting
           psd[j] = refine_psd(numt,nharm,detrend_order,hat_matr,hat0,hat_hat,sinx1,cosx1,wth,cn,soln,&lambda,lambda0_range,chi0,tone_control,&Trace,0);

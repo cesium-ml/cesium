@@ -3,7 +3,7 @@ from _lomb_scargle cimport lomb_scargle as _lomb_scargle
 cimport numpy as cnp
 import numpy as np
 
-def lomb_scargle(int numt, int numf, int nharm, int detrend_order,
+def lomb_scargle(int numt, unsigned int numf, int nharm, int detrend_order,
                  double[:] psd, double[:] cn, cnp.ndarray wth,
                  double[:] sinx, double[:] cosx, double[:] sinx_step,
                  double[:] cosx_step, double[:] sinx_back,

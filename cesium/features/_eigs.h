@@ -131,8 +131,9 @@ void tqli(double d[], double e[], int n, double z[])
         }
 }
 
-static inline void get_eigs(int np,double x[],double d[]) {
-      double e[np];
+static inline void get_eigs(int np, double x[], double d[]) {
+      double* e = malloc(np * sizeof(double));
       tred2(x,np,d,e);
       tqli(d,e,np,x);
+      free(e);
 }
