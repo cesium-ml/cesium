@@ -1,4 +1,3 @@
-import numpy as np
 import gatspy
 
 
@@ -11,9 +10,9 @@ def lomb_scargle_fast_period(t, m, e):
     full multi-frequency model used by `features.lomb_scargle`.
     """
     dt = t.max() - t.min()
-    opt_args = {'period_range': (2 * dt / len(t), dt), 'quiet': True}
-    model = gatspy.periodic.LombScargleFast(fit_period=True,
-                                            optimizer_kwds=opt_args,
-                                            silence_warnings=True)
+    opt_args = {"period_range": (2 * dt / len(t), dt), "quiet": True}
+    model = gatspy.periodic.LombScargleFast(
+        fit_period=True, optimizer_kwds=opt_args, silence_warnings=True
+    )
     model.fit(t, m, e)
     return model.best_period

@@ -6,7 +6,7 @@ import tempfile
 import zipfile
 
 
-__all__ = ['shorten_fname', 'remove_files', 'extract_time_series']
+__all__ = ["shorten_fname", "remove_files", "extract_time_series"]
 
 
 def shorten_fname(file_path):
@@ -49,8 +49,9 @@ def remove_files(paths):
 
 
 @contextlib.contextmanager
-def extract_time_series(data_path, cleanup_archive=True, cleanup_files=False,
-                        extract_dir=None):
+def extract_time_series(
+    data_path, cleanup_archive=True, cleanup_files=False, extract_dir=None
+):
     """Extract zip- or tarfile of time series file and return file paths.
 
     If the given file is not a tar- or zipfile then it is treated as a single
@@ -83,15 +84,17 @@ def extract_time_series(data_path, cleanup_archive=True, cleanup_files=False,
 
     if tarfile.is_tarfile(data_path):
         archive = tarfile.open(data_path)
-        members_to_extract = [x for x in archive.getmembers() if not
-                              x.name.startswith(('.', '/'))]
+        members_to_extract = [
+            x for x in archive.getmembers() if not x.name.startswith((".", "/"))
+        ]
         extracted_names = [x.name for x in members_to_extract]
         archive.extractall(path=extract_dir, members=members_to_extract)
         all_paths = [os.path.join(extract_dir, f) for f in extracted_names]
     elif zipfile.is_zipfile(data_path):
         archive = zipfile.ZipFile(data_path)
-        members_to_extract = [x for x in archive.namelist() if not
-                              x.startswith(('.', '/'))]
+        members_to_extract = [
+            x for x in archive.namelist() if not x.startswith((".", "/"))
+        ]
         archive.extractall(path=extract_dir, members=members_to_extract)
         all_paths = [os.path.join(extract_dir, f) for f in members_to_extract]
     else:

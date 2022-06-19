@@ -14,12 +14,21 @@ from . import time_series
 from .time_series import TimeSeries
 from .features import generate_dask_graph
 
-__all__ = ['featurize_time_series', 'featurize_single_ts',
-           'featurize_ts_files', 'assemble_featureset']
+__all__ = [
+    "featurize_time_series",
+    "featurize_single_ts",
+    "featurize_ts_files",
+    "assemble_featureset",
+]
 
 
-def featurize_single_ts(ts, features_to_use, custom_script_path=None,
-                        custom_functions=None, raise_exceptions=True):
+def featurize_single_ts(
+    ts,
+    features_to_use,
+    custom_script_path=None,
+    custom_functions=None,
+    raise_exceptions=True,
+):
     """Compute feature values for a given single time-series. Data is
     returned as dictionaries/lists of lists.
 
@@ -56,12 +65,16 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
 
         if custom_functions:
             # If values in custom_functions are functions, add calls to graph
-            if all(hasattr(v, '__call__') for v in custom_functions.values()):
-                feature_graph.update({feat: f(t_i, m_i, e_i)
-                                      for feat, f in custom_functions.items()})
+            if all(hasattr(v, "__call__") for v in custom_functions.values()):
+                feature_graph.update(
+                    {feat: f(t_i, m_i, e_i) for feat, f in custom_functions.items()}
+                )
             # Otherwise, custom_functions is another dask graph
             else:
                 feature_graph.update(custom_functions)
+
+        def noop(e, tb):
+            pass
 
         # Do not execute in parallel; parallelization has already taken place
         # at the level of time series, so we compute features for a single time
@@ -69,20 +82,26 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
         if raise_exceptions:
             raise_callback = reraise
         else:
-            raise_callback = lambda e, tb: None
+            raise_callback = noop
         culled_feature_graph, _ = cull(feature_graph, features_to_use)
-        dask_values = dask.get(culled_feature_graph, features_to_use,
-                               raise_exception=raise_callback,
-                               pack_exception=pack_exception)
-        feature_values[:, i] = [x if not isinstance(x, Exception) else np.nan
-                                for x in dask_values]
-    index = pd.MultiIndex.from_product((features_to_use, range(ts.n_channels)),
-                                       names=('feature', 'channel'))
+        dask_values = dask.get(
+            culled_feature_graph,
+            features_to_use,
+            raise_exception=raise_callback,
+            pack_exception=pack_exception,
+        )
+        feature_values[:, i] = [
+            x if not isinstance(x, Exception) else np.nan for x in dask_values
+        ]
+    index = pd.MultiIndex.from_product(
+        (features_to_use, range(ts.n_channels)), names=("feature", "channel")
+    )
     return pd.Series(feature_values.ravel(), index=index)
 
 
-def assemble_featureset(features_list, time_series=None,
-                        meta_features_list=None, names=None):
+def assemble_featureset(
+    features_list, time_series=None, meta_features_list=None, names=None
+):
     """Transforms raw feature data (as returned by `featurize_single_ts`) into
     a pd.DataFrame.
 
@@ -105,8 +124,9 @@ def assemble_featureset(features_list, time_series=None,
         DataFrame with columns containing feature values, indexed by name.
     """
     if time_series is not None:
-        meta_features_list, names = zip(*[(ts.meta_features, ts.name)
-                                          for ts in time_series])
+        meta_features_list, names = zip(
+            *[(ts.meta_features, ts.name) for ts in time_series]
+        )
     if len(features_list) > 0:
         feat_df = pd.concat(features_list, axis=1, ignore_index=True).T
         feat_df.index = names
@@ -115,8 +135,9 @@ def assemble_featureset(features_list, time_series=None,
 
     if meta_features_list and any(meta_features_list):  # not all empty dicts
         meta_df = pd.DataFrame(list(meta_features_list), index=names)
-        meta_df.columns = pd.MultiIndex.from_tuples([(c, '') for c in meta_df],
-                                                    names=['feature', 'channel'])
+        meta_df.columns = pd.MultiIndex.from_tuples(
+            [(c, "") for c in meta_df], names=["feature", "channel"]
+        )
         feat_df = pd.concat((feat_df, meta_df), axis=1)
 
     return feat_df
@@ -124,10 +145,18 @@ def assemble_featureset(features_list, time_series=None,
 
 # TODO should this be changed to use TimeSeries objects? or maybe an optional
 # argument for TimeSeries? some redundancy here...
-def featurize_time_series(times, values, errors=None, features_to_use=[],
-                          meta_features={}, names=None,
-                          custom_script_path=None, custom_functions=None,
-                          scheduler=dask.threaded.get, raise_exceptions=True):
+def featurize_time_series(
+    times,
+    values,
+    errors=None,
+    features_to_use=[],
+    meta_features={},
+    names=None,
+    custom_script_path=None,
+    custom_functions=None,
+    scheduler=dask.threaded.get,
+    raise_exceptions=True,
+):
     """Versatile feature generation function for one or more time series.
 
     For a single time series, inputs may have the form:
@@ -205,24 +234,21 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
     """
     if times is None:
         times = copy.deepcopy(values)
-        if isinstance(times, np.ndarray) and (times.ndim == 1
-                                              or 1 in times.shape):
-            times[:] = np.linspace(0., time_series.DEFAULT_MAX_TIME,
-                                   times.size)
+        if isinstance(times, np.ndarray) and (times.ndim == 1 or 1 in times.shape):
+            times[:] = np.linspace(0.0, time_series.DEFAULT_MAX_TIME, times.size)
         else:
             for t in times:
                 if isinstance(t, np.ndarray) and (t.ndim == 1 or 1 in t.shape):
-                    t[:] = np.linspace(0., time_series.DEFAULT_MAX_TIME,
-                                       t.size)
+                    t[:] = np.linspace(0.0, time_series.DEFAULT_MAX_TIME, t.size)
                 else:
                     for t_i in t:
-                        t_i[:] = np.linspace(0., time_series.DEFAULT_MAX_TIME,
-                                             t_i.size)
+                        t_i[:] = np.linspace(
+                            0.0, time_series.DEFAULT_MAX_TIME, t_i.size
+                        )
 
     if errors is None:
         errors = copy.deepcopy(values)
-        if isinstance(errors, np.ndarray) and (errors.ndim == 1
-                                               or 1 in errors.shape):
+        if isinstance(errors, np.ndarray) and (errors.ndim == 1 or 1 in errors.shape):
             errors[:] = time_series.DEFAULT_ERROR_VALUE
         else:
             for e in errors:
@@ -246,23 +272,32 @@ def featurize_time_series(times, values, errors=None, features_to_use=[],
         meta_features = meta_features.to_dict()
     meta_features = pd.DataFrame(meta_features, index=names)
 
-    all_time_series = [delayed(TimeSeries(t, m, e,
-                                          meta_features=meta_features.loc[name],
-                                          name=name), pure=True)
-                       for t, m, e, name in zip(times, values, errors, names)]
+    all_time_series = [
+        delayed(
+            TimeSeries(t, m, e, meta_features=meta_features.loc[name], name=name),
+            pure=True,
+        )
+        for t, m, e, name in zip(times, values, errors, names)
+    ]
 
-    all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
-                                                            custom_script_path,
-                                                            custom_functions,
-                                                            raise_exceptions)
-                    for ts in all_time_series]
+    all_features = [
+        delayed(featurize_single_ts, pure=True)(
+            ts, features_to_use, custom_script_path, custom_functions, raise_exceptions
+        )
+        for ts in all_time_series
+    ]
     result = delayed(assemble_featureset, pure=True)(all_features, all_time_series)
     return result.compute(scheduler=scheduler)
 
 
-def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
-                       custom_functions=None, scheduler=dask.threaded.get,
-                       raise_exceptions=True):
+def featurize_ts_files(
+    ts_paths,
+    features_to_use,
+    custom_script_path=None,
+    custom_functions=None,
+    scheduler=dask.threaded.get,
+    raise_exceptions=True,
+):
     """Feature generation function for on-disk time series (.npz) files.
 
     By default, computes features concurrently using the
@@ -306,25 +341,29 @@ def featurize_ts_files(ts_paths, features_to_use, custom_script_path=None,
     pd.DataFrame
         DataFrame with columns containing feature values, indexed by name.
     """
-    all_time_series = [delayed(time_series.load, pure=True)(ts_path)
-                       for ts_path in ts_paths]
-    all_features = [delayed(featurize_single_ts, pure=True)(ts, features_to_use,
-                                                            custom_script_path,
-                                                            custom_functions,
-                                                            raise_exceptions)
-                    for ts in all_time_series]
-    names, meta_feats, all_labels = zip(*[(ts.name, ts.meta_features, ts.label)
-                                          for ts in all_time_series])
-    result = delayed(assemble_featureset, pure=True)(all_features,
-                                                     meta_features_list=meta_feats,
-                                                     names=names)
+    all_time_series = [
+        delayed(time_series.load, pure=True)(ts_path) for ts_path in ts_paths
+    ]
+    all_features = [
+        delayed(featurize_single_ts, pure=True)(
+            ts, features_to_use, custom_script_path, custom_functions, raise_exceptions
+        )
+        for ts in all_time_series
+    ]
+    names, meta_feats, all_labels = zip(
+        *[(ts.name, ts.meta_features, ts.label) for ts in all_time_series]
+    )
+    result = delayed(assemble_featureset, pure=True)(
+        all_features, meta_features_list=meta_feats, names=names
+    )
     fset, labels = dask.compute(result, all_labels, scheduler=scheduler)
 
     return fset, labels
 
 
-def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
-                      inplace=False):
+def impute_featureset(
+    fset, strategy="constant", value=None, max_value=1e20, inplace=False
+):
     """Replace NaN/Inf values with imputed values as defined by `strategy`.
     Output should satisfy `sklearn.validation.assert_all_finite` so that
     training a model will not produce an error.
@@ -360,17 +399,18 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
         fset = fset.copy()
     fset.values[np.isnan(fset.values)] = np.inf  # avoid NaN comparison warnings
     fset.values[np.abs(fset.values) > max_value] = np.nan
-    if strategy == 'constant':
+    if strategy == "constant":
         if value is None:
             # If no fill-in value is provided, use a large negative value
-            value = -2. * np.nanmax(np.abs(fset.values))
+            value = -2.0 * np.nanmax(np.abs(fset.values))
         fset.fillna(value, inplace=True)
-    elif strategy in ('mean', 'median', 'most_frequent'):
+    elif strategy in ("mean", "median", "most_frequent"):
         imputer = Imputer(strategy=strategy)
         fset.values[:] = imputer.fit_transform(fset.values)
     else:
-        raise NotImplementedError("Imputation strategy '{}' not"
-                                  "recognized.".format(strategy))
+        raise NotImplementedError(
+            "Imputation strategy '{}' not" "recognized.".format(strategy)
+        )
     return fset
 
 
@@ -394,7 +434,7 @@ def save_featureset(fset, path, **kwargs):
         pred_probs -> (n_sample, n_class) data frame of class probabilities
     """
     # Transpose to properly handle MultiIndex columns
-    kwargs['features'] = fset.T
+    kwargs["features"] = fset.T
 
     for k, v in kwargs.items():
         if isinstance(v, pd.DataFrame):
@@ -402,9 +442,9 @@ def save_featureset(fset, path, **kwargs):
             dt_list = arr.dtype.descr
             # Change type of indices from object to str
             for i, (name, dt) in enumerate(dt_list):
-                if dt.endswith('O'):
-                    size = max(len(x) for x in arr['index'])
-                    dt_list[i] = (name, 'U' + str(size))
+                if dt.endswith("O"):
+                    size = max(len(x) for x in arr["index"])
+                    dt_list[i] = (name, "U" + str(size))
                 dt_list[i] = (str(name),) + dt_list[i][1:]  # avoid Py2 unicode
             kwargs[k] = arr.astype(dt_list)
 
@@ -440,15 +480,17 @@ def load_featureset(path):
         data = dict(npz_file)
 
     # Transpose to properly handle MultiIndex columns
-    fset = pd.DataFrame.from_records(data.pop('features'),
-                                     index=['feature', 'channel']).T
+    fset = pd.DataFrame.from_records(
+        data.pop("features"), index=["feature", "channel"]
+    ).T
     features, channels = zip(*fset.columns)
-    channels = [int(c) if str(c).isdigit() else '' for c in channels]
-    fset.columns = pd.MultiIndex.from_tuples(list(zip(features, channels)),
-                                             names=['feature', 'channel'])
+    channels = [int(c) if str(c).isdigit() else "" for c in channels]
+    fset.columns = pd.MultiIndex.from_tuples(
+        list(zip(features, channels)), names=["feature", "channel"]
+    )
 
     for k, v in data.items():
         if len(v.dtype) > 0:
-            data[k] = pd.DataFrame.from_records(v, index='index')
+            data[k] = pd.DataFrame.from_records(v, index="index")
 
     return fset, data

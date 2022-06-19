@@ -15,7 +15,7 @@ MD5SUMS = {
     "O.zip": "666ade7e9d519935103404d4a8d81d7d",
     "N.zip": "0bb8e39ae7530ba17f55b5b4f14e6a02",
     "F.zip": "10f78c004122c609e8eef74de8790af3",
-    "S.zip": "1d560ac1e03a5c19bb7f336e270ff286"
+    "S.zip": "1d560ac1e03a5c19bb7f336e270ff286",
 }
 CACHE_NAME = "andrzejak.pkl"
 ARCHIVE_NAME = "andrzejak.tar.gz"
@@ -49,8 +49,9 @@ def download_andrzejak(data_dir):
     """
     logger.warning("Downloading data from {}".format(BASE_URL))
 
-    ts_paths = dsutil.download_and_extract_archives(data_dir, BASE_URL,
-                                                    ZIP_FILES, MD5SUMS)
+    ts_paths = dsutil.download_and_extract_archives(
+        data_dir, BASE_URL, ZIP_FILES, MD5SUMS
+    )
 
     # Reformat time series files and add to `andrzejak.tar.gz` archive
     times = []
@@ -60,8 +61,8 @@ def download_andrzejak(data_dir):
     for fname in ts_paths:
         m = np.loadtxt(fname)
         t = np.linspace(start=0, stop=T_MAX, num=len(m))
-        new_fname = fname[:-4] + '.dat'
-        np.savetxt(new_fname, np.vstack((t, m)).T, delimiter=',')
+        new_fname = fname[:-4] + ".dat"
+        np.savetxt(new_fname, np.vstack((t, m)).T, delimiter=",")
         measurements.append(m)
         times.append(t)
         new_ts_paths.append(new_fname)
@@ -71,14 +72,16 @@ def download_andrzejak(data_dir):
 
     header_path = os.path.join(data_dir, "andrzejak.csv")
     dsutil.write_header(header_path, new_ts_paths, classes)
-
-    extract_dir = os.path.join(data_dir, os.path.basename(ARCHIVE_NAME))
     util.remove_files(ts_paths + new_ts_paths)
 
     cache_path = os.path.join(data_dir, CACHE_NAME)
-    data = dict(times=times, measurements=measurements,
-                classes=np.array(classes), archive=archive_path,
-                header=header_path)
+    data = dict(
+        times=times,
+        measurements=measurements,
+        classes=np.array(classes),
+        archive=archive_path,
+        header=header_path,
+    )
     joblib.dump(data, cache_path, compress=3)
     return data
 
@@ -117,6 +120,6 @@ def fetch_andrzejak(data_dir=None):
     try:
         data = joblib.load(cache_path)
         logger.warning("Loaded data from cached archive.")
-    except (ValueError, IOError): #  missing or incompatible cache
+    except (ValueError, IOError):  # missing or incompatible cache
         data = download_andrzejak(data_dir)
     return data
