@@ -5,9 +5,10 @@ import pandas as pd
 import dask
 import dask.threaded
 from dask import delayed
-from dask.compatibility import reraise
+from dask.local import reraise
 from dask.threaded import pack_exception
-from sklearn.preprocessing import Imputer
+from dask.optimization import cull
+from sklearn.impute import SimpleImputer as Imputer
 
 from . import time_series
 from .time_series import TimeSeries
@@ -69,7 +70,8 @@ def featurize_single_ts(ts, features_to_use, custom_script_path=None,
             raise_callback = reraise
         else:
             raise_callback = lambda e, tb: None
-        dask_values = dask.get(feature_graph, features_to_use,
+        culled_feature_graph, _ = cull(feature_graph, features_to_use)
+        dask_values = dask.get(culled_feature_graph, features_to_use,
                                raise_exception=raise_callback,
                                pack_exception=pack_exception)
         feature_values[:, i] = [x if not isinstance(x, Exception) else np.nan
@@ -364,7 +366,7 @@ def impute_featureset(fset, strategy='constant', value=None, max_value=1e20,
             value = -2. * np.nanmax(np.abs(fset.values))
         fset.fillna(value, inplace=True)
     elif strategy in ('mean', 'median', 'most_frequent'):
-        imputer = Imputer(strategy=strategy, axis=0)
+        imputer = Imputer(strategy=strategy)
         fset.values[:] = imputer.fit_transform(fset.values)
     else:
         raise NotImplementedError("Imputation strategy '{}' not"

@@ -6,7 +6,6 @@ from zipfile import ZipFile
 import numpy as np
 import numpy.testing as npt
 import pandas as pd
-from sklearn.datasets.base import Bunch
 
 from cesium.datasets import andrzejak
 from cesium.datasets import asas_training

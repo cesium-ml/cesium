@@ -13,7 +13,7 @@ The cesium library has the following dependencies:
 - [dask](http://dask.pydata.org/)
 - [cython](http://cython.org/) (development only)
 
-The `cesium` library runs on Python 2 and 3.
+The `cesium` library runs on Python 3.
 
 ## Testing
 

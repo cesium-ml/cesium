@@ -2,7 +2,7 @@ import logging
 import os
 
 import numpy as np
-from sklearn.externals import joblib
+import joblib
 
 from .. import util
 from . import util as dsutil
