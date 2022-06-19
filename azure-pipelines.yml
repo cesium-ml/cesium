@@ -38,14 +38,3 @@ jobs:
       testResultsFiles: '**/test-results.xml'
       testRunTitle: 'Python $(python.version)'
     condition: succeededOrFailed()
-
-- job: 'Publish'
-  dependsOn: 'Test'
-  pool:
-    vmImage: 'ubuntu-latest'
-
-  steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.x'
-      architecture: 'x64'
