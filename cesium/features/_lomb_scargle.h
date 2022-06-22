@@ -78,12 +78,14 @@ static inline double do_lomb_zoom(int numt, int detrend_order, double *cn, doubl
 
 static inline void def_hat(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double sinx[], double cosx[], double wt[], double cn[], double hat_hat[], double vec[], double lambda0) {
     int i,j=numt*nharm,k,npar=2*nharm,dord1=detrend_order+1;
-    double sx0[numt],cx0[numt],ct,st,sum;
+    double* sx0 = malloc(numt * sizeof(double));
+    double* cx0 = malloc(numt * sizeof(double));
+    double ct, st, sum;
     for (i=0;i<numt;i++) {
         sx0[i] = (hat_matr[i]=sinx[i])/wt[i]; cx0[i] = (hat_matr[i+j]=cosx[i])/wt[i];
     }
     for (j=0;j<nharm-1;j++) {
-        update_sincos (numt,sx0,cx0,hat_matr+j*numt,hat_matr+(j+nharm)*numt,numt);
+        update_sincos(numt,sx0,cx0,hat_matr+j*numt,hat_matr+(j+nharm)*numt,numt);
         for (i=0;i<=detrend_order;i++) calc_dotprod(numt,hat_matr+j*numt,hat_matr+(j+nharm)*numt,wt,i,&hat0[i+j*dord1],&hat0[i+(j+nharm)*dord1]);
     }
     for (i=0;i<=detrend_order;i++) calc_dotprod(numt,hat_matr+j*numt,hat_matr+(j+nharm)*numt,wt,i,&hat0[i+j*dord1],&hat0[i+(j+nharm)*dord1]);
@@ -105,20 +107,24 @@ static inline void def_hat(int numt, int nharm, int detrend_order, double hat_ma
         }
         hat_hat[j+j*npar] += numt*lambda0;
     }
+    free(sx0);
+    free(cx0);
 }
 
 static inline double optimize_px(int n, int numt, double p[], double hat_hat[], double eigs[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Trace) {
     int i,j,k,niter=50;
     double px,lambda,dlambda,lambda_best,eigs1,px_max=0.,start=lambda0_range[0],stop=lambda0_range[1];
-    double m[n][n],s1,s2,s3,v[n],tcn=tc/numt,Tr,Tr0=(1-3./numt)/(1.+tcn);
+    double s1,s2,s3,tcn=tc/numt,Tr,Tr0=(1-3./numt)/(1.+tcn);
+    double* v = malloc(n * sizeof(double));
+    double* m = malloc(n * n * sizeof(double));
 
     for (i=0;i<n;i++) {
-      for (j=i;j<n;j++) m[j][i] = 0.;
+      for (j=i;j<n;j++) m[j*n + i] = 0.;
     }
     for (k=0;k<n;k++) {
         s1 = 1.+(k%(n/2)); s1*=s1; s1*=s1;
         for (i=0;i<n;i++) {
-            for (j=i;j<n;j++) m[j][i] += hat_hat[i+k*n]*hat_hat[j+k*n]/s1;
+            for (j=i;j<n;j++) m[j*n + i] += hat_hat[i+k*n]*hat_hat[j+k*n]/s1;
         }
     }
     lambda = start; dlambda = exp(log(stop/start)/niter);
@@ -130,8 +136,8 @@ static inline double optimize_px(int n, int numt, double p[], double hat_hat[], 
               Tr += 2.*lambda/eigs1;
               s1 += p[i]*(v[i]=p[i]/eigs1);
               s2 += p[i]*v[i]/eigs1;
-              s3 += v[i]* m[i][i]* v[i];
-              for (k=0;k<i;k++) s3 += 2.*v[i] *m[i][k] *v[k];
+              s3 += v[i]* m[i*n + i]* v[i];
+              for (k=0;k<i;k++) s3 += 2.*v[i] *m[i*n + k] *v[k];
            }
            px = chi0  - (chi0-s1-s2*numt*lambda)*(1.+tcn*(s2/s3))*Tr0/Tr;
            if (px>px_max && Tr>0) {
@@ -148,28 +154,35 @@ static inline double optimize_px(int n, int numt, double p[], double hat_hat[], 
         dlambda = exp(log(stop/start)/niter);
     }
     *lambda0 = lambda_best;
+    free(v);
+    free(m);
     return px_max;
 }
 
 static inline void inv_hat(int n, double hat_hat[], double vec[], double vec1[], double eigs[], double lam0, double lam) {
     int i,j,k;
-    double tmp[n][n], sum;
+    double sum;
+    double* tmp = malloc(n * n * sizeof(double));
     for (i=0;i<n;i++) {
         for (j=i;j<n;j++) {
             for (sum=0,k=0;k<n;k++) sum += hat_hat[k+i*n]*hat_hat[k+j*n]/(eigs[k]+lam-lam0);
-            tmp[i][j] = sum;
+            tmp[i*n + j] = sum;
         }
     }
     for (i=0;i<n;i++) {
-        for (j=i;j<n;j++) hat_hat[j+i*n] = hat_hat[i+j*n] = tmp[i][j];
+        for (j=i;j<n;j++) hat_hat[j+i*n] = hat_hat[i+j*n] = tmp[i*n + j];
         for (sum=0,j=0;j<n;j++) sum += hat_hat[j+i*n]*vec[j];
         vec1[i] = sum;
     }
+    free(tmp);
 }
 
 static inline double refine_psd(int numt, int nharm, int detrend_order, double hat_matr[], double hat0[], double hat_hat[], double sinx[], double cosx[], double wt[], double cn[], double vec1[], double *lambda0, double *lambda0_range, double chi0, double tc, double *Tr, int inv) {
     int i,j,npar=2*nharm;
-    double p[npar],vec[npar],eigs[npar],sum,px,lambda00=*lambda0;
+    double sum,px,lambda00=*lambda0;
+    double* p = malloc(npar * sizeof(double));
+    double* vec = malloc(npar * sizeof(double));
+    double* eigs = malloc(npar * sizeof(double));
     def_hat(numt,nharm,detrend_order,hat_matr,hat0,sinx,cosx,wt,cn,hat_hat,vec,*lambda0);
     get_eigs(npar,hat_hat,eigs);
     for (i=0;i<npar;i++) {
@@ -178,6 +191,9 @@ static inline double refine_psd(int numt, int nharm, int detrend_order, double h
     }
     px = optimize_px(npar,numt,p,hat_hat,eigs,lambda0,lambda0_range,chi0,tc,Tr);
     if (inv==1) inv_hat(npar,hat_hat,vec,vec1,eigs,numt*lambda00,numt*(*lambda0));
+    free(p);
+    free(vec);
+    free(eigs);
     return px;
 }
 
@@ -196,7 +212,11 @@ void lomb_scargle(int numt, unsigned int numf, int nharm, int detrend_order,
   unsigned long j;
   unsigned long jmax=0;
   *ifreq = ifr;
-  double psdmax=0.,psd0max=0.,Trace,sinx1[numt],cosx1[numt],sinx2[numt],cosx2[numt],lambda;
+  double psdmax=0.,psd0max=0.,Trace,lambda;
+  double* sinx1 = malloc(numt * sizeof(double));
+  double* cosx1 = malloc(numt * sizeof(double));
+  double* sinx2 = malloc(numt * sizeof(double));
+  double* cosx2 = malloc(numt * sizeof(double));
   for (j=0;j<numf;j++) {
       // do a simple lomb-scargle, sin+cos fit
       psd[j] = do_lomb(numt,detrend_order,cn,sinx,cosx,wth);
@@ -223,4 +243,8 @@ void lomb_scargle(int numt, unsigned int numf, int nharm, int detrend_order,
   }
   // finally, rerun at the best-fit period so we get some statistics
   psd[jmax] = refine_psd(numt,nharm,detrend_order,hat_matr,hat0,hat_hat,sinx2,cosx2,wth,cn,soln,lambda0,lambda0_range,chi0,tone_control,Tr,1);
+  free(sinx1);
+  free(cosx1);
+  free(sinx2);
+  free(cosx2);
 }
