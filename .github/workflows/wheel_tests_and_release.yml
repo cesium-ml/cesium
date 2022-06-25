@@ -3,6 +3,9 @@
 name: Build Wheels and Release
 on:
   push:
+    branches:
+      - main
+      - release-on-tag
 #    tags:
 #      - 'v*'
 #      - 'buildwheels*'
