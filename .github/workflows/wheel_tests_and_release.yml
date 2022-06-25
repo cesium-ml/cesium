@@ -132,7 +132,7 @@ jobs:
 
   deploy:
     name: Release
-    needs: [build_linux__wheels, build_macos_wheels, build_windows_wheels]
+    needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels]
     if: github.repository_owner == 'cesium-ml' && startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
     steps:
