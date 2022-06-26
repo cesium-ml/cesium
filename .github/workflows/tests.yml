@@ -3,7 +3,7 @@ name: Test Cesium
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
           which python; python --version
 
       - name: Formatting and linting checks
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/main'
         run: |
           pip install pre-commit
           pre-commit run --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}

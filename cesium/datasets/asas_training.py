@@ -9,7 +9,7 @@ from . import util as dsutil
 
 
 # TODO replace with real host
-BASE_URL = "https://github.com/cesium-ml/cesium-data/raw/master/asas_training/"
+BASE_URL = "https://github.com/cesium-ml/cesium-data/raw/main/asas_training/"
 MD5SUMS = {"asas_training_set.tar.gz": "02c65e90d23999ec1c59ad56a78de477"}
 ARCHIVE_NAME = "asas_training_set.tar.gz"
 HEADER_FILE = "asas_training_set_classes_with_metadata.dat"

@@ -1,7 +1,4 @@
 # `cesium`: Open-Source Platform for Time Series Inference
-[![Join the chat at https://gitter.im/cesium-ml/cesium](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cesium-ml/cesium?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/cesium-ml/cesium.svg?branch=master)](https://travis-ci.org/cesium-ml/cesium)
-[![codecov.io](http://codecov.io/github/cesium-ml/cesium/coverage.svg?branch=master)](http://codecov.io/github/cesium-ml/cesium?branch=master)
 
 ## Summary
 `cesium` is an open source library that allows users to:
@@ -23,4 +20,4 @@ More information and [examples](http://cesium-ml.org/docs/auto_examples/index.ht
 Note that cesium requires a C99 compiler, which in particular excludes MSVC. On Windows, a different compiler like MinGW has to be used. Please refer to the [instructions for installing Cython & MinGW on Windows](https://cython.readthedocs.io/en/latest/src/tutorial/appendix.html#appendix-installing-mingw-on-windows).
 
 ## License:
-`cesium` uses the [3-clause BSD licence](https://github.com/cesium-ml/cesium/blob/master/LICENSE.txt).
+`cesium` uses the [3-clause BSD licence](https://github.com/cesium-ml/cesium/blob/main/LICENSE.txt).

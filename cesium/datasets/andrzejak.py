@@ -8,7 +8,7 @@ from .. import util
 from . import util as dsutil
 
 
-BASE_URL = "https://github.com/cesium-ml/cesium-data/raw/master/andrzejak/"
+BASE_URL = "https://github.com/cesium-ml/cesium-data/raw/main/andrzejak/"
 ZIP_FILES = ["Z.zip", "O.zip", "N.zip", "F.zip", "S.zip"]
 MD5SUMS = {
     "Z.zip": "ca5c761d62704c4d2465822e2131f868",

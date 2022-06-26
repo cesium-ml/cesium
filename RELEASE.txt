@@ -9,18 +9,7 @@ How to make a new release of ``cesium``
 
 - Push the new meta-data to github::
 
-   git push --tags origin master
+   git push --tags origin main
 
-- Update the version in `wheel_builder/.travis.yml` to build new wheels
-
-- Download wheels from wheels.scipy.org, e.g.:
-
-CESIUM=0.X.Y
-wget -r --no-parent -A "cesium-$CESIUM*whl" http://wheels.scipy.org
-for WHEEL in `ls wheels.scipy.org`; do
-  twine upload wheels.scipy.org/$WHEEL
-done
-
-- Publish on PyPi::
-
-   python setup.py sdist upload
+- The CI will build wheels and upload to PyPi.
+  Follow progress at https://github.com/cesium-ml/cesium/actions
