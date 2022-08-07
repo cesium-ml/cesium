@@ -356,14 +356,13 @@ class ApiDocWriter(object):
         else:
             relpath = outdir
         print("outdir: ", relpath)
-        idx = open(path, "wt")
-        w = idx.write
-        w(".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n")
+        with open(path, "wt") as idx:
+            w = idx.write
+            w(".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n")
 
-        title = "API Reference"
-        w(title + "\n")
-        w("=" * len(title) + "\n\n")
-        w(".. toctree::\n\n")
-        for f in self.written_modules:
-            w("   %s\n" % os.path.join(relpath, f))
-        idx.close()
+            title = "API Reference"
+            w(title + "\n")
+            w("=" * len(title) + "\n\n")
+            w(".. toctree::\n\n")
+            for f in self.written_modules:
+                w("   %s\n" % os.path.join(relpath, f))
