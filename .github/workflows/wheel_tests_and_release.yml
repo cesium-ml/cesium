@@ -5,7 +5,9 @@ on:
   push:
     tags:
       - 'v*'
-      - 'buildwheels*'
+    branches:
+      - maintenance/**
+      - '!main'
 
 env:
   CIBW_BUILD_VERBOSITY: 2
@@ -22,15 +24,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04]
-        cibw_python: [ "cp38-*", "cp39-*"]
+        cibw_python: [ "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
         cibw_manylinux: [ manylinux2014 ]
         cibw_arch: [ "x86_64", "i686" ]
-        include:
-          - os: ubuntu-18.04
-            cibw_python: "cp310-*"
-            cibw_manylinux: manylinux2014
-            cibw_arch: x86_64
-            # exclude i686 on Python 3.10 (No NumPy or SciPy wheels available)
     steps:
       - uses: actions/checkout@v3
         with:
@@ -38,7 +34,7 @@ jobs:
       - uses: actions/setup-python@v3
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel
@@ -65,7 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest]
-        cibw_python: [ "cp38-*", "cp39-*", "cp310-*" ]
+        cibw_python: [ "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
         cibw_arch: [ "x86_64", "arm64"] #, "universal2"]
 
     steps:
@@ -76,7 +72,7 @@ jobs:
       - uses: actions/setup-python@v3
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Install cibuildwheel
         run: |
@@ -84,14 +80,7 @@ jobs:
 
       - name: Build wheels for CPython Mac OS
         run: |
-          if [[ "$CIBW_ARCHS_MACOS" == arm64 ]]; then
-              # SciPy requires 12.0 on arm to prevent kernel panics
-              # https://github.com/scipy/scipy/issues/14688
-              # so being conservative, we just do the same here
-              export MACOSX_DEPLOYMENT_TARGET=12.0
-          else
-              export MACOSX_DEPLOYMENT_TARGET=10.13
-          fi
+          export MACOSX_DEPLOYMENT_TARGET=12.0
           echo MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}
 
           python -m cibuildwheel --output-dir dist
@@ -124,7 +113,7 @@ jobs:
       - uses: actions/setup-python@v3
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Install cibuildwheel
         run: |
@@ -136,8 +125,6 @@ jobs:
         env:
           # Skip pypy
           CIBW_BUILD: "cp3?-*"
-          # Build only py38 and later
-          CIBW_SKIP: "cp36-* cp37-*"
           CIBW_ARCHS_WINDOWS: ${{ matrix.cibw_arch }}
           # -Wl,-S equivalent to gcc's -Wl,--strip-debug
           LDFLAGS: "-Wl,-S"
@@ -159,7 +146,7 @@ jobs:
       - uses: actions/setup-python@v3
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       - name: Install Twine
         run: |
