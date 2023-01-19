@@ -299,9 +299,8 @@ class ApiDocWriter(object):
                 continue
             # write out to file
             outfile = os.path.join(outdir, m + self.rst_extension)
-            fileobj = open(outfile, "wt")
-            fileobj.write(api_str)
-            fileobj.close()
+            with open(outfile, "wt") as fileobj:
+                fileobj.write(api_str)
             written_modules.append(m)
         self.written_modules = written_modules
 
@@ -356,14 +355,13 @@ class ApiDocWriter(object):
         else:
             relpath = outdir
         print("outdir: ", relpath)
-        idx = open(path, "wt")
-        w = idx.write
-        w(".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n")
+        with open(path, "wt") as idx:
+            w = idx.write
+            w(".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n")
 
-        title = "API Reference"
-        w(title + "\n")
-        w("=" * len(title) + "\n\n")
-        w(".. toctree::\n\n")
-        for f in self.written_modules:
-            w("   %s\n" % os.path.join(relpath, f))
-        idx.close()
+            title = "API Reference"
+            w(title + "\n")
+            w("=" * len(title) + "\n\n")
+            w(".. toctree::\n\n")
+            for f in self.written_modules:
+                w("   %s\n" % os.path.join(relpath, f))
