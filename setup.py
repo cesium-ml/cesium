@@ -4,9 +4,14 @@ import sys
 
 try:
     import numpy as np
-    from Cython.Build import cythonize
 except ImportError:
     print("\nPlease install numpy before building cesium.\n")
+    sys.exit(1)
+
+try:
+    from Cython.Build import cythonize
+except ImportError:
+    print("\nPlease install Cython before building cesium.\n")
     sys.exit(1)
 
 from setuptools import Extension, find_namespace_packages, setup
