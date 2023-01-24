@@ -20,7 +20,8 @@ def extensions():
             "_lomb_scargle",
             sources=["cesium/features/_lomb_scargle.pyx"],
             include_dirs=[np_inc],
-        )
+        ),
+        include_path=["cesium/features"],
     )
     return cython_exts
 
