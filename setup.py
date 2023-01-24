@@ -2,13 +2,20 @@
 
 import sys
 
+try:
+    import numpy as np
+    from Cython.Build import cythonize
+except ImportError:
+    print("\nPlease install numpy before building cesium.\n")
+    sys.exit(1)
+
 import setuptools
 from setuptools.command.build_ext import build_ext
-from Cython.Build import cythonize
 
 
 def extensions():
-    cython_exts = cythonize("cesium/features/_lomb_scargle.pyx")
+    np_inc = np.get_include()
+    cython_exts = cythonize("cesium/features/_lomb_scargle.pyx", include_path=[np_inc])
     return cython_exts
 
 
@@ -21,11 +28,5 @@ if __name__ == "__main__":
         cmdclass={"build_ext": build_ext},
         ext_modules=extensions(),
     )
-
-    try:
-        import numpy as np  # noqa: F401
-    except ImportError:
-        print("\nPlease install numpy before building cesium.\n")
-        sys.exit(1)
 
     setuptools.setup(**metadata)
