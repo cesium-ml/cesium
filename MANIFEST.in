@@ -1,16 +1,14 @@
-include setup*.py
-include MANIFEST.in
-include *.txt
-include Makefile
-recursive-include cesium *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt *.yaml .example
-recursive-include dockerfiles Dockerfile *.config *.conf *.py *.sh *.txt *.patch *.md
-recursive-include tools
-recursive-include cesium *.csv *.dat *.js *.tar.gz *.dat *.html *.nc *.npz
+exclude .*
+exclude *.yml
+exclude *.enc
+prune .github
+
+recursive-include cesium *.pyx *.pxd *.py *.c *.h
+recursive-include dockerfiles Dockerfile *.sh
+recursive-include tools *.py
+recursive-include cesium *.csv *.dat *.tar.gz
 
 include doc/Makefile
-recursive-include doc/source *.txt
-recursive-include doc/tools *.txt
-recursive-include doc/source/_templates *.html
-recursive-include doc *.py
+recursive-include doc *.py *.rst *.css
 prune doc/build
 prune doc/gh-pages

@@ -9,8 +9,7 @@
 *#
 .#*
 *.swp
-**/.DS_STORE
-rethinkdb_data
+cesium/version.py
 cesium.egg-info
 !cesium/tests/data
 external
@@ -18,7 +17,8 @@ doc/_build
 doc/api
 doc/feature_table.rst
 dist
-.eggs
+.egg
 .coverage
 MANIFEST
 .ipynb_checkpoints
+.eggs

@@ -443,9 +443,8 @@ def save_featureset(fset, path, **kwargs):
             # Change type of indices from object to str
             for i, (name, dt) in enumerate(dt_list):
                 if dt.endswith("O"):
-                    size = max(len(x) for x in arr["index"])
-                    dt_list[i] = (name, "U" + str(size))
-                dt_list[i] = (str(name),) + dt_list[i][1:]  # avoid Py2 unicode
+                    size = max(len(str(x)) for x in arr[name])
+                    dt_list[i] = (name, f"U{size}")
             kwargs[k] = arr.astype(dt_list)
 
         # Ignore null values, e.g. for unlabeled data
@@ -480,14 +479,16 @@ def load_featureset(path):
         data = dict(npz_file)
 
     # Transpose to properly handle MultiIndex columns
-    fset = pd.DataFrame.from_records(
-        data.pop("features"), index=["feature", "channel"]
-    ).T
-    features, channels = zip(*fset.columns)
-    channels = [int(c) if str(c).isdigit() else "" for c in channels]
-    fset.columns = pd.MultiIndex.from_tuples(
-        list(zip(features, channels)), names=["feature", "channel"]
-    )
+    fset = pd.DataFrame.from_records(data.pop("features"), index=["feature", "channel"])
+    fset = fset.T
+
+    # Channels loaded from disk are now either empty strings or
+    # channel numbers (also strings), stored in an object array.
+    #
+    # We map non-empty channel numbers back to ints.
+    channels = fset.columns.levels[1]
+    int_channels = [int(c) if str(c).isdigit() else "" for c in channels]
+    fset.columns = fset.columns.set_levels(levels=int_channels, level=1)
 
     for k, v in data.items():
         if len(v.dtype) > 0:

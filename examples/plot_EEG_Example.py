@@ -196,9 +196,7 @@ from sklearn.model_selection import train_test_split
 
 train, test = train_test_split(np.arange(len(eeg["classes"])), random_state=0)
 
-model_cesium = RandomForestClassifier(
-    n_estimators=128, max_features="auto", random_state=0
-)
+model_cesium = RandomForestClassifier(n_estimators=128, random_state=0)
 model_cesium.fit(fset_cesium.iloc[train], eeg["classes"][train])
 
 model_guo = KNeighborsClassifier(3)
