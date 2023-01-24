@@ -251,7 +251,8 @@ def test_impute():
 
     imputed = featurize.impute_featureset(fset, strategy="most_frequent")
     npt.assert_allclose(
-        scipy.stats.mode(amp_values).mode.item(), imputed.amplitude.values[0:2]
+        scipy.stats.mode(amp_values, keepdims=True).mode.item(),
+        imputed.amplitude.values[0:2],
     )
     npt.assert_allclose(amp_values, imputed.amplitude.values[2:])
 
