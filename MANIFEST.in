@@ -1,7 +1,8 @@
-include setup*.py
-include MANIFEST.in
-include *.txt
-include Makefile
+exclude .*
+exclude *.yml
+exclude *.enc
+prune .github
+
 recursive-include cesium *.pyx *.pxd *.pxi *.py *.c *.h *.ini *.md5 *.npy *.txt *.yaml .example
 recursive-include dockerfiles Dockerfile *.config *.conf *.py *.sh *.txt *.patch *.md
 recursive-include tools

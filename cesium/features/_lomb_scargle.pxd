@@ -1,3 +1,5 @@
+# cython: language_level=2
+
 cdef extern from "_lomb_scargle.h":
      void lomb_scargle(int numt, unsigned int numf, int nharm, int detrend_order,
                        double psd[], double cn[], double wth[],

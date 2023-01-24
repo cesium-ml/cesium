@@ -1,3 +1,5 @@
+# cython: language_level=2
+
 from _lomb_scargle cimport lomb_scargle as _lomb_scargle
 
 cimport numpy as cnp
