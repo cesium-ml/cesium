@@ -14,6 +14,12 @@ except ImportError:
     print("\nPlease install Cython before building cesium.\n")
     sys.exit(1)
 
+try:
+    import setuptools_scm  # noqa: F401
+except ImportError:
+    print("\nPlease install setuptools_scm before building cesium.")
+    sys.exit(1)
+
 from setuptools import Extension, find_namespace_packages, setup
 from setuptools.command.build_ext import build_ext
 
