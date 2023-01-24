@@ -17,7 +17,7 @@ def extensions():
     np_inc = np.get_include()
     cython_exts = cythonize(
         Extension(
-            "_lomb_scargle",
+            "cesium.features._lomb_scargle",
             sources=["cesium/features/_lomb_scargle.pyx"],
             include_dirs=[np_inc],
         ),
