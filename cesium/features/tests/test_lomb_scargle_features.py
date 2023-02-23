@@ -203,6 +203,41 @@ def test_lomb_scargle_regular_multi_freq():
     npt.assert_array_less(10.0, all_lomb["freq1_signif"])
 
 
+def test_lomb_scargle_irregular_multi_freq_opt_normalize():
+    """Use the opt_normalize parameter on irregularly sampled data
+    and make sure that we still get back the frequencies that
+    we expect.
+    """
+    frequencies = WAVE_FREQS
+    amplitudes = np.zeros((len(frequencies), 4))
+    amplitudes[:, 0] = [4, 2, 1]
+    phase = 0.1
+    times, values, errors = irregular_periodic(frequencies, amplitudes, phase)
+
+    sys_err = 0.15
+    nfreq = len(frequencies)
+    tone_control = 20.0
+    for nharm in range(1, 21):
+        model_cesium = lomb_scargle.lomb_scargle_model(
+            times - min(times),
+            values,
+            errors,
+            sys_err=sys_err,
+            nharm=nharm,
+            nfreq=nfreq,
+            tone_control=tone_control,
+            opt_normalize=True,
+        )
+        for i, frequency in enumerate(frequencies):
+            npt.assert_allclose(
+                frequency, model_cesium["freq_fits"][i]["freq"], rtol=1e-1
+            )
+            # check to see if the power spectrum is returned
+            assert len(model_cesium["freq_fits"][i]["freqs_vector"]) == len(
+                model_cesium["freq_fits"][i]["psd_vector"]
+            )
+
+
 def test_lomb_scargle_irregular_multi_freq():
     """Test Lomb-Scargle model features on irregularly-sampled periodic data
     with multiple frequencies, each with a single harmonic. More difficult than
