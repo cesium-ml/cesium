@@ -42,6 +42,8 @@ def lomb_scargle_model(
         Defaults to 5.0
 
     opt_normalize : boolean, optional
+        Normalize the timeseries before fitting? This can
+        help with instabilities seen at large values of `nharm`
         Defaults to False.
 
     Returns
