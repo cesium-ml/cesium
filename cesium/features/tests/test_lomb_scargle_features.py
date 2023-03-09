@@ -203,8 +203,8 @@ def test_lomb_scargle_regular_multi_freq():
     npt.assert_array_less(10.0, all_lomb["freq1_signif"])
 
 
-def test_lomb_scargle_irregular_multi_freq_opt_normalize():
-    """Use the opt_normalize parameter on irregularly sampled data
+def test_lomb_scargle_irregular_multi_freq_normalize():
+    """Use the normalize parameter on irregularly sampled data
     and make sure that we still get back the frequencies that
     we expect.
     """
@@ -226,7 +226,7 @@ def test_lomb_scargle_irregular_multi_freq_opt_normalize():
             nharm=nharm,
             nfreq=nfreq,
             tone_control=tone_control,
-            opt_normalize=True,
+            normalize=True,
         )
         for i, frequency in enumerate(frequencies):
             npt.assert_allclose(
