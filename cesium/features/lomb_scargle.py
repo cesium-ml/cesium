@@ -11,7 +11,8 @@ def lomb_scargle_model(
     nharm=8,
     nfreq=3,
     tone_control=5.0,
-    opt_normalize=False,
+    normalize=False,
+    default_order=1,
 ):
     """Simultaneous fit of a sum of sinusoids by weighted least squares.
 
@@ -41,10 +42,14 @@ def lomb_scargle_model(
     tone_control : float, optional
         Defaults to 5.0
 
-    opt_normalize : boolean, optional
+    normalize : boolean, optional
         Normalize the timeseries before fitting? This can
         help with instabilities seen at large values of `nharm`
         Defaults to False.
+
+    detrend_order : int, optional
+        Order of polynomial to fit to the data while
+        fitting the dominant frequency. Defaults to 1.
 
     Returns
     -------
@@ -61,7 +66,7 @@ def lomb_scargle_model(
     # Normalization
     mmean = np.nanmean(signal)
     mscale = np.nanstd(signal)
-    if opt_normalize:
+    if normalize:
         signal = (signal - mmean) / mscale
         error = error / mscale
 
@@ -81,49 +86,36 @@ def lomb_scargle_model(
         8,
     ]  # these numbers "fix" the strange-amplitude effect
     for i in range(nfreq):
+        fit = fit_lomb_scargle(
+            time,
+            signal,
+            dy0,
+            f0,
+            df,
+            numf,
+            tone_control=tone_control,
+            lambda0_range=lambda0_range,
+            nharm=nharm,
+            detrend_order=default_order if i == 0 else 0,
+        )
         if i == 0:
-            fit = fit_lomb_scargle(
-                time,
-                signal,
-                dy0,
-                f0,
-                df,
-                numf,
-                tone_control=tone_control,
-                lambda0_range=lambda0_range,
-                nharm=nharm,
-                detrend_order=1,
-            )
             model_dict["trend"] = fit["trend_coef"][1]
-        #
-        else:
-            fit = fit_lomb_scargle(
-                time,
-                signal,
-                dy0,
-                f0,
-                df,
-                numf,
-                tone_control=tone_control,
-                lambda0_range=lambda0_range,
-                nharm=nharm,
-                detrend_order=0,
-            )
 
-        # remove current estim_freq for next run [**NORM]
+        # remove current model from the (unscaled) signal
+        # so that the next iteration fits to the residual
         norm_residual = signal - fit["model"]
         signal = norm_residual
 
-        # store current estim_freq results, [**RESCALED for first fund freq]
+        # store results for the current estimated frequency
+        # store the rescaled model if user requested normalization
+        # and it's the first dominant frequency
         current_fit = (
-            rescale_lomb_model(fit, mmean, mscale)
-            if (opt_normalize & (i == 0))
-            else fit
+            rescale_lomb_model(fit, mmean, mscale) if (normalize & (i == 0)) else fit
         )
         model_dict["freq_fits"].append(current_fit)
         model_dict["freq_fits"][-1]["resid"] = norm_residual
 
-        if opt_normalize & (i == 0):
+        if normalize & (i == 0):
             model_dict["freq_fits"][-1]["resid"] *= mscale
 
         if i == 0:
@@ -164,16 +156,21 @@ def rescale_lomb_model(norm_model, mmean, mscale):
     rescaled_model = norm_model.copy()
     # unchanged : 'psd', 'chi0', 'freq', 'chi2', 'trace', 'nu0', 'nu', 'npars',
     #             'rel_phase', 'rel_phase_error', 'time0', 'signif'
-    rescaled_model["s0"] = rescaled_model["s0"] / mscale**2
-    rescaled_model["lambda"] = rescaled_model["lambda"] / mscale**2
-    rescaled_model["model"] = rescaled_model["model"] * mscale + mmean
-    rescaled_model["model_error"] = rescaled_model["model_error"] * mscale
-    rescaled_model["trend"] = rescaled_model["trend"] * mscale + mmean
-    rescaled_model["trend_error"] = rescaled_model["trend_error"] * mscale
-    rescaled_model["trend_coef"] = rescaled_model["trend_coef"] * mscale + mmean
-    rescaled_model["amplitude"] = rescaled_model["amplitude"] * mscale
-    rescaled_model["amplitude_error"] = rescaled_model["amplitude_error"] * mscale
-    rescaled_model["y_offset"] = rescaled_model["y_offset"] * mscale
+    for param in ["s0", "lambda"]:
+        rescaled_model[param] /= mscale**2
+    for param in [
+        "model",
+        "model_error",
+        "trend",
+        "trend_error",
+        "trend_coef",
+        "amplitude",
+        "amplitude_error",
+        "y_offset",
+    ]:
+        rescaled_model[param] *= mscale
+    for param in ["model", "trend", "trend_coef"]:
+        rescaled_model[param] += mmean
 
     return rescaled_model
 
