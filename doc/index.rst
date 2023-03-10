@@ -20,8 +20,8 @@ Summary
 
 More information and `examples <http://cesium-ml.org/docs/auto_examples/index.html>`_ can be found on our `home page <http://cesium-ml.org>`_.
 
-License:
---------
+License
+-------
 `cesium` uses the `3-clause BSD licence <https://github.com/cesium-ml/cesium/blob/main/LICENSE.txt>`_.
 
 .. toctree::

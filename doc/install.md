@@ -2,7 +2,7 @@
 
 
 ## From binaries:
-- Wheels for Mac and Linux can be installed via `pip install cesium`
+- `pip install cesium`
 - We do not build binary wheels for Windows. To install on Windows, follow the instructions below for installation from source.
 
 The latest version of `cesium` can be installed via `pip`:
@@ -26,7 +26,7 @@ The `cesium` library runs on Python 3.
 2. Clone the repository: `git clone https://github.com/cesium-ml/cesium.git`
 3. `cd cesium && pip install -e .`
 
-Note that cesium requires a C99 compiler, which in particular excludes MSVC. On Windows, a different compiler like MinGW has to be used. Please refer to the [instructions for installing Cython & MinGW on Windows](https://cython.readthedocs.io/en/latest/src/tutorial/appendix.html#appendix-installing-mingw-on-windows).
+Note that cesium requires a C99 compiler, which in particular excludes MSVC. On Windows, we recommend clang.
 
 
 ## Testing
