@@ -97,9 +97,9 @@ def lomb_scargle_model(
             numf = int((fmax - f0) / df) + 1
         elif tmp_numf is not None:
             df = (fmax - f0) / (tmp_numf - 1)
+            numf = tmp_numf
         else:
             raise Exception("Both df and numf cannot be None.")
-        numf = tmp_numf
 
     if f0 >= fmax:
         raise Exception(f"f0 {f0} should be smaller than fmax {fmax}")

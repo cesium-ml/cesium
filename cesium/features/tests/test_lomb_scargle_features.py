@@ -16,6 +16,53 @@ from cesium.features.tests.util import (
 WAVE_FREQS = np.array([5.3, 3.3, 2.1])
 
 
+def test_lomb_scargle_freq_grid():
+    """Test Lomb-Scargle model frequency grid calculation"""
+    f0 = 0.5
+    fmax = 10
+    numf = 100
+    df = 0.8
+    frequencies = np.hstack((WAVE_FREQS[0], np.zeros(len(WAVE_FREQS) - 1)))
+    amplitudes = np.zeros((len(frequencies), 4))
+    amplitudes[0, :] = [8, 4, 2, 1]
+    phase = 0.1
+    times, values, errors = regular_periodic(frequencies, amplitudes, phase)
+    model = lomb_scargle.lomb_scargle_model(
+        times,
+        values,
+        errors,
+        nharm=8,
+        nfreq=1,
+        freq_grid={"f0": f0, "fmax": fmax, "numf": numf},
+    )
+
+    assert model["numf"] == numf
+    # check that the spacing is correct
+    npt.assert_allclose(
+        model["freq_fits"][0]["freqs_vector"][1]
+        - model["freq_fits"][0]["freqs_vector"][0],
+        model["df"],
+    )
+    freqs = np.linspace(f0, fmax, numf)
+    npt.assert_allclose(freqs[1] - freqs[0], model["df"])
+
+    model = lomb_scargle.lomb_scargle_model(
+        times,
+        values,
+        errors,
+        nharm=8,
+        nfreq=1,
+        freq_grid={"f0": f0, "fmax": fmax, "df": df},
+    )
+    assert model["numf"] == int((fmax - f0) / df) + 1
+
+    # check the autogeneration of the frequency grid
+    model = lomb_scargle.lomb_scargle_model(
+        times, values, errors, nharm=8, nfreq=1, freq_grid=None
+    )
+    npt.assert_allclose(model["f0"], 1.0 / (max(times) - min(times)))
+
+
 def test_lomb_scargle_regular_single_freq():
     """Test Lomb-Scargle model features on regularly-sampled periodic data with
     one frequency/multiple harmonics. Estimated parameters should be very
