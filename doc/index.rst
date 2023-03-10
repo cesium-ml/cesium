@@ -1,5 +1,5 @@
 `cesium`: Open-Source Platform for Time Series Inference
-==================================
+========================================================
 
 |github| |license|
 
