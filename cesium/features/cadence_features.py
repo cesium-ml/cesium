@@ -14,7 +14,7 @@ __all__ = [
 
 
 def double_to_single_step(cads):
-    """Ratios (t[i+2] - t[i]) / (t[i+1] - t[i])."""
+    """Ratios ``(t[i+2] - t[i]) / (t[i+1] - t[i]``)."""
     cads = np.asarray(cads)
     return (cads[2:] + cads[:-2]) / (cads[1:-1] - cads[:-2])
 
@@ -27,7 +27,7 @@ def cad_prob(cads, time):
 
 
 def delta_t_hist(t, nbins=50, conv_oversample=50):
-    """Build histogram of all possible |t_i - t_j|'s.
+    """Build histogram of all possible ``|t_i - t_j|``'s.
 
     For efficiency, we construct the histogram via a convolution of the PDF
     rather than by actually computing all the differences. For better accuracy
@@ -42,8 +42,8 @@ def delta_t_hist(t, nbins=50, conv_oversample=50):
 
 
 def normalize_hist(hist, total_time):
-    """Normalize histogram such that integral from t_min to t_max equals 1.
-    cf. np.histogram(..., density=True).
+    """Normalize histogram such that integral from ``t_min`` to ``t_max`` equals 1.
+    cf. ``np.histogram(..., density=True)``.
     """
     return hist / (total_time * np.mean(hist))
 
@@ -54,8 +54,8 @@ def find_sorted_peaks(x):
     they are greater than their only neighbor. In the case of ties, we
     (arbitrarily) choose the first index in the sequence of equal values as the
     peak.
-    Returns a list of tuples (i, x[i]) of peak indices i and values x[i],
-    sorted in decreasing order by peak value.
+    Returns a list of tuples ``(i, x[i])`` of peak indices ``i`` and values
+    ``x[i]``, sorted in decreasing order by peak value.
     """
     peak_inds = []
     nbins = len(x)
@@ -77,8 +77,9 @@ def find_sorted_peaks(x):
 
 def peak_ratio(peaks, i, j):
     """Compute the ratio of the values of the ith and jth largest peaks. Peaks is a list
-    of tuples (i, x[i]) of peak indices i and values x[i], sorted in decreasing order
-    by peak value."""
+    of tuples ``(i, x[i])`` of peak indices ``i`` and values ``x[i]``, sorted in decreasing order
+    by peak value.
+    """
     if len(peaks) > i and len(peaks) > j:
         return peaks[i][1] / peaks[j][1]
     else:
@@ -86,8 +87,10 @@ def peak_ratio(peaks, i, j):
 
 
 def peak_bin(peaks, i):
-    """Return the (bin) index of the ith largest peak. Peaks is a list of tuples (i, x[i])
-    of peak indices i and values x[i], sorted in decreasing order by peak value."""
+    """Return the (bin) index of the ith largest peak. Peaks is a list of tuples
+    ``(i, x[i])`` of peak indices ``i`` and values ``x[i]``, sorted in
+    decreasing order by peak value.
+    """
     if len(peaks) > i:
         return peaks[i][0]
     else:
