@@ -42,6 +42,7 @@ extensions = [
     #    'sphinx.ext.intersphinx',
     #    'sphinx.ext.linkcode',
     "sphinx_gallery.gen_gallery",
+    "recommonmark",
 ]
 
 sphinx_gallery_conf = {
@@ -61,6 +62,8 @@ source_parsers = {
 }
 
 source_suffix = [".rst", ".md", ".txt"]
+
+numpydoc_class_members_toctree = False
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -328,7 +331,7 @@ outdir = "api"
 docwriter = ApiDocWriter(package)
 docwriter.write_api_docs(outdir)
 docwriter.write_index(outdir, "api", relative_to="api")
-print("%d files written" % len(docwriter.written_modules))
+print("%d files written to %s" % (len(docwriter.written_modules), outdir))
 
 # -- Write feature tables --------------------------------------------------
 write_feature_tables("./feature_table.rst")
