@@ -13,6 +13,7 @@ def lomb_scargle_model(
     tone_control=5.0,
     normalize=False,
     default_order=1,
+    freq_grid=None,
 ):
     """Simultaneous fit of a sum of sinusoids by weighted least squares.
 
@@ -51,6 +52,14 @@ def lomb_scargle_model(
         Order of polynomial to fit to the data while
         fitting the dominant frequency. Defaults to 1.
 
+    freq_grid : dict or None, optional
+        Grid parameters to use. If None, then calculate the frequency
+        grid automatically. To supply the grid, keys
+        ["f0", "fmax"] are expected. "f0" is the smallest frequency
+        in the grid and "df" is the difference between grid points. If
+        ""df" is given (grid spacing) then the number of frequencies
+        is calculated. if "numf" is given then "df" is inferred.
+
     Returns
     -------
     dict
@@ -73,12 +82,27 @@ def lomb_scargle_model(
     dy0 = np.sqrt(error**2 + sys_err**2)
     wt = 1.0 / dy0**2
     chi0 = np.dot(signal**2, wt)
+    if freq_grid is None:
+        f0 = 1.0 / max(time)
+        df = 0.8 / max(time)  # 20120202 :    0.1/Xmax
+        fmax = 33.0  # pre 20120126: 10. # 25
+        numf = int((fmax - f0) / df) + 1
+    else:
+        f0 = freq_grid["f0"]
+        fmax = freq_grid["fmax"]
+        df = freq_grid.get("df")
+        tmp_numf = freq_grid.get("numf")
+        if df is not None:
+            # calculate numf
+            numf = int((fmax - f0) / df) + 1
+        elif tmp_numf is not None:
+            df = (fmax - f0) / (tmp_numf - 1)
+            numf = tmp_numf
+        else:
+            raise Exception("Both df and numf cannot be None.")
 
-    # TODO parametrize?
-    f0 = 1.0 / max(time)
-    df = 0.8 / max(time)  # 20120202 :    0.1/Xmax
-    fmax = 33.0  # pre 20120126: 10. # 25
-    numf = int((fmax - f0) / df)  # TODO !!! this is off by 1 point, fix?
+    if f0 >= fmax:
+        raise Exception(f"f0 {f0} should be smaller than fmax {fmax}")
 
     model_dict = {"freq_fits": []}
     lambda0_range = [
@@ -127,6 +151,7 @@ def lomb_scargle_model(
     model_dict["nharm"] = nharm
     model_dict["chi2"] = current_fit["chi2"]
     model_dict["f0"] = f0
+    model_dict["fmax"] = fmax
     model_dict["df"] = df
     model_dict["numf"] = numf
 
@@ -429,6 +454,10 @@ def fit_lomb_scargle(
     ncp = norm.cumprod()
     out_dict["trend_coef"] = coef / ncp
     out_dict["y_offset"] = out_dict["trend_coef"][0] - cn0
+    out_dict["trend_coef_error"] = np.sqrt(
+        (1.0 / s0 + np.diag(np.dot(hat0.T, np.dot(hat_hat, hat0)))) / ncp**2
+    )
+    out_dict["y_offset_error"] = out_dict["trend_coef_error"][0]
 
     prob = stats.f.sf(
         0.5
