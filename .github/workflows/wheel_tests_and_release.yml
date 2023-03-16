@@ -24,9 +24,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04]
-        cibw_python: [ "cp38-*", "cp39-*", "cp310-*", "cp311-*"]
-        cibw_manylinux: [ manylinux2014 ]
-        cibw_arch: [ "x86_64", "i686" ]
+        cibw_python: ["cp38-*", "cp39-*", "cp310-*", "cp311-*"]
+        cibw_manylinux: [manylinux2014]
+        cibw_arch: ["x86_64"]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -46,7 +46,6 @@ jobs:
           CIBW_ARCHS_LINUX: ${{ matrix.cibw_arch }}
           CIBW_SKIP: "*-musllinux_*"
           CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.cibw_manylinux }}
-          CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.cibw_manylinux }}
           CIBW_ENVIRONMENT_PASS_LINUX: CESIUM_LINK_FLAGS
           CESIUM_LINK_FLAGS: "-Wl,--strip-debug"
       - uses: actions/upload-artifact@v3
@@ -74,13 +73,31 @@ jobs:
         with:
           python-version: '3.10'
 
+      # See:
+      # https://cibuildwheel.readthedocs.io/en/stable/faq/#macos-building-cpython-38-wheels-on-arm64
+      # https://github.com/pypa/cibuildwheel/issues/1414
+      - name: Install experimental MacOSX Py38
+        if: startsWith(matrix.cibw_python, 'cp38') && (matrix.cibw_arch == 'arm64')
+        run: |
+          curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
+          sudo installer -pkg /tmp/Python38.pkg -target /
+          sh "/Applications/Python 3.8/Install Certificates.command"
+
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel
 
       - name: Build wheels for CPython Mac OS
         run: |
-          export MACOSX_DEPLOYMENT_TARGET=12.0
+          if [[ "$CIBW_ARCHS_MACOS" == arm64 ]]; then
+              # SciPy requires 12.0 on arm to prevent kernel panics
+              # https://github.com/scipy/scipy/issues/14688
+              # so being conservative, we just do the same here
+              export MACOSX_DEPLOYMENT_TARGET=12.0
+          else
+              export MACOSX_DEPLOYMENT_TARGET=10.9
+          fi
+
           echo MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET}
 
           python -m cibuildwheel --output-dir dist
@@ -88,7 +105,6 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_python }}
           CIBW_ARCHS_MACOS: ${{ matrix.cibw_arch }}
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-          CIBW_MANYLINUX_I686_IMAGE: manylinux1
           CIBW_TEST_SKIP: "*-macosx_arm64"
 
       - uses: actions/upload-artifact@v3
