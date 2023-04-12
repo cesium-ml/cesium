@@ -10,6 +10,8 @@ __all__ = [
     "find_sorted_peaks",
     "peak_ratio",
     "peak_bin",
+    "compute_time_lag_stats",
+    "compute_time_lag_skew_kurtosis"
 ]
 
 
@@ -95,3 +97,43 @@ def peak_bin(peaks, i):
         return peaks[i][0]
     else:
         return np.nan
+    
+def compute_time_lag_stats(cads):
+    """
+    Compute the mean and standard deviation of the time lags in the given dataset.
+
+    Parameters:
+    -----------
+    cads : array-like
+        The observed distribution of time lags.
+
+    Returns:
+    --------
+    mean_time_lag : float
+        The mean of the time lags.
+    std_time_lag : float
+        The standard deviation of the time lags.
+    """
+    mean_time_lag = np.mean(cads)
+    std_time_lag = np.std(cads)
+    return mean_time_lag, std_time_lag
+
+def compute_time_lag_skew_kurtosis(cads):
+    """
+    Compute the skewness and kurtosis of the time lags in the given dataset.
+
+    Parameters:
+    -----------
+    cads : array-like
+        The observed distribution of time lags.
+
+    Returns:
+    --------
+    skewness : float
+        The skewness of the time lags.
+    kurtosis : float
+        The kurtosis of the time lags.
+    """
+    skewness = stats.skew(cads)
+    kurtosis = stats.kurtosis(cads)
+    return skewness, kurtosis
