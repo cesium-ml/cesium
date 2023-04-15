@@ -64,3 +64,22 @@ def test_peak_bins():
     npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
     assert cf.peak_bin(peaks1, 6) is np.nan
+    
+    
+def test_compute_time_lag_stats():
+    """Test compute_time_lag_stats function."""
+    cads = np.array([2, 4, 6, 8, 10])
+    mean_time_lag, std_time_lag = cf.compute_time_lag_stats(cads)
+
+    npt.assert_almost_equal(mean_time_lag, 6.0)
+    npt.assert_almost_equal(std_time_lag, 2.8284271247461903)
+
+
+def test_compute_time_lag_skew_kurtosis():
+    """Test compute_time_lag_skew_kurtosis function."""
+    cads = np.array([2, 4, 6, 8, 10])
+    skewness, kurtosis = cf.compute_time_lag_skew_kurtosis(cads)
+
+    npt.assert_almost_equal(skewness, 0.0)
+    npt.assert_almost_equal(kurtosis, -1.3)
+    
