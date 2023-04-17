@@ -1,4 +1,5 @@
 import os
+import warnings
 import numpy as np
 import pandas as pd
 from . import util
@@ -36,11 +37,13 @@ def parse_ts_data(filepath, sep=","):
     np.ndarray
         3-column array of (time, measurement, error) values.
     """
-    ts_data = np.loadtxt(filepath, delimiter=sep, ndmin=2)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message=".*input contained no data")
+        ts_data = np.loadtxt(filepath, delimiter=sep, ndmin=2)
     ts_data = ts_data[:, :3]  # Only using T, M, E
     if ts_data.shape[0] == 0 or ts_data.shape[1] == 0:
         raise ValueError(
-            "Incomplete or improperly formatted time series data" " file provided."
+            "Incomplete or improperly formatted time series data file provided."
         )
     elif ts_data.shape[1] == 1:
         ts_data = np.c_[
