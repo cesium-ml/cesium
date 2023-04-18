@@ -10,6 +10,15 @@ from cesium.features.tests.util import (
 )
 
 
+def test_anderson_darling():
+    """Test Anderson-Darling feature."""
+    from scipy.stats import anderson
+
+    times, values, errors = irregular_random()
+    f = generate_features(times, values, errors, ["anderson_darling"])
+    npt.assert_allclose(f["anderson_darling"], anderson(values / errors)[0])
+
+
 def test_amplitude():
     """Test features related to amplitude/magnitude percentiles."""
     times, values, errors = irregular_random()
@@ -238,6 +247,15 @@ def test_std():
     times, values, errors = irregular_random()
     f = generate_features(times, values, errors, ["std"])
     npt.assert_allclose(f["std"], np.std(values))
+
+
+def test_shapiro_wilk():
+    """Test Shapiro-Wilk feature."""
+    from scipy.stats import shapiro
+
+    times, values, errors = irregular_random()
+    f = generate_features(times, values, errors, ["shapiro_wilk"])
+    npt.assert_allclose(f["shapiro_wilk"], shapiro(values / errors)[0])
 
 
 def test_stetson():
