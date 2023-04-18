@@ -72,3 +72,11 @@ def weighted_std_dev(x, e):
     return np.sqrt(
         np.average((x - weighted_average(x, e)) ** 2, weights=1.0 / (e**2))
     )
+
+def anderson_darling(x, e):
+    "Anderson-Darling test statistic."
+    return stats.anderson(x / e)[0]
+
+def shapiro_wilk(x, e):
+    "Shapiro-Wilk test statistic."
+    return stats.shapiro(x / e)[0]

@@ -21,6 +21,8 @@ from .common_functions import (
     skew,
     std,
     weighted_average,
+    anderson_darling,
+    shapiro_wilk,
 )
 from .amplitude import (
     amplitude,
@@ -122,6 +124,7 @@ feature_categories = {
     ],
     "General": [
         "amplitude",
+        "anderson_darling",
         "flux_percentile_ratio_mid20",
         "flux_percentile_ratio_mid35",
         "flux_percentile_ratio_mid50",
@@ -143,6 +146,7 @@ feature_categories = {
         "std",
         "stetson_j",
         "stetson_k",
+        "shapiro_wilk",
         "weighted_average",
     ],
     "Lomb-Scargle (Periodic)": [
@@ -253,6 +257,7 @@ dask_feature_graph = {
     "all_times_nhist_peak4_bin": (peak_bin, "nhist_peaks", 4),
     # Standalone features (disconnected nodes)
     "amplitude": (amplitude, "m"),
+    "anderson_darling": (anderson_darling, "m", "e"),
     "flux_percentile_ratio_mid20": (flux_percentile_ratio, "m", 20),
     "flux_percentile_ratio_mid35": (flux_percentile_ratio, "m", 35),
     "flux_percentile_ratio_mid50": (flux_percentile_ratio, "m", 50),
@@ -271,6 +276,7 @@ dask_feature_graph = {
     "std": (std, "m"),
     "stetson_j": (stetson_j, "m"),
     "stetson_k": (stetson_k, "m"),
+    "shapiro_wilk": (shapiro_wilk, "m", "e"),
     "weighted_average": (weighted_average, "m", "e"),
     # QSO model features
     "qso_model": (qso_fit, "t", "m", "e"),
@@ -421,6 +427,7 @@ feature_tags = {
     "all_times_nhist_peak4_bin": ["Astronomy", "General", "Cadence"],
     # Standalone features (disconnected nodes)
     "amplitude": ["Astronomy", "General"],
+    "anderson_darling": ["Astronomy", "General"],
     "flux_percentile_ratio_mid20": ["Astronomy"],
     "flux_percentile_ratio_mid35": ["Astronomy"],
     "flux_percentile_ratio_mid50": ["Astronomy"],
@@ -439,6 +446,7 @@ feature_tags = {
     "std": ["Astronomy", "General"],
     "stetson_j": ["Astronomy", "General"],
     "stetson_k": ["Astronomy", "General"],
+    "shapiro_wilk": ["Astronomy", "General"],
     "weighted_average": ["Astronomy", "General"],
     # QSO model features
     "qso_model": ["Astronomy"],
