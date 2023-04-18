@@ -80,13 +80,9 @@ author = "The cesium Team"
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
+import cesium
 
-setup_lines = open("../cesium/__init__.py").readlines()
-version = "vUndefined"
-for l in setup_lines:
-    if l.startswith("__version__"):
-        version = l.split("'")[1]
-        break
+version = cesium.__version__
 
 # The full version, including alpha/beta/rc tags.
 release = version
