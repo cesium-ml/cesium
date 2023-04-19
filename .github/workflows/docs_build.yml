@@ -52,3 +52,15 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           path: ./doc/_build/html
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: docs
+    steps:
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v2
