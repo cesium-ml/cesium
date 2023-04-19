@@ -45,6 +45,11 @@ def skew(x):
     return stats.skew(x)
 
 
+def kurtosis(x):
+    """Kurtosis of a dataset. Approximately 0 for Gaussian data."""
+    return stats.kurtosis(x)
+
+
 def std(x):
     """Standard deviation of observed values."""
     return np.std(x)

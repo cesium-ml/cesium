@@ -1,8 +1,13 @@
 import itertools
 import numpy as np
 import numpy.testing as npt
+from scipy import stats
+
 from cesium.features import cadence_features as cf
-from cesium.features.tests.util import irregular_random
+from cesium.features.tests.util import (
+    generate_features,
+    irregular_random,
+)
 
 
 def test_delta_t_hist():
@@ -64,3 +69,17 @@ def test_peak_bins():
     npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
     assert cf.peak_bin(peaks1, 6) is np.nan
+
+
+def test_compute_time_lag_stats():
+    """Test compute_time_lag_stats function."""
+    times, values, errors = irregular_random(500)
+    cads = np.diff(times)
+
+    f = generate_features(
+        times, values, errors, ["cads_avg", "cads_std", "cads_skew", "cads_kurtosis"]
+    )
+    npt.assert_almost_equal(f["cads_avg"], np.mean(cads))
+    npt.assert_almost_equal(f["cads_std"], np.std(cads))
+    npt.assert_almost_equal(f["cads_skew"], stats.skew(cads))
+    npt.assert_almost_equal(f["cads_kurtosis"], stats.kurtosis(cads))
