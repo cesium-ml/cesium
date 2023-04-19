@@ -8,8 +8,6 @@ from .cadence_features import (
     find_sorted_peaks,
     peak_bin,
     peak_ratio,
-    compute_time_lag_stats,
-    compute_time_lag_skew_kurtosis,
 )
 
 from .common_functions import (
@@ -21,6 +19,7 @@ from .common_functions import (
     percent_beyond_1_std,
     percent_close_to_median,
     skew,
+    kurtosis,
     std,
     weighted_average,
 )
@@ -86,6 +85,8 @@ feature_categories = {
         "total_time",
         "avgt",
         "cads_std",
+        "cads_skew",
+        "cads_kurtosis",
         "mean",
         "cads_avg",
         "cads_med",
@@ -146,8 +147,6 @@ feature_categories = {
         "stetson_j",
         "stetson_k",
         "weighted_average",
-        "time_lag_stats",
-        "time_lag_skew_kurtosis",
     ],
     "Lomb-Scargle (Periodic)": [
         "fold2P_slope_10percentile",
@@ -216,6 +215,8 @@ dask_feature_graph = {
     "avgt": (np.mean, "t"),
     "cads": (np.diff, "t"),
     "cads_std": (np.std, "cads"),
+    "cads_skew": (skew, "cads"),
+    "cads_kurtosis": (kurtosis, "cads"),
     "mean": (np.mean, "m"),
     "cads_avg": (np.mean, "cads"),
     "cads_med": (np.median, "cads"),
@@ -276,8 +277,6 @@ dask_feature_graph = {
     "stetson_j": (stetson_j, "m"),
     "stetson_k": (stetson_k, "m"),
     "weighted_average": (weighted_average, "m", "e"),
-    "time_lag_stats": (compute_time_lag_stats, "cads"),
-    "time_lag_skew_kurtosis": (compute_time_lag_skew_kurtosis, "cads"),
     # QSO model features
     "qso_model": (qso_fit, "t", "m", "e"),
     "qso_log_chi2_qsonu": (get_qso_log_chi2_qsonu, "qso_model"),
@@ -369,6 +368,8 @@ extra_feature_docs = {
     "cads_std": "Standard deviation of `cads` (discrete difference between times).",
     "cads_avg": "Mean value of `cads` (discrete difference between times).",
     "cads_med": "Median value of `cads` (discrete difference between times).",
+    "cads_kurtosis": "Kurtosis of `cads` (discrete difference between times).",
+    "cads_skew": "Skew of `cads` (discrete difference between times).",
     "avg_double_to_single_step": "Mean value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).",
     "med_double_to_single_step": "Median value of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).",
     "std_double_to_single_step": "Standard deviation of ratios (t[i+2] - t[i]) / (t[i+2] - t[i+1]).",
@@ -386,6 +387,8 @@ feature_tags = {
     "avgt": ["Astronomy", "General"],
     "cads": ["Astronomy", "General", "Cadence"],
     "cads_std": ["Astronomy", "General", "Cadence"],
+    "cads_kurtosis": ["Astronomy", "General", "Cadence"],
+    "cads_skew": ["Astronomy", "General", "Cadence"],
     "mean": ["Astronomy", "General"],
     "cads_avg": ["Astronomy", "General", "Cadence"],
     "cads_med": ["Astronomy", "General", "Cadence"],
