@@ -8,6 +8,8 @@ from .cadence_features import (
     find_sorted_peaks,
     peak_bin,
     peak_ratio,
+    compute_time_lag_stats,
+    compute_time_lag_skew_kurtosis,
 )
 
 from .common_functions import (
@@ -147,6 +149,8 @@ feature_categories = {
         "stetson_j",
         "stetson_k",
         "weighted_average",
+        "time_lag_stats",
+        "time_lag_skew_kurtosis",
     ],
     "Lomb-Scargle (Periodic)": [
         "fold2P_slope_10percentile",
@@ -277,6 +281,8 @@ dask_feature_graph = {
     "stetson_j": (stetson_j, "m"),
     "stetson_k": (stetson_k, "m"),
     "weighted_average": (weighted_average, "m", "e"),
+    "time_lag_stats": (compute_time_lag_stats, "cads"),
+    "time_lag_skew_kurtosis": (compute_time_lag_skew_kurtosis, "cads"),
     # QSO model features
     "qso_model": (qso_fit, "t", "m", "e"),
     "qso_log_chi2_qsonu": (get_qso_log_chi2_qsonu, "qso_model"),
