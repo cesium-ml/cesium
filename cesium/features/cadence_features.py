@@ -11,7 +11,7 @@ __all__ = [
     "peak_ratio",
     "peak_bin",
     "compute_time_lag_stats",
-    "compute_time_lag_skew_kurtosis"
+    "compute_time_lag_skew_kurtosis",
 ]
 
 
