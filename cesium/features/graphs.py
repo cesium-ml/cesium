@@ -147,7 +147,7 @@ feature_categories = {
         "stetson_k",
         "weighted_average",
         "time_lag_stats",
-        "time_lag_skew_kurtosis"
+        "time_lag_skew_kurtosis",
     ],
     "Lomb-Scargle (Periodic)": [
         "fold2P_slope_10percentile",
