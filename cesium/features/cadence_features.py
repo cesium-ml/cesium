@@ -97,7 +97,8 @@ def peak_bin(peaks, i):
         return peaks[i][0]
     else:
         return np.nan
-    
+
+
 def compute_time_lag_stats(cads):
     """
     Compute the mean and standard deviation of the time lags in the given dataset.
@@ -117,6 +118,7 @@ def compute_time_lag_stats(cads):
     mean_time_lag = np.mean(cads)
     std_time_lag = np.std(cads)
     return mean_time_lag, std_time_lag
+
 
 def compute_time_lag_skew_kurtosis(cads):
     """
