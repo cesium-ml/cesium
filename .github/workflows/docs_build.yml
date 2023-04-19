@@ -2,7 +2,8 @@ name: Build docs
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   pull_request:
 
 # Allows you to run this workflow manually from the Actions tab
