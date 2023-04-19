@@ -51,4 +51,4 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v1
         with:
-          path: .doc/_build/html
+          path: ./doc/_build/html
