@@ -64,8 +64,8 @@ def test_peak_bins():
     npt.assert_almost_equal(cf.peak_bin(peaks1, 0), 1)
     npt.assert_almost_equal(cf.peak_bin(peaks1, 1), 3)
     assert cf.peak_bin(peaks1, 6) is np.nan
-    
-    
+
+
 def test_compute_time_lag_stats():
     """Test compute_time_lag_stats function."""
     cads = np.array([2, 4, 6, 8, 10])
@@ -82,4 +82,3 @@ def test_compute_time_lag_skew_kurtosis():
 
     npt.assert_almost_equal(skewness, 0.0)
     npt.assert_almost_equal(kurtosis, -1.3)
-    
