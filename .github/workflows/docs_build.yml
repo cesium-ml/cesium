@@ -47,20 +47,17 @@ jobs:
             make html
           fi
 
-      - name: Upload docs to pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v1
+      - name: Install SSH Client 🔑
+        if: github.ref == 'refs/heads/main'
+        uses: webfactory/ssh-agent@v0.4.1
         with:
-          path: ./doc/_build/html
+          ssh-private-key: ${{ secrets.CI_DEPLOY_KEY }}
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: docs
-    steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy docs
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        id: deployment
-        uses: actions/deploy-pages@v2
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          FOLDER: doc/_build/html
+          REPOSITORY_NAME: cesium-ml/docs
+          BRANCH: gh-pages
+          SSH: true
