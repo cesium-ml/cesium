@@ -108,7 +108,7 @@ def load(ts_path):
     )
 
 
-class TimeSeries(object):
+class TimeSeries:
     """Class representing a single time series of measurements and metadata.
 
     A `TimeSeries` object encapsulates a single set of time-domain
@@ -238,9 +238,7 @@ class TimeSeries(object):
         self.name = name
         self.path = path
         if channel_names is None:
-            self.channel_names = [
-                "channel_{}".format(i) for i in range(self.n_channels)
-            ]
+            self.channel_names = [f"channel_{i}" for i in range(self.n_channels)]
         else:
             self.channel_names = channel_names
 

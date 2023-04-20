@@ -2,17 +2,23 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.5.0
     hooks:
-      - id: check-yaml
-      - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: debug-statements
+      - id: check-ast
+      - id: mixed-line-ending
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-added-large-files
   - repo: https://github.com/python/black
     rev: 22.3.0
     hooks:
       - id: black
         pass_filenames: true
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: f6346ef27faac608d493bf3926528b308d175d9e # v0.0.261
     hooks:
-      - id: flake8
-        pass_filenames: true
-        exclude: doc/conf.py
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]

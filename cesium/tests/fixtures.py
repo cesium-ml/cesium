@@ -27,7 +27,7 @@ def sample_ts_files(size, labels=[None]):
     for label in islice(cycle(labels), size):
         t, m, e = sample_values()
         name = str(uuid.uuid4())
-        path = pjoin(temp_dir, "{}.npz".format(name))
+        path = pjoin(temp_dir, f"{name}.npz")
         ts = TimeSeries(t, m, e, label=label, path=path, name=name)
         ts.save(path)
         paths.append(path)

@@ -84,7 +84,7 @@ def test_lomb_scargle_regular_single_freq():
     for (i, j), amplitude in np.ndenumerate(amplitudes):
         npt.assert_allclose(
             amplitude,
-            all_lomb["freq{}_amplitude{}".format(i + 1, j + 1)],
+            all_lomb[f"freq{i + 1}_amplitude{j + 1}"],
             rtol=1e-2,
             atol=1e-2,
         )
@@ -93,16 +93,14 @@ def test_lomb_scargle_regular_single_freq():
     for j in range(1, amplitudes.shape[1]):
         npt.assert_allclose(
             phase * j * (-(1**j)),
-            all_lomb["freq1_rel_phase{}".format(j + 1)],
+            all_lomb[f"freq1_rel_phase{j + 1}"],
             rtol=1e-2,
             atol=1e-2,
         )
 
     # Frequency ratio not relevant since there is only; only test amplitude/signif
     for i in [2, 3]:
-        npt.assert_allclose(
-            0.0, all_lomb["freq_amplitude_ratio_{}1".format(i)], atol=1e-3
-        )
+        npt.assert_allclose(0.0, all_lomb[f"freq_amplitude_ratio_{i}1"], atol=1e-3)
 
     npt.assert_array_less(10.0, all_lomb["freq1_signif"])
 
@@ -153,14 +151,14 @@ def test_lomb_scargle_irregular_single_freq():
     for j in range(amplitudes.shape[1]):
         npt.assert_allclose(
             amplitudes[0, j],
-            all_lomb["freq1_amplitude{}".format(j + 1)],
+            all_lomb[f"freq1_amplitude{j + 1}"],
             rtol=5e-2,
             atol=5e-2,
         )
         if j >= 1:
             npt.assert_allclose(
                 phase * j * (-(1**j)),
-                all_lomb["freq1_rel_phase{}".format(j + 1)],
+                all_lomb[f"freq1_rel_phase{j + 1}"],
                 rtol=1e-1,
                 atol=1e-1,
             )
@@ -230,12 +228,12 @@ def test_lomb_scargle_regular_multi_freq():
     all_lomb = generate_features(times, values, errors, LOMB_SCARGLE_FEATS)
 
     for i, frequency in enumerate(frequencies):
-        npt.assert_allclose(frequency, all_lomb["freq{}_freq".format(i + 1)])
+        npt.assert_allclose(frequency, all_lomb[f"freq{i + 1}_freq"])
 
     for (i, j), amplitude in np.ndenumerate(amplitudes):
         npt.assert_allclose(
             amplitude,
-            all_lomb["freq{}_amplitude{}".format(i + 1, j + 1)],
+            all_lomb[f"freq{i + 1}_amplitude{j + 1}"],
             rtol=5e-2,
             atol=5e-2,
         )
@@ -243,7 +241,7 @@ def test_lomb_scargle_regular_multi_freq():
     for i in [2, 3]:
         npt.assert_allclose(
             amplitudes[i - 1, 0] / amplitudes[0, 0],
-            all_lomb["freq_amplitude_ratio_{}1".format(i)],
+            all_lomb[f"freq_amplitude_ratio_{i}1"],
             atol=2e-2,
         )
 
@@ -299,12 +297,12 @@ def test_lomb_scargle_irregular_multi_freq():
     all_lomb = generate_features(times, values, errors, LOMB_SCARGLE_FEATS)
 
     for i, frequency in enumerate(frequencies):
-        npt.assert_allclose(frequency, all_lomb["freq{}_freq".format(i + 1)], rtol=1e-2)
+        npt.assert_allclose(frequency, all_lomb[f"freq{i + 1}_freq"], rtol=1e-2)
 
     for (i, j), amplitude in np.ndenumerate(amplitudes):
         npt.assert_allclose(
             amplitude,
-            all_lomb["freq{}_amplitude{}".format(i + 1, j + 1)],
+            all_lomb[f"freq{i + 1}_amplitude{j + 1}"],
             rtol=1e-1,
             atol=1e-1,
         )
@@ -312,12 +310,12 @@ def test_lomb_scargle_irregular_multi_freq():
     for i in [2, 3]:
         npt.assert_allclose(
             amplitudes[i - 1, 0] / amplitudes[0, 0],
-            all_lomb["freq_amplitude_ratio_{}1".format(i)],
+            all_lomb[f"freq_amplitude_ratio_{i}1"],
             atol=2e-2,
         )
         npt.assert_allclose(
             frequencies[i - 1] / frequencies[0],
-            all_lomb["freq_frequency_ratio_{}1".format(i)],
+            all_lomb[f"freq_frequency_ratio_{i}1"],
             atol=5e-2,
         )
 

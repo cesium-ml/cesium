@@ -47,7 +47,7 @@ def download_andrzejak(data_dir):
             - archive: path to data archive
             - header: path to header file
     """
-    logger.warning("Downloading data from {}".format(BASE_URL))
+    logger.warning(f"Downloading data from {BASE_URL}")
 
     ts_paths = dsutil.download_and_extract_archives(
         data_dir, BASE_URL, ZIP_FILES, MD5SUMS
@@ -120,6 +120,6 @@ def fetch_andrzejak(data_dir=None):
     try:
         data = joblib.load(cache_path)
         logger.warning("Loaded data from cached archive.")
-    except (ValueError, IOError):  # missing or incompatible cache
+    except (OSError, ValueError):  # missing or incompatible cache
         data = download_andrzejak(data_dir)
     return data

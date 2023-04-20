@@ -31,7 +31,7 @@ def test_amplitude():
     med_scaled = 10 ** (-0.4 * np.median(values))
     peak_from_median = max(
         abs((max_scaled - med_scaled) / med_scaled),
-        abs((min_scaled - med_scaled)) / med_scaled,
+        abs(min_scaled - med_scaled) / med_scaled,
     )
     npt.assert_allclose(f["percent_amplitude"], peak_from_median, rtol=5e-4)
 

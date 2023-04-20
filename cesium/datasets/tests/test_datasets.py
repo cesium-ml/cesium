@@ -12,7 +12,7 @@ from cesium.datasets import asas_training
 from io import BytesIO as StringIO
 
 try:
-    import mock
+    from unittest import mock
 except ImportError:
     import unittest.mock as mock
 
@@ -23,7 +23,7 @@ def urlpatch(*args):
     return mock.patch("urllib.request.urlopen", side_effect=args[0])
 
 
-class MockZipUrl(object):
+class MockZipUrl:
     def __init__(self, url, num_columns=1):
         self.url = url
         self.num_columns = num_columns
@@ -33,17 +33,17 @@ class MockZipUrl(object):
         fname = os.path.basename(self.url)
         prefix = fname[0]
         if fname.endswith(".dat"):
-            header = "filename,class,meta1\n{}001,{},1.0\n".format(prefix, prefix)
+            header = f"filename,class,meta1\n{prefix}001,{prefix},1.0\n"
             out_buffer.write(header.encode("utf-8"))
         else:
             X = np.random.random((10, self.num_columns))
             text = "\n".join(",".join(row) for row in X.astype("str"))
             if fname.endswith(".zip"):
                 with ZipFile(out_buffer, "w") as z:
-                    z.writestr("{}001.txt".format(prefix), text)
+                    z.writestr(f"{prefix}001.txt", text)
             elif fname.endswith(".tar.gz"):
                 with tarfile.open(fileobj=out_buffer, mode="w:gz") as t:
-                    tarinfo = tarfile.TarInfo("{}001.txt".format(prefix))
+                    tarinfo = tarfile.TarInfo(f"{prefix}001.txt")
                     tarinfo.size = len(text)
                     t.addfile(tarinfo, StringIO(text.encode("utf-8")))
         return out_buffer.getvalue()

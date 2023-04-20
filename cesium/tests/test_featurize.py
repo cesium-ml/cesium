@@ -55,7 +55,7 @@ def test_featurize_time_series_multiple():
     """Test featurize wrapper function for multiple time series"""
     n_series = 5
     list_of_series = [sample_values() for i in range(n_series)]
-    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    times, values, errors = (list(x) for x in zip(*list_of_series))
     features_to_use = ["amplitude", "std_err"]
     meta_features = [{"meta1": 0.5}] * n_series
     fset = featurize.featurize_time_series(
@@ -72,7 +72,7 @@ def test_featurize_time_series_multiple_multichannel():
     n_series = 5
     n_channels = 3
     list_of_series = [sample_values(channels=n_channels) for i in range(n_series)]
-    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    times, values, errors = (list(x) for x in zip(*list_of_series))
     features_to_use = ["amplitude", "std_err"]
     meta_features = {"meta1": 0.5}
     fset = featurize.featurize_time_series(
@@ -203,7 +203,7 @@ def test_featurize_time_series_pandas_metafeatures():
 
     n_series = 5
     list_of_series = [sample_values() for i in range(n_series)]
-    times, values, errors = [list(x) for x in zip(*list_of_series)]
+    times, values, errors = (list(x) for x in zip(*list_of_series))
     features_to_use = ["amplitude", "std_err"]
     meta_features = pd.DataFrame({"meta1": [0.5] * n_series, "meta2": [0.8] * n_series})
     fset = featurize.featurize_time_series(

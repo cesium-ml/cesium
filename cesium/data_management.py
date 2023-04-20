@@ -162,7 +162,7 @@ def parse_and_store_ts_data(
             t, m, e = parse_ts_data(ts_path, sep)
             ts_label = labels.loc[fname]
             ts_meta_features = meta_features.loc[fname]
-            ts_path = "{}.npz".format(fname)
+            ts_path = f"{fname}.npz"
             ts_path = os.path.join(output_dir, ts_path)
             ts = TimeSeries(t, m, e, ts_label, ts_meta_features, fname, ts_path)
             ts.save(ts_path)

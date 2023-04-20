@@ -16,6 +16,7 @@ external
 doc/_build
 doc/api
 doc/feature_table.rst
+doc/auto_examples
 dist
 .egg
 .coverage
