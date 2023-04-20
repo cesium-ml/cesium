@@ -14,6 +14,7 @@ Summary
 -------
 
 `cesium` is an open source library that allows users to:
+
 - extract features from raw time series data (`see the feature table <./feature_table.html>`_),
 - build machine learning models from these features, and
 - generate predictions for new data.
