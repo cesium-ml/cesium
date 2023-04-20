@@ -228,6 +228,7 @@ def test_impute():
     npt.assert_allclose(fset.amplitude.values, imputed.amplitude.values)
     assert isinstance(imputed, pd.DataFrame)
 
+    fset = fset.copy()  # otherwise .values assignment below does not work
     fset.amplitude.values[0] = np.inf
     fset.amplitude.values[1] = np.nan
     amp_values = fset.amplitude.values[2:]
