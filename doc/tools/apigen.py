@@ -19,7 +19,7 @@ from types import BuiltinFunctionType, FunctionType
 DEBUG = True
 
 
-class ApiDocWriter(object):
+class ApiDocWriter:
     """Class for automatic detection and parsing of API docs
     to Sphinx-parsable reST format"""
 
@@ -299,7 +299,7 @@ class ApiDocWriter(object):
                 continue
             # write out to file
             outfile = os.path.join(outdir, m + self.rst_extension)
-            with open(outfile, "wt") as fileobj:
+            with open(outfile, "w") as fileobj:
                 fileobj.write(api_str)
             written_modules.append(m)
         self.written_modules = written_modules
@@ -355,7 +355,7 @@ class ApiDocWriter(object):
         else:
             relpath = outdir
         print("outdir: ", relpath)
-        with open(path, "wt") as idx:
+        with open(path, "w") as idx:
             w = idx.write
             w(".. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n")
 

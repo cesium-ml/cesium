@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # cesium documentation build configuration file, created by
 # sphinx-quickstart on Thu Jul 23 13:00:45 2015.
@@ -13,10 +12,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from recommonmark.parser import CommonMarkParser
 import sys
 import os
-import shlex
+
+from recommonmark.parser import CommonMarkParser
+
 import cesium
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -80,8 +80,6 @@ author = "The cesium Team"
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-import cesium
-
 version = cesium.__version__
 
 # The full version, including alpha/beta/rc tags.
@@ -138,7 +136,6 @@ todo_include_todos = False
 # Per https://github.com/snide/sphinx_rtd_theme: specify theme if not on RTD
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
 
     html_theme = "sphinx_rtd_theme"
 
@@ -318,12 +315,12 @@ texinfo_documents = [
 # -- Build cesium API documentation ----------------------------------------
 sys.path.append(os.path.join(os.path.dirname(__name__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__name__), "tools"))
-package = "cesium"
-module = sys.modules[package]
-from feature_table import write_feature_tables
-from apigen import ApiDocWriter
+from feature_table import write_feature_tables  # noqa: E402
+from apigen import ApiDocWriter  # noqa: E402
 
+package = "cesium"
 outdir = "api"
+module = sys.modules[package]
 docwriter = ApiDocWriter(package)
 docwriter.write_api_docs(outdir)
 docwriter.write_index(outdir, "api", relative_to="api")

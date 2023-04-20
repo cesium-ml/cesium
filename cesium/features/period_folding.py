@@ -80,7 +80,7 @@ def p2p_model(x, y, frequency):
     period.
     """
 
-    sumsqr_diff_unfold = np.sum((np.diff(y) ** 2))
+    sumsqr_diff_unfold = np.sum(np.diff(y) ** 2)
     median_diff = np.median(np.abs(np.diff(y)))
     mad = cf.median_absolute_deviation(y)
     x = x.copy()
