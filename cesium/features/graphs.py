@@ -22,6 +22,7 @@ from .common_functions import (
     kurtosis,
     std,
     weighted_average,
+    weighted_std_dev,
     anderson_darling,
     shapiro_wilk,
 )
@@ -151,6 +152,7 @@ feature_categories = {
         "stetson_k",
         "shapiro_wilk",
         "weighted_average",
+        "weighted_std_dev",
     ],
     "Lomb-Scargle (Periodic)": [
         "fold2P_slope_10percentile",
@@ -283,6 +285,7 @@ dask_feature_graph = {
     "stetson_k": (stetson_k, "m"),
     "shapiro_wilk": (shapiro_wilk, "m", "e"),
     "weighted_average": (weighted_average, "m", "e"),
+    "weighted_std_dev": (weighted_std_dev, "m", "e"),
     # QSO model features
     "qso_model": (qso_fit, "t", "m", "e"),
     "qso_log_chi2_qsonu": (get_qso_log_chi2_qsonu, "qso_model"),
