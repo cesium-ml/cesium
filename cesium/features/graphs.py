@@ -460,6 +460,7 @@ feature_tags = {
     "stetson_k": ["Astronomy", "General"],
     "shapiro_wilk": ["Astronomy", "General"],
     "weighted_average": ["Astronomy", "General"],
+    "weighted_std_dev": ["Astronomy", "General"],
     # QSO model features
     "qso_model": ["Astronomy"],
     "qso_log_chi2_qsonu": ["Astronomy"],
