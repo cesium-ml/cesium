@@ -303,3 +303,15 @@ def test_weighted_average():
     npt.assert_equal(
         f["percent_beyond_1_std"], np.mean(np.abs(stds_from_weighted_avg) > 1.0)
     )
+
+
+def test_weighted_std_dev():
+    """Test weighted std dev."""
+    times, values, errors = irregular_random()
+    f = generate_features(
+        times, values, errors, ["weighted_average", "weighted_std_dev"]
+    )
+    weighted_std_dev = np.sqrt(
+        np.average((values - f["weighted_average"]) ** 2, weights=1.0 / (errors**2))
+    )
+    npt.assert_allclose(f["weighted_std_dev"], weighted_std_dev)
