@@ -15,3 +15,9 @@ How to make a new release of ``cesium``
 
 - The CI will build wheels and upload to PyPi.
   Follow progress at https://github.com/cesium-ml/cesium/actions
+
+
+Trial build of wheels
+---------------------
+
+To build all `cesium` wheels, push to a `maintenance/anyname` branch.
