@@ -76,7 +76,7 @@ def _make_array_if_possible(x):
     of arrays to (p, n) arrays.
     """
     try:
-        x = np.asfarray(x).squeeze()
+        x = np.asarray(x, dtype=float).squeeze()
     except ValueError:
         pass
     return x

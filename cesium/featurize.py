@@ -452,8 +452,8 @@ def save_featureset(fset, path, **kwargs):
             kwargs[k] = []
 
     # Bypass savez to allow for `allow_pickle` keyword
-    # See https://github.com/numpy/numpy/pull/5770
-    np.lib.npyio._savez(path, [], kwargs, compress=True, allow_pickle=False)
+    # See also https://github.com/numpy/numpy/pull/27335
+    np.lib._npyio_impl._savez(path, [], kwargs, compress=True, allow_pickle=False)
 
 
 def load_featureset(path):
