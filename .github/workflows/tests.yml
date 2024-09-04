@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies & configure cesium
         run: |
           pip install --upgrade pip
-          pip install wheel numpy cython requests six python-dateutil pytest pytest-cov mock coverage
+          pip install wheel setuptools_scm numpy cython requests six python-dateutil pytest pytest-cov mock coverage
           make install
           python setup.py build_ext -i
           pip install -e .
