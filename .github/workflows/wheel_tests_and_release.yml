@@ -16,6 +16,9 @@ env:
   CIBW_TEST_COMMAND: pytest --pyargs cesium
   CIBW_ENVIRONMENT: PIP_PREFER_BINARY=1
 
+permissions:
+  contents: read
+
 jobs:
   build_linux_wheels:
     name: Build python ${{ matrix.cibw_python }} ${{ matrix.cibw_arch }} wheels on ${{ matrix.os }}
@@ -155,19 +158,26 @@ jobs:
     needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels]
     if: github.repository_owner == 'cesium-ml' && startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # for softprops/action-gh-release to create GitHub release
+      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.10'
-
-      - name: Install Twine and tools
+      - name: Install build tools
         run: |
           python -m pip install --upgrade pip
-          pip install numpy Cython twine setuptools setuptools_scm
+          pip install build setuptools_scm
+
+      - name: Build the source distribution
+        run: |
+          pyproject-build . --sdist --no-isolation --skip-dependency-check
+          ls -la ${{ github.workspace }}/dist
 
       - uses: actions/download-artifact@v4.1.7
         id: download
@@ -175,18 +185,8 @@ jobs:
           name: wheels
           path: ./dist
 
-      - name: Publish the source distribution on PyPI
-        run: |
-          VERSION=$(git describe --tags)
-          python setup.py sdist
-          ls -la ${{ github.workspace }}/dist
-          # We prefer to release wheels before source because otherwise there is a
-          # small window during which users who pip install cesium will require compilation.
-          twine upload ${{ github.workspace }}/dist/*.whl
-          twine upload ${{ github.workspace }}/dist/cesium-${VERSION:1}.tar.gz
-        env:
-          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@81e9d935c883d0b210363ab89cf05f3894778450 # v1.8.14
 
       - name: Github release
         uses: softprops/action-gh-release@v1
