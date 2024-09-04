@@ -1,6 +1,7 @@
 import contextlib
 import errno
 import os
+import sys
 import tarfile
 import tempfile
 import zipfile
@@ -88,7 +89,8 @@ def extract_time_series(
             x for x in archive.getmembers() if not x.name.startswith((".", "/"))
         ]
         extracted_names = [x.name for x in members_to_extract]
-        archive.extractall(path=extract_dir, members=members_to_extract, filter="data")
+        kwds = {"filter": "data"} if sys.version_info[:2] >= (3, 12) else {}
+        archive.extractall(path=extract_dir, members=members_to_extract, **kwds)
         all_paths = [os.path.join(extract_dir, f) for f in extracted_names]
     elif zipfile.is_zipfile(data_path):
         archive = zipfile.ZipFile(data_path)
