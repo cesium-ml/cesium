@@ -1,4 +1,4 @@
-numpy>=1.14.3
+numpy>=2.0,<3.0
 scipy>=0.16.0
 scikit-learn>=0.22.1
 pandas>=0.17.0
@@ -7,4 +7,3 @@ toolz
 gatspy>=0.3.0
 cloudpickle
 joblib>=0.14.1
-setuptools-scm>=7.1.0

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm", "numpy", "Cython>=0.25"]
+requires = ["setuptools", "setuptools_scm", "numpy>=2.0,<3.0", "Cython>=3.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -26,7 +26,6 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
 ]
-
 dynamic = ["version", "dependencies"]
 
 [project.urls]
