@@ -138,7 +138,7 @@ jobs:
           # -Wl,-S equivalent to gcc's -Wl,--strip-debug
           LDFLAGS: "-Wl,-S"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: ./dist/*.whl
@@ -169,7 +169,7 @@ jobs:
           pyproject-build . --sdist --no-isolation --skip-dependency-check
           ls -la ${{ github.workspace }}/dist
 
-      - uses: actions/download-artifact@v4.1.7
+      - uses: actions/download-artifact@v4
         id: download
         with:
           name: wheels
