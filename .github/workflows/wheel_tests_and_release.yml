@@ -53,7 +53,7 @@ jobs:
           CESIUM_LINK_FLAGS: "-Wl,--strip-debug"
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-linux-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
           path: ./dist/*.whl
 
   build_macos_wheels:
@@ -102,7 +102,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-macos-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
           path: ./dist/*.whl
 
   build_windows_wheels:
@@ -140,7 +140,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-windows-${{ matrix.cibw_arch }}-${{ strategy.job-index }}
           path: ./dist/*.whl
 
   deploy:
@@ -172,7 +172,8 @@ jobs:
       - uses: actions/download-artifact@v4
         id: download
         with:
-          name: wheels
+          pattern: wheels-*
+          merge-multiple: true
           path: ./dist
 
       - name: Publish package distributions to PyPI
